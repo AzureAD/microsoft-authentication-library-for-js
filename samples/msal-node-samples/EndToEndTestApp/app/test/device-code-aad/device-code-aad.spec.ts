@@ -16,8 +16,8 @@ import {
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
 
-let username: string;
-let accountPwd: string;
+let username: string = "IDLAB@msidlab4.onmicrosoft.com";
+let accountPwd: string = "Yuga#664";
 
 describe('Device Code AAD PPE Tests', () => {
     jest.setTimeout(60000);
@@ -30,14 +30,14 @@ describe('Device Code AAD PPE Tests', () => {
     beforeAll(async() => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
 
-        const labApiParms: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
-            appType: AppTypes.CLOUD,
-        };
+        // const labApiParms: LabApiQueryParams = {
+        //     azureEnvironment: AzureEnvironments.PPE,
+        //     appType: AppTypes.CLOUD,
+        // };
 
-        const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(labApiParms);
-        [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
+        // const labClient = new LabClient();
+        // const envResponse = await labClient.getVarsByCloudEnvironment(labApiParms);
+        // [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
 
         browser = await puppeteer.launch({
                 headless: true,
@@ -72,10 +72,9 @@ describe('Device Code AAD PPE Tests', () => {
             device.kill();
             await page.close();
             await context.close();
-            NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+            // NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
 
-        it("Acquires token through the Device Code flow", async () => {
             const deviceCode: string = await new Promise((resolve) => {
                 const intervalId = setInterval(() => {
                     const code = extractDeviceCode(Buffer.concat(stream).toString());

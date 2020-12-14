@@ -14,7 +14,8 @@ const argv = yargs(process.argv).options({
     p: { type: "number", alias: "port"}
 }).argv;
 
-const { readScenarioNames, readTestFiles } = require("./sampleUtils.js");
+const { readScenarioNames, readScenarioType, readTestFiles } = require("./sampleUtils.js");
+const { CLI_APP_TYPE } = require("./constants.js");
 const { runSample } = require("./index.js");
 
 const scenarios = readScenarioNames();
@@ -58,8 +59,9 @@ async function testScenario (scenario: string): Promise<any> {
     const testCacheLocation = `${__dirname}/app/test/${scenario}/data/testCache.json`;
     const testLocation = `./app/test/${scenario}`;
 
-    // TODO: Improve this check to cater to all CLI implementations
-    if (scenario === 'device-code-aad') {
+    // If the scenarion is a CLI application we expect the test suite to 
+    // run the cli itself to best capture the output from the CLI
+    if (readScenarioType(scenario) === CLI_APP_TYPE) {
         const args = {
             _: [] as any[],
             $0: '',
@@ -67,7 +69,7 @@ async function testScenario (scenario: string): Promise<any> {
             testTimeout: 30000
         };
         // Run tests for current scenario
-        return await runCLI(args as Config.Argv, [testLocation]).then(results => results); 
+        return await runCLI(args as Config.Argv, [testLocation]); 
     }
 
     // Execute sample application under scenario configuration

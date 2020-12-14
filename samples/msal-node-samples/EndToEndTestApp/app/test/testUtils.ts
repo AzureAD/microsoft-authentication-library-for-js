@@ -17,7 +17,7 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
     await page.type("#i0118", accountPwd);
     await screenshot.takeScreenshot(page, `pwdFilledOut`);
     await page.click("#idSIButton9");
-    await screenshot.takeScreenshot(page, `pwdSubmitted`);
+    await takeScreenshotAfter(3000, screenshot, page, `pwdSubmitted`)
 }
 
 export async function clickSignIn(page: Page, screenshot: Screenshot): Promise<void> {
@@ -53,4 +53,8 @@ export function extractDeviceCode(output: string): string | null {
     }
 
     return null;
+}
+
+export function takeScreenshotAfter(duration: number, screenshot: Screenshot, page: Page, label: string): Promise<void> {
+    return new Promise(resolve => setTimeout(() => screenshot.takeScreenshot(page, label).then(() => resolve()), duration));
 }

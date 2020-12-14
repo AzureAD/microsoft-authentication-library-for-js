@@ -20,8 +20,22 @@ function readScenarios() {
     });
 }
 
+function readScenarioType(scenario) {
+    const scenarios = readScenarios();
+    const scenarioFileName = generateScenarioFileName(scenario);
+
+    if (scenarios.includes(scenarioFileName)) {
+       const scenarioConfig = require(`${Constants.SCENARIOS_DIR}/${scenarioFileName}`);
+       return scenarioConfig.sample.appType; 
+    }
+
+    console.error(`ERROR: Scenario ${scenario} not found.\n`);
+    return null;
+}
+
 module.exports = {
     readScenarios: readScenarios,
+    readScenarioType: readScenarioType,
     readScenarioNames: function () {
         return readScenarios().map(function (scenarioName) {
             return scenarioName.split(".")[0];
