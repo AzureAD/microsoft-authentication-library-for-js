@@ -19,9 +19,8 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 - Navigate to [http://localhost:4200](http://localhost:4200)
 - In the web page, click on the "Login" button. The app will automatically reload if you change any of the source files.
 
+## Running the sample with Angular Universal SSR
+Please see instructions from the [Angular docs](https://angular.io/guide/universal) on how to install Angular Universal with this existing sample, and our [Angular Universal doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/angular-universal.md) for using Angular Universal with MSAL Angular. Comments have been added to this sample where adjustments need to be made. 
+
 ## Additional notes
 - The default interaction type for the sample is redirect. The sample can be configured to use popups by changing the `interactionType` in `app.module.ts` to `InteractionType.Popup`. 
-- **To use sample with Angular Universal SSR**: Please see instructions from the [Angular docs](https://angular.io/guide/universal) on how to install Angular Universal with this existing sample. All lines with references to `window` will also need to be removed. Comments indicating the lines to be removed can be found on these pages:
-  - [`app-routing.module.ts`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app-routing.module.ts)
-  - [`app.component.ts`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app.component.ts)
-  - [`app.module.ts`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app.module.ts)
