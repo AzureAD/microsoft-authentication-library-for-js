@@ -1,9 +1,10 @@
 /*
-*  Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license.
-*  See LICENSE in the source repository root for complete license information.
-*/
-const fs = require('fs');
-const Constants = require('./constants');
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+const fs = require("fs");
+const Constants = require("./constants");
 
 // Check if scenario name already has extension or add it
 function generateScenarioFileName(scenario) {
