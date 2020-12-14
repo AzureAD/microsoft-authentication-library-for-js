@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { Screenshot } from "../../../../e2eTestUtils/TestUtils";
 import { Page } from "puppeteer";
 
@@ -21,11 +26,11 @@ export async function clickSignIn(page: Page, screenshot: Screenshot): Promise<v
 
 export async function enterCredentialsADFS(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
     await page.waitForSelector("#i0116");
-    await screenshot.takeScreenshot(page, `loginPage`);
+    await screenshot.takeScreenshot(page, "loginPage");
     await page.type("#i0116", username);
     await page.click("#idSIButton9");
     await page.waitForSelector("#userNameInput");
-    await screenshot.takeScreenshot(page, `adfsUsernameInputPage`);
+    await screenshot.takeScreenshot(page, "adfsUsernameInputPage");
     await page.type("#passwordInput", accountPwd);
     await page.click("#submitButton");
 }
@@ -33,6 +38,6 @@ export async function enterCredentialsADFS(page: Page, screenshot: Screenshot, u
 // Constants
 
 export const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
-export const SAMPLE_HOME_URL = 'http://localhost:3000';
+export const SAMPLE_HOME_URL = "http://localhost:3000";
 export const SUCCESSFUL_GRAPH_CALL_ID = "graph-called-successfully";
 export const SUCCESSFUL_GET_ALL_ACCOUNTS_ID = "accounts-retrieved-successfully";

@@ -1,0 +1,8 @@
+{
+  "type": "prerelease",
+  "comment": "Fix npm audit warnings",
+  "packageName": "@azure/msal-node-extensions",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2020-10-30T22:28:34.853Z"
+}
