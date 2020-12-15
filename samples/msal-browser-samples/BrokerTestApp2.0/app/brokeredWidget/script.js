@@ -60,7 +60,6 @@ function handleResponse(resp) {
 
 const myMSALObj = new msal.PublicClientApplication(msalConfig);
 
-
 myMSALObj.initializeBrokering().then(() => {
         // Must ensure that initialize has completed before calling any other MSAL functions
     myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
@@ -74,12 +73,21 @@ setTimeout(() => {
 
     setTimeout(async () => {
         let exit = false;
-        await myMSALObj.ssoSilent({ loginHint: "" })
-            .catch(err => {
-                console.error(err);
-                contentElement.innerHTML = "I am unable to get data, from where I sit, the Identity provider does not think I am logged in";
-                exit = true;
-            })
+        const loginReq = { 
+            scopes: ["openid", "profile", "User.Read"],
+            loginHint: "" 
+        };
+        await myMSALObj.ssoSilent(loginReq).catch(async (err) => {
+            console.error(err);
+            if (err instanceof msal.InteractionRequiredAuthError) {
+                return await myMSALObj.loginPopup(loginReq).catch(err => {
+                    console.error(err);
+                });
+            }
+            contentElement.innerHTML = "I am unable to get data, from where I sit, the Identity provider does not think I am logged in";
+            exit = true;
+        });
+
         if (exit) {
             return;
         }

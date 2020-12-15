@@ -8,6 +8,7 @@ import { PopupRequest } from "../../../request/PopupRequest";
 import { RedirectRequest } from "../../../request/RedirectRequest";
 import { BrokerMessage } from "../BrokerMessage";
 import { SilentRequest } from "../../../request/SilentRequest";
+import { SsoSilentRequest } from "../../../request/SsoSilentRequest";
 
 /**
  * Message type for auth requests
@@ -16,9 +17,9 @@ export class BrokerAuthRequest extends BrokerMessage {
     public embeddedClientId: string;
     public embeddedAppRedirectUri: string;
     public interactionType: InteractionType;
-    public request: RedirectRequest | PopupRequest | SilentRequest;
+    public request: RedirectRequest | PopupRequest | SsoSilentRequest | SilentRequest;
 
-    constructor(embeddedClientId: string, embeddedAppRedirectUri: string, interactionType: InteractionType, request: RedirectRequest | PopupRequest) {
+    constructor(embeddedClientId: string, embeddedAppRedirectUri: string, interactionType: InteractionType, request: RedirectRequest | PopupRequest | SsoSilentRequest) {
         super(BrokerMessageType.AUTH_REQUEST);
         this.embeddedClientId = embeddedClientId;
         this.embeddedAppRedirectUri = embeddedAppRedirectUri;
