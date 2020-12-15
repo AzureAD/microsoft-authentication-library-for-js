@@ -61,7 +61,7 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
                 instance.removeEventCallback(callbackId);
             }
         };
-    }, [instance, accounts]);
+    }, [instance, accounts, logger]);
 
     useEffect(() => {
         const callbackId = instance.addEventCallback((message: EventMessage) => {
@@ -119,7 +119,7 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
                 instance.removeEventCallback(callbackId);
             }
         };
-    }, [instance]);
+    }, [instance, logger]);
 
     const contextValue: IMsalContext = {
         instance,

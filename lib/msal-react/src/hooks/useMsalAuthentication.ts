@@ -43,7 +43,7 @@ export function useMsalAuthentication(
             default:
                 throw "Invalid interaction type provided.";
         }
-    }, [instance, interactionType, authenticationRequest]);
+    }, [instance, interactionType, authenticationRequest, logger]);
 
     useEffect(() => {
         const callbackId = instance.addEventCallback((message: EventMessage) => {
@@ -70,7 +70,7 @@ export function useMsalAuthentication(
                 instance.removeEventCallback(callbackId);
             }
         };
-    }, [instance]);
+    }, [instance, logger]);
 
     useEffect(() => {
         if (!hasBeenCalled && !isAuthenticated && inProgress === InteractionStatus.None) {
@@ -82,7 +82,7 @@ export function useMsalAuthentication(
                 return;
             });
         }
-    }, [isAuthenticated, inProgress, hasBeenCalled, login]);
+    }, [isAuthenticated, inProgress, hasBeenCalled, login, logger]);
 
     return { login, result, error };
 }
