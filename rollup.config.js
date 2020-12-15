@@ -1,10 +1,15 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import typescript from "rollup-plugin-typescript2";
-import { uglify } from "rollup-plugin-uglify";
-import json from '@rollup/plugin-json';
+import { terser } from "rollup-plugin-terser";
+import json from "@rollup/plugin-json";
 import pkg from "./package.json";
 
-const libraryHeader = `/*! ${pkg.name} v${pkg.version} ${new Date().toISOString().split('T')[0]} */`;
-const useStrictHeader = `'use strict';`;
+const libraryHeader = `/*! ${pkg.name} v${pkg.version} ${new Date().toISOString().split("T")[0]} */`;
+const useStrictHeader = "'use strict';";
 const fileHeader = `${libraryHeader}\n${useStrictHeader}`;
 
 export default [
@@ -37,7 +42,7 @@ export default [
         ],
         plugins: [
             typescript({
-                typescript: require('typescript')
+                typescript: require("typescript")
             }),
             json()
         ]
@@ -60,14 +65,14 @@ export default [
         ],
         plugins: [
             typescript({
-                typescript: require('typescript')
+                typescript: require("typescript")
             }),
             json(),
-            uglify({
+            terser({
                 output: {
                     preamble: libraryHeader
                 }
             })
         ]
     }
-]
+];
