@@ -28,8 +28,8 @@ export interface IPublicClientApplication {
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
     getLogger(): Logger;
     setLogger(logger: Logger): void;
-    setActiveAccount(account: AccountInfo): void;
-    getActiveAccount(): AccountInfo;
+    setActiveAccount(account: AccountInfo | null): void;
+    getActiveAccount(): AccountInfo | null;
 }
 
 export const stubbedPublicClientApplication: IPublicClientApplication = {
