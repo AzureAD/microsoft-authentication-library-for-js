@@ -4,13 +4,16 @@
  */
 
 import { AuthorizationCodeClient } from "../AuthorizationCodeClient";
-import { AuthorizationUrlRequest } from "../../request/AuthorizationUrlRequest";
 import { RequestParameterBuilder } from "../../request/RequestParameterBuilder";
-import { AuthorizationCodeRequest } from "../../request/AuthorizationCodeRequest";
 import { StringUtils } from "../../utils/StringUtils";
 import { ClientAuthError } from "../../error/ClientAuthError";
 import { ResponseHandler } from "../../response/ResponseHandler";
 import { BrokerAuthenticationResult } from "../../response/BrokerAuthenticationResult";
+import { BrokeredAuthorizationCodeRequest } from "../../request/broker/BrokeredAuthorizationCodeRequest";
+import { BrokeredAuthorizationUrlRequest } from "../../request/broker/BrokeredAuthorizationUrlRequest";
+import { AuthenticationResult } from "../../response/AuthenticationResult";
+import { AuthenticationScheme, GrantType } from "../../utils/Constants";
+import { PopTokenGenerator } from "../../crypto/PopTokenGenerator";
 import { AuthorizationCodePayload } from "../../response/AuthorizationCodePayload";
 
 /**
@@ -23,7 +26,7 @@ export class BrokerAuthorizationCodeClient extends AuthorizationCodeClient {
      * authorization_code_grant
      * @param request
      */
-    async acquireToken(request: AuthorizationCodeRequest, authCodePayload?: AuthorizationCodePayload): Promise<BrokerAuthenticationResult> {
+    async acquireToken(request: BrokeredAuthorizationCodeRequest, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult | BrokerAuthenticationResult | null> {
         this.logger.info("in acquireToken call");
         // If no code response is given, we cannot acquire a token.
         if (!request || StringUtils.isEmpty(request.code)) {
@@ -43,40 +46,136 @@ export class BrokerAuthorizationCodeClient extends AuthorizationCodeClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        return await responseHandler.handleBrokeredServerTokenResponse(response.body, this.authority, authCodePayload, request.scopes);
+        if (!request.embeddedAppClientId) {
+            return await responseHandler.handleServerTokenResponse(response.body, this.authority, undefined, undefined, authCodePayload, request.scopes);
+        } else {
+            return await responseHandler.handleBrokeredServerTokenResponse(response.body, this.authority, authCodePayload, request.scopes);
+        }
     }
 
     /**
      * This API validates the `AuthorizationCodeUrlRequest` and creates a URL
      * @param request
      */
-    protected createAuthCodeUrlQueryString(request: AuthorizationUrlRequest): string {
+    protected createAuthCodeUrlQueryString(request: BrokeredAuthorizationUrlRequest): string {
+        if (!request.embeddedAppClientId) {
+            return super.createAuthCodeUrlQueryString(request);
+        }
         const parameterBuilder = new RequestParameterBuilder();
 
-        // TODO: Add broker params here
+        parameterBuilder.addClientId(request.embeddedAppClientId);
 
-        const authCodeUrlQueryString = parameterBuilder.createQueryString();
-        return StringUtils.isEmpty(authCodeUrlQueryString) ? 
-            // No broker params
-            super.createAuthCodeUrlQueryString(request) : 
-            // Append broker params to other request params
-            `${super.createAuthCodeUrlQueryString(request)}&${authCodeUrlQueryString}`;
+        const requestScopes = [...request.scopes || [], ...request.extraScopesToConsent || []];
+        parameterBuilder.addScopes(requestScopes);
+
+        // validate the redirectUri (to be a non null value)
+        parameterBuilder.addRedirectUri(request.redirectUri, this.config.authOptions.clientId);
+
+        // generate the correlationId if not set by the user and add
+        const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
+        parameterBuilder.addCorrelationId(correlationId);
+
+        // add response_mode. If not passed in it defaults to query.
+        parameterBuilder.addResponseMode(request.responseMode);
+
+        // add response_type = code
+        parameterBuilder.addResponseTypeCode();
+
+        // add library info parameters
+        parameterBuilder.addLibraryInfo(this.config.libraryInfo);
+
+        // add client_info=1
+        parameterBuilder.addClientInfo();
+
+        if (request.codeChallenge && request.codeChallengeMethod) {
+            parameterBuilder.addCodeChallengeParams(request.codeChallenge, request.codeChallengeMethod);
+        }
+
+        if (request.prompt) {
+            parameterBuilder.addPrompt(request.prompt);
+        }
+
+        if (request.domainHint) {
+            parameterBuilder.addDomainHint(request.domainHint);
+        }
+
+        // Add sid or loginHint with preference for sid -> loginHint -> username of AccountInfo object
+        if (request.sid) {
+            parameterBuilder.addSid(request.sid);
+        } else if (request.loginHint) {
+            parameterBuilder.addLoginHint(request.loginHint);
+        } else if (request.account && request.account.username) {
+            parameterBuilder.addLoginHint(request.account.username);
+        }
+
+        if (request.nonce) {
+            parameterBuilder.addNonce(request.nonce);
+        }
+
+        if (request.state) {
+            parameterBuilder.addState(request.state);
+        }
+
+        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+            parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
+        }
+
+        if (request.extraQueryParameters) {
+            parameterBuilder.addExtraQueryParameters(request.extraQueryParameters);
+        }
+
+        // Add broker params
+        parameterBuilder.addBrokerClientId(this.config.authOptions.clientId);
+        parameterBuilder.addBrokerRedirectUri(request.brokerRedirectUri);
+
+        return parameterBuilder.createQueryString();
     }
 
     /**
      * Generates a map for all the params to be sent to the service
      * @param request
      */
-    protected async createTokenRequestBody(request: AuthorizationCodeRequest): Promise<string> {
+    protected async createTokenRequestBody(request: BrokeredAuthorizationCodeRequest): Promise<string> {
+        if (!request.embeddedAppClientId) {
+            return super.createTokenRequestBody(request);
+        }
         const parameterBuilder = new RequestParameterBuilder();
+        parameterBuilder.addClientId(request.embeddedAppClientId);
 
-        // TODO: Add broker params
+        // validate the redirectUri (to be a non null value)
+        parameterBuilder.addRedirectUri(request.redirectUri, this.config.authOptions.clientId);
 
-        const tokenRequestString = parameterBuilder.createQueryString();
-        return StringUtils.isEmpty(tokenRequestString) ? 
-            // No broker params
-            super.createTokenRequestBody(request) : 
-            // Append broker params to other request params
-            `${super.createTokenRequestBody(request)}&${tokenRequestString}`;
+        // Add scope array, parameter builder will add default scopes and dedupe
+        parameterBuilder.addScopes(request.scopes);
+
+        // add code: user set, not validated
+        parameterBuilder.addAuthorizationCode(request.code);
+
+        // add code_verifier if passed
+        if (request.codeVerifier) {
+            parameterBuilder.addCodeVerifier(request.codeVerifier);
+        }
+
+        parameterBuilder.addGrantType(GrantType.AUTHORIZATION_CODE_GRANT);
+        parameterBuilder.addClientInfo();
+
+        if (request.authenticationScheme === AuthenticationScheme.POP && !!request.resourceRequestMethod && !!request.resourceRequestUri) {
+            const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
+            const cnfString = await popTokenGenerator.generateCnf(request.resourceRequestMethod, request.resourceRequestUri);
+            parameterBuilder.addPopToken(cnfString);
+        }
+
+        const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
+        parameterBuilder.addCorrelationId(correlationId);
+
+        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+            parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
+        }
+
+        // Add broker params
+        parameterBuilder.addBrokerClientId(this.config.authOptions.clientId);
+        parameterBuilder.addBrokerRedirectUri(request.brokerRedirectUri);
+
+        return parameterBuilder.createQueryString();
     }
 }

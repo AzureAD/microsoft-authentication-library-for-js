@@ -3,9 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { BrokerMessage } from "./BrokerMessage";
-import { BrokerMessageType } from "../utils/BrowserConstants";
+import { BrokerMessage } from "../BrokerMessage";
+import { BrokerMessageType } from "../../../utils/BrowserConstants";
 
+/**
+ * Message type for handshake requests
+ */
 export class BrokerHandshakeRequest extends BrokerMessage {
     public embeddedClientId: string;
     public version: string;

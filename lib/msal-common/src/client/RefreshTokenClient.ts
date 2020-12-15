@@ -101,7 +101,7 @@ export class RefreshTokenClient extends BaseClient {
      * makes a network call to acquire tokens by exchanging RefreshToken available in userCache; throws if refresh token is not cached
      * @param request
      */
-    private async acquireTokenWithCachedRefreshToken(request: SilentFlowRequest, foci: boolean) {
+    protected async acquireTokenWithCachedRefreshToken(request: SilentFlowRequest, foci: boolean) {
         // fetches family RT or application RT based on FOCI value
         const refreshToken = this.cacheManager.readRefreshTokenFromCache(this.config.authOptions.clientId, request.account, foci);
 
@@ -135,7 +135,7 @@ export class RefreshTokenClient extends BaseClient {
             scopes: request.scopes
         };
 
-        return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
+        return this.executePostToTokenEndpoint(authority.tokenEndpoint+"?dc=ESTS-PUB-WUS2-AZ1-TEST1", requestBody, headers, thumbprint);
     }
 
     /**

@@ -40,7 +40,7 @@ brokerApp.use(morgan('dev'));
 brokeredApp.use("/lib", express.static(path.join(__dirname, "../../../lib/msal-browser/lib")));
 brokerApp.use("/lib", express.static(path.join(__dirname, "../../../lib/msal-browser/lib")));
 
-brokeredApp.use(express.static('app/brokeredApp'));
+brokeredApp.use(express.static('app/brokeredWidget'));
 brokerApp.use(express.static('app/brokerApp'));
 
 // Set up a route for index.html.

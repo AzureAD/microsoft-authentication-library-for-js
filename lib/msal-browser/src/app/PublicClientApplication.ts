@@ -10,8 +10,8 @@ import { IPublicClientApplication } from "./IPublicClientApplication";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { ClientApplication } from "./ClientApplication";
-import { BrokerClientApplication } from "../broker/BrokerClientApplication";
-import { EmbeddedClientApplication } from "../broker/EmbeddedClientApplication";
+import { BrokerClientApplication } from "../broker/client/BrokerClientApplication";
+import { EmbeddedClientApplication } from "../broker/client/EmbeddedClientApplication";
 import { SilentRequest } from "../request/SilentRequest";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { EventType } from "../event/EventType";
@@ -59,15 +59,15 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             return;
         }
 
-        if (this.config.system.brokerOptions.actAsBroker && !BrowserUtils.isInIframe()) {
-            if(this.config.system.brokerOptions.allowBrokering) {
+        if (this.config.experimental.brokerOptions.actAsBroker && !BrowserUtils.isInIframe()) {
+            if(this.config.experimental.brokerOptions.allowBrokering) {
                 this.logger.verbose("Running in top frame and both actAsBroker, allowBrokering flags set to true. actAsBroker takes precedence.");
             }
 
             this.broker = new BrokerClientApplication(this.config);
             this.logger.verbose("Acting as Broker");
             this.broker.listenForBrokerMessage();
-        } else if (this.config.system.brokerOptions.allowBrokering) {
+        } else if (this.config.experimental.brokerOptions.allowBrokering) {
             this.embeddedApp = new EmbeddedClientApplication(this.config, this.logger, this.browserStorage);
             this.logger.verbose("Acting as child");
             await this.embeddedApp.initiateHandshake();

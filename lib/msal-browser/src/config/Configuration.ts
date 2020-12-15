@@ -5,7 +5,7 @@
 
 import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode, LogLevel } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
-import { BrowserCacheLocation, InteractionType } from "../utils/BrowserConstants";
+import { InteractionType, BrowserCacheLocation } from "../utils/BrowserConstants";
 
 // Default timeout for popup windows and iframes in milliseconds
 export const DEFAULT_POPUP_TIMEOUT_MS = 60000;
@@ -77,7 +77,6 @@ export type BrokerOptions = {
  */
 export type BrowserSystemOptions = SystemOptions & {
     loggerOptions?: LoggerOptions;
-    brokerOptions?: BrokerOptions;
     networkClient?: INetworkModule;
     windowHashTimeout?: number;
     iframeHashTimeout?: number;
@@ -88,6 +87,10 @@ export type BrowserSystemOptions = SystemOptions & {
     allowRedirectInIframe?: boolean;
 };
 
+export type ExperimentalOptions = {
+    brokerOptions?: BrokerOptions;
+};
+
 /**
  * Use the configuration object to configure MSAL and initialize the UserAgentApplication.
  *
@@ -95,17 +98,20 @@ export type BrowserSystemOptions = SystemOptions & {
  * - auth: this is where you configure auth elements like clientID, authority used for authenticating against the Microsoft Identity Platform
  * - cache: this is where you configure cache location and whether to store cache in cookies
  * - system: this is where you can configure the network client, logger, token renewal offset
+ * - experimental: this is where you can experiment with new featueres (i.e. broker)
  */
 export type Configuration = {
-    auth?: BrowserAuthOptions,
-    cache?: CacheOptions,
-    system?: BrowserSystemOptions
+    auth?: BrowserAuthOptions;
+    cache?: CacheOptions;
+    system?: BrowserSystemOptions;
+    experimental?: ExperimentalOptions;
 };
 
 export type BrowserConfiguration = {
     auth: Required<BrowserAuthOptions>,
     cache: Required<CacheOptions>,
-    system: Required<BrowserSystemOptions>
+    system: Required<BrowserSystemOptions>,
+    experimental?: Required<ExperimentalOptions>;
 };
 
 /**
@@ -117,7 +123,7 @@ export type BrowserConfiguration = {
  *
  * @returns Configuration object
  */
-export function buildConfiguration({ auth: userInputAuth, cache: userInputCache, system: userInputSystem }: Configuration): BrowserConfiguration {
+export function buildConfiguration({ auth: userInputAuth, cache: userInputCache, system: userInputSystem, experimental: userExperimental }: Configuration): BrowserConfiguration {
 
     // Default auth options for browser
     const DEFAULT_AUTH_OPTIONS: Required<BrowserAuthOptions> = {
@@ -158,14 +164,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     // Default system options for browser
     const DEFAULT_BROWSER_SYSTEM_OPTIONS: Required<BrowserSystemOptions> = {
         ...DEFAULT_SYSTEM_OPTIONS,
-        loggerOptions: {
-            ...DEFAULT_LOGGER_OPTIONS,
-            ...((userInputSystem && userInputSystem.loggerOptions) || {}),
-        },
-        brokerOptions: {
-            ...DEFAULT_BROKER_OPTIONS,
-            ...((userInputSystem && userInputSystem.brokerOptions) || {}),
-        },
+        loggerOptions: DEFAULT_LOGGER_OPTIONS,
         networkClient: BrowserUtils.getBrowserNetworkClient(),
         loadFrameTimeout: 0,
         // If loadFrameTimeout is provided, use that as default.
@@ -177,12 +176,28 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         allowRedirectInIframe: false
     };
 
+    const DEFAULT_EXPERIMENTAL_OPTIONS: ExperimentalOptions = {
+        brokerOptions: DEFAULT_BROKER_OPTIONS
+    };
+
     const overlayedConfig: BrowserConfiguration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...userInputAuth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
         system: { 
             ...DEFAULT_BROWSER_SYSTEM_OPTIONS, 
-            ...userInputSystem
+            ...userInputSystem,
+            loggerOptions: {
+                ...DEFAULT_LOGGER_OPTIONS, 
+                ...((userInputSystem && userInputSystem.loggerOptions) || {}),
+            }
+        },
+        experimental: {
+            ...DEFAULT_EXPERIMENTAL_OPTIONS,
+            ...userExperimental,
+            brokerOptions: {
+                ...DEFAULT_BROKER_OPTIONS,
+                ...((userExperimental && userExperimental.brokerOptions) || {}),
+            }
         }
     };
     return overlayedConfig;

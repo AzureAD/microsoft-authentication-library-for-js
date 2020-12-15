@@ -3,11 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationUrlRequest } from "@azure/msal-common";
+import { BrokeredAuthorizationUrlRequest } from "@azure/msal-common";
+import { RedirectRequest } from "../../request/RedirectRequest";
 
 /**
- * PopupRequest: Request object passed by user to retrieve a Code from the
- * server (first leg of authorization code grant flow) with a popup window.
+ * RedirectRequest: Request object passed by user to retrieve a Code from the
+ * server (first leg of authorization code grant flow) with a full page redirect.
  * 
  * - scopes                     - Array of scopes the application is requesting access to.
  * - authority                  - Url of the authority which the application acquires tokens from.
@@ -29,8 +30,6 @@ import { AuthorizationUrlRequest } from "@azure/msal-common";
  * - extraQueryParameters       - String to string map of custom query parameters.
  * - claims                     - In cases where Azure AD tenant admin has enabled conditional access policies, and the policy has not been met, exceptions will contain claims that need to be consented to.
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
+ * - redirectStartPage          - The page that should be returned to after loginRedirect or acquireTokenRedirect. This should only be used if this is different from the redirectUri and will default to the page that initiates the request. When the navigateToLoginRequestUrl config option is set to false this parameter will be ignored.
  */
-
-export type BrowserAuthRequest = AuthorizationUrlRequest & {
-    embeddedAppClientId?: string
-};
+export type BrokerRedirectRequest = BrokeredAuthorizationUrlRequest & RedirectRequest;

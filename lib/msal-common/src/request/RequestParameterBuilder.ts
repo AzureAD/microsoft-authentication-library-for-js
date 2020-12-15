@@ -10,6 +10,7 @@ import { StringDict } from "../utils/MsalTypes";
 import { RequestValidator } from "./RequestValidator";
 import { LibraryInfo } from "../config/ClientConfiguration";
 import { StringUtils } from "../utils/StringUtils";
+import { UrlString } from "../url/UrlString";
 
 export class RequestParameterBuilder {
 
@@ -59,12 +60,34 @@ export class RequestParameterBuilder {
     }
 
     /**
+     * Add clientId for broker
+     * @param clientId 
+     */
+    addBrokerClientId(clientId: string) {
+        this.parameters.set(AADServerParamKeys.BROKER_CLIENT_ID, encodeURIComponent(clientId));
+    }
+
+    /**
      * add redirect_uri
      * @param redirectUri
      */
-    addRedirectUri(redirectUri: string): void {
+    addRedirectUri(redirectUri: string, clientId?: string): void {
         RequestValidator.validateRedirectUri(redirectUri);
-        this.parameters.set(AADServerParamKeys.REDIRECT_URI, encodeURIComponent(redirectUri));
+        if (!clientId) {
+            this.parameters.set(AADServerParamKeys.REDIRECT_URI, encodeURIComponent(redirectUri));
+        } else {
+            const urlString = new UrlString(redirectUri);
+            const brokerRedirectUri = `brk-${clientId}://${urlString.getUrlComponents().HostNameAndPort}`;
+            this.parameters.set(AADServerParamKeys.REDIRECT_URI, encodeURIComponent(brokerRedirectUri));
+        }
+    }
+
+    /**
+     * add redirect_uri
+     * @param redirectUri
+     */
+    addBrokerRedirectUri(redirectUri: string): void {
+        this.parameters.set(AADServerParamKeys.BROKER_REDIRECT_URI, encodeURIComponent(redirectUri));
     }
 
     /**

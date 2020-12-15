@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { BrokerMessageType } from "../utils/BrowserConstants";
+import { BrokerMessageType } from "../../utils/BrowserConstants";
 
 export abstract class BrokerMessage {
     public messageType: string;

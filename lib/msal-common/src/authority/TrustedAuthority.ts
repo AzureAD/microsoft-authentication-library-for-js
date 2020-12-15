@@ -58,7 +58,7 @@ export class TrustedAuthority {
             // Custom Domain scenario, host is trusted because Instance Discovery call succeeded 
             this.createCloudDiscoveryMetadataFromKnownAuthorities([host]);
         }
-    } 
+    }
 
     /**
      * 
