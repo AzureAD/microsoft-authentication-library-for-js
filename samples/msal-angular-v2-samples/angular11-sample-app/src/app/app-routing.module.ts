@@ -3,6 +3,7 @@ import { Routes, RouterModule } from '@angular/router';
 import { ProfileComponent } from './profile/profile.component';
 import { HomeComponent } from './home/home.component';
 import { MsalGuard } from '@azure/msal-angular';
+import { DetailComponent } from './detail/detail.component';
 
 const routes: Routes = [
   {
@@ -10,6 +11,16 @@ const routes: Routes = [
     component: ProfileComponent,
     canActivate: [
       MsalGuard
+    ]
+  },
+  {
+    path: 'profile',
+    canActivateChild: [MsalGuard],
+    children: [
+      {
+        path: 'detail',
+        component: DetailComponent
+      }
     ]
   },
   {
