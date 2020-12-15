@@ -23,6 +23,11 @@ const routes: Routes = [
       }
     ]
   },
+  { 
+    path: 'lazyLoad', 
+    loadChildren: () => import('./lazy/lazy.module').then(m => m.LazyModule),
+    canLoad: [MsalGuard]
+  },
   {
     // Needed for hash routing
     path: 'code',
