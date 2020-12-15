@@ -1,6 +1,6 @@
 # Angular 11 MSAL Angular 2.x B2C Sample
 
-This developer sample is used to demonstrate how to use MSAL-Angular v2 on Azure AD B2C.
+This developer sample is used to demonstrate how to use `@azure/msal-angular@2` on Azure AD B2C.
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 11.0.1.
 
@@ -8,7 +8,7 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 ### Pre-requisites
 
-- Ensure [all pre-requisites](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/README.md) have been completed to run msal-angular.
+- Ensure [all pre-requisites](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/README.md) have been completed to run msal-angular.
 
 ### B2C App Registration
 

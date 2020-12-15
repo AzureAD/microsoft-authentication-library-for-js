@@ -22,7 +22,7 @@
     "eslint-plugin-react": "^7.21.4",
     "eslint-plugin-react-hooks": "^4.1.2",
     "eslint-plugin-security": "^1.4.0",
-    "lerna": "^3.20.2",
+    "lerna": "^3.22.1",
     "nyc": "^14.1.1",
     "rimraf": "^3.0.0",
     "ts-node": "^8.10.2",
@@ -30,6 +30,8 @@
     "typescript": "^3.9.7"
   },
   "scripts": {
+    "audit": "npm audit && lerna exec \"npm audit\"",
+    "audit:prod": "npm audit && lerna exec \"npm audit --production\"",
     "postinstall": "node build/postinstall.js",
     "build": "lerna run build",
     "build:extensions": "cd extensions/msal-node-extensions/ && npm ci && npm run build",
