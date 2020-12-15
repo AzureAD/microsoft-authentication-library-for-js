@@ -1,13 +1,13 @@
 # Angular 10 MSAL Angular 2.x Sample
 
-This developer sample is used to demonstrate how to use MSAL-Angular v2.
+This developer sample is used to demonstrate how to use `@azure/msal-angular@2`.
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 10.0.6.
 
 ## How to run the sample
 
 ### Pre-requisites
-- Ensure [all pre-requisites](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/README.md) have been completed to run msal-angular.
+- Ensure [all pre-requisites](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/README.md) have been completed to run msal-angular.
 
 ### Configure the application
 - Open `./src/app/app.modules.ts` in an editor.
