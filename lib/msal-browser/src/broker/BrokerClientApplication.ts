@@ -4,7 +4,7 @@
  */
 
 import { version } from "../../package.json";
-import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerRefreshTokenClient, RefreshTokenClient, SilentFlowRequest } from "@azure/msal-common";
+import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerRefreshTokenClient, RefreshTokenClient, StringUtils, AuthorizationUrlRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, ScopeSet, SilentFlowRequest, AuthenticationScheme } from "@azure/msal-common";
 import { BrokerMessage } from "./BrokerMessage";
 import { BrokerMessageType, InteractionType } from "../utils/BrowserConstants";
 import { Configuration } from "../config/Configuration";
@@ -16,11 +16,16 @@ import { RedirectRequest } from "../request/RedirectRequest";
 import { BrokerAuthResponse } from "./BrokerAuthResponse";
 import { ClientApplication } from "../app/ClientApplication";
 import { PopupRequest } from "../request/PopupRequest";
+import { BrokerHandleRedirectRequest } from "./BrokerHandleRedirectRequest";
+import { SsoSilentRequest } from "../request/SsoSilentRequest";
+import { BrowserStateObject } from "../utils/BrowserProtocolUtils";
 
 /**
  * Broker Application class to manage brokered requests.
  */
 export class BrokerClientApplication extends ClientApplication {
+
+    private cachedBrokerResponse: Promise<BrokerAuthenticationResult>;
 
     constructor(configuration: Configuration) {
         super(configuration);
@@ -45,6 +50,9 @@ export class BrokerClientApplication extends ClientApplication {
                 case BrokerMessageType.HANDSHAKE_REQUEST:
                     this.logger.verbose("Broker handshake request received");
                     return await this.handleBrokerHandshake(clientMessage);
+                case BrokerMessageType.HANDLE_REDIRECT_REQUEST:
+                    this.logger.verbose("Broker handle redirect request received");
+                    return await this.handleBrokerRedirectResponse(clientMessage);
                 case BrokerMessageType.AUTH_REQUEST:
                     this.logger.verbose("Broker auth request received");
                     return await this.handleBrokerAuthRequest(clientMessage);
@@ -62,11 +70,38 @@ export class BrokerClientApplication extends ClientApplication {
     private async handleBrokerHandshake(clientMessage: MessageEvent): Promise<void> {
         const validMessage = BrokerHandshakeRequest.validate(clientMessage);
         this.logger.verbose(`Broker handshake validated: ${validMessage}`);
-        const brokerHandshakeResponse = new BrokerHandshakeResponse(version);
+        
+        const brokerHandshakeResponse = new BrokerHandshakeResponse(version, "");
 
         // @ts-ignore
         clientMessage.source.postMessage(brokerHandshakeResponse, clientMessage.origin);
         this.logger.info(`Sending handshake response: ${brokerHandshakeResponse}`);
+    }
+
+    /**
+     * 
+     * @param clientMessage 
+     */
+    async handleBrokerRedirectResponse(clientMessage: MessageEvent): Promise<void> {
+        const validMessage = BrokerHandleRedirectRequest.validate(clientMessage);
+        if (validMessage) {
+            // TODO: Calculate request thumbprint
+            const clientPort = clientMessage.ports[0];
+            const brokerResult = await this.cachedBrokerResponse;
+            if (brokerResult) {
+                // TODO: Replace with in-memory cache lookup
+                this.cachedBrokerResponse = null;
+                const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Redirect, brokerResult);
+                this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
+                clientPort.postMessage(brokerAuthResponse);
+                clientPort.close();
+                return;
+            } else {
+                // TODO: Throw error or return null?
+                clientPort.postMessage(null);
+                clientPort.close();
+            }
+        }
     }
 
     /**
@@ -77,19 +112,64 @@ export class BrokerClientApplication extends ClientApplication {
         const validMessage = BrokerAuthRequest.validate(clientMessage);
         if (validMessage) {
             this.logger.verbose(`Broker auth request validated: ${validMessage}`);
+
+            // TODO: Calculate request thumbprint
+            const brokerResult = await this.cachedBrokerResponse;
+            if (brokerResult) {
+                // TODO: Replace with in-memory cache lookup
+                this.cachedBrokerResponse = null;
+                const clientPort = clientMessage.ports[0];
+                const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Redirect, brokerResult);
+                this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
+                clientPort.postMessage(brokerAuthResponse);
+                clientPort.close();
+                return;
+            }
+
             switch (validMessage.interactionType) {
-                case InteractionType.Redirect:
-                    return this.brokeredRedirectRequest(validMessage, clientMessage.ports[0]);
-                case InteractionType.Popup:
-                    return this.brokeredPopupRequest(validMessage, clientMessage.ports[0]);
                 case InteractionType.Silent:
                     return this.brokeredSilentRequest(validMessage, clientMessage.ports[0]);
+                case InteractionType.Redirect:
+                case InteractionType.Popup:
                 default:
-                    return;
+                    const interactionType = this.config.system.brokerOptions.preferredInteractionType && this.config.system.brokerOptions.preferredInteractionType !== InteractionType.None 
+                        ? this.config.system.brokerOptions.preferredInteractionType : validMessage.interactionType;
+                    return this.interactiveBrokerRequest(interactionType, validMessage, clientMessage);
             }
         }
     }
 
+    /**
+     * 
+     * @param interactionType 
+     * @param validMessage 
+     * @param clientMessage 
+     */
+    private async interactiveBrokerRequest(interactionType: InteractionType, validMessage: BrokerAuthRequest, clientMessage: MessageEvent): Promise<void> {
+        switch (interactionType) {
+            case InteractionType.Redirect:
+                return this.brokeredRedirectRequest(validMessage, clientMessage.ports[0]);
+            case InteractionType.Popup:
+                return this.brokeredPopupRequest(validMessage, clientMessage.ports[0]);
+            case InteractionType.Silent:
+            case InteractionType.None:
+                // TODO: Throw error?
+            default:
+                return;
+        }
+    }
+
+    async handleRedirectPromise(): Promise<BrokerAuthenticationResult | null> {
+        
+        this.cachedBrokerResponse = super.handleRedirectPromise() as Promise<BrokerAuthenticationResult>;
+        return null;
+    }
+
+    /**
+     * Send redirect request as the broker.
+     * @param validMessage 
+     * @param clientPort 
+     */
     private async brokeredRedirectRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort): Promise<void> {
         const brokerRedirectResp = new BrokerRedirectResponse();
         // @ts-ignore
@@ -101,6 +181,11 @@ export class BrokerClientApplication extends ClientApplication {
         this.acquireTokenRedirect(validMessage.request as RedirectRequest);
     }
 
+    /**
+     * Send popup request as the broker.
+     * @param validMessage 
+     * @param clientPort 
+     */
     private async brokeredPopupRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort): Promise<void> {
         try {
             const response: BrokerAuthenticationResult = (await this.acquireTokenPopup(validMessage.request as PopupRequest)) as BrokerAuthenticationResult;
@@ -116,6 +201,11 @@ export class BrokerClientApplication extends ClientApplication {
         }
     }
 
+    /**
+     * Send silent renewal request as the broker.
+     * @param validMessage 
+     * @param clientPort 
+     */
     private async brokeredSilentRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort): Promise<void> {
         try {
             const response: BrokerAuthenticationResult = (await this.acquireTokenByRefreshToken(validMessage.request as SilentFlowRequest)) as BrokerAuthenticationResult;
@@ -150,5 +240,55 @@ export class BrokerClientApplication extends ClientApplication {
         // Create auth module.
         const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
         return new BrokerRefreshTokenClient(clientConfig);
+    }
+
+    /**
+     * Helper to initialize required request parameters for interactive APIs and ssoSilent()
+     * @param request
+     */
+    protected initializeAuthorizationRequest(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
+        const redirectUri = this.getRedirectUri(request.redirectUri);
+        const baseRequestScopes = new ScopeSet(request.scopes);
+        const browserState: BrowserStateObject = {
+            interactionType: interactionType,
+            brokeredClientId: this.config.auth.clientId,
+            brokeredReqAuthority: (request && request.authority) || this.config.auth.authority,
+            brokeredReqScopes: baseRequestScopes.printScopes()
+        };
+
+        const state = ProtocolUtils.setRequestState(
+            this.browserCrypto,
+            (request && request.state) || "",
+            browserState
+        );
+
+        const nonce = StringUtils.isEmpty(request.nonce) ? this.browserCrypto.createNewGuid() : request.nonce;
+        const authenticationScheme = request.authenticationScheme || AuthenticationScheme.BEARER;
+
+        const validatedRequest: AuthorizationUrlRequest = {
+            ...this.initializeBaseRequest(request),
+            redirectUri: redirectUri,
+            state: state,
+            nonce: nonce,
+            responseMode: ResponseMode.FRAGMENT,
+            authenticationScheme: authenticationScheme,
+        };
+
+        // Check for ADAL SSO
+        if (StringUtils.isEmpty(validatedRequest.loginHint)) {
+            // Only check for adal token if no SSO params are being used
+            const adalIdTokenString = this.browserStorage.getTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN) as string;
+            if (!StringUtils.isEmpty(adalIdTokenString)) {
+                const adalIdToken = new IdToken(adalIdTokenString, this.browserCrypto);
+                this.browserStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
+                if (adalIdToken.claims && adalIdToken.claims.upn) {
+                    validatedRequest.loginHint = adalIdToken.claims.upn;
+                }
+            }
+        }
+
+        this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
+
+        return validatedRequest;
     }
 }

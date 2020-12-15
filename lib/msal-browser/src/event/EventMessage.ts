@@ -3,10 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, AuthError, EndSessionRequest } from "@azure/msal-common";
+import { AuthenticationResult, AuthError } from "@azure/msal-common";
 import { EventType } from "./EventType";
 import { InteractionType } from "../utils/BrowserConstants";
-import { PopupRequest, RedirectRequest, SilentRequest, SsoSilentRequest } from "..";
+import { PopupRequest } from "../request/PopupRequest";
+import { RedirectRequest } from "../request/RedirectRequest";
+import { SilentRequest } from "../request/SilentRequest";
+import { SsoSilentRequest } from "../request/SsoSilentRequest";
+import { EndSessionRequest } from "../request/EndSessionRequest";
 
 export type EventMessage = {
     eventType: EventType;

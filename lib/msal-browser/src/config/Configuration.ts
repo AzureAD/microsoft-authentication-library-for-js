@@ -55,7 +55,7 @@ export type CacheOptions = {
 export type BrokerOptions = {
     actAsBroker?: boolean;
     allowLogout?: boolean;
-    preferredInteractionType?: InteractionType;
+    preferredInteractionType?: InteractionType.Popup | InteractionType.Redirect | InteractionType.None;
     allowBrokering?: boolean;
     trustedBrokerDomains?: string[];
     brokeredRedirectUri?: string;
@@ -149,7 +149,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     const DEFAULT_BROKER_OPTIONS: BrokerOptions = {
         actAsBroker: false,
         allowLogout: false,
-        preferredInteractionType: null,
+        preferredInteractionType: InteractionType.None,
         allowBrokering: false,
         trustedBrokerDomains: [],
         brokeredRedirectUri: "",
@@ -158,8 +158,14 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     // Default system options for browser
     const DEFAULT_BROWSER_SYSTEM_OPTIONS: Required<BrowserSystemOptions> = {
         ...DEFAULT_SYSTEM_OPTIONS,
-        loggerOptions: DEFAULT_LOGGER_OPTIONS,
-        brokerOptions: DEFAULT_BROKER_OPTIONS,
+        loggerOptions: {
+            ...DEFAULT_LOGGER_OPTIONS,
+            ...((userInputSystem && userInputSystem.loggerOptions) || {}),
+        },
+        brokerOptions: {
+            ...DEFAULT_BROKER_OPTIONS,
+            ...((userInputSystem && userInputSystem.brokerOptions) || {}),
+        },
         networkClient: BrowserUtils.getBrowserNetworkClient(),
         loadFrameTimeout: 0,
         // If loadFrameTimeout is provided, use that as default.
@@ -174,7 +180,10 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     const overlayedConfig: BrowserConfiguration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...userInputAuth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
-        system: { ...DEFAULT_BROWSER_SYSTEM_OPTIONS, ...userInputSystem }
+        system: { 
+            ...DEFAULT_BROWSER_SYSTEM_OPTIONS, 
+            ...userInputSystem
+        }
     };
     return overlayedConfig;
 }

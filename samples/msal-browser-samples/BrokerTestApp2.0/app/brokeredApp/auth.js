@@ -20,9 +20,9 @@ let username = "";
 const myMSALObj = new msal.PublicClientApplication(msalConfig);
 myMSALObj.initializeBrokering().then(() => {
     // Must ensure that initialize has completed before calling any other MSAL functions
-    myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
-        console.error(err);
-    });
+    // myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
+    //     console.error(err);
+    // });
 
     enableSigninButton();
 });

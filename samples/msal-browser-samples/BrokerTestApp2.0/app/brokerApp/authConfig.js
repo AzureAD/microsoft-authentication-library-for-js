@@ -10,7 +10,29 @@ const msalConfig = {
     },
     system: {
         brokerOptions: {
-            actAsBroker: true
+            actAsBroker: true,
+            preferredInteractionType: "redirect"
+        },
+        loggerOptions: {
+            loggerCallback: (level, message, containsPii) => {
+                if (containsPii) {	
+                    return;	
+                }	
+                switch (level) {	
+                    case msal.LogLevel.Error:	
+                        console.error(message);	
+                        return;	
+                    case msal.LogLevel.Info:	
+                        console.info(message);	
+                        return;	
+                    case msal.LogLevel.Verbose:	
+                        console.debug(message);	
+                        return;	
+                    case msal.LogLevel.Warning:	
+                        console.warn(message);	
+                        return;	
+                }
+            }
         }
     }
 };

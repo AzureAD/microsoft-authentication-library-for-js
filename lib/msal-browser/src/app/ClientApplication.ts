@@ -109,7 +109,7 @@ export abstract class ClientApplication {
     }
 
     // #region Redirect Flow
-
+    
     /**
      * Event handler function which allows users to fire events after the PublicClientApplication object
      * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
@@ -334,7 +334,7 @@ export abstract class ClientApplication {
         try {
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
         } catch (e) {
-            // Since this function is syncronous we need to reject
+            // Since this function is synchronous we need to reject
             return Promise.reject(e);
         }
 
@@ -830,7 +830,6 @@ export abstract class ClientApplication {
      * @param request
      */
     protected initializeAuthorizationRequest(request: RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
-        
         const redirectUri = this.getRedirectUri(request.redirectUri);
         const browserState: BrowserStateObject = {
             interactionType: interactionType
@@ -842,10 +841,7 @@ export abstract class ClientApplication {
             browserState
         );
 
-        let nonce = request.nonce;
-        if (StringUtils.isEmpty(nonce)) {
-            nonce = this.browserCrypto.createNewGuid();
-        }
+        const nonce = StringUtils.isEmpty(request.nonce) ? this.browserCrypto.createNewGuid() : request.nonce;
 
         const authenticationScheme = request.authenticationScheme || AuthenticationScheme.BEARER;
 

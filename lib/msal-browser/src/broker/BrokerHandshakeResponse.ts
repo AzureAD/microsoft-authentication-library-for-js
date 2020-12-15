@@ -6,10 +6,12 @@
 import { BrokerMessage } from "./BrokerMessage";
 import { BrokerMessageType } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
+import { BrokerAuthResponse } from "./BrokerAuthResponse";
 
 export class BrokerHandshakeResponse extends BrokerMessage {
     public version: string;
     public readonly brokerOrigin: string;
+    public readonly authResult: BrokerAuthResponse;
 
     constructor(version: string, brokerOrigin?: string) {
         super(BrokerMessageType.HANDSHAKE_RESPONSE);

@@ -7,7 +7,10 @@ import { InteractionType } from "./BrowserConstants";
 import { StringUtils, ClientAuthError, ICrypto, RequestStateObject, ProtocolUtils, ServerAuthorizationCodeResponse, UrlString } from "@azure/msal-common";
 
 export type BrowserStateObject = {
-    interactionType: InteractionType
+    interactionType: InteractionType,
+    brokeredClientId?: string,
+    brokeredReqAuthority?: string,
+    brokeredReqScopes?: string
 };
 
 export class BrowserProtocolUtils {

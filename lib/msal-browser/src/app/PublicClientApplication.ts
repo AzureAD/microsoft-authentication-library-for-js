@@ -63,7 +63,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             if(this.config.system.brokerOptions.allowBrokering) {
                 this.logger.verbose("Running in top frame and both actAsBroker, allowBrokering flags set to true. actAsBroker takes precedence.");
             }
-            
+
             this.broker = new BrokerClientApplication(this.config);
             this.logger.verbose("Acting as Broker");
             this.broker.listenForBrokerMessage();
@@ -72,6 +72,15 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             this.logger.verbose("Acting as child");
             await this.embeddedApp.initiateHandshake();
         }
+    }
+
+    async handleRedirectPromise(): Promise<AuthenticationResult | null> {
+        if (this.broker) {
+            return this.broker.handleRedirectPromise();
+        } else if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
+            return await this.embeddedApp.sendHandleRedirectRequest();
+        }
+        return super.handleRedirectPromise();
     }
 
     /**
@@ -85,23 +94,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     async loginRedirect(request?: RedirectRequest): Promise<void> {
         return this.acquireTokenRedirect(request || DEFAULT_REQUEST);
-    }
-
-    /**
-     * Use when you want to obtain an access_token for your API by redirecting the user's browser window to the authorization endpoint. This function redirects
-     * the page, so any code that follows this function will not execute.
-     *
-     * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
-     * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
-     *
-     * @param {@link (RedirectRequest:type)}
-     */
-    async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
-        // Check for brokered request
-        if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
-            return this.embeddedApp.sendRedirectRequest(request);
-        }
-        return super.acquireTokenRedirect(request);
     }
 
     // #endregion

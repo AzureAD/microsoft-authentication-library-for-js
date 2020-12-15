@@ -17,6 +17,7 @@ export abstract class BrokerMessage {
             switch(message.data.messageType) {
                 case BrokerMessageType.HANDSHAKE_REQUEST:
                 case BrokerMessageType.HANDSHAKE_RESPONSE:
+                case BrokerMessageType.HANDLE_REDIRECT_REQUEST:
                 case BrokerMessageType.AUTH_REQUEST:
                 case BrokerMessageType.AUTH_RESULT:
                 case BrokerMessageType.REDIRECT_RESPONSE:
