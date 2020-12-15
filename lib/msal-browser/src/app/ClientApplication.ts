@@ -669,7 +669,8 @@ export abstract class ClientApplication {
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode,
             knownAuthorities: this.config.auth.knownAuthorities,
-            cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata
+            cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
+            authorityMetadata: this.config.auth.authorityMetadata
         };
 
         if (requestAuthority) {

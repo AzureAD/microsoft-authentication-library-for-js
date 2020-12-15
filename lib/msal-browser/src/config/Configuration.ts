@@ -30,6 +30,7 @@ export type BrowserAuthOptions = {
     authority?: string;
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;
+    authorityMetadata?: string;
     redirectUri?: string;
     postLogoutRedirectUri?: string;
     navigateToLoginRequestUrl?: boolean;
@@ -111,6 +112,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         authority: `${Constants.DEFAULT_AUTHORITY}`,
         knownAuthorities: [],
         cloudDiscoveryMetadata: "",
+        authorityMetadata: "",
         redirectUri: "",
         postLogoutRedirectUri: "",
         navigateToLoginRequestUrl: true,

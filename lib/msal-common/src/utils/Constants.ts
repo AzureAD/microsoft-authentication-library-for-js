@@ -270,6 +270,12 @@ export const AUTHORITY_METADATA_CONSTANTS = {
     REFRESH_TIME_SECONDS: 3600 * 24 // 24 Hours
 };
 
+export enum AuthorityMetadataSource {
+    CONFIG = "config",
+    CACHE = "cache",
+    NETWORK = "network"
+}
+
 export const SERVER_TELEM_CONSTANTS = {
     SCHEMA_VERSION: 2,
     MAX_HEADER_BYTES: 4000, // Max is 4KB, 4000 Bytes provides 96 Byte buffer for separators, schema version, etc. 
