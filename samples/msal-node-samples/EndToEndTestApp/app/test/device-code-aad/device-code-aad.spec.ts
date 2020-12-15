@@ -5,16 +5,16 @@ import { Screenshot, createFolder, setupCredentials } from "../../../../../e2eTe
 import { NodeCacheTestUtils } from "../../../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
-import { AppTypes, AzureEnvironments, FederationProviders, UserTypes } from "../../../../../e2eTestUtils/Constants";
+import { AppTypes, AzureEnvironments } from "../../../../../e2eTestUtils/Constants";
 import { 
     enterCredentials, 
-    extractDeviceCode, 
     enterDeviceCode,
     SCREENSHOT_BASE_FOLDER_NAME,
-    DEVICE_LOGIN_URL,
+    extractDeviceCodeParameters,
  } from "../testUtils";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
+const SUCCESSFUL_SIGNED_IN_MESSAGE = "You have signed in";
 
 let username: string;
 let accountPwd: string;
@@ -40,7 +40,7 @@ describe('Device Code AAD PPE Tests', () => {
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
 
         browser = await puppeteer.launch({
-                headless: true,
+            headless: true,
             ignoreDefaultArgs: ['--no-sandbox', '-disable-setuid-sandbox', '--disable-extensions']
         });
     });
@@ -76,22 +76,25 @@ describe('Device Code AAD PPE Tests', () => {
         });
 
         it("Performs acquire token with Device Code flow", async () => {
-            const deviceCode: string = await new Promise((resolve) => {
+            const { deviceCode, deviceLoginUrl }: { deviceCode: string, deviceLoginUrl: string } = await new Promise((resolve) => {
                 const intervalId = setInterval(() => {
-                    const code = extractDeviceCode(Buffer.concat(stream).toString());
-                    if (code) {
+                    const output = Buffer.concat(stream).toString();
+                    const deviceCodeParameters = extractDeviceCodeParameters(output);
+                    if (deviceCodeParameters) {
                         clearInterval(intervalId);  
-                        resolve(code);
+                        resolve(deviceCodeParameters);
                     }
-                }, 500)
+                }, 500);
             });
 
-            await enterDeviceCode(page, screenshot, deviceCode, DEVICE_LOGIN_URL);
+            await enterDeviceCode(page, screenshot, deviceCode, deviceLoginUrl);
             await enterCredentials(page, screenshot, username, accountPwd);
+            const htmlBody = await page.evaluate(() => document.body.innerHTML);
+            expect(htmlBody).toContain(SUCCESSFUL_SIGNED_IN_MESSAGE);
             const cachedTokens = NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
-            expect(cachedTokens.refreshTokens.length).toBe(1)
+            expect(cachedTokens.refreshTokens.length).toBe(1);
          });
     });
 });
