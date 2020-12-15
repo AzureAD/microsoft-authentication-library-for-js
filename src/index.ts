@@ -21,7 +21,6 @@ export { TokenClaims as IdTokenClaims } from "./account/TokenClaims";
 // Authority
 export { Authority } from "./authority/Authority";
 export { AuthorityOptions } from "./authority/AuthorityOptions";
-export { CloudDiscoveryMetadata } from "./authority/CloudDiscoveryMetadata";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
 export { ProtocolMode } from "./authority/ProtocolMode";

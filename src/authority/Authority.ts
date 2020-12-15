@@ -9,8 +9,7 @@ import { UrlString } from "../url/UrlString";
 import { IUri } from "../url/IUri";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { INetworkModule } from "../network/INetworkModule";
-import { NetworkResponse } from "../network/NetworkManager";
-import { Constants } from "../utils/Constants";
+import { AuthorityMetadataSource, Constants } from "../utils/Constants";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ProtocolMode } from "./ProtocolMode";
 import { ICacheManager } from "../cache/interface/ICacheManager";
@@ -190,76 +189,185 @@ export class Authority {
     }
 
     /**
-     * Gets OAuth endpoints from the given OpenID configuration endpoint.
-     * @param openIdConfigurationEndpoint
-     */
-    private async discoverEndpoints(): Promise<NetworkResponse<OpenIdConfigResponse>> {
-        return this.networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(this.defaultOpenIdConfigurationEndpoint);
-    }
-
-    /**
-     * Set the trusted hosts and validate subsequent calls
-     */
-    private async validateAndSetPreferredNetwork(): Promise<[CloudDiscoveryMetadata, boolean]> {
-        // Check if network response was provided in config
-        if (this.authorityOptions.cloudDiscoveryMetadata) {
-            const parsedResponse = JSON.parse(this.authorityOptions.cloudDiscoveryMetadata) as CloudInstanceDiscoveryResponse;
-            const metadata = CloudDiscoveryMetadata.getMetadataFromNetworkResponse(parsedResponse.metadata, this.hostnameAndPort);
-            if (metadata) {
-                this.canonicalAuthority = this.canonicalAuthority.replace(this.hostnameAndPort, metadata.preferred_network);
-                return [metadata, false];
-            }
-        }
-
-        // Check if host was included in knownAuthorities
-        if (this.isInKnownAuthorities()) {
-            return [CloudDiscoveryMetadata.createCloudDiscoveryMetadataFromHost(this.hostnameAndPort), false]; 
-        }
-        
-        // Make a network call to get metadata from public cloud
-        const metadata = await CloudDiscoveryMetadata.getCloudDiscoveryMetadataFromNetwork(this.canonicalAuthority, this.networkInterface);
-        if (!metadata) {
-            throw ClientConfigurationError.createUntrustedAuthorityError();
-        }
-
-        this.canonicalAuthority = this.canonicalAuthority.replace(this.hostnameAndPort, metadata.preferred_network);
-
-        return [metadata, true];
-    }
-
-    /**
      * Perform endpoint discovery to discover aliases, preferred_cache, preferred_network
      * and the /authorize, /token and logout endpoints.
      */
     public async resolveEndpointsAsync(): Promise<void> {
-        const cachedMetadata = this.cacheManager.getAuthorityMetadataByAlias(this.hostnameAndPort);
-        if (cachedMetadata && !cachedMetadata.isExpired()) {
-            this.metadata = cachedMetadata;
-            return;
+        let metadataEntity = this.cacheManager.getAuthorityMetadataByAlias(this.hostnameAndPort);
+        if (!metadataEntity) {
+            metadataEntity = new AuthorityMetadataEntity();
         }
 
-        const [cloudDiscoveryMetadata, cloudDiscoveryFromNetwork] = await this.validateAndSetPreferredNetwork();
-        const response = await this.discoverEndpoints();
-        
-        this.metadata = AuthorityMetadataEntity.createAuthorityMetadataEntity(
-            cloudDiscoveryMetadata.aliases,
-            cloudDiscoveryMetadata.preferred_cache,
-            cloudDiscoveryMetadata.preferred_network,
-            response.body.authorization_endpoint,
-            response.body.token_endpoint,
-            response.body.end_session_endpoint,
-            response.body.issuer,
-            cloudDiscoveryFromNetwork
-        );
+        const cloudDiscoverySource = await this.updateCloudDiscoveryMetadata(metadataEntity);
+        this.canonicalAuthority = this.canonicalAuthority.replace(this.hostnameAndPort, metadataEntity.preferred_network);
+        const endpointSource = await this.updateEndpointMetadata(metadataEntity);
 
-        const cacheKey = this.cacheManager.generateAuthorityMetadataCacheKey(this.metadata.preferred_cache);
-        this.cacheManager.setAuthorityMetadata(cacheKey, this.metadata);
+        if (cloudDiscoverySource !== AuthorityMetadataSource.CACHE && endpointSource !== AuthorityMetadataSource.CACHE) {
+            // Reset the expiration time unless both values came from a successful cache lookup
+            metadataEntity.resetExpiresAt();
+        } 
+
+        const cacheKey = this.cacheManager.generateAuthorityMetadataCacheKey(metadataEntity.preferred_cache);
+        this.cacheManager.setAuthorityMetadata(cacheKey, metadataEntity);
+        this.metadata = metadataEntity;
     }
 
+    /**
+     * 
+     * @param metadataEntity 
+     */
+    private async updateEndpointMetadata(metadataEntity: AuthorityMetadataEntity): Promise<AuthorityMetadataSource> {
+        let metadata = this.getEndpointMetadataFromConfig();
+        if (metadata) {
+            metadataEntity.updateEndpointMetadata(metadata, false);
+            return AuthorityMetadataSource.CONFIG;
+        }
+
+        if (metadataEntity.endpointsFromNetwork && !metadataEntity.isExpired()) {
+            // No need to update
+            return AuthorityMetadataSource.CACHE;
+        }
+
+        metadata = await this.getEndpointMetadataFromNetwork();
+        if (metadata) {
+            metadataEntity.updateEndpointMetadata(metadata, true);
+            return AuthorityMetadataSource.NETWORK;
+        } else {
+            // TODO throw a better error
+            throw "Unable to resolve endpoints.";
+        }
+    }
+
+    /**
+     * 
+     * @param cachedMetadata 
+     * @param newMetadata 
+     */
+    private async updateCloudDiscoveryMetadata(metadataEntity: AuthorityMetadataEntity): Promise<AuthorityMetadataSource> {
+        let metadata = this.getCloudDiscoveryMetadataFromConfig();
+        if (metadata) {
+            metadataEntity.updateCloudDiscoveryMetadata(metadata, false);
+            return AuthorityMetadataSource.CONFIG;
+        }
+
+        if (metadataEntity.aliasasFromNetwork && !metadataEntity.isExpired()) {
+            // No need to update
+            return AuthorityMetadataSource.CACHE;
+        }
+
+        metadata = await this.getCloudDiscoveryMetadataFromNetwork();
+        if (metadata) {
+            metadataEntity.updateCloudDiscoveryMetadata(metadata, true);
+            return AuthorityMetadataSource.NETWORK;
+        } else {
+            // Metadata could not be obtained from config, cache or network
+            throw ClientConfigurationError.createUntrustedAuthorityError();
+        }
+    }
+
+    /**
+     * 
+     */
+    private getEndpointMetadataFromConfig(): OpenIdConfigResponse | null {
+        if (this.authorityOptions.authorityMetadata) {
+            try {
+                return JSON.parse(this.authorityOptions.authorityMetadata) as OpenIdConfigResponse;
+            } catch (e) {
+                // TODO: Throw better error
+                throw "Unable to parse authorityMetadata parameter into JSON.";
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Gets OAuth endpoints from the given OpenID configuration endpoint.
+     */
+    private async getEndpointMetadataFromNetwork(): Promise<OpenIdConfigResponse | null> {
+        try {
+            const response = await this.networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(this.defaultOpenIdConfigurationEndpoint);
+            return response.body;
+        } catch (e) {
+            return null;
+        }
+    }
+
+    /**
+     * 
+     */
+    private getCloudDiscoveryMetadataFromConfig(): CloudDiscoveryMetadata | null {
+        // Check if network response was provided in config
+        if (this.authorityOptions.cloudDiscoveryMetadata) {
+            const parsedResponse = JSON.parse(this.authorityOptions.cloudDiscoveryMetadata) as CloudInstanceDiscoveryResponse;
+            const metadata = Authority.getCloudDiscoveryMetadataFromNetworkResponse(parsedResponse.metadata, this.hostnameAndPort);
+            if (metadata) {
+                return metadata;
+            }
+        }
+
+        if (this.isInKnownAuthorities()) {
+            return Authority.createCloudDiscoveryMetadataFromHost(this.hostnameAndPort);
+        }
+
+        return null;
+    }
+
+    /**
+     * Called to get metadata from network if CloudDiscoveryMetadata was not populated by config
+     * @param networkInterface 
+     */
+    private async getCloudDiscoveryMetadataFromNetwork(): Promise<CloudDiscoveryMetadata | null> {
+        const instanceDiscoveryEndpoint = `${Constants.AAD_INSTANCE_DISCOVERY_ENDPT}${this.canonicalAuthority}oauth2/v2.0/authorize`;
+        let match = null;
+        try {
+            const response = await this.networkInterface.sendGetRequestAsync<CloudInstanceDiscoveryResponse>(instanceDiscoveryEndpoint);
+            const metadata = response.body.metadata;
+            match = Authority.getCloudDiscoveryMetadataFromNetworkResponse(metadata, this.hostnameAndPort);
+        } catch(e) {
+            return null;
+        }
+
+        if (!match) {
+            // Custom Domain scenario, host is trusted because Instance Discovery call succeeded 
+            match = Authority.createCloudDiscoveryMetadataFromHost(this.hostnameAndPort);
+        }
+        return match;
+    } 
+
+    /**
+     * 
+     */
     private isInKnownAuthorities(): boolean {
         return !!this.authorityOptions.knownAuthorities.find((authority) => {
             return UrlString.getDomainFromUrl(authority).toLowerCase() === this.hostnameAndPort;
         });
+    }
+
+    /**
+     * 
+     * @param host 
+     */
+    static createCloudDiscoveryMetadataFromHost(host: string): CloudDiscoveryMetadata {
+        return {
+            preferred_network: host,
+            preferred_cache: host,
+            aliases: [host]
+        };
+    }
+
+    /**
+     * 
+     * @param response 
+     * @param authority 
+     */
+    static getCloudDiscoveryMetadataFromNetworkResponse(response: CloudDiscoveryMetadata[], authority: string): CloudDiscoveryMetadata | null {
+        return response.find((metadata: CloudDiscoveryMetadata) => {
+            if (metadata.aliases.indexOf(authority) > -1) {
+                return true;
+            }
+            return false;
+        }) || null;
     }
 
     /**

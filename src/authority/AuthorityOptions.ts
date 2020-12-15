@@ -9,4 +9,5 @@ export type AuthorityOptions = {
     protocolMode: ProtocolMode;
     knownAuthorities: Array<string>;
     cloudDiscoveryMetadata: string;
+    authorityMetadata: string;
 };
