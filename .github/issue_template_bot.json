@@ -3,17 +3,24 @@
         "Library": {
             "labels": {
                 "msal@1.x": {
-                    "searchStrings": ["msal@1.x"]
+                    "searchStrings": ["msal@1.x"],
+                    "project": {
+                        "name": "MSAL Core",
+                        "column": "To do"
+                    }
                 },
                 "msal-angular": {
-                    "searchStrings": ["msal-angular@0.x", "msal-angular@1.x"]
+                    "searchStrings": ["msal-angular@0.x", "msal-angular@1.x", "msal-angular@2.x"],
+                    "project": {
+                        "name": "MSAL Angular",
+                        "column": "To do"
+                    }
                 },
                 "msal-angularjs": {
                     "searchStrings": ["msal-angularjs@1.x"]
                 },
                 "msal-browser": {
                     "searchStrings": ["msal-browser"],
-                    "assignees": ["tnorling"],
                     "project": {
                         "name": "MSAL Browser",
                         "column": "To do"
@@ -21,6 +28,13 @@
                 },
                 "msal-common": {
                     "searchStrings": ["msal-common"]
+                },
+                "msal-react": {
+                    "searchStrings": ["msal-react"],
+                    "project": {
+                        "name": "MSAL React",
+                        "column": "To do"
+                    }
                 },
                 "msal-node": {
                     "searchStrings": ["msal-node"],
@@ -30,16 +44,17 @@
                     }
                 }
             },
-            "enforceSelection": true,
-            "message": "Please select which library this issue regards."
-        },
-        "Regression": {
-            "labels": {
-                "regression": {
-                    "searchStrings": ["Did this behavior work before?"]
-                }
-            },
             "enforceSelection": false
+        },
+        "Identity Provider": {
+            "labels": {
+                "b2c": {
+                    "searchStrings": ["B2C"]
+                },
+                "adfs": {
+                    "searchStrings": ["ADFS"]
+                }
+            }
         }
     },
     "enforceTemplate": true,
@@ -47,7 +62,9 @@
         "Framework",
         "Error Message",
         "Security",
-        "Regression"
+        "Regression",
+        "Browsers/Environment",
+        "Source"
     ],
     "templateEnforcementLabel": "more-information-needed",
     "incompleteTemplateMessage": "Please update the original issue and make sure to fill out the entire issue template so we can better assist you.",
