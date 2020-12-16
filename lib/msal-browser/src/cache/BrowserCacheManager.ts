@@ -24,6 +24,8 @@ export class BrowserCacheManager extends CacheManager {
     private cacheConfig: CacheOptions;
     // Window storage object (either local or sessionStorage)
     private browserStorage: IWindowStorage;
+    // Internal in-memory storage
+    private internalStorage: MemoryStorage;
     // Client id of application. Used in cache keys to partition cache correctly in the case of multiple instances of MSAL.
     private logger: Logger;
 
@@ -37,6 +39,7 @@ export class BrowserCacheManager extends CacheManager {
         this.logger = logger;
 
         this.browserStorage = this.setupBrowserStorage(cacheConfig.cacheLocation);
+        this.internalStorage = new MemoryStorage();
 
         // Migrate any cache entries from older versions of MSAL.
         this.migrateCacheEntries();
@@ -296,7 +299,7 @@ export class BrowserCacheManager extends CacheManager {
      * 
      */
     getAuthorityMetadata(key: string) : AuthorityMetadataEntity | null {
-        const value = this.getItem(key);
+        const value = this.internalStorage.getItem(key);
         if (StringUtils.isEmpty(value)) {
             return null;
         }
@@ -309,10 +312,20 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * 
+     */
+    getAuthorityMetadataKeys(): Array<string> {
+        const allKeys = this.internalStorage.getKeys();
+        return allKeys.filter((key) => {
+            return this.isAuthorityMetadata(key);
+        });
+    }
+
+    /**
+     * 
      * @param entity 
      */
     setAuthorityMetadata(key: string, entity: AuthorityMetadataEntity): void {
-        this.setItem(key, JSON.stringify(entity));
+        this.internalStorage.setItem(key, JSON.stringify(entity));
     }
 
     /**

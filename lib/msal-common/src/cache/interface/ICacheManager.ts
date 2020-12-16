@@ -103,6 +103,11 @@ export interface ICacheManager {
     getAuthorityMetadata(key: string): AuthorityMetadataEntity | null;
 
     /**
+     * Get cache keys for authority metadata
+     */
+    getAuthorityMetadataKeys(): Array<string>;
+
+    /**
      * set cloud discovery metadata entity to the platform cache
      * @param key
      * @param value
