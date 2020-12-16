@@ -115,6 +115,11 @@ export abstract class CacheManager implements ICacheManager {
     abstract getAuthorityMetadata(key: string): AuthorityMetadataEntity | null;
 
     /**
+     * 
+     */
+    abstract getAuthorityMetadataKeys(): Array<string>;
+
+    /**
      * set cloud discovery metadata entity to the platform cache
      * @param key
      * @param value
@@ -461,7 +466,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param filter
      */
     getAuthorityMetadataByAlias(host: string): AuthorityMetadataEntity | null {
-        const allCacheKeys = this.getKeys();
+        const allCacheKeys = this.getAuthorityMetadataKeys();
         let matchedEntity = null;
 
         allCacheKeys.forEach((cacheKey) => {
@@ -816,7 +821,7 @@ export abstract class CacheManager implements ICacheManager {
      * returns if a given cache entity is of the type authoritymetadata
      * @param key
      */
-    private isAuthorityMetadata(key: string): boolean {
+    protected isAuthorityMetadata(key: string): boolean {
         return key.indexOf(AUTHORITY_METADATA_CONSTANTS.CACHE_KEY) !== -1;
     }
 
@@ -916,6 +921,10 @@ export class DefaultStorageClass extends CacheManager {
     }
     getAuthorityMetadata(): AuthorityMetadataEntity | null {
         const notImplErr = "Storage interface - getAuthorityMetadata() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    getAuthorityMetadataKeys(): Array<string> {
+        const notImplErr = "Storage interface - getAuthorityMetadataKeys() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
     setThrottlingCache(): void {
