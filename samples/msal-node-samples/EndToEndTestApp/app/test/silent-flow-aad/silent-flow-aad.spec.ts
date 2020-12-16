@@ -124,7 +124,7 @@ describe("Silent Flow AAD PPE Tests", () => {
         done();
     });
 
-    it("Returns empty account array", async () => {
+    it("Returns empty account array", async (done) => {
         const testName = "AADNoCachedAccounts";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         await page.goto(`${SAMPLE_HOME_URL}/allAccounts`);
