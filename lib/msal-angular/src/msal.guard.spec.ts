@@ -149,7 +149,25 @@ describe('MsalGuard', () => {
     done();
   });
 
+  it("canActivateChild returns true with logged in user", (done) => {
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
+      //@ts-ignore
+      of("test")
+    );
 
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
+      homeAccountId: "test",
+      localAccountId: "test",
+      environment: "test",
+      tenantId: "test",
+      username: "test"
+    }]);
+
+    const listener = jasmine.createSpy();
+    guard.canActivateChild(routeMock, routeStateMock).subscribe(listener);
+    expect(listener).toHaveBeenCalledWith(true);
+    done();
+  });
 });
 
 
