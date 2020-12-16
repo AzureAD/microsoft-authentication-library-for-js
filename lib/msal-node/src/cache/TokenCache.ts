@@ -92,6 +92,7 @@ export class TokenCache implements ISerializableTokenCache {
      * API that retrieves all accounts currently in cache to the user
      */
     async getAllAccounts(): Promise<AccountInfo[]> {
+
         this.logger.verbose("getAllAccounts called");
         let cacheContext;
         try {

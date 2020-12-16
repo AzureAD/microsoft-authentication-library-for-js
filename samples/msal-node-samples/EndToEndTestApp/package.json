@@ -14,6 +14,7 @@
   "license": "MIT",
   "dependencies": {
     "@azure/msal-node": "file:../../../lib/msal-node",
+    "@jest/types": "^26.6.2",
     "axios": "^0.20.0",
     "e2eTestUtils": "file:../../.",
     "express": "^4.17.1",

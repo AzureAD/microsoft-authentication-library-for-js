@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Add logs to SilentFlowClient (#2684)",
+  "packageName": "@azure/msal-common",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "none"
+}
