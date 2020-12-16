@@ -1,5 +1,5 @@
 {
-  "type": "minor",
+  "type": "prerelease",
   "comment": "Add additional interfaces to msal-guard (#2759)",
   "packageName": "@azure/msal-angular",
   "email": "joarroyo@microsoft.com",
