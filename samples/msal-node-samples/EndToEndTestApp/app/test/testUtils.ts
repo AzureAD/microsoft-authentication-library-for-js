@@ -16,7 +16,7 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
     await page.type("#i0118", accountPwd);
     await screenshot.takeScreenshot(page, "pwdTyped");
     await page.click("#idSIButton9");
-    await screenshot.takeScreenshot(page, "pwdSubmitted");
+    return screenshot.takeScreenshot(page, "pwdSubmitted");
 }
 
 export async function clickSignIn(page: Page, screenshot: Screenshot): Promise<void> {

@@ -56,6 +56,7 @@ describe("Silent Flow AAD PPE Tests", () => {
         await browser.close();
         done();
     });
+
     beforeEach(async (done) => {
         context = await browser.createIncognitoBrowserContext();
         page = await context.newPage();
@@ -73,15 +74,19 @@ describe("Silent Flow AAD PPE Tests", () => {
     it("Performs acquire token silent", async (done) => {
         const testName = "AADAcquireTokenSilent";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
-        await clickSignIn(page, screenshot);
-        await enterCredentials(page, screenshot, username, accountPwd);
-        await page.waitForSelector("#acquireTokenSilent");
-        await page.click("#acquireTokenSilent");
-        await page.waitForSelector("#graph-called-successfully");
-        await screenshot.takeScreenshot(page, "acquireTokenSilentGotTokens");
-        const htmlBody = await page.evaluate(() => document.body.innerHTML);
-        expect(htmlBody).toContain(SUCCESSFUL_GRAPH_CALL_ID);
-        done();
+        try {
+            await clickSignIn(page, screenshot);
+            await enterCredentials(page, screenshot, username, accountPwd);
+            await page.waitForSelector("#acquireTokenSilent");
+            await page.click("#acquireTokenSilent");
+            await page.waitForSelector("#graph-called-successfully");
+            await screenshot.takeScreenshot(page, "acquireTokenSilentGotTokens");
+            const htmlBody = await page.evaluate(() => document.body.innerHTML);
+            expect(htmlBody).toContain(SUCCESSFUL_GRAPH_CALL_ID);
+            done();
+        } catch (error) {
+            done(error);
+        }
     });
 
     it("Refreshes an expired access token", async (done) => {
