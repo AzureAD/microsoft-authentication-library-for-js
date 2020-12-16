@@ -9,9 +9,7 @@ const routes: Routes = [
   {
     path: 'profile',
     component: ProfileComponent,
-    canActivate: [
-      MsalGuard
-    ]
+    canActivate: [MsalGuard]
   },
   {
     path: 'profile',
