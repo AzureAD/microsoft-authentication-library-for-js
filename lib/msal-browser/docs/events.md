@@ -13,6 +13,13 @@ export type EventMessage = {
 };
 ```
 
+The payload and error in `EventMessage` are defined as follows: 
+```javascript
+export type EventPayload = PopupRequest | RedirectRequest | SilentRequest | SsoSilentRequest | EndSessionRequest | AuthenticationResult | null;
+
+export type EventError = AuthError | Error | null;
+```
+
 ## How events are emitted in msal-browser
 Msal-browser has a protected function `emitEvent`, and emits events in major APIs. For the list of currently emitted events, see the table below.
 
@@ -40,6 +47,22 @@ Adding an event callback will return an id. This id can be used to remove the ca
 
 ```javascript
 msalInstance.removeEventCallback(callbackId);
+```
+
+### Handling errors
+Due to the way `EventError` is defined, handling errors emitted with an event may require validating that the error is of the correct type before accessing specific properties on the emitted error. The error can be cast to `AuthError` or checked that it is an instance of `AuthError`. 
+
+Here is an example of consuming an emitted event and casting the error:
+
+```javascript
+const callbackId = msalInstance.addEventCallback((message: EventMessage) => {
+    // Update UI or interact with EventMessage here
+    if (message.eventType === EventType.LOGIN_FAILURE) {
+        if (message.error instanceof AuthError) {
+            // Do something with the error
+        }
+     }
+});
 ```
 
 ## Table of events

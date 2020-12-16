@@ -55,7 +55,7 @@ describe('Client assertion test', () => {
             "header": {
                 [JwtConstants.ALGORITHM]: JwtConstants.RSA_256,
                 [JwtConstants.X5T]: EncodingUtils.base64EncodeUrl(TEST_CONSTANTS.THUMBPRINT, "hex"),
-                [JwtConstants.X5C]: ["test1", "test2"]
+                [JwtConstants.X5C]: ["line1line2", "line3line4"]
             }
         }
 
@@ -72,7 +72,7 @@ describe('Client assertion test', () => {
     });
 
     test('parseCertificate finds all valid certs in a chain', () => {
-        const parsedCert = ["test1", "test2"];
+        const parsedCert = ["line1line2", "line3line4"];
         expect(ClientAssertion.parseCertificate(TEST_CONSTANTS.PUBLIC_CERTIFICATE)).toEqual(parsedCert);
     })
 
