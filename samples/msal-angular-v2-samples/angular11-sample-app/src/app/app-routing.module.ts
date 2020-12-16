@@ -23,13 +23,13 @@ const routes: Routes = [
   }
 ];
 
-const isIframe = window !== window.parent && !window.opener;
+const isIframe = window !== window.parent && !window.opener; // Remove this line to use Angular Universal
 
 @NgModule({
   imports: [RouterModule.forRoot(routes, {
     useHash: true,
     // Don't perform initial navigation in iframes
-    initialNavigation: !isIframe ? 'enabled' : 'disabled'
+    initialNavigation: !isIframe ? 'enabled' : 'disabled' // Remove this line to use Angular Universal
   })],
   exports: [RouterModule]
 })
