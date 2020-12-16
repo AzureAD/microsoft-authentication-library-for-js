@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, CanActivateChild, CanLoad, UrlSegment, Route } from "@angular/router";
+import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, CanActivateChild, CanLoad } from "@angular/router";
 import { MsalService } from "./msal.service";
 import { Injectable, Inject } from "@angular/core";
 import { Location } from "@angular/common";
