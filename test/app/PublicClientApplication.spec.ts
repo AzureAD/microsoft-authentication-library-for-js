@@ -2080,10 +2080,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(pca.getActiveAccount()).to.be.null;
         });
 
-        it("setActiveAccount() sets the active account homeId value correctly", () => {
-            expect((pca as any).activeAccountId).to.be.null;
+        it("setActiveAccount() sets the active account local id value correctly", () => {
+            expect((pca as any).activeLocalAccountId).to.be.null;
             pca.setActiveAccount(testAccountInfo1);
-            expect((pca as any).activeAccountId).to.be.eq(testAccountInfo1.localAccountId);
+            expect((pca as any).activeLocalAccountId).to.be.eq(testAccountInfo1.localAccountId);
         });
 
         it("getActiveAccount looks up the current account values and returns them()", () => {
@@ -2125,13 +2125,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             it("Clears active account on logout with no account", async () => {
-                expect((pca as any).activeAccountId).to.be.eq(testAccountInfo1.localAccountId);
+                expect((pca as any).activeLocalAccountId).to.be.eq(testAccountInfo1.localAccountId);
                 await pca.logout();
                 expect(pca.getActiveAccount()).to.be.null;
             });
     
             it("Clears active account on logout when the given account info matches", async () => {
-                expect((pca as any).activeAccountId).to.be.eq(testAccountInfo1.localAccountId);
+                expect((pca as any).activeLocalAccountId).to.be.eq(testAccountInfo1.localAccountId);
                 await pca.logout({
                     account: testAccountInfo1
                 });
@@ -2139,7 +2139,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             it("Does not clear active account on logout if given account object does not match", async () => {
-                expect((pca as any).activeAccountId).to.be.eq(testAccountInfo1.localAccountId);
+                expect((pca as any).activeLocalAccountId).to.be.eq(testAccountInfo1.localAccountId);
                 await pca.logout({
                     account: testAccountInfo2
                 });
