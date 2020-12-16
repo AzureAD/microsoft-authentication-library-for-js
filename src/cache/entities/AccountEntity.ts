@@ -277,12 +277,12 @@ export class AccountEntity {
     }
 
     /**
-     * Helper function to determine whether 2 arrays are equal
+     * Helper function to determine whether 2 accounts are equal
      * Used to avoid unnecessary state updates
      * @param arrayA 
      * @param arrayB 
      */
-    static accountInfoIsEqual(accountA: AccountInfo, accountB: AccountInfo): boolean {
+    static accountInfoIsEqual(accountA: AccountInfo | null, accountB: AccountInfo | null): boolean {
         if (!accountA || !accountB) {
             return false;
         }
