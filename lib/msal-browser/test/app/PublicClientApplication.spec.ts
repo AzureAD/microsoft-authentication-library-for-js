@@ -25,6 +25,7 @@ import { SilentRequest } from "../../src/request/SilentRequest";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { RedirectRequest } from "../../src/request/RedirectRequest";
 import pkg from "../../package.json";
+import { ClientApplication } from "../../src/app/ClientApplication";
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
@@ -926,6 +927,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     correlationId: RANDOM_TEST_GUID,
                     nonce: RANDOM_TEST_GUID,
                     authority: `${Constants.DEFAULT_AUTHORITY}`,
+                    account: null,
                     responseMode: ResponseMode.FRAGMENT,
                     codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
                     codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
@@ -981,6 +983,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     state: TEST_STATE_VALUES.TEST_STATE,
                     correlationId: RANDOM_TEST_GUID,
                     authority: `${Constants.DEFAULT_AUTHORITY}`,
+                    account: null,
                     nonce: RANDOM_TEST_GUID,
                     responseMode: ResponseMode.FRAGMENT,
                     codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -1212,6 +1215,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     state: TEST_STATE_VALUES.TEST_STATE,
                     correlationId: RANDOM_TEST_GUID,
                     authority: `${Constants.DEFAULT_AUTHORITY}`,
+                    account: null,
                     nonce: RANDOM_TEST_GUID,
                     responseMode: ResponseMode.FRAGMENT,
                     codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -1269,6 +1273,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     state: TEST_STATE_VALUES.TEST_STATE,
                     correlationId: RANDOM_TEST_GUID,
                     authority: `${Constants.DEFAULT_AUTHORITY}`,
+                    account: null,
                     nonce: RANDOM_TEST_GUID,
                     responseMode: ResponseMode.FRAGMENT,
                     codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -2035,6 +2040,110 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("getAccountByHomeId returns null if passed id is null", () => {
             const account = pca.getAccountByHomeId(null);
             expect(account).to.be.null;
+        });
+    });
+
+    describe("activeAccount API tests", () => {
+        // Account 1
+        const testAccountInfo1: AccountInfo = {
+            homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+            environment: "login.windows.net",
+            tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
+            username: "example@microsoft.com",
+            name: "Abe Lincoln",
+            localAccountId: TEST_CONFIG.OID,
+            idTokenClaims: undefined
+        };
+
+        const testAccount1: AccountEntity = new AccountEntity();
+        testAccount1.homeAccountId = testAccountInfo1.homeAccountId;
+        testAccount1.localAccountId = TEST_CONFIG.OID;
+        testAccount1.environment = testAccountInfo1.environment;
+        testAccount1.realm = testAccountInfo1.tenantId;
+        testAccount1.username = testAccountInfo1.username;
+        testAccount1.name = testAccountInfo1.name;
+        testAccount1.authorityType = "MSSTS";
+        testAccount1.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+
+        beforeEach(() => {
+            const cacheKey1 = AccountEntity.generateAccountCacheKey(testAccountInfo1);
+            window.sessionStorage.setItem(cacheKey1, JSON.stringify(testAccount1));
+        });
+
+        afterEach(() => {
+            window.sessionStorage.clear();
+        });
+
+        it("active account is initialized as null", () => {
+            // Public client should initialze with active account set to null.
+            expect(pca.getActiveAccount()).to.be.null;
+        });
+
+        it("setActiveAccount() sets the active account local id value correctly", () => {
+            expect((pca as any).activeLocalAccountId).to.be.null;
+            pca.setActiveAccount(testAccountInfo1);
+            expect((pca as any).activeLocalAccountId).to.be.eq(testAccountInfo1.localAccountId);
+        });
+
+        it("getActiveAccount looks up the current account values and returns them()", () => {
+            pca.setActiveAccount(testAccountInfo1);
+            const activeAccount1 = pca.getActiveAccount();
+            expect(activeAccount1).to.be.deep.eq(testAccountInfo1);
+            
+            const newName = "Ben Franklin";
+            window.sessionStorage.clear();
+            testAccountInfo1.name = newName;
+            testAccount1.name = newName;
+            const cacheKey = AccountEntity.generateAccountCacheKey(testAccountInfo1);
+            window.sessionStorage.setItem(cacheKey, JSON.stringify(testAccount1));
+
+            const activeAccount2 = pca.getActiveAccount();
+            expect(activeAccount2).to.be.deep.eq(testAccountInfo1);
+        });
+
+        describe("activeAccount logout", () => {
+            const testAccountInfo2: AccountInfo = {
+                homeAccountId: "different-home-account-id",
+                environment: "login.windows.net",
+                tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
+                username: "anotherExample@microsoft.com",
+                name: "Abe Lincoln",
+                localAccountId: TEST_CONFIG.OID,
+                idTokenClaims: undefined
+            };
+
+            beforeEach(() => {
+                pca.setActiveAccount(testAccountInfo1);
+                sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
+                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory: boolean) => {
+                    expect(urlNavigate).to.be.eq(testLogoutUrl);
+                    expect(logger).to.be.instanceOf(Logger);
+                    expect(noHistory).to.be.undefined;
+                    return Promise.resolve();
+                });
+            });
+
+            it("Clears active account on logout with no account", async () => {
+                expect((pca as any).activeLocalAccountId).to.be.eq(testAccountInfo1.localAccountId);
+                await pca.logout();
+                expect(pca.getActiveAccount()).to.be.null;
+            });
+    
+            it("Clears active account on logout when the given account info matches", async () => {
+                expect((pca as any).activeLocalAccountId).to.be.eq(testAccountInfo1.localAccountId);
+                await pca.logout({
+                    account: testAccountInfo1
+                });
+                expect(pca.getActiveAccount()).to.be.null;
+            });
+
+            it("Does not clear active account on logout if given account object does not match", async () => {
+                expect((pca as any).activeLocalAccountId).to.be.eq(testAccountInfo1.localAccountId);
+                await pca.logout({
+                    account: testAccountInfo2
+                });
+                expect(pca.getActiveAccount()).to.be.deep.eq(testAccountInfo1);
+            });
         });
     });
 

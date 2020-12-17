@@ -161,6 +161,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         const silentRequest: SilentFlowRequest = {
             ...request,
             ...this.initializeBaseRequest(request),
+            account: request.account || this.getActiveAccount(),
             forceRefresh: request.forceRefresh || false
         };
         this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
