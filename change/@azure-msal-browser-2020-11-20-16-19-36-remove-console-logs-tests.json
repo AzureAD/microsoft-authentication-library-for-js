@@ -1,8 +1,0 @@
-{
-  "type": "none",
-  "comment": "Remove console.log in unit tests (#2629)",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-11-21T00:19:23.071Z"
-}

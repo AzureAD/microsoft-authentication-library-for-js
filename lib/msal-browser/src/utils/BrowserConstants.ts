@@ -3,14 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationUrlRequest, Constants } from "@azure/msal-common";
+import { Constants } from "@azure/msal-common";
+import { PopupRequest } from "../request/PopupRequest";
+import { RedirectRequest } from "../request/RedirectRequest";
 
 /**
  * Constants
  */
 export const BrowserConstants = {
-    // Interaction status key (only used for browsers)
-    INTERACTION_STATUS_KEY: "interaction.status",
     // Interaction in progress cache value
     INTERACTION_IN_PROGRESS_VALUE: "interaction_in_progress",
     // Invalid grant error code
@@ -52,7 +52,8 @@ export enum TemporaryCacheKeys {
     RENEW_STATUS = "token.renew.status",
     URL_HASH = "urlHash",
     REQUEST_PARAMS = "request.params",
-    SCOPES = "scopes"
+    SCOPES = "scopes",
+    INTERACTION_STATUS_KEY = "interaction.status"
 }
 
 /**
@@ -79,7 +80,7 @@ export enum InteractionType {
     Silent = "silent"
 }
 
-export const DEFAULT_REQUEST: AuthorizationUrlRequest = {
+export const DEFAULT_REQUEST: RedirectRequest|PopupRequest = {
     scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
 };
 

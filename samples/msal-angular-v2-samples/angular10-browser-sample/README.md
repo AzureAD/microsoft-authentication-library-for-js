@@ -1,15 +1,17 @@
-# Angular 10 MSAL.js 2.x Sample
+# Angular 10 MSAL-Browser Sample
 
 ## About this sample
 
-This developer sample is used to demonstrate how to use MSAL.js in Angular 10.
+This developer sample was created before `@azure/msal-angular@2` was available to demonstrate how to use `@azure/msal-browser` in an Angular application directly.
+
+**`@azure/msal-angular@2` is now available for private preview. Please see the [`@azure/msal-angular` README](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular) for information on installation, changes, and new samples.** 
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 10.0.6.
 
 ## How to run the sample
 
 ### Pre-requisites
-- Ensure [all pre-requisites](../../../lib/msal-browser/README.md#prerequisites) have been completed to run msal-browser.
+- Ensure [all pre-requisites](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app.module.ts) have been completed to run msal-browser.
 
 ### Configure the application
 - Open `./src/app/app.modules.ts` in an editor.
@@ -22,5 +24,4 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 - In the web page, click on the "Login" button. The app will automatically reload if you change any of the source files.
 
 ## Additional notes
-- The default interaction type for the sample is popups. The sample can be configured to use redirects by changing the `interactionType` in `app.module.ts` to `InteractionType.REDIRECT`. Note that there are current issues with using redirects, such as updating state and the asynchronous processing of redirect responses. These issues are being investigated and will be addressed.
-- The sample implements basic versions of Angular service, guard, and interceptors. Broadcast functionality has not been implemented.
+- The default interaction type for the sample is redirects. The sample can be configured to use popups by changing the `interactionType` in `app.module.ts` to `InteractionType.Popup`. 

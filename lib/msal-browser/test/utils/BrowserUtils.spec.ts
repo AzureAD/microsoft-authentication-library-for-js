@@ -10,6 +10,7 @@ import { TEST_URIS } from "./StringConstants";
 import { XhrClient } from "../../src/network/XhrClient";
 import { FetchClient } from "../../src/network/FetchClient";
 import { Logger, LogLevel } from "@azure/msal-common";
+import { BrowserAuthErrorMessage, InteractionType } from "../../src";
 
 const loggerOptions = {
     loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
@@ -143,4 +144,25 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
     it("getBrowserNetworkClient() returns xhr client if available", () => {
         expect(BrowserUtils.getBrowserNetworkClient() instanceof XhrClient).to.be.true;
     });
+
+    describe("blockRedirectInIframe", () => {
+        it("throws when inside an iframe", done => {
+            sinon.stub(BrowserUtils, "isInIframe").returns(true);
+            try {
+                BrowserUtils.blockRedirectInIframe(InteractionType.Redirect, false);
+            } catch (e) {
+                expect(e.errorCode).to.equal(BrowserAuthErrorMessage.redirectInIframeError.code);
+                done();
+            }
+        });
+
+        it("doesnt throw when inside an iframe and redirects are allowed", () => {
+            sinon.stub(BrowserUtils, "isInIframe").returns(true);
+            BrowserUtils.blockRedirectInIframe(InteractionType.Redirect, true);
+        });
+
+        it("doesnt throw when not inside an iframe", () => {
+            BrowserUtils.blockRedirectInIframe(InteractionType.Redirect, false);
+        });
+    })
 });

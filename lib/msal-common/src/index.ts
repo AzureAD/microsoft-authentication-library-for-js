@@ -61,7 +61,9 @@ export { DeviceCodeRequest } from "./request/DeviceCodeRequest";
 export { EndSessionRequest } from "./request/EndSessionRequest";
 export { UsernamePasswordRequest } from "./request/UsernamePasswordRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
+export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload";
 export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse";
+export { DeviceCodeResponse } from "./response/DeviceCodeResponse";
 // Logger Callback
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";
 // Errors
