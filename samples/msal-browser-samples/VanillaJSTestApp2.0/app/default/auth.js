@@ -23,6 +23,7 @@ myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
 function handleResponse(resp) {
     if (resp !== null) {
         accountId = resp.account.homeAccountId;
+        myMSALObj.setActiveAccount(resp.account);
         showWelcomeMessage(resp.account);
     } else {
         // need to call getAccount here?
@@ -32,8 +33,10 @@ function handleResponse(resp) {
         } else if (currentAccounts.length > 1) {
             // Add choose account code here
         } else if (currentAccounts.length === 1) {
-            accountId = currentAccounts[0].homeAccountId;
-            showWelcomeMessage(currentAccounts[0]);
+            const activeAccount = currentAccounts[0];
+            myMSALObj.setActiveAccount(activeAccount);
+            accountId = activeAccount.homeAccountId;
+            showWelcomeMessage(activeAccount);
         }
     }
 }
@@ -63,7 +66,6 @@ if (window.location.search.includes("sid=") && window.location.search.includes("
 }
 
 async function getTokenPopup(request, account) {
-    request.account = account;
     return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
         console.log("silent token acquisition fails.");
         if (error instanceof msal.InteractionRequiredAuthError) {
@@ -79,7 +81,6 @@ async function getTokenPopup(request, account) {
 
 // This function can be removed if you do not need to support IE
 async function getTokenRedirect(request, account) {
-    request.account = account;
     return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
         console.log("silent token acquisition fails.");
         if (error instanceof msal.InteractionRequiredAuthError) {

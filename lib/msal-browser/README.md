@@ -57,7 +57,7 @@ npm install @azure/msal-browser
 
 <!-- CDN_LATEST -->
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/browser/2.7.0/js/msal-browser.min.js"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/browser/2.8.0/js/msal-browser.min.js"></script>
 ```
 
 See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/cdn-usage.md) for more info on how to use this package from the Microsoft CDN.
@@ -170,7 +170,7 @@ npm run test:coverage:only
 
 If you are using a framework such as Angular or React you may be interested in using one of our wrapper libraries:
 
-- Angular: [@azure/msal-angular v2 (Alpha)](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-angular-v2/lib/msal-angular)
+- Angular: [@azure/msal-angular v2 (Alpha)](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular)
 - React: [@azure/msal-react (Alpha)](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-react)
 
 ## Implicit Flow vs Authorization Code Flow with PKCE

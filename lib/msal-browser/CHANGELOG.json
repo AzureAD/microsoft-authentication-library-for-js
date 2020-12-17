@@ -2,6 +2,115 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 07 Dec 2020 22:19:03 GMT",
+      "tag": "@azure/msal-browser_v2.8.0",
+      "version": "2.8.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix clearing of temporary cache items (#2696)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "db0e692ba0dbd1fafd0ffdbacadc83f68498d201",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add exports to index.ts (#2680)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "7c2b0d1aae5730017bda2f63049fab48f9e71e7f",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Expose idTokenClaims on AccountInfo (#2554)",
+            "author": "janutter@microsoft.com",
+            "commit": "cb2165aad7995d904ec49ade565d907dc314ce16",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add onRedirectNavigate to redirect operations in browser (#2669)",
+            "author": "janutter@microsoft.com",
+            "commit": "8b460eeab3ec8f94cac5291c97a5f94a05aa9270",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update Internal PCA Configuration (#2602)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "ebf18c6daead16f8cfd2afb3b63cbd59fc63046a",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add allowRedirectInIframe flag to browser (#2593)",
+            "author": "janutter@microsoft.com",
+            "commit": "1b8ac77845b61603d479b3ef1096ee894b9b5065",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Log messages contain package name and version (#2589)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "4568c16bd425e242cdb799ec59b3508654cc2e45",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update request types (#2512)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "5b891222d674eb5664af9187f319a61b50341f55",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "update browser export (#2693)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "e5a4b5c4b2ba2e996e404883705d3b53833109b3",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Package Lock update",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "9c029bc074ecd32483a45cfab8721f0771c31e55",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "adding faq for b2c support and b2c clientId scope behavior in acquireTokenSilent",
+            "author": "dogan.erisen@gmail.com",
+            "commit": "adc3e98b23bb16270977021e6cd381270cd97278",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Remove console.log in unit tests (#2629)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "b89d8029a3703b2bfa1f9399456e652fe6f26e4f",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "CDN Links",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "dcb07e2011222da6178d4da903dcf44a9f413130",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Readme updates (#2592)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "cfea3b511ebfcd4a22334a1b7c7625f8a7a3a098",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Doc update (#2587)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "fa9b7009f094b3c17a6d177fcec9b736320735c0",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Enable the instance_aware flow (#1804)",
+            "author": "prkanher@microsoft.com",
+            "commit": "3e616e162149f4e57257b70e6d481c4596d91ef9",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 11 Nov 2020 23:33:20 GMT",
       "tag": "@azure/msal-browser_v2.7.0",
       "version": "2.7.0",

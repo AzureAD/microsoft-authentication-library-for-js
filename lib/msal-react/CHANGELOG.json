@@ -2,6 +2,57 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Mon, 07 Dec 2020 22:19:03 GMT",
+      "tag": "@azure/msal-react_v1.0.0-alpha.1",
+      "version": "1.0.0-alpha.1",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Prevent unnecessary context updates (#2671)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "a1ba4a5037480a23d22d3a72a4217650028953d2",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "Updating TestConstants.ts",
+            "author": "prkanher@microsoft.com",
+            "commit": "b921279b4f285d2984b8458f27348d3f734b0d67",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "Readme Updates",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "4c9729742d82fc51cf7b823bd376e6551dcd851b",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "Fix Server/Client mismatch when using SSR (#2646)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "23b292184da04a397f985f6453f22810c40d1fbc",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "useMsalAuthentication consumes response from login callback (#2610)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "9c029bc074ecd32483a45cfab8721f0771c31e55",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "Update msal-react ssoSilent example",
+            "author": "janutter@microsoft.com",
+            "commit": "46bef2f0e3a2ffacc9fd4d69c6016f5528d630a5",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "Readme updates (#2592)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "cfea3b511ebfcd4a22334a1b7c7625f8a7a3a098",
+            "package": "@azure/msal-react"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 11 Nov 2020 23:33:20 GMT",
       "tag": "@azure/msal-react_v1.0.0-alpha.0",
       "version": "1.0.0-alpha.0",

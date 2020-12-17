@@ -1,6 +1,0 @@
-<?xml version="1.0" encoding="UTF-8" ?>
-<testsuites disabled="0" errors="0" failures="0" tests="1" time="36.308">
- <testsuite name="E2ETests MSAL Angular" timestamp="2018-06-28T17:47:19" hostname="localhost" time="36.308" errors="0" tests="1" skipped="0" disabled="0" failures="0">
-  <testcase classname="E2ETests MSAL Angular" name="1:: Should login using redirect flow and logout" time="36.307" />
- </testsuite>
-</testsuites>

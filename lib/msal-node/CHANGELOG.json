@@ -2,6 +2,45 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Mon, 07 Dec 2020 22:19:03 GMT",
+      "tag": "@azure/msal-node_v1.0.0-beta.2",
+      "version": "1.0.0-beta.2",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Expose idTokenClaims on AccountInfo (#2554)",
+            "author": "janutter@microsoft.com",
+            "commit": "cb2165aad7995d904ec49ade565d907dc314ce16",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Add null to API response signatures (#2602)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "ebf18c6daead16f8cfd2afb3b63cbd59fc63046a",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Enforce triple equals in eslint",
+            "author": "janutter@microsoft.com",
+            "commit": "5975eb4077a2b4372683e68af4d748b0808134ab",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Log messages contain package name and version (#2589)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "4568c16bd425e242cdb799ec59b3508654cc2e45",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Update request types (#2512)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "5b891222d674eb5664af9187f319a61b50341f55",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 11 Nov 2020 23:33:20 GMT",
       "tag": "@azure/msal-node_v1.0.0-beta.1",
       "version": "1.0.0-beta.1",

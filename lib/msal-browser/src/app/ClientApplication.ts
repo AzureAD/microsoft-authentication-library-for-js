@@ -49,6 +49,9 @@ export abstract class ClientApplication {
     // Flag to indicate if in browser environment
     protected isBrowserEnvironment: boolean;
 
+    // Sets the account to use if no account info is given
+    private activeLocalAccountId: string | null;
+
     // Callback for subscribing to events
     private eventCallbacks: Map<string, EventCallbackFunction>;
 
@@ -106,6 +109,7 @@ export abstract class ClientApplication {
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
 
         this.defaultAuthority = null;
+        this.activeLocalAccountId = null;
     }
 
     // #region Redirect Flow
@@ -231,10 +235,7 @@ export abstract class ClientApplication {
             }
         }
 
-        // Deserialize hash fragment response parameters.
-        const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(hash);
-
-        this.browserStorage.cleanRequest(serverParams.state);
+        this.browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
         return null;
     }
 
@@ -259,7 +260,7 @@ export abstract class ClientApplication {
             return await interactionHandler.handleCodeResponse(responseHash, authClient.authority, this.networkClient, this.config.auth.clientId);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
-            this.browserStorage.cleanRequest(serverParams.state);
+            this.browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
             throw e;
         }
     }
@@ -304,11 +305,11 @@ export abstract class ClientApplication {
             const redirectStartPage = (request && request.redirectStartPage) || window.location.href;
 
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            const redirectParameters = {
+            return interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, {
                 redirectTimeout: this.config.system.redirectNavigationTimeout, 
-                redirectStartPage: redirectStartPage
-            };
-            return interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, redirectParameters);
+                redirectStartPage: redirectStartPage,
+                onRedirectNavigate: request.onRedirectNavigate
+            });
         } catch (e) {
             // If logged in, emit acquire token events
             if (isLoggedIn) {
@@ -318,7 +319,7 @@ export abstract class ClientApplication {
             }
 
             serverTelemetryManager.cacheFailedRequest(e);
-            this.browserStorage.cleanRequest(validRequest.state);
+            this.browserStorage.cleanRequestByState(validRequest.state);
             throw e;
         }
     }
@@ -415,7 +416,7 @@ export abstract class ClientApplication {
             }
 
             serverTelemetryManager.cacheFailedRequest(e);
-            this.browserStorage.cleanRequest(validRequest.state);
+            this.browserStorage.cleanRequestByState(validRequest.state);
             throw e;
         }
     }
@@ -490,7 +491,7 @@ export abstract class ClientApplication {
             return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
-            this.browserStorage.cleanRequest(silentRequest.state);
+            this.browserStorage.cleanRequestByState(silentRequest.state);
             throw e;
         }
     }
@@ -575,19 +576,34 @@ export abstract class ClientApplication {
                 this.browserStorage.clear();
             }
 
-            if (!BrowserUtils.isInIframe()) {
-                // When not in an iframe, build logout url and navigate
-                const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
-                const authClient = await this.createAuthCodeClient(null, validLogoutRequest && validLogoutRequest.authority);
-                const logoutUri = authClient.getLogoutUri(validLogoutRequest as CommonEndSessionRequest);
+            // If in iframe, do not attempt to navigate
+            if (BrowserUtils.isInIframe()) {
+                return this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Silent, logoutRequest);
+            }
 
-                // Emittting logout event right before we navigate, so that it is not emitted if building url fails
-                this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
+            // Build logout url
+            const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
+            const authClient = await this.createAuthCodeClient(null, validLogoutRequest && validLogoutRequest.authority);
+            const logoutUri: string = authClient.getLogoutUri(validLogoutRequest as CommonEndSessionRequest);
+            this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
 
-                return BrowserUtils.navigateWindow(logoutUri, this.config.system.redirectNavigationTimeout, this.logger);
+            // Clear active account
+            if (!validLogoutRequest.account || AccountEntity.accountInfoIsEqual(validLogoutRequest.account, this.getActiveAccount())) {
+                this.setActiveAccount(null);
+            }
+
+            // Check if onRedirectNavigate is implemented, and invoke it if so
+            if (logoutRequest && typeof logoutRequest.onRedirectNavigate === "function") {
+                const navigate = logoutRequest.onRedirectNavigate(logoutUri);
+
+                if (navigate !== false) {
+                    this.logger.verbose("Logout onRedirectNavigate did not return false, navigating");
+                    return BrowserUtils.navigateWindow(logoutUri, this.config.system.redirectNavigationTimeout, this.logger);
+                } else {
+                    this.logger.verbose("Logout onRedirectNavigate returned false, stopping navigation");
+                }
             } else {
-                // If in iframe, do nothing further
-                this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Silent, logoutRequest);
+                return BrowserUtils.navigateWindow(logoutUri, this.config.system.redirectNavigationTimeout, this.logger);
             }
         } catch(e) {
             this.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Redirect, null, e);
@@ -655,6 +671,25 @@ export abstract class ClientApplication {
         }
     }
 
+    /**
+     * Sets the account to use as the active account. If no account is passed to the acquireToken APIs, then MSAL will use this active account.
+     * @param account 
+     */
+    setActiveAccount(account: AccountInfo | null): void {
+        this.activeLocalAccountId = account ? account.localAccountId : null;
+    }
+
+    /**
+     * Gets the currently active account
+     */
+    getActiveAccount(): AccountInfo | null {
+        if (!this.activeLocalAccountId) {
+            return null;
+        }
+
+        return this.getAccountByLocalId(this.activeLocalAccountId);
+    }
+
     // #endregion
 
     // #region Helpers
@@ -695,7 +730,7 @@ export abstract class ClientApplication {
      */
     protected interactionInProgress(): boolean {
         // Check whether value in cache is present and equal to expected value
-        return (this.browserStorage.getTemporaryCache(BrowserConstants.INTERACTION_STATUS_KEY, true)) === BrowserConstants.INTERACTION_IN_PROGRESS_VALUE;
+        return (this.browserStorage.getTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, true)) === BrowserConstants.INTERACTION_IN_PROGRESS_VALUE;
     }
 
     /**
@@ -841,7 +876,6 @@ export abstract class ClientApplication {
      * @param request
      */
     protected initializeAuthorizationRequest(request: RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
-        
         const redirectUri = this.getRedirectUri(request.redirectUri);
         const browserState: BrowserStateObject = {
             interactionType: interactionType
@@ -867,6 +901,7 @@ export abstract class ClientApplication {
             nonce: nonce,
             responseMode: ResponseMode.FRAGMENT,
             authenticationScheme: authenticationScheme,
+            account: request.account || this.getActiveAccount()
         };
 
         // Check for ADAL SSO
