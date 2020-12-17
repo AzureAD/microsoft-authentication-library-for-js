@@ -12,7 +12,7 @@ import {
 import { Observable, EMPTY } from "rxjs";
 import { switchMap, catchError } from "rxjs/operators";
 import { MsalService } from "./msal.service";
-import { AuthenticationResult, BrowserConfigurationAuthError, InteractionType, StringUtils } from "@azure/msal-browser";
+import { AccountInfo, AuthenticationResult, BrowserConfigurationAuthError, InteractionType, StringUtils } from "@azure/msal-browser";
 import { Injectable, Inject } from "@angular/core";
 import { MSAL_INTERCEPTOR_CONFIG } from "./constants";
 import { MsalInterceptorConfiguration } from "./msal.interceptor.config";
@@ -31,7 +31,7 @@ export class MsalInterceptor implements HttpInterceptor {
 
         this.authService.getLogger().verbose("MSAL Interceptor activated");
         const scopes = this.getScopesForEndpoint(req.url);
-        const account = this.authService.instance.getAllAccounts()[0];
+        const account = this.authService.instance.getActiveAccount() || this.authService.instance.getAllAccounts()[0];
 
         if (!scopes || scopes.length === 0) {
             this.authService.getLogger().verbose("Interceptor - no scopes for endpoint");
