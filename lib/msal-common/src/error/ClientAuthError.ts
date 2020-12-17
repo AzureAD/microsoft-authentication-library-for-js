@@ -151,6 +151,10 @@ export const ClientAuthErrorMessage = {
         code: "token_refresh_required",
         desc: "Cannot return token from cache because it must be refreshed. This may be due to one of the following reasons: forceRefresh parameter is set to true, claims have been requested, there is no cached access token or it is expired."
     },
+    userTimeoutReached: {
+        code: "user_timeout_reached",
+        desc: "User defined timeout for device code polling reached",
+    },
     tokenClaimsRequired: {
         code: "token_claims_cnf_required_for_signedjwt",
         desc: "Cannot generate a POP jwt if the token_claims are not populated"
@@ -439,6 +443,13 @@ export class ClientAuthError extends AuthError {
     }
 
     /**
+     * Throws error if the user defined timeout is reached.
+     */
+    static createUserTimeoutReachedError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.userTimeoutReached.code, ClientAuthErrorMessage.userTimeoutReached.desc);
+    }
+
+    /*
      * Throws error if token claims are not populated for a signed jwt generation
      */
     static createTokenClaimsRequiredError(): ClientAuthError {

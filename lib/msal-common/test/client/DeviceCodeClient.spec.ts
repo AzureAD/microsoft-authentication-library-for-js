@@ -174,5 +174,23 @@ describe("DeviceCodeClient unit tests", async () => {
             const client = new DeviceCodeClient(config);
             await expect(client.acquireToken(request)).to.be.rejectedWith(`${ClientAuthErrorMessage.DeviceCodeExpired.desc}`);
         }).timeout(6000);
+
+        it("Throw device code expired exception if the timeout expires", async () => {
+            sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
+            const tokenRequestStub = sinon
+            .stub(BaseClient.prototype, <any>"executePostToTokenEndpoint")
+            .onFirstCall().resolves(AUTHORIZATION_PENDING_RESPONSE)
+
+            let deviceCodeResponse = null;
+            const request: DeviceCodeRequest = {
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                deviceCodeCallback: (response) => deviceCodeResponse = response,
+                timeout: DEVICE_CODE_RESPONSE.interval, // Setting a timeout equal to the interval polling time to allow for one call to the token endpoint 
+            };
+
+            const client = new DeviceCodeClient(config);
+            await expect(client.acquireToken(request)).to.be.rejectedWith(`${ClientAuthErrorMessage.userTimeoutReached.desc}`);
+            await expect(tokenRequestStub.callCount).to.equal(1);
+        }).timeout(15000);
     });
 });

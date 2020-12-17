@@ -30,6 +30,7 @@ export {
     AuthenticationScheme,
     // Account
     AccountInfo,
+    AccountEntity,
     // Response
     AuthenticationResult,
     // Error
