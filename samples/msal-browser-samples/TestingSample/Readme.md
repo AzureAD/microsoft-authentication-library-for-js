@@ -1,5 +1,7 @@
 # MSAL.js Jest/Puppeteer Testing Example
 
+⚠️ Warning: The ROPC Flow in msal-node should only be used for testing and is not suitable for authenticating users outside of a testing environment ⚠️
+
 ## About this sample
 
 This sample demonstrates how you can run e2e tests against an application that uses msal-browser to obtain tokens and sign users in.
