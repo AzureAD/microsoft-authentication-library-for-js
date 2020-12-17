@@ -143,6 +143,7 @@ export class DeviceCodeClient extends BaseClient {
         const requestBody = this.createTokenRequestBody(request, deviceCodeResponse);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
 
+        const userSpecifiedTimeout = request.timeout ? TimeUtils.nowSeconds() + request.timeout : undefined; 
         const deviceCodeExpirationTime = TimeUtils.nowSeconds() + deviceCodeResponse.expiresIn;
         const pollingIntervalMilli = deviceCodeResponse.interval * 1000;
 
@@ -160,7 +161,18 @@ export class DeviceCodeClient extends BaseClient {
                         clearInterval(intervalId);
                         reject(ClientAuthError.createDeviceCodeCancelledError());
 
+                    } else if (userSpecifiedTimeout && userSpecifiedTimeout < deviceCodeExpirationTime && TimeUtils.nowSeconds() > userSpecifiedTimeout) {
+
+                        this.logger.error(`User defined timeout for device code polling reached. The timeout was set for ${userSpecifiedTimeout}`);   
+                        clearInterval(intervalId);
+                        reject(ClientAuthError.createUserTimeoutReachedError());
+
                     } else if (TimeUtils.nowSeconds() > deviceCodeExpirationTime) {
+                        
+                        if (userSpecifiedTimeout) {
+                            this.logger.verbose(`User specified timeout ignored as the device code has expired before the timeout elapsed. The user specified timeout was set for ${userSpecifiedTimeout}`);
+                        }
+
                         this.logger.error(`Device code expired. Expiration time of device code was ${deviceCodeExpirationTime}`);
                         clearInterval(intervalId);
                         reject(ClientAuthError.createDeviceCodeExpiredError());
