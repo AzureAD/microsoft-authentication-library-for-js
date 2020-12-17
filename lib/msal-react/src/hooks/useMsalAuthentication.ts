@@ -73,7 +73,7 @@ export function useMsalAuthentication(
     }, [instance, logger]);
 
     useEffect(() => {
-        if (!hasBeenCalled && !isAuthenticated && inProgress === InteractionStatus.None) {
+        if (!hasBeenCalled && !error && !isAuthenticated && inProgress === InteractionStatus.None) {
             logger.info("useMsalAuthentication - No user is authenticated, attempting to login");
             // Ensure login is only called one time from within this hook, any subsequent login attempts should use the callback returned
             setHasBeenCalled(true);
@@ -82,7 +82,7 @@ export function useMsalAuthentication(
                 return;
             });
         }
-    }, [isAuthenticated, inProgress, hasBeenCalled, login, logger]);
+    }, [isAuthenticated, inProgress, error, hasBeenCalled, login, logger]);
 
     return { login, result, error };
 }

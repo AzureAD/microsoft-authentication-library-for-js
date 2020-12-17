@@ -24,6 +24,8 @@ export class BrowserCacheManager extends CacheManager {
     private cacheConfig: CacheOptions;
     // Window storage object (either local or sessionStorage)
     private browserStorage: IWindowStorage;
+    // Internal in-memory storage object used for data used by msal that does not need to persist across page loads
+    private internalStorage: MemoryStorage;
     // Client id of application. Used in cache keys to partition cache correctly in the case of multiple instances of MSAL.
     private logger: Logger;
 
@@ -37,6 +39,7 @@ export class BrowserCacheManager extends CacheManager {
         this.logger = logger;
 
         this.browserStorage = this.setupBrowserStorage(cacheConfig.cacheLocation);
+        this.internalStorage = new MemoryStorage();
 
         // Migrate any cache entries from older versions of MSAL.
         this.migrateCacheEntries();
