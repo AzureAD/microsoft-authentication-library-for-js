@@ -6,6 +6,12 @@
 import { Screenshot } from "../../../../e2eTestUtils/TestUtils";
 import { Page } from "puppeteer";
 
+// Constants
+export const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
+export const SAMPLE_HOME_URL = "http://localhost:3000";
+export const SUCCESSFUL_GRAPH_CALL_ID = "graph-called-successfully";
+export const SUCCESSFUL_GET_ALL_ACCOUNTS_ID = "accounts-retrieved-successfully";
+
 export async function enterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
     await page.waitForSelector("#i0116");
     await screenshot.takeScreenshot(page, "loginPage");
@@ -15,7 +21,9 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
     await screenshot.takeScreenshot(page, "pwdInputPage");
     await page.type("#i0118", accountPwd);
     await screenshot.takeScreenshot(page, "pwdTyped");
-    await page.click("#idSIButton9");
+    const signInButton = 'input[type="submit"]';
+    await page.waitForSelector(signInButton);
+    await page.evaluate((signInButton) => document.querySelector(signInButton).click(), signInButton);
     await screenshot.takeScreenshot(page, "pwdSubmitted");
 }
 
@@ -35,10 +43,3 @@ export async function enterCredentialsADFS(page: Page, screenshot: Screenshot, u
     await page.type("#passwordInput", accountPwd);
     await page.click("#submitButton");
 }
-
-// Constants
-
-export const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
-export const SAMPLE_HOME_URL = "http://localhost:3000";
-export const SUCCESSFUL_GRAPH_CALL_ID = "graph-called-successfully";
-export const SUCCESSFUL_GET_ALL_ACCOUNTS_ID = "accounts-retrieved-successfully";
