@@ -29,6 +29,8 @@ export interface IPublicClientApplication {
     initializeBrokering(): Promise<void>;
     getLogger(): Logger;
     setLogger(logger: Logger): void;
+    setActiveAccount(account: AccountInfo | null): void;
+    getActiveAccount(): AccountInfo | null;
 }
 
 export const stubbedPublicClientApplication: IPublicClientApplication = {
@@ -82,5 +84,11 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     },
     initializeBrokering: () => {
         return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);
+    },
+    setActiveAccount: () => {
+        return;
+    },
+    getActiveAccount: () => {
+        return null;
     }
 };
