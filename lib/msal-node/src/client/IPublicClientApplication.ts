@@ -9,11 +9,11 @@ import { TokenCache } from "../cache/TokenCache";
 
 export interface IPublicClientApplication {
     getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
-    acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
-    acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult>;
-    acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult>;
-    acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult>;
-    acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult>;
+    acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult | null>;
+    acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null>;
+    acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
+    acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null>;
+    acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
     getTokenCache(): TokenCache;
     getLogger(): Logger;
     setLogger(logger: Logger): void;

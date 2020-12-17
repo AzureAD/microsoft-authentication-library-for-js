@@ -8,11 +8,11 @@ import { NodeConfigurationAuthError } from "../error/NodeConfigurationAuthError"
 import { TokenCache } from "../cache/TokenCache";
 export interface IConfidentialClientApplication {
     getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
-    acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
-    acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult>;
-    acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult>;
-    acquireTokenByClientCredential(request: ClientCredentialRequest): Promise<AuthenticationResult>;
-    acquireTokenOnBehalfOf(request: OnBehalfOfRequest): Promise<AuthenticationResult>;
+    acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult | null>;
+    acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null>;
+    acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
+    acquireTokenByClientCredential(request: ClientCredentialRequest): Promise<AuthenticationResult | null>;
+    acquireTokenOnBehalfOf(request: OnBehalfOfRequest): Promise<AuthenticationResult | null>;
     getTokenCache(): TokenCache;
     getLogger(): Logger;
     setLogger(logger: Logger): void;
