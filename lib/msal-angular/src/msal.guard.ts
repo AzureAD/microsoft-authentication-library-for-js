@@ -53,8 +53,9 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
             this.authService.getLogger().verbose("Guard - logging in by popup");
             return this.authService.loginPopup({ ...this.msalGuardConfig.authRequest })
                 .pipe(
-                    map(() => {
-                        this.authService.getLogger().verbose("Guard - login by popup successful, can activate");
+                    map((response) => {
+                        this.authService.getLogger().verbose("Guard - login by popup successful, can activate, setting active account");
+                        this.authService.instance.setActiveAccount(response.account);
                         return true;
                     }),
                     catchError(() => of(false))
