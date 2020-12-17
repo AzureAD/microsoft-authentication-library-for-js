@@ -1,6 +1,6 @@
 {
   "type": "prerelease",
-  "comment": "Interceptor to use active account (#2784)",
+  "comment": "Interceptor, guard, and samples to use active account (#2784)",
   "packageName": "@azure/msal-angular",
   "email": "joarroyo@microsoft.com",
   "dependentChangeType": "patch"
