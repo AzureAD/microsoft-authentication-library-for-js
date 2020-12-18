@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Enable jsdoc param-name eslint rules",
+  "packageName": "msal",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "none"
+}
