@@ -16,7 +16,7 @@ export class AuthorityMetadataEntity {
     token_endpoint: string;
     end_session_endpoint: string;
     issuer: string;
-    aliasasFromNetwork: boolean;
+    aliasesFromNetwork: boolean;
     endpointsFromNetwork: boolean;
     expiresAt: number;
 
@@ -33,7 +33,7 @@ export class AuthorityMetadataEntity {
         this.aliases = metadata.aliases;
         this.preferred_cache = metadata.preferred_cache;
         this.preferred_network = metadata.preferred_network;
-        this.aliasasFromNetwork = fromNetwork;
+        this.aliasesFromNetwork = fromNetwork;
     }
 
     /**
@@ -60,7 +60,7 @@ export class AuthorityMetadataEntity {
      * Returns whether or not the data needs to be refreshed
      */
     isExpired(): boolean {
-        return this.expiresAt > TimeUtils.nowSeconds();
+        return this.expiresAt <= TimeUtils.nowSeconds();
     }
 
     /**

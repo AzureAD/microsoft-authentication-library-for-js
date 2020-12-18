@@ -4,7 +4,7 @@
  */
 
 import { AuthorityType } from "./AuthorityType";
-import { OpenIdConfigResponse } from "./OpenIdConfigResponse";
+import { isOpenIdConfigResponse, OpenIdConfigResponse } from "./OpenIdConfigResponse";
 import { UrlString } from "../url/UrlString";
 import { IUri } from "../url/IUri";
 import { ClientAuthError } from "../error/ClientAuthError";
@@ -15,7 +15,7 @@ import { ProtocolMode } from "./ProtocolMode";
 import { ICacheManager } from "../cache/interface/ICacheManager";
 import { AuthorityMetadataEntity } from "../cache/entities/AuthorityMetadataEntity";
 import { AuthorityOptions } from "./AuthorityOptions";
-import { CloudInstanceDiscoveryResponse } from "./CloudInstanceDiscoveryResponse";
+import { CloudInstanceDiscoveryResponse, isCloudInstanceDiscoveryResponse } from "./CloudInstanceDiscoveryResponse";
 import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
 
 /**
@@ -250,7 +250,7 @@ export class Authority {
             return AuthorityMetadataSource.CONFIG;
         }
 
-        if (metadataEntity.aliasasFromNetwork && !metadataEntity.isExpired()) {
+        if (metadataEntity.aliasesFromNetwork && !metadataEntity.isExpired()) {
             // No need to update
             return AuthorityMetadataSource.CACHE;
         }
@@ -287,7 +287,7 @@ export class Authority {
     private async getEndpointMetadataFromNetwork(): Promise<OpenIdConfigResponse | null> {
         try {
             const response = await this.networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(this.defaultOpenIdConfigurationEndpoint);
-            return response.body;
+            return isOpenIdConfigResponse(response.body) ? response.body : null;
         } catch (e) {
             return null;
         }
@@ -322,7 +322,7 @@ export class Authority {
         let match = null;
         try {
             const response = await this.networkInterface.sendGetRequestAsync<CloudInstanceDiscoveryResponse>(instanceDiscoveryEndpoint);
-            const metadata = response.body.metadata;
+            const metadata = isCloudInstanceDiscoveryResponse(response.body) ? response.body.metadata : [];
             match = Authority.getCloudDiscoveryMetadataFromNetworkResponse(metadata, this.hostnameAndPort);
         } catch(e) {
             return null;
