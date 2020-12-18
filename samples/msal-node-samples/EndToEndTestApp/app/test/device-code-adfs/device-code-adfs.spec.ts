@@ -57,7 +57,7 @@ describe('Device Code ADFS PPE Tests', () => {
         let screenshot: Screenshot;
 
         beforeAll(() => {
-            testName = "deviceCodeFlowBaseCase";
+            testName = "deviceCodeADFSFlowBaseCase";
             screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
             NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });

@@ -54,7 +54,7 @@ describe('Device Code AAD PPE Tests', () => {
         let screenshot: Screenshot;
 
         beforeAll(() => {
-            testName = "deviceCodeFlowBaseCase";
+            testName = "deviceCodeAADFlowBaseCase";
             screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         });
 
