@@ -692,7 +692,7 @@ export abstract class ClientApplication {
      * @returns {string} post logout redirect URL
      */
     protected getPostLogoutRedirectUri(requestPostLogoutRedirectUri?: string): string {
-        const postLogoutRedirectUri = requestPostLogoutRedirectUri || this.config.auth.postLogoutRedirectUri || BrowserUtils.getCurrentUri();
+        const postLogoutRedirectUri = requestPostLogoutRedirectUri || this.config.auth.postLogoutRedirectUri;
         return UrlString.getAbsoluteUrl(postLogoutRedirectUri, BrowserUtils.getCurrentUri());
     }
 
@@ -933,7 +933,10 @@ export abstract class ClientApplication {
             ...logoutRequest
         };
 
-        validLogoutRequest.postLogoutRedirectUri = this.getPostLogoutRedirectUri(logoutRequest ? logoutRequest.postLogoutRedirectUri : "");
+        const postLogoutRedirectUri = this.getPostLogoutRedirectUri(logoutRequest ? logoutRequest.postLogoutRedirectUri : "");
+        if (!StringUtils.isEmpty(postLogoutRedirectUri)) {
+            validLogoutRequest.postLogoutRedirectUri = postLogoutRedirectUri;
+        }
 
         return validLogoutRequest;
     }
