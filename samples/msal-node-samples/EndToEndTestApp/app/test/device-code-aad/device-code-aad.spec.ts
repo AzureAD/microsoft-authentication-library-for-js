@@ -56,6 +56,7 @@ describe('Device Code AAD PPE Tests', () => {
         beforeAll(() => {
             testName = "deviceCodeAADFlowBaseCase";
             screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
 
         beforeEach(async () => {
