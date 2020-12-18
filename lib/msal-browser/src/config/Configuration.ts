@@ -152,7 +152,6 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     // Default broker options for browser
     const DEFAULT_BROKER_OPTIONS: BrokerOptions = {
         actAsBroker: false,
-        preferredInteractionType: InteractionType.None,
         allowBrokering: false,
         trustedBrokerDomains: []
     };

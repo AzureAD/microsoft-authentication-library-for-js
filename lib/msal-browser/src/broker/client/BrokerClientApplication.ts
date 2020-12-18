@@ -171,7 +171,7 @@ export class BrokerClientApplication extends ClientApplication {
      * @param messageInteractionType 
      */
     private getInteractionType(messageInteractionType: InteractionType): InteractionType {
-        const brokerHasInteractionPref = !!this.config.experimental.brokerOptions.preferredInteractionType && this.config.experimental.brokerOptions.preferredInteractionType !== InteractionType.None;
+        const brokerHasInteractionPref = !!this.config.experimental.brokerOptions.preferredInteractionType;
         return brokerHasInteractionPref ? this.config.experimental.brokerOptions.preferredInteractionType : messageInteractionType;
     }
 
@@ -188,7 +188,11 @@ export class BrokerClientApplication extends ClientApplication {
             case InteractionType.Popup:
                 return this.brokeredPopupRequest(validMessage, clientMessage.ports[0]);
             case InteractionType.Silent:
+                this.logger.error("Invalid code path. interactiveBrokerRequest() should only be called for interactive requests.")
+                return;
             case InteractionType.None:
+                this.logger.error("Broker is blocking interactive requests. Please attempt a silent request or sign into the broker first.")
+                return;
             default:
                 this.logger.error("Invalid code path. interactiveBrokerRequest() should only be called for interactive requests.")
                 return;
