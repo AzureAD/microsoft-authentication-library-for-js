@@ -43,7 +43,7 @@ describe('Device Code ADFS PPE Tests', () => {
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
 
         browser = await puppeteer.launch({
-            headless: false,
+            headless: true,
             ignoreDefaultArgs: ['--no-sandbox', '-disable-setuid-sandbox', '--disable-extensions']
         });
     });
