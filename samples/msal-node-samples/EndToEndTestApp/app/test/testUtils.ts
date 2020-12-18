@@ -6,8 +6,13 @@
 import { Screenshot } from "../../../../e2eTestUtils/TestUtils";
 import { Page } from "puppeteer";
 
+// Constants
+export const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
+export const SAMPLE_HOME_URL = "http://localhost:3000";
+export const SUCCESSFUL_GRAPH_CALL_ID = "graph-called-successfully";
+export const SUCCESSFUL_GET_ALL_ACCOUNTS_ID = "accounts-retrieved-successfully";
+
 export async function enterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
-    await page.waitForNavigation({ waitUntil: "networkidle0"});
     await page.waitForSelector("#i0116");
     await screenshot.takeScreenshot(page, "loginPage");
     await page.type("#i0116", username);
@@ -15,8 +20,13 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
     await page.waitForSelector("#idA_PWD_ForgotPassword");
     await screenshot.takeScreenshot(page, "pwdInputPage");
     await page.type("#i0118", accountPwd);
-    await page.click("#idSIButton9");
-    await takeScreenshotAfter(6000, screenshot, page, `pwdSubmitted`);
+    // await page.click("#idSIButton9");
+    // await takeScreenshotAfter(6000, screenshot, page, `pwdSubmitted`);
+    await screenshot.takeScreenshot(page, "pwdTyped");
+    const signInButton = 'input[type="submit"]';
+    await page.waitForSelector(signInButton);
+    await page.evaluate((signInButton) => document.querySelector(signInButton).click(), signInButton);
+    await screenshot.takeScreenshot(page, "pwdSubmitted");
 }
 
 export async function clickSignIn(page: Page, screenshot: Screenshot): Promise<void> {
@@ -35,7 +45,6 @@ export async function enterCredentialsADFS(page: Page, screenshot: Screenshot, u
     await page.type("#passwordInput", accountPwd);
     await page.click("#submitButton");
 }
-
 
 export async function enterDeviceCode(page: Page, screenshot: Screenshot, code: string, deviceCodeUrl: string): Promise<void> {
     await page.goto(deviceCodeUrl);
@@ -65,8 +74,3 @@ export function extractDeviceCodeParameters(output: string): { deviceCode: strin
 export function takeScreenshotAfter(duration: number, screenshot: Screenshot, page: Page, label: string): Promise<void> {
     return new Promise(resolve => setTimeout(() => screenshot.takeScreenshot(page, label).then(() => resolve()), duration));
 }
-
-export const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
-export const SAMPLE_HOME_URL = "http://localhost:3000";
-export const SUCCESSFUL_GRAPH_CALL_ID = "graph-called-successfully";
-export const SUCCESSFUL_GET_ALL_ACCOUNTS_ID = "accounts-retrieved-successfully";

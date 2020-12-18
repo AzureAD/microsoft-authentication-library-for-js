@@ -1,7 +1,7 @@
 import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
 import { MsalService, MsalBroadcastService, MSAL_GUARD_CONFIG, MsalGuardConfiguration } from '@azure/msal-angular';
 import { EventMessage, EventPayload, EventType, InteractionType } from '@azure/msal-browser';
-import { AuthenticationResult, BaseAuthRequest } from '@azure/msal-common'
+import { AuthenticationResult, AuthError, BaseAuthRequest } from '@azure/msal-common'
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { b2cPolicies } from './b2c-config';
@@ -39,7 +39,7 @@ export class AppComponent implements OnInit, OnDestroy {
         filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS || msg.eventType === EventType.ACQUIRE_TOKEN_SUCCESS),
         takeUntil(this._destroying$)
       )
-      .subscribe((result) => {
+      .subscribe((result: EventMessage) => {
       
         let payload: IdTokenClaims = <AuthenticationResult>result.payload;
 
@@ -64,8 +64,8 @@ export class AppComponent implements OnInit, OnDestroy {
         filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_FAILURE || msg.eventType === EventType.ACQUIRE_TOKEN_FAILURE),
         takeUntil(this._destroying$)
       )
-      .subscribe((result) => {
-        if (result.error) {
+      .subscribe((result: EventMessage) => {
+        if (result.error instanceof AuthError) {
           // Check for forgot password error
           // Learn more about AAD error codes at https://docs.microsoft.com/azure/active-directory/develop/reference-aadsts-error-codes
           if (result.error.message.includes('AADB2C90118')) {
