@@ -29,6 +29,7 @@ myMSALObj.initializeBrokering().then(() => {
 
 function handleResponse(resp) {
     if (resp !== null) {
+        myMSALObj.setActiveAccount(resp.account);
         username = resp.account.username;
         showWelcomeMessage(resp.account);
     } else {

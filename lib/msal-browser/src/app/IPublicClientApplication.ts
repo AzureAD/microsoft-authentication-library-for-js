@@ -30,7 +30,7 @@ export interface IPublicClientApplication {
     getLogger(): Logger;
     setLogger(logger: Logger): void;
     setActiveAccount(account: AccountInfo | null): void;
-    getActiveAccount(): AccountInfo | null;
+    getActiveAccount(asBroker?: boolean): AccountInfo | null;
 }
 
 export const stubbedPublicClientApplication: IPublicClientApplication = {

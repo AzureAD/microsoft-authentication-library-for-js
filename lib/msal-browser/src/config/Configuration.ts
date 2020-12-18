@@ -54,11 +54,9 @@ export type CacheOptions = {
  */
 export type BrokerOptions = {
     actAsBroker?: boolean;
-    allowLogout?: boolean;
     preferredInteractionType?: InteractionType.Popup | InteractionType.Redirect | InteractionType.None;
     allowBrokering?: boolean;
     trustedBrokerDomains?: string[];
-    brokeredRedirectUri?: string;
 };
 
 /**
@@ -154,11 +152,9 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     // Default broker options for browser
     const DEFAULT_BROKER_OPTIONS: BrokerOptions = {
         actAsBroker: false,
-        allowLogout: false,
         preferredInteractionType: InteractionType.None,
         allowBrokering: false,
-        trustedBrokerDomains: [],
-        brokeredRedirectUri: "",
+        trustedBrokerDomains: []
     };
 
     // Default system options for browser

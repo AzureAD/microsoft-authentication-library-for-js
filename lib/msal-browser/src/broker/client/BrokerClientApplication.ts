@@ -143,14 +143,13 @@ export class BrokerClientApplication extends ClientApplication {
                 this.cachedBrokerResponse = undefined;
                 const clientPort = clientMessage.ports[0];
                 const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Redirect, brokerResult);
-                this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
+                this.logger.info(`Sending auth response`);
                 clientPort.postMessage(brokerAuthResponse);
                 clientPort.close();
                 return;
             }
 
             const currentAccount = this.getActiveAccount();
-
             if (currentAccount || validMessage.request.account) {
                 return this.brokeredSilentRequest(validMessage, clientMessage.ports[0], currentAccount);
             }
@@ -230,7 +229,7 @@ export class BrokerClientApplication extends ClientApplication {
             popupRequest.brokerRedirectUri = this.getRedirectUri();
             const response = (await this.acquireTokenPopup(popupRequest)) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, response);
-            this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
+            this.logger.info(`Sending auth response`);
             clientPort.postMessage(brokerAuthResponse);
             clientPort.close();
         } catch (err) {
@@ -254,7 +253,7 @@ export class BrokerClientApplication extends ClientApplication {
             silentRequest.brokerRedirectUri = this.getRedirectUri();
             const response: BrokerAuthenticationResult = (await this.ssoSilent(silentRequest)) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, response);
-            this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
+            this.logger.info(`Sending auth response`);
             clientPort.postMessage(brokerAuthResponse);
             clientPort.close();
         } catch (err) {
@@ -281,7 +280,7 @@ export class BrokerClientApplication extends ClientApplication {
             const response = (await this.acquireTokenByRefreshToken(silentRequest)) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Silent, response);
             if (brokerAuthResponse.result.tokensToCache) {
-                this.logger.info(`Sending auth response: ${JSON.stringify(brokerAuthResponse)}`);
+                this.logger.info(`Sending auth response`);
                 clientPort.postMessage(brokerAuthResponse);
                 clientPort.close();
             } else {

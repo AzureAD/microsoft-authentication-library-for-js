@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, SilentFlowRequest } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, SilentFlowRequest } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, ApiId, InteractionType } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -186,5 +186,27 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 throw tokenRenewalError;
             }
         }
+    }
+
+    /**
+     * Sets the account to use as the active account. If no account is passed to the acquireToken APIs, then MSAL will use this active account.
+     * @param account 
+     */
+    setActiveAccount(account: AccountInfo | null): void {
+        if (this.broker) {
+            this.broker.setActiveAccount(account);
+        }
+        super.setActiveAccount(account);
+    }
+
+    /**
+     * Gets the currently active account
+     */
+    getActiveAccount(asBroker?: boolean): AccountInfo | null {
+        if (asBroker) {
+            return this.broker.getActiveAccount();
+        }
+
+        return super.getActiveAccount();
     }
 }
