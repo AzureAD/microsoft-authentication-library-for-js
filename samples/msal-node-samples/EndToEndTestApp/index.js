@@ -12,8 +12,10 @@ const argv = require('yargs')
     .usage('Usage: $0 -scenario [scenario-name] -p [PORT]')
     .alias('p', 'port')
     .alias('s', 'scenario')
+    .alias('c', 'cache')
     .describe('scenario', '(Optional) Name of scenario to run - default is silent-flow-aad')
     .describe('port', '(Optional) Port Number - default is 3000')
+    .describe('cache', `(Optional) Cache location - default is ${DEFAULT_CACHE_LOCATION}`)
     .strict()
     .argv;
 
@@ -28,7 +30,8 @@ async function runSample(scenario, port, cacheLocation) {
     const scenarioConfig = require(scenarioPath);
 
     // Build client application
-    const clientApplication = await require(Constants.MSAL_CLIENT_APP_CONFIG_PATH)(scenarioConfig, cacheLocation);
+    const clientCacheLocation = cacheLocation || DEFAULT_CACHE_LOCATION;
+    const clientApplication = await require(Constants.MSAL_CLIENT_APP_CONFIG_PATH)(scenarioConfig, clientCacheLocation);
 
     // Get sample metaconfig
     const sampleConfig = scenarioConfig.sample;
@@ -54,7 +57,7 @@ async function runSample(scenario, port, cacheLocation) {
 // If the app is executed manually, the $0 argument in argv will correspond to this index.js file
 if(argv.$0 === "index.js") {
     console.log("End to End Test App is being executed manually.");
-    runSample(argv.s, argv.p, DEFAULT_CACHE_LOCATION);
+    runSample(argv.s, argv.p, argv.c);
 } else {
     // Whenever argv.$0 is not index.js, it means it was required and executed in an external script
     console.log("End to End Test App is being executed from an external script.");
