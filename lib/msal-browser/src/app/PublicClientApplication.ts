@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, SilentFlowRequest } from "@azure/msal-common";
+import { AuthenticationResult, SilentFlowRequest } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, ApiId, InteractionType } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -16,7 +16,6 @@ import { SilentRequest } from "../request/SilentRequest";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { EventType } from "../event/EventType";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { BrokerAuthError } from "../error/BrokerAuthError";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -187,16 +186,5 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 throw tokenRenewalError;
             }
         }
-    }
-
-    /**
-     * Sets the account for the broker. Throws error if called when no broker is set.
-     * @param accountObj 
-     */
-    setBrokerAccount(accountObj: AccountInfo): void {
-        if (!this.broker) {
-            throw BrokerAuthError.createNoBrokerEnabledError();
-        }
-        this.broker.setBrokerAccount(accountObj);
     }
 }

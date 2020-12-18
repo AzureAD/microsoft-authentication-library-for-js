@@ -40,7 +40,7 @@ function handleResponse(resp) {
             // Add choose account code here
         } else if (currentAccounts.length === 1) {
             const accountObj = currentAccounts[0];
-            myMSALObj.setBrokerAccount(accountObj);
+            myMSALObj.setActiveAccount(accountObj);
             username = accountObj.username;
             showWelcomeMessage(accountObj);
         }

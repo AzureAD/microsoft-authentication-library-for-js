@@ -31,7 +31,6 @@ import { BrokerSsoSilentRequest } from "../request/BrokerSsoSilentRequest";
 export class BrokerClientApplication extends ClientApplication {
 
     private cachedBrokerResponse: Promise<BrokerAuthenticationResult>;
-    private brokerAccount: AccountInfo;
 
     constructor(configuration: Configuration) {
         super(configuration);
@@ -49,7 +48,7 @@ export class BrokerClientApplication extends ClientApplication {
                 this.cachedBrokerResponse = undefined;
                 return cachedResponse;
             }
-            this.brokerAccount = cachedResponse.account;
+            this.setActiveAccount(cachedResponse.account);
         }
 
         return null;
@@ -60,13 +59,6 @@ export class BrokerClientApplication extends ClientApplication {
      */
     listenForBrokerMessage(): void {
         window.addEventListener("message", this.handleBrokerMessage.bind(this));
-    }
-
-    /**
-     * Sets the account to use for retrieving new tokens by the broker.
-     */
-    setBrokerAccount(accountObj: AccountInfo): void {
-        this.brokerAccount = accountObj;
     }
 
     /**
@@ -148,7 +140,6 @@ export class BrokerClientApplication extends ClientApplication {
             const brokerResult = await this.cachedBrokerResponse;
             if (brokerResult && brokerResult.tokensToCache) {
                 // TODO: Replace with in-memory cache lookup
-                console.log(brokerResult);
                 this.cachedBrokerResponse = undefined;
                 const clientPort = clientMessage.ports[0];
                 const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Redirect, brokerResult);
@@ -158,10 +149,10 @@ export class BrokerClientApplication extends ClientApplication {
                 return;
             }
 
-            console.log(validMessage);
+            const currentAccount = this.getActiveAccount();
 
-            if (this.brokerAccount || validMessage.request.account) {
-                return this.brokeredSilentRequest(validMessage, clientMessage.ports[0], this.brokerAccount);
+            if (currentAccount || validMessage.request.account) {
+                return this.brokeredSilentRequest(validMessage, clientMessage.ports[0], currentAccount);
             }
 
             switch (validMessage.interactionType) {
