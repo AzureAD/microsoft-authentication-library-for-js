@@ -11,7 +11,8 @@
         "security",
         "import",
         "header",
-        "react"
+        "react",
+        "jsdoc"
     ],
     "extends": [
         "plugin:@typescript-eslint/eslint-recommended",
@@ -19,7 +20,8 @@
         "plugin:react/recommended",
         "plugin:react-hooks/recommended",
         "plugin:security/recommended",
-        "plugin:import/typescript"
+        "plugin:import/typescript",
+        "plugin:jsdoc/recommended"
     ],
     "rules": {
         "@typescript-eslint/array-type": 0,
