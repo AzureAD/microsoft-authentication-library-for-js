@@ -18,11 +18,11 @@ The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/t
 
 - [Microsoft Authentication Library for React v1.x (Alpha)](lib/msal-react/): A wrapper of the msal-browser 2.x library for apps using React.
 
-- [Microsoft Authentication Library for Angular v2.x (Alpha)](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-angular-v2/lib/msal-angular): A wrapper of the msal-browser 2.x library for apps using Angular framework.
+- [Microsoft Authentication Library for Angular v2.x (Alpha)](lib/msal-angular/): A wrapper of the msal-browser 2.x library for apps using Angular framework.
 
 - [Microsoft Authentication Library for JavaScript v1.x](lib/msal-core/): A browser-based, framework-agnostic core library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the OAuth 2.0 [Implicit Grant Flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow), and is [OpenID-compliant](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc).
 
-- [Microsoft Authentication Library for Angular](lib/msal-angular/) :
+- [Microsoft Authentication Library for Angular](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-angular-v1/lib/msal-angular) :
 A wrapper of the core 1.x library for apps using Angular framework.
 
 - [Microsoft Authentication Library for AngularJS](lib/msal-angularjs/) :

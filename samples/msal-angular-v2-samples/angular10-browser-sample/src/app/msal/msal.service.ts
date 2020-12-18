@@ -29,7 +29,7 @@ export class MsalService implements IMsalService {
         }
     }
 
-    acquireTokenPopup(request: AuthorizationUrlRequest): Observable<AuthenticationResult> {
+    acquireTokenPopup(request: PopupRequest): Observable<AuthenticationResult> {
         return from(this.instance.acquireTokenPopup(request));
     }
     acquireTokenRedirect(request: RedirectRequest): Observable<void> {
@@ -47,7 +47,7 @@ export class MsalService implements IMsalService {
     handleRedirectObservable(): Observable<AuthenticationResult> {
         return from(this.instance.handleRedirectPromise(this.redirectHash));
     }
-    loginPopup(request?: AuthorizationUrlRequest): Observable<AuthenticationResult> {
+    loginPopup(request?: PopupRequest): Observable<AuthenticationResult> {
         return from(this.instance.loginPopup(request));
     }
     loginRedirect(request?: RedirectRequest): Observable<void> {
@@ -56,7 +56,7 @@ export class MsalService implements IMsalService {
     logout(logoutRequest?: EndSessionRequest): Observable<void> {
         return from(this.instance.logout(logoutRequest));
     }
-    ssoSilent(request: AuthorizationUrlRequest): Observable<AuthenticationResult> {
+    ssoSilent(request: SilentRequest): Observable<AuthenticationResult> {
         return from(this.instance.ssoSilent(request));
     }
 

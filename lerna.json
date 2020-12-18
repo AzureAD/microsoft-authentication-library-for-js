@@ -11,6 +11,16 @@
         "@azure/msal-node"
       ],
       "stream": true
+    },
+    "exec": {
+        "scope": [
+            "msal",
+            "@azure/msal-angularjs",
+            "@azure/msal-browser",
+            "@azure/msal-common",
+            "@azure/msal-node"
+        ],
+        "stream": true
     }
   },
   "packages": [
