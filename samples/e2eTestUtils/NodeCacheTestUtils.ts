@@ -33,6 +33,25 @@ export class NodeCacheTestUtils {
         return tokenCache;
     }
 
+    static async waitForTokens(cacheLocation: string, interval: number): Promise<tokenMap> {
+        let tokenCache = this.getTokens(cacheLocation);
+
+        if (tokenCache.idTokens.length) {
+            return tokenCache;
+        }
+
+        return new Promise(resolve => {
+            const intervalId = setInterval(() => {
+                tokenCache = this.getTokens(cacheLocation);
+
+                if (tokenCache.idTokens.length) {
+                    clearInterval(intervalId);
+                    resolve(tokenCache);
+                } 
+            }, interval);
+        })
+    }
+
     static getAccessTokens(cacheLocation: string): Array<any> {
         const allTokens = NodeCacheTestUtils.getTokens(cacheLocation);
         return allTokens.accessTokens;

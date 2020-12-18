@@ -5,12 +5,13 @@ import { Screenshot, createFolder, setupCredentials } from "../../../../../e2eTe
 import { NodeCacheTestUtils } from "../../../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
-import { AppTypes, AzureEnvironments } from "../../../../../e2eTestUtils/Constants";
+import { AppTypes, AzureEnvironments, FederationProviders, UserTypes } from "../../../../../e2eTestUtils/Constants";
 import { 
     enterCredentials, 
     enterDeviceCode,
     SCREENSHOT_BASE_FOLDER_NAME,
     extractDeviceCodeParameters,
+    enterCredentialsADFS,
  } from "../testUtils";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
@@ -19,7 +20,7 @@ const SUCCESSFUL_SIGNED_IN_MESSAGE = "You have signed in";
 let username: string;
 let accountPwd: string;
 
-describe('Device Code AAD PPE Tests', () => {
+describe('Device Code ADFS PPE Tests', () => {
     jest.setTimeout(60000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
@@ -31,8 +32,10 @@ describe('Device Code AAD PPE Tests', () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
 
         const labApiParms: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
+            azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD,
+            federationProvider: FederationProviders.ADFS2019,
+            userType: UserTypes.FEDERATED
         };
 
         const labClient = new LabClient();
@@ -40,7 +43,7 @@ describe('Device Code AAD PPE Tests', () => {
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
 
         browser = await puppeteer.launch({
-            headless: true,
+            headless: false,
             ignoreDefaultArgs: ['--no-sandbox', '-disable-setuid-sandbox', '--disable-extensions']
         });
     });
@@ -56,10 +59,11 @@ describe('Device Code AAD PPE Tests', () => {
         beforeAll(() => {
             testName = "deviceCodeFlowBaseCase";
             screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
 
         beforeEach(async () => {
-            device = spawn(/^win/.test(process.platform) ? "npm.cmd" : "npm", ["start", "--", "-s", "device-code-aad", "-c", TEST_CACHE_LOCATION]);
+            device = spawn(/^win/.test(process.platform) ? "npm.cmd" : "npm", ["start", "--", "-s", "device-code-adfs", "-c", TEST_CACHE_LOCATION]);
 
             device.stdout.on('data', (chunk) => stream.push(chunk));
 
@@ -88,7 +92,7 @@ describe('Device Code AAD PPE Tests', () => {
             });
 
             await enterDeviceCode(page, screenshot, deviceCode, deviceLoginUrl);
-            await enterCredentials(page, screenshot, username, accountPwd);
+            await enterCredentialsADFS(page, screenshot, username, accountPwd);
             const htmlBody = await page.evaluate(() => document.body.innerHTML);
             expect(htmlBody).toContain(SUCCESSFUL_SIGNED_IN_MESSAGE);
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
