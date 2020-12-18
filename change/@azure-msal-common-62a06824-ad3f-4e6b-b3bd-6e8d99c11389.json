@@ -1,5 +1,5 @@
 {
-  "type": "patch",
+  "type": "none",
   "comment": "Enable jsdoc param-name eslint rules",
   "packageName": "@azure/msal-common",
   "email": "janutter@microsoft.com",
