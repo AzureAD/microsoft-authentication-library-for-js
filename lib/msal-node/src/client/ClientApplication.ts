@@ -10,9 +10,7 @@ import {
     AuthenticationResult,
     Authority,
     AuthorityFactory,
-    ClientAuthError,
     Constants,
-    TrustedAuthority,
     BaseAuthRequest,
     SilentFlowClient,
     Logger,
@@ -23,7 +21,8 @@ import {
     AuthorizationCodeRequest as CommonAuthorizationCodeRequest,
     AuthorizationUrlRequest as CommonAuthorizationUrlRequest,
     AuthenticationScheme,
-    ResponseMode
+    ResponseMode,
+    AuthorityOptions
 } from "@azure/msal-common";
 import { Configuration, buildAppConfiguration } from "../config/Configuration";
 import { CryptoProvider } from "../crypto/CryptoProvider";
@@ -61,7 +60,6 @@ export abstract class ClientApplication {
             this.logger,
             this.config.cache!.cachePlugin
         );
-        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities!, this.config.auth.cloudDiscoveryMetadata!);
     }
 
     /**
@@ -217,8 +215,6 @@ export abstract class ClientApplication {
             authOptions: {
                 clientId: this.config.auth.clientId,
                 authority: await this.createAuthority(authority),
-                knownAuthorities: this.config.auth.knownAuthorities,
-                cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
                 clientCapabilities: this.config.auth.clientCapabilities,
                 protocolMode: this.config.auth.protocolMode
             },
@@ -287,39 +283,12 @@ export abstract class ClientApplication {
      */
     private async createAuthority(authorityString: string): Promise<Authority> {
         this.logger.verbose("createAuthority called");
-
-        let authority: Authority;
-        if (this.authority.canonicalAuthority !== authorityString) {
-            this.logger.verbose("Authority passed in, creating authority instance");
-            authority = AuthorityFactory.createInstance(authorityString, this.config.system!.networkClient!, this.config.auth.protocolMode!);
-        } else {
-            this.logger.verbose("Authority on request is the same as on application object, defaulting to authority set on application object");
-            authority = this.authority;
-        }
-
-        if (authority.discoveryComplete()) {
-            return authority;
-        }
-
-        try {
-            await authority.resolveEndpointsAsync();
-            return authority;
-        } catch (error) {
-            throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);
-        }
-    }
-
-    private get authority() {
-        if (this._authority) {
-            return this._authority;
-        }
-
-        this._authority = AuthorityFactory.createInstance(
-            this.config.auth.authority!,
-            this.config.system!.networkClient!,
-            this.config.auth.protocolMode!
-        );
-
-        return this._authority;
+        const authorityOptions: AuthorityOptions = {
+            protocolMode: this.config.auth.protocolMode!,
+            knownAuthorities: this.config.auth.knownAuthorities!,
+            cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata!,
+            authorityMetadata: this.config.auth.authorityMetadata!
+        };
+        return await AuthorityFactory.createDiscoveredInstance(authorityString, this.config.system!.networkClient!, this.storage, authorityOptions);
     }
 }
