@@ -31,27 +31,39 @@ export class AppModule {}
 
 ## Secure the routes in your application
 
-You can add authentication to secure specific routes in your application by just adding `canActivate : [MsalGuard]` to your route definition. It can be added at the parent or child routes.
+You can add authentication to secure specific routes in your application by just adding `canActivate: [MsalGuard]` to your route definition. It can be added at the parent or child routes. When a user visits these routes, the library will prompt the user to authenticate.
 
 ```js
-{
-    path: 'product',
-    component: ProductComponent,
-    canActivate: [MsalGuard],
-    children: [
-        {
-            path: 'detail/:id',
-            component: ProductDetailComponent
-        }
-    ]
-}, {
-    path: 'myProfile',
-    component: MsGraphComponent,
+  {
+    path: 'profile',
+    component: ProfileComponent,
     canActivate: [MsalGuard]
-},
+  },
 ```
 
-When a user visits these routes, the library will prompt the user to authenticate.
+As of `@azure/msal-angular@2`, `canActivateChild` and `canLoad` have also been added to the guard, and can be added to your route definitions. You can see these used in our sample application [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app-routing.module.ts), as well as below: 
+
+```js
+  {
+    path: 'profile',
+    canActivateChild: [MsalGuard],
+    children: [
+      {
+        path: '',
+        component: ProfileComponent
+      },
+      {
+        path: 'detail',
+        component: DetailComponent
+      }
+    ]
+  },
+  { 
+    path: 'lazyLoad', 
+    loadChildren: () => import('./lazy/lazy.module').then(m => m.LazyModule),
+    canLoad: [MsalGuard]
+  },
+```
 
 ## Get tokens for Web API calls
 
