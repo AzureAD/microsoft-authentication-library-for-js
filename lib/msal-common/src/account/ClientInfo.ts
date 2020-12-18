@@ -17,6 +17,7 @@ export type ClientInfo = {
 
 /**
  * Function to build a client info object
+ *
  * @param rawClientInfo
  * @param crypto
  */

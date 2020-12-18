@@ -65,6 +65,9 @@ export class Logger {// Singleton Class
     }
 
     /**
+     * @param logLevel
+     * @param logMessage
+     * @param containsPii
      * @hidden
      */
     private logMessage(logLevel: LogLevel, logMessage: string, containsPii: boolean): void {
@@ -83,6 +86,9 @@ export class Logger {// Singleton Class
     }
 
     /**
+     * @param level
+     * @param message
+     * @param containsPii
      * @hidden
      */
     executeCallback(level: LogLevel, message: string, containsPii: boolean) {
@@ -92,6 +98,7 @@ export class Logger {// Singleton Class
     }
 
     /**
+     * @param message
      * @hidden
      */
     error(message: string): void {
@@ -99,6 +106,7 @@ export class Logger {// Singleton Class
     }
 
     /**
+     * @param message
      * @hidden
      */
     errorPii(message: string): void {
@@ -106,6 +114,7 @@ export class Logger {// Singleton Class
     }
 
     /**
+     * @param message
      * @hidden
      */
     warning(message: string): void {
@@ -113,6 +122,7 @@ export class Logger {// Singleton Class
     }
 
     /**
+     * @param message
      * @hidden
      */
     warningPii(message: string): void {
@@ -120,6 +130,7 @@ export class Logger {// Singleton Class
     }
 
     /**
+     * @param message
      * @hidden
      */
     info(message: string): void {
@@ -127,6 +138,7 @@ export class Logger {// Singleton Class
     }
 
     /**
+     * @param message
      * @hidden
      */
     infoPii(message: string): void {
@@ -134,6 +146,7 @@ export class Logger {// Singleton Class
     }
 
     /**
+     * @param message
      * @hidden
      */
     verbose(message: string): void {
@@ -141,6 +154,7 @@ export class Logger {// Singleton Class
     }
 
     /**
+     * @param message
      * @hidden
      */
     verbosePii(message: string): void {

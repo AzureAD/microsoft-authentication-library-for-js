@@ -14,6 +14,7 @@ export class BrowserProtocolUtils {
 
     /**
      * Extracts the BrowserStateObject from the state string.
+     *
      * @param browserCrypto 
      * @param state 
      */
@@ -32,6 +33,7 @@ export class BrowserProtocolUtils {
 
     /**
      * Parses properties of server response from url hash
+     *
      * @param locationHash Hash from url
      */
     static parseServerResponseFromHash(locationHash: string): ServerAuthorizationCodeResponse {

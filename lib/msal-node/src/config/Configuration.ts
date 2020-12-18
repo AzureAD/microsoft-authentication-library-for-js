@@ -104,17 +104,16 @@ const DEFAULT_SYSTEM_OPTIONS: NodeSystemOptions = {
 /**
  * Sets the default options when not explicitly configured from app developer
  *
- * @param auth
- * @param cache
- * @param system
- *
+ * @param configuration
  * @returns Configuration
  */
-export function buildAppConfiguration({
-    auth,
-    cache,
-    system,
-}: Configuration): Configuration {
+export function buildAppConfiguration(configuration: Configuration): Configuration {
+    const {
+        auth,
+        cache,
+        system
+    } = configuration;
+    
     return {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },

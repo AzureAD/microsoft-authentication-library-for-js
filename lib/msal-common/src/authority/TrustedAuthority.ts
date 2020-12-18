@@ -17,6 +17,7 @@ export class TrustedAuthority {
 
     /**
      * Set the CloudDiscoveryMetadata object from knownAuthorities or cloudDiscoveryMetadata passed into the app config
+     *
      * @param knownAuthorities 
      * @param cloudDiscoveryMetadata
      */
@@ -41,7 +42,9 @@ export class TrustedAuthority {
 
     /**
      * Called to get metadata from network if CloudDiscoveryMetadata was not populated by config
-     * @param networkInterface 
+     *
+     * @param authorityToVerify
+     * @param networkInterface
      */
     public static async setTrustedAuthoritiesFromNetwork(authorityToVerify: UrlString, networkInterface: INetworkModule): Promise<void> {
         const instanceDiscoveryEndpoint = `${Constants.AAD_INSTANCE_DISCOVERY_ENDPT}${authorityToVerify.urlString}oauth2/v2.0/authorize`;
@@ -76,6 +79,7 @@ export class TrustedAuthority {
     /**
      * Create a generic metadata object for each host passed to knownAuthorities.
      * This is mostly useful for B2C or ADFS scenarios
+     *
      * @param knownAuthorities 
      */
     public static createCloudDiscoveryMetadataFromKnownAuthorities(knownAuthorities: Array<string>): void {
@@ -95,6 +99,7 @@ export class TrustedAuthority {
 
     /**
      * Get metadata for the provided host
+     *
      * @param host 
      */
     public static getCloudDiscoveryMetadata(host: string): CloudDiscoveryMetadata {
@@ -103,6 +108,7 @@ export class TrustedAuthority {
 
     /**
      * Checks to see if the host is in a list of trusted hosts
+     *
      * @param host 
      */
     public static IsInTrustedHostList(host: string): boolean {

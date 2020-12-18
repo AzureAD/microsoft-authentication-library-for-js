@@ -14,9 +14,9 @@ export class XhrClient implements INetworkModule {
 
     /**
      * XhrClient for REST endpoints - Get request
-     * @param url 
-     * @param headers 
-     * @param body 
+     *
+     * @param url
+     * @param options
      */
     async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
         return this.sendRequestAsync(url, HTTP_REQUEST_TYPE.GET, options);
@@ -24,9 +24,9 @@ export class XhrClient implements INetworkModule {
 
     /**
      * XhrClient for REST endpoints - Post request
-     * @param url 
-     * @param headers 
-     * @param body 
+     *
+     * @param url
+     * @param options
      */
     async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
         return this.sendRequestAsync(url, HTTP_REQUEST_TYPE.POST, options);
@@ -34,6 +34,7 @@ export class XhrClient implements INetworkModule {
 
     /**
      * Helper for XhrClient requests.
+     *
      * @param url 
      * @param method 
      * @param options 
@@ -76,6 +77,7 @@ export class XhrClient implements INetworkModule {
 
     /**
      * Helper to set XHR headers for request.
+     *
      * @param xhr 
      * @param options 
      */
@@ -91,6 +93,7 @@ export class XhrClient implements INetworkModule {
      * Gets a string map of the headers received in the response.
      * 
      * Algorithm comes from https://developer.mozilla.org/en-US/docs/Web/API/XMLHttpRequest/getAllResponseHeaders
+     *
      * @param xhr 
      */
     private getHeaderDict(xhr: XMLHttpRequest): Record<string, string> {

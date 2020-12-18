@@ -71,6 +71,7 @@ export class BrowserConfigurationAuthError extends AuthError {
 
     /**
      * Creates error thrown when given storage location is not supported.
+     *
      * @param givenStorageLocation 
      */
     static createStorageNotSupportedError(givenStorageLocation: string): BrowserConfigurationAuthError {
@@ -79,6 +80,7 @@ export class BrowserConfigurationAuthError extends AuthError {
 
     /**
      * Creates error thrown when callback object is invalid.
+     *
      * @param callbackObject 
      */
     static createInvalidCallbackObjectError(callbackObject: object): BrowserConfigurationAuthError {

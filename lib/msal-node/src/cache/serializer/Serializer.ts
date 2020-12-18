@@ -9,6 +9,7 @@ import { InMemoryCache, JsonCache, SerializedAccountEntity, SerializedIdTokenEnt
 export class Serializer {
     /**
      * serialize the JSON blob
+     *
      * @param data
      */
     static serializeJSONBlob(data: JsonCache): string {
@@ -17,6 +18,7 @@ export class Serializer {
 
     /**
      * Serialize Accounts
+     *
      * @param accCache
      */
     static serializeAccounts(accCache: AccountCache): Record<string, SerializedAccountEntity> {
@@ -42,6 +44,7 @@ export class Serializer {
 
     /**
      * Serialize IdTokens
+     *
      * @param idTCache
      */
     static serializeIdTokens(idTCache: IdTokenCache): Record<string, SerializedIdTokenEntity> {
@@ -63,6 +66,7 @@ export class Serializer {
 
     /**
      * Serializes AccessTokens
+     *
      * @param atCache
      */
     static serializeAccessTokens(atCache: AccessTokenCache): Record<string, SerializedAccessTokenEntity> {
@@ -91,6 +95,7 @@ export class Serializer {
 
     /**
      * Serialize refreshTokens
+     *
      * @param rtCache
      */
     static serializeRefreshTokens(rtCache: RefreshTokenCache): Record<string, SerializedRefreshTokenEntity> {
@@ -114,6 +119,7 @@ export class Serializer {
 
     /**
      * Serialize amdtCache
+     *
      * @param amdtCache
      */
     static serializeAppMetadata(amdtCache: AppMetadataCache): Record<string, SerializedAppMetadataEntity> {
@@ -132,7 +138,8 @@ export class Serializer {
 
     /**
      * Serialize the cache
-     * @param jsonContent
+     *
+     * @param inMemCache
      */
     static serializeAllCache(inMemCache: InMemoryCache): JsonCache {
         return {

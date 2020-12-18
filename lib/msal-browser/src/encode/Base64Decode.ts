@@ -13,6 +13,7 @@ export class Base64Decode {
 
     /**
      * Returns a URL-safe plaintext decoded string from b64 encoded input.
+     *
      * @param input 
      */
     decode(input: string): string {
@@ -36,6 +37,7 @@ export class Base64Decode {
 
     /**
      * Decodes base64 into Uint8Array
+     *
      * @param base64String 
      * @param nBlockSize 
      */
@@ -61,6 +63,7 @@ export class Base64Decode {
 
     /**
      * Base64 string to array decoding helper
+     *
      * @param charNum 
      */
     private b64ToUint6(charNum: number): number {

@@ -29,6 +29,7 @@ export class DeviceCodeClient extends BaseClient {
     /**
      * Gets device code from device code endpoint, calls back to with device code response, and
      * polls token endpoint to exchange device code for tokens
+     *
      * @param request
      */
     public async acquireToken(request: DeviceCodeRequest): Promise<AuthenticationResult | null> {
@@ -60,6 +61,7 @@ export class DeviceCodeClient extends BaseClient {
 
     /**
      * Creates device code request and executes http GET
+     *
      * @param request
      */
     private async getDeviceCode(request: DeviceCodeRequest): Promise<DeviceCodeResponse> {
@@ -76,9 +78,11 @@ export class DeviceCodeClient extends BaseClient {
 
     /**
      * Executes POST request to device code endpoint
+     *
      * @param deviceCodeEndpoint
      * @param queryString
      * @param headers
+     * @param thumbprint
      */
     private async executePostRequestToDeviceCodeEndpoint(
         deviceCodeEndpoint: string,
@@ -115,6 +119,8 @@ export class DeviceCodeClient extends BaseClient {
 
     /**
      * Create device code endpoint query parameters and returns string
+     *
+     * @param request
      */
     private createQueryString(request: DeviceCodeRequest): string {
 
@@ -133,6 +139,7 @@ export class DeviceCodeClient extends BaseClient {
     /**
      * Creates token request with device code response and polls token endpoint at interval set by the device code
      * response
+     *
      * @param request
      * @param deviceCodeResponse
      */
@@ -207,6 +214,7 @@ export class DeviceCodeClient extends BaseClient {
 
     /**
      * Creates query parameters and converts to string.
+     *
      * @param request
      * @param deviceCodeResponse
      */

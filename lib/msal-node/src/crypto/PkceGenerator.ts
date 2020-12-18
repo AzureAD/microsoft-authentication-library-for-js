@@ -33,6 +33,7 @@ export class PkceGenerator {
 
     /**
      * generate the challenge from the codeVerfier; reference: https://tools.ietf.org/html/rfc7636#section-4.2
+     *
      * @param codeVerifier
      */
     private generateCodeChallengeFromVerifier(codeVerifier: string): string {
@@ -43,6 +44,7 @@ export class PkceGenerator {
 
     /**
      * generate 'SHA256' hash
+     *
      * @param buffer
      */
     private sha256(buffer: string): Buffer {
@@ -54,6 +56,7 @@ export class PkceGenerator {
 
     /**
      * Accepted characters; reference: https://tools.ietf.org/html/rfc7636#section-4.1
+     *
      * @param buffer
      */
     private bufferToCVString(buffer: Uint8Array): string {

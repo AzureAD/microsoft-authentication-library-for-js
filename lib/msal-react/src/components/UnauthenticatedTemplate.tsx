@@ -13,7 +13,12 @@ export type UnauthenticatedTemplateProps = PropsWithChildren<AccountIdentifiers>
 
 /**
  * Renders child components if user is unauthenticated
- * @param props 
+ *
+ * @param props
+ * @param props.username
+ * @param props.homeAccountId
+ * @param props.localAccountId
+ * @param props.children
  */
 export function UnauthenticatedTemplate({ username, homeAccountId, localAccountId, children }: UnauthenticatedTemplateProps): React.ReactElement|null {
     const context = useMsal();

@@ -18,7 +18,9 @@ export class TimeUtils {
     
     /**
      * check if a token is expired based on given UTC time in seconds.
+     *
      * @param expiresOn
+     * @param offset
      */
     static isTokenExpired(expiresOn: string, offset: number): boolean {
         // check for access token expiry

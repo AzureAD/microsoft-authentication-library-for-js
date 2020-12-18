@@ -15,6 +15,7 @@ export class ThrottlingUtils {
 
     /**
      * Prepares a RequestThumbprint to be stored as a key.
+     *
      * @param thumbprint
      */
     static generateThrottlingStorageKey(thumbprint: RequestThumbprint): string {
@@ -23,6 +24,7 @@ export class ThrottlingUtils {
 
     /**
      * Performs necessary throttling checks before a network request.
+     *
      * @param cacheManager
      * @param thumbprint
      */
@@ -41,6 +43,7 @@ export class ThrottlingUtils {
 
     /**
      * Performs necessary throttling checks after a network request.
+     *
      * @param cacheManager
      * @param thumbprint
      * @param response
@@ -63,6 +66,7 @@ export class ThrottlingUtils {
 
     /**
      * Checks a NetworkResponse object's status codes against 429 or 5xx
+     *
      * @param response
      */
     static checkResponseStatus(response: NetworkResponse<ServerAuthorizationTokenResponse>): boolean {
@@ -71,6 +75,7 @@ export class ThrottlingUtils {
 
     /**
      * Checks a NetworkResponse object's RetryAfter header
+     *
      * @param response
      */
     static checkResponseForRetryAfter(response: NetworkResponse<ServerAuthorizationTokenResponse>): boolean {
@@ -82,6 +87,7 @@ export class ThrottlingUtils {
 
     /**
      * Calculates the Unix-time value for a throttle to expire given throttleTime in seconds.
+     *
      * @param throttleTime
      */
     static calculateThrottleTime(throttleTime: number): number {

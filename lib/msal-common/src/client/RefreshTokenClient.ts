@@ -57,6 +57,7 @@ export class RefreshTokenClient extends BaseClient {
 
     /**
      * Gets cached refresh token and attaches to request, then calls acquireToken API
+     *
      * @param request
      */
     public async acquireTokenByRefreshToken(request: SilentFlowRequest): Promise<AuthenticationResult | null> {
@@ -99,7 +100,9 @@ export class RefreshTokenClient extends BaseClient {
 
     /**
      * makes a network call to acquire tokens by exchanging RefreshToken available in userCache; throws if refresh token is not cached
+     *
      * @param request
+     * @param foci
      */
     private async acquireTokenWithCachedRefreshToken(request: SilentFlowRequest, foci: boolean) {
         // fetches family RT or application RT based on FOCI value
@@ -121,6 +124,7 @@ export class RefreshTokenClient extends BaseClient {
 
     /**
      * Constructs the network message and makes a NW call to the underlying secure token service
+     *
      * @param request
      * @param authority
      */
@@ -140,6 +144,7 @@ export class RefreshTokenClient extends BaseClient {
 
     /**
      * Helper function to create the token request body
+     *
      * @param request
      */
     private async createTokenRequestBody(request: RefreshTokenRequest): Promise<string> {

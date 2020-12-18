@@ -6,12 +6,14 @@
 export interface IWindowStorage {
     /**
      * Get the item from the window storage object matching the given key.
+     *
      * @param key 
      */
     getItem(key: string): string;
 
     /**
      * Sets the item in the window storage object with the given key.
+     *
      * @param key 
      * @param value 
      */
@@ -19,6 +21,7 @@ export interface IWindowStorage {
 
     /**
      * Removes the item in the window storage object matching the given key.
+     *
      * @param key 
      */
     removeItem(key: string): void;
@@ -30,6 +33,7 @@ export interface IWindowStorage {
 
     /**
      * Returns true or false if the given key is present in the cache.
+     *
      * @param key 
      */
     containsKey(key: string): boolean;

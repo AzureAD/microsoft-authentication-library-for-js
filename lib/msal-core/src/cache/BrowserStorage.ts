@@ -28,6 +28,7 @@ export class BrowserStorage {// Singleton
 
     /**
      * add value to storage
+     *
      * @param key
      * @param value
      * @param enableCookieStorage
@@ -41,6 +42,7 @@ export class BrowserStorage {// Singleton
 
     /**
      * get one item by key from storage
+     *
      * @param key
      * @param enableCookieStorage
      */
@@ -53,6 +55,7 @@ export class BrowserStorage {// Singleton
 
     /**
      * remove value from storage
+     *
      * @param key
      */
     removeItem(key: string): void {
@@ -68,6 +71,7 @@ export class BrowserStorage {// Singleton
 
     /**
      * add value to cookies
+     *
      * @param cName
      * @param cValue
      * @param expires
@@ -84,6 +88,7 @@ export class BrowserStorage {// Singleton
 
     /**
      * get one item by key from cookies
+     *
      * @param cName
      */
     getItemCookie(cName: string): string {
@@ -103,6 +108,7 @@ export class BrowserStorage {// Singleton
 
     /**
      * Clear an item in the cookies by key
+     *
      * @param cName
      */
     clearItemCookie(cName: string) {
@@ -111,6 +117,7 @@ export class BrowserStorage {// Singleton
 
     /**
      * Get cookie expiration time
+     *
      * @param cookieLifeDays
      */
     getCookieExpirationTime(cookieLifeDays: number): string {

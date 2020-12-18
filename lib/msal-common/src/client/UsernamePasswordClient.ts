@@ -29,6 +29,7 @@ export class UsernamePasswordClient extends BaseClient {
     /**
      * API to acquire a token by passing the username and password to the service in exchage of credentials
      * password_grant
+     *
      * @param request
      */
     async acquireToken(request: UsernamePasswordRequest): Promise<AuthenticationResult | null> {
@@ -54,6 +55,7 @@ export class UsernamePasswordClient extends BaseClient {
 
     /**
      * Executes POST request to token endpoint
+     *
      * @param authority
      * @param request
      */
@@ -71,6 +73,7 @@ export class UsernamePasswordClient extends BaseClient {
 
     /**
      * Generates a map for all the params to be sent to the service
+     *
      * @param request
      */
     private createTokenRequestBody(request: UsernamePasswordRequest): string {

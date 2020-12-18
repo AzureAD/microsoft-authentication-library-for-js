@@ -108,6 +108,7 @@ export abstract class BaseClient {
 
     /**
      * Http post to token endpoint
+     *
      * @param tokenEndpoint
      * @param queryString
      * @param headers
@@ -130,6 +131,7 @@ export abstract class BaseClient {
 
     /**
      * Updates the authority object of the client. Endpoint discovery must be completed.
+     *
      * @param updatedAuthority 
      */
     updateAuthority(updatedAuthority: Authority): void {

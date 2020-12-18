@@ -97,6 +97,7 @@ export class CredentialEntity {
 
     /**
      * helper function to return `CredentialType`
+     *
      * @param key
      */
     static getCredentialType(key: string): string {
@@ -113,6 +114,14 @@ export class CredentialEntity {
 
     /**
      * generates credential key
+     *
+     * @param homeAccountId
+     * @param environment
+     * @param credentialType
+     * @param clientId
+     * @param realm
+     * @param target
+     * @param familyId
      */
     static generateCredentialCacheKey(
         homeAccountId: string,
@@ -134,6 +143,7 @@ export class CredentialEntity {
 
     /**
      * generates Account Id for keys
+     *
      * @param homeAccountId
      * @param environment
      */
@@ -147,9 +157,10 @@ export class CredentialEntity {
 
     /**
      * Generates Credential Id for keys
+     *
      * @param credentialType
-     * @param realm
      * @param clientId
+     * @param realm
      * @param familyId
      */
     private static generateCredentialIdForCacheKey(
@@ -173,6 +184,8 @@ export class CredentialEntity {
 
     /**
      * Generate target key component as per schema: <target>
+     *
+     * @param scopes
      */
     private static generateTargetForCacheKey(scopes?: string): string {
         return (scopes || "").toLowerCase();

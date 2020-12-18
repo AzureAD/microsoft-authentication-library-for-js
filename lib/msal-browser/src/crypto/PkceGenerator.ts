@@ -56,6 +56,8 @@ export class PkceGenerator {
     /**
      * Creates a base64 encoded PKCE Code Challenge string from the
      * hash created from the PKCE Code Verifier supplied
+     *
+     * @param pkceCodeVerifier
      */
     private async generateCodeChallengeFromVerifier(pkceCodeVerifier: string): Promise<string> {
         try {

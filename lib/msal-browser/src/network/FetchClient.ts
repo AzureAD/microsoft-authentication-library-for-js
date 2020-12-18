@@ -13,9 +13,9 @@ export class FetchClient implements INetworkModule {
 
     /**
      * Fetch Client for REST endpoints - Get request
-     * @param url 
-     * @param headers 
-     * @param body 
+     *
+     * @param url
+     * @param options
      */
     async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
         const response = await fetch(url, {
@@ -31,9 +31,9 @@ export class FetchClient implements INetworkModule {
 
     /**
      * Fetch Client for REST endpoints - Post request
-     * @param url 
-     * @param headers 
-     * @param body 
+     *
+     * @param url
+     * @param options
      */
     async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
         const reqBody = (options && options.body) || "";
@@ -51,7 +51,8 @@ export class FetchClient implements INetworkModule {
 
     /**
      * Get Fetch API Headers object from string map
-     * @param inputHeaders 
+     *
+     * @param options
      */
     private getFetchHeaders(options?: NetworkRequestOptions): Headers {
         const headers = new Headers();

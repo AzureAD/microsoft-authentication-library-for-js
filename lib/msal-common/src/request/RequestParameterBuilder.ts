@@ -30,6 +30,7 @@ export class RequestParameterBuilder {
 
     /**
      * add response_mode. defaults to query.
+     *
      * @param responseMode
      */
     addResponseMode(responseMode?: ResponseMode): void {
@@ -41,7 +42,8 @@ export class RequestParameterBuilder {
 
     /**
      * add scopes. set addOidcScopes to false to prevent default scopes in non-user scenarios
-     * @param scopeSet
+     *
+     * @param scopes
      * @param addOidcScopes
      */
     addScopes(scopes: string[], addOidcScopes: boolean = true): void {
@@ -52,6 +54,7 @@ export class RequestParameterBuilder {
 
     /**
      * add clientId
+     *
      * @param clientId
      */
     addClientId(clientId: string): void {
@@ -60,6 +63,7 @@ export class RequestParameterBuilder {
 
     /**
      * add redirect_uri
+     *
      * @param redirectUri
      */
     addRedirectUri(redirectUri: string): void {
@@ -69,6 +73,7 @@ export class RequestParameterBuilder {
 
     /**
      * add post logout redirectUri
+     *
      * @param redirectUri
      */
     addPostLogoutRedirectUri(redirectUri: string): void {
@@ -78,6 +83,7 @@ export class RequestParameterBuilder {
 
     /**
      * add id_token_hint to logout request
+     *
      * @param idTokenHint
      */
     addIdTokenHint(idTokenHint: string): void {
@@ -86,6 +92,7 @@ export class RequestParameterBuilder {
 
     /**
      * add domain_hint
+     *
      * @param domainHint
      */
     addDomainHint(domainHint: string): void {
@@ -94,6 +101,7 @@ export class RequestParameterBuilder {
 
     /**
      * add login_hint
+     *
      * @param loginHint
      */
     addLoginHint(loginHint: string): void {
@@ -102,6 +110,7 @@ export class RequestParameterBuilder {
 
     /**
      * add sid
+     *
      * @param sid
      */
     addSid(sid: string): void {
@@ -110,7 +119,9 @@ export class RequestParameterBuilder {
 
     /**
      * add claims
+     *
      * @param claims
+     * @param clientCapabilities
      */
     addClaims(claims?: string, clientCapabilities?: Array<string>): void {
         const mergedClaims = this.addClientCapabilitiesToClaims(claims, clientCapabilities);
@@ -120,6 +131,7 @@ export class RequestParameterBuilder {
 
     /**
      * add correlationId
+     *
      * @param correlationId
      */
     addCorrelationId(correlationId: string): void {
@@ -128,6 +140,7 @@ export class RequestParameterBuilder {
 
     /**
      * add library info query params
+     *
      * @param libraryInfo
      */
     addLibraryInfo(libraryInfo: LibraryInfo): void {
@@ -140,6 +153,7 @@ export class RequestParameterBuilder {
 
     /**
      * add prompt
+     *
      * @param prompt
      */
     addPrompt(prompt: string): void {
@@ -149,6 +163,7 @@ export class RequestParameterBuilder {
 
     /**
      * add state
+     *
      * @param state
      */
     addState(state: string): void {
@@ -159,6 +174,7 @@ export class RequestParameterBuilder {
 
     /**
      * add nonce
+     *
      * @param nonce
      */
     addNonce(nonce: string): void {
@@ -168,6 +184,7 @@ export class RequestParameterBuilder {
     /**
      * add code_challenge and code_challenge_method
      * - throw if either of them are not passed
+     *
      * @param codeChallenge
      * @param codeChallengeMethod
      */
@@ -186,6 +203,7 @@ export class RequestParameterBuilder {
 
     /**
      * add the `authorization_code` passed by the user to exchange for a token
+     *
      * @param code
      */
     addAuthorizationCode(code: string): void {
@@ -194,6 +212,7 @@ export class RequestParameterBuilder {
 
     /**
      * add the `authorization_code` passed by the user to exchange for a token
+     *
      * @param code
      */
     addDeviceCode(code: string): void {
@@ -202,6 +221,7 @@ export class RequestParameterBuilder {
 
     /**
      * add the `refreshToken` passed by the user
+     *
      * @param refreshToken
      */
     addRefreshToken(refreshToken: string): void {
@@ -210,6 +230,7 @@ export class RequestParameterBuilder {
 
     /**
      * add the `code_verifier` passed by the user to exchange for a token
+     *
      * @param codeVerifier
      */
     addCodeVerifier(codeVerifier: string): void {
@@ -218,6 +239,7 @@ export class RequestParameterBuilder {
 
     /**
      * add client_secret
+     *
      * @param clientSecret
      */
     addClientSecret(clientSecret: string): void {
@@ -226,6 +248,7 @@ export class RequestParameterBuilder {
 
     /**
      * add clientAssertion for confidential client flows
+     *
      * @param clientAssertion
      */
     addClientAssertion(clientAssertion: string): void {
@@ -234,6 +257,7 @@ export class RequestParameterBuilder {
 
     /**
      * add clientAssertionType for confidential client flows
+     *
      * @param clientAssertionType
      */
     addClientAssertionType(clientAssertionType: string): void {
@@ -242,7 +266,8 @@ export class RequestParameterBuilder {
 
     /**
      * add OBO assertion for confidential client flows
-     * @param clientAssertion
+     *
+     * @param oboAssertion
      */
     addOboAssertion(oboAssertion: string): void {
         this.parameters.set(AADServerParamKeys.OBO_ASSERTION, encodeURIComponent(oboAssertion));
@@ -250,7 +275,8 @@ export class RequestParameterBuilder {
 
     /**
      * add grant type
-     * @param grantType
+     *
+     * @param tokenUse
      */
     addRequestTokenUse(tokenUse: string): void {
         this.parameters.set(AADServerParamKeys.REQUESTED_TOKEN_USE, encodeURIComponent(tokenUse));
@@ -258,6 +284,7 @@ export class RequestParameterBuilder {
 
     /**
      * add grant type
+     *
      * @param grantType
      */
     addGrantType(grantType: string): void {
@@ -274,6 +301,7 @@ export class RequestParameterBuilder {
 
     /**
      * add extraQueryParams
+     *
      * @param eQparams
      */
     addExtraQueryParameters(eQparams: StringDict): void {
@@ -314,6 +342,7 @@ export class RequestParameterBuilder {
 
     /**
      * adds `username` for Password Grant flow
+     *
      * @param username
      */
     addUsername(username: string): void {
@@ -322,6 +351,7 @@ export class RequestParameterBuilder {
 
     /**
      * adds `password` for Password Grant flow
+     *
      * @param password
      */
     addPassword(password: string): void {
@@ -330,6 +360,7 @@ export class RequestParameterBuilder {
 
     /**
      * add pop_jwk to query params
+     *
      * @param cnfString
      */
     addPopToken(cnfString: string): void {

@@ -31,7 +31,10 @@ export class PopupHandler extends InteractionHandler {
 
     /**
      * Opens a popup window with given request Url.
+     *
      * @param requestUrl
+     * @param authCodeRequest
+     * @param params
      */
     initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, params: PopupParams): Window {
         // Check that request url is not empty.
@@ -52,9 +55,9 @@ export class PopupHandler extends InteractionHandler {
 
     /**
      * Monitors a window until it loads a url with a known hash, or hits a specified timeout.
+     *
      * @param popupWindow - window that is being monitored
      * @param timeout - milliseconds until timeout
-     * @param urlNavigate - url that was navigated to
      */
     monitorPopupForHash(popupWindow: Window, timeout: number): Promise<string> {
         return new Promise((resolve, reject) => {
@@ -110,14 +113,10 @@ export class PopupHandler extends InteractionHandler {
     }
 
     /**
-     * @hidden
-     *
+     * @hidden 
      * Configures popup window for login.
-     *
      * @param urlNavigate
-     * @param title
-     * @param popUpWidth
-     * @param popUpHeight
+     * @param popup
      * @ignore
      * @hidden
      */
@@ -172,6 +171,8 @@ export class PopupHandler extends InteractionHandler {
 
     /**
      * Event callback to unload main window.
+     *
+     * @param e
      */
     unloadWindow(e: Event): void {
         this.browserStorage.cleanRequestByInteractionType(InteractionType.Popup);
@@ -182,6 +183,7 @@ export class PopupHandler extends InteractionHandler {
 
     /**
      * Closes popup, removes any state vars created during popup calls.
+     *
      * @param popupWindow
      */
     private cleanPopup(popupWindow?: Window): void {

@@ -22,18 +22,21 @@ export type MsalAuthenticationProps = PropsWithChildren<AccountIdentifiers & {
 
 /**
  * Attempts to authenticate user if not already authenticated, then renders child components
+ *
  * @param props
  */
-export function MsalAuthenticationTemplate({ 
-    interactionType, 
-    username, 
-    homeAccountId, 
-    localAccountId,
-    authenticationRequest, 
-    loadingComponent: LoadingComponent,
-    errorComponent: ErrorComponent,
-    children 
-}: MsalAuthenticationProps): React.ReactElement|null {
+export function MsalAuthenticationTemplate(props: MsalAuthenticationProps): React.ReactElement|null {
+    const { 
+        interactionType, 
+        username, 
+        homeAccountId, 
+        localAccountId,
+        authenticationRequest, 
+        loadingComponent: LoadingComponent,
+        errorComponent: ErrorComponent,
+        children 
+    } = props;
+    
     const accountIdentifier: AccountIdentifiers = useMemo(() => {
         return {
             username,

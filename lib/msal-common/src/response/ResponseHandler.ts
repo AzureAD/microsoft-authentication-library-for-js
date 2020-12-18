@@ -57,6 +57,7 @@ export class ResponseHandler {
 
     /**
      * Function which validates server authorization code response.
+     *
      * @param serverResponseHash
      * @param cachedState
      * @param cryptoObj
@@ -87,6 +88,7 @@ export class ResponseHandler {
 
     /**
      * Function which validates server authorization token response.
+     *
      * @param serverResponse
      */
     validateTokenResponse(serverResponse: ServerAuthorizationTokenResponse): void {
@@ -103,8 +105,15 @@ export class ResponseHandler {
 
     /**
      * Returns a constructed token response based on given string. Also manages the cache updates and cleanups.
+     *
      * @param serverTokenResponse
      * @param authority
+     * @param resourceRequestMethod
+     * @param resourceRequestUri
+     * @param authCodePayload
+     * @param requestScopes
+     * @param oboAssertion
+     * @param handlingRefreshTokenResponse
      */
     async handleServerTokenResponse(
         serverTokenResponse: ServerAuthorizationTokenResponse,
@@ -171,9 +180,14 @@ export class ResponseHandler {
 
     /**
      * Generates CacheRecord
+     *
      * @param serverTokenResponse
-     * @param idTokenObj
      * @param authority
+     * @param idTokenObj
+     * @param libraryState
+     * @param requestScopes
+     * @param oboAssertion
+     * @param authCodePayload
      */
     private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, idTokenObj?: AuthToken, libraryState?: LibraryStateObject, requestScopes?: string[], oboAssertion?: string, authCodePayload?: AuthorizationCodePayload): CacheRecord {
 
@@ -258,9 +272,12 @@ export class ResponseHandler {
 
     /**
      * Generate Account
+     *
      * @param serverTokenResponse
      * @param idToken
      * @param authority
+     * @param oboAssertion
+     * @param authCodePayload
      */
     private generateAccountEntity(serverTokenResponse: ServerAuthorizationTokenResponse, idToken: AuthToken, authority: Authority, oboAssertion?: string, authCodePayload?: AuthorizationCodePayload): AccountEntity {
         const authorityType = authority.authorityType;
@@ -288,10 +305,14 @@ export class ResponseHandler {
      *
      * Optionally takes a state string that is set as-is in the response.
      *
+     * @param cryptoObj
+     * @param authority
      * @param cacheRecord
-     * @param idTokenObj
      * @param fromTokenCache
-     * @param stateString
+     * @param idTokenObj
+     * @param requestState
+     * @param resourceRequestMethod
+     * @param resourceRequestUri
      */
     static async generateAuthenticationResult(
         cryptoObj: ICrypto, 

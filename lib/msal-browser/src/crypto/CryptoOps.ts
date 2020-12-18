@@ -52,6 +52,7 @@ export class CryptoOps implements ICrypto {
 
     /**
      * Creates a new random GUID - used to populate state and nonce.
+     *
      * @returns string (GUID)
      */
     createNewGuid(): string {
@@ -60,6 +61,7 @@ export class CryptoOps implements ICrypto {
 
     /**
      * Encodes input string to base64.
+     *
      * @param input 
      */
     base64Encode(input: string): string {
@@ -68,6 +70,7 @@ export class CryptoOps implements ICrypto {
     
     /**
      * Decodes input string from base64.
+     *
      * @param input 
      */
     base64Decode(input: string): string {
@@ -83,6 +86,7 @@ export class CryptoOps implements ICrypto {
 
     /**
      * Generates a keypair, stores it and returns a thumbprint
+     *
      * @param resourceRequestMethod 
      * @param resourceRequestUri 
      */
@@ -119,6 +123,7 @@ export class CryptoOps implements ICrypto {
 
     /**
      * Signs the given object as a jwt payload with private key retrieved by given kid.
+     *
      * @param payload 
      * @param kid 
      */

@@ -86,6 +86,7 @@ export class GuidGenerator {
 
     /**
      * verifies if a string is  GUID
+     *
      * @param guid
      */
     static isGuid(guid: string): boolean {

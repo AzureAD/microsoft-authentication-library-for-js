@@ -16,6 +16,7 @@ export class ThrottlingEntity {
 
     /**
      * validates if a given cache entry is "Throttling", parses <key,value>
+     *
      * @param key
      * @param entity
      */

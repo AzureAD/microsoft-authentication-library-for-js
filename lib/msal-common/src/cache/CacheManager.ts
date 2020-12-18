@@ -37,72 +37,84 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * fetch the account entity from the platform cache
+     *
      *  @param accountKey
      */
     abstract getAccount(accountKey: string): AccountEntity | null;
 
     /**
      * set account entity in the platform cache
+     *
      * @param account
      */
     abstract setAccount(account: AccountEntity): void;
 
     /**
      * fetch the idToken entity from the platform cache
+     *
      * @param idTokenKey
      */
     abstract getIdTokenCredential(idTokenKey: string): IdTokenEntity | null;
 
     /**
      * set idToken entity to the platform cache
+     *
      * @param idToken
      */
     abstract setIdTokenCredential(idToken: IdTokenEntity): void;
 
     /**
      * fetch the idToken entity from the platform cache
+     *
      * @param accessTokenKey
      */
     abstract getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity | null;
 
     /**
      * set idToken entity to the platform cache
+     *
      * @param accessToken
      */
     abstract setAccessTokenCredential(accessToken: AccessTokenEntity): void;
 
     /**
      * fetch the idToken entity from the platform cache
+     *
      * @param refreshTokenKey
      */
     abstract getRefreshTokenCredential(refreshTokenKey: string): RefreshTokenEntity | null;
 
     /**
      * set idToken entity to the platform cache
+     *
      * @param refreshToken
      */
     abstract setRefreshTokenCredential(refreshToken: RefreshTokenEntity): void;
 
     /**
      * fetch appMetadata entity from the platform cache
+     *
      * @param appMetadataKey
      */
     abstract getAppMetadata(appMetadataKey: string): AppMetadataEntity | null;
 
     /**
      * set appMetadata entity to the platform cache
+     *
      * @param appMetadata
      */
     abstract setAppMetadata(appMetadata: AppMetadataEntity): void;
 
     /**
      * fetch server telemetry entity from the platform cache
+     *
      * @param serverTelemetryKey
      */
     abstract getServerTelemetry(serverTelemetryKey: string): ServerTelemetryEntity | null;
 
     /**
      * set server telemetry entity to the platform cache
+     *
      * @param serverTelemetryKey
      * @param serverTelemetry
      */
@@ -110,12 +122,14 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * fetch throttling entity from the platform cache
+     *
      * @param throttlingCacheKey
      */
     abstract getThrottlingCache(throttlingCacheKey: string): ThrottlingEntity | null;
 
     /**
      * set throttling entity to the platform cache
+     *
      * @param throttlingCacheKey
      * @param throttlingCache
      */
@@ -123,12 +137,14 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Function to remove an item from cache given its key.
+     *
      * @param key
      */
     abstract removeItem(key: string, type?: string): boolean;
 
     /**
      * Function which returns boolean whether cache contains a specific key.
+     *
      * @param key
      */
     abstract containsKey(key: string, type?: string): boolean;
@@ -170,6 +186,7 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * saves a cache record
+     *
      * @param cacheRecord
      */
     saveCacheRecord(cacheRecord: CacheRecord): void {
@@ -200,6 +217,7 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * saves access token credential
+     *
      * @param credential
      */
     private saveAccessToken(credential: AccessTokenEntity): void {
@@ -226,9 +244,8 @@ export abstract class CacheManager implements ICacheManager {
     /**
      * retrieve accounts matching all provided filters; if no filter is set, get all accounts
      * not checking for casing as keys are all generated in lower case, remember to convert to lower case if object properties are compared
-     * @param homeAccountId
-     * @param environment
-     * @param realm
+     *
+     * @param accountFilter
      */
     getAccountsFilteredBy(accountFilter?: AccountFilter): AccountCache {
         return this.getAccountsFilteredByInternal(
@@ -241,6 +258,7 @@ export abstract class CacheManager implements ICacheManager {
     /**
      * retrieve accounts matching all provided filters; if no filter is set, get all accounts
      * not checking for casing as keys are all generated in lower case, remember to convert to lower case if object properties are compared
+     *
      * @param homeAccountId
      * @param environment
      * @param realm
@@ -280,12 +298,8 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * retrieve credentails matching all provided filters; if no filter is set, get all credentials
-     * @param homeAccountId
-     * @param environment
-     * @param credentialType
-     * @param clientId
-     * @param realm
-     * @param target
+     *
+     * @param filter
      */
     getCredentialsFilteredBy(filter: CredentialFilter): CredentialCache {
         return this.getCredentialsFilteredByInternal(
@@ -302,12 +316,15 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Support function to help match credentials
+     *
      * @param homeAccountId
      * @param environment
      * @param credentialType
      * @param clientId
+     * @param familyId
      * @param realm
      * @param target
+     * @param oboAssertion
      */
     private getCredentialsFilteredByInternal(
         homeAccountId?: string,
@@ -393,6 +410,7 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * retrieve appMetadata matching all provided filters; if no filter is set, get all appMetadata
+     *
      * @param filter
      */
     getAppMetadataFilteredBy(filter: AppMetadataFilter): AppMetadataCache {
@@ -404,6 +422,7 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Support function to help match appMetadata
+     *
      * @param environment
      * @param clientId
      */
@@ -461,7 +480,8 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * returns a boolean if the given account is removed
-     * @param account
+     *
+     * @param accountKey
      */
     removeAccount(accountKey: string): boolean {
         const account = this.getAccount(accountKey);
@@ -473,6 +493,7 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * returns a boolean if the given account is removed
+     *
      * @param account
      */
     removeAccountContext(account: AccountEntity): boolean {
@@ -497,6 +518,7 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * returns a boolean if the given credential is removed
+     *
      * @param credential
      */
     removeCredential(credential: CredentialEntity): boolean {
@@ -520,6 +542,7 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Retrieve the cached credentials into a cacherecord
+     *
      * @param account
      * @param clientId
      * @param scopes
@@ -547,6 +570,7 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Retrieve AccountEntity from cache
+     *
      * @param account
      */
     readAccountFromCache(account: AccountInfo): AccountEntity | null {
@@ -556,9 +580,9 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Retrieve IdTokenEntity from cache
+     *
      * @param clientId
      * @param account
-     * @param inputRealm
      */
     readIdTokenFromCache(clientId: string, account: AccountInfo): IdTokenEntity | null {
         const idTokenFilter: CredentialFilter = {
@@ -584,10 +608,10 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Retrieve AccessTokenEntity from cache
+     *
      * @param clientId
      * @param account
      * @param scopes
-     * @param inputRealm
      */
     readAccessTokenFromCache(clientId: string, account: AccountInfo, scopes: ScopeSet): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
@@ -614,6 +638,7 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Helper to retrieve the appropriate refresh token from cache
+     *
      * @param clientId
      * @param account
      * @param familyRT
@@ -642,6 +667,9 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Retrieve AppMetadataEntity from cache
+     *
+     * @param environment
+     * @param clientId
      */
     readAppMetadataFromCache(environment: string, clientId: string): AppMetadataEntity | null {
         const appMetadataFilter: AppMetadataFilter = {
@@ -664,6 +692,7 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Return the family_id value associated  with FOCI
+     *
      * @param environment
      * @param clientId
      */
@@ -674,7 +703,8 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * helper to match account ids
-     * @param value
+     *
+     * @param entity
      * @param homeAccountId
      */
     private matchHomeAccountId(entity: AccountEntity | CredentialEntity, homeAccountId: string): boolean {
@@ -683,7 +713,8 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * helper to match assertion
-     * @param value
+     *
+     * @param entity
      * @param oboAssertion
      */
     private matchOboAssertion(entity: AccountEntity | CredentialEntity, oboAssertion: string): boolean {
@@ -692,7 +723,8 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * helper to match environment
-     * @param value
+     *
+     * @param entity
      * @param environment
      */
     private matchEnvironment(entity: AccountEntity | CredentialEntity | AppMetadataEntity, environment: string): boolean {
@@ -706,6 +738,7 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * helper to match credential type
+     *
      * @param entity
      * @param credentialType
      */
@@ -715,6 +748,7 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * helper to match client ids
+     *
      * @param entity
      * @param clientId
      */
@@ -724,6 +758,7 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * helper to match family ids
+     *
      * @param entity
      * @param familyId
      */
@@ -733,6 +768,7 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * helper to match realm
+     *
      * @param entity
      * @param realm
      */
@@ -742,6 +778,7 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Returns true if the target scopes are a subset of the current entity's scopes, false otherwise.
+     *
      * @param entity
      * @param target
      */
@@ -761,6 +798,7 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * returns if a given cache entity is of the type appmetadata
+     *
      * @param key
      */
     private isAppMetadata(key: string): boolean {
@@ -769,6 +807,7 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Returns the specific credential (IdToken/AccessToken/RefreshToken) from the cache
+     *
      * @param key
      * @param credType
      */
@@ -790,6 +829,7 @@ export abstract class CacheManager implements ICacheManager {
 
     /**
      * Helper to convert serialized data to object
+     *
      * @param obj
      * @param json
      */

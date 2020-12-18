@@ -116,6 +116,7 @@ export class AccountEntity {
 
     /**
      * Generates account key from interface
+     *
      * @param accountInterface
      */
     static generateAccountCacheKey(accountInterface: AccountInfo): string {
@@ -130,10 +131,14 @@ export class AccountEntity {
 
     /**
      * Build Account cache from IdToken, clientInfo and authority/policy. Associated with AAD.
+     *
      * @param clientInfo
+     * @param homeAccountId
      * @param authority
      * @param idToken
-     * @param policy
+     * @param oboAssertion
+     * @param cloudGraphHostName
+     * @param msGraphHost
      */
     static createAccount(
         clientInfo: string,
@@ -182,8 +187,13 @@ export class AccountEntity {
 
     /**
      * Builds non-AAD/ADFS account.
+     *
      * @param authority
+     * @param homeAccountId
      * @param idToken
+     * @param oboAssertion
+     * @param cloudGraphHostName
+     * @param msGraphHost
      */
     static createGenericAccount(
         authority: Authority,
@@ -231,8 +241,12 @@ export class AccountEntity {
 
     /**
      * Generate HomeAccountId from server response
+     *
      * @param serverClientInfo
      * @param authType
+     * @param logger
+     * @param cryptoObj
+     * @param idToken
      */
     static generateHomeAccountId(serverClientInfo: string, authType: AuthorityType, logger: Logger, cryptoObj: ICrypto, idToken?: AuthToken): string {
 
@@ -258,6 +272,7 @@ export class AccountEntity {
 
     /**
      * Validates an entity: checks for all expected params
+     *
      * @param entity
      */
     static isAccountEntity(entity: object): boolean {
@@ -279,8 +294,9 @@ export class AccountEntity {
     /**
      * Helper function to determine whether 2 accounts are equal
      * Used to avoid unnecessary state updates
-     * @param arrayA 
-     * @param arrayB 
+     *
+     * @param accountA
+     * @param accountB
      */
     static accountInfoIsEqual(accountA: AccountInfo | null, accountB: AccountInfo | null): boolean {
         if (!accountA || !accountB) {

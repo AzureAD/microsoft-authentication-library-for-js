@@ -28,10 +28,13 @@ export class IdTokenEntity extends CredentialEntity {
 
     /**
      * Create IdTokenEntity
+     *
      * @param homeAccountId
-     * @param authenticationResult
+     * @param environment
+     * @param idToken
      * @param clientId
-     * @param authority
+     * @param tenantId
+     * @param oboAssertion
      */
     static createIdTokenEntity(
         homeAccountId: string,
@@ -56,6 +59,7 @@ export class IdTokenEntity extends CredentialEntity {
 
     /**
      * Validates an entity: checks for all expected params
+     *
      * @param entity
      */
     static isIdTokenEntity(entity: object): boolean {

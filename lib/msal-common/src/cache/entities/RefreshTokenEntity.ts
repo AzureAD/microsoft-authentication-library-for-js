@@ -30,10 +30,13 @@ export class RefreshTokenEntity extends CredentialEntity {
 
     /**
      * Create RefreshTokenEntity
+     *
      * @param homeAccountId
-     * @param authenticationResult
+     * @param environment
+     * @param refreshToken
      * @param clientId
-     * @param authority
+     * @param familyId
+     * @param oboAssertion
      */
     static createRefreshTokenEntity(
         homeAccountId: string,
@@ -60,6 +63,7 @@ export class RefreshTokenEntity extends CredentialEntity {
 
     /**
      * Validates an entity: checks for all expected params
+     *
      * @param entity
      */
     static isRefreshTokenEntity(entity: object): boolean {

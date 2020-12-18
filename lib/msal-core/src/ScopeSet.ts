@@ -39,9 +39,9 @@ export class ScopeSet {
     }
 
     /**
-     *  Trims and converts string to lower case
+     * Trims and converts string to lower case
      *
-     * @param scopes
+     * @param scope
      */
     // TODO: Rename this, too generic name for a function that only deals with scopes
     static trimAndConvertToLowerCase(scope: string): string {
@@ -50,6 +50,7 @@ export class ScopeSet {
 
     /**
      * Performs trimAndConvertToLowerCase on string array
+     *
      * @param scopes 
      */
     static trimAndConvertArrayToLowerCase(scopes: Array<string>): Array<string> {
@@ -58,6 +59,7 @@ export class ScopeSet {
 
     /**
      * Trims each scope in scopes array
+     *
      * @param scopes 
      */
     static trimScopes(scopes: Array<string>): Array<string> {
@@ -78,6 +80,7 @@ export class ScopeSet {
 
     /**
      * Parse the scopes into a formatted scopeList
+     *
      * @param scopes
      */
     static parseScope(scopes: Array<string>): string {
@@ -138,9 +141,11 @@ export class ScopeSet {
     }
 
     /**
-     * @ignore
      * Appends extraScopesToConsent if passed
-     * @param {@link AuthenticationParameters}
+     *
+     * @ignore
+     * @param reqScopes
+     * @param reqExtraScopesToConsent
      */
     static appendScopes(reqScopes: Array<string>, reqExtraScopesToConsent: Array<string>): Array<string> {
         if (reqScopes) {
@@ -154,8 +159,10 @@ export class ScopeSet {
     // #endregion
 
     /**
-     * @ignore
      * Returns true if the scopes array only contains openid and/or profile
+     *
+     * @param scopes
+     * @ignore
      */
     static onlyContainsOidcScopes(scopes: Array<string>): boolean {
         const scopesCount = scopes.length;
@@ -173,8 +180,10 @@ export class ScopeSet {
     }
 
     /**
-     * @ignore
      * Returns true if the scopes array only contains openid and/or profile
+     *
+     * @param scopes
+     * @ignore
      */
     static containsAnyOidcScopes(scopes: Array<string>): boolean {
         const containsOpenIdScope = scopes.indexOf(Constants.openidScope) > -1;
@@ -184,8 +193,11 @@ export class ScopeSet {
     }
 
     /**
-     * @ignore
      * Returns true if the clientId is the only scope in the array
+     *
+     * @param scopes
+     * @param clientId
+     * @ignore
      */
     static onlyContainsClientId(scopes: Array<String>, clientId: string): boolean {
         // Double negation to force false value returned in case scopes is null
@@ -193,9 +205,11 @@ export class ScopeSet {
     }
 
     /**
-     * @ignore
      * Adds missing OIDC scopes to scopes array without duplication. Since STS requires OIDC scopes for
      * all implicit flow requests, 'openid' and 'profile' should always be included in the final request
+     *
+     * @ignore
+     * @param scopes
      */
     static appendDefaultScopes(scopes: Array<string>): Array<string> {
         const extendedScopes = scopes;
@@ -211,8 +225,10 @@ export class ScopeSet {
     }
 
     /**
-     * @ignore
      * Removes present OIDC scopes from scopes array.
+     *
+     * @param scopes
+     * @ignore
      */
     static removeDefaultScopes(scopes: Array<string>): Array<string> {
         return scopes.filter(scope => {
@@ -221,8 +237,9 @@ export class ScopeSet {
     }
 
     /**
-     * @ignore
      * Removes clientId from scopes array if included as only scope. If it's not the only scope, it is treated as a resource scope.
+     *
+     * @ignore
      * @param scopes Array<string>: Pre-normalized scopes array
      * @param clientId string: The application's clientId that is searched for in the scopes array
      */

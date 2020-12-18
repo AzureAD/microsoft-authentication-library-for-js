@@ -47,6 +47,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Returns a window storage class implementing the IWindowStorage interface that corresponds to the configured cacheLocation.
+     *
      * @param cacheLocation 
      */
     private setupBrowserStorage(cacheLocation: BrowserCacheLocation | string): IWindowStorage {
@@ -68,7 +69,6 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Migrate all old cache entries to new schema. No rollback supported.
-     * @param storeAuthStateInCookie
      */
     private migrateCacheEntries(): void {
         const idTokenKey = `${Constants.CACHE_PREFIX}.${PersistentCacheKeys.ID_TOKEN}`;
@@ -89,9 +89,9 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Utility function to help with migration.
+     *
      * @param newKey
      * @param value
-     * @param storeAuthStateInCookie
      */
     private migrateCacheEntry(newKey: string, value: string): void {
         if (value) {
@@ -101,7 +101,8 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Parses passed value as JSON object, JSON.parse() will throw an error.
-     * @param input
+     *
+     * @param jsonValue
      */
     private validateAndParseJson(jsonValue: string): object {
         try {
@@ -120,6 +121,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * fetches the entry from the browser storage based off the key
+     *
      * @param key
      */
     getItem(key: string): string {
@@ -128,6 +130,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * sets the entry in the browser storage
+     *
      * @param key
      * @param value
      */
@@ -137,6 +140,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * fetch the account entity from the platform cache
+     *
      * @param accountKey
      */
     getAccount(accountKey: string): AccountEntity | null {
@@ -155,8 +159,8 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * set account entity in the platform cache
-     * @param key
-     * @param value
+     *
+     * @param account
      */
     setAccount(account: AccountEntity): void {
         const key = account.generateAccountKey();
@@ -165,6 +169,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * generates idToken entity from a string
+     *
      * @param idTokenKey
      */
     getIdTokenCredential(idTokenKey: string): IdTokenEntity {
@@ -183,6 +188,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * set IdToken credential to the platform cache
+     *
      * @param idToken
      */
     setIdTokenCredential(idToken: IdTokenEntity): void {
@@ -192,7 +198,8 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * generates accessToken entity from a string
-     * @param key
+     *
+     * @param accessTokenKey
      */
     getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity {
         const value = this.getItem(accessTokenKey);
@@ -209,6 +216,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * set accessToken credential to the platform cache
+     *
      * @param accessToken
      */
     setAccessTokenCredential(accessToken: AccessTokenEntity): void {
@@ -218,6 +226,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * generates refreshToken entity from a string
+     *
      * @param refreshTokenKey
      */
     getRefreshTokenCredential(refreshTokenKey: string): RefreshTokenEntity {
@@ -235,6 +244,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * set refreshToken credential to the platform cache
+     *
      * @param refreshToken
      */
     setRefreshTokenCredential(refreshToken: RefreshTokenEntity): void {
@@ -244,6 +254,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * fetch appMetadata entity from the platform cache
+     *
      * @param appMetadataKey
      */
     getAppMetadata(appMetadataKey: string): AppMetadataEntity {
@@ -262,6 +273,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * set appMetadata entity to the platform cache
+     *
      * @param appMetadata
      */
     setAppMetadata(appMetadata: AppMetadataEntity): void {
@@ -271,6 +283,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * fetch server telemetry entity from the platform cache
+     *
      * @param serverTelemetryKey
      */
     getServerTelemetry(serverTelemetryKey: string): ServerTelemetryEntity | null {
@@ -288,6 +301,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * set server telemetry entity to the platform cache
+     *
      * @param serverTelemetryKey
      * @param serverTelemetry
      */
@@ -297,6 +311,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * fetch throttling entity from the platform cache
+     *
      * @param throttlingCacheKey
      */
     getThrottlingCache(throttlingCacheKey: string): ThrottlingEntity | null {
@@ -315,6 +330,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * set throttling entity to the platform cache
+     *
      * @param throttlingCacheKey
      * @param throttlingCache
      */
@@ -325,7 +341,9 @@ export class BrowserCacheManager extends CacheManager {
     /**
      * Gets cache item with given key.
      * Will retrieve frm cookies if storeAuthStateInCookie is set to true.
-     * @param key
+     *
+     * @param cacheKey
+     * @param generateKey
      */
     getTemporaryCache(cacheKey: string, generateKey?: boolean): string {
         const key = generateKey ? this.generateCacheKey(cacheKey) : cacheKey;
@@ -347,8 +365,10 @@ export class BrowserCacheManager extends CacheManager {
      * Sets the cache item with the key and value given.
      * Stores in cookie if storeAuthStateInCookie is set to true.
      * This can cause cookie overflow if used incorrectly.
-     * @param key
+     *
+     * @param cacheKey
      * @param value
+     * @param generateKey
      */
     setTemporaryCache(cacheKey: string, value: string, generateKey?: boolean): void {
         const key = generateKey ? this.generateCacheKey(cacheKey) : cacheKey;
@@ -362,6 +382,7 @@ export class BrowserCacheManager extends CacheManager {
     /**
      * Removes the cache item with the given key.
      * Will also clear the cookie item if storeAuthStateInCookie is set to true.
+     *
      * @param key
      */
     removeItem(key: string): boolean {
@@ -374,6 +395,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Checks whether key is in cache.
+     *
      * @param key
      */
     containsKey(key: string): boolean {
@@ -403,6 +425,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Add value to cookies
+     *
      * @param cookieName
      * @param cookieValue
      * @param expires
@@ -419,6 +442,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Get one item by key from cookies
+     *
      * @param cookieName
      */
     getItemCookie(cookieName: string): string {
@@ -438,6 +462,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Clear an item in the cookies by key
+     *
      * @param cookieName
      */
     clearItemCookie(cookieName: string): void {
@@ -446,6 +471,8 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Clear all msal cookies
+     *
+     * @param stateString
      */
     clearMsalCookie(stateString?: string): void {
         const nonceKey = stateString ? this.generateNonceKey(stateString) : this.generateStateKey(TemporaryCacheKeys.NONCE_IDTOKEN);
@@ -456,6 +483,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Get cookie expiration time
+     *
      * @param cookieLifeDays
      */
     getCookieExpirationTime(cookieLifeDays: number): string {
@@ -480,8 +508,8 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Prepend msal.<client-id> to each key; Skip for any JSON object as Key (defined schemas do not need the key appended: AccessToken Keys or the upcoming schema)
+     *
      * @param key
-     * @param addInstanceId
      */
     generateCacheKey(key: string): string {
         const generatedKey = this.validateAndParseJson(key);
@@ -497,7 +525,8 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Create authorityKey to cache authority
-     * @param state
+     *
+     * @param stateString
      */
     generateAuthorityKey(stateString: string): string {
         const {
@@ -511,7 +540,8 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Create Nonce key to cache nonce
-     * @param state
+     *
+     * @param stateString
      */
     generateNonceKey(stateString: string): string {
         const {
@@ -525,6 +555,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Creates full cache key for the request state
+     *
      * @param stateString State string for the request
      */
     generateStateKey(stateString: string): string {
@@ -540,8 +571,9 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Sets the cacheKey for and stores the authority information in cache
-     * @param state
+     *
      * @param authority
+     * @param state
      */
     setAuthorityCache(authority: string, state: string): void {
         // Cache authorityKey
@@ -551,6 +583,8 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Gets the cached authority based on the cached state. Returns empty if no cached state found.
+     *
+     * @param cachedState
      */
     getCachedAuthority(cachedState: string): string {
         const stateCacheKey = this.generateStateKey(cachedState);
@@ -565,8 +599,10 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Updates account, authority, and state in cache
-     * @param serverAuthenticationRequest
-     * @param account
+     *
+     * @param state
+     * @param nonce
+     * @param authorityInstance
      */
     updateCacheEntries(state: string, nonce: string, authorityInstance: string): void {
         // Cache the request state
@@ -583,6 +619,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Reset all temporary cache items
+     *
      * @param state
      */
     resetRequestCache(state: string): void {
@@ -635,6 +672,9 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Gets the token exchange parameters from the cache. Throws an error if nothing is found.
+     *
+     * @param state
+     * @param browserCrypto
      */
     getCachedRequest(state: string, browserCrypto: ICrypto): AuthorizationCodeRequest {
         try {

@@ -41,6 +41,7 @@ export class BrowserCrypto {
 
     /**
      * Returns a sha-256 hash of the given dataString as an ArrayBuffer.
+     *
      * @param dataString 
      */
     async sha256Digest(dataString: string): Promise<ArrayBuffer> {
@@ -51,6 +52,7 @@ export class BrowserCrypto {
 
     /**
      * Populates buffer with cryptographically random values.
+     *
      * @param dataBuffer 
      */
     getRandomValues(dataBuffer: Uint8Array): void {
@@ -63,6 +65,7 @@ export class BrowserCrypto {
 
     /**
      * Generates a keypair based on current keygen algorithm config.
+     *
      * @param extractable 
      * @param usages 
      */
@@ -76,8 +79,8 @@ export class BrowserCrypto {
 
     /**
      * Export key as Json Web Key (JWK)
+     *
      * @param key 
-     * @param format 
      */
     async exportJwk(key: CryptoKey): Promise<JsonWebKey> {
         return this.hasIECrypto() ? this.msCryptoExportJwk(key) : window.crypto.subtle.exportKey(KEY_FORMAT_JWK, key);
@@ -85,8 +88,8 @@ export class BrowserCrypto {
 
     /**
      * Imports key as Json Web Key (JWK), can set extractable and usages.
+     *
      * @param key 
-     * @param format 
      * @param extractable 
      * @param usages 
      */
@@ -101,6 +104,7 @@ export class BrowserCrypto {
 
     /**
      * Signs given data with given key
+     *
      * @param key 
      * @param data 
      */
@@ -133,6 +137,7 @@ export class BrowserCrypto {
 
     /**
      * Helper function for SHA digest.
+     *
      * @param algorithm 
      * @param data 
      */
@@ -142,6 +147,7 @@ export class BrowserCrypto {
 
     /**
      * IE Helper function for SHA digest.
+     *
      * @param algorithm 
      * @param data 
      */
@@ -159,6 +165,7 @@ export class BrowserCrypto {
 
     /**
      * IE Helper function for generating a keypair
+     *
      * @param extractable 
      * @param usages 
      */
@@ -177,8 +184,8 @@ export class BrowserCrypto {
 
     /**
      * IE Helper function for exportKey
+     *
      * @param key 
-     * @param format 
      */
     private async msCryptoExportJwk(key: CryptoKey): Promise<JsonWebKey> {
         return new Promise((resolve: any, reject: any) => {
@@ -208,10 +215,10 @@ export class BrowserCrypto {
 
     /**
      * IE Helper function for importKey
-     * @param key 
-     * @param format 
-     * @param extractable 
-     * @param usages 
+     *
+     * @param keyBuffer
+     * @param extractable
+     * @param usages
      */
     private async msCryptoImportKey(keyBuffer: ArrayBuffer, extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKey> {
         return new Promise((resolve: any, reject: any) => {
@@ -228,6 +235,7 @@ export class BrowserCrypto {
 
     /**
      * IE Helper function for sign JWT
+     *
      * @param key 
      * @param data 
      */
@@ -246,6 +254,7 @@ export class BrowserCrypto {
 
     /**
      * Returns stringified jwk.
+     *
      * @param jwk 
      */
     static getJwkString(jwk: JsonWebKey): string {

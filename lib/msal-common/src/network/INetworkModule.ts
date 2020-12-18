@@ -15,12 +15,14 @@ export type NetworkRequestOptions = {
 
 /**
  * Client network interface to send backend requests.
+ *
  * @hidden
  */
 export interface INetworkModule {
 
     /**
      * Interface function for async network "GET" requests. Based on the Fetch standard: https://fetch.spec.whatwg.org/
+     *
      * @param url
      * @param requestParams
      * @param enableCaching
@@ -29,6 +31,7 @@ export interface INetworkModule {
 
     /**
      * Interface function for async network "POST" requests. Based on the Fetch standard: https://fetch.spec.whatwg.org/
+     *
      * @param url
      * @param requestParams
      * @param enableCaching

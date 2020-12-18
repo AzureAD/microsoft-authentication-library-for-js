@@ -25,14 +25,13 @@ export type LibraryStateObject = {
 export class RequestUtils {
 
     /**
-     * @ignore
+     * validates all request parameters and generates a consumable request object
      *
+     * @ignore
      * @param request
      * @param isLoginCall
-     * @param cacheStorage
      * @param clientId
-     *
-     * validates all request parameters and generates a consumable request object
+     * @param interactionType 
      */
     static validateRequest(request: AuthenticationParameters, isLoginCall: boolean, clientId: string, interactionType: InteractionType): AuthenticationParameters {
 
@@ -77,9 +76,7 @@ export class RequestUtils {
 
     /**
      * @ignore
-     *
-     * Utility to test if valid prompt value is passed in the request
-     * @param request
+     * @param prompt
      */
     static validatePromptParameter (prompt: string) {
         if(prompt) {
@@ -91,9 +88,8 @@ export class RequestUtils {
 
     /**
      * @ignore
-     *
-     * Removes unnecessary or duplicate query parameters from extraQueryParameters
-     * @param request
+     * @param extraQueryParameters
+     * @param claimsRequest
      */
     static validateEQParameters(extraQueryParameters: StringDict, claimsRequest: string) : StringDict {
         const eQParams : StringDict = { ...extraQueryParameters};
@@ -115,10 +111,10 @@ export class RequestUtils {
     }
 
     /**
-     * @ignore
-     *
      * Validates the claims passed in request is a JSON
      * TODO: More validation will be added when the server team tells us how they have actually implemented claims
+     * 
+     * @ignore
      * @param claimsRequest
      */
     static validateClaimsRequest(claimsRequest: string) {
@@ -133,11 +129,10 @@ export class RequestUtils {
     }
 
     /**
-     * @ignore
-     *
-     * generate unique state per request
      * @param userState User-provided state value
+     * @param interactionType
      * @returns State string include library state and user state
+     * @ignore
      */
     static validateAndGenerateState(userState: string, interactionType: InteractionType): string {
         return !StringUtils.isEmpty(userState) ? `${RequestUtils.generateLibraryState(interactionType)}${Constants.resourceDelimiter}${userState}` : RequestUtils.generateLibraryState(interactionType);
@@ -146,6 +141,7 @@ export class RequestUtils {
     /**
      * Generates the state value used by the library.
      *
+     * @param interactionType
      * @returns Base64 encoded string representing the state
      */
     static generateLibraryState(interactionType: InteractionType): string {
@@ -191,8 +187,6 @@ export class RequestUtils {
 
     /**
      * @ignore
-     *
-     * validate correlationId and generate if not valid or not set by the user
      * @param correlationId
      */
     static validateAndGenerateCorrelationId(correlationId: string): string {
@@ -205,6 +199,7 @@ export class RequestUtils {
 
     /**
      * Create a request signature
+     *
      * @param request
      */
     static createRequestSignature(request: AuthenticationParameters): string {

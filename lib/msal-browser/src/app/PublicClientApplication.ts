@@ -51,7 +51,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
      * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
      *
-     * @param {@link (RedirectRequest:type)}
+     * @param request
      */
     async loginRedirect(request?: RedirectRequest): Promise<void> {
         return this.acquireTokenRedirect(request || DEFAULT_REQUEST);
@@ -60,8 +60,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     /**
      * Use when initiating the login process via opening a popup window in the user's browser
      *
-     * @param {@link (PopupRequest:type)}
-     *
+     * @param request
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
@@ -70,8 +69,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
     /**
      * Silently acquire an access token for a given set of scopes. Will use cached token if available, otherwise will attempt to acquire a new token from the network via refresh token.
-     * 
-     * @param {@link (SilentRequest:type)} 
+     *
+     * @param request
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {

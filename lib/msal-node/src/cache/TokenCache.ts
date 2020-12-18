@@ -71,6 +71,7 @@ export class TokenCache implements ISerializableTokenCache {
 
     /**
      * Deserializes JSON to in-memory cache. JSON should be in MSAL cache schema format
+     *
      * @param cache
      */
     deserialize(cache: string): void {
@@ -112,6 +113,8 @@ export class TokenCache implements ISerializableTokenCache {
      * Returns the signed in account matching homeAccountId.
      * (the account object is created at the time of successful login)
      * or null when no matching account is found
+     *
+     * @param homeAccountId
      * @returns {@link AccountInfo} - the account object stored in MSAL
      */
     async getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null> {
@@ -127,6 +130,8 @@ export class TokenCache implements ISerializableTokenCache {
      * Returns the signed in account matching localAccountId.
      * (the account object is created at the time of successful login)
      * or null when no matching account is found
+     *
+     * @param localAccountId
      * @returns {@link AccountInfo} - the account object stored in MSAL
      */
     async getAccountByLocalId(localAccountId: string): Promise<AccountInfo | null> {
@@ -140,6 +145,7 @@ export class TokenCache implements ISerializableTokenCache {
 
     /**
      * API to remove a specific account and the relevant data from cache
+     *
      * @param account
      */
     async removeAccount(account: AccountInfo): Promise<void> {
@@ -167,6 +173,7 @@ export class TokenCache implements ISerializableTokenCache {
 
     /**
      * Merge in memory cache with the cache snapshot.
+     *
      * @param oldState
      * @param currentState
      */
@@ -178,6 +185,7 @@ export class TokenCache implements ISerializableTokenCache {
 
     /**
      * Deep update of oldState based on newState values
+     *
      * @param oldState
      * @param newState
      */
@@ -211,6 +219,7 @@ export class TokenCache implements ISerializableTokenCache {
     /**
      * Removes entities in oldState that the were removed from newState. If there are any unknown values in root of
      * oldState that are not recognized, they are left untouched.
+     *
      * @param oldState
      * @param newState
      */

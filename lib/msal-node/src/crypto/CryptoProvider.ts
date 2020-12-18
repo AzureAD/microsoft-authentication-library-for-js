@@ -22,6 +22,7 @@ export class CryptoProvider implements ICrypto {
 
     /**
      * Creates a new random GUID - used to populate state and nonce.
+     *
      * @returns string (GUID)
      */
     createNewGuid(): string {
@@ -30,6 +31,7 @@ export class CryptoProvider implements ICrypto {
 
     /**
      * Encodes input string to base64.
+     *
      * @param input
      */
     base64Encode(input: string): string {
@@ -38,6 +40,7 @@ export class CryptoProvider implements ICrypto {
 
     /**
      * Decodes input string from base64.
+     *
      * @param input
      */
     base64Decode(input: string): string {

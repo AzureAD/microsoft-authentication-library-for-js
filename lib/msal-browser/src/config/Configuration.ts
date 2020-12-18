@@ -97,14 +97,12 @@ export type BrowserConfiguration = {
 /**
  * MSAL function that sets the default options when not explicitly configured from app developer
  *
- * @param auth
- * @param cache
- * @param system
- *
+ * @param configuration
  * @returns Configuration object
  */
-export function buildConfiguration({ auth: userInputAuth, cache: userInputCache, system: userInputSystem }: Configuration): BrowserConfiguration {
-
+export function buildConfiguration(configuration: Configuration): BrowserConfiguration {
+    const { auth: userInputAuth, cache: userInputCache, system: userInputSystem } = configuration;
+    
     // Default auth options for browser
     const DEFAULT_AUTH_OPTIONS: Required<BrowserAuthOptions> = {
         clientId: "",

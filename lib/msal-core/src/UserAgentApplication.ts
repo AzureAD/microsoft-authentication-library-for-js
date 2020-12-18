@@ -81,7 +81,6 @@ export interface CacheResult {
 /**
  * @hidden
  * @ignore
- * Data type to hold information about state returned from the server
  */
 export type ResponseStateInfo = {
     state: string;
@@ -94,6 +93,7 @@ export type ResponseStateInfo = {
 /**
  * A type alias for an authResponseCallback function.
  * {@link (authResponseCallback:type)}
+ *
  * @param authErr error created for failure cases
  * @param response response containing token strings in success cases, or just state value in error cases
  */
@@ -102,6 +102,7 @@ export type authResponseCallback = (authErr: AuthError, response?: AuthResponse)
 /**
  * A type alias for a tokenReceivedCallback function.
  * {@link (tokenReceivedCallback:type)}
+ *
  * @returns response of type {@link (AuthResponse:type)}
  * The function that will get the call back once this API is completed (either successfully or with a failure).
  */
@@ -110,6 +111,7 @@ export type tokenReceivedCallback = (response: AuthResponse) => void;
 /**
  * A type alias for a errorReceivedCallback function.
  * {@link (errorReceivedCallback:type)}
+ *
  * @returns response of type {@link (AuthError:class)}
  * @returns {string} account state
  */
@@ -151,7 +153,8 @@ export class UserAgentApplication {
 
     /**
      * setter for the authority URL
-     * @param {string} authority
+     *
+     * @param val
      */
     // If the developer passes an authority, create an instance
     public set authority(val) {
@@ -177,7 +180,7 @@ export class UserAgentApplication {
     }
 
     /**
-     * @constructor
+     * @class
      * Constructor for the UserAgentApplication used to instantiate the UserAgentApplication object
      *
      * Important attributes in the Configuration object for auth are:
@@ -242,7 +245,6 @@ export class UserAgentApplication {
     /**
      * @hidden
      * @ignore
-     * Set the callback functions for the redirect flow to send back the success or error object.
      * @param {@link (tokenReceivedCallback:type)} successCallback - Callback which contains the AuthResponse object, containing data from the server.
      * @param {@link (errorReceivedCallback:type)} errorCallback - Callback which contains a AuthError object, containing error data from either the server
      * or the library, depending on the origin of the error.
@@ -272,6 +274,7 @@ export class UserAgentApplication {
 
     /**
      * Public API to verify if the URL contains the hash with known properties
+     *
      * @param hash
      */
     public urlContainsHash(hash: string) {
@@ -327,7 +330,8 @@ export class UserAgentApplication {
     // #endregion
     /**
      * Use when initiating the login process by redirecting the user's browser to the authorization endpoint.
-     * @param {@link (AuthenticationParameters:type)}
+     *
+     * @param userRequest
      */
     loginRedirect(userRequest?: AuthenticationParameters): void {
         this.logger.verbose("LoginRedirect has been called");
@@ -339,9 +343,9 @@ export class UserAgentApplication {
 
     /**
      * Use when you want to obtain an access_token for your API by redirecting the user's browser window to the authorization endpoint.
-     * @param {@link (AuthenticationParameters:type)}
-     *
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
+     *
+     * @param userRequest
      */
     acquireTokenRedirect(userRequest: AuthenticationParameters): void {
         this.logger.verbose("AcquireTokenRedirect has been called");
@@ -354,8 +358,7 @@ export class UserAgentApplication {
     /**
      * Use when initiating the login process via opening a popup window in the user's browser
      *
-     * @param {@link (AuthenticationParameters:type)}
-     *
+     * @param userRequest
      * @returns {Promise.<AuthResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     loginPopup(userRequest?: AuthenticationParameters): Promise<AuthResponse> {
@@ -382,9 +385,9 @@ export class UserAgentApplication {
 
     /**
      * Use when you want to obtain an access_token for your API via opening a popup window in the user's browser
-     * @param {@link AuthenticationParameters}
-     *
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
+     *
+     * @param userRequest
      * @returns {Promise.<AuthResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     acquireTokenPopup(userRequest: AuthenticationParameters): Promise<AuthResponse> {
@@ -414,9 +417,13 @@ export class UserAgentApplication {
     /**
      * Use when initiating the login process or when you want to obtain an access_token for your API,
      * either by redirecting the user's browser window to the authorization endpoint or via opening a popup window in the user's browser.
-     * @param {@link (AuthenticationParameters:type)}
-     *
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
+     *
+     * @param interactionType
+     * @param isLoginCall
+     * @param request
+     * @param resolve
+     * @param reject
      */
     private acquireTokenInteractive(interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: any, reject?: any): void {
         this.logger.verbose("AcquireTokenInteractive has been called");
@@ -504,10 +511,16 @@ export class UserAgentApplication {
     }
 
     /**
-     * @hidden
-     * @ignore
      * Helper function to acquireToken
-     *
+     * 
+     * @param account
+     * @param interactionType
+     * @param isLoginCall
+     * @param request
+     * @param resolve
+     * @param reject
+     * @hidden
+     * @ignore 
      */
     private async acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: any, reject?: any): Promise<void> {
         this.logger.verbose("AcquireTokenHelper has been called");
@@ -658,6 +671,7 @@ export class UserAgentApplication {
 
     /**
      * API interfacing idToken request when applications already have a session/hint acquired by authorization client applications
+     *
      * @param request
      */
     ssoSilent(request: AuthenticationParameters): Promise<AuthResponse> {
@@ -684,12 +698,10 @@ export class UserAgentApplication {
      *
      * MSAL return's a cached token when available
      * Or it send's a request to the STS to obtain a new token using a hidden iframe.
-     *
-     * @param {@link AuthenticationParameters}
-     *
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
-     * @returns {Promise.<AuthResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      *
+     * @param userRequest
+     * @returns {Promise.<AuthResponse>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     acquireTokenSilent(userRequest: AuthenticationParameters): Promise<AuthResponse> {
         this.logger.verbose("AcquireTokenSilent has been called");
@@ -914,8 +926,11 @@ export class UserAgentApplication {
     // #region Iframe Management
 
     /**
-     * @hidden
-     * Calling _loadFrame but with a timeout to signal failure in loadframeStatus. Callbacks are left.
+     * @param urlNavigate
+     * @param frameName
+     * @param requestSignature
+     * @hidden 
+     *Calling _loadFrame but with a timeout to signal failure in loadframeStatus. Callbacks are left.
      * registered when network errors occur and subsequent token requests for same resource are registered to the pending request.
      * @ignore
      */
@@ -958,9 +973,11 @@ export class UserAgentApplication {
     // #region General Helpers
 
     /**
-     * @hidden
+     * @hidden 
      * Used to redirect the browser to the STS authorization endpoint
-     * @param {string} urlNavigate - URL of the authorization endpoint
+     * 
+     * @param urlNavigate URL of the authorization endpoint
+     * @param popupWindow
      */
     private navigateWindow(urlNavigate: string, popupWindow?: Window) {
         // Navigate if valid URL
@@ -977,12 +994,13 @@ export class UserAgentApplication {
     }
 
     /**
-     * @hidden
+     * @hidden 
      * Used to add the developer requested callback to the array of callbacks for the specified scopes. The updated array is stored on the window object
-     * @param {string} expectedState - Unique state identifier (guid).
-     * @param {string} scope - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
-     * @param {Function} resolve - The resolve function of the promise object.
-     * @param {Function} reject - The reject function of the promise object.
+     * 
+     * @param {string} expectedState Unique state identifier.
+     * @param requestSignature
+     * @param {Function} resolve The resolve function of the promise object.
+     * @param {Function} reject The reject function of the promise object.
      * @ignore
      */
     private registerCallback(expectedState: string, requestSignature: string, resolve: Function, reject: Function): void {
@@ -1032,6 +1050,8 @@ export class UserAgentApplication {
     /**
      * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
      * Default behaviour is to redirect the user to `window.location.href`.
+     *
+     * @param correlationId
      */
     logout(correlationId?: string): void {
         this.logger.verbose("Logout has been called");
@@ -1040,6 +1060,7 @@ export class UserAgentApplication {
 
     /**
      * Async version of logout(). Use to log out the current user.
+     *
      * @param correlationId Request correlationId
      */
     private async logoutAsync(correlationId?: string): Promise<void> {
@@ -1129,9 +1150,8 @@ export class UserAgentApplication {
     /**
      * @hidden
      * @ignore
-     * Checks if the redirect response is received from the STS. In case of redirect, the url fragment has either id_token, access_token or error.
      * @param {string} hash - Hash passed from redirect page.
-     * @returns {Boolean} - true if response contains id_token, access_token or error, false otherwise.
+     * @returns {boolean} - true if response contains id_token, access_token or error, false otherwise.
      */
     isCallback(hash: string): boolean {
         this.logger.info("isCallback will be deprecated in favor of urlContainsHash in MSAL.js v2.0.");
@@ -1140,9 +1160,12 @@ export class UserAgentApplication {
     }
 
     /**
-     * @hidden
+     * @hidden 
      * Used to call the constructor callback with the token/error
-     * @param {string} [hash=window.location.hash] - Hash fragment of Url.
+     * 
+     * @param hash
+     * @param stateInfo
+     * @param parentCallback
      */
     private processCallBack(hash: string, stateInfo: ResponseStateInfo, parentCallback?: Function): void {
         this.logger.info("ProcessCallBack has been called. Processing callback from redirect response");
@@ -1347,10 +1370,11 @@ export class UserAgentApplication {
     // #region Token Processing (Extract to TokenProcessing.ts)
 
     /**
-     * @hidden
      * Used to get token for the specified set of scopes from the cache
-     * @param {@link ServerRequestParameters} - Request sent to the STS to obtain an id_token/access_token
-     * @param {Account} account - Account for which the scopes were requested
+     * 
+     * @param serverAuthenticationRequest Request sent to the STS to obtain an id_token/access_token
+     * @param account Account for which the scopes were requested
+     * @hidden
      */
     private getCachedToken(serverAuthenticationRequest: ServerRequestParameters, account: Account): AuthResponse {
         this.logger.verbose("GetCachedToken has been called");
@@ -1367,16 +1391,14 @@ export class UserAgentApplication {
     }
 
     /**
-     * @hidden
-     * 
      * Uses passed in authority to further filter an array of tokenCacheItems until only the token being searched for remains, then returns that tokenCacheItem.
      * This method will throw if authority filtering still yields multiple matching tokens and will return null if not tokens match the authority passed in.
      * 
      * @param authority 
      * @param tokenCacheItems 
-     * @param request 
      * @param requestScopes 
      * @param tokenType 
+     * @hidden
      */
     private getTokenCacheItemByAuthority(authority: string, tokenCacheItems: Array<AccessTokenCacheItem>, requestScopes: Array<string>, tokenType: string): AccessTokenCacheItem {
         let filteredAuthorityItems: Array<AccessTokenCacheItem>;
@@ -1511,8 +1533,8 @@ export class UserAgentApplication {
 
     /**
      * Returns true if the token passed in is within the acceptable expiration time offset, false if it is expired.
+     *
      * @param tokenCacheItem 
-     * @param serverAuthenticationRequest 
      */
     private evaluateTokenExpiration(tokenCacheItem: AccessTokenCacheItem): Boolean {
         const expiration = Number(tokenCacheItem.value.expiresIn);
@@ -1520,9 +1542,11 @@ export class UserAgentApplication {
     }
 
     /**
-     * @hidden
      * Used to get a unique list of authorities from the cache
-     * @param {Array<AccessTokenCacheItem>}  accessTokenCacheItems - accessTokenCacheItems saved in the cache
+     * 
+     * @param accessTokenCacheItems accessTokenCacheItems saved in the cache
+     * @param property
+     * @hidden 
      * @ignore
      */
     private getUniqueAuthority(accessTokenCacheItems: Array<AccessTokenCacheItem>, property: string): Array<string> {
@@ -1550,8 +1574,15 @@ export class UserAgentApplication {
     }
 
     /**
-     * @hidden
      * Acquires access token using a hidden iframe.
+     * 
+     * @param requestSignature
+     * @param resolve
+     * @param reject
+     * @param account
+     * @param serverAuthenticationRequest
+     * 
+     * @hidden 
      * @ignore
      */
     private renewToken(requestSignature: string, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
@@ -1576,8 +1607,14 @@ export class UserAgentApplication {
     }
 
     /**
-     * @hidden
      * Renews idtoken for app's own backend when clientId is passed as a single scope in the scopes array.
+     * 
+     * @param requestSignature
+     * @param resolve
+     * @param reject
+     * @param account
+     * @param serverAuthenticationRequest
+     * @hidden 
      * @ignore
      */
     private renewIdToken(requestSignature: string, resolve: Function, reject: Function, account: Account, serverAuthenticationRequest: ServerRequestParameters): void {
@@ -1712,8 +1749,10 @@ export class UserAgentApplication {
     }
 
     /**
-     * @hidden
-     * Saves token or error received in the response from AAD in the cache. In case of id_token, it also creates the account object.
+     * @param hash
+     * @param stateInfo
+     * @hidden 
+     *Saves token or error received in the response from AAD in the cache. In case of id_token, it also creates the account object.
      * @ignore
      */
     protected saveTokenFromHash(hash: string, stateInfo: ResponseStateInfo): AuthResponse {
@@ -1966,11 +2005,11 @@ export class UserAgentApplication {
 
     /**
      * Set Authority when saving Token from the hash
+     *
      * @param state
      * @param inCookie
      * @param cacheStorage
      * @param idTokenObj
-     * @param response
      */
     private populateAuthority(state: string, inCookie: boolean, cacheStorage: AuthCache, idTokenObj: IdToken): string {
         this.logger.verbose("PopulateAuthority has been called");
@@ -1991,6 +2030,7 @@ export class UserAgentApplication {
      * Returns the signed in account
      * (the account object is created at the time of successful login)
      * or null when no state is found
+     *
      * @returns {@link Account} - the account object stored in MSAL
      */
     getAccount(): Account {
@@ -2014,8 +2054,8 @@ export class UserAgentApplication {
     }
 
     /**
-     * @hidden
-     *
+     * @param state
+     * @hidden 
      * Extracts state value from the accountState sent with the authentication request.
      * @returns {string} scope.
      * @ignore
@@ -2033,7 +2073,7 @@ export class UserAgentApplication {
     /**
      * Use to get a list of unique accounts in MSAL cache based on homeAccountIdentifier.
      *
-     * @param {@link Array<Account>} Account - all unique accounts in MSAL cache.
+     * @returns {@link Array<Account>} Account - all unique accounts in MSAL cache.
      */
     getAllAccounts(): Array<Account> {
         const accounts: Array<Account> = [];
@@ -2050,11 +2090,11 @@ export class UserAgentApplication {
     }
 
     /**
-     * @hidden
-     *
      * Used to filter accounts based on homeAccountIdentifier
-     * @param {Array<Account>}  Accounts - accounts saved in the cache
+     * 
+     * @param accounts accounts saved in the cache
      * @ignore
+     * @hidden 
      */
     private getUniqueAccounts(accounts: Array<Account>): Array<Account> {
         if (!accounts || accounts.length <= 1) {
@@ -2090,14 +2130,14 @@ export class UserAgentApplication {
     }
 
     /**
-     * @hidden
-     *
      * Helper function to retrieve the cached token
-     *
+     * 
      * @param scopes
-     * @param {@link Account} account
+     * @param account
      * @param state
-     * @return {@link AuthResponse} AuthResponse
+     * @param correlationId
+     * @returns {@link AuthResponse} AuthResponse
+     * @hidden 
      */
     protected getCachedTokenInternal(scopes : Array<string> , account: Account, state: string, correlationId?: string): AuthResponse {
         // Get the current session's account object
@@ -2175,6 +2215,7 @@ export class UserAgentApplication {
 
     /**
      * Return boolean flag to developer to help inform if login is in progress
+     *
      * @returns {boolean} true/false
      */
     public getLoginInProgress(): boolean {
@@ -2183,9 +2224,8 @@ export class UserAgentApplication {
 
     /**
      * @hidden
+     * @param inProgress
      * @ignore
-     *
-     * @param loginInProgress
      */
     protected setInteractionInProgress(inProgress: boolean) {
         if (inProgress) {
@@ -2208,8 +2248,6 @@ export class UserAgentApplication {
     /**
      * @hidden
      * @ignore
-     *
-     * returns the status of acquireTokenInProgress
      */
     protected getAcquireTokenInProgress(): boolean {
         return this.cacheStorage.getItem(TemporaryCacheKeys.INTERACTION_STATUS) === Constants.inProgress;
@@ -2228,8 +2266,6 @@ export class UserAgentApplication {
     /**
      * @hidden
      * @ignore
-     *
-     * returns the logger handle
      */
     getLogger() {
         return this.logger;
@@ -2237,6 +2273,7 @@ export class UserAgentApplication {
 
     /**
      * Sets the logger callback.
+     *
      * @param logger Logger callback
      */
     setLogger(logger: Logger) {
@@ -2251,6 +2288,7 @@ export class UserAgentApplication {
      * Use to get the redirect uri configured in MSAL or null.
      * Evaluates redirectUri if its a function, otherwise simply returns its value.
      *
+     * @param reqRedirectUri
      * @returns {string} redirect URL
      */
     public getRedirectUri(reqRedirectUri?:  string): string {
@@ -2289,14 +2327,12 @@ export class UserAgentApplication {
     }
 
     /**
-     * @ignore
-     *
      * Utils function to create the Authentication
-     * @param {@link account} account object
+     * 
+     * @param accountObject
      * @param scopes
-     *
      * @returns {string} token type: token, id_token or id_token token
-     *
+     * @ignore 
      */
     private getTokenType(accountObject: Account, scopes: string[]): string {
         const accountsMatch = Account.compareAccounts(accountObject, this.getAccount());
@@ -2306,8 +2342,6 @@ export class UserAgentApplication {
     /**
      * @hidden
      * @ignore
-     *
-     * Sets the cachekeys for and stores the account information in cache
      * @param account
      * @param state
      * @hidden
@@ -2324,8 +2358,6 @@ export class UserAgentApplication {
     /**
      * @hidden
      * @ignore
-     *
-     * Sets the cacheKey for and stores the authority information in cache
      * @param state
      * @param authority
      * @hidden
@@ -2338,8 +2370,11 @@ export class UserAgentApplication {
 
     /**
      * Updates account, authority, and nonce in cache
+     *
      * @param serverAuthenticationRequest
      * @param account
+     * @param isLoginCall
+     * @param loginStartPage
      * @hidden
      * @ignore
      */
@@ -2365,6 +2400,7 @@ export class UserAgentApplication {
 
     /**
      * Returns the unique identifier for the logged in account
+     *
      * @param account
      * @hidden
      * @ignore
@@ -2383,10 +2419,11 @@ export class UserAgentApplication {
     }
 
     /**
-     * @ignore
-     * @param extraQueryParameters
-     *
      * Construct 'tokenRequest' from the available data in adalIdToken
+     *
+     * @param request
+     * 
+     * @ignore
      */
     private buildIDTokenRequest(request: AuthenticationParameters): AuthenticationParameters {
 

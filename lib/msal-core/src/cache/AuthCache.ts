@@ -29,6 +29,7 @@ export class AuthCache extends BrowserStorage {// Singleton
 
     /**
      * Support roll back to old cache schema until the next major release: true by default now
+     *
      * @param storeAuthStateInCookie
      */
     private migrateCacheEntries(storeAuthStateInCookie: boolean) {
@@ -51,6 +52,7 @@ export class AuthCache extends BrowserStorage {// Singleton
 
     /**
      * Utility function to help with roll back keys
+     *
      * @param newKey
      * @param value
      * @param storeAuthStateInCookie
@@ -63,6 +65,7 @@ export class AuthCache extends BrowserStorage {// Singleton
 
     /**
      * Prepend msal.<client-id> to each key; Skip for any JSON object as Key (defined schemas do not need the key appended: AccessToken Keys or the upcoming schema)
+     *
      * @param key
      * @param addInstanceId
      */
@@ -83,6 +86,7 @@ export class AuthCache extends BrowserStorage {// Singleton
      * Validates that the input cache key contains the account search terms (clientId and homeAccountIdentifier) and
      * then whether or not it contains the "scopes", depending on the token type being searched for. With matching account
      * search terms, Access Token search tries to match the "scopes" keyword, while Id Token search expects "scopes" to not be included.
+     *
      * @param key 
      * @param clientId 
      * @param homeAccountIdentifier 
@@ -117,6 +121,7 @@ export class AuthCache extends BrowserStorage {// Singleton
 
     /**
      * add value to storage
+     *
      * @param key
      * @param value
      * @param enableCookieStorage
@@ -132,6 +137,7 @@ export class AuthCache extends BrowserStorage {// Singleton
 
     /**
      * get one item by key from storage
+     *
      * @param key
      * @param enableCookieStorage
      */
@@ -141,6 +147,7 @@ export class AuthCache extends BrowserStorage {// Singleton
 
     /**
      * remove value from storage
+     *
      * @param key
      */
     removeItem(key: string): void {
@@ -167,6 +174,8 @@ export class AuthCache extends BrowserStorage {// Singleton
 
     /**
      * Reset all temporary cache items
+     *
+     * @param state
      */
     resetTempCacheItems(state?: string): void {
         const stateId = state && RequestUtils.parseLibraryState(state).id;
@@ -189,6 +198,7 @@ export class AuthCache extends BrowserStorage {// Singleton
 
     /**
      * Set cookies for IE
+     *
      * @param cName
      * @param cValue
      * @param expires
@@ -209,6 +219,7 @@ export class AuthCache extends BrowserStorage {// Singleton
 
     /**
      * get one item by key from cookies
+     *
      * @param cName
      */
     getItemCookie(cName: string): string {
@@ -217,6 +228,7 @@ export class AuthCache extends BrowserStorage {// Singleton
 
     /**
      * Get all tokens of a certain type from the cache
+     *
      * @param clientId 
      * @param homeAccountIdentifier 
      * @param tokenType
@@ -244,6 +256,7 @@ export class AuthCache extends BrowserStorage {// Singleton
 
     /**
      * Get all access tokens in the cache
+     *
      * @param clientId
      * @param homeAccountIdentifier
      */
@@ -252,8 +265,11 @@ export class AuthCache extends BrowserStorage {// Singleton
     }
 
     /**
-     * Get all id tokens in the cache in the form of AccessTokenCacheItem objects so they are 
+     * Get all id tokens in the cache in the form of AccessTokenCacheItem objects so they are
      * in a normalized format and can make use of the existing cached access token validation logic
+     *
+     * @param clientId
+     * @param homeAccountIdentifier
      */
     getAllIdTokens(clientId: string, homeAccountIdentifier: string): Array<AccessTokenCacheItem> {
         return this.getAllTokensByType(clientId, homeAccountIdentifier, ServerHashParamKeys.ID_TOKEN);
@@ -261,6 +277,7 @@ export class AuthCache extends BrowserStorage {// Singleton
 
     /**
      * Get all access and ID tokens in the cache
+     *
      * @param clientId 
      * @param homeAccountIdentifier 
      */
@@ -282,6 +299,8 @@ export class AuthCache extends BrowserStorage {// Singleton
 
     /**
      * Clear all cookies
+     *
+     * @param state
      */
     public clearMsalCookie(state?: string): void {
         /*
@@ -309,6 +328,7 @@ export class AuthCache extends BrowserStorage {// Singleton
 
     /**
      * Create acquireTokenAccountKey to cache account object
+     *
      * @param accountId
      * @param state
      */
@@ -319,6 +339,7 @@ export class AuthCache extends BrowserStorage {// Singleton
 
     /**
      * Create authorityKey to cache authority
+     *
      * @param state
      */
     public static generateAuthorityKey(state: string): string {
@@ -327,6 +348,7 @@ export class AuthCache extends BrowserStorage {// Singleton
 
     /**
      * Generates the cache key for temporary cache items, using request state
+     *
      * @param tempCacheKey Cache key prefix
      * @param state Request state value
      */

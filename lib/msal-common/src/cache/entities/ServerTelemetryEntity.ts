@@ -18,6 +18,7 @@ export class ServerTelemetryEntity {
 
     /**
      * validates if a given cache entry is "Telemetry", parses <key,value>
+     *
      * @param key
      * @param entity
      */

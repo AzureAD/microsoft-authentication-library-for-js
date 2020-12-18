@@ -123,6 +123,10 @@ export class Authority {
 
     /**
      * Calls the OIDC endpoint and returns the response
+     *
+     * @param openIdConfigurationEndpoint
+     * @param telemetryManager
+     * @param correlationId
      */
     private DiscoverEndpoints(openIdConfigurationEndpoint: string, telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse> {
         const client = new XhrClient();
@@ -152,6 +156,9 @@ export class Authority {
      * Checks to see if the authority is in the cache
      * Discover endpoints via openid-configuration
      * If successful, caches the endpoint for later use in OIDC
+     *
+     * @param telemetryManager
+     * @param correlationId
      */
     public async resolveEndpointsAsync(telemetryManager: TelemetryManager, correlationId: string): Promise<ITenantDiscoveryResponse> {
         if (this.IsValidationEnabled) {

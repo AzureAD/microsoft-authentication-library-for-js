@@ -17,7 +17,8 @@ export class UrlUtils {
 
     /**
      * generates the URL with QueryString Parameters
-     * @param scopes
+     *
+     * @param serverRequestParams
      */
     static createNavigateUrl(serverRequestParams: ServerRequestParameters): string {
         const str = this.createNavigationUrlString(serverRequestParams);
@@ -35,7 +36,8 @@ export class UrlUtils {
 
     /**
      * Generate the array of all QueryStringParams to be sent to the server
-     * @param scopes
+     *
+     * @param serverRequestParams
      */
     static createNavigationUrlString(serverRequestParams: ServerRequestParameters): Array<string> {
         const scopes = ScopeSet.appendDefaultScopes(serverRequestParams.scopes);
@@ -81,6 +83,8 @@ export class UrlUtils {
 
     /**
      * Returns given URL with query string removed
+     *
+     * @param url
      */
     static removeHashFromUrl(url: string): string {
         return url.split("#")[0];
@@ -88,7 +92,8 @@ export class UrlUtils {
 
     /**
      * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d
-     * @param href The url
+     *
+     * @param url
      * @param tenantId The tenant id to replace
      */
     static replaceTenantPath(url: string, tenantId: string): string {
@@ -107,6 +112,7 @@ export class UrlUtils {
     
     /**
      * Checks if an authority is common (ex. https://a:b/common/)
+     *
      * @param url The url
      * @returns true if authority is common and false otherwise 
      */
@@ -118,6 +124,7 @@ export class UrlUtils {
 
     /**
      * Checks if an authority is for organizations (ex. https://a:b/organizations/)
+     *
      * @param url The url
      * @returns true if authority is for  and false otherwise 
      */
@@ -129,6 +136,8 @@ export class UrlUtils {
 
     /**
      * Parses out the components from a url string.
+     *
+     * @param url
      * @returns An object with the various components. Please cache this value insted of calling this multiple times on the same url.
      */
     static GetUrlComponents(url: string): IUri {
@@ -185,8 +194,9 @@ export class UrlUtils {
     /**
      * Checks to see if the url ends with the suffix
      * Required because we are compiling for es5 instead of es6
+     *
      * @param url
-     * @param str
+     * @param suffix
      */
     // TODO: Rename this, not clear what it is supposed to do
     static endsWith(url: string, suffix: string): boolean {
@@ -199,6 +209,7 @@ export class UrlUtils {
 
     /**
      * Utils function to remove the login_hint and domain_hint from the i/p extraQueryParameters
+     *
      * @param url
      * @param name
      */
@@ -219,10 +230,9 @@ export class UrlUtils {
     }
 
     /**
+     * @param urlStringOrFragment
      * @hidden
      * @ignore
-     *
-     * Returns the anchor part(#) of the URL
      */
     static getHashFromUrl(urlStringOrFragment: string): string {
         const hashIndex1 = urlStringOrFragment.indexOf("#");
@@ -236,8 +246,9 @@ export class UrlUtils {
     }
 
     /**
-     * @hidden
-     * Check if the url contains a hash with known properties
+     * @param urlString
+     * @hidden 
+     *Check if the url contains a hash with known properties
      * @ignore
      */
     static urlContainsHash(urlString: string): boolean {
@@ -251,8 +262,9 @@ export class UrlUtils {
     }
 
     /**
-     * @hidden
-     * Returns deserialized portion of URL hash
+     * @param urlFragment
+     * @hidden 
+     *Returns deserialized portion of URL hash
      * @ignore
      */
     static deserializeHash(urlFragment: string) {
@@ -262,9 +274,9 @@ export class UrlUtils {
 
     /**
      * @ignore
-     * @param {string} URI
+     * @param uri
      * @returns {string} host from the URI
-     *
+     * 
      * extract URI from the host
      */
     static getHostFromUri(uri: string): string {

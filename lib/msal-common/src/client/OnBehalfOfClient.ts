@@ -35,6 +35,7 @@ export class OnBehalfOfClient extends BaseClient {
 
     /**
      * Public API to acquire tokens with on behalf of flow
+     *
      * @param request
      */
     public async acquireToken(request: OnBehalfOfRequest): Promise<AuthenticationResult | null> {
@@ -54,6 +55,7 @@ export class OnBehalfOfClient extends BaseClient {
 
     /**
      * look up cache for tokens
+     *
      * @param request
      */
     private async getCachedAuthenticationResult(request: OnBehalfOfRequest): Promise<AuthenticationResult | null> {
@@ -94,6 +96,7 @@ export class OnBehalfOfClient extends BaseClient {
 
     /**
      * read access token from cache TODO: CacheManager API should be used here
+     *
      * @param request
      */
     private readAccessTokenFromCache(request: OnBehalfOfRequest): AccessTokenEntity | null {
@@ -120,6 +123,7 @@ export class OnBehalfOfClient extends BaseClient {
 
     /**
      * read idtoken from cache TODO: CacheManager API should be used here instead
+     *
      * @param request
      */
     private readIdTokenFromCache(request: OnBehalfOfRequest): IdTokenEntity | null {
@@ -142,6 +146,7 @@ export class OnBehalfOfClient extends BaseClient {
 
     /**
      * read account from cache, TODO: CacheManager API should be used here instead
+     *
      * @param account
      */
     private readAccountFromCache(account: AccountInfo): AccountEntity | null {
@@ -150,6 +155,7 @@ export class OnBehalfOfClient extends BaseClient {
 
     /**
      * Make a network call to the server requesting credentials
+     *
      * @param request
      * @param authority
      */
@@ -191,6 +197,7 @@ export class OnBehalfOfClient extends BaseClient {
 
     /**
      * generate a server request in accepable format
+     *
      * @param request
      */
     private createTokenRequestBody(request: OnBehalfOfRequest): string {

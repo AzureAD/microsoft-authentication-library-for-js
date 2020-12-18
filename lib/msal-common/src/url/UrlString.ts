@@ -35,6 +35,7 @@ export class UrlString {
 
     /**
      * Ensure urls are lower case and end with a / character.
+     *
      * @param url 
      */
     static canonicalizeUri(url: string): string {
@@ -80,7 +81,7 @@ export class UrlString {
 
     /**
      * Function to remove query string params from url. Returns the new url.
-     * @param url
+     *
      * @param name
      */
     urlRemoveQueryStringParameter(name: string): string {
@@ -101,7 +102,7 @@ export class UrlString {
 
     /**
      * Given a url like https://a:b/common/d?e=f#g, and a tenantId, returns https://a:b/tenantId/d
-     * @param href The url
+     *
      * @param tenantId The tenant id to replace
      */
     replaceTenantPath(tenantId: string): UrlString {
@@ -122,6 +123,7 @@ export class UrlString {
 
     /**
      * Parses out the components from a url string.
+     *
      * @returns An object with the various components. Please cache this value insted of calling this multiple times on the same url.
      */
     getUrlComponents(): IUri {
@@ -177,6 +179,7 @@ export class UrlString {
     
     /**
      * Parses hash string from given string. Returns empty string if no hash symbol is found.
+     *
      * @param hashString 
      */
     static parseHash(hashString: string): string {
@@ -196,6 +199,8 @@ export class UrlString {
 
     /**
      * Returns URL hash as server auth code response object.
+     *
+     * @param hash
      */
     static getDeserializedHash(hash: string): ServerAuthorizationCodeResponse {
         // Check if given hash is empty
@@ -215,6 +220,8 @@ export class UrlString {
 
     /**
      * Check if the hash of the URL string contains known properties
+     *
+     * @param hash
      */
     static hashContainsKnownProperties(hash: string): boolean {
         if (StringUtils.isEmpty(hash)) {

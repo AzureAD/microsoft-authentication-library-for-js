@@ -32,6 +32,7 @@ export class ClientCredentialClient extends BaseClient {
 
     /**
      * Public API to acquire a token with ClientCredential Flow for Confidential clients
+     *
      * @param request
      */
     public async acquireToken(request: ClientCredentialRequest): Promise<AuthenticationResult | null> {
@@ -99,6 +100,7 @@ export class ClientCredentialClient extends BaseClient {
 
     /**
      * Makes a network call to request the token from the service
+     *
      * @param request
      * @param authority
      */
@@ -139,6 +141,7 @@ export class ClientCredentialClient extends BaseClient {
 
     /**
      * generate the request to the server in the acceptable format
+     *
      * @param request
      */
     private createTokenRequestBody(request: ClientCredentialRequest): string {

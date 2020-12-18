@@ -37,7 +37,9 @@ export class TokenUtils {
 
     /**
      * Evaluates whether token cache item expiration is within expiration offset range
-     * @param tokenCacheItem 
+     *
+     * @param expiration
+     * @param tokenRenewalOffsetSeconds
      */
     static validateExpirationIsWithinOffset(expiration: number, tokenRenewalOffsetSeconds: number): Boolean {
         const offset = tokenRenewalOffsetSeconds || 300;

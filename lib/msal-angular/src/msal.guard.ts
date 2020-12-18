@@ -23,6 +23,7 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
 
     /**
      * Builds the absolute url for the destination page
+     *
      * @param path Relative path of requested page
      * @returns Full destination url
      */

@@ -31,11 +31,12 @@ export class Account {
 
     /**
      * Creates an Account Object
-     * @praram accountIdentifier
+     *
+     * @param accountIdentifier
      * @param homeAccountIdentifier
      * @param userName
      * @param name
-     * @param idToken
+     * @param idTokenClaims
      * @param sid
      * @param environment
      */
@@ -75,8 +76,8 @@ export class Account {
     /**
      * Utils function to compare two Account objects - used to check if the same user account is logged in
      *
-     * @param a1: Account object
-     * @param a2: Account object
+     * @param a1 Account object
+     * @param a2 Account object
      */
     static compareAccounts(a1: Account, a2: Account): boolean {
         if (!a1 || !a2) {

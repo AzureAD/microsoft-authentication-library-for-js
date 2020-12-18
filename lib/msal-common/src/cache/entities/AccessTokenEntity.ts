@@ -44,6 +44,7 @@ export class AccessTokenEntity extends CredentialEntity {
 
     /**
      * Create AccessTokenEntity
+     *
      * @param homeAccountId
      * @param environment
      * @param accessToken
@@ -52,6 +53,8 @@ export class AccessTokenEntity extends CredentialEntity {
      * @param scopes
      * @param expiresOn
      * @param extExpiresOn
+     * @param tokenType
+     * @param oboAssertion
      */
     static createAccessTokenEntity(
         homeAccountId: string,
@@ -93,6 +96,7 @@ export class AccessTokenEntity extends CredentialEntity {
 
     /**
      * Validates an entity: checks for all expected params
+     *
      * @param entity
      */
     static isAccessTokenEntity(entity: object): boolean {

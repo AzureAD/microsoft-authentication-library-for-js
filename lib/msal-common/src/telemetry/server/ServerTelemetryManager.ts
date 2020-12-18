@@ -57,6 +57,7 @@ export class ServerTelemetryManager {
 
     /**
      * API to cache token failures for MSER data capture
+     *
      * @param error
      */
     cacheFailedRequest(error: AuthError): void {
@@ -121,6 +122,7 @@ export class ServerTelemetryManager {
 
     /**
      * Returns the maximum number of errors that can be flushed to the server in the next network request
+     *
      * @param serverTelemetryEntity
      */
     static maxErrorsToSend(serverTelemetryEntity: ServerTelemetryEntity): number {

@@ -116,6 +116,8 @@ export class ClientConfigurationError extends ClientAuthError {
 
     /**
      * Creates an error thrown when the claims request could not be successfully parsed
+     *
+     * @param claimsRequestParseError
      */
     static createClaimsRequestParsingError(claimsRequestParseError: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.claimsRequestParsingError.code,
@@ -124,6 +126,7 @@ export class ClientConfigurationError extends ClientAuthError {
 
     /**
      * Creates an error thrown if authority uri is given an insecure protocol.
+     *
      * @param urlString
      */
     static createInsecureAuthorityUriError(urlString: string): ClientConfigurationError {
@@ -133,7 +136,8 @@ export class ClientConfigurationError extends ClientAuthError {
 
     /**
      * Creates an error thrown if URL string does not parse into separate segments.
-     * @param urlString
+     *
+     * @param urlParseError
      */
     static createUrlParseError(urlParseError: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.urlParseError.code,
@@ -142,7 +146,7 @@ export class ClientConfigurationError extends ClientAuthError {
 
     /**
      * Creates an error thrown if URL string is empty or null.
-     * @param urlString
+     *
      */
     static createUrlEmptyError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.urlEmptyError.code,
@@ -151,6 +155,7 @@ export class ClientConfigurationError extends ClientAuthError {
 
     /**
      * Error thrown when scopes are not an array
+     *
      * @param inputScopes
      */
     static createScopesNonArrayError(inputScopes: Array<string>): ClientConfigurationError {
@@ -160,7 +165,8 @@ export class ClientConfigurationError extends ClientAuthError {
 
     /**
      * Error thrown when scopes are empty.
-     * @param scopesValue
+     *
+     * @param inputScopes
      */
     static createEmptyScopesArrayError(inputScopes: Array<string>): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.emptyScopesError.code,
@@ -169,6 +175,7 @@ export class ClientConfigurationError extends ClientAuthError {
 
     /**
      * Error thrown when client id scope is not provided as single scope.
+     *
      * @param inputScopes
      */
     static createClientIdSingleScopeError(inputScopes: Array<string>): ClientConfigurationError {
@@ -178,6 +185,7 @@ export class ClientConfigurationError extends ClientAuthError {
 
     /**
      * Error thrown when prompt is not an allowed type.
+     *
      * @param promptValue
      */
     static createInvalidPromptError(promptValue: string): ClientConfigurationError {

@@ -69,6 +69,9 @@ export class Logger {
 
     /**
      * Create new Logger with existing configurations.
+     *
+     * @param packageName
+     * @param packageVersion
      */
     public clone(packageName: string, packageVersion: string): Logger {
         return new Logger({loggerCallback: this.localCallback, piiLoggingEnabled: this.piiLoggingEnabled, logLevel: this.level}, packageName, packageVersion);
@@ -76,6 +79,9 @@ export class Logger {
 
     /**
      * Log message with required options.
+     *
+     * @param logMessage
+     * @param options
      */
     private logMessage(logMessage: string, options: LoggerMessageOptions): void {
         if ((options.logLevel > this.level) || (!this.piiLoggingEnabled && options.containsPii)) {
@@ -90,6 +96,10 @@ export class Logger {
 
     /**
      * Execute callback with message.
+     *
+     * @param level
+     * @param message
+     * @param containsPii
      */
     executeCallback(level: LogLevel, message: string, containsPii: boolean): void {
         if (this.localCallback) {
@@ -99,6 +109,9 @@ export class Logger {
 
     /**
      * Logs error messages.
+     *
+     * @param message
+     * @param correlationId
      */
     error(message: string, correlationId?: string): void {
         this.logMessage(message, {
@@ -110,6 +123,9 @@ export class Logger {
 
     /**
      * Logs error messages with PII.
+     *
+     * @param message
+     * @param correlationId
      */
     errorPii(message: string, correlationId?: string): void {
         this.logMessage(message, {
@@ -121,6 +137,9 @@ export class Logger {
 
     /**
      * Logs warning messages.
+     *
+     * @param message
+     * @param correlationId
      */
     warning(message: string, correlationId?: string): void {
         this.logMessage(message, {
@@ -132,6 +151,9 @@ export class Logger {
 
     /**
      * Logs warning messages with PII.
+     *
+     * @param message
+     * @param correlationId
      */
     warningPii(message: string, correlationId?: string): void {
         this.logMessage(message, {
@@ -143,6 +165,9 @@ export class Logger {
 
     /**
      * Logs info messages.
+     *
+     * @param message
+     * @param correlationId
      */
     info(message: string, correlationId?: string): void {
         this.logMessage(message, {
@@ -154,6 +179,9 @@ export class Logger {
 
     /**
      * Logs info messages with PII.
+     *
+     * @param message
+     * @param correlationId
      */
     infoPii(message: string, correlationId?: string): void {
         this.logMessage(message, {
@@ -165,6 +193,9 @@ export class Logger {
 
     /**
      * Logs verbose messages.
+     *
+     * @param message
+     * @param correlationId
      */
     verbose(message: string, correlationId?: string): void {
         this.logMessage(message, {
@@ -176,6 +207,9 @@ export class Logger {
 
     /**
      * Logs verbose messages with PII.
+     *
+     * @param message
+     * @param correlationId
      */
     verbosePii(message: string, correlationId?: string): void {
         this.logMessage(message, {

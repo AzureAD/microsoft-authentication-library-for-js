@@ -31,6 +31,7 @@ export class AuthToken {
      * Extract token by decoding the rawToken
      *
      * @param encodedToken
+     * @param crypto
      */
     static extractTokenClaims(encodedToken: string, crypto: ICrypto): TokenClaims {
 

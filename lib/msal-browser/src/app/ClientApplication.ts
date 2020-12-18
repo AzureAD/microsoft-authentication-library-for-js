@@ -56,7 +56,7 @@ export abstract class ClientApplication {
     private eventCallbacks: Map<string, EventCallbackFunction>;
 
     /**
-     * @constructor
+     * @class
      * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
      *
      * Important attributes in the Configuration object for auth are:
@@ -118,6 +118,7 @@ export abstract class ClientApplication {
      * Event handler function which allows users to fire events after the PublicClientApplication object
      * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
      * auth flows.
+     *
      * @param hash Hash to process. Defaults to the current value of window.location.hash. Only needs to be provided explicitly if the response to be handled is not contained in the current value.
      * @returns {Promise.<AuthenticationResult | null>} token response or null. If the return value is null, then no auth redirect was detected.
      */
@@ -159,6 +160,8 @@ export abstract class ClientApplication {
      * Checks if navigateToLoginRequestUrl is set, and:
      * - if true, performs logic to cache and navigate
      * - if false, handles hash string and parses response
+     *
+     * @param hash
      */
     private async handleRedirectResponse(hash?: string): Promise<AuthenticationResult | null> {
         if (!this.interactionInProgress()) {
@@ -214,6 +217,8 @@ export abstract class ClientApplication {
     /**
      * Gets the response hash for a redirect request
      * Returns null if interactionType in the state value is not "redirect" or the hash does not contain known properties
+     *
+     * @param hash
      * @returns {string}
      */
     private getRedirectResponseHash(hash: string): string | null {
@@ -241,8 +246,8 @@ export abstract class ClientApplication {
 
     /**
      * Checks if hash exists and handles in window.
+     *
      * @param responseHash
-     * @param interactionHandler
      */
     private async handleHash(responseHash: string): Promise<AuthenticationResult> {
         const encodedTokenRequest = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, true);
@@ -272,7 +277,7 @@ export abstract class ClientApplication {
      * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
      * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
      *
-     * @param {@link (RedirectRequest:type)}
+     * @param request
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         // Preflight request
@@ -330,8 +335,8 @@ export abstract class ClientApplication {
 
     /**
      * Use when you want to obtain an access_token for your API via opening a popup window in the user's browser
-     * @param {@link (PopupRequest:type)}
      *
+     * @param request
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
@@ -354,8 +359,9 @@ export abstract class ClientApplication {
 
     /**
      * Helper which obtains an access_token for your API via opening a popup window in the user's browser
-     * @param {@link (PopupRequest:type)}
      *
+     * @param request
+     * @param popup
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     private async acquireTokenPopupAsync(request: PopupRequest, popup?: Window|null): Promise<AuthenticationResult> {
@@ -436,8 +442,8 @@ export abstract class ClientApplication {
      *
      * If your refresh token has expired, you can use this function to fetch a new set of tokens silently as long as
      * you session on the server still exists.
-     * @param {@link AuthorizationUrlRequest}
      *
+     * @param request
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
@@ -456,7 +462,7 @@ export abstract class ClientApplication {
 
     /**
      * This function uses a hidden iframe to fetch an authorization code from the eSTS. To be used for silent refresh token acquisition and renewal.
-     * @param {@link AuthorizationUrlRequest}
+     *
      * @param request
      */
     private async acquireTokenByIframe(request: SsoSilentRequest): Promise<AuthenticationResult> {
@@ -502,11 +508,9 @@ export abstract class ClientApplication {
      * MSAL return's a cached token when available
      * Or it send's a request to the STS to obtain a new token using a refresh token.
      *
-     * @param {@link (SilentRequest:type)}
      *
-     * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
+     * @param request
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
-     *
      */
     protected async acquireTokenByRefreshToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
         this.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, request);
@@ -536,8 +540,10 @@ export abstract class ClientApplication {
     /**
      * Helper which acquires an authorization code silently using a hidden iframe from given url
      * using the scopes requested as part of the id, and exchanges the code for a set of OAuth tokens.
+     *
      * @param navigateUrl
-     * @param userRequestScopes
+     * @param authCodeRequest
+     * @param authClient
      */
     private async silentTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, authClient: AuthorizationCodeClient): Promise<AuthenticationResult> {
         // Create silent handler
@@ -557,7 +563,8 @@ export abstract class ClientApplication {
     /**
      * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
      * Default behaviour is to redirect the user to `window.location.href`.
-     * @param {@link (EndSessionRequest:type)}
+     *
+     * @param logoutRequest
      */
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
         try {
@@ -600,6 +607,7 @@ export abstract class ClientApplication {
      * Returns all accounts that MSAL currently has data for.
      * (the account object is created at the time of successful login)
      * or empty array when no accounts are found
+     *
      * @returns {@link AccountInfo[]} - Array of account objects in cache
      */
     getAllAccounts(): AccountInfo[] {
@@ -611,6 +619,8 @@ export abstract class ClientApplication {
      * (the account object is created at the time of successful login)
      * or null when no matching account is found.
      * This API is provided for convenience but getAccountById should be used for best reliability
+     *
+     * @param userName
      * @returns {@link AccountInfo} - the account object stored in MSAL
      */
     getAccountByUsername(userName: string): AccountInfo|null {
@@ -626,6 +636,8 @@ export abstract class ClientApplication {
      * Returns the signed in account matching homeAccountId.
      * (the account object is created at the time of successful login)
      * or null when no matching account is found
+     *
+     * @param homeAccountId
      * @returns {@link AccountInfo} - the account object stored in MSAL
      */
     getAccountByHomeId(homeAccountId: string): AccountInfo|null {
@@ -641,6 +653,8 @@ export abstract class ClientApplication {
      * Returns the signed in account matching localAccountId.
      * (the account object is created at the time of successful login)
      * or null when no matching account is found
+     *
+     * @param localAccountId
      * @returns {@link AccountInfo} - the account object stored in MSAL
      */
     getAccountByLocalId(localAccountId: string): AccountInfo | null {
@@ -654,6 +668,7 @@ export abstract class ClientApplication {
 
     /**
      * Sets the account to use as the active account. If no account is passed to the acquireToken APIs, then MSAL will use this active account.
+     *
      * @param account 
      */
     setActiveAccount(account: AccountInfo | null): void {
@@ -676,10 +691,10 @@ export abstract class ClientApplication {
     // #region Helpers
 
     /**
-     *
      * Use to get the redirect uri configured in MSAL or null.
-     * @returns {string} redirect URL
      *
+     * @param requestRedirectUri
+     * @returns {string} redirect URL
      */
     protected getRedirectUri(requestRedirectUri?: string): string {
         const redirectUri = requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
@@ -689,6 +704,7 @@ export abstract class ClientApplication {
     /**
      * Use to get the post logout redirect uri configured in MSAL or null.
      *
+     * @param requestPostLogoutRedirectUri
      * @returns {string} post logout redirect URL
      */
     protected getPostLogoutRedirectUri(requestPostLogoutRedirectUri?: string): string {
@@ -716,6 +732,8 @@ export abstract class ClientApplication {
 
     /**
      * Creates an Authorization Code Client with the given authority, or the default authority.
+     *
+     * @param serverTelemetryManager
      * @param authorityUrl
      */
     protected async createAuthCodeClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<AuthorizationCodeClient> {
@@ -726,6 +744,8 @@ export abstract class ClientApplication {
 
     /**
      * Creates an Silent Flow Client with the given authority, or the default authority.
+     *
+     * @param serverTelemetryManager
      * @param authorityUrl
      */
     protected async createSilentFlowClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<SilentFlowClient> {
@@ -736,6 +756,8 @@ export abstract class ClientApplication {
 
     /**
      * Creates a Refresh Client with the given authority, or the default authority.
+     *
+     * @param serverTelemetryManager
      * @param authorityUrl
      */
     protected async createRefreshTokenClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<RefreshTokenClient> {
@@ -746,6 +768,8 @@ export abstract class ClientApplication {
 
     /**
      * Creates a Client Configuration object with the given request authority, or the default authority.
+     *
+     * @param serverTelemetryManager
      * @param requestAuthority
      */
     protected async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string): Promise<ClientConfiguration> {
@@ -783,6 +807,9 @@ export abstract class ClientApplication {
 
     /**
      * Helper to validate app environment before making a request.
+     *
+     * @param request
+     * @param interactionType
      */
     protected preflightInteractiveRequest(request: RedirectRequest|PopupRequest, interactionType: InteractionType): AuthorizationUrlRequest {
         // block the reload if it occurred inside a hidden iframe
@@ -799,6 +826,8 @@ export abstract class ClientApplication {
     /**
      * Helper to validate app environment before making an auth request
      * * @param request
+     *
+     * @param interactionType
      */
     protected preflightBrowserEnvironmentCheck(interactionType: InteractionType): void {
         // Block request if not in browser environment
@@ -820,6 +849,7 @@ export abstract class ClientApplication {
 
     /**
      * Initializer function for all request APIs
+     *
      * @param request
      */
     protected initializeBaseRequest(request: Partial<BaseAuthRequest>): BaseAuthRequest {
@@ -854,7 +884,9 @@ export abstract class ClientApplication {
 
     /**
      * Helper to initialize required request parameters for interactive APIs and ssoSilent()
+     *
      * @param request
+     * @param interactionType
      */
     protected initializeAuthorizationRequest(request: RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
         const redirectUri = this.getRedirectUri(request.redirectUri);
@@ -905,6 +937,7 @@ export abstract class ClientApplication {
 
     /**
      * Generates an auth code request tied to the url request.
+     *
      * @param request
      */
     protected async initializeAuthorizationCodeRequest(request: AuthorizationUrlRequest): Promise<AuthorizationCodeRequest> {
@@ -925,6 +958,7 @@ export abstract class ClientApplication {
 
     /**
      * Initializer for the logout request.
+     *
      * @param logoutRequest
      */
     protected initializeLogoutRequest(logoutRequest?: EndSessionRequest): CommonEndSessionRequest {
@@ -940,6 +974,7 @@ export abstract class ClientApplication {
 
     /**
      * Emits events by calling callback with event message
+     *
      * @param eventType
      * @param interactionType
      * @param payload
@@ -966,6 +1001,7 @@ export abstract class ClientApplication {
 
     /**
      * Adds event callbacks to array
+     *
      * @param callback
      */
     addEventCallback(callback: EventCallbackFunction): string | null {
@@ -994,6 +1030,7 @@ export abstract class ClientApplication {
 
     /**
      * Replaces the default logger set in configurations with new Logger with new configurations
+     *
      * @param logger Logger instance
      */
     setLogger(logger: Logger): void {

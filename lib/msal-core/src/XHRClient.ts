@@ -8,6 +8,7 @@ import { NetworkRequestType } from "./utils/Constants";
 /**
  * XHR client for JSON endpoints
  * https://www.npmjs.com/package/async-promise
+ *
  * @hidden
  */
 

@@ -12,7 +12,8 @@ import { JsonCache, InMemoryCache, SerializedAccountEntity, SerializedIdTokenEnt
 export class Deserializer {
     /**
      * Parse the JSON blob in memory and deserialize the content
-     * @param cachedJson
+     *
+     * @param jsonFile
      */
     static deserializeJSONBlob(jsonFile: string): JsonCache {
         const deserializedCache = StringUtils.isEmpty(jsonFile)
@@ -23,6 +24,7 @@ export class Deserializer {
 
     /**
      * Deserializes accounts to AccountEntity objects
+     *
      * @param accounts
      */
     static deserializeAccounts(accounts: Record<string, SerializedAccountEntity>): AccountCache {
@@ -53,6 +55,7 @@ export class Deserializer {
 
     /**
      * Deserializes id tokens to IdTokenEntity objects
+     *
      * @param idTokens
      */
     static deserializeIdTokens(idTokens: Record<string, SerializedIdTokenEntity>): IdTokenCache {
@@ -78,6 +81,7 @@ export class Deserializer {
 
     /**
      * Deserializes access tokens to AccessTokenEntity objects
+     *
      * @param accessTokens
      */
     static deserializeAccessTokens(accessTokens: Record<string, SerializedAccessTokenEntity>): AccessTokenCache {
@@ -111,6 +115,7 @@ export class Deserializer {
 
     /**
      * Deserializes refresh tokens to RefreshTokenEntity objects
+     *
      * @param refreshTokens
      */
     static deserializeRefreshTokens(refreshTokens: Record<string, SerializedRefreshTokenEntity>): RefreshTokenCache {
@@ -139,6 +144,7 @@ export class Deserializer {
 
     /**
      * Deserializes appMetadata to AppMetaData objects
+     *
      * @param appMetadata
      */
     static deserializeAppMetadata(appMetadata: Record<string, SerializedAppMetadataEntity>): AppMetadataCache {
@@ -162,6 +168,7 @@ export class Deserializer {
 
     /**
      * Deserialize an inMemory Cache
+     *
      * @param jsonCache
      */
     static deserializeAllCache(jsonCache: JsonCache): InMemoryCache {

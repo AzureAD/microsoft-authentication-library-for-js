@@ -54,6 +54,7 @@ export class DatabaseStorage<T>{
 
     /**
      * Retrieves item from IndexedDB instance.
+     *
      * @param key 
      */
     async get(key: string): Promise<T> {
@@ -74,6 +75,7 @@ export class DatabaseStorage<T>{
 
     /**
      * Adds item to IndexedDB under given key
+     *
      * @param key 
      * @param payload 
      */

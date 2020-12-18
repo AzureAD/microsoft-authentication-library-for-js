@@ -26,9 +26,9 @@ export class TrustedAuthority {
     }
 
     /**
-     * 
-     * @param telemetryManager 
-     * @param correlationId 
+     * @param authorityToVerify
+     * @param telemetryManager
+     * @param correlationId
      */
     private static async getAliases(authorityToVerify: string, telemetryManager: TelemetryManager, correlationId?: string): Promise<Array<any>> {
         const client: XhrClient = new XhrClient();
@@ -50,9 +50,9 @@ export class TrustedAuthority {
     }
 
     /**
-     * 
-     * @param telemetryManager 
-     * @param correlationId 
+     * @param authorityToVerify
+     * @param telemetryManager
+     * @param correlationId
      */
     public static async setTrustedAuthoritiesFromNetwork(authorityToVerify: string, telemetryManager: TelemetryManager, correlationId?: string): Promise<void> {
         const metadata = await this.getAliases(authorityToVerify, telemetryManager, correlationId);
@@ -76,6 +76,7 @@ export class TrustedAuthority {
 
     /**
      * Checks to see if the host is in a list of trusted hosts
+     *
      * @param host 
      */
     public static IsInTrustedHostList(host: string): boolean {

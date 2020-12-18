@@ -44,6 +44,7 @@ export class Storage extends CacheManager {
 
     /**
      * Converts cacheKVStore to InMemoryCache
+     *
      * @param cache
      */
     cacheToInMemoryCache(cache: CacheKVStore): InMemoryCache {
@@ -77,6 +78,7 @@ export class Storage extends CacheManager {
 
     /**
      * converts inMemoryCache to CacheKVStore
+     *
      * @param inMemoryCache
      */
     inMemoryCacheToCache(inMemoryCache: InMemoryCache): CacheKVStore {
@@ -106,6 +108,7 @@ export class Storage extends CacheManager {
 
     /**
      * sets the current in memory cache for the client
+     *
      * @param inMemoryCache
      */
     setInMemoryCache(inMemoryCache: InMemoryCache): void{
@@ -128,7 +131,8 @@ export class Storage extends CacheManager {
 
     /**
      * sets the current cache (key value store)
-     * @param cacheMap
+     *
+     * @param cache
      */
     setCache(cache: CacheKVStore): void {
         this.logger.verbose("Setting cache key value store");
@@ -140,6 +144,7 @@ export class Storage extends CacheManager {
 
     /**
      * Gets cache item with given key.
+     *
      * @param key
      */
     getItem(key: string): ValidCacheType {
@@ -152,6 +157,7 @@ export class Storage extends CacheManager {
 
     /**
      * Gets cache item with given <key, value>
+     *
      * @param key
      * @param value
      */
@@ -168,6 +174,7 @@ export class Storage extends CacheManager {
 
     /**
      * fetch the account entity
+     *
      * @param accountKey
      */
     getAccount(accountKey: string): AccountEntity | null {
@@ -180,6 +187,7 @@ export class Storage extends CacheManager {
 
     /**
      * set account entity
+     *
      * @param account
      */
     setAccount(account: AccountEntity): void {
@@ -189,6 +197,7 @@ export class Storage extends CacheManager {
 
     /**
      * fetch the idToken credential
+     *
      * @param idTokenKey
      */
     getIdTokenCredential(idTokenKey: string): IdTokenEntity | null {
@@ -201,6 +210,7 @@ export class Storage extends CacheManager {
 
     /**
      * set idToken credential
+     *
      * @param idToken
      */
     setIdTokenCredential(idToken: IdTokenEntity): void {
@@ -210,6 +220,7 @@ export class Storage extends CacheManager {
 
     /**
      * fetch the accessToken credential
+     *
      * @param accessTokenKey
      */
     getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity | null {
@@ -222,6 +233,7 @@ export class Storage extends CacheManager {
 
     /**
      * set accessToken credential
+     *
      * @param accessToken
      */
     setAccessTokenCredential(accessToken: AccessTokenEntity): void {
@@ -231,6 +243,7 @@ export class Storage extends CacheManager {
 
     /**
      * fetch the refreshToken credential
+     *
      * @param refreshTokenKey
      */
     getRefreshTokenCredential(refreshTokenKey: string): RefreshTokenEntity | null {
@@ -243,6 +256,7 @@ export class Storage extends CacheManager {
 
     /**
      * set refreshToken credential
+     *
      * @param refreshToken
      */
     setRefreshTokenCredential(refreshToken: RefreshTokenEntity): void {
@@ -252,6 +266,7 @@ export class Storage extends CacheManager {
 
     /**
      * fetch appMetadata entity from the platform cache
+     *
      * @param appMetadataKey
      */
     getAppMetadata(appMetadataKey: string): AppMetadataEntity | null {
@@ -264,6 +279,7 @@ export class Storage extends CacheManager {
 
     /**
      * set appMetadata entity to the platform cache
+     *
      * @param appMetadata
      */
     setAppMetadata(appMetadata: AppMetadataEntity): void {
@@ -273,6 +289,7 @@ export class Storage extends CacheManager {
 
     /**
      * fetch server telemetry entity from the platform cache
+     *
      * @param serverTelemetrykey
      */
     getServerTelemetry(serverTelemetrykey: string): ServerTelemetryEntity | null {
@@ -285,6 +302,7 @@ export class Storage extends CacheManager {
 
     /**
      * set server telemetry entity to the platform cache
+     *
      * @param serverTelemetryKey
      * @param serverTelemetry
      */
@@ -294,6 +312,7 @@ export class Storage extends CacheManager {
 
     /**
      * fetch throttling entity from the platform cache
+     *
      * @param throttlingCacheKey
      */
     getThrottlingCache(throttlingCacheKey: string): ThrottlingEntity | null {
@@ -306,6 +325,7 @@ export class Storage extends CacheManager {
 
     /**
      * set throttling entity to the platform cache
+     *
      * @param throttlingCacheKey
      * @param throttlingCache
      */
@@ -315,8 +335,8 @@ export class Storage extends CacheManager {
 
     /**
      * Removes the cache item from memory with the given key.
+     *
      * @param key
-     * @param inMemory
      */
     removeItem(key: string): boolean {
         this.logger.verbosePii(`Item key: ${key}`);
@@ -340,6 +360,7 @@ export class Storage extends CacheManager {
 
     /**
      * Checks whether key is in cache.
+     *
      * @param key
      */
     containsKey(key: string): boolean {
@@ -375,6 +396,7 @@ export class Storage extends CacheManager {
 
     /**
      * Initialize in memory cache from an exisiting cache vault
+     *
      * @param cache
      */
     static generateInMemoryCache(cache: string): InMemoryCache {
@@ -385,6 +407,7 @@ export class Storage extends CacheManager {
 
     /**
      * retrieves the final JSON
+     *
      * @param inMemoryCache
      */
     static generateJsonCache(inMemoryCache: InMemoryCache): JsonCache {

@@ -31,9 +31,8 @@ export class ScopeSet {
 
     /**
      * Factory method to create ScopeSet from space-delimited string
+     *
      * @param inputScopeString
-     * @param appClientId
-     * @param scopesRequired
      */
     static fromString(inputScopeString: string): ScopeSet {
         inputScopeString = inputScopeString || "";
@@ -43,8 +42,8 @@ export class ScopeSet {
 
     /**
      * Used to validate the scopes input parameter requested  by the developer.
-     * @param {Array<string>} inputScopes - Developer requested permissions. Not all scopes are guaranteed to be included in the access token returned.
-     * @param {boolean} scopesRequired - Boolean indicating whether the scopes array is required or not
+     *
+     * @param inputScopes
      */
     private validateInputScopes(inputScopes: Array<string>): void {
         // Check if scopes are required but not given or is an empty array
@@ -55,6 +54,7 @@ export class ScopeSet {
 
     /**
      * Check if a given scope is present in this set of scopes.
+     *
      * @param scope
      */
     containsScope(scope: string): boolean {
@@ -66,6 +66,7 @@ export class ScopeSet {
 
     /**
      * Check if a set of scopes is present in this set of scopes.
+     *
      * @param scopeSet
      */
     containsScopeSet(scopeSet: ScopeSet): boolean {
@@ -96,6 +97,7 @@ export class ScopeSet {
 
     /**
      * Appends single scope if passed
+     *
      * @param newScope
      */
     appendScope(newScope: string): void {
@@ -106,6 +108,7 @@ export class ScopeSet {
 
     /**
      * Appends multiple scopes if passed
+     *
      * @param newScopes
      */
     appendScopes(newScopes: Array<string>): void {
@@ -118,6 +121,7 @@ export class ScopeSet {
 
     /**
      * Removes element from set of scopes.
+     *
      * @param scope
      */
     removeScope(scope: string): void {
@@ -139,6 +143,7 @@ export class ScopeSet {
 
     /**
      * Combines an array of scopes with the current set of scopes.
+     *
      * @param otherScopes
      */
     unionScopeSets(otherScopes: ScopeSet): Set<string> {
@@ -153,6 +158,7 @@ export class ScopeSet {
 
     /**
      * Check if scopes intersect between this set and another.
+     *
      * @param otherScopes
      */
     intersectingScopeSets(otherScopes: ScopeSet): boolean {

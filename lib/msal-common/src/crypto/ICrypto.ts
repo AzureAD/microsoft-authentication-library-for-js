@@ -25,11 +25,13 @@ export interface ICrypto {
     createNewGuid(): string;
     /**
      * base64 Encode string
+     *
      * @param input 
      */
     base64Encode(input: string): string;
     /**
      * base64 decode string
+     *
      * @param input 
      */
     base64Decode(input: string): string;
@@ -39,12 +41,14 @@ export interface ICrypto {
     generatePkceCodes(): Promise<PkceCodes>;
     /**
      * Generates an JWK RSA S256 Thumbprint
+     *
      * @param resourceRequestMethod 
      * @param resourceRequestUri 
      */
     getPublicKeyThumbprint(resourceRequestMethod: string, resourceRequestUri: string): Promise<string>;
     /** 
      * Returns a signed proof-of-possession token with a given acces token that contains a cnf claim with the required kid.
+     *
      * @param accessToken 
      */
     signJwt(payload: SignedHttpRequest, kid: string): Promise<string>;

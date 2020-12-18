@@ -9,6 +9,7 @@ export class EncodingUtils {
      * 'base64': Base64 encoding.
      *
      * @param str text
+     * @param encoding
      */
     static base64Encode(str: string, encoding?: BufferEncoding): string {
         return Buffer.from(str, encoding).toString("base64");
@@ -16,7 +17,9 @@ export class EncodingUtils {
 
     /**
      * encode a URL
+     *
      * @param str
+     * @param encoding
      */
     static base64EncodeUrl(str: string, encoding?: BufferEncoding): string {
         return EncodingUtils.base64Encode(str, encoding)

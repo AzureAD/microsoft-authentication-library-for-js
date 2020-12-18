@@ -80,6 +80,7 @@ export class StringUtils {
 
     /**
      * Removes empty strings from array
+     *
      * @param arr
      */
     static removeEmptyStringsFromArray(arr: Array<string>): Array<string> {
@@ -90,6 +91,7 @@ export class StringUtils {
 
     /**
      * Attempts to parse a string into JSON
+     *
      * @param str
      */
     static jsonParseHelper<T>(str: string): T | null {
@@ -102,6 +104,7 @@ export class StringUtils {
 
     /**
      * Tests if a given string matches a given pattern, with support for wildcards.
+     *
      * @param pattern Wildcard pattern to string match. Supports "*" for wildcards
      * @param input String to match against
      */

@@ -98,6 +98,7 @@ export class ClientAssertion {
 
     /**
      * Extracts the raw certs from a given certificate string and returns them in an array.
+     *
      * @param publicCertificate
      */
     public static parseCertificate(publicCertificate: string): Array<string> {

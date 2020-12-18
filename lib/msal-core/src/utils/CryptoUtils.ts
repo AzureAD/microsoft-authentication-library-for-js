@@ -10,6 +10,7 @@ export class CryptoUtils {
 
     /**
      * Creates a new random GUID
+     *
      * @returns string (GUID)
      */
     static createNewGuid(): string {
@@ -85,6 +86,7 @@ export class CryptoUtils {
 
     /**
      * verifies if a string is  GUID
+     *
      * @param guid
      */
     static isGuid(guid: string) {

@@ -39,16 +39,19 @@ export class WindowUtils {
     /**
      * @hidden
      * @param prefix
-     * @param scopes
-     * @param authority
+     * @param requestSignature
      */
     static generateFrameName(prefix: string, requestSignature: string): string {
         return `${prefix}${Constants.resourceDelimiter}${requestSignature}`;
     }
 
     /**
-     * @hidden
-     * Polls an iframe until it loads a url with a hash
+     * @param contentWindow
+     * @param timeout
+     * @param urlNavigate
+     * @param logger
+     * @hidden 
+     *Polls an iframe until it loads a url with a hash
      * @ignore
      */
     static monitorIframeForHash(contentWindow: Window, timeout: number, urlNavigate: string, logger: Logger): Promise<string> {
@@ -92,8 +95,12 @@ export class WindowUtils {
     }
 
     /**
-     * @hidden
-     * Polls a popup until it loads a url with a hash
+     * @param contentWindow
+     * @param timeout
+     * @param urlNavigate
+     * @param logger
+     * @hidden 
+     *Polls a popup until it loads a url with a hash
      * @ignore
      */
     static monitorPopupForHash(contentWindow: Window, timeout: number, urlNavigate: string, logger: Logger): Promise<string> {
@@ -151,8 +158,12 @@ export class WindowUtils {
     }
 
     /**
-     * @hidden
-     * Loads iframe with authorization endpoint URL
+     * @param urlNavigate
+     * @param frameName
+     * @param timeoutMs
+     * @param logger
+     * @hidden 
+     *Loads iframe with authorization endpoint URL
      * @ignore
      */
     static loadFrame(urlNavigate: string, frameName: string, timeoutMs: number, logger: Logger): Promise<HTMLIFrameElement> {
@@ -199,8 +210,10 @@ export class WindowUtils {
     }
 
     /**
-     * @hidden
-     * Adds the hidden iframe for silent token renewal.
+     * @param iframeId
+     * @param logger
+     * @hidden 
+     *Adds the hidden iframe for silent token renewal.
      * @ignore
      */
     static addHiddenIFrame(iframeId: string, logger: Logger): HTMLIFrameElement {
@@ -236,8 +249,9 @@ export class WindowUtils {
     }
 
     /**
-     * @hidden
-     * Removes a hidden iframe from the page.
+     * @param iframe
+     * @hidden 
+     *Removes a hidden iframe from the page.
      * @ignore
      */
     static removeHiddenIframe(iframe: HTMLIFrameElement) {
@@ -247,8 +261,9 @@ export class WindowUtils {
     }
 
     /**
-     * @hidden
-     * Find and return the iframe element with the given hash
+     * @param hash
+     * @hidden 
+     *Find and return the iframe element with the given hash
      * @ignore
      */
     static getIframeWithHash(hash: string): HTMLIFrameElement {
@@ -278,8 +293,9 @@ export class WindowUtils {
     }
 
     /**
-     * @hidden
-     * Find and return the popup with the given hash
+     * @param hash
+     * @hidden 
+     *Find and return the popup with the given hash
      * @ignore
      */
     static getPopUpWithHash(hash: string): Window {
@@ -293,8 +309,9 @@ export class WindowUtils {
     }
 
     /**
-     * @hidden
-     * Add the popup to the known list of popups
+     * @param popup
+     * @hidden 
+     *Add the popup to the known list of popups
      * @ignore
      */
     static trackPopup(popup: Window): void {
@@ -312,8 +329,6 @@ export class WindowUtils {
 
     /**
      * @ignore
-     *
-     * blocks any login/acquireToken calls to reload from within a hidden iframe (generated for silent calls)
      */
     static blockReloadInHiddenIframes() {
         // return an error if called from the hidden iframe created by the msal js silent calls

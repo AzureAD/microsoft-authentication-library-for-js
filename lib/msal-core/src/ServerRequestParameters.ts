@@ -15,6 +15,7 @@ import { ScopeSet } from "./ScopeSet";
 /**
  * Nonce: OIDC Nonce definition: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
  * State: OAuth Spec: https://tools.ietf.org/html/rfc6749#section-10.12
+ *
  * @hidden
  */
 export class ServerRequestParameters {
@@ -46,12 +47,14 @@ export class ServerRequestParameters {
 
     /**
      * Constructor
+     *
      * @param authority
      * @param clientId
-     * @param scope
      * @param responseType
      * @param redirectUri
+     * @param scopes
      * @param state
+     * @param correlationId
      */
     constructor (authority: Authority, clientId: string, responseType: string, redirectUri: string, scopes: Array<string>, state: string, correlationId: string) {
         this.authorityInstance = authority;
@@ -77,12 +80,14 @@ export class ServerRequestParameters {
     }
 
     /**
+     * Utility to populate QueryParameters and ExtraQueryParameters to ServerRequestParamerers
+     *
      * @hidden
      * @ignore
-     *
-     * Utility to populate QueryParameters and ExtraQueryParameters to ServerRequestParamerers
+     * @param account
      * @param request
-     * @param serverAuthenticationRequest
+     * @param adalIdTokenObject
+     * @param silentCall
      */
     populateQueryParams(account: Account, request: AuthenticationParameters|null, adalIdTokenObject?: object, silentCall?: boolean): void {
         let queryParameters: StringDict = {};
@@ -127,10 +132,9 @@ export class ServerRequestParameters {
     /**
      * Constructs extraQueryParameters to be sent to the server for the AuthenticationParameters set by the developer
      * in any login() or acquireToken() calls
+     *
+     * @param request
      * @param idTokenObject
-     * @param extraQueryParameters
-     * @param sid
-     * @param loginHint
      */
     // TODO: check how this behaves when domain_hint only is sent in extraparameters and idToken has no upn.
     private constructUnifiedCacheQueryParameter(request: AuthenticationParameters, idTokenObject: any): StringDict {
@@ -176,17 +180,14 @@ export class ServerRequestParameters {
     }
 
     /**
-     * @hidden
-     *
+     * @hidden 
      * Adds login_hint to authorization URL which is used to pre-fill the username field of sign in page for the user if known ahead of time
      * domain_hint if added skips the email based discovery process of the user - only supported for interactive calls in implicit_flow
      * domain_req utid received as part of the clientInfo
      * login_req uid received as part of clientInfo
      * Also does a sanity check for extraQueryParameters passed by the user to ensure no repeat queryParameters
-     *
-     * @param {@link Account} account - Account for which the token is requested
-     * @param queryparams
-     * @param {@link ServerRequestParameters}
+     * @param account Account for which the token is requested
+     * @param qParams
      * @ignore
      */
     private addHintParameters(account: Account, qParams: StringDict): StringDict {
@@ -214,7 +215,10 @@ export class ServerRequestParameters {
 
     /**
      * Add SID to extraQueryParameters
-     * @param sid
+     *
+     * @param ssoType
+     * @param ssoData
+     * @param ssoParam
      */
     private addSSOParameter(ssoType: string, ssoData: string, ssoParam?: StringDict): StringDict {
         if (!ssoParam) {
@@ -245,7 +249,9 @@ export class ServerRequestParameters {
 
     /**
      * Utility to generate a QueryParameterString from a Key-Value mapping of extraQueryParameters passed
-     * @param extraQueryParameters
+     *
+     * @param queryParameters
+     * @param silentCall
      */
     static generateQueryParametersString(queryParameters?: StringDict, silentCall?: boolean): string|null {
         let paramsString: string|null = null;
@@ -272,6 +278,7 @@ export class ServerRequestParameters {
 
     /**
      * Check to see if there are SSO params set in the Request
+     *
      * @param request
      */
     static isSSOParam(request: AuthenticationParameters) {
@@ -280,9 +287,9 @@ export class ServerRequestParameters {
 
     /**
      * Returns the correct response_type string attribute for an acquireToken request configuration
+     *
      * @param accountsMatch boolean: Determines whether the account in the request matches the cached account
      * @param scopes Array<string>: AuthenticationRequest scopes configuration
-     * @param loginScopesOnly boolean: True if the scopes array ONLY contains the clientId or any combination of OIDC scopes, without resource scopes
      */
     static determineResponseType(accountsMatch: boolean, scopes: Array<string>) {
         // Supports getting an id_token by sending in clientId as only scope or OIDC scopes as only scopes
@@ -296,6 +303,7 @@ export class ServerRequestParameters {
     /**
      * Returns the correct response_type string attribute for an acquireToken request configuration that contains an
      * account that matches the account in the MSAL cache.
+     *
      * @param scopes Array<string>: AuthenticationRequest scopes configuration
      */
     private static responseTypeForMatchingAccounts(scopes: Array<string>): string {

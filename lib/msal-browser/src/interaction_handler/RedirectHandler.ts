@@ -28,7 +28,10 @@ export class RedirectHandler extends InteractionHandler {
 
     /**
      * Redirects window to given URL.
-     * @param urlNavigate
+     *
+     * @param requestUrl
+     * @param authCodeRequest
+     * @param params
      */
     initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, params: RedirectParams): Promise<void> {
         // Navigate if valid URL
@@ -69,7 +72,11 @@ export class RedirectHandler extends InteractionHandler {
 
     /**
      * Handle authorization code response in the window.
-     * @param hash
+     *
+     * @param locationHash
+     * @param authority
+     * @param networkModule
+     * @param clientId
      */
     async handleCodeResponse(locationHash: string, authority: Authority, networkModule: INetworkModule, clientId?: string): Promise<AuthenticationResult> {
         // Check that location hash isn't empty.

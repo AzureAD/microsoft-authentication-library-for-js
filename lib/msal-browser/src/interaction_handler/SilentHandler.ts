@@ -20,8 +20,9 @@ export class SilentHandler extends InteractionHandler {
 
     /**
      * Creates a hidden iframe to given URL using user-requested scopes as an id.
-     * @param urlNavigate 
-     * @param userRequestScopes
+     *
+     * @param requestUrl
+     * @param authCodeRequest
      */
     async initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest): Promise<HTMLIFrameElement> {
         if (StringUtils.isEmpty(requestUrl)) {
@@ -37,6 +38,7 @@ export class SilentHandler extends InteractionHandler {
 
     /**
      * Monitors an iframe content window until it loads a url with a known hash, or hits a specified timeout.
+     *
      * @param iframe 
      * @param timeout 
      */
@@ -88,8 +90,9 @@ export class SilentHandler extends InteractionHandler {
     }
 
     /**
-     * @hidden
-     * Loads iframe with authorization endpoint URL
+     * @param urlNavigate
+     * @hidden 
+     *Loads iframe with authorization endpoint URL
      * @ignore
      */
     private loadFrame(urlNavigate: string): Promise<HTMLIFrameElement> {
@@ -118,8 +121,6 @@ export class SilentHandler extends InteractionHandler {
      * @hidden
      * Loads the iframe synchronously when the navigateTimeFrame is set to `0`
      * @param urlNavigate
-     * @param frameName
-     * @param logger
      */
     private loadFrameSync(urlNavigate: string): HTMLIFrameElement{
         const frameHandle = this.createHiddenIframe();
@@ -148,8 +149,9 @@ export class SilentHandler extends InteractionHandler {
     }
 
     /**
-     * @hidden
-     * Removes a hidden iframe from the page.
+     * @param iframe
+     * @hidden 
+     *Removes a hidden iframe from the page.
      * @ignore
      */
     private removeHiddenIframe(iframe: HTMLIFrameElement): void {

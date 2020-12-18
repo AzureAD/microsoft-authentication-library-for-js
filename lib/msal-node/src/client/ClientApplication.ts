@@ -50,6 +50,8 @@ export abstract class ClientApplication {
 
     /**
      * Constructor for the ClientApplication
+     *
+     * @param configuration
      */
     protected constructor(configuration: Configuration) {
         this.config = buildAppConfiguration(configuration);
@@ -72,6 +74,8 @@ export abstract class ClientApplication {
      * Once the user inputs their credentials and consents, the authority will send a response to the redirect URI
      * sent in the request and should contain an authorization code, which can then be used to acquire tokens via
      * `acquireTokenByCode(AuthorizationCodeRequest)`.
+     *
+     * @param request
      */
     async getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string> {
         this.logger.info("getAuthCodeUrl called");
@@ -98,6 +102,8 @@ export abstract class ClientApplication {
      * `getAuthCodeUrl(AuthorizationCodeUrlRequest)` can be used to create the URL for the first step of OAuth2.0
      * Authorization Code flow. Ensure that values for redirectUri and scopes in AuthorizationCodeUrlRequest and
      * AuthorizationCodeRequest are the same.
+     *
+     * @param request
      */
     async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult | null> {
         this.logger.info("acquireTokenByCode called");
@@ -129,6 +135,8 @@ export abstract class ClientApplication {
      * This API is provided only for scenarios where you would like to migrate from ADAL to MSAL. Otherwise, it is
      * recommended that you use `acquireTokenSilent()` for silent scenarios. When using `acquireTokenSilent()`, MSAL will
      * handle the caching and refreshing of tokens automatically.
+     *
+     * @param request
      */
     async acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null> {
         this.logger.info("acquireTokenByRefreshToken called");
@@ -162,6 +170,8 @@ export abstract class ClientApplication {
      * There is also an optional "forceRefresh" boolean the user can send to bypass the cache for access_token and id_token.
      * In case the refresh_token is expired or not found, an error is thrown
      * and the guidance is for the user to call any interactive token acquisition API (eg: `acquireTokenByCode()`).
+     *
+     * @param request
      */
     async acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null> {
         const validRequest: CommonSilentFlowRequest = {
@@ -203,6 +213,7 @@ export abstract class ClientApplication {
 
     /**
      * Replaces the default logger set in configurations with new Logger with new configurations
+     *
      * @param logger Logger instance
      */
     setLogger(logger: Logger): void {
@@ -256,6 +267,7 @@ export abstract class ClientApplication {
 
     /**
      * Generates a request with the default scopes & generates a correlationId.
+     *
      * @param authRequest
      */
     protected initializeBaseRequest(authRequest: Partial<BaseAuthRequest>): BaseAuthRequest {
@@ -283,6 +295,7 @@ export abstract class ClientApplication {
     /**
      * Create authority instance. If authority not passed in request, default to authority set on the application
      * object. If no authority set in application object, then default to common authority.
+     *
      * @param authorityString
      */
     private async createAuthority(authorityString: string): Promise<Authority> {

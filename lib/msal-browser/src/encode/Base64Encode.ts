@@ -13,6 +13,7 @@ export class Base64Encode {
     
     /**
      * Returns URL Safe b64 encoded string from a plaintext string.
+     *
      * @param input 
      */
     urlEncode(input: string): string {
@@ -24,6 +25,7 @@ export class Base64Encode {
 
     /**
      * Returns URL Safe b64 encoded string from an int8Array.
+     *
      * @param inputArr 
      */
     urlEncodeArr(inputArr: Uint8Array): string {
@@ -35,6 +37,7 @@ export class Base64Encode {
 
     /**
      * Returns b64 encoded string from plaintext string.
+     *
      * @param input 
      */
     encode(input: string): string {
@@ -44,6 +47,7 @@ export class Base64Encode {
 
     /**
      * Base64 encode byte array
+     *
      * @param aBytes 
      */
     private base64EncArr(aBytes: Uint8Array): string {  
@@ -73,6 +77,7 @@ export class Base64Encode {
 
     /**
      * Base64 string to array encoding helper
+     *
      * @param nUint6 
      */
     private uint6ToB64 (nUint6: number): number {

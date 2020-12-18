@@ -33,6 +33,9 @@ export class AppMetadataEntity {
 
     /**
      * Generate AppMetadata Cache Key
+     *
+     * @param environment
+     * @param clientId
      */
     static generateAppMetadataCacheKey(environment: string, clientId: string): string {
         const appMetaDataKeyArray: Array<string> = [
@@ -45,6 +48,7 @@ export class AppMetadataEntity {
 
     /**
      * Creates AppMetadataEntity
+     *
      * @param clientId
      * @param environment
      * @param familyId
@@ -63,6 +67,8 @@ export class AppMetadataEntity {
 
     /**
      * Validates an entity: checks for all expected params
+     *
+     * @param key
      * @param entity
      */
     static isAppMetadataEntity(key: string, entity: object): boolean {

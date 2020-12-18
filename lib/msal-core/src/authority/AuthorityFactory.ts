@@ -48,6 +48,10 @@ export class AuthorityFactory {
     /**
      * Create an authority object of the correct type based on the url
      * Performs basic authority validation - checks to see if the authority is of a valid type (eg aad, b2c)
+     *
+     * @param authorityUrl
+     * @param validateAuthority
+     * @param authorityMetadata
      */
     public static CreateInstance(authorityUrl: string, validateAuthority: boolean, authorityMetadata?: string): Authority {
         if (StringUtils.isEmpty(authorityUrl)) {

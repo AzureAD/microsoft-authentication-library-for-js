@@ -179,6 +179,7 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Creates an error thrown when client info object doesn't decode correctly.
+     *
      * @param caughtError
      */
     static createClientInfoDecodingError(caughtError: string): ClientAuthError {
@@ -188,7 +189,7 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Creates an error thrown if the client info is empty.
-     * @param rawClientInfo
+     *
      */
     static createClientInfoEmptyError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.clientInfoEmptyError.code,
@@ -197,7 +198,8 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Creates an error thrown when the id token extraction errors out.
-     * @param err
+     *
+     * @param caughtExtractionError
      */
     static createTokenParsingError(caughtExtractionError: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.tokenParsingError.code,
@@ -206,6 +208,7 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Creates an error thrown when the id token string is null or empty.
+     *
      * @param invalidRawTokenString
      */
     static createTokenNullOrEmptyError(invalidRawTokenString: string) : ClientAuthError {
@@ -215,6 +218,8 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Creates an error thrown when the endpoint discovery doesn't complete correctly.
+     *
+     * @param errDetail
      */
     static createEndpointDiscoveryIncompleteError(errDetail: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.endpointResolutionError.code,
@@ -223,6 +228,7 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Creates an error thrown when the hash cannot be deserialized.
+     *
      * @param hashParamObj
      */
     static createHashNotDeserializedError(hashParamObj: string): ClientAuthError {
@@ -232,7 +238,9 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Creates an error thrown when the state cannot be parsed.
+     *
      * @param invalidState
+     * @param errorString
      */
     static createInvalidStateError(invalidState: string, errorString?: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.invalidStateError.code,
@@ -249,6 +257,7 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Creates an error thrown when the state is not present
+     *
      * @param missingState
      */
     static createStateNotFoundError(missingState: string): ClientAuthError {
@@ -266,6 +275,7 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Creates an error thrown when the mnonce is not present
+     *
      * @param missingNonce
      */
     static createNonceNotFoundError(missingNonce: string): ClientAuthError {
@@ -313,6 +323,7 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Throws error when attempting to append a null, undefined or empty scope to a set
+     *
      * @param givenScope
      */
     static createAppendEmptyScopeToSetError(givenScope: string): ClientAuthError {
@@ -321,6 +332,7 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Throws error when attempting to append a null, undefined or empty scope to a set
+     *
      * @param givenScope
      */
     static createRemoveEmptyScopeFromSetError(givenScope: string): ClientAuthError {
@@ -329,6 +341,7 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Throws error when attempting to append null or empty ScopeSet.
+     *
      * @param appendError
      */
     static createAppendScopeSetError(appendError: string): ClientAuthError {
@@ -337,6 +350,7 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Throws error if ScopeSet is null or undefined.
+     *
      * @param givenScopeSet
      */
     static createEmptyInputScopeSetError(givenScopeSet: ScopeSet): ClientAuthError {
@@ -394,6 +408,7 @@ export class ClientAuthError extends AuthError {
 
     /**
      * Throws error if crypto object not found.
+     *
      * @param operationName
      */
     static createNoCryptoObjectError(operationName: string): ClientAuthError {

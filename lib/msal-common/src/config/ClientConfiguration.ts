@@ -187,12 +187,11 @@ const DEFAULT_CLIENT_CREDENTIALS: ClientCredentials = {
 /**
  * Function that sets the default options when not explicitly configured from app developer
  *
- * @param Configuration
- *
+ * @param configuration
  * @returns Configuration
  */
-export function buildClientConfiguration(
-    {
+export function buildClientConfiguration(configuration: ClientConfiguration): CommonClientConfiguration {
+    const {
         authOptions: userAuthOptions,
         systemOptions: userSystemOptions,
         loggerOptions: userLoggerOption,
@@ -204,8 +203,8 @@ export function buildClientConfiguration(
         serverTelemetryManager: serverTelemetryManager,
         persistencePlugin: persistencePlugin,
         serializableCache: serializableCache
-    }: ClientConfiguration): CommonClientConfiguration {
-
+    } = configuration;
+    
     return {
         authOptions: buildAuthOptions(userAuthOptions),
         systemOptions: { ...DEFAULT_SYSTEM_OPTIONS, ...userSystemOptions },
@@ -223,6 +222,7 @@ export function buildClientConfiguration(
 
 /**
  * Construct authoptions from the client and platform passed values
+ *
  * @param authOptions
  */
 function buildAuthOptions(authOptions: AuthOptions): Required<AuthOptions> {

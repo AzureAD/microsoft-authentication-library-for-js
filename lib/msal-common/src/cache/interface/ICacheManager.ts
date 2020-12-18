@@ -24,72 +24,84 @@ export interface ICacheManager {
 
     /**
      * fetch the account entity from the platform cache
+     *
      * @param accountKey
      */
     getAccount(accountKey: string): AccountEntity | null;
 
     /**
      * set account entity in the platform cache
+     *
      * @param account
      */
     setAccount(account: AccountEntity): void;
 
     /**
      * fetch the idToken entity from the platform cache
+     *
      * @param idTokenKey
      */
     getIdTokenCredential(idTokenKey: string): IdTokenEntity | null;
 
     /**
      * set idToken entity to the platform cache
+     *
      * @param idToken
      */
     setIdTokenCredential(idToken: IdTokenEntity): void;
 
     /**
      * fetch the idToken entity from the platform cache
+     *
      * @param accessTokenKey
      */
     getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity | null;
 
     /**
      * set idToken entity to the platform cache
+     *
      * @param accessToken
      */
     setAccessTokenCredential(accessToken: AccessTokenEntity): void;
 
     /**
      * fetch the idToken entity from the platform cache
+     *
      * @param refreshTokenKey
      */
     getRefreshTokenCredential(refreshTokenKey: string): RefreshTokenEntity | null;
 
     /**
      * set idToken entity to the platform cache
+     *
      * @param refreshToken
      */
     setRefreshTokenCredential(refreshToken: RefreshTokenEntity): void;
 
     /**
      * fetch appMetadata entity from the platform cache
+     *
      * @param appMetadataKey
      */
     getAppMetadata(appMetadataKey: string): AppMetadataEntity | null;
 
     /**
      * set appMetadata entity to the platform cache
+     *
      * @param appMetadata
      */
     setAppMetadata(appMetadata: AppMetadataEntity): void;
 
     /**
      * fetch server telemetry entity from the platform cache
+     *
      * @param serverTelemetryKey
      */
     getServerTelemetry(serverTelemetryKey: string): ServerTelemetryEntity | null;
 
     /**
      * set server telemetry entity to the platform cache
+     *
      * @param serverTelemetryKey
      * @param serverTelemetry
      */
@@ -97,12 +109,14 @@ export interface ICacheManager {
 
     /**
      * fetch throttling entity from the platform cache
+     *
      * @param throttlingCacheKey
      */
     getThrottlingCache(throttlingCacheKey: string): ThrottlingEntity | null;
 
     /**
      * set throttling entity to the platform cache
+     *
      * @param throttlingCacheKey
      * @param throttlingCache
      */
@@ -115,12 +129,14 @@ export interface ICacheManager {
 
     /**
      * saves a cache record
+     *
      * @param cacheRecord
      */
     saveCacheRecord(cacheRecord: CacheRecord): void;
 
     /**
      * retrieve accounts matching all provided filters; if no filter is set, get all accounts
+     *
      * @param homeAccountId
      * @param environment
      * @param realm
@@ -129,6 +145,7 @@ export interface ICacheManager {
 
     /**
      * retrieve credentials matching all provided filters; if no filter is set, get all credentials
+     *
      * @param homeAccountId
      * @param environment
      * @param credentialType
@@ -145,18 +162,21 @@ export interface ICacheManager {
 
     /**
      * returns a boolean if the given account is removed
+     *
      * @param account
      */
     removeAccount(accountKey: string): boolean;
 
     /**
      * returns a boolean if the given account is removed
+     *
      * @param account
      */
     removeAccountContext(account: AccountEntity): boolean;
 
     /**
      * returns a boolean if the given credential is removed
+     *
      * @param credential
      */
     removeCredential(credential: CredentialEntity): boolean;

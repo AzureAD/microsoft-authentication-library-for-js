@@ -11,6 +11,7 @@ export class BrowserStringUtils {
 
     /**
      * Converts string to Uint8Array
+     *
      * @param sDOMStr 
      */
     static stringToUtf8Arr (sDOMStr: string): Uint8Array {
@@ -70,6 +71,7 @@ export class BrowserStringUtils {
 
     /**
      * Converst string to ArrayBuffer
+     *
      * @param dataString 
      */
     static stringToArrayBuffer(dataString: string): ArrayBuffer {
@@ -83,6 +85,7 @@ export class BrowserStringUtils {
 
     /**
      * Converts Uint8Array to a string
+     *
      * @param aBytes 
      */
     static utf8ArrToString (aBytes: Uint8Array): string {

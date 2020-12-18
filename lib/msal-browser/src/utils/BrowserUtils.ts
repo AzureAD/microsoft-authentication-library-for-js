@@ -18,7 +18,10 @@ export class BrowserUtils {
 
     /**
      * Used to redirect the browser to the STS authorization endpoint
+     *
      * @param {string} urlNavigate - URL of the authorization endpoint
+     * @param navigationTimeout
+     * @param logger
      * @param {boolean} noHistory - boolean flag, uses .replace() instead of .assign() if true
      */
     static navigateWindow(urlNavigate: string, navigationTimeout: number, logger: Logger, noHistory?: boolean): Promise<void> {
@@ -52,6 +55,8 @@ export class BrowserUtils {
 
     /**
      * Replaces current hash with hash from provided url
+     *
+     * @param url
      */
     static replaceHash(url: string): void {
         const urlParts = url.split("#");
@@ -110,6 +115,7 @@ export class BrowserUtils {
 
     /**
      * Block redirect operations in iframes unless explicitly allowed
+     *
      * @param interactionType Interaction type for the request
      * @param allowRedirectInIframe Config value to allow redirects when app is inside an iframe
      */
@@ -123,6 +129,7 @@ export class BrowserUtils {
 
     /**
      * Throws error if token requests are made in non-browser environment
+     *
      * @param isBrowserEnvironment Flag indicating if environment is a browser.
      */
     static blockNonBrowserEnvironment(isBrowserEnvironment: boolean): void {

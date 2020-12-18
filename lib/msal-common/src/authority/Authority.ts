@@ -145,6 +145,7 @@ export class Authority {
 
     /**
      * Replaces tenant in url path with current tenant. Defaults to common.
+     *
      * @param urlString
      */
     private replaceTenant(urlString: string): string {
@@ -170,6 +171,7 @@ export class Authority {
 
     /**
      * Gets OAuth endpoints from the given OpenID configuration endpoint.
+     *
      * @param openIdConfigurationEndpoint
      */
     private async discoverEndpoints(openIdConfigurationEndpoint: string): Promise<NetworkResponse<OpenIdConfigResponse>> {
@@ -207,6 +209,7 @@ export class Authority {
 
     /**
      * Determine if given hostname is alias of this authority
+     *
      * @param host 
      */
     public isAuthorityAlias(host: string): boolean {
@@ -219,6 +222,7 @@ export class Authority {
 
     /**
      * helper function to generate environment from authority object
+     *
      * @param authority
      */
     static generateEnvironmentFromAuthority(authority: Authority): string {

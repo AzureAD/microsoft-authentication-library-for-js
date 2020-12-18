@@ -26,13 +26,17 @@ export abstract class InteractionHandler {
 
     /**
      * Function to enable user interaction.
+     *
      * @param requestUrl
      */
     abstract initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, params: InteractionParams): Window | Promise<HTMLIFrameElement> | Promise<void>;
 
     /**
      * Function to handle response parameters from hash.
+     *
      * @param locationHash
+     * @param authority
+     * @param networkModule
      */
     async handleCodeResponse(locationHash: string, authority: Authority, networkModule: INetworkModule): Promise<AuthenticationResult> {
         // Check that location hash isn't empty.

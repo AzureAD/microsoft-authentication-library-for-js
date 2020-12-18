@@ -101,6 +101,7 @@ export class BrowserAuthError extends AuthError {
 
     /**
      * Creates an error thrown when PKCE is not implemented.
+     *
      * @param errDetail 
      */
     static createPkceNotGeneratedError(errDetail: string): BrowserAuthError {
@@ -110,6 +111,7 @@ export class BrowserAuthError extends AuthError {
 
     /**
      * Creates an error thrown when the crypto object is unavailable.
+     *
      * @param errDetail 
      */
     static createCryptoNotAvailableError(errDetail: string): BrowserAuthError {
@@ -119,6 +121,7 @@ export class BrowserAuthError extends AuthError {
 
     /**
      * Creates an error thrown when an HTTP method hasn't been implemented by the browser class.
+     *
      * @param method 
      */
     static createHttpMethodNotImplementedError(method: string): BrowserAuthError {
@@ -135,6 +138,7 @@ export class BrowserAuthError extends AuthError {
 
     /**
      * Creates an error thrown when the hash string value is unexpectedly empty.
+     *
      * @param hashValue 
      */
     static createEmptyHashError(hashValue: string): BrowserAuthError {
@@ -150,6 +154,7 @@ export class BrowserAuthError extends AuthError {
 
     /**
      * Creates an error thrown when the popup window could not be opened.
+     *
      * @param errDetail 
      */
     static createPopupWindowError(errDetail?: string): BrowserAuthError {
@@ -160,7 +165,7 @@ export class BrowserAuthError extends AuthError {
 
     /**
      * Creates an error thrown when window.open returns an empty window object.
-     * @param errDetail 
+     *
      */
     static createEmptyWindowCreatedError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.emptyWindowError.code, BrowserAuthErrorMessage.emptyWindowError.desc);
@@ -192,6 +197,7 @@ export class BrowserAuthError extends AuthError {
 
     /**
      * Creates an error thrown when navigateWindow is called inside an iframe.
+     *
      * @param windowParentCheck 
      */
     static createRedirectInIframeError(windowParentCheck: boolean): BrowserAuthError {
@@ -223,6 +229,8 @@ export class BrowserAuthError extends AuthError {
 
     /**
      * Creates an error thrown when a given prompt value is invalid for silent requests.
+     *
+     * @param givenPrompt
      */
     static createSilentPromptValueError(givenPrompt: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.silentPromptValueError.code, `${BrowserAuthErrorMessage.silentPromptValueError.desc} Given value: ${givenPrompt}`);
@@ -230,6 +238,7 @@ export class BrowserAuthError extends AuthError {
 
     /**
      * Creates an error thrown when the token request could not be retrieved from the cache
+     *
      * @param errDetail
      */
     static createTokenRequestCacheError(errDetail: string): BrowserAuthError {

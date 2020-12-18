@@ -28,6 +28,7 @@ export type Subtract<T extends T1, T1 extends object> = Pick<T,SetComplement<key
 /**
  * Helper function to determine whether 2 arrays are equal
  * Used to avoid unnecessary state updates
+ *
  * @param arrayA 
  * @param arrayB 
  */
