@@ -215,8 +215,7 @@ export abstract class ClientApplication {
             authOptions: {
                 clientId: this.config.auth.clientId,
                 authority: await this.createAuthority(authority),
-                clientCapabilities: this.config.auth.clientCapabilities,
-                protocolMode: this.config.auth.protocolMode
+                clientCapabilities: this.config.auth.clientCapabilities
             },
             loggerOptions: {
                 loggerCallback: this.config.system!.loggerOptions!

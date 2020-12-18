@@ -756,8 +756,7 @@ export abstract class ClientApplication {
             authOptions: {
                 clientId: this.config.auth.clientId,
                 authority: discoveredAuthority,
-                clientCapabilities: this.config.auth.clientCapabilities,
-                protocolMode: this.config.auth.protocolMode
+                clientCapabilities: this.config.auth.clientCapabilities
             },
             systemOptions: {
                 tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds
