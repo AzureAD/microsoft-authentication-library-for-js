@@ -116,14 +116,6 @@ export class AuthorizationCodeClient extends BaseClient {
             throw ClientConfigurationError.createEmptyLogoutRequestError();
         }
 
-        if (logoutRequest.account) {
-            // Clear given account.
-            this.cacheManager.removeAccount(AccountEntity.generateAccountCacheKey(logoutRequest.account));
-        } else {
-            // Clear all accounts and tokens
-            this.cacheManager.clear();
-        }
-
         const queryString = this.createLogoutUrlQueryString(logoutRequest);
 
         // Construct logout URI.

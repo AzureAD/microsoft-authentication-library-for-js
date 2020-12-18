@@ -576,21 +576,23 @@ export abstract class ClientApplication {
                 this.browserStorage.clear();
             }
 
+            // Clear active account
+            if (!logoutRequest.account || AccountEntity.accountInfoIsEqual(logoutRequest.account, this.getActiveAccount())) {
+                this.setActiveAccount(null);
+            }
+
             // If in iframe, do not attempt to navigate
-            if (BrowserUtils.isInIframe()) {
+            if (BrowserUtils.isInIframe() && !this.config.system.allowRedirectInIframe) {
+                this.logger.info("Logout attempted in iframe, preventing redirection to end session endpoint");
                 return this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Silent, logoutRequest);
             }
 
             // Build logout url
             const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
-            const authClient = await this.createAuthCodeClient(null, validLogoutRequest && validLogoutRequest.authority);
+            const authClient = await this.createAuthCodeClient(null, validLogoutRequest.authority);
             const logoutUri: string = authClient.getLogoutUri(validLogoutRequest as CommonEndSessionRequest);
-            this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
 
-            // Clear active account
-            if (!validLogoutRequest.account || AccountEntity.accountInfoIsEqual(validLogoutRequest.account, this.getActiveAccount())) {
-                this.setActiveAccount(null);
-            }
+            this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
 
             // Check if onRedirectNavigate is implemented, and invoke it if so
             if (logoutRequest && typeof logoutRequest.onRedirectNavigate === "function") {
