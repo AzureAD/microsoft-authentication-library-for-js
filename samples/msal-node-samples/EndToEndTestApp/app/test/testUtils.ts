@@ -20,13 +20,8 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
     await page.waitForSelector("#idA_PWD_ForgotPassword");
     await screenshot.takeScreenshot(page, "pwdInputPage");
     await page.type("#i0118", accountPwd);
-    // await page.click("#idSIButton9");
-    // await takeScreenshotAfter(6000, screenshot, page, `pwdSubmitted`);
-    await screenshot.takeScreenshot(page, "pwdTyped");
-    const signInButton = 'input[type="submit"]';
-    await page.waitForSelector(signInButton);
-    await page.evaluate((signInButton) => document.querySelector(signInButton).click(), signInButton);
-    await screenshot.takeScreenshot(page, "pwdSubmitted");
+    await page.click("#idSIButton9");
+    await takeScreenshotAfter(6000, screenshot, page, `pwdSubmitted`);
 }
 
 export async function clickSignIn(page: Page, screenshot: Screenshot): Promise<void> {
