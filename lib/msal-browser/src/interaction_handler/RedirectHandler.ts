@@ -7,7 +7,6 @@ import { AuthorizationCodeClient, StringUtils, AuthorizationCodeRequest, ICrypto
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
-import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { InteractionHandler, InteractionParams } from "./InteractionHandler";
 
@@ -71,7 +70,7 @@ export class RedirectHandler extends InteractionHandler {
      * Handle authorization code response in the window.
      * @param hash
      */
-    async handleCodeResponse(locationHash: string, authority: Authority, networkModule: INetworkModule, clientId?: string): Promise<AuthenticationResult> {
+    async handleCodeResponse(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule, clientId?: string): Promise<AuthenticationResult | null> {
         // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {
             throw BrowserAuthError.createEmptyHashError(locationHash);
@@ -80,11 +79,8 @@ export class RedirectHandler extends InteractionHandler {
         // Interaction is completed - remove interaction status.
         this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY));
 
-        // Deserialize hash fragment response parameters.
-        const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(locationHash);
-
         // Handle code response.
-        const stateKey = this.browserStorage.generateStateKey(serverParams.state);
+        const stateKey = this.browserStorage.generateStateKey(state);
         const requestState = this.browserStorage.getTemporaryCache(stateKey);
         const authCodeResponse = this.authModule.handleFragmentResponse(locationHash, requestState);
 
@@ -112,7 +108,7 @@ export class RedirectHandler extends InteractionHandler {
         // Acquire token with retrieved code.
         const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, authCodeResponse);
 
-        this.browserStorage.cleanRequestByState(serverParams.state);
+        this.browserStorage.cleanRequestByState(state);
         return tokenResponse;
     }
 }
