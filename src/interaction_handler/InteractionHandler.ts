@@ -6,7 +6,6 @@
 import { StringUtils, AuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient, AuthorityFactory, Authority, INetworkModule } from "@azure/msal-common";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 
 export type InteractionParams = {};
 
@@ -34,17 +33,14 @@ export abstract class InteractionHandler {
      * Function to handle response parameters from hash.
      * @param locationHash
      */
-    async handleCodeResponse(locationHash: string, authority: Authority, networkModule: INetworkModule): Promise<AuthenticationResult> {
+    async handleCodeResponse(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule): Promise<AuthenticationResult | null> {
         // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {
             throw BrowserAuthError.createEmptyHashError(locationHash);
         }
 
-        // Deserialize hash fragment response parameters.
-        const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(locationHash);
-
         // Handle code response.
-        const stateKey = this.browserStorage.generateStateKey(serverParams.state);
+        const stateKey = this.browserStorage.generateStateKey(state);
         const requestState = this.browserStorage.getTemporaryCache(stateKey);
         const authCodeResponse = this.authModule.handleFragmentResponse(locationHash, requestState);
 
@@ -65,7 +61,7 @@ export abstract class InteractionHandler {
 
         // Acquire token with retrieved code.
         const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, authCodeResponse);
-        this.browserStorage.cleanRequestByState(serverParams.state);
+        this.browserStorage.cleanRequestByState(state);
         return tokenResponse;
     }
 

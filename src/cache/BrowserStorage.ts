@@ -35,7 +35,7 @@ export class BrowserStorage implements IWindowStorage {
         }
     }
 
-    getItem(key: string): string {
+    getItem(key: string): string | null {
         return this.windowStorage.getItem(key);
     }
 
