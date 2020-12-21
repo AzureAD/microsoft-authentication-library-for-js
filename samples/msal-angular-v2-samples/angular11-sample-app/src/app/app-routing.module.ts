@@ -3,14 +3,28 @@ import { Routes, RouterModule } from '@angular/router';
 import { ProfileComponent } from './profile/profile.component';
 import { HomeComponent } from './home/home.component';
 import { MsalGuard } from '@azure/msal-angular';
+import { DetailComponent } from './detail/detail.component';
 
 const routes: Routes = [
   {
     path: 'profile',
     component: ProfileComponent,
-    canActivate: [
-      MsalGuard
+    canActivate: [MsalGuard]
+  },
+  {
+    path: 'profile',
+    canActivateChild: [MsalGuard],
+    children: [
+      {
+        path: 'detail',
+        component: DetailComponent
+      }
     ]
+  },
+  { 
+    path: 'lazyLoad', 
+    loadChildren: () => import('./lazy/lazy.module').then(m => m.LazyModule),
+    canLoad: [MsalGuard]
   },
   {
     // Needed for hash routing
