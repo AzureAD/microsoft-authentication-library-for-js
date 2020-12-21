@@ -20,8 +20,7 @@
         "plugin:react/recommended",
         "plugin:react-hooks/recommended",
         "plugin:security/recommended",
-        "plugin:import/typescript",
-        "plugin:jsdoc/recommended"
+        "plugin:import/typescript"
     ],
     "rules": {
         "@typescript-eslint/array-type": 0,
