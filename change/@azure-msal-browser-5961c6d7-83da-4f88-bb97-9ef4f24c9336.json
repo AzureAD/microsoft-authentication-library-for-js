@@ -1,6 +1,6 @@
 {
   "type": "none",
-  "comment": "Enable jsdoc param-name eslint rules",
+  "comment": "Enable jsdoc param-name eslint rules (#2791)",
   "packageName": "@azure/msal-browser",
   "email": "janutter@microsoft.com",
   "dependentChangeType": "patch"
