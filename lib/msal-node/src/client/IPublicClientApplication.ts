@@ -4,7 +4,6 @@
  */
 
 import { AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, DeviceCodeRequest, Logger, RefreshTokenRequest, SilentFlowRequest, UsernamePasswordRequest } from "@azure/msal-common";
-import { NodeConfigurationAuthError } from "../error/NodeConfigurationAuthError";
 import { TokenCache } from "../cache/TokenCache";
 
 export interface IPublicClientApplication {
@@ -18,34 +17,4 @@ export interface IPublicClientApplication {
     getLogger(): Logger;
     setLogger(logger: Logger): void;
 }
-
-export const stubbedPublicClientApplication: IPublicClientApplication = {
-    getAuthCodeUrl: () => {
-        return Promise.reject(NodeConfigurationAuthError.createStubPcaInstanceCalledError);
-    },
-    acquireTokenByCode: () => {
-        return Promise.reject(NodeConfigurationAuthError.createStubPcaInstanceCalledError);
-    },
-    acquireTokenSilent: () => {
-        return Promise.reject(NodeConfigurationAuthError.createStubPcaInstanceCalledError);
-    },
-    acquireTokenByRefreshToken: () => {
-        return Promise.reject(NodeConfigurationAuthError.createStubPcaInstanceCalledError);
-    },
-    acquireTokenByDeviceCode: () => {
-        return Promise.reject(NodeConfigurationAuthError.createStubPcaInstanceCalledError);
-    },
-    acquireTokenByUsernamePassword: () => {
-        return Promise.reject(NodeConfigurationAuthError.createStubPcaInstanceCalledError);
-    },
-    getTokenCache: () => {
-        throw NodeConfigurationAuthError.createStubTokenCacheCalledError();
-    },
-    getLogger: () => {
-        throw NodeConfigurationAuthError.createStubPcaInstanceCalledError();
-    },
-    setLogger: () => {
-        throw NodeConfigurationAuthError.createStubPcaInstanceCalledError();
-    }
-};
 
