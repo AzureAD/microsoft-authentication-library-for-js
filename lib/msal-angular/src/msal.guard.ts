@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, CanActivateChild, CanLoad } from "@angular/router";
+import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, CanActivateChild, CanLoad, UrlTree, Router } from "@angular/router";
 import { MsalService } from "./msal.service";
 import { Injectable, Inject } from "@angular/core";
 import { Location } from "@angular/common";
@@ -15,11 +15,18 @@ import { Observable, of } from "rxjs";
 
 @Injectable()
 export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
+    private readonly loginFailedRoute?: UrlTree;
+
     constructor(
         @Inject(MSAL_GUARD_CONFIG) private msalGuardConfig: MsalGuardConfiguration,
         private authService: MsalService,
         private location: Location,
-    ) { }
+        private router: Router
+    ) { 
+        if (msalGuardConfig.loginFailedRoute) {
+            this.loginFailedRoute = this.router.parseUrl(msalGuardConfig.loginFailedRoute);
+        }
+    }
 
     /**
      * Builds the absolute url for the destination page
@@ -56,8 +63,7 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
                     map(() => {
                         this.authService.getLogger().verbose("Guard - login by popup successful, can activate");
                         return true;
-                    }),
-                    catchError(() => of(false))
+                    })
                 );
         }
 
@@ -70,7 +76,7 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
         return of(false);
     }
 
-    private activateHelper(state?: RouterStateSnapshot): Observable<boolean> {
+    private activateHelper(state?: RouterStateSnapshot): Observable<boolean|UrlTree> {
         if (this.msalGuardConfig.interactionType !== InteractionType.Popup && this.msalGuardConfig.interactionType !== InteractionType.Redirect) {
             throw new BrowserConfigurationAuthError("invalid_interaction_type", "Invalid interaction type provided to MSAL Guard. InteractionType.Popup or InteractionType.Redirect must be provided in the MsalGuardConfiguration");
         }
@@ -102,22 +108,25 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
                 }),
                 catchError(() => {
                     this.authService.getLogger().verbose("Guard - error while logging in, unable to activate");
+                    if (this.loginFailedRoute) {
+                        return of(this.loginFailedRoute);
+                    }
                     return of(false);
                 })
             );
     }
 
-    canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
+    canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean|UrlTree> {
         this.authService.getLogger().verbose("Guard - canActivate");
         return this.activateHelper(state);
     }
 
-    canActivateChild(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
+    canActivateChild(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean|UrlTree> {
         this.authService.getLogger().verbose("Guard - canActivateChild");
         return this.activateHelper(state);
     }
 
-    canLoad(): Observable<boolean> {
+    canLoad(): Observable<boolean|UrlTree> {
         this.authService.getLogger().verbose("Guard - canLoad");
         return this.activateHelper();
     }

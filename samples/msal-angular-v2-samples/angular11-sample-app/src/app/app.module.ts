@@ -37,13 +37,16 @@ export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
   protectedResourceMap.set('https://graph.microsoft.com/v1.0/me', ['user.read']);
 
   return {
-    interactionType: InteractionType.Redirect,
+    interactionType: InteractionType.Popup,
     protectedResourceMap
   };
 }
 
 export function MSALGuardConfigFactory(): MsalGuardConfiguration {
-  return { interactionType: InteractionType.Redirect };
+  return { 
+    interactionType: InteractionType.Popup,
+    loginFailedRoute: '/login-failed'
+  };
 }
 
 @NgModule({
