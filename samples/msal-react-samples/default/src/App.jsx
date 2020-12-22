@@ -23,7 +23,7 @@ const ProfileContent = () => {
 
     return (
         <>
-            <h5 className="card-title">Welcome {account.name}</h5>
+            <h5 className="card-title">Welcome {account && account.name}</h5>
             {graphData ? 
                 <ProfileData graphData={graphData} />
                 :
