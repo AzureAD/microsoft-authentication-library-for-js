@@ -1,7 +1,7 @@
 import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
 import { MsalService, MsalBroadcastService, MSAL_GUARD_CONFIG, MsalGuardConfiguration } from '@azure/msal-angular';
-import { EventMessage, EventPayload, EventType, InteractionType } from '@azure/msal-browser';
-import { AuthenticationResult, AuthError, BaseAuthRequest } from '@azure/msal-common'
+import { EventMessage, EventType, InteractionType, PopupRequest, RedirectRequest } from '@azure/msal-browser';
+import { AuthenticationResult, AuthError } from '@azure/msal-common'
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { b2cPolicies } from './b2c-config';
@@ -71,7 +71,7 @@ export class AppComponent implements OnInit, OnDestroy {
           if (result.error.message.includes('AADB2C90118')) {
             
             // login request with reset authority
-            let resetPasswordFlowRequest: BaseAuthRequest = {
+            let resetPasswordFlowRequest = {
               scopes: ["openid"],
               authority: b2cPolicies.authorities.forgotPassword.authority,
             }
@@ -86,7 +86,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.loggedIn = this.authService.instance.getAllAccounts().length > 0;
   }
 
-  login(userFlowRequest?: BaseAuthRequest) {
+  login(userFlowRequest?: RedirectRequest | PopupRequest) {
     this.msalGuardConfig
     if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
       if (this.msalGuardConfig.authRequest) {
@@ -110,7 +110,7 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   editProfile() {
-    let editProfileFlowRequest: BaseAuthRequest = {
+    let editProfileFlowRequest = {
       scopes: ["openid"],
       authority: b2cPolicies.authorities.editProfile.authority,
     }
