@@ -29,7 +29,7 @@ import pkg from "../../package.json";
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
-describe.skip("PublicClientApplication.ts Class Unit Tests", () => {
+describe("PublicClientApplication.ts Class Unit Tests", () => {
     const cacheConfig = {
         cacheLocation: BrowserCacheLocation.SessionStorage,
         storeAuthStateInCookie: false
