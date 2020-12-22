@@ -66,5 +66,14 @@ module.exports = {
             console.log(`Running default scenario: ${Constants.DEFAULT_SCENARIO_NAME}.\n`);
             return Constants.DEFAULT_SCENARIO_NAME;
         }
+    },
+    extractRuntimeOptions: function (runtimeOptionString) {
+        try { 
+            if (runtimeOptionString) return JSON.parse(runtimeOptionString);
+        } catch (e) {
+            console.warn(`[Warning]: Runtime option string was not a valid javascript object string\n${e}`);
+        }
+
+        return {};
     }
 }
