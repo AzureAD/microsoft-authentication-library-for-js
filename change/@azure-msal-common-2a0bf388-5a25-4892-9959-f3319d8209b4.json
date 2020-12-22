@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Add linting to unit test files",
+  "packageName": "@azure/msal-common",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "none"
+}
