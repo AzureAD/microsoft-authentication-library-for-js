@@ -213,7 +213,7 @@ export class Authority {
     }
 
     /**
-     * 
+     * Update AuthorityMetadataEntity with new endpoints and return where the information came from
      * @param metadataEntity 
      */
     private async updateEndpointMetadata(metadataEntity: AuthorityMetadataEntity): Promise<AuthorityMetadataSource> {
@@ -233,48 +233,19 @@ export class Authority {
             metadataEntity.updateEndpointMetadata(metadata, true);
             return AuthorityMetadataSource.NETWORK;
         } else {
-            // TODO throw a better error
-            throw "Unable to resolve endpoints.";
+            throw ClientAuthError.createUnableToGetOpenidConfigError(this.defaultOpenIdConfigurationEndpoint);
         }
     }
 
     /**
-     * 
-     * @param cachedMetadata 
-     * @param newMetadata 
-     */
-    private async updateCloudDiscoveryMetadata(metadataEntity: AuthorityMetadataEntity): Promise<AuthorityMetadataSource> {
-        let metadata = this.getCloudDiscoveryMetadataFromConfig();
-        if (metadata) {
-            metadataEntity.updateCloudDiscoveryMetadata(metadata, false);
-            return AuthorityMetadataSource.CONFIG;
-        }
-
-        if (metadataEntity.aliasesFromNetwork && !metadataEntity.isExpired()) {
-            // No need to update
-            return AuthorityMetadataSource.CACHE;
-        }
-
-        metadata = await this.getCloudDiscoveryMetadataFromNetwork();
-        if (metadata) {
-            metadataEntity.updateCloudDiscoveryMetadata(metadata, true);
-            return AuthorityMetadataSource.NETWORK;
-        } else {
-            // Metadata could not be obtained from config, cache or network
-            throw ClientConfigurationError.createUntrustedAuthorityError();
-        }
-    }
-
-    /**
-     * 
+     * Parse authorityMetadata config option
      */
     private getEndpointMetadataFromConfig(): OpenIdConfigResponse | null {
         if (this.authorityOptions.authorityMetadata) {
             try {
                 return JSON.parse(this.authorityOptions.authorityMetadata) as OpenIdConfigResponse;
             } catch (e) {
-                // TODO: Throw better error
-                throw "Unable to parse authorityMetadata parameter into JSON.";
+                throw ClientConfigurationError.createInvalidAuthorityMetadataError();
             }
         }
 
@@ -294,18 +265,51 @@ export class Authority {
     }
 
     /**
-     * 
+     * Updates the AuthorityMetadataEntity with new aliases, preferred_network and preferred_cache and returns where the information was retrived from
+     * @param cachedMetadata 
+     * @param newMetadata 
+     */
+    private async updateCloudDiscoveryMetadata(metadataEntity: AuthorityMetadataEntity): Promise<AuthorityMetadataSource> {
+        let metadata = this.getCloudDiscoveryMetadataFromConfig();
+        if (metadata) {
+            metadataEntity.updateCloudDiscoveryMetadata(metadata, false);
+            return AuthorityMetadataSource.CONFIG;
+        }
+
+        // If The cached metadata came from config but that config was not passed to this instance, we must go to the network
+        if (metadataEntity.aliasesFromNetwork && !metadataEntity.isExpired()) {
+            // No need to update
+            return AuthorityMetadataSource.CACHE;
+        }
+
+        metadata = await this.getCloudDiscoveryMetadataFromNetwork();
+        if (metadata) {
+            metadataEntity.updateCloudDiscoveryMetadata(metadata, true);
+            return AuthorityMetadataSource.NETWORK;
+        } else {
+            // Metadata could not be obtained from config, cache or network
+            throw ClientConfigurationError.createUntrustedAuthorityError();
+        }
+    }
+
+    /**
+     * Parse cloudDiscoveryMetadata config or check knownAuthorities
      */
     private getCloudDiscoveryMetadataFromConfig(): CloudDiscoveryMetadata | null {
         // Check if network response was provided in config
         if (this.authorityOptions.cloudDiscoveryMetadata) {
-            const parsedResponse = JSON.parse(this.authorityOptions.cloudDiscoveryMetadata) as CloudInstanceDiscoveryResponse;
-            const metadata = Authority.getCloudDiscoveryMetadataFromNetworkResponse(parsedResponse.metadata, this.hostnameAndPort);
-            if (metadata) {
-                return metadata;
+            try {
+                const parsedResponse = JSON.parse(this.authorityOptions.cloudDiscoveryMetadata) as CloudInstanceDiscoveryResponse;
+                const metadata = Authority.getCloudDiscoveryMetadataFromNetworkResponse(parsedResponse.metadata, this.hostnameAndPort);
+                if (metadata) {
+                    return metadata;
+                }
+            } catch (e) {
+                throw ClientConfigurationError.createInvalidCloudDiscoveryMetadataError();
             }
         }
 
+        // If cloudDiscoveryMetadata is empty or does not contain the host, check knownAuthorities
         if (this.isInKnownAuthorities()) {
             return Authority.createCloudDiscoveryMetadataFromHost(this.hostnameAndPort);
         }
@@ -336,7 +340,7 @@ export class Authority {
     } 
 
     /**
-     * 
+     * Helper function to determine if this host is included in the knownAuthorities config option
      */
     private isInKnownAuthorities(): boolean {
         return !!this.authorityOptions.knownAuthorities.find((authority) => {
@@ -345,7 +349,7 @@ export class Authority {
     }
 
     /**
-     * 
+     * Creates cloud discovery metadata object from a given host
      * @param host 
      */
     static createCloudDiscoveryMetadataFromHost(host: string): CloudDiscoveryMetadata {
@@ -357,7 +361,7 @@ export class Authority {
     }
 
     /**
-     * 
+     * Searches instance discovery network response for the entry that contains the host in the aliases list
      * @param response 
      * @param authority 
      */
@@ -382,7 +386,7 @@ export class Authority {
     }
 
     /**
-     * 
+     * Returns whether or not the provided host is an alias of this authority instance
      * @param host 
      */
     isAlias(host: string): boolean {
