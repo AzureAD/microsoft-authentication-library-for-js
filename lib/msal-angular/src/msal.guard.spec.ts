@@ -55,7 +55,7 @@ function initializeMsal() {
     guard = TestBed.inject(MsalGuard);
 }
 
-xdescribe("MsalGuard", () => {
+describe("MsalGuard", () => {
     beforeEach(() => {
         testInteractionType = InteractionType.Popup;
         initializeMsal();
