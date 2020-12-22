@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import { AuthError, AuthErrorMessage } from "../../src/error/AuthError";
 

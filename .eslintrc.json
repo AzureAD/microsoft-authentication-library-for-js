@@ -11,7 +11,9 @@
         "security",
         "import",
         "header",
-        "react"
+        "react",
+        "jest",
+        "jasmine"
     ],
     "extends": [
         "plugin:@typescript-eslint/eslint-recommended",
@@ -42,6 +44,10 @@
         "eol-last": 2,
         "eqeqeq": 2,
         "header/header": [2, "block", [ "", " * Copyright (c) Microsoft Corporation. All rights reserved.", " * Licensed under the MIT License.", " " ], 2],
+        "jasmine/no-disabled-tests": 1,
+        "jasmine/no-focused-tests": 2,
+        "jest/no-disabled-tests": 1,
+        "jest/no-focused-tests": 2,
         "import/first": 2,
         "import/no-unresolved": 2,
         "import/no-useless-path-segments": 2,

@@ -1,8 +1,13 @@
-import { PublicClientApplication } from './../../src/client/PublicClientApplication';
-import { AuthorizationCodeRequest, Configuration } from './../../src/index';
-import { TEST_CONSTANTS } from '../utils/TestConstants';
-import { version, name } from '../../package.json';
-import { mocked } from 'ts-jest/utils';
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import { PublicClientApplication } from "../../src/client/PublicClientApplication";
+import { AuthorizationCodeRequest, Configuration } from "../../src/index";
+import { TEST_CONSTANTS } from "../utils/TestConstants";
+import { version, name } from "../../package.json";
+import { mocked } from "ts-jest/utils";
 import {
     Authority,
     AuthorityFactory,
@@ -14,15 +19,15 @@ import {
     ProtocolMode,
     Logger,
     LogLevel
-} from '@azure/msal-common';
+} from "@azure/msal-common";
 
 import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest";
 import { DeviceCodeRequest } from "../../src/request/DeviceCodeRequest";
 import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
 
-jest.mock('@azure/msal-common');
+jest.mock("@azure/msal-common");
 
-describe('PublicClientApplication', () => {
+describe("PublicClientApplication", () => {
     const authority: Authority = {
         resolveEndpointsAsync: () => {
             return new Promise<void>(resolve => {
@@ -34,7 +39,7 @@ describe('PublicClientApplication', () => {
         },
     } as Authority;
 
-    let appConfig: Configuration = {
+    const appConfig: Configuration = {
         auth: {
             clientId: TEST_CONSTANTS.CLIENT_ID,
             authority: TEST_CONSTANTS.AUTHORITY,
@@ -52,20 +57,22 @@ describe('PublicClientApplication', () => {
         },
     };
 
-    // const expectedOauthClientConfig: ClientConfiguration = {
-    //     authOptions: appConfig.auth,
-    // };
+    /*
+     * const expectedOauthClientConfig: ClientConfiguration = {
+     *     authOptions: appConfig.auth,
+     * };
+     */
 
     beforeEach(() => {
         jest.clearAllMocks();
     });
 
-    test('exports a class', () => {
+    test("exports a class", () => {
         const authApp = new PublicClientApplication(appConfig);
         expect(authApp).toBeInstanceOf(PublicClientApplication);
     });
 
-    test('acquireTokenByDeviceCode', async () => {
+    test("acquireTokenByDeviceCode", async () => {
         const request: DeviceCodeRequest = {
             deviceCodeCallback: response => {
                 console.log(response);
@@ -83,7 +90,7 @@ describe('PublicClientApplication', () => {
         );
     });
 
-    test('acquireTokenByAuthorizationCode', async () => {
+    test("acquireTokenByAuthorizationCode", async () => {
         const request: AuthorizationCodeRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             redirectUri: TEST_CONSTANTS.REDIRECT_URI,
@@ -100,7 +107,7 @@ describe('PublicClientApplication', () => {
         );
     });
 
-    test('acquireTokenByRefreshToken', async () => {
+    test("acquireTokenByRefreshToken", async () => {
         const request: RefreshTokenRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
@@ -116,7 +123,7 @@ describe('PublicClientApplication', () => {
         );
     });
 
-    test('create AuthorizationCode URL', async () => {
+    test("create AuthorizationCode URL", async () => {
         const request: AuthorizationUrlRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             redirectUri: TEST_CONSTANTS.REDIRECT_URI,
@@ -132,7 +139,7 @@ describe('PublicClientApplication', () => {
         );
     });
 
-    test('acquireToken default authority', async () => {
+    test("acquireToken default authority", async () => {
         // No authority set in app configuration or request, should default to common authority
         const config: Configuration = {
             auth: {
@@ -160,7 +167,7 @@ describe('PublicClientApplication', () => {
         );
     });
 
-    test('authority overridden by acquire token request parameters', async () => {
+    test("authority overridden by acquire token request parameters", async () => {
         // Authority set on client app, but should be overridden by authority passed in request
         const request: RefreshTokenRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,

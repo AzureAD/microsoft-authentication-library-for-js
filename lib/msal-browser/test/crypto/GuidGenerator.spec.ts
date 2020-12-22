@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import sinon from "sinon";
 import { RANDOM_TEST_GUID } from "../utils/StringConstants";

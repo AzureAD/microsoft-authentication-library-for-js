@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import sinon from "sinon";
 import {
@@ -7,12 +12,12 @@ import {
     TEST_TOKENS
 } from "../utils/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
-import { AADServerParamKeys, GrantType, Constants } from "../../src/utils/Constants";
+import { AADServerParamKeys, GrantType } from "../../src/utils/Constants";
 import { ClientTestUtils } from "./ClientTestUtils";
 import { Authority } from "../../src/authority/Authority";
 import { ClientCredentialClient } from "../../src/client/ClientCredentialClient";
 import { ClientCredentialRequest } from "../../src/request/ClientCredentialRequest";
-import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity"
+import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity";
 import { TimeUtils } from "../../src/utils/TimeUtils";
 import { CredentialCache } from "../../src/cache/utils/CacheTypes";
 import { CacheManager } from "../../src/cache/CacheManager";
@@ -142,7 +147,7 @@ describe("ClientCredentialClient unit tests", () => {
             },
             refreshTokens: null,
             idTokens: null
-        }
+        };
 
         sinon.stub(CacheManager.prototype, <any>"getCredentialsFilteredBy").returns(mockedCredentialCache);
 

@@ -1,12 +1,17 @@
-import * as Mocha from "mocha";
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import "mocha";
 import * as chai from "chai";
 import sinon from "sinon";
 import chaiAsPromised from "chai-as-promised";
+import { ICrypto, PkceCodes, UrlString, SignedHttpRequest, TimeUtils } from "../../src";
+import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
+import { PopTokenGenerator } from "../../src/crypto/PopTokenGenerator";
 const expect = chai.expect;
 chai.use(chaiAsPromised);
-import { ICrypto, PkceCodes, UrlString, SignedHttpRequest, TimeUtils } from "../../src";
-import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS, TEST_TOKENS } from "../utils/StringConstants";
-import { PopTokenGenerator } from "../../src/crypto/PopTokenGenerator";
 
 describe("PopTokenGenerator Unit Tests", () => {
 
@@ -44,7 +49,7 @@ describe("PopTokenGenerator Unit Tests", () => {
             return {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
-            }
+            };
         },
         async getPublicKeyThumbprint(): Promise<string> {
             return TEST_POP_VALUES.KID;

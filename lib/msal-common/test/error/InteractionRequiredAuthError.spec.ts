@@ -1,8 +1,12 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage, InteractionRequiredAuthSubErrorMessage } from "../../src/error/InteractionRequiredAuthError";
 import { ServerError } from "../../src/error/ServerError";
 import { AuthError } from "../../src/error/AuthError";
-
 
 describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
 

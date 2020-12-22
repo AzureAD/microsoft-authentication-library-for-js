@@ -1,9 +1,13 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import { Base64Decode } from "../../src/encode/Base64Decode";
-import { IdTokenClaims, Constants } from "@azure/msal-common";
+import { IdTokenClaims, Constants , AuthorizationCodeRequest } from "@azure/msal-common";
 import { TEST_DATA_CLIENT_INFO, TEST_URIS, TEST_CONFIG, RANDOM_TEST_GUID } from "../utils/StringConstants";
 import { Base64Encode } from "../../src/encode/Base64Encode";
-import { AuthorizationCodeRequest } from "@azure/msal-common";
 
 describe("Base64Decode.ts Unit Tests", () => {
 
@@ -79,9 +83,9 @@ describe("Base64Decode.ts Unit Tests", () => {
             
             // Request object B64
             const tokenRequest: AuthorizationCodeRequest = {
-				redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
-				scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
-				code: "thisIsAnAuthCode",
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
+                scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
+                code: "thisIsAnAuthCode",
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
                 correlationId: `${RANDOM_TEST_GUID}`

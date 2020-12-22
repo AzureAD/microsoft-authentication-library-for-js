@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import { describe, it } from "mocha";
 import { WindowUtils } from "../../src/utils/WindowUtils";
@@ -149,7 +154,7 @@ describe("WindowUtils", () => {
             // @ts-ignore
             WindowUtils.monitorPopupForHash(popup.contentWindow, 1000, "url", logger)
                 .catch((error: ClientAuthError) => {
-                    expect(error.errorCode).to.equal('user_cancelled');
+                    expect(error.errorCode).to.equal("user_cancelled");
                     done();
                 });
 
@@ -225,7 +230,7 @@ describe("WindowUtils", () => {
         });
 
         it("clears temp cache items if back button pressed, no user state", () => {
-            const requestState = RequestUtils.validateAndGenerateState(null, "redirectInteraction")
+            const requestState = RequestUtils.validateAndGenerateState(null, "redirectInteraction");
             cacheStorage.setItem(TemporaryCacheKeys.REDIRECT_REQUEST, `${Constants.inProgress}${Constants.resourceDelimiter}${requestState}`);
 
             const resetTempCacheSpy = sinon.spy(cacheStorage, "resetTempCacheItems");
@@ -237,7 +242,7 @@ describe("WindowUtils", () => {
         });
 
         it("clears temp cache items if back button pressed, user state provided", () => {
-            const requestState = RequestUtils.validateAndGenerateState("testUserState", "redirectInteraction")
+            const requestState = RequestUtils.validateAndGenerateState("testUserState", "redirectInteraction");
             cacheStorage.setItem(TemporaryCacheKeys.REDIRECT_REQUEST, `${Constants.inProgress}${Constants.resourceDelimiter}${requestState}`);
 
             const resetTempCacheSpy = sinon.spy(cacheStorage, "resetTempCacheItems");

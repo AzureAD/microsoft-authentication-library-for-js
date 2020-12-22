@@ -1,6 +1,11 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
-import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
+import { INetworkModule } from "../../src/network/INetworkModule";
 import { TEST_CONFIG } from "../utils/StringConstants";
 import { Constants } from "../../src/utils/Constants";
 import { ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
@@ -10,16 +15,10 @@ import { ProtocolMode } from "../../src";
 
 describe("AuthorityFactory.ts Class Unit Tests", () => {
     const networkInterface: INetworkModule = {
-        sendGetRequestAsync<T>(
-            url: string,
-            options?: NetworkRequestOptions
-        ): T {
+        sendGetRequestAsync<T>(): T {
             return null;
         },
-        sendPostRequestAsync<T>(
-            url: string,
-            options?: NetworkRequestOptions
-        ): T {
+        sendPostRequestAsync<T>(): T {
             return null;
         }
     };
@@ -75,5 +74,5 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
         const authorityInstance = AuthorityFactory.createInstance(Constants.DEFAULT_AUTHORITY, networkInterface, ProtocolMode.OIDC);
         expect(authorityInstance.authorityType).to.be.eq(AuthorityType.Default);
         expect(authorityInstance instanceof Authority);
-    })
+    });
 });

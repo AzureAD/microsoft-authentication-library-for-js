@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import { AuthToken } from "../../src/account/AuthToken";
 import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES } from "../utils/StringConstants";
@@ -24,53 +29,53 @@ const testTokenPayload = "eyJ2ZXIiOiIyLjAiLCJpc3MiOiJodHRwczovL2xvZ2luLm1pY3Jvc2
 describe("AuthToken.ts Class Unit Tests", () => {
 
     let cryptoInterface: ICrypto;
-        beforeEach(() => {
-            cryptoInterface = {
-                createNewGuid(): string {
-                    return RANDOM_TEST_GUID;
-                },
-                base64Decode(input: string): string {
-                    switch (input) {
-                        case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                            return TEST_POP_VALUES.DECODED_REQ_CNF;
-                        case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                            return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                        case testTokenPayload:
-                            return JSON.stringify(idTokenClaims);
-                        default:
-                            return input;
-                    }
-                },
-                base64Encode(input: string): string {
-                    switch (input) {
-                        case "123-test-uid":
-                            return "MTIzLXRlc3QtdWlk";
-                        case "456-test-uid":
-                            return "NDU2LXRlc3QtdWlk";
-                        case TEST_POP_VALUES.DECODED_REQ_CNF:
-                            return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                        default:
-                            return input;
-                    }
-                },
-                async generatePkceCodes(): Promise<PkceCodes> {
-                    return {
-                        challenge: TEST_CONFIG.TEST_CHALLENGE,
-                        verifier: TEST_CONFIG.TEST_VERIFIER
-                    }
-                },
-                async getPublicKeyThumbprint(): Promise<string> {
-                    return TEST_POP_VALUES.KID;
-                },
-                async signJwt(): Promise<string> {
-                    return "";
+    beforeEach(() => {
+        cryptoInterface = {
+            createNewGuid(): string {
+                return RANDOM_TEST_GUID;
+            },
+            base64Decode(input: string): string {
+                switch (input) {
+                    case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                        return TEST_POP_VALUES.DECODED_REQ_CNF;
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    case testTokenPayload:
+                        return JSON.stringify(idTokenClaims);
+                    default:
+                        return input;
                 }
-            };
-        });
+            },
+            base64Encode(input: string): string {
+                switch (input) {
+                    case "123-test-uid":
+                        return "MTIzLXRlc3QtdWlk";
+                    case "456-test-uid":
+                        return "NDU2LXRlc3QtdWlk";
+                    case TEST_POP_VALUES.DECODED_REQ_CNF:
+                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                    default:
+                        return input;
+                }
+            },
+            async generatePkceCodes(): Promise<PkceCodes> {
+                return {
+                    challenge: TEST_CONFIG.TEST_CHALLENGE,
+                    verifier: TEST_CONFIG.TEST_VERIFIER
+                };
+            },
+            async getPublicKeyThumbprint(): Promise<string> {
+                return TEST_POP_VALUES.KID;
+            },
+            async signJwt(): Promise<string> {
+                return "";
+            }
+        };
+    });
 
-        afterEach(() => {
-            sinon.restore();
-        });
+    afterEach(() => {
+        sinon.restore();
+    });
 
     describe("Constructor", () => {
 

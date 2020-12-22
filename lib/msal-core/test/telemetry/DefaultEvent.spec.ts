@@ -1,7 +1,12 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import DefaultEvent from "../../src/telemetry/DefaultEvent";
 import { TelemetryPlatform, EventCount } from "../../src/telemetry/TelemetryTypes";
-import { CryptoUtils } from '../../src/utils/CryptoUtils';
+import { CryptoUtils } from "../../src/utils/CryptoUtils";
 
 describe("DefaultEvent", () => {
     it("DefaultEvent constructs and carries expected  values", () => {
@@ -19,7 +24,7 @@ describe("DefaultEvent", () => {
             networkInformation: {
                 connectionSpeed: "4g"
             }
-        }
+        };
         const defaultEvent: DefaultEvent = new DefaultEvent(
             platformConfig,
             correlationId,

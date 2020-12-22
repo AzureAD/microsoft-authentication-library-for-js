@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import sinon from "sinon";
 import { UrlUtils } from "../../src/utils/UrlUtils";
@@ -137,7 +142,7 @@ describe("UrlUtils.ts class", () => {
 
             expect(state).to.equal("eyJpZCI6IjJkZWQwNGU5LWYzZGYtNGU0Ny04YzRlLWY0MDMyMTU3YmJlOCIsInRzIjoxNTg1OTMyNzg5LCJtZXRob2QiOiJzaWxlbnRJbnRlcmFjdGlvbiJ9%7Chello");
         });
-    })
+    });
 
     describe("getUrlComponents", () => {
         let url;
@@ -155,7 +160,7 @@ describe("UrlUtils.ts class", () => {
         });
 
         it("properly splits up url with path", () => {
-            url += "testPage1/testPage2/"
+            url += "testPage1/testPage2/";
             const urlComponents = UrlUtils.GetUrlComponents(url);
 
             expect(urlComponents.Protocol).to.equal("https:");
@@ -164,7 +169,7 @@ describe("UrlUtils.ts class", () => {
         });
 
         it("properly splits up url with query string", () => {
-            url += "?testkey1=testval1&testkey2=testval2"
+            url += "?testkey1=testval1&testkey2=testval2";
             const urlComponents = UrlUtils.GetUrlComponents(url);
 
             expect(urlComponents.Protocol).to.equal("https:");
@@ -174,7 +179,7 @@ describe("UrlUtils.ts class", () => {
         });
 
         it("properly splits up url with hash", () => {
-            url += "#testhash"
+            url += "#testhash";
             const urlComponents = UrlUtils.GetUrlComponents(url);
 
             expect(urlComponents.Protocol).to.equal("https:");
@@ -184,8 +189,8 @@ describe("UrlUtils.ts class", () => {
         });
 
         it("properly splits up url with hash and query string", () => {
-            url += "?testkey1=testval1&testkey2=testval2"
-            url += "#testhash"
+            url += "?testkey1=testval1&testkey2=testval2";
+            url += "#testhash";
             const urlComponents = UrlUtils.GetUrlComponents(url);
 
             expect(urlComponents.Protocol).to.equal("https:");

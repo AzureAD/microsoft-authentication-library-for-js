@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import sinon from "sinon";
 import {
@@ -35,15 +40,14 @@ describe("DeviceCodeClient unit tests", async () => {
         sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
         config = await ClientTestUtils.createTestClientConfiguration();
         // Set up required objects and mocked return values
-        const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
-        const decodedLibState = `{ "id": "testid", "ts": 1592846482 }`;
+        const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
         config.cryptoInterface.base64Decode = (input: string): string => {
             switch (input) {
                 case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                        return TEST_POP_VALUES.DECODED_REQ_CNF;
+                    return TEST_POP_VALUES.DECODED_REQ_CNF;
                 case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                     return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                case `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9`:
+                case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
                     return decodedLibState;
                 default:
                     return input;
@@ -110,7 +114,7 @@ describe("DeviceCodeClient unit tests", async () => {
             };
 
             const client = new DeviceCodeClient(config);
-            const authenticationResult = await client.acquireToken(request);
+            await client.acquireToken(request);
 
             // Check that device code url is correct
             expect(queryStringSpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
@@ -134,14 +138,13 @@ describe("DeviceCodeClient unit tests", async () => {
             tokenRequestStub.onFirstCall().resolves(AUTHORIZATION_PENDING_RESPONSE);
             tokenRequestStub.onSecondCall().resolves(AUTHENTICATION_RESULT);
 
-            let deviceCodeResponse = null;
             const request: DeviceCodeRequest = {
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
-                deviceCodeCallback: (response) => deviceCodeResponse = response
+                deviceCodeCallback: () => {}
             };
 
             const client = new DeviceCodeClient(config);
-            const authenticationResult = await client.acquireToken(request);
+            await client.acquireToken(request);
         }).timeout(12000);
     });
 
@@ -151,10 +154,9 @@ describe("DeviceCodeClient unit tests", async () => {
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
             sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
 
-            let deviceCodeResponse = null;
             const request: DeviceCodeRequest = {
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
-                deviceCodeCallback: (response) => deviceCodeResponse = response,
+                deviceCodeCallback: () => {},
             };
 
             const client = new DeviceCodeClient(config);
@@ -165,10 +167,9 @@ describe("DeviceCodeClient unit tests", async () => {
         it("Throw device code expired exception if device code is expired", async () => {
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_EXPIRED_RESPONSE);
 
-            let deviceCodeResponse = null;
             const request: DeviceCodeRequest = {
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
-                deviceCodeCallback: (response) => deviceCodeResponse = response,
+                deviceCodeCallback: () => {},
             };
 
             const client = new DeviceCodeClient(config);
@@ -178,13 +179,12 @@ describe("DeviceCodeClient unit tests", async () => {
         it("Throw device code expired exception if the timeout expires", async () => {
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
             const tokenRequestStub = sinon
-            .stub(BaseClient.prototype, <any>"executePostToTokenEndpoint")
-            .onFirstCall().resolves(AUTHORIZATION_PENDING_RESPONSE)
+                .stub(BaseClient.prototype, <any>"executePostToTokenEndpoint")
+                .onFirstCall().resolves(AUTHORIZATION_PENDING_RESPONSE);
 
-            let deviceCodeResponse = null;
             const request: DeviceCodeRequest = {
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
-                deviceCodeCallback: (response) => deviceCodeResponse = response,
+                deviceCodeCallback: () => {},
                 timeout: DEVICE_CODE_RESPONSE.interval, // Setting a timeout equal to the interval polling time to allow for one call to the token endpoint 
             };
 

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import { ProtocolUtils } from "../../src/utils/ProtocolUtils";
 import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES } from "./StringConstants";
@@ -12,7 +17,7 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
     const userState = "userState";
     const testTimeStamp = 1592846482;
     const decodedLibState = `{"id":"${RANDOM_TEST_GUID}","ts":${testTimeStamp}}`;
-    const encodedLibState = `eyJpZCI6IiR7UkFORE9NX1RFU1RfR1VJRH0iLCJ0cyI6JHt0ZXN0VGltZVN0YW1wfX0=`;
+    const encodedLibState = "eyJpZCI6IiR7UkFORE9NX1RFU1RfR1VJRH0iLCJ0cyI6JHt0ZXN0VGltZVN0YW1wfX0=";
     const testState = `${encodedLibState}${Constants.RESOURCE_DELIM}${userState}`;
 
     let cryptoInterface: ICrypto;

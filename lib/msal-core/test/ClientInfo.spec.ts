@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import sinon from "sinon";
 import { ClientInfo } from "../src/ClientInfo";
@@ -36,7 +41,7 @@ describe("Client Info", function () {
 
     describe("createClientInfoFromIdToken", () => {
         it("Returns encoded ClientInfo Object", () => {
-            const tempIdToken: IdToken = new IdToken(TEST_TOKENS.IDTOKEN_V2);;
+            const tempIdToken: IdToken = new IdToken(TEST_TOKENS.IDTOKEN_V2);
             tempIdToken.subject = "test-oid";
 
             const clientInfo = ClientInfo.createClientInfoFromIdToken(tempIdToken, TEST_CONFIG.validAuthority);
@@ -55,18 +60,18 @@ describe("Client Info", function () {
         });
 
         it("sets uid and utid to empty if null or empty string is passed", function () {
-            let nullString : string = null;
+            const nullString : string = null;
             clientInfoObj = new ClientInfo(nullString, TEST_CONFIG.validAuthority);
             expect(clientInfoObj.uid).to.be.empty;
             expect(clientInfoObj.utid).to.be.empty;
-            let emptyString = "";
+            const emptyString = "";
             clientInfoObj = new ClientInfo(emptyString, TEST_CONFIG.validAuthority);
             expect(clientInfoObj.uid).to.be.empty;
             expect(clientInfoObj.utid).to.be.empty;
         });
 
         it("throws an error if invalid raw string is given", function () {
-            let invalidRawString = "youCan'tParseThis";
+            const invalidRawString = "youCan'tParseThis";
             let authErr : AuthError;
             try {
                 clientInfoObj = new ClientInfo(invalidRawString, TEST_CONFIG.validAuthority);
@@ -128,7 +133,7 @@ describe("Client Info", function () {
         });
 
         it("sets uid and utid if passed authority is b2c", function () {
-            const rawClientInfo = `{"uid":"123-test-uid-testPolicy","utid":"456-test-utid"}`;
+            const rawClientInfo = "{\"uid\":\"123-test-uid-testPolicy\",\"utid\":\"456-test-utid\"}";
             sinon.stub(CryptoUtils, "base64Decode").returns(rawClientInfo);
             // What we pass in here doesn't matter since we are stubbing
             clientInfoObj = new ClientInfo(rawClientInfo, "https://b2cdomain.com/b2ctenant.com/testPolicy");
@@ -138,7 +143,7 @@ describe("Client Info", function () {
         });
 
         it("Does not set anything if uid and utid are not part of clientInfo", () => {
-            sinon.stub(CryptoUtils, "base64Decode").returns(`{"test-uid":"123-test-uid","test-utid":"456-test-utid"}`);
+            sinon.stub(CryptoUtils, "base64Decode").returns("{\"test-uid\":\"123-test-uid\",\"test-utid\":\"456-test-utid\"}");
             // What we pass in here doesn't matter since we are stubbing
             clientInfoObj = new ClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, "");
             expect(clientInfoObj).to.not.be.null;
@@ -147,7 +152,7 @@ describe("Client Info", function () {
         });
 
         it("Does not set utid member if utid not part of ClientInfo", () => {
-            sinon.stub(CryptoUtils, "base64Decode").returns(`{"uid":"123-test-uid","test-utid":"456-test-utid"}`);
+            sinon.stub(CryptoUtils, "base64Decode").returns("{\"uid\":\"123-test-uid\",\"test-utid\":\"456-test-utid\"}");
             // What we pass in here doesn't matter since we are stubbing
             clientInfoObj = new ClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, "");
             expect(clientInfoObj).to.not.be.null;
@@ -157,7 +162,7 @@ describe("Client Info", function () {
         });
 
         it("Does not set uid member if uid not part of ClientInfo", () => {
-            sinon.stub(CryptoUtils, "base64Decode").returns(`{"test-uid":"123-test-uid","utid":"456-test-utid"}`);
+            sinon.stub(CryptoUtils, "base64Decode").returns("{\"test-uid\":\"123-test-uid\",\"utid\":\"456-test-utid\"}");
             // What we pass in here doesn't matter since we are stubbing
             clientInfoObj = new ClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, "");
             expect(clientInfoObj).to.not.be.null;

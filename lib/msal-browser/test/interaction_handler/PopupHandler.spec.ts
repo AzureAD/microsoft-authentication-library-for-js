@@ -5,7 +5,7 @@
 
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
-import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthorizationCodeClient, ProtocolMode, Logger, AuthenticationScheme } from "@azure/msal-common";
+import { PkceCodes, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthorizationCodeClient, ProtocolMode, Logger, AuthenticationScheme } from "@azure/msal-common";
 import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, TEST_POP_VALUES } from "../utils/StringConstants";
@@ -28,19 +28,11 @@ const testNetworkResult = {
     testParam: "testValue"
 };
 
-const testKeySet = ["testKey1", "testKey2"];
-
 const networkInterface = {
-    sendGetRequestAsync<T>(
-        url: string,
-        options?: NetworkRequestOptions
-    ): T {
+    sendGetRequestAsync<T>(): T {
         return null;
     },
-    sendPostRequestAsync<T>(
-        url: string,
-        options?: NetworkRequestOptions
-    ): T {
+    sendPostRequestAsync<T>(): T {
         return null;
     },
 };
@@ -71,10 +63,10 @@ describe("PopupHandler.ts Unit Tests", () => {
                 createNewGuid: (): string => {
                     return "newGuid";
                 },
-                base64Decode: (input: string): string => {
+                base64Decode: (): string => {
                     return "testDecodedString";
                 },
-                base64Encode: (input: string): string => {
+                base64Encode: (): string => {
                     return "testEncodedString";
                 },
                 generatePkceCodes: async (): Promise<PkceCodes> => {
@@ -89,25 +81,15 @@ describe("PopupHandler.ts Unit Tests", () => {
             },
             storageInterface: null,
             networkInterface: {
-                sendGetRequestAsync: async (
-                    url: string,
-                    options?: NetworkRequestOptions
-                ): Promise<any> => {
+                sendGetRequestAsync: async (): Promise<any> => {
                     return testNetworkResult;
                 },
-                sendPostRequestAsync: async (
-                    url: string,
-                    options?: NetworkRequestOptions
-                ): Promise<any> => {
+                sendPostRequestAsync: async (): Promise<any> => {
                     return testNetworkResult;
                 },
             },
             loggerOptions: {
-                loggerCallback: (
-                    level: LogLevel,
-                    message: string,
-                    containsPii: boolean
-                ): void => {},
+                loggerCallback: (): void => {},
                 piiLoggingEnabled: true,
             },
         };
@@ -164,7 +146,7 @@ describe("PopupHandler.ts Unit Tests", () => {
                 return;
             };
 
-            window.open = (url?: string, target?: string, features?: string, replace?: boolean): Window => {
+            window.open = (): Window => {
                 return window;
             };
 
@@ -262,7 +244,6 @@ describe("PopupHandler.ts Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER
             };
-
             
             const popupWindow = popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest, {
                 // @ts-ignore

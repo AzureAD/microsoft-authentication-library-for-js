@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import sinon from "sinon";
 import { XhrClient } from "../../src/network/XhrClient";
@@ -54,7 +59,7 @@ describe("XhrClient.ts Unit Tests", () => {
 
         it("sends headers with the requests", async () => {
             const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
-            const reqHeaders: Record<string, string> = { "Content-Type": Constants.URL_FORM_CONTENT_TYPE }
+            const reqHeaders: Record<string, string> = { "Content-Type": Constants.URL_FORM_CONTENT_TYPE };
             const requestOptions: NetworkRequestOptions = {
                 body: "thisIsAPostBody",
                 headers: reqHeaders

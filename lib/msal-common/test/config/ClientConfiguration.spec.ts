@@ -1,9 +1,12 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import { ClientConfiguration, buildClientConfiguration } from "../../src/config/ClientConfiguration";
 import { PkceCodes } from "../../src/crypto/ICrypto";
 import { AuthError } from "../../src/error/AuthError";
-import { NetworkRequestOptions } from "../../src/network/INetworkModule";
-import { LogLevel } from "../../src/logger/Logger";
 import { Constants } from "../../src";
 import { version } from "../../package.json";
 import {TEST_CONFIG, TEST_POP_VALUES} from "../utils/StringConstants";
@@ -78,8 +81,6 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         testParam: "testValue"
     };
 
-    const testKeySet = ["testKey1", "testKey2"];
-
     it("buildConfiguration correctly assigns new values", async () => {
         const newConfig: ClientConfiguration = buildClientConfiguration({
             authOptions: {
@@ -89,10 +90,10 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 createNewGuid: (): string => {
                     return "newGuid";
                 },
-                base64Decode: (input: string): string => {
+                base64Decode: (): string => {
                     return "testDecodedString";
                 },
-                base64Encode: (input: string): string => {
+                base64Encode: (): string => {
                     return "testEncodedString";
                 },
                 generatePkceCodes: async (): Promise<PkceCodes> => {
@@ -107,15 +108,15 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
             },
             storageInterface: cacheStorageMock,
             networkInterface: {
-                sendGetRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
+                sendGetRequestAsync: async (): Promise<any> => {
                     return testNetworkResult;
                 },
-                sendPostRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
+                sendPostRequestAsync: async (): Promise<any> => {
                     return testNetworkResult;
                 }
             },
             loggerOptions: {
-                loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {},
+                loggerCallback: (): void => {},
                 piiLoggingEnabled: true
             },
             libraryInfo: {

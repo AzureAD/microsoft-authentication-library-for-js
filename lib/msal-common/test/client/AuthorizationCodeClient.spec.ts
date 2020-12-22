@@ -1,16 +1,18 @@
-import * as Mocha from "mocha";
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import "mocha";
 import * as chai from "chai";
 import sinon from "sinon";
 import chaiAsPromised from "chai-as-promised";
-const expect = chai.expect;	
-chai.use(chaiAsPromised);
 import {
     Authority,
     AuthorizationCodeClient,
     AuthorizationCodeRequest,
     AuthorizationUrlRequest,
     Constants,
-    ClientConfigurationErrorMessage,
     ClientAuthErrorMessage,
     ServerError,
     IdToken,
@@ -18,7 +20,6 @@ import {
     AccountInfo,
     AccountEntity,
     AuthToken,
-    ICrypto,
     TokenClaims,
     SignedHttpRequest
 } from "../../src";
@@ -40,6 +41,8 @@ import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { BaseClient } from "../../src/client/BaseClient";
 import { AADServerParamKeys, PromptValue, ResponseMode, SSOTypes, AuthenticationScheme } from "../../src/utils/Constants";
 import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils";
+const expect = chai.expect;	
+chai.use(chaiAsPromised);
 
 describe("AuthorizationCodeClient unit tests", () => {
     beforeEach(() => {
@@ -441,7 +444,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 }
             };
             const signedJwt = "signedJwt";
-            config.cryptoInterface.signJwt = async (payload: SignedHttpRequest, kid: string): Promise<string> => {
+            config.cryptoInterface.signJwt = async (payload: SignedHttpRequest): Promise<string> => {
                 expect(payload.at).to.be.eq(POP_AUTHENTICATION_RESULT.body.access_token);
                 return signedJwt;
             };
@@ -457,7 +460,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
                 "nonce": "123523",
             };
-            sinon.stub(AuthToken, "extractTokenClaims").callsFake((encodedToken: string, crypto: ICrypto): TokenClaims => {
+            sinon.stub(AuthToken, "extractTokenClaims").callsFake((encodedToken: string): TokenClaims => {
                 switch (encodedToken) {
                     case POP_AUTHENTICATION_RESULT.body.id_token:
                         return idTokenClaims as TokenClaims;
@@ -512,13 +515,6 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                environment: "login.windows.net",
-                tenantId: "testTenantId",
-                username: "test@contoso.com",
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID
-            };
 
             const removeAccountSpy = sinon.stub(MockStorageClass.prototype, "clear").returns();
             const logoutUri = client.getLogoutUri({account: null});

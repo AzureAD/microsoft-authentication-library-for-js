@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import { ServerTelemetryEntity } from "../../../src/cache/entities/ServerTelemetryEntity";
 import { SERVER_TELEM_CONSTANTS, Separators } from "../../../src/utils/Constants";

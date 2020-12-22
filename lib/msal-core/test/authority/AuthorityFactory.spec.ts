@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import { ClientConfigurationError } from "../../src/error/ClientConfigurationError";
 import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
@@ -12,20 +17,20 @@ describe("AuthorityFactory.ts Class", function () {
 
     describe("CreateInstance", () => {
         it("tests if empty authority url returns null", function () {
-            let authority = AuthorityFactory.CreateInstance("", true);
+            const authority = AuthorityFactory.CreateInstance("", true);
     
             expect(authority).to.be.null;
         });
 
         it("Creates Authority Instance", function () {
-            let authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
+            const authority = AuthorityFactory.CreateInstance(TEST_CONFIG.validAuthority, false);
 
             expect(authority).to.be.instanceOf(Authority);
         });
 
         it("calls saveMetadataFromConfig if metadata provided", function (done) {
             // Verification of saved metadata is done in separate tests below
-            const testMetadata = JSON.stringify(OPENID_CONFIGURATION)
+            const testMetadata = JSON.stringify(OPENID_CONFIGURATION);
             sinon.stub(AuthorityFactory, "saveMetadataFromConfig").callsFake(function (authorityUrl, metadata) {
                 expect(authorityUrl).to.equal(TEST_CONFIG.validAuthority);
                 expect(metadata).to.equal(testMetadata);

@@ -1,23 +1,26 @@
-import * as Mocha from "mocha";
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import "mocha";
 import { expect } from "chai";
 import sinon from "sinon";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 import { ResponseHandler } from "../../src/response/ResponseHandler";
 import { AUTHENTICATION_RESULT, RANDOM_TEST_GUID, TEST_CONFIG, ID_TOKEN_CLAIMS, TEST_DATA_CLIENT_INFO, TEST_STATE_VALUES, TEST_POP_VALUES, POP_AUTHENTICATION_RESULT, TEST_URIS } from "../utils/StringConstants";
 import { Authority } from "../../src/authority/Authority";
-import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
-import { CacheManager } from "../../src/cache/CacheManager";
+import { INetworkModule } from "../../src/network/INetworkModule";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
-import { ClientTestUtils } from "../client/ClientTestUtils";
-import { AccountEntity, TrustedAuthority, ClientAuthError, ClientAuthErrorMessage, InteractionRequiredAuthError, ServerError, AuthToken, AuthenticationResult, AuthError, TokenClaims, AuthenticationScheme, ValidCredentialType, CredentialEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, ProtocolMode, Logger, LogLevel } from "../../src";
+import { ClientTestUtils , MockStorageClass } from "../client/ClientTestUtils";
+import { AccountEntity, TrustedAuthority, ClientAuthError, ClientAuthErrorMessage, InteractionRequiredAuthError, ServerError, AuthToken, AuthError, TokenClaims, AuthenticationScheme, ProtocolMode, Logger, LogLevel } from "../../src";
 import { ServerAuthorizationCodeResponse } from "../../src/response/ServerAuthorizationCodeResponse";
-import { MockStorageClass } from "../client/ClientTestUtils";
 
 const networkInterface: INetworkModule = {
-    sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+    sendGetRequestAsync<T>(): T {
         return null;
     },
-    sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+    sendPostRequestAsync<T>(): T {
         return null;
     }
 };
@@ -74,11 +77,11 @@ const testLoggerCallback = (level: LogLevel, message: string, containsPii: boole
 };
 const loggerOptions = {
     loggerCallback: testLoggerCallback,
-}
+};
 
 describe("ResponseHandler.ts", () => {
     beforeEach(() => {
-        sinon.stub(AuthToken, "extractTokenClaims").callsFake((encodedIdToken, crypto) => {
+        sinon.stub(AuthToken, "extractTokenClaims").callsFake(() => {
             return ID_TOKEN_CLAIMS as TokenClaims;
         });
         sinon.stub(ResponseHandler.prototype, <any>"generateAccountEntity").returns(new AccountEntity());
@@ -99,7 +102,7 @@ describe("ResponseHandler.ts", () => {
     describe("generateCacheRecord", async () => {
         it("throws invalid cache environment error", async () => {
             sinon.restore();
-            sinon.stub(AuthToken, "extractTokenClaims").callsFake((encodedIdToken, crypto) => {
+            sinon.stub(AuthToken, "extractTokenClaims").callsFake(() => {
                 return ID_TOKEN_CLAIMS as TokenClaims;
             });
             sinon.stub(ResponseHandler.prototype, <any>"generateAccountEntity").returns(new AccountEntity());
@@ -134,7 +137,7 @@ describe("ResponseHandler.ts", () => {
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
 
-            sinon.stub(ResponseHandler, "generateAuthenticationResult").callsFake((cryptoObj, authority, cacheRecord, idTokenObj, fromTokenCache, stateString, resourceReqMethod, resourceReqUri) => {
+            sinon.stub(ResponseHandler, "generateAuthenticationResult").callsFake((cryptoObj, authority, cacheRecord) => {
                 expect(authority).to.be.eq(testAuthority);
                 expect(cacheRecord.idToken).to.not.be.null;
                 expect(cacheRecord.accessToken).to.be.null;
@@ -152,7 +155,7 @@ describe("ResponseHandler.ts", () => {
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
 
-            sinon.stub(ResponseHandler, "generateAuthenticationResult").callsFake((cryptoObj, authority, cacheRecord, idTokenObj, fromTokenCache, stateString, resourceReqMethod, resourceReqUri) => {
+            sinon.stub(ResponseHandler, "generateAuthenticationResult").callsFake((cryptoObj, authority, cacheRecord) => {
                 expect(authority).to.be.eq(testAuthority);
                 expect(cacheRecord.idToken).to.not.be.null;
                 expect(cacheRecord.accessToken).to.not.be.null;
@@ -169,7 +172,7 @@ describe("ResponseHandler.ts", () => {
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
 
-            sinon.stub(ResponseHandler, "generateAuthenticationResult").callsFake((cryptoObj, authority, cacheRecord, idTokenObj, fromTokenCache, stateString, resourceReqMethod, resourceReqUri) => {
+            sinon.stub(ResponseHandler, "generateAuthenticationResult").callsFake((cryptoObj, authority, cacheRecord) => {
                 expect(authority).to.be.eq(testAuthority);
                 expect(cacheRecord.idToken).to.not.be.null;
                 expect(cacheRecord.accessToken).to.not.be.null;
@@ -209,7 +212,7 @@ describe("ResponseHandler.ts", () => {
         it("sets default values for access token using PoP scheme", async () => {
             const testResponse: ServerAuthorizationTokenResponse = { ...POP_AUTHENTICATION_RESULT.body };
             sinon.restore();
-            sinon.stub(AuthToken, "extractTokenClaims").callsFake((encodedToken: string, crypto: ICrypto): TokenClaims => {
+            sinon.stub(AuthToken, "extractTokenClaims").callsFake((encodedToken: string): TokenClaims => {
                 switch (encodedToken) {
                     case testResponse.id_token:
                         return ID_TOKEN_CLAIMS as TokenClaims;

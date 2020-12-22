@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import { Configuration, buildConfiguration, DEFAULT_POPUP_TIMEOUT_MS, DEFAULT_IFRAME_TIMEOUT_MS } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
@@ -13,10 +18,10 @@ const TEST_OFFSET = 100;
 
 describe("Configuration.ts Class Unit Tests", () => {
 
-    const testLoggerCallback = (level: LogLevel, message: string, containsPii: boolean): void => {}
+    const testLoggerCallback = (): void => {};
 
     it("buildConfiguration assigns default values", () => {
-        let emptyConfig: Configuration = buildConfiguration({auth: null});
+        const emptyConfig: Configuration = buildConfiguration({auth: null});
         // Auth config checks
         expect(emptyConfig.auth).to.be.not.null;
         expect(emptyConfig.auth.clientId).to.be.empty;
@@ -25,7 +30,7 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.auth.postLogoutRedirectUri).to.be.eq("");
         expect(emptyConfig.auth.navigateToLoginRequestUrl).to.be.true;
         // Cache config checks
-        expect(emptyConfig.cache).to.be.not.null.and.not.undefined
+        expect(emptyConfig.cache).to.be.not.null.and.not.undefined;
         expect(emptyConfig.cache.cacheLocation).to.be.not.null.and.not.undefined;
         expect(emptyConfig.cache.cacheLocation).to.be.eq("sessionStorage");
         expect(emptyConfig.cache.storeAuthStateInCookie).to.be.not.null.and.not.undefined;
@@ -95,7 +100,7 @@ describe("Configuration.ts Class Unit Tests", () => {
         const consoleDebugSpy = sinon.stub(console, "debug");
         const consoleWarnSpy = sinon.stub(console, "warn");
         const message = "log message";
-        let emptyConfig: Configuration = buildConfiguration({
+        const emptyConfig: Configuration = buildConfiguration({
             auth: null,
             system: {
                 loggerOptions: {
@@ -121,22 +126,22 @@ describe("Configuration.ts Class Unit Tests", () => {
                 }
             }
         });
-        emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Error, message, true)
+        emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Error, message, true);
         expect(consoleErrorSpy.called).to.be.false;
-        emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Error, message, false)
+        emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Error, message, false);
         expect(consoleErrorSpy.calledOnce).to.be.true;
-        emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Info, message, false)
+        emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Info, message, false);
         expect(consoleInfoSpy.calledOnce).to.be.true;
-        emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Verbose, message, false)
+        emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Verbose, message, false);
         expect(consoleDebugSpy.calledOnce).to.be.true;
-        emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Warning, message, false)
+        emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Warning, message, false);
         expect(consoleWarnSpy.calledOnce).to.be.true;
     });
 
-    let testProtectedResourceMap = new Map<string, Array<string>>();
+    const testProtectedResourceMap = new Map<string, Array<string>>();
     testProtectedResourceMap.set("testResource1", ["resourceUri1"]);
     it("buildConfiguration correctly assigns new values", () => {
-        let newConfig: Configuration = buildConfiguration({
+        const newConfig: Configuration = buildConfiguration({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 authority: TEST_CONFIG.validAuthority,

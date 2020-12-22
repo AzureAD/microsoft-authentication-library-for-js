@@ -1,6 +1,11 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import { ServerRequestParameters } from "../src/ServerRequestParameters";
-import { Authority, ClientConfigurationError, Account } from "../src";
+import { ClientConfigurationError, Account } from "../src";
 import { AuthorityFactory } from "../src/authority/AuthorityFactory";
 import { UrlUtils } from "../src/utils/UrlUtils";
 import { TEST_CONFIG, TEST_RESPONSE_TYPE, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO } from "./TestConstants";
@@ -55,11 +60,9 @@ describe("ServerRequestParameters.ts Class", function () {
     describe("State Generation", function () {
 
         it("tests if if authenticateRequestParameter generates state correctly, if state is a number", function () {
-            let authenticationRequestParameters: ServerRequestParameters;
-            let authority: Authority;
-            authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
+            const authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
             const scopes = ["user.read"];
-            authenticationRequestParameters = new ServerRequestParameters(
+            const authenticationRequestParameters = new ServerRequestParameters(
                 authority,
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 TEST_RESPONSE_TYPE.id_token,
@@ -71,14 +74,12 @@ describe("ServerRequestParameters.ts Class", function () {
             expect(decodeURIComponent(result[4])).to.include(TEST_CONFIG.STATE);
         });
 
-        it('test if authenticateRequestParameter generates state correctly, if state is a url', function () {
-            let authenticationRequestParameters: ServerRequestParameters;
-            let authority: Authority;
-            authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
+        it("test if authenticateRequestParameter generates state correctly, if state is a url", function () {
+            const authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
 
             const scopes = ["user.read"];
             const state = "https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow?name=value&name2=value2";
-            authenticationRequestParameters = new ServerRequestParameters(
+            const authenticationRequestParameters = new ServerRequestParameters(
                 authority,
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 TEST_RESPONSE_TYPE.id_token,
@@ -94,12 +95,10 @@ describe("ServerRequestParameters.ts Class", function () {
     describe("CorrelationId Tests", function () {
 
         it("tests correlation Id passed by the user is set correctly", function () {
-            let authenticationRequestParameters: ServerRequestParameters;
-            let authority: Authority;
-            authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
+            const authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
 
             const scopes = ["user.read"];
-            authenticationRequestParameters = new ServerRequestParameters(
+            const authenticationRequestParameters = new ServerRequestParameters(
                 authority,
                 TEST_CONFIG.MSAL_CLIENT_ID,
                 TEST_RESPONSE_TYPE.id_token,
@@ -114,9 +113,7 @@ describe("ServerRequestParameters.ts Class", function () {
         it("tests correlation Id passed by the user is validated correctly", function () {
             let err:ClientConfigurationError;
             try {
-                let authenticationRequestParameters: ServerRequestParameters;
-                let authority: Authority;
-                authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
+                const authority = AuthorityFactory.CreateInstance("https://login.microsoftonline.com/common/", this.validateAuthority);
 
                 const scopes = ["user.read"];
                 const request: AuthenticationParameters = { correlationId: "Hello"};

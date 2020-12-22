@@ -1,9 +1,13 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
-import { ResponseUtils } from "../../src/utils/ResponseUtils"
+import { ResponseUtils } from "../../src/utils/ResponseUtils";
 import { AuthResponse } from "../../src/AuthResponse";
 import { IdToken } from "../../src/IdToken";
 import { TEST_TOKENS } from "../TestConstants";
-
 
 describe("ResponseUtils.ts class", () => {
 
@@ -27,7 +31,7 @@ describe("ResponseUtils.ts class", () => {
     });
 
     it("setResponseIdToken sets authResponse idToken value", () => {
-        let newAuthResponse = ResponseUtils.setResponseIdToken(EMPTY_RESPONSE, idTokenObj);
+        const newAuthResponse = ResponseUtils.setResponseIdToken(EMPTY_RESPONSE, idTokenObj);
         expect(newAuthResponse.idToken).to.be.equal(idTokenObj);
         expect(newAuthResponse.idTokenClaims).to.be.equal(idTokenObj.claims);
         expect(newAuthResponse.uniqueId).to.be.equal(idTokenObj.objectId || idTokenObj.subject);
@@ -35,12 +39,12 @@ describe("ResponseUtils.ts class", () => {
     });
 
     it("setResponseIdToken returns null if given a null original request.", () => {
-        let newAuthResponse = ResponseUtils.setResponseIdToken(null, idTokenObj);
+        const newAuthResponse = ResponseUtils.setResponseIdToken(null, idTokenObj);
         expect(newAuthResponse).to.be.null;
     });
 
     it("setResponseIdToken returns original response if given a null idTokenObj", () => {
-        let newAuthResponse = ResponseUtils.setResponseIdToken(EMPTY_RESPONSE, null);
+        const newAuthResponse = ResponseUtils.setResponseIdToken(EMPTY_RESPONSE, null);
         expect(newAuthResponse).to.be.equal(EMPTY_RESPONSE);
-    })
+    });
 });

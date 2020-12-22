@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import sinon from "sinon";
 import { BrowserProtocolUtils, BrowserStateObject } from "../../src/utils/BrowserProtocolUtils";
@@ -9,15 +14,12 @@ import { TEST_HASHES } from "./StringConstants";
 
 describe("BrowserProtocolUtils.ts Unit Tests", () => {
 
-    const browserRedirectRequestState: BrowserStateObject = { interactionType: InteractionType.REDIRECT };
-    const browserPopupRequestState: BrowserStateObject = { interactionType: InteractionType.POPUP };
+    const browserRedirectRequestState: BrowserStateObject = { interactionType: InteractionType.Redirect };
+    const browserPopupRequestState: BrowserStateObject = { interactionType: InteractionType.Popup };
 
     let cryptoInterface: CryptoOps;
-    let dbStorage = {};
     beforeEach(() => {
-        sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
-            dbStorage = {};
-        });
+        sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {});
         cryptoInterface = new CryptoOps();
     });
 
@@ -37,9 +39,9 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
         const redirectState = ProtocolUtils.setRequestState(cryptoInterface, null, browserRedirectRequestState);
         const popupState = ProtocolUtils.setRequestState(cryptoInterface, null, browserPopupRequestState);
         const redirectPlatformState = BrowserProtocolUtils.extractBrowserRequestState(cryptoInterface, redirectState);
-        expect(redirectPlatformState.interactionType).to.be.eq(InteractionType.REDIRECT);
+        expect(redirectPlatformState.interactionType).to.be.eq(InteractionType.Redirect);
         const popupPlatformState = BrowserProtocolUtils.extractBrowserRequestState(cryptoInterface, popupState);
-        expect(popupPlatformState.interactionType).to.be.eq(InteractionType.POPUP);
+        expect(popupPlatformState.interactionType).to.be.eq(InteractionType.Popup);
     });
 
     describe("parseServerResponseFromHash", () => {

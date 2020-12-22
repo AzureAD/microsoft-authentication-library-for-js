@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import {
     ClientConfigurationError
@@ -12,7 +17,7 @@ describe("RequestValidator unit tests", () => {
     describe("ValidateRedirectUri tests", () => {
 
         it("Throws UrlEmptyError if redirect uri is empty", () => {
-            expect( function () {RequestValidator.validateRedirectUri("")})
+            expect( function () {RequestValidator.validateRedirectUri("");})
                 .to.throw(ClientConfigurationError.createRedirectUriEmptyError().message);
         });
     });
@@ -32,7 +37,7 @@ describe("RequestValidator unit tests", () => {
             RequestValidator.validatePrompt(PromptValue.NONE);
         });
         it("Throws InvalidPromptError if invalid prompt value passed in", () => {
-            expect(function() { RequestValidator.validatePrompt("")})
+            expect(function() { RequestValidator.validatePrompt("");})
                 .to.throw(ClientConfigurationError.createInvalidPromptError("").message);
         });
     });
@@ -40,11 +45,11 @@ describe("RequestValidator unit tests", () => {
     describe("ValidateClaims tests", () => {
         
         it("Valid Claims", () => {
-            RequestValidator.validateClaims('{"access_token":{"example_claim":{"values": ["example_value"]}}}');
+            RequestValidator.validateClaims("{\"access_token\":{\"example_claim\":{\"values\": [\"example_value\"]}}}");
         });
 
         it("Throws InvalidClaimsError if invalid claims value passed in", () => {
-            expect(function() { RequestValidator.validateClaims("invalid_claims_value")})
+            expect(function() { RequestValidator.validateClaims("invalid_claims_value");})
                 .to.throw(ClientConfigurationError.createInvalidClaimsRequestError().message);
         });
         
@@ -53,12 +58,12 @@ describe("RequestValidator unit tests", () => {
     describe("ValidateCodeChallengeParams tests", () => {
 
         it("Throws InvalidCodeChallengeParamsError if no code challenge method present", () => {
-            expect(function() { RequestValidator.validateCodeChallengeParams("",TEST_CONFIG.CODE_CHALLENGE_METHOD)})
+            expect(function() { RequestValidator.validateCodeChallengeParams("",TEST_CONFIG.CODE_CHALLENGE_METHOD);})
                 .to.throw(ClientConfigurationError.createInvalidCodeChallengeParamsError().message);
         });
 
         it("Throws InvalidCodeChallengeMethodError if no code challenge method present", () => {
-            expect(function() { RequestValidator.validateCodeChallengeParams(TEST_CONFIG.TEST_CHALLENGE, "255")})
+            expect(function() { RequestValidator.validateCodeChallengeParams(TEST_CONFIG.TEST_CHALLENGE, "255");})
                 .to.throw(ClientConfigurationError.createInvalidCodeChallengeMethodError().message);
         });
     });

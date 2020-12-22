@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import { buildClientInfo } from "../../src/account/ClientInfo";
 import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_POP_VALUES } from "../utils/StringConstants";
@@ -40,7 +45,7 @@ describe("ClientInfo.ts Class Unit Tests", () => {
                     return {
                         challenge: TEST_CONFIG.TEST_CHALLENGE,
                         verifier: TEST_CONFIG.TEST_VERIFIER
-                    }
+                    };
                 },
                 async getPublicKeyThumbprint(): Promise<string> {
                     return TEST_POP_VALUES.KID;

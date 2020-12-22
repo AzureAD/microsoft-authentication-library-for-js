@@ -1,8 +1,13 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import React from "react";
 import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { AccountInfo, Configuration, EventCallbackFunction, EventMessage, EventType, InteractionType, PublicClientApplication } from "@azure/msal-browser";
-import { TEST_CONFIG } from '../TestConstants';
+import { TEST_CONFIG } from "../TestConstants";
 import { MsalProvider, withMsal } from "../../src/index";
 
 describe("withMsal tests", () => {
@@ -15,7 +20,7 @@ describe("withMsal tests", () => {
 
     let eventCallback: EventCallbackFunction;
     let handleRedirectSpy: jest.SpyInstance;
-    const accounts: AccountInfo[] = []
+    const accounts: AccountInfo[] = [];
 
     beforeEach(() => {
         pca = new PublicClientApplication(msalConfig);
@@ -30,7 +35,7 @@ describe("withMsal tests", () => {
                 payload: null,
                 error: null,
                 timestamp: 10000
-            }
+            };
             eventCallback(eventMessage);
             return Promise.resolve(null);
         });
@@ -52,14 +57,13 @@ describe("withMsal tests", () => {
                     {props.msalContext.accounts && (<p>Accounts passed as prop!</p>)}
                     {props.msalContext.inProgress && (<p>inProgress passed as prop!</p>)}
                 </>
-            )
-        }      
+            );
+        };      
         
         const WrappedComponent = withMsal(testComponent);
         render(
             <MsalProvider instance={pca}>
-                <WrappedComponent>
-                </WrappedComponent>
+                <WrappedComponent />
             </MsalProvider>
         );
 

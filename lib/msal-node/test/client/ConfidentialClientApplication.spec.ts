@@ -1,20 +1,25 @@
-import { ConfidentialClientApplication } from './../../src/client/ConfidentialClientApplication';
-import { Authority, ClientConfiguration,  AuthorityFactory, AuthorizationCodeClient,  RefreshTokenClient, StringUtils, ProtocolMode } from '@azure/msal-common';
-import { TEST_CONSTANTS } from '../utils/TestConstants';
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import { ConfidentialClientApplication } from "../../src/client/ConfidentialClientApplication";
+import { Authority, ClientConfiguration,  AuthorityFactory, AuthorizationCodeClient,  RefreshTokenClient, StringUtils, ProtocolMode } from "@azure/msal-common";
+import { TEST_CONSTANTS } from "../utils/TestConstants";
 import { Configuration } from "../../src/config/Configuration";
 import { AuthorizationCodeRequest } from "../../src/request/AuthorizationCodeRequest";
-import { mocked } from 'ts-jest/utils';
+import { mocked } from "ts-jest/utils";
 import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
 import { ClientCredentialRequest } from "../../src/request/ClientCredentialRequest";
 import { OnBehalfOfRequest } from "../../src/request/OnBehalfOfRequest";
 
-jest.mock('@azure/msal-common');
+jest.mock("@azure/msal-common");
 
 mocked(StringUtils.isEmpty).mockImplementation((str) => {
     return (typeof str === "undefined" || !str || 0 === str.length);
 });
 
-describe('ConfidentialClientApplication', () => {
+describe("ConfidentialClientApplication", () => {
     const authority: Authority = {
         resolveEndpointsAsync: () => {
             return new Promise<void>(resolve => {
@@ -26,7 +31,7 @@ describe('ConfidentialClientApplication', () => {
         },
     } as Authority;
 
-    let appConfig: Configuration = {
+    const appConfig: Configuration = {
         auth: {
             clientId: TEST_CONSTANTS.CLIENT_ID,
             authority: TEST_CONSTANTS.AUTHORITY,
@@ -48,12 +53,12 @@ describe('ConfidentialClientApplication', () => {
         }
     };
 
-    test('exports a class', () => {
+    test("exports a class", () => {
         const authApp = new ConfidentialClientApplication(appConfig);
         expect(authApp).toBeInstanceOf(ConfidentialClientApplication);
     });
 
-    test('acquireTokenByAuthorizationCode', async () => {
+    test("acquireTokenByAuthorizationCode", async () => {
         const request: AuthorizationCodeRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             redirectUri: TEST_CONSTANTS.REDIRECT_URI,
@@ -70,7 +75,7 @@ describe('ConfidentialClientApplication', () => {
         );
     });
 
-    test('acquireTokenByRefreshToken', async () => {
+    test("acquireTokenByRefreshToken", async () => {
         const request: RefreshTokenRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
@@ -86,7 +91,7 @@ describe('ConfidentialClientApplication', () => {
         );
     });
 
-    test('acquireTokenByClientCredential', async () => {
+    test("acquireTokenByClientCredential", async () => {
         const request: ClientCredentialRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             skipCache: false
@@ -102,7 +107,7 @@ describe('ConfidentialClientApplication', () => {
         );
     });
 
-    test('acquireTokenOnBehalfOf', async () => {
+    test("acquireTokenOnBehalfOf", async () => {
         const request: OnBehalfOfRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             oboAssertion: TEST_CONSTANTS.ACCESS_TOKEN

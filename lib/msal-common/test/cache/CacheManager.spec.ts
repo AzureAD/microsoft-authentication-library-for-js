@@ -1,10 +1,15 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import { CredentialType } from "../../src/utils/Constants";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
 import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity";
 import { CacheRecord } from "../../src/cache/entities/CacheRecord";
 import { AccountFilter, CredentialFilter } from "../../src/cache/utils/CacheTypes";
-import sinon, { mock } from "sinon";
+import sinon from "sinon";
 import { ClientTestUtils } from "../client/ClientTestUtils";
 import { ScopeSet } from "../../src/request/ScopeSet";
 import {
@@ -19,7 +24,7 @@ import { CacheManager } from "../../src";
 
 describe("CacheManager.ts test cases", () => {
 
-    let mockCache = new MockCache();
+    const mockCache = new MockCache();
     beforeEach(() => {
         mockCache.initializeCache();
     });
@@ -43,7 +48,7 @@ describe("CacheManager.ts test cases", () => {
         const cacheRecord = new CacheRecord();
         cacheRecord.account = ac;
         mockCache.cacheManager.saveCacheRecord(cacheRecord);
-        const mockCacheAccount = mockCache.cacheManager.getAccount(accountKey)
+        const mockCacheAccount = mockCache.cacheManager.getAccount(accountKey);
         expect(mockCacheAccount.homeAccountId).to.eql("someUid.someUtid");
     });
 
@@ -66,7 +71,7 @@ describe("CacheManager.ts test cases", () => {
         const cacheRecord = new CacheRecord();
         cacheRecord.accessToken = at;
         mockCache.cacheManager.saveCacheRecord(cacheRecord);
-        const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(atKey)
+        const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(atKey);
         expect(mockCacheAT.homeAccountId).to.eql("someUid.someUtid");
     });
 

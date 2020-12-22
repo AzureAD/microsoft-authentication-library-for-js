@@ -1,0 +1,7 @@
+{
+    "rules": {
+        "no-console": 1, 
+        "@typescript-eslint/no-unused-vars": 1,
+        "import/no-commonjs": 1
+    }
+}

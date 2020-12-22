@@ -1,20 +1,25 @@
-import { JsonCache, InMemoryCache } from '../../../src/cache/serializer/SerializerTypes';
-import { Serializer } from '../../../src/cache/serializer/Serializer';
-import { Deserializer } from '../../../src/cache/serializer/Deserializer';
-import { MockCache } from '../cacheConstants';
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
 
-const cachedJson = require('./cache.json');
+import { JsonCache, InMemoryCache } from "../../../src/cache/serializer/SerializerTypes";
+import { Serializer } from "../../../src/cache/serializer/Serializer";
+import { Deserializer } from "../../../src/cache/serializer/Deserializer";
+import { MockCache } from "../cacheConstants";
 
-describe('Serializer test cases', () => {
+const cachedJson = require("./cache.json");
+
+describe("Serializer test cases", () => {
     const cache = JSON.stringify(cachedJson);
     const jsonCache: JsonCache = Deserializer.deserializeJSONBlob(cache);
 
-    test('serializeJSONBlob', () => {
+    test("serializeJSONBlob", () => {
         const json = Serializer.serializeJSONBlob(cachedJson);
         expect(JSON.parse(json)).toMatchObject(cachedJson);
     });
 
-    test('serializeAccountCacheEntity', () => {
+    test("serializeAccountCacheEntity", () => {
         // create mock Account
         const acc = { [MockCache.accKey]: MockCache.acc };
 
@@ -23,7 +28,7 @@ describe('Serializer test cases', () => {
         expect(serializedAcc[MockCache.accKey]).toMatchObject(jsonCache.Account[MockCache.accKey]);
     });
 
-    test('serializeIdTokenCacheEntity', () => {
+    test("serializeIdTokenCacheEntity", () => {
         // create mock IdToken
         const idt = { [MockCache.idTKey]: MockCache.idT };
 
@@ -32,7 +37,7 @@ describe('Serializer test cases', () => {
         expect(serializedIdT[MockCache.idTKey]).toMatchObject(jsonCache.IdToken[MockCache.idTKey]);
     });
 
-    test('serializeAccessTokenEntity', () => {
+    test("serializeAccessTokenEntity", () => {
         // create mock AccessToken
         const at = { [MockCache.atOneKey]: MockCache.atOne };
 
@@ -41,7 +46,7 @@ describe('Serializer test cases', () => {
         expect(serializedAt[MockCache.atOneKey]).toMatchObject(jsonCache.AccessToken[MockCache.atOneKey]);
     });
 
-    test('serializeRefreshTokenCacheEntity', () => {
+    test("serializeRefreshTokenCacheEntity", () => {
         // create mock Refresh Token
         const rt = { [MockCache.rtKey]: MockCache.rt };
 
@@ -50,7 +55,7 @@ describe('Serializer test cases', () => {
         expect(serializedRT[MockCache.rtKey]).toMatchObject(jsonCache.RefreshToken[MockCache.rtKey]);
     });
 
-    test('serializeAppMetadataCacheEntity', () => {
+    test("serializeAppMetadataCacheEntity", () => {
         // create mock AppMetadata
         const amdt = { [MockCache.amdtKey]: MockCache.amdt };
 
@@ -59,7 +64,7 @@ describe('Serializer test cases', () => {
         expect(serializedAmdt[MockCache.amdtKey]).toMatchObject(jsonCache.AppMetadata[MockCache.amdtKey]);
     });
 
-    test('serializeAll', () => {
+    test("serializeAll", () => {
         // deserialize the cache from memory and Test equivalency with the generated mock cache
         const inMemoryCache: InMemoryCache = Deserializer.deserializeAllCache(jsonCache);
         const jCache: JsonCache = Serializer.serializeAllCache(inMemoryCache);

@@ -8,8 +8,6 @@ import "mocha";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import {
     PkceCodes,
-    NetworkRequestOptions,
-    LogLevel,
     AccountInfo,
     AuthorityFactory,
     AuthorizationCodeRequest,
@@ -36,11 +34,11 @@ class TestInteractionHandler extends InteractionHandler {
         super(authCodeModule, storageImpl);
     }
 
-    showUI(requestUrl: string): Window {
+    showUI(): Window {
         throw new Error("Method not implemented.");
     }
 
-    initiateAuthRequest(requestUrl: string): Window | Promise<HTMLIFrameElement> {
+    initiateAuthRequest(): Window | Promise<HTMLIFrameElement> {
         this.authCodeRequest = testAuthCodeRequest;
         return null;
     }
@@ -64,19 +62,11 @@ const testNetworkResult = {
     testParam: "testValue"
 };
 
-const testKeySet = ["testKey1", "testKey2"];
-
 const networkInterface = {
-    sendGetRequestAsync<T>(
-        url: string,
-        options?: NetworkRequestOptions
-    ): T {
+    sendGetRequestAsync<T>(): T {
         return null;
     },
-    sendPostRequestAsync<T>(
-        url: string,
-        options?: NetworkRequestOptions
-    ): T {
+    sendPostRequestAsync<T>(): T {
         return null;
     },
 };
@@ -110,10 +100,10 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 createNewGuid: (): string => {
                     return "newGuid";
                 },
-                base64Decode: (input: string): string => {
+                base64Decode: (): string => {
                     return "testDecodedString";
                 },
-                base64Encode: (input: string): string => {
+                base64Encode: (): string => {
                     return "testEncodedString";
                 },
                 generatePkceCodes: async (): Promise<PkceCodes> => {
@@ -128,15 +118,15 @@ describe("InteractionHandler.ts Unit Tests", () => {
             },
             storageInterface: new TestStorageManager(),
             networkInterface: {
-                sendGetRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
+                sendGetRequestAsync: async (): Promise<any> => {
                     return testNetworkResult;
                 },
-                sendPostRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
+                sendPostRequestAsync: async (): Promise<any> => {
                     return testNetworkResult;
                 }
             },
             loggerOptions: {
-                loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {},
+                loggerCallback: (): void => {},
                 piiLoggingEnabled: true
             }
         };

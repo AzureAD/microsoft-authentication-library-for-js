@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 
 import { ClientInfo } from "../src/ClientInfo";
@@ -8,8 +13,8 @@ import { CryptoUtils } from "../src/utils/CryptoUtils";
 
 describe("Account.ts Class", function() {
 
-    let idToken: IdToken = new IdToken(TEST_TOKENS.IDTOKEN_V2);
-    let clientInfo: ClientInfo = new ClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, TEST_CONFIG.validAuthority);
+    const idToken: IdToken = new IdToken(TEST_TOKENS.IDTOKEN_V2);
+    const clientInfo: ClientInfo = new ClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, TEST_CONFIG.validAuthority);
 
     describe("createAccount", () => {
         it("verifies account object is created", () => {

@@ -1,6 +1,10 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import { ScopeSet } from "../../src/request/ScopeSet";
-import { TEST_CONFIG } from "../utils/StringConstants";
 import { ClientConfigurationError, ClientConfigurationErrorMessage, Constants, ClientAuthError, ClientAuthErrorMessage } from "../../src";
 import sinon from "sinon";
 
@@ -170,7 +174,7 @@ describe("ScopeSet.ts", () => {
             scopes.appendScopes([testScope2, testScope3]);
             expect(scopes.asArray()).to.contain(expectedTestScope2);
             expect(scopes.asArray()).to.contain(expectedTestScope3);
-        })
+        });
 
         it("appendScopes() does not add duplicate scopes", () => {
             const unchangedScopes = new ScopeSet([testScope, Constants.OFFLINE_ACCESS_SCOPE]);
@@ -250,7 +254,7 @@ describe("ScopeSet.ts", () => {
             const twoScopes = new ScopeSet(["1", "2"]);
             expect(twoScopes.getScopeCount()).to.be.eq(2);
 
-            const threeScopes = new ScopeSet(["1", "2", "3"])
+            const threeScopes = new ScopeSet(["1", "2", "3"]);
             expect(threeScopes.getScopeCount()).to.be.eq(3);
         });
     });

@@ -13,7 +13,7 @@ import { Logger, LogLevel } from "@azure/msal-common";
 import { BrowserAuthErrorMessage, InteractionType } from "../../src";
 
 const loggerOptions = {
-    loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
+    loggerCallback: (): void => {
         return;
     },
     piiLoggingEnabled: true,
@@ -132,7 +132,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
     });
 
     it("getBrowserNetworkClient() returns fetch client if available", () => {
-        window.fetch = (input: RequestInfo, init?: RequestInit): Promise<Response> => {
+        window.fetch = (): Promise<Response> => {
             return null;
         };
         // @ts-ignore
@@ -164,5 +164,5 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         it("doesnt throw when not inside an iframe", () => {
             BrowserUtils.blockRedirectInIframe(InteractionType.Redirect, false);
         });
-    })
+    });
 });

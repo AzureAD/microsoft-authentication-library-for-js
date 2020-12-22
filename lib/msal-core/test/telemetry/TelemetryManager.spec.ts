@@ -1,8 +1,13 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import TelemetryManager from "../../src/telemetry/TelemetryManager";
 import { TelemetryConfig, TelemetryPlatform } from "../../src/telemetry/TelemetryTypes";
 import TelemetryEvent from "../../src/telemetry/TelemetryEvent";
-import { CryptoUtils } from '../../src/utils/CryptoUtils';
+import { CryptoUtils } from "../../src/utils/CryptoUtils";
 import { TEST_CONFIG } from "../TestConstants";
 import { Constants, Logger } from "../../src";
 
@@ -37,10 +42,10 @@ describe("TelemetryManager", () => {
         const correlationId = CryptoUtils.createNewGuid();
         const eventHandler = (events: Array<object>) => {
             expect(events).to.have.length(2);
-            expect(events[0]['msal.event_name']).to.eq("fakeEvent");
-            expect(events[1]['msal.event_name']).to.eq("msal.default_event");
-            expect(events[0]['Microsoft.MSAL.correlation_id']).to.eq(correlationId);
-            expect(events[0]['Microsoft.MSAL.correlation_id']).to.eq(events[1]['Microsoft.MSAL.correlation_id']);
+            expect(events[0]["msal.event_name"]).to.eq("fakeEvent");
+            expect(events[1]["msal.event_name"]).to.eq("msal.default_event");
+            expect(events[0]["Microsoft.MSAL.correlation_id"]).to.eq(correlationId);
+            expect(events[0]["Microsoft.MSAL.correlation_id"]).to.eq(events[1]["Microsoft.MSAL.correlation_id"]);
             done();
         };
         const telemetryManager: TelemetryManager = new TelemetryManager(
@@ -70,11 +75,11 @@ describe("TelemetryManager", () => {
         const correlationId = CryptoUtils.createNewGuid();
         const eventHandler = (events: Array<object>) => {
             expect(events).to.have.length(4);
-            expect(events[0]['msal.event_name']).to.eq("fakeEvent");
-            expect(events[1]['msal.event_name']).to.eq("fakeEvent2");
-            expect(events[3]['msal.event_name']).to.eq("msal.default_event");
-            expect(events[2]['Microsoft.MSAL.correlation_id']).to.eq(correlationId);
-            expect(events[1]['Microsoft.MSAL.correlation_id']).to.eq(events[2]['Microsoft.MSAL.correlation_id']);
+            expect(events[0]["msal.event_name"]).to.eq("fakeEvent");
+            expect(events[1]["msal.event_name"]).to.eq("fakeEvent2");
+            expect(events[3]["msal.event_name"]).to.eq("msal.default_event");
+            expect(events[2]["Microsoft.MSAL.correlation_id"]).to.eq(correlationId);
+            expect(events[1]["Microsoft.MSAL.correlation_id"]).to.eq(events[2]["Microsoft.MSAL.correlation_id"]);
             done();
         };
         const telemetryManager: TelemetryManager = new TelemetryManager(
@@ -118,11 +123,11 @@ describe("TelemetryManager", () => {
         const correlationId = CryptoUtils.createNewGuid();
         const eventHandler = (events: Array<object>) => {
             expect(events).to.have.length(4);
-            expect(events[0]['msal.event_name']).to.eq("fakeEvent");
-            expect(events[1]['msal.event_name']).to.eq("fakeEvent2");
-            expect(events[3]['msal.event_name']).to.eq("msal.default_event");
-            expect(events[2]['Microsoft.MSAL.correlation_id']).to.eq(correlationId);
-            expect(events[1]['Microsoft.MSAL.correlation_id']).to.eq(events[2]['Microsoft.MSAL.correlation_id']);
+            expect(events[0]["msal.event_name"]).to.eq("fakeEvent");
+            expect(events[1]["msal.event_name"]).to.eq("fakeEvent2");
+            expect(events[3]["msal.event_name"]).to.eq("msal.default_event");
+            expect(events[2]["Microsoft.MSAL.correlation_id"]).to.eq(correlationId);
+            expect(events[1]["Microsoft.MSAL.correlation_id"]).to.eq(events[2]["Microsoft.MSAL.correlation_id"]);
             done();
         };
         const telemetryManager: TelemetryManager = new TelemetryManager(
@@ -168,11 +173,11 @@ describe("TelemetryManager", () => {
             // if calledOnce is already true we shouldnt ever get back to this callback.
             expect(calledOnce).to.be.false;
             expect(events).to.have.length(4);
-            expect(events[0]['msal.event_name']).to.eq("fakeEvent");
-            expect(events[1]['msal.event_name']).to.eq("fakeEvent2");
-            expect(events[3]['msal.event_name']).to.eq("msal.default_event");
-            expect(events[2]['Microsoft.MSAL.correlation_id']).to.eq(correlationId);
-            expect(events[1]['Microsoft.MSAL.correlation_id']).to.eq(events[2]['Microsoft.MSAL.correlation_id']);
+            expect(events[0]["msal.event_name"]).to.eq("fakeEvent");
+            expect(events[1]["msal.event_name"]).to.eq("fakeEvent2");
+            expect(events[3]["msal.event_name"]).to.eq("msal.default_event");
+            expect(events[2]["Microsoft.MSAL.correlation_id"]).to.eq(correlationId);
+            expect(events[1]["Microsoft.MSAL.correlation_id"]).to.eq(events[2]["Microsoft.MSAL.correlation_id"]);
             calledOnce = true;
         };
         const telemetryManager: TelemetryManager = new TelemetryManager(
@@ -206,12 +211,14 @@ describe("TelemetryManager", () => {
             // call flush again
             setTimeout(() => {
                 telemetryManager.flush(correlationId);
-                // if we have not thrown yet then the right thing happened,
-                // call done
+                /*
+                 * if we have not thrown yet then the right thing happened,
+                 * call done
+                 */
                 setTimeout(() => {
                     done();
                 }, 100);
-            }, 200)
+            }, 200);
         }, 100);
 
     });

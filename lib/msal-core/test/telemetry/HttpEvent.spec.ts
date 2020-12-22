@@ -1,6 +1,11 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import HttpEvent, { EVENT_KEYS } from "../../src/telemetry/HttpEvent";
-import { CryptoUtils } from '../../src/utils/CryptoUtils';
+import { CryptoUtils } from "../../src/utils/CryptoUtils";
 import sinon from "sinon";
 import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
 

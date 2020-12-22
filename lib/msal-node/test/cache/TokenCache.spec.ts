@@ -1,9 +1,14 @@
-import { LogLevel, Logger, TokenCacheContext, ICachePlugin } from '@azure/msal-common';
-import { Storage } from './../../src/cache/Storage';
-import { TokenCache } from '../../src/cache/TokenCache';
-import { promises as fs } from 'fs';
-import { version, name } from '../../package.json';
-import { DEFAULT_CRYPTO_IMPLEMENTATION, TEST_CONSTANTS } from '../utils/TestConstants';
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+import { LogLevel, Logger, TokenCacheContext, ICachePlugin } from "@azure/msal-common";
+import { Storage } from "../../src/cache/Storage";
+import { TokenCache } from "../../src/cache/TokenCache";
+import { promises as fs } from "fs";
+import { version, name } from "../../package.json";
+import { DEFAULT_CRYPTO_IMPLEMENTATION, TEST_CONSTANTS } from "../utils/TestConstants";
 
 describe("TokenCache tests", () => {
 
@@ -21,7 +26,7 @@ describe("TokenCache tests", () => {
     });
 
     it("Constructor tests builds default token cache", async () => {
-        let storage: Storage = new Storage(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
+        const storage: Storage = new Storage(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
         const tokenCache = new TokenCache(storage, logger);
         expect(tokenCache).toBeInstanceOf(TokenCache);
         expect(tokenCache.hasChanged()).toEqual(false);
@@ -29,7 +34,7 @@ describe("TokenCache tests", () => {
     });
 
     it("TokenCache serialize/deserialize", () => {
-        const cache = require('./cache-test-files/default-cache.json');
+        const cache = require("./cache-test-files/default-cache.json");
         const storage: Storage = new Storage(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
         const tokenCache = new TokenCache(storage, logger);
 
@@ -42,9 +47,11 @@ describe("TokenCache tests", () => {
     });
 
     it("TokenCache serialize/deserialize, does not remove unrecognized entities", () => {
-        // TokenCache should not remove unrecognized entities from JSON file, even if they
-        // are deeply nested, and should write them back out
-        const cache = require('./cache-test-files/cache-unrecognized-entities.json');
+        /*
+         * TokenCache should not remove unrecognized entities from JSON file, even if they
+         * are deeply nested, and should write them back out
+         */
+        const cache = require("./cache-test-files/cache-unrecognized-entities.json");
         const storage: Storage = new Storage(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
         const tokenCache = new TokenCache(storage, logger);
 
@@ -57,9 +64,11 @@ describe("TokenCache tests", () => {
     });
 
     it("TokenCache.mergeRemovals removes entities from the cache, but does not remove other entities", async () => {
-        // TokenCache should not remove unrecognized entities from JSON file, even if they
-        // are deeply nested, and should write them back out
-        const cache = require('./cache-test-files/cache-unrecognized-entities.json');
+        /*
+         * TokenCache should not remove unrecognized entities from JSON file, even if they
+         * are deeply nested, and should write them back out
+         */
+        const cache = require("./cache-test-files/cache-unrecognized-entities.json");
         const storage: Storage = new Storage(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
         const tokenCache = new TokenCache(storage, logger);
 
@@ -85,7 +94,7 @@ describe("TokenCache tests", () => {
         const cachePath = "./test/cache/cache-test-files/temp-cache.json";
         const afterCacheAccess = async (context: TokenCacheContext) => {
             await fs.writeFile(cachePath, context.tokenCache.serialize());
-        }
+        };
 
         const cachePlugin: ICachePlugin = {
             beforeCacheAccess,
@@ -97,13 +106,13 @@ describe("TokenCache tests", () => {
 
         const accounts = await tokenCache.getAllAccounts();
         expect(accounts.length).toBe(1);
-        expect(require('./cache-test-files/temp-cache.json')).toEqual(require('./cache-test-files/cache-unrecognized-entities.json'));
+        expect(require("./cache-test-files/temp-cache.json")).toEqual(require("./cache-test-files/cache-unrecognized-entities.json"));
 
         // try and clean up
         try {
             await fs.unlink(cachePath);
         } catch (err) {
-            if (err.code == "ENOENT") {
+            if (err.code === "ENOENT") {
                 console.log("Tried to delete temp cache file but it does not exist");
             }
         }

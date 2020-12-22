@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import { LoggerOptions } from "../../src/config/ClientConfiguration";
 import { LogLevel, Logger } from "../../src/logger/Logger";
@@ -9,7 +14,7 @@ describe("Logger.ts Class Unit Tests", () => {
     let logStore = {};
     beforeEach(() => {
         loggerOptions = {
-            loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
+            loggerCallback: (level: LogLevel, message: string): void => {
                 logStore[level] = message;
             },
             piiLoggingEnabled: true,

@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import sinon from "sinon";
 import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
@@ -11,7 +16,7 @@ describe("TrustedAuthority.ts Class", function () {
         aliases: ["fabrikamb2c.b2clogin.com"]
     }];
 
-    const fakeCloudDiscoveryResponse = JSON.stringify({tenant_discovery_endpoint: "not relevant", metadata: cloudDiscoveryMetadata})
+    const fakeCloudDiscoveryResponse = JSON.stringify({tenant_discovery_endpoint: "not relevant", metadata: cloudDiscoveryMetadata});
 
     afterEach(function() {
         sinon.restore();
@@ -127,7 +132,7 @@ describe("TrustedAuthority.ts Class", function () {
         });
 
         it("createCloudDiscoveryMetadataFromKnownAuthorities creates metadata object for each host passed in", () => {
-            const testAuthorities = ["contoso.b2clogin.com"]
+            const testAuthorities = ["contoso.b2clogin.com"];
             TrustedAuthority.createCloudDiscoveryMetadataFromKnownAuthorities(testAuthorities);
 
             expect(TrustedAuthority.IsInTrustedHostList(testAuthorities[0])).to.be.true;
@@ -141,7 +146,7 @@ describe("TrustedAuthority.ts Class", function () {
         });
 
         it("createCloudDiscoveryMetadataFromKnownAuthorities creates metadata object when passed host includes more than just domain", () => {
-            const testDomains = ["contoso1.com", "contoso2.com", "contoso3.com", "contoso4.com", "contoso5.com"]
+            const testDomains = ["contoso1.com", "contoso2.com", "contoso3.com", "contoso4.com", "contoso5.com"];
             const testAuthorities = ["https://contoso1.com", "contoso2.com/additionalPage", "contoso3.com#customHash", "contoso4.com?customQueryParam", "http://contoso5.com/additionalPage/anotherPage/"];
             TrustedAuthority.createCloudDiscoveryMetadataFromKnownAuthorities(testAuthorities);
 
@@ -163,7 +168,7 @@ describe("TrustedAuthority.ts Class", function () {
 
         it("getTrustedHostList", () => {
             sinon.stub(TrustedAuthority, <any>"TrustedHostList").get(() => {
-                return {"fabrikamb2c.b2clogin.com": cloudDiscoveryMetadata[0]}
+                return {"fabrikamb2c.b2clogin.com": cloudDiscoveryMetadata[0]};
             });
 
             expect(TrustedAuthority.getTrustedHostList()).to.include("fabrikamb2c.b2clogin.com");
@@ -172,7 +177,7 @@ describe("TrustedAuthority.ts Class", function () {
 
         it("getCloudDiscoveryMetadata returns metadata object if host exists", () => {
             sinon.stub(TrustedAuthority, <any>"TrustedHostList").get(() => {
-                return {"fabrikamb2c.b2clogin.com": cloudDiscoveryMetadata[0]}
+                return {"fabrikamb2c.b2clogin.com": cloudDiscoveryMetadata[0]};
             });
 
             expect(TrustedAuthority.getCloudDiscoveryMetadata("fabrikamb2c.b2clogin.com")).to.eq(cloudDiscoveryMetadata[0]);
@@ -180,7 +185,7 @@ describe("TrustedAuthority.ts Class", function () {
 
         it("getCloudDiscoveryMetadata returns null if host does not exist", () => {
             sinon.stub(TrustedAuthority, <any>"TrustedHostList").get(() => {
-                return {"fabrikamb2c.b2clogin.com": cloudDiscoveryMetadata[0]}
+                return {"fabrikamb2c.b2clogin.com": cloudDiscoveryMetadata[0]};
             });
 
             expect(TrustedAuthority.getCloudDiscoveryMetadata("notInCloudDiscoveryMetadata")).to.be.null;

@@ -1,9 +1,13 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import { StringUtils } from "../../src/utils/StringUtils";
 import { TEST_TOKENS } from "./StringConstants";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { AuthError } from "../../src/error/AuthError";
-import { IdToken } from "../../src";
 
 describe("StringUtils.ts Class Unit Tests", () => {
     
@@ -22,7 +26,7 @@ describe("StringUtils.ts Class Unit Tests", () => {
         let err: ClientAuthError;
 
         try {
-            let decodedJwt = StringUtils.decodeAuthToken(null);
+            StringUtils.decodeAuthToken(null);
         } catch (e) {
             err = e;
         }
@@ -41,7 +45,7 @@ describe("StringUtils.ts Class Unit Tests", () => {
         let err: ClientAuthError;
 
         try {
-            let decodedJwt = StringUtils.decodeAuthToken("");
+            StringUtils.decodeAuthToken("");
         } catch (e) {
             err = e;
         }
@@ -60,7 +64,7 @@ describe("StringUtils.ts Class Unit Tests", () => {
         let err: ClientAuthError;
 
         try {
-            let decodedJwt = StringUtils.decodeAuthToken(TEST_TOKENS.SAMPLE_MALFORMED_JWT);
+            StringUtils.decodeAuthToken(TEST_TOKENS.SAMPLE_MALFORMED_JWT);
         } catch (e) {
             err = e;
         }
@@ -112,7 +116,6 @@ describe("StringUtils.ts Class Unit Tests", () => {
         expect(StringUtils.endsWith(testString, searchString)).to.be.false;
     });
 
-
     it("queryStringToObject correctly deserializes query string into object", () => {
         const serializedObj = "param1=value1&param2=value2&param3=value3";
         const deserializedObj = {
@@ -145,7 +148,7 @@ describe("StringUtils.ts Class Unit Tests", () => {
             const parsedValEmptyString = StringUtils.jsonParseHelper("");
             expect(parsedValNull).to.be.null;
             expect(parsedValEmptyString).to.be.null;
-        })
+        });
     });
 
     describe("matchPattern", () => {

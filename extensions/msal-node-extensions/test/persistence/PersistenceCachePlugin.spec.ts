@@ -6,7 +6,7 @@
 import { IPersistence, PersistenceCachePlugin } from "../../src";
 import { Logger, TokenCacheContext, ISerializableTokenCache } from "@azure/msal-common";
 
-describe('Test PersistenceCachePlugin', () => {
+describe("Test PersistenceCachePlugin", () => {
     const filePath = "./test.json";
     const mockCacheData = "mockCacheData";
 
@@ -50,21 +50,21 @@ describe('Test PersistenceCachePlugin', () => {
         },
         deserialize: (data: string) => {
         }
-    }
+    };
 
-    test('exports a class', async () => {
+    test("exports a class", async () => {
         const plugin = new PersistenceCachePlugin(mockPersistence);
         expect(plugin).toBeInstanceOf(PersistenceCachePlugin);
     });
 
-    test('Sets correct initial values', async () => {
+    test("Sets correct initial values", async () => {
         const plugin = new PersistenceCachePlugin(mockPersistence);
         expect(plugin.lockFilePath).toEqual(`${filePath}.lockfile`);
         expect(plugin.currentCache).toEqual(null);
         expect(plugin.lastSync).toEqual(0);
     });
 
-    test('beforeCacheAccess', async () => {
+    test("beforeCacheAccess", async () => {
         const loadSpy = jest.spyOn(mockPersistence, "load");
         const cacheSpy = jest.spyOn(mockCache, "deserialize");
         const reloadNecessarySpy = jest.spyOn(mockPersistence, "reloadNecessary");
@@ -76,9 +76,9 @@ describe('Test PersistenceCachePlugin', () => {
         expect(reloadNecessarySpy).toHaveBeenCalled();
     });
 
-    test('afterCacheAccess', async () => {
+    test("afterCacheAccess", async () => {
         const saveSpy = jest.spyOn(mockPersistence, "save");
-        const cacheSpy = jest.spyOn(mockCache, "serialize")
+        const cacheSpy = jest.spyOn(mockCache, "serialize");
         const plugin = new PersistenceCachePlugin(mockPersistence);
         const context = new TokenCacheContext(mockCache, true);
         await plugin.afterCacheAccess(context);

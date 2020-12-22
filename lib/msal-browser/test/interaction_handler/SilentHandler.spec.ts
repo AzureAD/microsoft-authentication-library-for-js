@@ -6,7 +6,7 @@
 import chai from "chai";
 import "mocha";
 import chaiAsPromised from "chai-as-promised";
-import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthorizationCodeClient, ProtocolMode, Logger, AuthenticationScheme } from "@azure/msal-common";
+import { PkceCodes, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthorizationCodeClient, ProtocolMode, Logger, AuthenticationScheme } from "@azure/msal-common";
 import sinon from "sinon";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
@@ -31,19 +31,11 @@ const testNetworkResult = {
     testParam: "testValue"
 };
 
-const testKeySet = ["testKey1", "testKey2"];
-
 const networkInterface = {
-    sendGetRequestAsync<T>(
-        url: string,
-        options?: NetworkRequestOptions
-    ): T {
+    sendGetRequestAsync<T>(): T {
         return null;
     },
-    sendPostRequestAsync<T>(
-        url: string,
-        options?: NetworkRequestOptions
-    ): T {
+    sendPostRequestAsync<T>(): T {
         return null;
     },
 };
@@ -74,10 +66,10 @@ describe("SilentHandler.ts Unit Tests", () => {
                 createNewGuid: (): string => {
                     return "newGuid";
                 },
-                base64Decode: (input: string): string => {
+                base64Decode: (): string => {
                     return "testDecodedString";
                 },
-                base64Encode: (input: string): string => {
+                base64Encode: (): string => {
                     return "testEncodedString";
                 },
                 generatePkceCodes: async (): Promise<PkceCodes> => {
@@ -92,25 +84,15 @@ describe("SilentHandler.ts Unit Tests", () => {
             },
             storageInterface: null,
             networkInterface: {
-                sendGetRequestAsync: async (
-                    url: string,
-                    options?: NetworkRequestOptions
-                ): Promise<any> => {
+                sendGetRequestAsync: async (): Promise<any> => {
                     return testNetworkResult;
                 },
-                sendPostRequestAsync: async (
-                    url: string,
-                    options?: NetworkRequestOptions
-                ): Promise<any> => {
+                sendPostRequestAsync: async (): Promise<any> => {
                     return testNetworkResult;
                 },
             },
             loggerOptions: {
-                loggerCallback: (
-                    level: LogLevel,
-                    message: string,
-                    containsPii: boolean
-                ): void => {},
+                loggerCallback: (): void => {},
                 piiLoggingEnabled: true,
             },
         };
@@ -163,7 +145,6 @@ describe("SilentHandler.ts Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER
             };
-            const loadFrameSyncSpy = sinon.spy(silentHandler, <any>"loadFrameSync");
             const loadFrameSpy = sinon.spy(silentHandler, <any>"loadFrame");
             const authFrame = await silentHandler.initiateAuthRequest(testNavUrl, testTokenReq);
             expect(loadFrameSpy.called).to.be.true;

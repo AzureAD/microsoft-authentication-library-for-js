@@ -15,7 +15,7 @@ export class FileSystemUtils {
             await fs.access(filePath);
             return true;
         } catch (error) {
-            if (error.code == Constants.ENOENT_ERROR) {
+            if (error.code === Constants.ENOENT_ERROR) {
                 return false;
             } else {
                 throw error;

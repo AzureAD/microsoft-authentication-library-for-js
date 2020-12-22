@@ -1,10 +1,15 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import { AccountEntity } from "../../../src/cache/entities/AccountEntity";
 import { mockAccountEntity, mockIdTokenEntity } from "./cacheConstants";
 import { AuthToken } from "../../../src/account/AuthToken";
 import { AuthorityFactory } from "../../../src/authority/AuthorityFactory";
 import { CacheAccountType, Constants } from "../../../src/utils/Constants";
-import { NetworkRequestOptions, INetworkModule } from "../../../src/network/INetworkModule";
+import { INetworkModule } from "../../../src/network/INetworkModule";
 import { ICrypto, PkceCodes } from "../../../src/crypto/ICrypto";
 import { RANDOM_TEST_GUID, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES, PREFERRED_CACHE_ALIAS } from "../../utils/StringConstants";
 import sinon from "sinon";
@@ -23,7 +28,7 @@ const cryptoInterface: ICrypto = {
             case TEST_DATA_CLIENT_INFO.TEST_CACHE_RAW_CLIENT_INFO:
                 return TEST_DATA_CLIENT_INFO.TEST_CACHE_DECODED_CLIENT_INFO;
             case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS:
-                return TEST_DATA_CLIENT_INFO.TEST_CACHE_DECODED_CLIENT_INFO_GUIDS
+                return TEST_DATA_CLIENT_INFO.TEST_CACHE_DECODED_CLIENT_INFO_GUIDS;
             default:
                 return input;
         }
@@ -55,16 +60,10 @@ const cryptoInterface: ICrypto = {
 };
 
 const networkInterface: INetworkModule = {
-    sendGetRequestAsync<T>(
-        url: string,
-        options?: NetworkRequestOptions
-    ): T {
+    sendGetRequestAsync<T>(): T {
         return null;
     },
-    sendPostRequestAsync<T>(
-        url: string,
-        options?: NetworkRequestOptions
-    ): T {
+    sendPostRequestAsync<T>(): T {
         return null;
     }
 };
@@ -76,7 +75,7 @@ const authority =  AuthorityFactory.createInstance(
 );
 
 const loggerOptions = {
-    loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
+    loggerCallback: (level: LogLevel, message: string): void => {
         console.log(`Log level: ${level} Message: ${message}`);
     },
     piiLoggingEnabled: true,
@@ -210,7 +209,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             "nonce": "123523",
         };
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
+        const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const logger = new Logger(loggerOptions);
         const homeAccountId = AccountEntity.generateHomeAccountId(
@@ -240,7 +239,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             Constants.DEFAULT_AUTHORITY,
             networkInterface,
             ProtocolMode.AAD
-		);
+        );
 
         // Set up stubs
         const idTokenClaims = {
@@ -254,7 +253,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             "nonce": "123523",
         };
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
+        const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const logger = new Logger(loggerOptions);
         const homeAccountId = AccountEntity.generateHomeAccountId(
@@ -285,7 +284,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             Constants.DEFAULT_AUTHORITY,
             networkInterface,
             ProtocolMode.OIDC
-		);
+        );
 
         // Set up stubs
         const idTokenClaims = {
@@ -300,7 +299,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             "upn": "testupn"
         };
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-		const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
+        const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
 
         const homeAccountId = "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
         const acc = AccountEntity.createGenericAccount(
@@ -360,7 +359,7 @@ describe("AccountEntity.ts Unit Tests", () => {
                 authority,
                 idToken
             );
-        })
+        });
 
         it("returns true if two account info objects have the same values", () => {
             const acc1: AccountInfo = acc.getAccountInfo();

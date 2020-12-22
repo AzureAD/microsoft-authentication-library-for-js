@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import {Constants, SSOTypes, PromptValue, AADServerParamKeys, ResponseMode, GrantType, AuthenticationScheme} from "../../src/utils/Constants";
 import {
@@ -8,7 +13,6 @@ import {
     TEST_POP_VALUES
 } from "../utils/StringConstants";
 import { RequestParameterBuilder } from "../../src/request/RequestParameterBuilder";
-import { ScopeSet } from "../../src/request/ScopeSet";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src";
 import sinon from "sinon";
 

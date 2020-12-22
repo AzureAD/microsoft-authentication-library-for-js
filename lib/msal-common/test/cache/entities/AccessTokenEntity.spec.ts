@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import { AccessTokenEntity } from "../../../src/cache/entities/AccessTokenEntity";
 import { mockCache, mockAccessTokenEntity_1, mockAccessTokenEntity_2, mockRefreshTokenEntity } from "./cacheConstants";

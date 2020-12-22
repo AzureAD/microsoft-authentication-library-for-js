@@ -7,8 +7,8 @@ import chai from "chai";
 import "mocha";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
-import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthenticationResult, AuthorizationCodeClient, AuthenticationScheme, ProtocolMode, Logger, Authority, ClientConfiguration, AuthorizationCodePayload } from "@azure/msal-common";
-import { Configuration, buildConfiguration, DEFAULT_REDIRECT_TIMEOUT_MS } from "../../src/config/Configuration";
+import { PkceCodes, AccountInfo, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthenticationResult, AuthorizationCodeClient, AuthenticationScheme, ProtocolMode, Logger, Authority, ClientConfiguration, AuthorizationCodePayload } from "@azure/msal-common";
+import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_HASHES, TEST_TOKEN_LIFETIMES, TEST_POP_VALUES, TEST_STATE_VALUES } from "../utils/StringConstants";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
@@ -33,16 +33,10 @@ const testNetworkResult = {
 const browserCrypto = new CryptoOps();
 
 const networkInterface = {
-    sendGetRequestAsync<T>(
-        url: string,
-        options?: NetworkRequestOptions
-    ): T {
+    sendGetRequestAsync<T>(): T {
         return null;
     },
-    sendPostRequestAsync<T>(
-        url: string,
-        options?: NetworkRequestOptions
-    ): T {
+    sendPostRequestAsync<T>(): T {
         return null;
     },
 };
@@ -64,11 +58,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
         authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, ProtocolMode.AAD);
         const browserCrypto = new CryptoOps();
         const loggerConfig = {
-            loggerCallback: (
-                level: LogLevel,
-                message: string,
-                containsPii: boolean
-            ): void => {},
+            loggerCallback: (): void => {},
             piiLoggingEnabled: true,
         };
         const logger = new Logger(loggerConfig);
@@ -86,10 +76,10 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 createNewGuid: (): string => {
                     return "newGuid";
                 },
-                base64Decode: (input: string): string => {
+                base64Decode: (): string => {
                     return "testDecodedString";
                 },
-                base64Encode: (input: string): string => {
+                base64Encode: (): string => {
                     return "testEncodedString";
                 },
                 generatePkceCodes: async (): Promise<PkceCodes> => {
@@ -104,16 +94,10 @@ describe("RedirectHandler.ts Unit Tests", () => {
             },
             storageInterface: browserStorage,
             networkInterface: {
-                sendGetRequestAsync: async (
-                    url: string,
-                    options?: NetworkRequestOptions
-                ): Promise<any> => {
+                sendGetRequestAsync: async (): Promise<any> => {
                     return testNetworkResult;
                 },
-                sendPostRequestAsync: async (
-                    url: string,
-                    options?: NetworkRequestOptions
-                ): Promise<any> => {
+                sendPostRequestAsync: async (): Promise<any> => {
                     return testNetworkResult;
                 },
             },
@@ -167,10 +151,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
         });
 
         it("navigates browser window to given window location", (done) => {
-            let dbStorage = {};
-            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
-                dbStorage = {};
-            });
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => { });
             const testTokenReq: AuthorizationCodeRequest = {
                 authenticationScheme: AuthenticationScheme.BEARER,
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
@@ -194,10 +175,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
         });
 
         it("doesnt navigate if onRedirectNavigate returns false", done => {
-            let dbStorage = {};
-            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
-                dbStorage = {};
-            });
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => { });
             const testTokenReq: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 code: "thisIsATestCode",
@@ -206,7 +184,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
                 correlationId: RANDOM_TEST_GUID
             };
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((requestUrl, timeout, logger) => {
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake(() => {
                 done("Navigatation should not happen if onRedirectNavigate returns false");
                 return Promise.reject();
             });
@@ -215,7 +193,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 expect(url).to.equal(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
                 done();
                 return false;
-            }
+            };
             redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, {
                 redirectTimeout: 300,
                 redirectStartPage: "",
@@ -224,10 +202,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
         });
 
         it("navigates if onRedirectNavigate doesnt return false", done => {
-            let dbStorage = {};
-            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
-                dbStorage = {};
-            });
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {});
             const testTokenReq: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
                 code: "thisIsATestCode",
@@ -236,7 +211,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
                 correlationId: RANDOM_TEST_GUID
             };
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((requestUrl, timeout, logger) => {
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake((requestUrl) => {
                 expect(requestUrl).to.equal(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
                 done();
                 return Promise.resolve();
@@ -244,7 +219,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
 
             const onRedirectNavigate = url => {
                 expect(url).to.equal(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
-            }
+            };
             redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, {
                 redirectTimeout: 3000,
                 redirectStartPage: "",
@@ -302,10 +277,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 uniqueId: idTokenClaims.oid,
                 tokenType: AuthenticationScheme.BEARER
             };
-            let dbStorage = {};
-            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
-                dbStorage = {};
-            });
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => { });
 
             const testAuthCodeRequest: AuthorizationCodeRequest = {
                 authenticationScheme: AuthenticationScheme.BEARER,

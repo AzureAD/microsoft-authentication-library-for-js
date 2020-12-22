@@ -1,13 +1,18 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import {
     buildAppConfiguration,
     Configuration,
-} from '../../src/config/Configuration';
-import { HttpClient } from '../../src/network/HttpClient';
-import { TEST_CONSTANTS } from '../utils/TestConstants';
-import { LogLevel, NetworkRequestOptions } from '@azure/msal-common';
+} from "../../src/config/Configuration";
+import { HttpClient } from "../../src/network/HttpClient";
+import { TEST_CONSTANTS } from "../utils/TestConstants";
+import { LogLevel, NetworkRequestOptions } from "@azure/msal-common";
 
-describe('ClientConfiguration tests', () => {
-    test('builds configuration and assigns default functions', () => {
+describe("ClientConfiguration tests", () => {
+    test("builds configuration and assigns default functions", () => {
         const config: Configuration = buildAppConfiguration({
             auth: {
                 clientId: TEST_CONSTANTS.CLIENT_ID,
@@ -33,44 +38,46 @@ describe('ClientConfiguration tests', () => {
 
         config.system!.loggerOptions!.loggerCallback!(
             LogLevel.Error,
-            'error',
+            "error",
             false
         );
         config.system!.loggerOptions!.loggerCallback!(
             LogLevel.Info,
-            'info',
+            "info",
             false
         );
         config.system!.loggerOptions!.loggerCallback!(
             LogLevel.Verbose,
-            'verbose',
+            "verbose",
             false
         );
         config.system!.loggerOptions!.loggerCallback!(
             LogLevel.Warning,
-            'warning',
+            "warning",
             false
         );
         config.system!.loggerOptions!.loggerCallback!(
             LogLevel.Warning,
-            'warning',
+            "warning",
             true
         );
 
-        // expect(console.error).toHaveBeenLastCalledWith('error');
-        // expect(console.info).toHaveBeenLastCalledWith('info');
-        // expect(console.debug).toHaveBeenLastCalledWith('verbose');
-        // expect(console.warn).toHaveBeenLastCalledWith('warning');
-        // expect(console.warn).toHaveBeenCalledTimes(1);
+        /*
+         * expect(console.error).toHaveBeenLastCalledWith('error');
+         * expect(console.info).toHaveBeenLastCalledWith('info');
+         * expect(console.debug).toHaveBeenLastCalledWith('verbose');
+         * expect(console.warn).toHaveBeenLastCalledWith('warning');
+         * expect(console.warn).toHaveBeenCalledTimes(1);
+         */
 
         // auth options
         expect(config.auth!.authority).toEqual(TEST_CONSTANTS.DEFAULT_AUTHORITY);
         expect(config.auth!.clientId).toEqual(TEST_CONSTANTS.CLIENT_ID);
     });
 
-    test('builds configuration and assigns default functions', () => {
+    test("builds configuration and assigns default functions", () => {
         const testNetworkResult = {
-            testParam: 'testValue',
+            testParam: "testValue",
         };
 
         const config: Configuration = {
@@ -117,7 +124,7 @@ describe('ClientConfiguration tests', () => {
 
         const testNetworkOptions: NetworkRequestOptions = {
             headers: {},
-            body: '',
+            body: "",
         };
 
         // network options

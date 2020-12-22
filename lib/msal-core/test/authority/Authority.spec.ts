@@ -1,6 +1,11 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import { Authority, AuthorityType } from "../../src/authority/Authority";
-import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../../src/error/ClientConfigurationError"
+import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../../src/error/ClientConfigurationError";
 import { TEST_CONFIG, TENANT_DISCOVERY_RESPONSE, ADFS_TEST_CONFIG } from "../TestConstants";
 import TelemetryManager from "../../src/telemetry/TelemetryManager";
 import { TelemetryConfig } from "../../src/telemetry/TelemetryTypes";
@@ -40,7 +45,7 @@ describe("Authority.ts Class", function () {
                 authority = new Authority("", true);
             }
             catch(e) {
-                expect(e).to.be.equal(ClientConfigurationErrorMessage.invalidAuthorityType)
+                expect(e).to.be.equal(ClientConfigurationErrorMessage.invalidAuthorityType);
             }
         });
     
@@ -49,7 +54,7 @@ describe("Authority.ts Class", function () {
                 authority = new Authority("http://login.microsoftonline.com/common", true);
             }
             catch(e) {
-                expect(e).to.be.equal(ClientConfigurationErrorMessage.authorityUriInsecure)
+                expect(e).to.be.equal(ClientConfigurationErrorMessage.authorityUriInsecure);
             }
         });
     
@@ -58,7 +63,7 @@ describe("Authority.ts Class", function () {
                 authority = new Authority("https://login.microsoftonline.com", true);
             }
             catch(e) {
-                expect(e).to.be.equal(ClientConfigurationErrorMessage.authorityUriInvalidPath)
+                expect(e).to.be.equal(ClientConfigurationErrorMessage.authorityUriInvalidPath);
             }
         });
     });
@@ -67,20 +72,20 @@ describe("Authority.ts Class", function () {
         it("Default type", () => {
             authority = new Authority(TEST_CONFIG.validAuthority, true);
 
-            expect(authority.AuthorityType).to.equal(AuthorityType.Default)
+            expect(authority.AuthorityType).to.equal(AuthorityType.Default);
         });
 
         it("ADFS type", () => {
             authority = new Authority(ADFS_TEST_CONFIG.validAuthority, true);
 
-            expect(authority.AuthorityType).to.equal(AuthorityType.Adfs)
+            expect(authority.AuthorityType).to.equal(AuthorityType.Adfs);
         });
     });
 
     describe("get AuthoritzationEndpoint", () => {
         it("throws error if ResolveEndpointsAsync hasn't been called yet", function () {
             try {
-                const authEndpoint = authority.AuthorizationEndpoint
+                const authEndpoint = authority.AuthorizationEndpoint;
             }
             catch(e) {
                 expect(e).to.be.equal("Please call ResolveEndpointsAsync first");
@@ -90,14 +95,14 @@ describe("Authority.ts Class", function () {
         it("tests AuthorizationEndpoint", async function () {
             const response = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CorrelationId);
 
-            expect(authority.AuthorizationEndpoint).to.equal("https://login.microsoftonline.com/common/oauth2/v2.0/authorize")
+            expect(authority.AuthorizationEndpoint).to.equal("https://login.microsoftonline.com/common/oauth2/v2.0/authorize");
         });
     });
 
     describe("get EndSessionEndpoint", () => {
         it("throws error if ResolveEndpointsAsync hasn't been called yet", function () {
             try {
-                const authEndpoint = authority.EndSessionEndpoint
+                const authEndpoint = authority.EndSessionEndpoint;
             }
             catch(e) {
                 expect(e).to.be.equal("Please call ResolveEndpointsAsync first");
@@ -107,14 +112,14 @@ describe("Authority.ts Class", function () {
         it("tests EndSessionEndpoint", async function () {
             const response = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CorrelationId);
     
-            expect(authority.EndSessionEndpoint).to.equal("https://login.microsoftonline.com/common/oauth2/v2.0/logout")
+            expect(authority.EndSessionEndpoint).to.equal("https://login.microsoftonline.com/common/oauth2/v2.0/logout");
         });
     });
 
     describe("get SelfSignedJwtAudience", () => {
         it("throws error if ResolveEndpointsAsync hasn't been called yet", function () {
             try {
-                const authEndpoint = authority.SelfSignedJwtAudience
+                const authEndpoint = authority.SelfSignedJwtAudience;
             }
             catch(e) {
                 expect(e).to.be.equal("Please call ResolveEndpointsAsync first");
@@ -124,7 +129,7 @@ describe("Authority.ts Class", function () {
         it("tests SelfSignedJwtAudience", async function () {
             const response = await authority.resolveEndpointsAsync(stubbedTelemetryManager, TEST_CONFIG.CorrelationId);
     
-            expect(authority.SelfSignedJwtAudience).to.equal("https://login.microsoftonline.com/common/v2.0")
+            expect(authority.SelfSignedJwtAudience).to.equal("https://login.microsoftonline.com/common/v2.0");
         });
     });
 

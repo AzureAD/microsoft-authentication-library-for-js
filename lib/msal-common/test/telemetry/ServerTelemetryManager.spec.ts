@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import * as Mocha from "mocha";
+import "mocha";
 import { expect } from "chai";
 import { ServerTelemetryManager, AuthError, ServerTelemetryRequest, ServerTelemetryEntity } from "../../src";
 import { TEST_CONFIG } from "../utils/StringConstants";

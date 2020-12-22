@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import { TEST_URIS, TEST_HASHES } from "../utils/StringConstants";
 import { UrlString } from "../../src/url/UrlString";
@@ -12,7 +17,7 @@ describe("UrlString.ts Class Unit Tests", () => {
     });
     
     it("Creates a valid UrlString object", () => {
-        let urlObj = new UrlString(TEST_URIS.TEST_REDIR_URI.toUpperCase());
+        const urlObj = new UrlString(TEST_URIS.TEST_REDIR_URI.toUpperCase());
         expect(urlObj.urlString).to.be.eq(TEST_URIS.TEST_REDIR_URI + "/");
     });
 
@@ -25,33 +30,33 @@ describe("UrlString.ts Class Unit Tests", () => {
     });
 
     it("validateAsUri throws error if uri components could not be extracted", () => {
-        const urlComponentError = "Error getting url components"
+        const urlComponentError = "Error getting url components";
         sinon.stub(UrlString.prototype, "getUrlComponents").throws(urlComponentError);
-        let urlObj = new UrlString(TEST_URIS.TEST_REDIR_URI);
+        const urlObj = new UrlString(TEST_URIS.TEST_REDIR_URI);
         expect(() => urlObj.validateAsUri()).to.throw(`${ClientConfigurationErrorMessage.urlParseError.desc} Given Error: ${urlComponentError}`);
         expect(() => urlObj.validateAsUri()).to.throw(ClientConfigurationError);
     });
 
     it("validateAsUri throws error if uri is not secure", () => {
         const insecureUrlString = "http://login.microsoft.com/common";
-        let urlObj = new UrlString(insecureUrlString);
+        const urlObj = new UrlString(insecureUrlString);
         expect(() => urlObj.validateAsUri()).to.throw(`${ClientConfigurationErrorMessage.authorityUriInsecure.desc} Given URI: ${insecureUrlString}`);
         expect(() => urlObj.validateAsUri()).to.throw(ClientConfigurationError);
     });
 
     it("validateAsUri validates any valid URI", () => {
         const insecureUrlString = "https://example.com/";
-        let urlObj = new UrlString(insecureUrlString);
+        const urlObj = new UrlString(insecureUrlString);
         expect(() => urlObj.validateAsUri()).to.not.throw;
     });
 
     it("urlRemoveQueryStringParameter removes required path components",() => {
-        let urlObj1 = new UrlString(TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS1);
+        const urlObj1 = new UrlString(TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS1);
         expect(urlObj1.urlString).to.contain("param1=value1");
         urlObj1.urlRemoveQueryStringParameter("param1");
         expect(urlObj1.urlString).to.not.contain("param1=value1");
 
-        let urlObj2 = new UrlString(TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS2);
+        const urlObj2 = new UrlString(TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS2);
         expect(urlObj2.urlString).to.contain("param1=value1");
         expect(urlObj2.urlString).to.contain("param2=value2");
         urlObj2.urlRemoveQueryStringParameter("param2");
@@ -77,7 +82,7 @@ describe("UrlString.ts Class Unit Tests", () => {
     });
 
     it("replaceTenantPath correctly replaces common with tenant id", () => {
-        let urlObj = new UrlString(TEST_URIS.TEST_AUTH_ENDPT);
+        const urlObj = new UrlString(TEST_URIS.TEST_AUTH_ENDPT);
         const sampleTenantId = "sample-tenant-id";
         expect(urlObj.urlString).to.contain("common");
         expect(urlObj.urlString).to.not.contain(sampleTenantId);
@@ -87,7 +92,7 @@ describe("UrlString.ts Class Unit Tests", () => {
     });
 
     it("replaceTenantPath correctly replaces organizations with tenant id", () => {
-        let urlObj = new UrlString(TEST_URIS.TEST_AUTH_ENDPT_ORGS);
+        const urlObj = new UrlString(TEST_URIS.TEST_AUTH_ENDPT_ORGS);
         const sampleTenantId = "sample-tenant-id";
         expect(urlObj.urlString).to.contain("organizations");
         expect(urlObj.urlString).to.not.contain(sampleTenantId);
@@ -97,7 +102,7 @@ describe("UrlString.ts Class Unit Tests", () => {
     });
 
     it("replaceTenantPath returns the same url if path does not contain common or organizations", () => {
-        let urlObj = new UrlString(TEST_URIS.TEST_AUTH_ENDPT_TENANT_ID);
+        const urlObj = new UrlString(TEST_URIS.TEST_AUTH_ENDPT_TENANT_ID);
         const sampleTenantId2 = "sample-tenant-id-2";
         expect(urlObj.urlString).to.contain("sample-tenantid");
         expect(urlObj.urlString).to.not.contain(sampleTenantId2);
@@ -195,19 +200,19 @@ describe("UrlString.ts Class Unit Tests", () => {
 
     describe("getAbsoluteUrl tests", () => {
         it("Returns url provided if it's already absolute", () => {
-            const absoluteUrl = "https://localhost:30662"
+            const absoluteUrl = "https://localhost:30662";
             expect(UrlString.getAbsoluteUrl(absoluteUrl, absoluteUrl + "/testPath")).to.eq(absoluteUrl);
         });
 
         it("Returns absolute url if relativeUrl provided", () => {
-            const basePath = "https://localhost:30662"
+            const basePath = "https://localhost:30662";
             const absoluteUrl = "https://localhost:30662/testPath";
             expect(UrlString.getAbsoluteUrl("/testPath", basePath)).to.eq(absoluteUrl);
             expect(UrlString.getAbsoluteUrl("/testPath", basePath + "/")).to.eq(absoluteUrl);
         });
 
         it("Replaces path if relativeUrl provided and baseUrl contains different path", () => {
-            const basePath = "https://localhost:30662/differentPath"
+            const basePath = "https://localhost:30662/differentPath";
             const expectedUrl = "https://localhost:30662/testPath";
             expect(UrlString.getAbsoluteUrl("/testPath", basePath)).to.eq(expectedUrl);
         });

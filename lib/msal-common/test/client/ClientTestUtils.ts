@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfiguration, Constants, LogLevel, NetworkRequestOptions, PkceCodes, ClientAuthError, AccountEntity, CredentialEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, ProtocolMode , AuthorityFactory } from "../../src";
+import { ClientConfiguration, Constants, LogLevel, PkceCodes, ClientAuthError, AccountEntity, CredentialEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, ProtocolMode , AuthorityFactory } from "../../src";
 import { ADFS_AUTHORITY, PREFERRED_CACHE_ALIAS, RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES } from "../utils/StringConstants";
 
 import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
@@ -122,10 +122,10 @@ export class ClientTestUtils {
         };
 
         const mockHttpClient = {
-            sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+            sendGetRequestAsync<T>(): T {
                 return null;
             },
-            sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+            sendPostRequestAsync<T>(): T {
                 return null;
             }
         };
@@ -144,16 +144,10 @@ export class ClientTestUtils {
             },
             storageInterface: new MockStorageClass(),
             networkInterface: {
-                sendGetRequestAsync<T>(
-                    url: string,
-                    options?: NetworkRequestOptions
-                ): T {
+                sendGetRequestAsync<T>(): T {
                     return null;
                 },
-                sendPostRequestAsync<T>(
-                    url: string,
-                    options?: NetworkRequestOptions
-                ): T {
+                sendPostRequestAsync<T>(): T {
                     return null;
                 },
             },

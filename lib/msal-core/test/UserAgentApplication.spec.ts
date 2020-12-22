@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import * as Mocha from "mocha";
 import { expect } from "chai";
 import {
@@ -1420,7 +1425,7 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("tests getCachedToken returns correct Id Token when authority is passed and there are multiple ID tokens in the cache for the same account", (done) => {
-            const requestAuthority = 'https://login.onmicrosoft.com/common/';
+            const requestAuthority = "https://login.onmicrosoft.com/common/";
             const tokenRequest : AuthenticationParameters = {
                 authority: requestAuthority,
                 scopes: ["S1"],

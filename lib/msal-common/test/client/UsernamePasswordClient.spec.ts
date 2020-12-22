@@ -9,7 +9,6 @@ import {
     AUTHENTICATION_RESULT_DEFAULT_SCOPES,
     DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_CONFIG,
-    TEST_TOKENS,
     TEST_DATA_CLIENT_INFO,
     TEST_URIS
 } from "../utils/StringConstants";
@@ -30,12 +29,12 @@ describe("Username Password unit tests", () => {
         sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
         config = await ClientTestUtils.createTestClientConfiguration();
         // Set up required objects and mocked return values
-        const decodedLibState = `{ "id": "testid", "ts": 1592846482 }`;
+        const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
         config.cryptoInterface.base64Decode = (input: string): string => {
             switch (input) {
                 case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                     return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                case `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9`:
+                case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
                     return decodedLibState;
                 default:
                     return input;
@@ -69,7 +68,6 @@ describe("Username Password unit tests", () => {
         };
         sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
     });
-
 
     afterEach(() => {
         sinon.restore();

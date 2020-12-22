@@ -6,90 +6,15 @@
 import { expect } from "chai";
 import sinon from "sinon";
 import "mocha";
-import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
+import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_URIS, TEST_STATE_VALUES } from "../utils/StringConstants";
 import { CacheOptions } from "../../src/config/Configuration";
-import { CacheManager, Constants, PersistentCacheKeys, AuthorizationCodeRequest, ProtocolUtils, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, Logger, LogLevel, AuthenticationScheme } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, AuthorizationCodeRequest, ProtocolUtils, Logger, LogLevel, AuthenticationScheme } from "@azure/msal-common";
 import { BrowserCacheLocation, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { MemoryStorage } from "../../src/cache/MemoryStorage";
-
-class TestCacheStorage extends CacheManager {
-    setAccount(): void {
-        const notImplErr = "Storage interface - setAccount() has not been implemented for the cacheStorage interface.";
-        throw new Error(notImplErr);
-    }
-    getAccount(): AccountEntity {
-        const notImplErr = "Storage interface - getAccount() has not been implemented for the cacheStorage interface.";
-        throw new Error(notImplErr);
-    }
-    setIdTokenCredential(): void {
-        const notImplErr = "Storage interface - setIdTokenCredential() has not been implemented for the cacheStorage interface.";
-        throw new Error(notImplErr);
-    }
-    getIdTokenCredential(): IdTokenEntity {
-        const notImplErr = "Storage interface - getIdTokenCredential() has not been implemented for the cacheStorage interface.";
-        throw new Error(notImplErr);
-    }
-    setAccessTokenCredential(): void {
-        const notImplErr = "Storage interface - setAccessTokenCredential() has not been implemented for the cacheStorage interface.";
-        throw new Error(notImplErr);
-    }
-    getAccessTokenCredential(): AccessTokenEntity {
-        const notImplErr = "Storage interface - getAccessTokenCredential() has not been implemented for the cacheStorage interface.";
-        throw new Error(notImplErr);
-    }
-    setRefreshTokenCredential(): void {
-        const notImplErr = "Storage interface - setRefreshTokenCredential() has not been implemented for the cacheStorage interface.";
-        throw new Error(notImplErr);
-    }
-    getRefreshTokenCredential(): RefreshTokenEntity {
-        const notImplErr = "Storage interface - getRefreshTokenCredential() has not been implemented for the cacheStorage interface.";
-        throw new Error(notImplErr);
-    }
-    setAppMetadata(): void {
-        const notImplErr = "Storage interface - setAppMetadata() has not been implemented for the cacheStorage interface.";
-        throw new Error(notImplErr);
-    }
-    getAppMetadata(): AppMetadataEntity {
-        const notImplErr = "Storage interface - getAppMetadata() has not been implemented for the cacheStorage interface.";
-        throw new Error(notImplErr);
-    }
-    setServerTelemetry(): void {
-        const notImplErr = "Storage interface - setServerTelemetry() has not been implemented for the cacheStorage interface.";
-        throw new Error(notImplErr);
-    }
-    getServerTelemetry(): ServerTelemetryEntity {
-        const notImplErr = "Storage interface - getServerTelemetry() has not been implemented for the cacheStorage interface.";
-        throw new Error(notImplErr);
-    }
-    setThrottlingCache(): void {
-        const notImplErr = "Storage interface - setThrottlingCache() has not been implemented for the cacheStorage interface.";
-        throw new Error(notImplErr);
-    }
-    getThrottlingCache(): ThrottlingEntity {
-        const notImplErr = "Storage interface - getThrottlingCache() has not been implemented for the cacheStorage interface.";
-        throw new Error(notImplErr);
-    }
-    removeItem(): boolean {
-        const notImplErr = "Storage interface - removeItem() has not been implemented for the cacheStorage interface.";
-        throw new Error(notImplErr);
-    }
-    containsKey(): boolean {
-        const notImplErr = "Storage interface - containsKey() has not been implemented for the cacheStorage interface.";
-        throw new Error(notImplErr);
-    }
-    getKeys(): string[] {
-        const notImplErr = "Storage interface - getKeys() has not been implemented for the cacheStorage interface.";
-        throw new Error(notImplErr);
-    }
-    clear(): void {
-        const notImplErr = "Storage interface - clear() has not been implemented for the cacheStorage interface.";
-        throw new Error(notImplErr);
-    }
-}
 
 describe("BrowserCacheManager tests", () => {
 
@@ -571,10 +496,7 @@ describe("BrowserCacheManager tests", () => {
         });
 
         it("Throws error if cached request cannot be parsed correctly", async () => {
-            let dbStorage = {};
-            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
-                dbStorage = {};
-            });
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => { });
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             const cryptoObj = new CryptoOps();
             const tokenRequest: AuthorizationCodeRequest = {
@@ -592,10 +514,7 @@ describe("BrowserCacheManager tests", () => {
         });
 
         it("Uses authority from cache if not present in cached request", async () => {
-            let dbStorage = {};
-            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
-                dbStorage = {};
-            });
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => { });
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             // Set up cache
             const authorityKey = browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE);

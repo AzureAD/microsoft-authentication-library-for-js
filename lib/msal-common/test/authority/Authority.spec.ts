@@ -1,7 +1,12 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import sinon from "sinon";
 import { Authority } from "../../src/authority/Authority";
-import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
+import { INetworkModule } from "../../src/network/INetworkModule";
 import { Constants } from "../../src/utils/Constants";
 import {
     TEST_URIS,
@@ -22,10 +27,10 @@ describe("Authority.ts Class Unit Tests", () => {
 
         it("Creates canonical authority uri based on given uri (and normalizes with '/')", () => {
             const networkInterface: INetworkModule = {
-                sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                sendGetRequestAsync<T>(): T {
                     return null;
                 },
-                sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                sendPostRequestAsync<T>(): T {
                     return null;
                 }
             };
@@ -35,10 +40,10 @@ describe("Authority.ts Class Unit Tests", () => {
 
         it("Throws error if URI is not in valid format", () => {
             const networkInterface: INetworkModule = {
-                sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                sendGetRequestAsync<T>(): T {
                     return null;
                 },
-                sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                sendPostRequestAsync<T>(): T {
                     return null;
                 }
             };
@@ -51,10 +56,10 @@ describe("Authority.ts Class Unit Tests", () => {
 
     describe("Getters and setters", () => {
         const networkInterface: INetworkModule = {
-            sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+            sendGetRequestAsync<T>(): T {
                 return null;
             },
-            sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+            sendPostRequestAsync<T>(): T {
                 return null;
             }
         };
@@ -130,10 +135,10 @@ describe("Authority.ts Class Unit Tests", () => {
     describe("Endpoint discovery", () => {
 
         const networkInterface: INetworkModule = {
-            sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+            sendGetRequestAsync<T>(): T {
                 return null;
             },
-            sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+            sendPostRequestAsync<T>(): T {
                 return null;
             }
         };
@@ -154,7 +159,7 @@ describe("Authority.ts Class Unit Tests", () => {
         });
 
         it("resolveEndpoints returns the openIdConfigurationEndpoint and then obtains the tenant discovery response from that endpoint", async () => {
-            networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+            networkInterface.sendGetRequestAsync = (): any => {
                 return DEFAULT_OPENID_CONFIG_RESPONSE;
             };
             authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, ProtocolMode.AAD);
@@ -181,7 +186,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 return {
                     preferred_cache: Constants.DEFAULT_AUTHORITY_HOST, 
                     preferred_network: Constants.DEFAULT_AUTHORITY_HOST, 
-                    aliases: [Constants.DEFAULT_AUTHORITY_HOST]}
+                    aliases: [Constants.DEFAULT_AUTHORITY_HOST]};
             });
 
             await authority.resolveEndpointsAsync();
@@ -205,7 +210,7 @@ describe("Authority.ts Class Unit Tests", () => {
         });
 
         it("ADFS authority uses v1 well-known endpoint", async () => {
-            const authorityUrl = "https://login.microsoftonline.com/adfs/"
+            const authorityUrl = "https://login.microsoftonline.com/adfs/";
             let endpoint = "";
             authority = new Authority(authorityUrl, networkInterface, ProtocolMode.AAD);
             sinon.stub(TrustedAuthority, "getTrustedHostList").returns(["login.microsoftonline.com"]);
@@ -214,7 +219,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 return {
                     preferred_cache: Constants.DEFAULT_AUTHORITY_HOST, 
                     preferred_network: Constants.DEFAULT_AUTHORITY_HOST, 
-                    aliases: [Constants.DEFAULT_AUTHORITY_HOST]}
+                    aliases: [Constants.DEFAULT_AUTHORITY_HOST]};
             });
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").callsFake((openIdEndpoint) => {
                 endpoint = openIdEndpoint;
@@ -226,7 +231,7 @@ describe("Authority.ts Class Unit Tests", () => {
         });
 
         it("OIDC ProtocolMode does not append v2 to endpoint", async () => {
-            const authorityUrl = "https://login.microsoftonline.com/"
+            const authorityUrl = "https://login.microsoftonline.com/";
             let endpoint = "";
             authority = new Authority(authorityUrl, networkInterface, ProtocolMode.OIDC);
             sinon.stub(TrustedAuthority, "getTrustedHostList").returns(["login.microsoftonline.com"]);
@@ -235,7 +240,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 return {
                     preferred_cache: Constants.DEFAULT_AUTHORITY_HOST, 
                     preferred_network: Constants.DEFAULT_AUTHORITY_HOST, 
-                    aliases: [Constants.DEFAULT_AUTHORITY_HOST]}
+                    aliases: [Constants.DEFAULT_AUTHORITY_HOST]};
             });
             sinon.stub(Authority.prototype, <any>"discoverEndpoints").callsFake((openIdEndpoint) => {
                 endpoint = openIdEndpoint;
@@ -244,6 +249,6 @@ describe("Authority.ts Class Unit Tests", () => {
 
             await authority.resolveEndpointsAsync();
             expect(endpoint).to.equal(`${authorityUrl}.well-known/openid-configuration`);
-        })
+        });
     });
 });

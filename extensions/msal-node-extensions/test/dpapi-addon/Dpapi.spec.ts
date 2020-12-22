@@ -5,12 +5,12 @@
 
 import Dpapi from "../../src/dpapi-addon/Dpapi";
 import { DataProtectionScope } from "../../src";
-import { platform } from "process"
+import { platform } from "process";
 
 // DPAPI is only available on windows
 if(platform === "win32"){
-    describe('Test DPAPI addon', () => {
-        test('Protect and Unprotect data', () => {
+    describe("Test DPAPI addon", () => {
+        test("Protect and Unprotect data", () => {
             const data = Buffer.from("DPAPITestString");
 
             const encryptedData = Dpapi.protectData(data, null, DataProtectionScope.CurrentUser);
@@ -18,7 +18,7 @@ if(platform === "win32"){
             expect(decryptedData).toEqual(data);
         });
 
-        test('Protect and Unprotect data with entropy', () => {
+        test("Protect and Unprotect data with entropy", () => {
             const data = Buffer.from("DPAPITestString");
             const entropy = Buffer.from("entropy");
 
@@ -27,7 +27,7 @@ if(platform === "win32"){
             expect(decryptedData).toEqual(data);
         });
 
-        test('Protect and Unprotect data with local machine scope', () => {
+        test("Protect and Unprotect data with local machine scope", () => {
             const data = Buffer.from("DPAPITestString");
 
             const encryptedData = Dpapi.protectData(data, null, DataProtectionScope.LocalMachine);

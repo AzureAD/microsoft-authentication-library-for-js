@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { expect } from "chai";
 import { RequestUtils } from "../../src/utils/RequestUtils";
 import { CryptoUtils } from "../../src/utils/CryptoUtils";
@@ -8,7 +13,6 @@ import { StringDict } from "../../src/MsalTypes";
 import { TimeUtils } from "../../src/utils/TimeUtils";
 import sinon from "sinon";
 import { Constants } from "../../src/utils/Constants";
-
 
 describe("RequestUtils.ts class", () => {
 
@@ -21,7 +25,7 @@ describe("RequestUtils.ts class", () => {
             const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
         } catch (e) {
             undefinedScopesError = e;
-        };
+        }
 
         expect(undefinedScopesError instanceof ClientConfigurationError).to.be.true;
         expect(undefinedScopesError.errorCode).to.equal(ClientConfigurationErrorMessage.scopesRequired.code);
@@ -38,7 +42,7 @@ describe("RequestUtils.ts class", () => {
             const request: AuthenticationParameters = RequestUtils.validateRequest(userRequest, false, TEST_CONFIG.MSAL_CLIENT_ID, Constants.interactionTypeSilent);
         } catch (e) {
             emptyScopesError = e;
-        };
+        }
 
         expect(emptyScopesError instanceof ClientConfigurationError).to.be.true;
         expect(emptyScopesError.errorCode).to.equal(ClientConfigurationErrorMessage.emptyScopes.code);
@@ -54,7 +58,7 @@ describe("RequestUtils.ts class", () => {
             RequestUtils.validatePromptParameter("random");
         } catch (e) {
             promptError = e;
-        };
+        }
 
         expect(promptError instanceof ClientConfigurationError).to.be.true;
         expect(promptError.errorCode).to.equal(ClientConfigurationErrorMessage.invalidPrompt.code);
@@ -108,7 +112,7 @@ describe("RequestUtils.ts class", () => {
         expect(parsedState.ts).to.be.equal(now);
 
         nowStub.restore();
-    })
+    });
 
     it("generates expected state if there is a delay between generating and parsing", function(done) {
         this.timeout(5000);

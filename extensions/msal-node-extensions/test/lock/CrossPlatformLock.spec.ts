@@ -9,7 +9,7 @@ import { promises as fs } from "fs";
 import { Constants } from "../../src/utils/Constants";
 import { FileSystemUtils } from "../util/FileSystemUtils";
 
-describe('Test cross platform lock', () => {
+describe("Test cross platform lock", () => {
 
     const loggerOptions = {
         loggerCallback: () => {
@@ -23,12 +23,12 @@ describe('Test cross platform lock', () => {
         await FileSystemUtils.cleanUpFile(lockFilePath);
     });
 
-    test('export a class', () => {
+    test("export a class", () => {
         const lock = new CrossPlatformLock(lockFilePath, logger);
         expect(lock).toBeInstanceOf(CrossPlatformLock);
     });
 
-    test('locks then unlocks by creating then deleting lockfile', async () => {
+    test("locks then unlocks by creating then deleting lockfile", async () => {
         const lock = new CrossPlatformLock(lockFilePath, logger);
         await lock.lock();
 
@@ -47,7 +47,7 @@ describe('Test cross platform lock', () => {
         throw Error("Lockfile not deleted");
     });
 
-    test('Tries to acquire a lock when .lockfile is present and fails', async () => {
+    test("Tries to acquire a lock when .lockfile is present and fails", async () => {
         const fd = await fs.open(lockFilePath, "wx+");
 
         const lockOptions = {
@@ -68,7 +68,7 @@ describe('Test cross platform lock', () => {
         throw Error("Able to acquire lock");
     });
 
-    test('Tries to acquire a lock when .lockfile is present and succeeds', async () => {
+    test("Tries to acquire a lock when .lockfile is present and succeeds", async () => {
         // try to acquire lock for 10 times at 500 millisecond interval
         const lockOptions = {
             retryNumber: 10,

@@ -4,7 +4,7 @@
  */
 
 import { expect } from "chai";
-import chaiAsPromised from "chai-as-promised";
+import "chai-as-promised";
 import sinon from "sinon";
 import {
     AUTHENTICATION_RESULT,
@@ -21,7 +21,7 @@ import { SilentFlowClient } from "../../src/client/SilentFlowClient";
 import { RefreshTokenClient } from "../../src/client/RefreshTokenClient";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { AccountInfo } from "../../src/account/AccountInfo";
-import { SilentFlowRequest, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CacheManager, ClientConfigurationErrorMessage, ClientAuthErrorMessage, TimeUtils, ClientConfiguration, RefreshTokenRequest, ServerTelemetryManager, TokenClaims } from "../../src";
+import { SilentFlowRequest, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CacheManager, ClientConfigurationErrorMessage, ClientAuthErrorMessage, TimeUtils, ClientConfiguration, RefreshTokenRequest, ServerTelemetryManager } from "../../src";
 import { AuthToken } from "../../src/account/AuthToken";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
