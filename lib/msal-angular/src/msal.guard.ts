@@ -15,17 +15,21 @@ import { Observable, of } from "rxjs";
 
 @Injectable()
 export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
-    private readonly loginFailedRoute?: UrlTree;
+    private loginFailedRoute?: UrlTree;
 
     constructor(
         @Inject(MSAL_GUARD_CONFIG) private msalGuardConfig: MsalGuardConfiguration,
         private authService: MsalService,
         private location: Location,
         private router: Router
-    ) { 
-        if (msalGuardConfig.loginFailedRoute) {
-            this.loginFailedRoute = this.router.parseUrl(msalGuardConfig.loginFailedRoute);
-        }
+    ) { }
+
+    /**
+     * Parses url string to UrlTree
+     * @param url 
+     */
+    parseUrl(url: string): UrlTree {
+        return this.router.parseUrl(url);
     }
 
     /**
@@ -92,6 +96,13 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
             return of(false);
         }
 
+        /**
+         * If a loginFailedRoute is set in the config, set this as the loginFailedRoute
+         */
+        if (this.msalGuardConfig.loginFailedRoute) {
+            this.loginFailedRoute = this.parseUrl(this.msalGuardConfig.loginFailedRoute);
+        }
+
         return this.authService.handleRedirectObservable()
             .pipe(
                 concatMap(() => {
@@ -109,6 +120,7 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
                 catchError(() => {
                     this.authService.getLogger().verbose("Guard - error while logging in, unable to activate");
                     if (this.loginFailedRoute) {
+                        this.authService.getLogger().verbose("Guard - loginFailedRoute set, redirecting");
                         return of(this.loginFailedRoute);
                     }
                     return of(false);

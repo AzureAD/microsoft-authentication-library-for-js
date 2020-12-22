@@ -37,14 +37,14 @@ export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
   protectedResourceMap.set('https://graph.microsoft.com/v1.0/me', ['user.read']);
 
   return {
-    interactionType: InteractionType.Popup,
+    interactionType: InteractionType.Redirect,
     protectedResourceMap
   };
 }
 
 export function MSALGuardConfigFactory(): MsalGuardConfiguration {
   return { 
-    interactionType: InteractionType.Popup,
+    interactionType: InteractionType.Redirect,
     loginFailedRoute: '/login-failed'
   };
 }
