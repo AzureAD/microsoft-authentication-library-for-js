@@ -63,18 +63,13 @@ testFamilyRefreshTokenEntity.credentialType = CredentialType.REFRESH_TOKEN;
 testFamilyRefreshTokenEntity.familyId = TEST_CONFIG.THE_FAMILY_ID;
 
 describe("RefreshTokenClient unit tests", () => {
-
-    beforeEach(() => {
-        ClientTestUtils.setCloudDiscoveryMetadataStubs();
-    });
-
     afterEach(() => {
         sinon.restore();
     });
 
     describe("Constructor", () => {
         it("creates a RefreshTokenClient", async () => {
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new RefreshTokenClient(config);
             expect(client).to.be.not.null;
@@ -98,7 +93,8 @@ describe("RefreshTokenClient unit tests", () => {
         };
 
         beforeEach(async () => {
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon.stub(Authority.prototype, "getPreferredCache").returns("login.windows.net");
             AUTHENTICATION_RESULT.body.client_info = TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
             sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
@@ -185,7 +181,8 @@ describe("RefreshTokenClient unit tests", () => {
         };
 
         beforeEach(async () => {
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon.stub(Authority.prototype, "getPreferredCache").returns("login.windows.net");
             AUTHENTICATION_RESULT_WITH_FOCI.body.client_info = TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT_WITH_FOCI);
             sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
@@ -261,7 +258,7 @@ describe("RefreshTokenClient unit tests", () => {
     describe("Error cases", () => {
 
         it("Throws error if account is not included in request object", async () => {
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new RefreshTokenClient(config);
             await expect(client.acquireTokenByRefreshToken({
@@ -274,7 +271,7 @@ describe("RefreshTokenClient unit tests", () => {
         });
 
         it("Throws error if request object is null or undefined", async () => {
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new RefreshTokenClient(config);
             await expect(client.acquireTokenByRefreshToken(null)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
@@ -297,7 +294,7 @@ describe("RefreshTokenClient unit tests", () => {
             testAccountEntity.username = "username@contoso.com";
             testAccountEntity.authorityType = "MSSTS";
             sinon.stub(MockStorageClass.prototype, "getAccount").returns(testAccountEntity);
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const tokenRequest: SilentFlowRequest = {
                 scopes: [testScope2],
                 account: testAccount,
