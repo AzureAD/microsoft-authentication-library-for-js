@@ -15,14 +15,18 @@ import { SsoSilentRequest } from "../../../request/SsoSilentRequest";
  */
 export class BrokerAuthRequest extends BrokerMessage {
     public embeddedClientId: string;
-    public embeddedAppRedirectUri: string;
     public interactionType: InteractionType;
     public request: RedirectRequest | PopupRequest | SsoSilentRequest | SilentRequest;
 
-    constructor(embeddedClientId: string, embeddedAppRedirectUri: string, interactionType: InteractionType, request: RedirectRequest | PopupRequest | SsoSilentRequest) {
+    private _embeddedAppOrigin: string;
+    public get embeddedAppOrigin(): string {
+        return this._embeddedAppOrigin;
+    }
+
+    constructor(embeddedClientId: string, interactionType: InteractionType, request: RedirectRequest | PopupRequest | SsoSilentRequest, embeddedAppRedirectUri?: string) {
         super(BrokerMessageType.AUTH_REQUEST);
         this.embeddedClientId = embeddedClientId;
-        this.embeddedAppRedirectUri = embeddedAppRedirectUri;
+        this._embeddedAppOrigin = embeddedAppRedirectUri;
         this.interactionType = interactionType;
         this.request = request;
     }
@@ -36,7 +40,7 @@ export class BrokerAuthRequest extends BrokerMessage {
             message.data.request) {
 
             // TODO, verify version compatibility
-            return new BrokerAuthRequest(message.data.embeddedClientId, message.origin, message.data.interactionType, message.data.request);
+            return new BrokerAuthRequest(message.data.embeddedClientId, message.data.interactionType, message.data.request, message.origin);
         }
 
         return null;

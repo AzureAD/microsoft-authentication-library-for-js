@@ -95,13 +95,11 @@ function handleResponse(resp) {
 }
 
 const accounts = myMSALObj.getAllAccounts();
-console.log(accounts);
 if (accounts && accounts.length > 0) {
     const request = {
         scopes: ["openid", "profile", "User.Read"],
         account: accounts[0]
     };
-    console.log("ATS");
     myMSALObj.acquireTokenSilent(request).then(res => {
         setTimeout(() => {
             const contentElement = document.getElementsByClassName("myContent")[0];

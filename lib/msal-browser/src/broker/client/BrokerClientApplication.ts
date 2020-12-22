@@ -209,11 +209,11 @@ export class BrokerClientApplication extends ClientApplication {
         this.logger.info(`Sending redirect response: ${brokerRedirectResp}`);
 
         const redirectRequest = validMessage.request as BrokerRedirectRequest;
-        redirectRequest.redirectUri = validMessage.embeddedAppRedirectUri;
+        redirectRequest.redirectUri = validMessage.embeddedAppOrigin;
         redirectRequest.embeddedAppClientId = validMessage.embeddedClientId;
         redirectRequest.brokerRedirectUri = this.getRedirectUri();
 
-        const validatedBrokerRequest = this.initializeBrokeredRequest(redirectRequest, InteractionType.Redirect);
+        const validatedBrokerRequest = this.initializeBrokeredRequest(redirectRequest, InteractionType.Redirect, validMessage.embeddedAppOrigin);
 
         // Call loginRedirect
         this.acquireTokenRedirectAsync(validatedBrokerRequest, this.config.experimental.brokerOptions.brokerRedirectStartPage, this.config.experimental.brokerOptions.onBrokerRedirectNavigate);
@@ -227,10 +227,10 @@ export class BrokerClientApplication extends ClientApplication {
     private async brokeredPopupRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort): Promise<void> {
         try {
             const popupRequest = validMessage.request as BrokerPopupRequest;
-            popupRequest.redirectUri = validMessage.embeddedAppRedirectUri;
+            popupRequest.redirectUri = validMessage.embeddedAppOrigin;
             popupRequest.embeddedAppClientId = validMessage.embeddedClientId;
             popupRequest.brokerRedirectUri = this.getRedirectUri();
-            const validatedBrokerRequest = this.initializeBrokeredRequest(popupRequest, InteractionType.Popup);
+            const validatedBrokerRequest = this.initializeBrokeredRequest(popupRequest, InteractionType.Popup, validMessage.embeddedAppOrigin);
             const response = (await this.acquireTokenPopupAsync(validatedBrokerRequest)) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, response);
             this.logger.info(`Sending auth response`);
@@ -252,10 +252,10 @@ export class BrokerClientApplication extends ClientApplication {
     private async brokeredSsoSilentRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort): Promise<void> {
         try {
             const silentRequest = validMessage.request as BrokerSsoSilentRequest;
-            silentRequest.redirectUri = validMessage.embeddedAppRedirectUri;
+            silentRequest.redirectUri = validMessage.embeddedAppOrigin;
             silentRequest.embeddedAppClientId = validMessage.embeddedClientId;
             silentRequest.brokerRedirectUri = this.getRedirectUri();
-            const brokeredSilentRequest = this.initializeBrokeredRequest(silentRequest, InteractionType.Silent);
+            const brokeredSilentRequest = this.initializeBrokeredRequest(silentRequest, InteractionType.Silent, validMessage.embeddedAppOrigin);
             const response: BrokerAuthenticationResult = (await this.acquireTokenByIframe(brokeredSilentRequest)) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, response);
             this.logger.info(`Sending auth response`);
@@ -278,7 +278,7 @@ export class BrokerClientApplication extends ClientApplication {
         try {
             const silentRequest = validMessage.request as BrokerSilentRequest;
             silentRequest.embeddedAppClientId = validMessage.embeddedClientId;
-            silentRequest.embeddedAppRedirectUri = validMessage.embeddedAppRedirectUri;
+            silentRequest.embeddedAppRedirectUri = validMessage.embeddedAppOrigin;
             if (!silentRequest.account) {
                 silentRequest.account = account;
             }
@@ -324,7 +324,7 @@ export class BrokerClientApplication extends ClientApplication {
         return new BrokerRefreshTokenClient(clientConfig);
     }
 
-    private initializeBrokeredRequest(embeddedRequest: AuthorizationUrlRequest, interactionType: InteractionType): AuthorizationUrlRequest {
+    private initializeBrokeredRequest(embeddedRequest: AuthorizationUrlRequest, interactionType: InteractionType, messageOrigin: string): AuthorizationUrlRequest {
         let embeddedState: string;
         if (embeddedRequest.state) {
             const embeddedStateObj = ProtocolUtils.parseRequestState(this.browserCrypto, embeddedRequest.state);
@@ -333,8 +333,7 @@ export class BrokerClientApplication extends ClientApplication {
 
         const browserState: BrowserStateObject = {
             interactionType: interactionType,
-            brokeredClientId: this.config.auth.clientId,
-            brokeredReqAuthority: (embeddedRequest && embeddedRequest.authority) || this.config.auth.authority
+            brokeredOrigin: messageOrigin
         };
 
         const brokerState = ProtocolUtils.setRequestState(
