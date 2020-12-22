@@ -21,6 +21,7 @@ import {
     Authority,
     ClientConfiguration,
     AuthorizationCodePayload,
+    AuthorityOptions,
 } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES, TEST_POP_VALUES, TEST_STATE_VALUES } from "../utils/StringConstants";
@@ -97,7 +98,13 @@ describe("InteractionHandler.ts Unit Tests", () => {
             }
         };
         const configObj = buildConfiguration(appConfig);
-        authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, ProtocolMode.AAD);
+        const authorityOptions: AuthorityOptions = {
+            protocolMode: ProtocolMode.AAD,
+            knownAuthorities: [configObj.auth.authority],
+            cloudDiscoveryMetadata: "",
+            authorityMetadata: ""
+        }
+        authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, browserStorage, authorityOptions);
         authConfig = {
             authOptions: {
                 ...configObj.auth,
@@ -212,8 +219,14 @@ describe("InteractionHandler.ts Unit Tests", () => {
             browserStorage.setTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE), TEST_STATE_VALUES.TEST_STATE);
             browserStorage.setTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE), idTokenClaims.nonce);
             sinon.stub(AuthorizationCodeClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
-            sinon.stub(Authority.prototype, "isAuthorityAlias").returns(false);
-            const authority = new Authority("https://www.contoso.com/common/", networkInterface, ProtocolMode.AAD);
+            sinon.stub(Authority.prototype, "isAlias").returns(false);
+            const authorityOptions: AuthorityOptions = {
+                protocolMode: ProtocolMode.AAD,
+                knownAuthorities: ["www.contoso.com"],
+                cloudDiscoveryMetadata: "",
+                authorityMetadata: ""
+            }
+            const authority = new Authority("https://www.contoso.com/common/", networkInterface, browserStorage, authorityOptions);
             sinon.stub(AuthorityFactory, "createDiscoveredInstance").resolves(authority);
             sinon.stub(Authority.prototype, "discoveryComplete").returns(true);
             const updateAuthoritySpy = sinon.spy(AuthorizationCodeClient.prototype, "updateAuthority");
