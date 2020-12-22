@@ -360,6 +360,31 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
+     * Gets internal cache item with given key.
+     * @param key
+     */
+    getMemoryCache(cacheKey: string): string {
+        const key = this.generateCacheKey(cacheKey);
+
+        const value = this.internalStorage.getItem(key);
+        if (StringUtils.isEmpty(value)) {
+            return null;
+        }
+        return value;
+    }
+
+    /**
+     * Sets the internal cache item with the key and value given. Internal storage is cleared on page reload.
+     * @param key
+     * @param value
+     */
+    setMemoryCache(cacheKey: string, value: string): void {
+        const key = this.generateCacheKey(cacheKey);
+
+        this.internalStorage.setItem(key, value);
+    }
+
+    /**
      * Removes the cache item with the given key.
      * Will also clear the cookie item if storeAuthStateInCookie is set to true.
      * @param key
@@ -369,6 +394,15 @@ export class BrowserCacheManager extends CacheManager {
         if (this.cacheConfig.storeAuthStateInCookie) {
             this.clearItemCookie(key);
         }
+        return true;
+    }
+
+    /**
+     * Removes a cache item fom internal memory storage with the given key.
+     * @param key 
+     */
+    removeMemoryItem(key: string): boolean {
+        this.internalStorage.removeItem(key);
         return true;
     }
 
@@ -385,6 +419,10 @@ export class BrowserCacheManager extends CacheManager {
      */
     getKeys(): string[] {
         return this.browserStorage.getKeys();
+    }
+
+    getMemoryKeys(): string[] {
+        return this.internalStorage.getKeys();
     }
 
     /**

@@ -34,6 +34,7 @@ import { TokenCacheContext } from "../cache/persistence/TokenCacheContext";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { RequestThumbprint } from "../network/RequestThumbprint";
 
 /**
  * Class that handles response parsing.
@@ -170,7 +171,7 @@ export class ResponseHandler {
         return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, idTokenObj, requestStateObj, resourceRequestMethod, resourceRequestUri);
     }
 
-    async handleBrokeredServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, authCodePayload?: AuthorizationCodePayload, requestScopes?: string[], embeddedAppClientId?: string): Promise<BrokerAuthenticationResult | null> {
+    async handleBrokeredServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, embeddedAppClientId: string, embeddedAppOrigin: string, authCodePayload?: AuthorizationCodePayload, requestScopes?: string[]): Promise<BrokerAuthenticationResult | null> {
         // create an idToken object (not entity)
         let idTokenObj: AuthToken | undefined;
         if (serverTokenResponse.id_token) {
@@ -200,11 +201,18 @@ export class ResponseHandler {
 
         cacheRecord.refreshToken = null;
         const result = await ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, idTokenObj, requestStateObj);
+        const reqThumbprint: RequestThumbprint = {
+            authority: authority.canonicalAuthority,
+            clientId: embeddedAppClientId,
+            scopes: requestScopes || []
+        };
+        const responseThumbprint = `${embeddedAppOrigin}.${this.cryptoObj.base64Encode(JSON.stringify(reqThumbprint))}`;
 
         // Get creds to send to child
         return {
             ...result,
-            tokensToCache: cacheRecord
+            tokensToCache: cacheRecord,
+            responseThumbprint: responseThumbprint
         };
     }
 

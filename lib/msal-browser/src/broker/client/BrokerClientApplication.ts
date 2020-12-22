@@ -4,9 +4,9 @@
  */
 
 import { version } from "../../../package.json";
-import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerRefreshTokenClient, RefreshTokenClient, AuthorizationUrlRequest, ProtocolUtils, AccountInfo } from "@azure/msal-common";
+import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerRefreshTokenClient, RefreshTokenClient, AuthorizationUrlRequest, ProtocolUtils, AccountInfo, RequestThumbprint } from "@azure/msal-common";
 import { BrokerMessage } from "../msg/BrokerMessage";
-import { BrokerMessageType, InteractionType } from "../../utils/BrowserConstants";
+import { BrokerMessageType, InteractionType, MemoryCacheKeys } from "../../utils/BrowserConstants";
 import { Configuration } from "../../config/Configuration";
 import { BrokerHandshakeRequest } from "../msg/req/BrokerHandshakeRequest";
 import { BrokerHandshakeResponse } from "../msg/resp/BrokerHandshakeResponse";
@@ -27,24 +27,44 @@ import { BrokerSsoSilentRequest } from "../request/BrokerSsoSilentRequest";
  */
 export class BrokerClientApplication extends ClientApplication {
 
-    private cachedBrokerResponse: Promise<BrokerAuthenticationResult>;
+    private currentBrokerRedirectResponse: Promise<BrokerAuthenticationResult>;
 
     constructor(configuration: Configuration) {
         super(configuration);
     }
 
     /**
-     * 
+     * Event handler function which allows users to fire events after the PublicClientApplication object
+     * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
+     * auth flows.
+     * @param hash Hash to process. Defaults to the current value of window.location.hash. Only needs to be provided explicitly if the response to be handled is not contained in the current value.
+     * @returns {Promise.<AuthenticationResult | null>} token response or null. If the return value is null, then no auth redirect was detected.
      */
-    async handleRedirectPromise(): Promise<BrokerAuthenticationResult | null> {
-        this.cachedBrokerResponse = super.handleRedirectPromise() as Promise<BrokerAuthenticationResult>;
-        const cachedResponse = (await this.cachedBrokerResponse) as BrokerAuthenticationResult;
-        // TODO: What to do in cases of multi-account in broker?
+    async handleRedirectPromise(hash?: string): Promise<BrokerAuthenticationResult | null> {
+        const brokerResponse = super.handleRedirectPromise(hash) as Promise<BrokerAuthenticationResult>;
+        this.currentBrokerRedirectResponse = this.waitForBrokeredResponse(brokerResponse);
+        const redirectResponse = await this.currentBrokerRedirectResponse;
+        this.currentBrokerRedirectResponse = undefined;
+        if (redirectResponse) {
+            if (!redirectResponse.tokensToCache) {
+                return redirectResponse;
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Waits for the brokered response to finish and then checks if it needs to cache this response in internal memory.
+     * @param brokerResponse 
+     */
+    private async waitForBrokeredResponse(brokerResponse: Promise<BrokerAuthenticationResult>): Promise<BrokerAuthenticationResult | null> {
+        const cachedResponse = (await brokerResponse) as BrokerAuthenticationResult;
         if (cachedResponse) {
             if (!cachedResponse.tokensToCache) {
-                this.cachedBrokerResponse = undefined;
                 return cachedResponse;
             }
+            const responseCacheKey = `${MemoryCacheKeys.BROKER_RESPONSE}.${cachedResponse.responseThumbprint}`;
+            this.browserStorage.setMemoryCache(responseCacheKey, JSON.stringify(cachedResponse));
             this.setActiveAccount(cachedResponse.account);
         }
 
@@ -104,19 +124,31 @@ export class BrokerClientApplication extends ClientApplication {
     private async handleBrokerRedirectResponse(clientMessage: MessageEvent): Promise<void> {
         const validMessage = BrokerHandleRedirectRequest.validate(clientMessage);
         if (validMessage) {
-            // TODO: Calculate request thumbprint
             const clientPort = clientMessage.ports[0];
-            const brokerResult = await this.cachedBrokerResponse;
-            if (brokerResult) {
-                // TODO: Replace with in-memory cache lookup
-                this.cachedBrokerResponse = undefined;
-                const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Redirect, brokerResult);
-                this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
-                clientPort.postMessage(brokerAuthResponse);
-                clientPort.close();
-                return;
+            if (this.currentBrokerRedirectResponse) {
+                await this.currentBrokerRedirectResponse;
+            }
+
+            const memCacheKeys = this.browserStorage.getMemoryKeys();
+            const embeddedAppKey = `${MemoryCacheKeys.BROKER_RESPONSE}.${clientMessage.origin}`
+            const cachedResponseKeys = memCacheKeys.filter((cacheKey) => cacheKey.indexOf(embeddedAppKey));
+            if (cachedResponseKeys.length >= 1) {
+                if (cachedResponseKeys.length > 1) {
+                    this.logger.error("Too many responses found for the origin, sending back the first one found. You may need to call acquireToken() again.")
+                }
+                const responseKey = cachedResponseKeys[0];
+                const cachedBrokerResponse = this.browserStorage.getMemoryCache(responseKey);
+                if (cachedBrokerResponse) {
+                    this.browserStorage.removeMemoryItem(responseKey);
+                    const brokerResponse = JSON.parse(cachedBrokerResponse) as BrokerAuthenticationResult;
+                    const clientPort = clientMessage.ports[0];
+                    const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Redirect, brokerResponse);
+                    this.logger.info(`Sending auth response`);
+                    clientPort.postMessage(brokerAuthResponse);
+                    clientPort.close();
+                    return;
+                }
             } else {
-                // TODO: Throw error or return null?
                 const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Redirect, null);
                 clientPort.postMessage(brokerAuthResponse);
                 clientPort.close();
@@ -133,13 +165,23 @@ export class BrokerClientApplication extends ClientApplication {
         if (validMessage) {
             this.logger.verbose(`Broker auth request validated: ${validMessage}`);
 
-            // TODO: Calculate request thumbprint
-            const brokerResult = await this.cachedBrokerResponse;
-            if (brokerResult && brokerResult.tokensToCache) {
-                // TODO: Replace with in-memory cache lookup
-                this.cachedBrokerResponse = undefined;
+            if (this.currentBrokerRedirectResponse) {
+                await this.currentBrokerRedirectResponse;
+            }
+
+            const reqThumbprint: RequestThumbprint = {
+                authority: validMessage.request.authority,
+                clientId: validMessage.embeddedClientId,
+                scopes: validMessage.request.scopes
+            };
+            const responseThumbprint = `${validMessage.embeddedAppOrigin}.${this.browserCrypto.base64Encode(JSON.stringify(reqThumbprint))}`;
+            const responseCacheKey = `${MemoryCacheKeys.BROKER_RESPONSE}.${responseThumbprint}`;
+            const cachedBrokerResponse = this.browserStorage.getMemoryCache(responseCacheKey);
+            if (cachedBrokerResponse) {
+                this.browserStorage.removeMemoryItem(responseCacheKey);
+                const brokerResponse = JSON.parse(cachedBrokerResponse) as BrokerAuthenticationResult;
                 const clientPort = clientMessage.ports[0];
-                const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Redirect, brokerResult);
+                const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Redirect, brokerResponse);
                 this.logger.info(`Sending auth response`);
                 clientPort.postMessage(brokerAuthResponse);
                 clientPort.close();

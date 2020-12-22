@@ -64,7 +64,7 @@ function handleResponse(resp) {
                     let exit = false;
                     const loginReq = { 
                         scopes: ["openid", "profile", "User.Read"],
-                        loginHint: "prkanher@microsoft.com" 
+                        loginHint: "idlab@msidlab4.onmicrosoft.com" 
                     };
                     myMSALObj.ssoSilent(loginReq).then(() => {
                         contentElement.innerHTML = "Fetched data!";
