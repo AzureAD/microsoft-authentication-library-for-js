@@ -9,8 +9,7 @@ import { StringUtils, ClientAuthError, ICrypto, RequestStateObject, ProtocolUtil
 export type BrowserStateObject = {
     interactionType: InteractionType,
     brokeredClientId?: string,
-    brokeredReqAuthority?: string,
-    brokeredReqScopes?: string
+    brokeredReqAuthority?: string
 };
 
 export class BrowserProtocolUtils {

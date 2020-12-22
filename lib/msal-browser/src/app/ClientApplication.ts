@@ -288,16 +288,21 @@ export abstract class ClientApplication {
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
 
         // If logged in, emit acquire token events
-        const isLoggedIn = this.getAllAccounts().length > 0;
-        if (isLoggedIn) {
+        const loggedInAccounts = this.getAllAccounts();
+        if (loggedInAccounts.length > 0) {
             this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Redirect, request);
         } else {
             this.emitEvent(EventType.LOGIN_START, InteractionType.Redirect, request);
         }
 
         const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Redirect);
-        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect, validRequest.correlationId);
+        this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority);
+        return this.acquireTokenRedirectAsync(validRequest, request.redirectStartPage, request.onRedirectNavigate);
+    }
 
+    protected async acquireTokenRedirectAsync(validRequest: AuthorizationUrlRequest, userRedirectStartPage: string, userOnRedirectNavigate: (url: string) => void | boolean): Promise<void> {
+        const loggedInAccounts = this.getAllAccounts();
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect, validRequest.correlationId);
         try {
             // Create auth code request and generate PKCE params
             const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
@@ -311,17 +316,17 @@ export abstract class ClientApplication {
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
 
-            const redirectStartPage = (request && request.redirectStartPage) || window.location.href;
+            const redirectStartPage = (validRequest && userRedirectStartPage) || window.location.href;
 
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
             return interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, {
                 redirectTimeout: this.config.system.redirectNavigationTimeout, 
                 redirectStartPage: redirectStartPage,
-                onRedirectNavigate: request.onRedirectNavigate
+                onRedirectNavigate: userOnRedirectNavigate
             });
         } catch (e) {
             // If logged in, emit acquire token events
-            if (isLoggedIn) {
+            if (loggedInAccounts.length > 0) {
                 this.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Redirect, null, e);
             } else {
                 this.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
@@ -338,48 +343,16 @@ export abstract class ClientApplication {
     // #region Popup Flow
 
     /**
-     * Use when you want to obtain an access_token for your API via opening a popup window in the user's browser
-     * @param {@link (PopupRequest:type)}
-     *
-     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
-     */
-    acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
-        try {
-            this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
-        } catch (e) {
-            // Since this function is synchronous we need to reject
-            return Promise.reject(e);
-        }
-
-        // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
-        if (this.config.system.asyncPopups) {
-            return this.acquireTokenPopupAsync(request);
-        } else {
-            // asyncPopups flag is set to false. Opens popup before acquiring token.
-            const popup = PopupHandler.openSizedPopup();
-            return this.acquireTokenPopupAsync(request, popup);
-        }
-    }
-
-    /**
      * Helper which obtains an access_token for your API via opening a popup window in the user's browser
-     * @param {@link (PopupRequest:type)}
-     *
+     * @param validRequest 
+     * @param popup 
+     * 
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    private async acquireTokenPopupAsync(request: PopupRequest, popup?: Window|null): Promise<AuthenticationResult> {
+    protected async acquireTokenPopupAsync(validRequest: AuthorizationUrlRequest, popup?: Window|null): Promise<AuthenticationResult> {
         // If logged in, emit acquire token events
         const loggedInAccounts = this.getAllAccounts();
-        if (loggedInAccounts.length > 0) {
-            this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Popup, request);
-        } else {
-            this.emitEvent(EventType.LOGIN_START, InteractionType.Popup, request);
-        }
-
-        // Preflight request
-        const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup, validRequest.correlationId);
-
         try {
             // Create auth code request and generate PKCE params
             const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
@@ -435,58 +408,22 @@ export abstract class ClientApplication {
     // #region Silent Flow
 
     /**
-     * This function uses a hidden iframe to fetch an authorization code from the eSTS. There are cases where this may not work:
-     * - Any browser using a form of Intelligent Tracking Prevention
-     * - If there is not an established session with the service
-     *
-     * In these cases, the request must be done inside a popup or full frame redirect.
-     *
-     * For the cases where interaction is required, you cannot send a request with prompt=none.
-     *
-     * If your refresh token has expired, you can use this function to fetch a new set of tokens silently as long as
-     * you session on the server still exists.
-     * @param {@link AuthorizationUrlRequest}
-     *
-     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
-     */
-    async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
-        this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
-        this.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
-
-        try {
-            const silentTokenResult = await this.acquireTokenByIframe(request);
-            this.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
-            return silentTokenResult;
-        } catch (e) {
-            this.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
-            throw e;
-        }
-    }
-
-    /**
      * This function uses a hidden iframe to fetch an authorization code from the eSTS. To be used for silent refresh token acquisition and renewal.
      * @param {@link AuthorizationUrlRequest}
-     * @param request
+     * @param silentRequest
      */
-    private async acquireTokenByIframe(request: SsoSilentRequest): Promise<AuthenticationResult> {
+    protected async acquireTokenByIframe(silentRequest: AuthorizationUrlRequest): Promise<AuthenticationResult> {
         // Check that we have some SSO data
-        if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
+        if (StringUtils.isEmpty(silentRequest.loginHint) && StringUtils.isEmpty(silentRequest.sid) && (!silentRequest.account || StringUtils.isEmpty(silentRequest.account.username))) {
             throw BrowserAuthError.createSilentSSOInsufficientInfoError();
         }
 
         // Check that prompt is set to none, throw error if it is set to anything else.
-        if (request.prompt && request.prompt !== PromptValue.NONE) {
-            throw BrowserAuthError.createSilentPromptValueError(request.prompt);
+        if (silentRequest.prompt && silentRequest.prompt !== PromptValue.NONE) {
+            throw BrowserAuthError.createSilentPromptValueError(silentRequest.prompt);
         }
 
-        // Create silent request
-        const silentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
-            ...request,
-            prompt: PromptValue.NONE
-        }, InteractionType.Silent);
-
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.ssoSilent, silentRequest.correlationId);
-
         try {
             // Create auth code request and generate PKCE params
             const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
@@ -535,8 +472,15 @@ export abstract class ClientApplication {
             const isServerError = e instanceof ServerError;
             const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
             const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
+
+            // Create silent request
+            const ssoSilentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
+                ...request,
+                prompt: PromptValue.NONE
+            }, InteractionType.Silent);
+            this.browserStorage.updateCacheEntries(ssoSilentRequest.state, ssoSilentRequest.nonce, ssoSilentRequest.authority);
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
-                return await this.acquireTokenByIframe(request);
+                return await this.acquireTokenByIframe(ssoSilentRequest);
             }
             throw e;
         }
@@ -903,8 +847,6 @@ export abstract class ClientApplication {
                 }
             }
         }
-
-        this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
 
         return validatedRequest;
     }

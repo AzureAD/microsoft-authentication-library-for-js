@@ -16,6 +16,10 @@ export const BrokerAuthErrorMessage = {
     noBrokerEnabled: {
         code: "no_broker_enabled",
         desc: "The broker has not been enabled. Please enable the broker before calling this function."
+    },
+    noAccountContextAvailable: {
+        code: "no_account_context",
+        desc: "No account context available in broker, please sign into the broker application or provide account context from the child's request."
     }
 };
 

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, SilentFlowRequest } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, AuthorizationUrlRequest, PromptValue, SilentFlowRequest } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, ApiId, InteractionType } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -16,6 +16,7 @@ import { SilentRequest } from "../request/SilentRequest";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { EventType } from "../event/EventType";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
+import { PopupHandler } from "../interaction_handler/PopupHandler";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -119,10 +120,38 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
-        if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
-            return this.embeddedApp.sendPopupRequest(request);
+        try {
+            this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
+        } catch (e) {
+            // Since this function is synchronous we need to reject
+            return Promise.reject(e);
         }
-        return super.acquireTokenPopup(request);
+
+        // If logged in, emit acquire token events
+        const loggedInAccounts = this.getAllAccounts();
+        if (loggedInAccounts.length > 0) {
+            this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Popup, request);
+        } else {
+            this.emitEvent(EventType.LOGIN_START, InteractionType.Popup, request);
+        }
+
+        // Preflight request
+        const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
+
+        if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
+            return this.embeddedApp.sendPopupRequest(validRequest);
+        }
+
+        this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority);
+
+        // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
+        if (this.config.system.asyncPopups) {
+            return super.acquireTokenPopupAsync(validRequest);
+        } else {
+            // asyncPopups flag is set to false. Opens popup before acquiring token.
+            const popup = PopupHandler.openSizedPopup();
+            return super.acquireTokenPopupAsync(validRequest, popup);
+        }
     }
 
     // #endregion
@@ -143,11 +172,28 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
-        if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
-            return this.embeddedApp.sendSsoSilentRequest(request);
-        }
+        this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
+        this.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
-        return super.ssoSilent(request);
+        try {
+            // Create silent request
+            const silentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
+                ...request,
+                prompt: PromptValue.NONE
+            }, InteractionType.Silent);
+
+            if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
+                return this.embeddedApp.sendSsoSilentRequest(silentRequest);
+            }
+    
+            this.browserStorage.updateCacheEntries(silentRequest.state, silentRequest.nonce, silentRequest.authority);
+            const silentTokenResult = await this.acquireTokenByIframe(silentRequest);
+            this.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
+            return silentTokenResult;
+        } catch (e) {
+            this.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
+            throw e;
+        }
     }
 
     /**

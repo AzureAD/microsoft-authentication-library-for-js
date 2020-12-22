@@ -4,7 +4,7 @@
  */
 
 import { version } from "../../../package.json";
-import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerRefreshTokenClient, RefreshTokenClient, StringUtils, AuthorizationUrlRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, ScopeSet, AccountInfo, AuthenticationScheme } from "@azure/msal-common";
+import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerRefreshTokenClient, RefreshTokenClient, AuthorizationUrlRequest, ProtocolUtils, AccountInfo } from "@azure/msal-common";
 import { BrokerMessage } from "../msg/BrokerMessage";
 import { BrokerMessageType, InteractionType } from "../../utils/BrowserConstants";
 import { Configuration } from "../../config/Configuration";
@@ -12,12 +12,9 @@ import { BrokerHandshakeRequest } from "../msg/req/BrokerHandshakeRequest";
 import { BrokerHandshakeResponse } from "../msg/resp/BrokerHandshakeResponse";
 import { BrokerAuthRequest } from "../msg/req/BrokerAuthRequest";
 import { BrokerRedirectResponse } from "../msg/resp/BrokerRedirectResponse";
-import { RedirectRequest } from "../../request/RedirectRequest";
 import { BrokerAuthResponse } from "../msg/resp/BrokerAuthResponse";
 import { ClientApplication } from "../../app/ClientApplication";
-import { PopupRequest } from "../../request/PopupRequest";
 import { BrokerHandleRedirectRequest } from "../msg/req/BrokerHandleRedirectRequest";
-import { SsoSilentRequest } from "../../request/SsoSilentRequest";
 import { BrowserStateObject } from "../../utils/BrowserProtocolUtils";
 import { BrokerSilentRequest } from "../request/BrokerSilentRequest";
 import { BrokerAuthError } from "../../error/BrokerAuthError";
@@ -216,8 +213,10 @@ export class BrokerClientApplication extends ClientApplication {
         redirectRequest.embeddedAppClientId = validMessage.embeddedClientId;
         redirectRequest.brokerRedirectUri = this.getRedirectUri();
 
+        const validatedBrokerRequest = this.initializeBrokeredRequest(redirectRequest, InteractionType.Redirect);
+
         // Call loginRedirect
-        this.acquireTokenRedirect(redirectRequest);
+        this.acquireTokenRedirectAsync(validatedBrokerRequest, this.config.experimental.brokerOptions.brokerRedirectStartPage, this.config.experimental.brokerOptions.onBrokerRedirectNavigate);
     }
 
     /**
@@ -231,7 +230,8 @@ export class BrokerClientApplication extends ClientApplication {
             popupRequest.redirectUri = validMessage.embeddedAppRedirectUri;
             popupRequest.embeddedAppClientId = validMessage.embeddedClientId;
             popupRequest.brokerRedirectUri = this.getRedirectUri();
-            const response = (await this.acquireTokenPopup(popupRequest)) as BrokerAuthenticationResult;
+            const validatedBrokerRequest = this.initializeBrokeredRequest(popupRequest, InteractionType.Popup);
+            const response = (await this.acquireTokenPopupAsync(validatedBrokerRequest)) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, response);
             this.logger.info(`Sending auth response`);
             clientPort.postMessage(brokerAuthResponse);
@@ -255,7 +255,8 @@ export class BrokerClientApplication extends ClientApplication {
             silentRequest.redirectUri = validMessage.embeddedAppRedirectUri;
             silentRequest.embeddedAppClientId = validMessage.embeddedClientId;
             silentRequest.brokerRedirectUri = this.getRedirectUri();
-            const response: BrokerAuthenticationResult = (await this.ssoSilent(silentRequest)) as BrokerAuthenticationResult;
+            const brokeredSilentRequest = this.initializeBrokeredRequest(silentRequest, InteractionType.Silent);
+            const response: BrokerAuthenticationResult = (await this.acquireTokenByIframe(brokeredSilentRequest)) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, response);
             this.logger.info(`Sending auth response`);
             clientPort.postMessage(brokerAuthResponse);
@@ -323,53 +324,29 @@ export class BrokerClientApplication extends ClientApplication {
         return new BrokerRefreshTokenClient(clientConfig);
     }
 
-    /**
-     * Helper to initialize required request parameters for interactive APIs and ssoSilent()
-     * @param request
-     */
-    protected initializeAuthorizationRequest(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
-        const redirectUri = this.getRedirectUri(request.redirectUri);
-        const baseRequestScopes = new ScopeSet(request.scopes);
+    private initializeBrokeredRequest(embeddedRequest: AuthorizationUrlRequest, interactionType: InteractionType): AuthorizationUrlRequest {
+        let embeddedState: string;
+        if (embeddedRequest.state) {
+            const embeddedStateObj = ProtocolUtils.parseRequestState(this.browserCrypto, embeddedRequest.state);
+            embeddedState = (embeddedStateObj && embeddedStateObj.userRequestState) || "";
+        }
+
         const browserState: BrowserStateObject = {
             interactionType: interactionType,
             brokeredClientId: this.config.auth.clientId,
-            brokeredReqAuthority: (request && request.authority) || this.config.auth.authority,
-            brokeredReqScopes: baseRequestScopes.printScopes()
+            brokeredReqAuthority: (embeddedRequest && embeddedRequest.authority) || this.config.auth.authority
         };
 
-        const state = ProtocolUtils.setRequestState(
+        const brokerState = ProtocolUtils.setRequestState(
             this.browserCrypto,
-            (request && request.state) || "",
+            embeddedState,
             browserState
         );
 
-        const nonce = StringUtils.isEmpty(request.nonce) ? this.browserCrypto.createNewGuid() : request.nonce;
-        const authenticationScheme = request.authenticationScheme || AuthenticationScheme.BEARER;
-
-        const validatedRequest: AuthorizationUrlRequest = {
-            ...this.initializeBaseRequest(request),
-            redirectUri: redirectUri,
-            state: state,
-            nonce: nonce,
-            responseMode: ResponseMode.FRAGMENT,
-            authenticationScheme: authenticationScheme,
+        this.browserStorage.updateCacheEntries(brokerState, embeddedRequest.nonce, embeddedRequest.authority);
+        return {
+            ...embeddedRequest,
+            state: brokerState
         };
-
-        // Check for ADAL SSO
-        if (StringUtils.isEmpty(validatedRequest.loginHint)) {
-            // Only check for adal token if no SSO params are being used
-            const adalIdTokenString = this.browserStorage.getTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN) as string;
-            if (!StringUtils.isEmpty(adalIdTokenString)) {
-                const adalIdToken = new IdToken(adalIdTokenString, this.browserCrypto);
-                this.browserStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
-                if (adalIdToken.claims && adalIdToken.claims.upn) {
-                    validatedRequest.loginHint = adalIdToken.claims.upn;
-                }
-            }
-        }
-
-        this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
-
-        return validatedRequest;
     }
 }

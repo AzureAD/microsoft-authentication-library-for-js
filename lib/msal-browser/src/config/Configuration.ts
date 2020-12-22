@@ -57,6 +57,8 @@ export type BrokerOptions = {
     preferredInteractionType?: InteractionType.Popup | InteractionType.Redirect | InteractionType.None;
     allowBrokering?: boolean;
     trustedBrokerDomains?: string[];
+    brokerRedirectStartPage?: string;
+    onBrokerRedirectNavigate?: (url: string) => boolean | void;
 };
 
 /**
