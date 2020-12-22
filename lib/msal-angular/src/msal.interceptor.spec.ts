@@ -100,7 +100,7 @@ describe("MsalInterceptor", () => {
 
         const request = httpMock.expectOne("http://localhost/api");
         request.flush({ data: "test" });
-        expect(request.request.headers.get("Authorization")).toBeUndefined();
+        expect(request.request.headers.get("Authorization")).toBeNull();
         httpMock.verify();
     });
 
@@ -109,7 +109,7 @@ describe("MsalInterceptor", () => {
 
         const request = httpMock.expectOne("http://localhost:4200");
         request.flush({ data: "test" });
-        expect(request.request.headers.get("Authorization")).toBeUndefined();
+        expect(request.request.headers.get("Authorization")).toBeNull();
         httpMock.verify();
     });
 
@@ -250,7 +250,7 @@ describe("MsalInterceptor", () => {
 
         const request = httpMock.expectOne("http://localhost:3000/unprotect");
         request.flush({ data: "test" });
-        expect(request.request.headers.get("Authorization")).toBeUndefined();
+        expect(request.request.headers.get("Authorization")).toBeNull();
         httpMock.verify();
     });
 
