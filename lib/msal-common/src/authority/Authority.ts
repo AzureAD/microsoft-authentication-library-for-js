@@ -343,9 +343,11 @@ export class Authority {
      * Helper function to determine if this host is included in the knownAuthorities config option
      */
     private isInKnownAuthorities(): boolean {
-        return !!this.authorityOptions.knownAuthorities.find((authority) => {
+        const matches = this.authorityOptions.knownAuthorities.filter((authority) => {
             return UrlString.getDomainFromUrl(authority).toLowerCase() === this.hostnameAndPort;
         });
+
+        return matches.length > -1;
     }
 
     /**
@@ -366,12 +368,14 @@ export class Authority {
      * @param authority 
      */
     static getCloudDiscoveryMetadataFromNetworkResponse(response: CloudDiscoveryMetadata[], authority: string): CloudDiscoveryMetadata | null {
-        return response.find((metadata: CloudDiscoveryMetadata) => {
+        for (let i = 0; i < response.length; i++) {
+            const metadata = response[i];
             if (metadata.aliases.indexOf(authority) > -1) {
-                return true;
+                return metadata;
             }
-            return false;
-        }) || null;
+        }
+
+        return null;
     }
 
     /**
