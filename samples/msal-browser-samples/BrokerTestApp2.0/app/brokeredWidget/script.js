@@ -67,12 +67,12 @@ function handleResponse(resp) {
                         scopes: ["openid", "profile", "User.Read"],
                         loginHint: "idlab@msidlab4.onmicrosoft.com" 
                     };
-                    myMSALObj.ssoSilent(loginReq).then(() => {
+                    myMSALObj.experimental.ssoSilent(loginReq).then(() => {
                         contentElement.innerHTML = "Fetched data!";
                     }).catch(err => {
                         console.error(err);
                         if (err instanceof msal.InteractionRequiredAuthError) {
-                            return myMSALObj.loginPopup(loginReq);
+                            return myMSALObj.experimental.loginPopup(loginReq);
                         }
                         contentElement.innerHTML = "I am unable to get data, from where I sit, the Identity provider does not think I am logged in";
                         exit = true;

@@ -10,13 +10,15 @@ import { Configuration } from "../config/Configuration";
 import { EventType } from "../event/EventType";
 import { PopupHandler } from "../interaction_handler/PopupHandler";
 import { PopupRequest } from "../request/PopupRequest";
+import { RedirectRequest } from "../request/RedirectRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { ApiId, InteractionType } from "../utils/BrowserConstants";
+import { ApiId, DEFAULT_REQUEST, InteractionType } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { ClientApplication } from "./ClientApplication";
+import { IPublicClientApplication } from "./IPublicClientApplication";
 
-export class ExperimentalClientAPI extends ClientApplication {
+export class ExperimentalClientAPI extends ClientApplication implements IPublicClientApplication {
 
     // Broker Objects
     protected embeddedApp: EmbeddedClientApplication;
@@ -72,6 +74,34 @@ export class ExperimentalClientAPI extends ClientApplication {
     }
 
     /**
+     * Use when initiating the login process by redirecting the user's browser to the authorization endpoint. This function redirects the page, so
+     * any code that follows this function will not execute.
+     *
+     * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
+     * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
+     *
+     * @param {@link (RedirectRequest:type)}
+     */
+    async loginRedirect(request?: RedirectRequest): Promise<void> {
+        return this.acquireTokenRedirect(request || DEFAULT_REQUEST);
+    }
+
+    // #endregion
+
+    // #region Popup Flow
+
+    /**
+     * Use when initiating the login process via opening a popup window in the user's browser
+     *
+     * @param {@link (PopupRequest:type)}
+     *
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     */
+    loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
+        return this.acquireTokenPopup(request || DEFAULT_REQUEST);
+    }
+
+    /**
      * Use when you want to obtain an access_token for your API via opening a popup window in the user's browser
      * @param {@link (PopupRequest:type)}
      *
@@ -111,6 +141,10 @@ export class ExperimentalClientAPI extends ClientApplication {
             return super.acquireTokenPopupAsync(validRequest, popup);
         }
     }
+
+    // #endregion
+
+    // #region Silent Flow
 
     /**
      * This function uses a hidden iframe to fetch an authorization code from the eSTS. There are cases where this may not work:
@@ -189,6 +223,8 @@ export class ExperimentalClientAPI extends ClientApplication {
             }
         }
     }
+
+    // #endregion
 
     /**
      * Sets the account to use as the active account. If no account is passed to the acquireToken APIs, then MSAL will use this active account.
