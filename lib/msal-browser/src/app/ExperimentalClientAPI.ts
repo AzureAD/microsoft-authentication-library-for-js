@@ -29,6 +29,8 @@ export class ExperimentalClientAPI extends ClientApplication implements IPublicC
         // bind to parent
         this.initializeBrokering.bind(parent);
         this.handleRedirectPromise.bind(parent);
+        this.loginRedirect.bind(parent);
+        this.loginPopup.bind(parent);
         this.acquireTokenPopup.bind(parent);
         this.ssoSilent.bind(parent);
         this.acquireTokenSilent.bind(parent);

@@ -20,7 +20,7 @@ let username = "";
 const myMSALObj = new msal.PublicClientApplication(msalConfig);
 myMSALObj.experimental.initializeBrokering().then(() => {
     // Must ensure that initialize has completed before calling any other MSAL functions
-    myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
+    myMSALObj.experimental.handleRedirectPromise().then(handleResponse).catch(err => {
         console.error(err);
     });
 
@@ -29,7 +29,7 @@ myMSALObj.experimental.initializeBrokering().then(() => {
 
 function handleResponse(resp) {
     if (resp !== null) {
-        myMSALObj.setActiveAccount(resp.account);
+        myMSALObj.experimental.setActiveAccount(resp.account);
         username = resp.account.username;
         showWelcomeMessage(resp.account);
     } else {
@@ -41,7 +41,7 @@ function handleResponse(resp) {
             // Add choose account code here
         } else if (currentAccounts.length === 1) {
             const accountObj = currentAccounts[0];
-            myMSALObj.setActiveAccount(accountObj);
+            myMSALObj.experimental.setActiveAccount(accountObj);
             username = accountObj.username;
             showWelcomeMessage(accountObj);
         }

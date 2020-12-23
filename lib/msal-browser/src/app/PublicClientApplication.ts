@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult } from "@azure/msal-common";
+import { AuthenticationResult } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -65,20 +65,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     }
 
     /**
-     * Event handler function which allows users to fire events after the PublicClientApplication object
-     * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
-     * auth flows.
-     * @param hash Hash to process. Defaults to the current value of window.location.hash. Only needs to be provided explicitly if the response to be handled is not contained in the current value.
-     * @returns {Promise.<AuthenticationResult | null>} token response or null. If the return value is null, then no auth redirect was detected.
-     */
-    async handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null> {
-        if (this.experimental) {
-            return this.experimental.handleRedirectPromise();
-        }
-        return super.handleRedirectPromise(hash);
-    }
-
-    /**
      * Use when initiating the login process by redirecting the user's browser to the authorization endpoint. This function redirects the page, so
      * any code that follows this function will not execute.
      *
@@ -107,26 +93,4 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     }
 
     // #endregion
-
-    /**
-     * Sets the account to use as the active account. If no account is passed to the acquireToken APIs, then MSAL will use this active account.
-     * @param account 
-     */
-    setActiveAccount(account: AccountInfo | null): void {
-        if (this.experimental) {
-            this.experimental.setActiveAccount(account);
-        }
-        super.setActiveAccount(account);
-    }
-
-    /**
-     * Gets the currently active account
-     */
-    getActiveAccount(asBroker?: boolean): AccountInfo | null {
-        if (this.experimental) {
-            return this.experimental.getActiveAccount(asBroker);
-        }
-
-        return super.getActiveAccount();
-    }
 }
