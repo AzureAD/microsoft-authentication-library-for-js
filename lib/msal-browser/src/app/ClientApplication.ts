@@ -7,7 +7,7 @@ import { CryptoOps } from "../crypto/CryptoOps";
 import { Authority, TrustedAuthority, StringUtils, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, ServerError, InteractionRequiredAuthError, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, AuthenticationScheme, SilentFlowRequest, EndSessionRequest as CommonEndSessionRequest, AccountEntity } from "@azure/msal-common";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { buildConfiguration, Configuration } from "../config/Configuration";
-import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, BrowserCacheLocation } from "../utils/BrowserConstants";
+import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, BrowserCacheLocation, DEFAULT_REQUEST } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserStateObject, BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
@@ -268,6 +268,19 @@ export abstract class ClientApplication {
     }
 
     /**
+     * Use when initiating the login process by redirecting the user's browser to the authorization endpoint. This function redirects the page, so
+     * any code that follows this function will not execute.
+     *
+     * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
+     * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
+     *
+     * @param {@link (RedirectRequest:type)}
+     */
+    async loginRedirect(request?: RedirectRequest): Promise<void> {
+        return this.acquireTokenRedirect(request || DEFAULT_REQUEST);
+    }
+
+    /**
      * Use when you want to obtain an access_token for your API by redirecting the user's browser window to the authorization endpoint. This function redirects
      * the page, so any code that follows this function will not execute.
      *
@@ -334,6 +347,17 @@ export abstract class ClientApplication {
     // #endregion
 
     // #region Popup Flow
+
+    /**
+     * Use when initiating the login process via opening a popup window in the user's browser
+     *
+     * @param {@link (PopupRequest:type)}
+     *
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     */
+    loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
+        return this.acquireTokenPopup(request || DEFAULT_REQUEST);
+    }
 
     /**
      * Use when you want to obtain an access_token for your API via opening a popup window in the user's browser
@@ -752,7 +776,7 @@ export abstract class ClientApplication {
     /**
      * Used to get a discovered version of the default authority.
      */
-    async getDiscoveredDefaultAuthority(): Promise<Authority> {
+    protected async getDiscoveredDefaultAuthority(): Promise<Authority> {
         if (!this.defaultAuthority) {
             this.defaultAuthority = await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient, this.config.auth.protocolMode);
         }

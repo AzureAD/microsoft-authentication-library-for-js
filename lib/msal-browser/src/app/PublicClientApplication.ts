@@ -3,12 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
-import { DEFAULT_REQUEST } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
-import { RedirectRequest } from "../request/RedirectRequest";
-import { PopupRequest } from "../request/PopupRequest";
 import { ClientApplication } from "./ClientApplication";
 import { ExperimentalClientAPI } from "./ExperimentalClientAPI";
 
@@ -63,34 +59,4 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             this.experimental = new ExperimentalClientAPI(this.config, this);
         }
     }
-
-    /**
-     * Use when initiating the login process by redirecting the user's browser to the authorization endpoint. This function redirects the page, so
-     * any code that follows this function will not execute.
-     *
-     * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
-     * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
-     *
-     * @param {@link (RedirectRequest:type)}
-     */
-    async loginRedirect(request?: RedirectRequest): Promise<void> {
-        return this.acquireTokenRedirect(request || DEFAULT_REQUEST);
-    }
-
-    // #endregion
-
-    // #region Popup Flow
-
-    /**
-     * Use when initiating the login process via opening a popup window in the user's browser
-     *
-     * @param {@link (PopupRequest:type)}
-     *
-     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
-     */
-    loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
-        return this.acquireTokenPopup(request || DEFAULT_REQUEST);
-    }
-
-    // #endregion
 }

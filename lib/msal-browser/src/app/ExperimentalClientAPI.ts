@@ -10,10 +10,9 @@ import { Configuration } from "../config/Configuration";
 import { EventType } from "../event/EventType";
 import { PopupHandler } from "../interaction_handler/PopupHandler";
 import { PopupRequest } from "../request/PopupRequest";
-import { RedirectRequest } from "../request/RedirectRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { ApiId, DEFAULT_REQUEST, InteractionType } from "../utils/BrowserConstants";
+import { ApiId, InteractionType } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { ClientApplication } from "./ClientApplication";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -30,10 +29,20 @@ export class ExperimentalClientAPI extends ClientApplication implements IPublicC
         this.initializeBrokering.bind(parent);
         this.handleRedirectPromise.bind(parent);
         this.loginRedirect.bind(parent);
+        this.acquireTokenRedirect.bind(parent);
         this.loginPopup.bind(parent);
         this.acquireTokenPopup.bind(parent);
         this.ssoSilent.bind(parent);
         this.acquireTokenSilent.bind(parent);
+        this.logout.bind(parent);
+        this.getAllAccounts.bind(parent);
+        this.getAccountByUsername.bind(parent);
+        this.getAccountByHomeId.bind(parent);
+        this.getAccountByLocalId.bind(parent);
+        this.addEventCallback.bind(parent);
+        this.removeEventCallback.bind(parent);
+        this.getLogger.bind(parent);
+        this.setLogger.bind(parent);
     }
 
     /**
@@ -75,33 +84,9 @@ export class ExperimentalClientAPI extends ClientApplication implements IPublicC
         return super.handleRedirectPromise(hash);
     }
 
-    /**
-     * Use when initiating the login process by redirecting the user's browser to the authorization endpoint. This function redirects the page, so
-     * any code that follows this function will not execute.
-     *
-     * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
-     * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
-     *
-     * @param {@link (RedirectRequest:type)}
-     */
-    async loginRedirect(request?: RedirectRequest): Promise<void> {
-        return this.acquireTokenRedirect(request || DEFAULT_REQUEST);
-    }
-
     // #endregion
 
     // #region Popup Flow
-
-    /**
-     * Use when initiating the login process via opening a popup window in the user's browser
-     *
-     * @param {@link (PopupRequest:type)}
-     *
-     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
-     */
-    loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
-        return this.acquireTokenPopup(request || DEFAULT_REQUEST);
-    }
 
     /**
      * Use when you want to obtain an access_token for your API via opening a popup window in the user's browser
