@@ -101,7 +101,6 @@ if (accounts && accounts.length > 0) {
         scopes: ["openid", "profile", "User.Read"],
         account: accounts[0]
     };
-    console.log(accounts);
     myMSALObj.experimental.acquireTokenSilent(request).then(res => {
         setTimeout(() => {
             const contentElement = document.getElementsByClassName("myContent")[0];
