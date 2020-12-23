@@ -39,14 +39,11 @@ export class BrokerHandshakeResponse extends BrokerMessage {
             const matchedDomains = trustedBrokerDomains.filter((domain: string) => {
                 return StringUtils.matchPattern(domain, message.origin);
             });
-
             if (matchedDomains.length <= 0) {
                 throw BrowserAuthError.createUntrustedBrokerError();
             }
-
             return new BrokerHandshakeResponse(message.data.version, message.origin);
         }
-
         return null;
     }
 }
