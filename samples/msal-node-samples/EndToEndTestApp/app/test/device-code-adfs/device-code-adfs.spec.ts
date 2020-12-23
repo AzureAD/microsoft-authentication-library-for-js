@@ -7,11 +7,11 @@ import { LabClient } from "../../../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AppTypes, AzureEnvironments, FederationProviders, UserTypes } from "../../../../../e2eTestUtils/Constants";
 import { 
-    enterCredentials, 
     enterDeviceCode,
     SCREENSHOT_BASE_FOLDER_NAME,
     extractDeviceCodeParameters,
     enterCredentialsADFS,
+    checkTimeoutError,
  } from "../testUtils";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
@@ -21,7 +21,7 @@ let username: string;
 let accountPwd: string;
 
 describe('Device Code ADFS PPE Tests', () => {
-    jest.setTimeout(60000);
+    jest.setTimeout(90000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -100,5 +100,45 @@ describe('Device Code ADFS PPE Tests', () => {
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
          });
+    });
+
+    describe("Cancellation", () => {
+        let testName: string;
+        let screenshot: Screenshot;
+
+        beforeAll(() => {
+            testName = "deviceCodeAADFlowCancellation";
+            screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+        });
+
+
+        afterEach(async () => {
+            device.kill();
+            NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+        });
+
+        it("Cancels polling when a user timeout is provided", async () => {
+            const TIMEOUT_DURATION = 5;
+            const deviceStream: Array<any> = [];
+            device = spawn(
+                /^win/.test(process.platform) ? "npm.cmd" : "npm",
+                ["start", "--", "-s", "device-code-aad", "-c", TEST_CACHE_LOCATION, "--ro", JSON.stringify({ timeout: TIMEOUT_DURATION })]
+            );
+            device.stdout.on('data', (chunk) => deviceStream.push(chunk));
+
+            const timeoutErrorShown: boolean = await new Promise((resolve) => {
+                const intervalId = setInterval(() => {
+                    const output = Buffer.concat(deviceStream).toString();
+                    const timeoutErrorShown = checkTimeoutError(output);
+                    if (timeoutErrorShown) {
+                        clearInterval(intervalId);
+                        resolve(timeoutErrorShown);
+                    }
+                }, 1000);
+            });
+
+            expect(timeoutErrorShown).toBe(true);
+        });
     });
 });
