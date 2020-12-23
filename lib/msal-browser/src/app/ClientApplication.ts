@@ -22,6 +22,7 @@ import { EventError, EventMessage, EventPayload, EventCallbackFunction } from ".
 import { EventType } from "../event/EventType";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
+import { SilentRequest } from "../request/SilentRequest";
 
 export abstract class ClientApplication {
 
@@ -111,14 +112,6 @@ export abstract class ClientApplication {
         this.defaultAuthority = null;
 
         this.activeLocalAccountId = null;
-
-        this.checkExperimentalConfig(configuration);
-    }
-
-    private checkExperimentalConfig(userConfig: Configuration) {
-        if (userConfig.experimental) {
-            this.logger.warning("Experimental features are subject to changes or removal without warning.");
-        }
     }
 
     // #region Redirect Flow
@@ -343,6 +336,42 @@ export abstract class ClientApplication {
     // #region Popup Flow
 
     /**
+     * Use when you want to obtain an access_token for your API via opening a popup window in the user's browser
+     * @param {@link (PopupRequest:type)}
+     *
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     */
+    acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
+        try {
+            this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
+        } catch (e) {
+            // Since this function is synchronous we need to reject
+            return Promise.reject(e);
+        }
+
+        // If logged in, emit acquire token events
+        const loggedInAccounts = this.getAllAccounts();
+        if (loggedInAccounts.length > 0) {
+            this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Popup, request);
+        } else {
+            this.emitEvent(EventType.LOGIN_START, InteractionType.Popup, request);
+        }
+
+        // Preflight request
+        const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
+        this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority);
+
+        // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
+        if (this.config.system.asyncPopups) {
+            return this.acquireTokenPopupAsync(validRequest);
+        } else {
+            // asyncPopups flag is set to false. Opens popup before acquiring token.
+            const popup = PopupHandler.openSizedPopup();
+            return this.acquireTokenPopupAsync(validRequest, popup);
+        }
+    }
+
+    /**
      * Helper which obtains an access_token for your API via opening a popup window in the user's browser
      * @param validRequest 
      * @param popup 
@@ -406,6 +435,77 @@ export abstract class ClientApplication {
     // #endregion
 
     // #region Silent Flow
+
+    /**
+     * This function uses a hidden iframe to fetch an authorization code from the eSTS. There are cases where this may not work:
+     * - Any browser using a form of Intelligent Tracking Prevention
+     * - If there is not an established session with the service
+     *
+     * In these cases, the request must be done inside a popup or full frame redirect.
+     *
+     * For the cases where interaction is required, you cannot send a request with prompt=none.
+     *
+     * If your refresh token has expired, you can use this function to fetch a new set of tokens silently as long as
+     * you session on the server still exists.
+     * @param {@link AuthorizationUrlRequest}
+     *
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     */
+    async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
+        this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
+        this.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
+
+        try {
+            // Create silent request
+            const silentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
+                ...request,
+                prompt: PromptValue.NONE
+            }, InteractionType.Silent);
+    
+            this.browserStorage.updateCacheEntries(silentRequest.state, silentRequest.nonce, silentRequest.authority);
+            const silentTokenResult = await this.acquireTokenByIframe(silentRequest);
+            this.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
+            return silentTokenResult;
+        } catch (e) {
+            this.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
+            throw e;
+        }
+    }
+
+    /**
+     * Silently acquire an access token for a given set of scopes. Will use cached token if available, otherwise will attempt to acquire a new token from the network via refresh token.
+     * 
+     * @param {@link (SilentRequest:type)} 
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     */
+    async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
+        this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
+        const silentRequest: SilentFlowRequest = {
+            ...request,
+            ...this.initializeBaseRequest(request),
+            account: request.account || this.getActiveAccount(),
+            forceRefresh: request.forceRefresh || false
+        };
+        this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
+
+        try {
+            // Telemetry manager only used to increment cacheHits here
+            const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);
+            const silentAuthClient = await this.createSilentFlowClient(serverTelemetryManager, silentRequest.authority);
+            const cachedToken = await silentAuthClient.acquireCachedToken(silentRequest);
+            this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, cachedToken);
+            return cachedToken;
+        } catch (e) {
+            try {
+                const tokenRenewalResult = await this.acquireTokenByRefreshToken(silentRequest);
+                this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, tokenRenewalResult);
+                return tokenRenewalResult;
+            } catch (tokenRenewalError) {
+                this.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
+                throw tokenRenewalError;
+            }
+        }
+    }
 
     /**
      * This function uses a hidden iframe to fetch an authorization code from the eSTS. To be used for silent refresh token acquisition and renewal.

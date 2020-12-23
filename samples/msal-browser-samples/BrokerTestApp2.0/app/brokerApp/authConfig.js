@@ -31,6 +31,7 @@ const msalConfig = {
         }
     },
     experimental: {
+        enableExperimentalApi: true,
         // TODO: Use interaction type enum
         brokerOptions: {
             actAsBroker: true,

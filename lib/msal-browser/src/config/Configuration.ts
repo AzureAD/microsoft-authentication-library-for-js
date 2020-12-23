@@ -88,6 +88,7 @@ export type BrowserSystemOptions = SystemOptions & {
 };
 
 export type ExperimentalOptions = {
+    enableExperimentalApi?: boolean;
     brokerOptions?: BrokerOptions;
 };
 
@@ -152,7 +153,10 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     };
 
     // Default broker options for browser
-    const DEFAULT_BROKER_OPTIONS: BrokerOptions = {
+    const DEFAULT_BROKER_OPTIONS: Required<BrokerOptions> = {
+        preferredInteractionType: undefined,
+        brokerRedirectStartPage: undefined,
+        onBrokerRedirectNavigate: undefined,
         actAsBroker: false,
         allowBrokering: false,
         trustedBrokerDomains: []
@@ -173,7 +177,8 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         allowRedirectInIframe: false
     };
 
-    const DEFAULT_EXPERIMENTAL_OPTIONS: ExperimentalOptions = {
+    const DEFAULT_EXPERIMENTAL_OPTIONS: Required<ExperimentalOptions> = {
+        enableExperimentalApi: false,
         brokerOptions: DEFAULT_BROKER_OPTIONS
     };
 

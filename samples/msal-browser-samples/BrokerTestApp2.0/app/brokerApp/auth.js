@@ -18,7 +18,7 @@ let username = "";
  * configuration parameters are located at authConfig.js
  */
 const myMSALObj = new msal.PublicClientApplication(msalConfig);
-myMSALObj.initializeBrokering().then(() => {
+myMSALObj.experimental.initializeBrokering().then(() => {
     // Must ensure that initialize has completed before calling any other MSAL functions
     myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
         console.error(err);

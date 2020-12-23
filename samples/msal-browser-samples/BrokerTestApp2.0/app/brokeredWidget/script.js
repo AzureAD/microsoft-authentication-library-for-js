@@ -32,6 +32,7 @@ const msalConfig = {
         }
     },
     experimental: {
+        enableExperimentalApi: true,
         brokerOptions: {
             allowBrokering: true,
             trustedBrokerDomains: ["http://localhost:30663"],
@@ -42,7 +43,7 @@ const msalConfig = {
 
 let username;
 const myMSALObj = new msal.PublicClientApplication(msalConfig);
-myMSALObj.initializeBrokering().then(() => {
+myMSALObj.experimental.initializeBrokering().then(() => {
         // Must ensure that initialize has completed before calling any other MSAL functions
     myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
         console.error(err);
@@ -100,7 +101,8 @@ if (accounts && accounts.length > 0) {
         scopes: ["openid", "profile", "User.Read"],
         account: accounts[0]
     };
-    myMSALObj.acquireTokenSilent(request).then(res => {
+    console.log(accounts);
+    myMSALObj.experimental.acquireTokenSilent(request).then(res => {
         setTimeout(() => {
             const contentElement = document.getElementsByClassName("myContent")[0];
             contentElement.innerHTML = "Great I was able to get an access token for this data, and now I going to go get it!";
