@@ -36,4 +36,8 @@ export class MemoryStorage implements IWindowStorage {
     containsKey(key: string): boolean {
         return this.cache.has(key);
     }
+
+    clear() :void {
+        this.cache.clear();
+    }
 }

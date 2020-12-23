@@ -432,6 +432,8 @@ export class BrowserCacheManager extends CacheManager {
                 this.removeItem(cacheKey);
             }
         });
+
+        this.internalStorage.clear();
     }
 
     /**

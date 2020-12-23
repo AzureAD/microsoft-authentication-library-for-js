@@ -288,6 +288,23 @@ describe("BrowserCacheManager tests", () => {
                     expect(browserLocalStorage.getAuthorityMetadataKeys()).to.contain(key);
                     expect(browserSessionStorage.getAuthorityMetadataKeys()).to.contain(key);
                 });
+
+                it("clear() removes AuthorityMetadataEntity from in-memory storage", () => {
+                    browserSessionStorage.setAuthorityMetadata(key, testObj);
+                    browserLocalStorage.setAuthorityMetadata(key, testObj);
+
+                    expect(browserSessionStorage.getAuthorityMetadata(key)).to.deep.equal(testObj);
+                    expect(browserLocalStorage.getAuthorityMetadata(key)).to.deep.equal(testObj);
+                    expect(browserLocalStorage.getAuthorityMetadataKeys()).to.contain(key);
+                    expect(browserSessionStorage.getAuthorityMetadataKeys()).to.contain(key);
+
+                    browserSessionStorage.clear();
+                    browserLocalStorage.clear();
+                    expect(browserSessionStorage.getAuthorityMetadata(key)).to.be.null;
+                    expect(browserLocalStorage.getAuthorityMetadata(key)).to.be.null;
+                    expect(browserLocalStorage.getAuthorityMetadataKeys().length).to.be.eq(0);
+                    expect(browserSessionStorage.getAuthorityMetadataKeys().length).to.be.eq(0);
+                });
             });
         });
     });
