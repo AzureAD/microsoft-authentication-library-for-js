@@ -157,6 +157,7 @@ export class EmbeddedClientApplication {
         return new Promise<BrokerHandshakeResponse>((resolve: any, reject: any) => {
             const timeoutId = setTimeout(() => {
                 this.logger.warning("Broker handshake timed out");
+                window.removeEventListener("message", onHandshakeResponse);
                 reject(BrowserAuthError.createMessageBrokerTimeoutError());
             }, DEFAULT_MESSAGE_TIMEOUT);
 
@@ -166,14 +167,15 @@ export class EmbeddedClientApplication {
                     if (brokerHandshakeResponse) {
                         clearTimeout(timeoutId);
                         this.logger.info(`Received handshake response: ${JSON.stringify(brokerHandshakeResponse)}`);
+                        window.removeEventListener("message", onHandshakeResponse);
                         resolve(brokerHandshakeResponse);
                     } else {
-                        this.logger.warning(`Message is not handshake response: ${message}`);
+                        this.logger.warning(`Message is not handshake response: ${JSON.stringify(message.data)}`);
                     }
                 } catch (e) {
+                    window.removeEventListener("message", onHandshakeResponse);
                     reject(e);
                 }
-                window.removeEventListener("message", onHandshakeResponse);
             };
 
             window.addEventListener("message", onHandshakeResponse);
