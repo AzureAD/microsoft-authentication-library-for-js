@@ -6,6 +6,12 @@
 module.exports = function(app, clientApplication, msalTokenCache, scenarioConfig) {
     const requestConfig = scenarioConfig.request;
     app.get('/', (req, res) => {
+        let authCodeUrlParameters = requestConfig.authCodeUrlParameters;
+
+        if (req.query && req.query.prompt) {
+            authCodeUrlParameters.prompt = req.query.prompt
+        }
+
         // get url to sign user in and consent to scopes needed for applicatio
         clientApplication.getAuthCodeUrl(requestConfig.authCodeUrlParameters).then((response) => {
             res.redirect(response);

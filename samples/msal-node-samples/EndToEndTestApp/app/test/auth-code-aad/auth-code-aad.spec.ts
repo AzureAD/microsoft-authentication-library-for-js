@@ -71,8 +71,19 @@ describe('Auth Code AAD PPE Tests', () => {
             NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
 
-        it("Performs acquire token with Auth Code flow", async () => {
+        it("Performs acquire token", async () => {
             await page.goto(HOME_ROUTE);
+            await enterCredentials(page, screenshot, username, accountPwd);
+            const htmlBody = await page.evaluate(() => document.body.innerHTML);
+            expect(htmlBody).toContain(SUCCESSFUL_SIGNED_IN_MESSAGE);
+            const cachedTokens = NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+            expect(cachedTokens.accessTokens.length).toBe(1);
+            expect(cachedTokens.idTokens.length).toBe(1);
+            expect(cachedTokens.refreshTokens.length).toBe(1);
+         });
+
+         it("Performs acquire token with prompt = 'login'", async () => {
+            await page.goto(`${HOME_ROUTE}/?prompt=login`);
             await enterCredentials(page, screenshot, username, accountPwd);
             const htmlBody = await page.evaluate(() => document.body.innerHTML);
             expect(htmlBody).toContain(SUCCESSFUL_SIGNED_IN_MESSAGE);
