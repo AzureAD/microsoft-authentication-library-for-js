@@ -24,6 +24,22 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
     await takeScreenshotAfter(6000, screenshot, page, `pwdSubmitted`);
 }
 
+export async function enterCredentialsWithConsent(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
+    await this.enterCredentials(page, screenshot, username, accountPwd);
+    await this.approveConsent(page, screenshot);
+}
+
+export async function enterCredentialsADFSWithConsent(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
+    await this.enterCredentialsADFS(page, screenshot, username, accountPwd);
+    await this.approveConsent(page, screenshot);
+}
+
+export async function approveConsent(page: Page, screenshot: Screenshot): Promise<void> {
+    await page.waitForSelector("#idSIButton9");
+    await page.click("#idSIButton9");
+    await takeScreenshotAfter(6000, screenshot, page, 'consentApproved'); 
+}
+
 export async function clickSignIn(page: Page, screenshot: Screenshot): Promise<void> {
     await screenshot.takeScreenshot(page, "samplePageInit");
     await page.click("#SignIn");

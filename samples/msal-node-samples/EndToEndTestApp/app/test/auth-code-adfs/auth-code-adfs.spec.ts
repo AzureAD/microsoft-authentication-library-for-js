@@ -8,6 +8,7 @@ import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams
 import { AppTypes, AzureEnvironments, FederationProviders, UserTypes } from "../../../../../e2eTestUtils/Constants";
 import { 
     enterCredentialsADFS, 
+    enterCredentialsADFSWithConsent, 
     SCREENSHOT_BASE_FOLDER_NAME,
  } from "../testUtils";
 
@@ -82,9 +83,20 @@ describe('Auth Code ADFS PPE Tests', () => {
             expect(cachedTokens.refreshTokens.length).toBe(1);
          });
          
-         it("Performs acquire token with prompt = 'login'", async () => {
+        it("Performs acquire token with prompt = 'login'", async () => {
             await page.goto(`${HOME_ROUTE}/?prompt=login`);
             await enterCredentialsADFS(page, screenshot, username, accountPwd);
+            const htmlBody = await page.evaluate(() => document.body.innerHTML);
+            expect(htmlBody).toContain(SUCCESSFUL_SIGNED_IN_MESSAGE);
+            const cachedTokens = NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+            expect(cachedTokens.accessTokens.length).toBe(1);
+            expect(cachedTokens.idTokens.length).toBe(1);
+            expect(cachedTokens.refreshTokens.length).toBe(1);
+         });
+        
+        it("Performs acquire token with prompt = 'consent'", async () => {
+            await page.goto(`${HOME_ROUTE}/?prompt=consent`);
+            await enterCredentialsADFSWithConsent(page, screenshot, username, accountPwd);
             const htmlBody = await page.evaluate(() => document.body.innerHTML);
             expect(htmlBody).toContain(SUCCESSFUL_SIGNED_IN_MESSAGE);
             const cachedTokens = NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
