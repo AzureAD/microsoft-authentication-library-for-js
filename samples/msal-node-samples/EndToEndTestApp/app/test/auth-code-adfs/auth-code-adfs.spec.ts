@@ -104,5 +104,26 @@ describe('Auth Code ADFS PPE Tests', () => {
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
         });
+
+        it("Performs acquire token with prompt = 'none'", async () => {
+            // First login
+            await page.goto(`${HOME_ROUTE}/?prompt=login`);
+            await enterCredentialsADFS(page, screenshot, username, accountPwd);
+            let htmlBody = await page.evaluate(() => document.body.innerHTML);
+            expect(htmlBody).toContain(SUCCESSFUL_SIGNED_IN_MESSAGE);
+
+            // Reset the cache
+            NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+
+
+            await page.goto(`${HOME_ROUTE}/?prompt=none`);
+            await new Promise(resolve => { setTimeout(() => { resolve(true) }, 4000)})
+            htmlBody = await page.evaluate(() => document.body.innerHTML);
+            expect(htmlBody).toContain(SUCCESSFUL_SIGNED_IN_MESSAGE);
+            const cachedTokens = NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+            expect(cachedTokens.accessTokens.length).toBe(1);
+            expect(cachedTokens.idTokens.length).toBe(1);
+            expect(cachedTokens.refreshTokens.length).toBe(1);
+        });
     });
 });

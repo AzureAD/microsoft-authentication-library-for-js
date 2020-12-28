@@ -1,6 +1,5 @@
 import "jest";
 import puppeteer from "puppeteer";
-import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import { Screenshot, createFolder, setupCredentials } from "../../../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
@@ -88,7 +87,7 @@ describe('Auth Code AAD PPE Tests', () => {
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
-         });
+        });
 
         it("Performs acquire token with prompt = 'consent'", async () => {
             await page.goto(`${HOME_ROUTE}/?prompt=consent`);
@@ -99,6 +98,27 @@ describe('Auth Code AAD PPE Tests', () => {
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
-         });
+        });
+
+        it("Performs acquire token with prompt = 'none'", async () => {
+            // First log the user in first
+            await page.goto(`${HOME_ROUTE}/?prompt=login`);
+            await enterCredentials(page, screenshot, username, accountPwd);
+            let htmlBody = await page.evaluate(() => document.body.innerHTML);
+            expect(htmlBody).toContain(SUCCESSFUL_SIGNED_IN_MESSAGE);
+            
+            // Reset the cache to prepare for the second login
+            NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+
+            // Login without a prompt 
+            await page.goto(`${HOME_ROUTE}/?prompt=none`);
+            await new Promise(resolve => { setTimeout(() => { resolve(true) }, 4000)})
+            htmlBody = await page.evaluate(() => document.body.innerHTML);
+            expect(htmlBody).toContain(SUCCESSFUL_SIGNED_IN_MESSAGE);
+            const cachedTokens = NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+            expect(cachedTokens.accessTokens.length).toBe(1);
+            expect(cachedTokens.idTokens.length).toBe(1);
+            expect(cachedTokens.refreshTokens.length).toBe(1);
+        });
     });
 });
