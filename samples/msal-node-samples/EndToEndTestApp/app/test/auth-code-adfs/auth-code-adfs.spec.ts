@@ -81,7 +81,7 @@ describe('Auth Code ADFS PPE Tests', () => {
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
-         });
+        });
          
         it("Performs acquire token with prompt = 'login'", async () => {
             await page.goto(`${HOME_ROUTE}/?prompt=login`);
@@ -92,7 +92,7 @@ describe('Auth Code ADFS PPE Tests', () => {
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
-         });
+        });
         
         it("Performs acquire token with prompt = 'consent'", async () => {
             await page.goto(`${HOME_ROUTE}/?prompt=consent`);
@@ -103,6 +103,6 @@ describe('Auth Code ADFS PPE Tests', () => {
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
-         });
+        });
     });
 });
