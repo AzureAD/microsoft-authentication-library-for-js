@@ -125,5 +125,20 @@ describe('Auth Code ADFS PPE Tests', () => {
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
         });
+
+        it("Performs acquire token with state", async () => {
+            const STATE_VALUE = "value_on_state";
+            await page.goto(`${HOME_ROUTE}/?prompt=login&state=${STATE_VALUE}`);
+            await enterCredentialsADFS(page, screenshot, username, accountPwd);
+            await new Promise(resolve => { setTimeout(() => { resolve(true) }, 4000)});
+            const url = await page.url();
+            expect(url.includes(`state=${STATE_VALUE}`)).toBe(true);
+            const htmlBody = await page.evaluate(() => document.body.innerHTML);
+            expect(htmlBody).toContain(SUCCESSFUL_SIGNED_IN_MESSAGE);
+            const cachedTokens = NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+            expect(cachedTokens.accessTokens.length).toBe(1);
+            expect(cachedTokens.idTokens.length).toBe(1);
+            expect(cachedTokens.refreshTokens.length).toBe(1);
+        });
     });
 });
