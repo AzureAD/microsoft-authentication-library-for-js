@@ -140,5 +140,14 @@ describe('Auth Code ADFS PPE Tests', () => {
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
         });
+
+        it("Performs acquire token with login hint", async () => {
+            const USERNAME = "test@domain.abc";
+            await page.goto(`${HOME_ROUTE}/?prompt=login&loginHint=${USERNAME}`);
+            await page.waitForSelector("#i0116");
+            const emailInput = await page.$("#i0116")
+            const email = await page.evaluate(element => element.value, emailInput);
+            expect(email).toBe(USERNAME);
+        });
     });
 });
