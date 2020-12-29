@@ -3,12 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@azure/msal-browser": "^2.8.0",
-    "@azure/msal-react": "^1.0.0-alpha.1",
+    "@azure/msal-react": "file:../../../lib/msal-react",
+    "@azure/msal-browser": "file:../../../lib/msal-browser",
     "@material-ui/core": "^4.11.2",
     "@material-ui/icons": "^4.11.2",
-    "react": "^17.0.1",
-    "react-dom": "^17.0.1",
+    "react": "file:../../../lib/msal-react/node_modules/react",
+    "react-dom": "file:../../../lib/msal-react/node_modules/react-dom",
     "react-router-dom": "^5.2.0",
     "react-scripts": "4.0.1"
   },
