@@ -52,6 +52,10 @@ export abstract class ClientApplication {
     // Sets the account to use if no account info is given
     private activeLocalAccountId: string | null;
 
+    // Set the SKU and Version for wrapper library if applicable
+    private wrapperSKU: string;
+    private wrapperVer: string;
+
     // Callback for subscribing to events
     private eventCallbacks: Map<string, EventCallbackFunction>;
 
@@ -998,6 +1002,27 @@ export abstract class ClientApplication {
      */
     setLogger(logger: Logger): void {
         this.logger = logger;
+    }
+
+    /**
+     * Called by wrapper libraries (Angular & React) to set SKU and Version passed down to telemetry, logger, etc.
+     * @param sku 
+     * @param version 
+     */
+    initializeWrapperLibrary(sku: string, version: string): void {
+        // Validate the SKU passed in is one we expect
+        if (sku.match(/^@azure\/msal\-[a-z]+$/g)) {
+            this.wrapperSKU = sku;
+        } else {
+            this.logger.warning("initiailzeWrapperLibrary - provided sku failed validation. Please ensure it starts with @azure/msal-");
+        }
+        
+        // Validate the version passed in
+        if (version.match(/^[0-9a-z\.\-]+$/g)) {
+            this.wrapperVer = version;
+        } else {
+            this.logger.warning("intitializeWrapperLibrary - provided version failed validation");
+        }
     }
     // #endregion
 }

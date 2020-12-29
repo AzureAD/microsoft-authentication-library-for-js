@@ -30,6 +30,7 @@ export interface IPublicClientApplication {
     setLogger(logger: Logger): void;
     setActiveAccount(account: AccountInfo | null): void;
     getActiveAccount(): AccountInfo | null;
+    initializeWrapperLibrary(sku: string, version: string): void;
 }
 
 export const stubbedPublicClientApplication: IPublicClientApplication = {
@@ -86,5 +87,8 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     },
     getActiveAccount: () => {
         return null;
+    },
+    initializeWrapperLibrary: () => {
+        return;
     }
 };

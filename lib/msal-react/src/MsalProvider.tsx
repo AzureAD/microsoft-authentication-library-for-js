@@ -21,6 +21,9 @@ export type MsalProviderProps = PropsWithChildren<{
 }>;
 
 export function MsalProvider({instance, children}: MsalProviderProps): React.ReactElement {
+    useEffect(() => {
+        instance.initializeWrapperLibrary(Constants.SKU, Constants.VERSION);
+    }, [instance]);
     // Create a logger instance for msal-react with the same options as PublicClientApplication
     const logger: Logger = useMemo(() => {
         return instance.getLogger().clone(Constants.SKU, Constants.VERSION);
