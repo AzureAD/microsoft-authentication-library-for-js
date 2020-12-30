@@ -347,7 +347,7 @@ export class Authority {
             return UrlString.getDomainFromUrl(authority).toLowerCase() === this.hostnameAndPort;
         });
 
-        return matches.length > -1;
+        return matches.length > 0;
     }
 
     /**
