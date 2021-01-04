@@ -18,6 +18,7 @@ import { AccountInfo } from "../../account/AccountInfo";
 import { ClientAuthError } from "../../error/ClientAuthError";
 import { AuthorityType } from "../../authority/AuthorityType";
 import { Logger } from "../../logger/Logger";
+import { TokenClaims } from "../../account/TokenClaims";
 
 /**
  * Type that defines required and optional parameters for an Account field (based on universal cache schema implemented by all MSALs).
@@ -39,6 +40,7 @@ import { Logger } from "../../logger/Logger";
  *      lastModificationTime: last time this entity was modified in the cache
  *      lastModificationApp:
  *      oboAssertion: access token passed in as part of OBO request
+ *      idTokenClaims: Object containing claims parsed from ID token
  * }
  */
 export class AccountEntity {
@@ -53,6 +55,9 @@ export class AccountEntity {
     lastModificationTime?: string;
     lastModificationApp?: string;
     oboAssertion?: string;
+    cloudGraphHostName?: string;
+    msGraphHost?: string; 
+    idTokenClaims?: TokenClaims;
 
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
@@ -105,6 +110,7 @@ export class AccountEntity {
             username: this.username,
             localAccountId: this.localAccountId,
             name: this.name,
+            idTokenClaims: this.idTokenClaims
         };
     }
 
@@ -134,7 +140,9 @@ export class AccountEntity {
         homeAccountId: string,
         authority: Authority,
         idToken: AuthToken,
-        oboAssertion?: string
+        oboAssertion?: string,
+        cloudGraphHostName?: string,
+        msGraphHost?: string
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
@@ -151,8 +159,10 @@ export class AccountEntity {
         // non AAD scenarios can have empty realm
         account.realm = idToken?.claims?.tid || "";
         account.oboAssertion = oboAssertion;
-
+        
         if (idToken) {
+            account.idTokenClaims = idToken.claims;
+
             // How do you account for MSA CID here?
             account.localAccountId = idToken?.claims?.oid || idToken?.claims?.sub || "";
 
@@ -163,6 +173,9 @@ export class AccountEntity {
             account.username = idToken?.claims?.preferred_username || (idToken?.claims?.emails? idToken.claims.emails[0]: "");
             account.name = idToken?.claims?.name;
         }
+
+        account.cloudGraphHostName = cloudGraphHostName;
+        account.msGraphHost = msGraphHost;
 
         return account;
     }
@@ -176,7 +189,9 @@ export class AccountEntity {
         authority: Authority,
         homeAccountId: string,
         idToken: AuthToken,
-        oboAssertion?: string
+        oboAssertion?: string,
+        cloudGraphHostName?: string,
+        msGraphHost?: string
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
@@ -198,9 +213,13 @@ export class AccountEntity {
             // upn claim for most ADFS scenarios
             account.username = idToken?.claims?.upn || "";
             account.name = idToken?.claims?.name || "";
+            account.idTokenClaims = idToken?.claims;
         }
 
         account.environment = env;
+
+        account.cloudGraphHostName = cloudGraphHostName;
+        account.msGraphHost = msGraphHost;
 
         /*
          * add uniqueName to claims
@@ -255,5 +274,22 @@ export class AccountEntity {
             entity.hasOwnProperty("username") &&
             entity.hasOwnProperty("authorityType")
         );
+    }
+
+    /**
+     * Helper function to determine whether 2 accounts are equal
+     * Used to avoid unnecessary state updates
+     * @param arrayA 
+     * @param arrayB 
+     */
+    static accountInfoIsEqual(accountA: AccountInfo | null, accountB: AccountInfo | null): boolean {
+        if (!accountA || !accountB) {
+            return false;
+        }
+        return (accountA.homeAccountId === accountB.homeAccountId) && 
+            (accountA.localAccountId === accountB.localAccountId) &&
+            (accountA.username === accountB.username) &&
+            (accountA.tenantId === accountB.tenantId) &&
+            (accountA.environment === accountB.environment);
     }
 }

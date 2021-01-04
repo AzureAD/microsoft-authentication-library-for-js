@@ -16,6 +16,7 @@ import { CacheManager } from "../cache/CacheManager";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { version, name } from "../../package.json";
+import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -43,7 +44,7 @@ export abstract class BaseClient {
     protected networkManager: NetworkManager;
 
     // Default authority object
-    protected authority: Authority;
+    public authority: Authority;
 
     protected constructor(configuration: ClientConfiguration) {
         // Set the configuration
@@ -125,5 +126,16 @@ export abstract class BaseClient {
         }
 
         return response;
+    }
+
+    /**
+     * Updates the authority object of the client. Endpoint discovery must be completed.
+     * @param updatedAuthority 
+     */
+    updateAuthority(updatedAuthority: Authority): void {
+        if (!updatedAuthority.discoveryComplete()) {
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError("Updated authority has not completed endpoint discovery.");
+        }
+        this.authority = updatedAuthority;
     }
 }

@@ -147,4 +147,24 @@ describe("StringUtils.ts Class Unit Tests", () => {
             expect(parsedValEmptyString).to.be.null;
         })
     });
+
+    describe("matchPattern", () => {
+        it("no wildcard", () => {
+            const matches = StringUtils.matchPattern("https://myapplication.com/user/1", "https://myapplication.com/user/1");
+
+            expect(matches).to.be.true;
+        });
+
+        it("single wildcard", () => {
+            const matches = StringUtils.matchPattern("https://myapplication.com/user/*", "https://myapplication.com/user/1");
+
+            expect(matches).to.be.true;
+        });
+
+        it("multiple wildcards", () => {
+            const matches = StringUtils.matchPattern("https://*.myapplication.com/user/*", "https://test.myapplication.com/user/1");
+
+            expect(matches).to.be.true;
+        });
+    });
 });

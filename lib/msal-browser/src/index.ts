@@ -6,6 +6,7 @@
 export { PublicClientApplication } from "./app/PublicClientApplication";
 export { Configuration } from "./config/Configuration";
 export { InteractionType, BrowserCacheLocation } from "./utils/BrowserConstants";
+export { BrowserUtils } from "./utils/BrowserUtils";
 
 // Browser Errors
 export { BrowserAuthError, BrowserAuthErrorMessage } from "./error/BrowserAuthError";
@@ -29,6 +30,7 @@ export {
     AuthenticationScheme,
     // Account
     AccountInfo,
+    AccountEntity,
     // Response
     AuthenticationResult,
     // Error
@@ -41,5 +43,8 @@ export {
     Logger,
     LogLevel,
     // Protocol Mode
-    ProtocolMode
+    ProtocolMode,
+    // Utils
+    StringUtils,
+    UrlString
 } from "@azure/msal-common";

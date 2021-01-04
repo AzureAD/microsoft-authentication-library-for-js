@@ -19,10 +19,10 @@ export type MsalAuthenticationResult = {
 export function useMsalAuthentication(
     interactionType: InteractionType, 
     authenticationRequest?: PopupRequest|RedirectRequest|SsoSilentRequest, 
-    accountIdentifier?: AccountIdentifiers
+    accountIdentifiers?: AccountIdentifiers
 ): MsalAuthenticationResult {
-    const { instance, inProgress } = useMsal();
-    const isAuthenticated = useIsAuthenticated(accountIdentifier);
+    const { instance, inProgress, logger } = useMsal();
+    const isAuthenticated = useIsAuthenticated(accountIdentifiers);
     const [[result, error], setResponse] = useState<[AuthenticationResult|null, AuthError|null]>([null, null]);
     const [hasBeenCalled, setHasBeenCalled] = useState<boolean>(false);
 
@@ -31,16 +31,19 @@ export function useMsalAuthentication(
         const loginRequest = callbackRequest || authenticationRequest;
         switch (loginType) {
             case InteractionType.Popup:
+                logger.verbose("useMsalAuthentication - Calling loginPopup");
                 return instance.loginPopup(loginRequest as PopupRequest);
             case InteractionType.Redirect:
                 // This promise is not expected to resolve due to full frame redirect
+                logger.verbose("useMsalAuthentication - Calling loginRedirect");
                 return instance.loginRedirect(loginRequest as RedirectRequest).then(null);
             case InteractionType.Silent:
+                logger.verbose("useMsalAuthentication - Calling ssoSilent");
                 return instance.ssoSilent(loginRequest as SsoSilentRequest);
             default:
                 throw "Invalid interaction type provided.";
         }
-    }, [instance, interactionType, authenticationRequest]);
+    }, [instance, interactionType, authenticationRequest, logger]);
 
     useEffect(() => {
         const callbackId = instance.addEventCallback((message: EventMessage) => {
@@ -59,16 +62,19 @@ export function useMsalAuthentication(
                     break;
             }
         });
+        logger.verbose(`useMsalAuthentication - Registered event callback with id: ${callbackId}`);
 
         return () => {
             if (callbackId) {
+                logger.verbose(`useMsalAuthentication - Removing event callback ${callbackId}`);
                 instance.removeEventCallback(callbackId);
             }
         };
-    }, [instance]);
+    }, [instance, logger]);
 
     useEffect(() => {
-        if (!hasBeenCalled && !isAuthenticated && inProgress === InteractionStatus.None) {
+        if (!hasBeenCalled && !error && !isAuthenticated && inProgress === InteractionStatus.None) {
+            logger.info("useMsalAuthentication - No user is authenticated, attempting to login");
             // Ensure login is only called one time from within this hook, any subsequent login attempts should use the callback returned
             setHasBeenCalled(true);
             login().catch(() => {
@@ -76,7 +82,7 @@ export function useMsalAuthentication(
                 return;
             });
         }
-    }, [isAuthenticated, inProgress, hasBeenCalled, login]);
+    }, [isAuthenticated, inProgress, error, hasBeenCalled, login, logger]);
 
     return { login, result, error };
 }

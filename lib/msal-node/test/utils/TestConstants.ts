@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { ICrypto, AuthError, PkceCodes } from "@azure/msal-common";
+
 export const TEST_CONSTANTS = {
     CLIENT_ID: "b41a6fbb-c728-4e03-aa59-d25b0fd383b6",
     DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common/",
@@ -23,11 +25,13 @@ export const TEST_CONSTANTS = {
     PRIVATE_KEY: "PRIVATE_KEY",
     PUBLIC_CERTIFICATE: 
 `-----BEGIN CERTIFICATE-----
-test1
+line1
+line2
 -----END CERTIFICATE-----
 
 -----BEGIN CERTIFICATE-----
-test2
+line3
+line4
 -----END CERTIFICATE-----
     `,
 };
@@ -42,4 +46,31 @@ export const AUTHENTICATION_RESULT = {
         refresh_token: "thisIsARefreshT0ken",
         id_token: "thisIsAIdT0ken",
     },
+};
+
+export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
+    createNewGuid: (): string => {
+        const notImplErr = "Crypto interface - createNewGuid() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    base64Decode: (): string => {
+        const notImplErr = "Crypto interface - base64Decode() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    base64Encode: (): string => {
+        const notImplErr = "Crypto interface - base64Encode() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async generatePkceCodes(): Promise<PkceCodes> {
+        const notImplErr = "Crypto interface - generatePkceCodes() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async getPublicKeyThumbprint(): Promise<string> {
+        const notImplErr = "Crypto interface - getPublicKeyThumbprint() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async signJwt(): Promise<string> {
+        const notImplErr = "Crypto interface - signJwt() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
 };

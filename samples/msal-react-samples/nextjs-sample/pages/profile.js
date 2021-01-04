@@ -1,4 +1,5 @@
-import { MsalAuthenticationTemplate, useMsal } from "@azure/msal-react";
+import { MsalAuthenticationTemplate, useMsal, useAccount } from "@azure/msal-react";
+import { InteractionType } from "@azure/msal-browser";
 import { loginRequest } from "../src/authConfig";
 import React, { useEffect, useState } from "react";
 import { ProfileData } from "../src/ProfileData";
@@ -8,20 +9,23 @@ import { Typography } from "@material-ui/core";
 
 const ProfileContent = () => {
     const { instance, accounts } = useMsal();
+    const account = useAccount(accounts[0] || {});
     const [graphData, setGraphData] = useState(null);
   
     function requestProfileData() {
         instance.acquireTokenSilent({
             ...loginRequest,
-            account: accounts[0]
+            account: account
         }).then((response) => {
             callMsGraph(response.accessToken).then(response => setGraphData(response));
         });
     }
 
     useEffect(() => {
-        requestProfileData();
-    }, []);
+        if (account) {
+            requestProfileData();
+        }
+    }, [account]);
   
     return (
         <Paper>
