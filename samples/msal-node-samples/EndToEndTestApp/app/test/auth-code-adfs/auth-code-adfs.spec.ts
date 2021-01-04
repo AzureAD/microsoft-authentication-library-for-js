@@ -59,6 +59,7 @@ describe('Auth Code ADFS PPE Tests', () => {
         beforeAll(() => {
             testName = "authCodeAcquireToken";
             screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}/${environment}`);
+            NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
 
         beforeEach(async () => {
