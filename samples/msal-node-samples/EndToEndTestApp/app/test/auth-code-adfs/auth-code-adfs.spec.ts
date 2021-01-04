@@ -73,7 +73,7 @@ describe('Auth Code ADFS PPE Tests', () => {
         });
 
         it("Performs acquire token", async () => {
-            await page.goto(HOME_ROUTE);
+            await page.goto(`${HOME_ROUTE}/?prompt=login`);
             await enterCredentialsADFS(page, screenshot, username, accountPwd);
             const htmlBody = await page.evaluate(() => document.body.innerHTML);
             expect(htmlBody).toContain(SUCCESSFUL_SIGNED_IN_MESSAGE);

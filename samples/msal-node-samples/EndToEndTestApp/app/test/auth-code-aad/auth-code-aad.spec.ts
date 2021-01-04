@@ -58,6 +58,10 @@ describe('Auth Code AAD PPE Tests', () => {
         beforeEach(async () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
+            page.on('dialog', async dialog => {
+                console.log(dialog.message());
+                await dialog.dismiss();
+            });
             page.setDefaultNavigationTimeout(0);
         });
 
@@ -68,7 +72,7 @@ describe('Auth Code AAD PPE Tests', () => {
         });
 
         it("Performs acquire token", async () => {
-            await page.goto(HOME_ROUTE);
+            await page.goto(`${HOME_ROUTE}/?prompt=login`);
             await enterCredentials(page, screenshot, username, accountPwd);
             const htmlBody = await page.evaluate(() => document.body.innerHTML);
             expect(htmlBody).toContain(SUCCESSFUL_SIGNED_IN_MESSAGE);
