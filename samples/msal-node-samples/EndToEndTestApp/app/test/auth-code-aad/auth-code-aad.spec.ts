@@ -49,10 +49,11 @@ describe('Auth Code AAD PPE Tests', () => {
     describe("Acquire Token", () => {
         let testName: string;
         let screenshot: Screenshot;
+        let environment = 'aad';
 
         beforeAll(() => {
-            testName = "authCodeFlowBaseCase";
-            screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            testName = "authCodeAcquireToken";
+            screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}/${environment}`);
         });
 
         beforeEach(async () => {
@@ -72,7 +73,7 @@ describe('Auth Code AAD PPE Tests', () => {
         });
 
         it("Performs acquire token", async () => {
-            await page.goto(`${HOME_ROUTE}/?prompt=login`);
+            await page.goto(HOME_ROUTE);
             await enterCredentials(page, screenshot, username, accountPwd);
             const htmlBody = await page.evaluate(() => document.body.innerHTML);
             expect(htmlBody).toContain(SUCCESSFUL_SIGNED_IN_MESSAGE);
