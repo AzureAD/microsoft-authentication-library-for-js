@@ -1,6 +1,6 @@
 import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
 import { MsalService, MsalBroadcastService, MSAL_GUARD_CONFIG, MsalGuardConfiguration } from '@azure/msal-angular';
-import { EventMessage, EventType, InteractionType, PopupRequest, RedirectRequest, AuthError, AuthenticationResult } from '@azure/msal-browser';
+import { EventMessage, EventType, InteractionType, PopupRequest, RedirectRequest, AuthenticationResult, AuthError } from '@azure/msal-browser';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { b2cPolicies } from './b2c-config';
@@ -89,7 +89,7 @@ export class AppComponent implements OnInit, OnDestroy {
     this.msalGuardConfig
     if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
       if (this.msalGuardConfig.authRequest) {
-        this.authService.loginPopup({...this.msalGuardConfig.authRequest, ...userFlowRequest})
+        this.authService.loginPopup({...this.msalGuardConfig.authRequest, ...userFlowRequest} as PopupRequest)
           .subscribe((response: AuthenticationResult) => {
             this.authService.instance.setActiveAccount(response.account);
             this.checkAccount();
@@ -103,7 +103,7 @@ export class AppComponent implements OnInit, OnDestroy {
       }
     } else {
       if (this.msalGuardConfig.authRequest){
-        this.authService.loginRedirect({...this.msalGuardConfig.authRequest, ...userFlowRequest});
+        this.authService.loginRedirect({...this.msalGuardConfig.authRequest, ...userFlowRequest} as RedirectRequest);
       } else {
         this.authService.loginRedirect(userFlowRequest);
       }
