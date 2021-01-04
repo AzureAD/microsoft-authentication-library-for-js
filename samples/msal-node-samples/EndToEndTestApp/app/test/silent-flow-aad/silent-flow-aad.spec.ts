@@ -22,6 +22,7 @@ let username: string;
 let accountPwd: string;
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
+console.log(TEST_CACHE_LOCATION);
 
 describe("Silent Flow AAD PPE Tests", () => {
     let browser: puppeteer.Browser;
@@ -75,10 +76,9 @@ describe("Silent Flow AAD PPE Tests", () => {
         const testName = "AADAcquireTokenSilent";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         try {
+            page.setDefaultNavigationTimeout(0);
             await clickSignIn(page, screenshot);
             await enterCredentials(page, screenshot, username, accountPwd);
-            await screenshot.takeScreenshot(page, "POSTCREDS");
-            await screenshot.takeScreenshot(page, "POSTCREDS2");
             await page.waitForSelector("#acquireTokenSilent");
             await screenshot.takeScreenshot(page, "ATS");
             await page.click("#acquireTokenSilent");
