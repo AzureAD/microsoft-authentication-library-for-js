@@ -76,10 +76,10 @@ describe("Silent Flow AAD PPE Tests", () => {
         const testName = "AADAcquireTokenSilent";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         try {
-            page.setDefaultNavigationTimeout(0);
+            page.setDefaultTimeout(0);
             await clickSignIn(page, screenshot);
             await enterCredentials(page, screenshot, username, accountPwd);
-            await page.waitForSelector("#acquireTokenSilent");
+            await page.waitForSelector("#acquireTokenSilent", { timeout: 0});
             await screenshot.takeScreenshot(page, "ATS");
             await page.click("#acquireTokenSilent");
             await page.waitForSelector("#graph-called-successfully");
