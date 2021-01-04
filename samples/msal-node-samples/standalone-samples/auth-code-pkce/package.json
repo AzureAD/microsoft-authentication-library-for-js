@@ -6,7 +6,7 @@
   "private": true,
   "scripts": {
     "start": "node index.js",
-    "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
+    "build:package": "cd ../../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
     "start:build": "npm run build:package && npm start"
   },
   "author": "Microsoft",
