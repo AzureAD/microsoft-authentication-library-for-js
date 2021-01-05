@@ -12,9 +12,9 @@ import { EndSessionRequest } from "../request/EndSessionRequest";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 
 export interface IPublicClientApplication {
-    acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult | null>;
+    acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
     acquireTokenRedirect(request: RedirectRequest): Promise<void>;
-    acquireTokenSilent(silentRequest: SilentRequest): Promise<AuthenticationResult | null>;
+    acquireTokenSilent(silentRequest: SilentRequest): Promise<AuthenticationResult>;
     addEventCallback(callback: Function): string | null;
     removeEventCallback(callbackId: string): void;
     getAccountByHomeId(homeAccountId: string): AccountInfo | null;
@@ -22,10 +22,10 @@ export interface IPublicClientApplication {
     getAccountByUsername(userName: string): AccountInfo | null;
     getAllAccounts(): AccountInfo[];
     handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null>;
-    loginPopup(request?: PopupRequest): Promise<AuthenticationResult | null>;
+    loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
     loginRedirect(request?: RedirectRequest): Promise<void>;
     logout(logoutRequest?: EndSessionRequest): Promise<void>;
-    ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult | null>;
+    ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
     getLogger(): Logger;
     setLogger(logger: Logger): void;
     setActiveAccount(account: AccountInfo | null): void;
