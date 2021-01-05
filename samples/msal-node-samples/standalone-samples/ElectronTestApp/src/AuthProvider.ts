@@ -13,7 +13,7 @@ import {
     SilentFlowRequest } from "@azure/msal-node";
 import { AuthCodeListener } from "./AuthCodeListener";
 import { cachePlugin } from "./CachePlugin";
-import { BrowserWindow } from "electron";
+import { BrowserWindow, TouchBarOtherItemsProxy } from "electron";
 import { CustomFileProtocolListener } from "./CustomFileProtocol";
 
 const MSAL_CONFIG: Configuration = {
@@ -135,12 +135,16 @@ export default class AuthProvider {
     }
 
     async loginSilent(): Promise<AccountInfo> {
-        return this.account || await this.getAccount();
+        if (!this.account) {
+            this.account = await this.getAccount();
+        }
+
+        return this.account;
     }
 
     async logout(): Promise<void> {
         if (this.account) {
-            await this.clientApplication.getTokenCache().removeAccount(this.account);
+            this.clientApplication.getTokenCache().removeAccount(this.account);
             this.account = null;
         }
     }
