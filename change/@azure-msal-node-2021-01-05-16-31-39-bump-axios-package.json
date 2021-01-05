@@ -1,5 +1,5 @@
 {
-  "type": "patch",
+  "type": "prerelease",
   "comment": "feat: bump up the axios version on msal-node",
   "packageName": "@azure/msal-node",
   "email": "samuel.kamau@microsoft.com",
