@@ -254,8 +254,6 @@ export abstract class ClientApplication {
         }
 
         if (platformStateObj.interactionType !== interactionType) {
-            console.log(platformStateObj.interactionType);
-            console.log(interactionType);
             throw BrowserAuthError.createStateInteractionTypeMismatchError();
         }
 
