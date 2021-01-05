@@ -65,7 +65,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      *
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    loginPopup(request?: PopupRequest): Promise<AuthenticationResult | null> {
+    loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
         return this.acquireTokenPopup(request || DEFAULT_REQUEST);
     }
 
@@ -75,7 +75,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @param {@link (SilentRequest:type)} 
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult | null> {
+    async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         const account = request.account || this.getActiveAccount();
         if (!account) {
