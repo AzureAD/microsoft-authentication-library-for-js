@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationCodeClient, StringUtils, AuthorizationCodeRequest, ICrypto, AuthenticationResult, ThrottlingUtils, Authority, INetworkModule } from "@azure/msal-common";
+import { AuthorizationCodeClient, StringUtils, AuthorizationCodeRequest, ICrypto, AuthenticationResult, ThrottlingUtils, Authority, INetworkModule, ClientAuthError } from "@azure/msal-common";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
@@ -82,6 +82,9 @@ export class RedirectHandler extends InteractionHandler {
         // Handle code response.
         const stateKey = this.browserStorage.generateStateKey(state);
         const requestState = this.browserStorage.getTemporaryCache(stateKey);
+        if (!requestState) {
+            throw ClientAuthError.createStateNotFoundError("Cached State");
+        }
         const authCodeResponse = this.authModule.handleFragmentResponse(locationHash, requestState);
 
         // Get cached items
@@ -97,7 +100,7 @@ export class RedirectHandler extends InteractionHandler {
             await this.updateTokenEndpointAuthority(authCodeResponse.cloud_instance_host_name, authority, networkModule);
         }
 
-        authCodeResponse.nonce = cachedNonce;
+        authCodeResponse.nonce = cachedNonce || undefined;
         authCodeResponse.state = requestState;
 
         // Remove throttle if it exists

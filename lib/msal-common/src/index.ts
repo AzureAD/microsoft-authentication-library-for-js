@@ -47,7 +47,7 @@ export { RequestThumbprint } from "./network/RequestThumbprint";
 export { IUri } from "./url/IUri";
 export { UrlString } from "./url/UrlString";
 // Crypto Interface
-export { ICrypto, PkceCodes } from "./crypto/ICrypto";
+export { ICrypto, PkceCodes, DEFAULT_CRYPTO_IMPLEMENTATION } from "./crypto/ICrypto";
 export { SignedHttpRequest } from "./crypto/SignedHttpRequest";
 // Request and Response
 export { BaseAuthRequest } from "./request/BaseAuthRequest";

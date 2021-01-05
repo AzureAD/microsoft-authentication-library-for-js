@@ -9,20 +9,11 @@ import { IWindowStorage } from "./IWindowStorage";
 
 export class BrowserStorage implements IWindowStorage {
 
-    private _windowStorage: Storage;
-    private cacheLocation: string;
-
-    public get windowStorage(): Storage {
-        if (!this._windowStorage) {
-            this._windowStorage = window[this.cacheLocation];
-        }
-
-        return this._windowStorage;
-    }
+    private windowStorage: Storage;
 
     constructor(cacheLocation: string) {
         this.validateWindowStorage(cacheLocation);
-        this.cacheLocation = cacheLocation;
+        this.windowStorage = window[cacheLocation];
     }
 
     private validateWindowStorage(cacheLocation: string) {

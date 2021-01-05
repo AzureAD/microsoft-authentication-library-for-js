@@ -101,6 +101,10 @@ export const BrowserAuthErrorMessage = {
         code: "no_cached_authority_error",
         desc: "No cached authority found."
     },
+    authRequestNotSet: {
+        code: "auth_request_not_set_error",
+        desc: "Auth Request not set. Please ensure initiateAuthRequest was called from the InteractionHandler"
+    },
     invalidCacheType: {
         code: "invalid_cache_type",
         desc: "Invalid cache type"
@@ -108,6 +112,10 @@ export const BrowserAuthErrorMessage = {
     notInBrowserEnvironment: {
         code: "non_browser_environment",
         desc: "Login and token requests are not supported in non-browser environments."
+    },
+    databaseNotOpen: {
+        code: "database_not_open",
+        desc: "Database is not open!"
     }
 };
 
@@ -297,6 +305,14 @@ export class BrowserAuthError extends AuthError {
     }
 
     /**
+     * Creates an error thrown when handleCodeResponse is called before initiateAuthRequest (InteractionHandler)
+     */
+    static createAuthRequestNotSetError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.authRequestNotSet.code,
+            BrowserAuthErrorMessage.authRequestNotSet.desc);
+    }
+
+    /**
      * Creates an error thrown when the authority could not be retrieved from the cache
      */
     static createNoCachedAuthorityError(): BrowserAuthError {
@@ -316,5 +332,12 @@ export class BrowserAuthError extends AuthError {
      */
     static createNonBrowserEnvironmentError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.notInBrowserEnvironment.code, BrowserAuthErrorMessage.notInBrowserEnvironment.desc);
+    }
+
+    /**
+     * Create an error thrown when indexDB database is not open
+     */
+    static createDatabaseNotOpenError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.databaseNotOpen.code, BrowserAuthErrorMessage.databaseNotOpen.desc);
     }
 }

@@ -20,7 +20,7 @@ export type PopupParams = InteractionParams & {
  */
 export class PopupHandler extends InteractionHandler {
 
-    private currentWindow: Window;
+    private currentWindow: Window|undefined;
 
     constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager) {
         super(authCodeModule, storageImpl);
@@ -74,7 +74,7 @@ export class PopupHandler extends InteractionHandler {
                     return;
                 }
 
-                let href: string;
+                let href: string = Constants.EMPTY_STRING;
                 try {
                     /*
                      * Will throw if cross origin,
@@ -175,9 +175,11 @@ export class PopupHandler extends InteractionHandler {
      */
     unloadWindow(e: Event): void {
         this.browserStorage.cleanRequestByInteractionType(InteractionType.Popup);
-        this.currentWindow.close();
+        if (this.currentWindow) {
+            this.currentWindow.close();
+        }
         // Guarantees browser unload will happen, so no other errors will be thrown.
-        delete e["returnValue"];
+        e.preventDefault();
     }
 
     /**
