@@ -28,7 +28,7 @@ This sample was bootstrapped with [Create React App](https://github.com/facebook
 npm install
 
 # Change directory to sample directory
-cd samples/msal-react-samples/default
+cd samples/msal-react-samples/typescript-sample
 
 # Build packages locally
 npm run build:package
@@ -52,7 +52,7 @@ These samples are configured to be used with the development builds of our packa
 
 ```bash
 # Change directory to sample directory
-cd samples/msal-react-samples/default
+cd samples/msal-react-samples/typescript-sample
 
 # Install packages from npm
 npm install @azure/msal-react@latest @azure/msal-browser@latest react@17 react-dom@17
