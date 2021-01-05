@@ -1,5 +1,5 @@
 {
-  "type": "minor",
+  "type": "none",
   "comment": "package.lock changes",
   "packageName": "@azure/msal-angular",
   "email": "samuel.kamau@microsoft.com",
