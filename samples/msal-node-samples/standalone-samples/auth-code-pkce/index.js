@@ -25,53 +25,68 @@ const config = {
     }
 };
 
-/**
- * PKCE Setup
- * 
- * MSAL enables PKCE in the Authorization Code Grant Flow by including the codeChallenge and codeChallengeMethod parameters
- * in the request passed into getAuthCodeUrl() API, as well as the codeVerifier parameter in the
- * second leg (acquireTokenByCode() API).
- * 
- * Generating the codeVerifier and the codeChallenge is the client application's responsiblity.
- * For this sample, you can either implement your own PKCE code generation logic or use an existing tool
- * to manually generate a Code Verifier and Code Challenge, plugging them into the pkceCodes object below.
- * 
- * For details on implementing your own PKCE code generation logic, consult the 
- * PKCE specification https://tools.ietf.org/html/rfc7636#section-4
- */
-
-const PKCE_CODES = {
-    CHALLENGE_METHOD: "S256", // Use SHA256 Algorithm
-    VERIFIER: "", // Generate a code verifier for the Auth Code Request first
-    CHALLENGE: "" // Generate a code challenge from the previously generated code verifier
-};
-
 // Create msal application object
 const pca = new msal.PublicClientApplication(config);
 
 // Create Express App and Routes
 const app = express();
 
-app.get('/', (req, res) => {
-    const authCodeUrlParameters = {
-        scopes: ["user.read"],
-        redirectUri: "http://localhost:3000/redirect",
-        codeChallenge: PKCE_CODES.CHALLENGE, // PKCE Code Challenge
-        codeChallengeMethod: PKCE_CODES.CHALLENGE_METHOD // PKCE Code Challenge Method
-    };
 
-    // get url to sign user in and consent to scopes needed for applicatio
-    pca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
-        res.redirect(response);
-    }).catch((error) => console.log(JSON.stringify(error)));
+/**
+ * Proof Key for Code Exchange (PKCE) Setup
+ * 
+ * MSAL enables PKCE in the Authorization Code Grant Flow by including the codeChallenge and codeChallengeMethod parameters
+ * in the request passed into getAuthCodeUrl() API, as well as the codeVerifier parameter in the
+ * second leg (acquireTokenByCode() API).
+ * 
+ * MSAL Node provides PKCE Generation tools through the CryptoProvider class, which exposes
+ * the generatePkceCodes() asynchronous API. As illustrated in the example below, the verifier
+ * and challenge values should be generated previous to the authorization flow initiation.
+ * 
+ * For details on PKCE code generation logic, consult the 
+ * PKCE specification https://tools.ietf.org/html/rfc7636#section-4
+ */
+
+// Set up PKCE Code object in app's local memory so it's shared between routes
+app.locals.pkceCodes = {
+    challengeMethod: "S256", // Use SHA256 Algorithm
+    verifier: "", // Generate a code verifier for the Auth Code Request first
+    challenge: "" // Generate a code challenge from the previously generated code verifier
+};
+
+app.get('/', (req, res) => {
+     // Initialize CryptoProvider instance
+    const cryptoProvider = new msal.CryptoProvider();
+    // Generate PKCE Codes before starting the authorization flow
+    cryptoProvider.generatePkceCodes().then(({ verifier, challenge }) => {
+        // Set generated PKCE Codes as app variables
+        app.locals.pkceCodes.verifier = verifier;
+        app.locals.pkceCodes.challenge = challenge;
+
+        // Add PKCE code challenge and challenge method to authCodeUrl request objectgit st
+        const authCodeUrlParameters = {
+            scopes: ["user.read"],
+            redirectUri: "http://localhost:3000/redirect",
+            codeChallenge: app.locals.pkceCodes.challenge, // PKCE Code Challenge
+            codeChallengeMethod: app.locals.pkceCodes.challengeMethod // PKCE Code Challenge Method
+        };
+
+        console.log(authCodeUrlParameters);
+    
+        // Get url to sign user in and consent to scopes needed for applicatio
+        pca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
+            res.redirect(response);
+        }).catch((error) => console.log(JSON.stringify(error)));
+    });
 });
 
 app.get('/redirect', (req, res) => {
+    // Add PKCE code verifier to token request object
     const tokenRequest = {
         code: req.query.code,
         scopes: ["user.read"],
         redirectUri: "http://localhost:3000/redirect",
-        codeVerifier: PKCE_CODES.VERIFIER // PKCE Code Verifier
+        codeVerifier: app.locals.pkceCodes.verifier // PKCE Code Verifier
     };
 
     pca.acquireTokenByCode(tokenRequest).then((response) => {
