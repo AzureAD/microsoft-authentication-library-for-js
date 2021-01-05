@@ -254,6 +254,8 @@ export abstract class ClientApplication {
         }
 
         if (platformStateObj.interactionType !== interactionType) {
+            console.log(platformStateObj.interactionType);
+            console.log(interactionType);
             throw BrowserAuthError.createStateInteractionTypeMismatchError();
         }
 
@@ -277,7 +279,7 @@ export abstract class ClientApplication {
             }
 
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority);
-            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, this.browserCrypto);
+            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, cachedRequest, this.browserCrypto);
             return await interactionHandler.handleCodeResponse(hash, state, authClient.authority, this.networkClient, this.config.auth.clientId);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
@@ -318,7 +320,7 @@ export abstract class ClientApplication {
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority);
 
             // Create redirect interaction handler.
-            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, this.browserCrypto);
+            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, authCodeRequest, this.browserCrypto);
 
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
@@ -326,7 +328,7 @@ export abstract class ClientApplication {
             const redirectStartPage = (request && request.redirectStartPage) || window.location.href;
 
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            return interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, {
+            return interactionHandler.initiateAuthRequest(navigateUrl, {
                 redirectTimeout: this.config.system.redirectNavigationTimeout, 
                 redirectStartPage: redirectStartPage,
                 onRedirectNavigate: request.onRedirectNavigate
@@ -403,13 +405,13 @@ export abstract class ClientApplication {
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
 
             // Create popup interaction handler.
-            const interactionHandler = new PopupHandler(authClient, this.browserStorage);
+            const interactionHandler = new PopupHandler(authClient, this.browserStorage, authCodeRequest);
 
             // Show the UI once the url has been created. Get the window handle for the popup.
             const popupParameters = {
                 popup: popup
             };
-            const popupWindow: Window = interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, popupParameters);
+            const popupWindow: Window = interactionHandler.initiateAuthRequest(navigateUrl, popupParameters);
 
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
             const hash = await interactionHandler.monitorPopupForHash(popupWindow, this.config.system.windowHashTimeout);
@@ -563,9 +565,9 @@ export abstract class ClientApplication {
      */
     private async silentTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, authClient: AuthorizationCodeClient): Promise<AuthenticationResult> {
         // Create silent handler
-        const silentHandler = new SilentHandler(authClient, this.browserStorage, this.config.system.navigateFrameWait);
+        const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.config.system.navigateFrameWait);
         // Get the frame handle for the silent request
-        const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl, authCodeRequest);
+        const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl);
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const hash = await silentHandler.monitorIframeForHash(msalFrame, this.config.system.iframeHashTimeout);
         const state = this.validateAndExtractStateFromHash(hash, InteractionType.Silent);
@@ -584,11 +586,11 @@ export abstract class ClientApplication {
      * @param {@link (EndSessionRequest:type)}
      */
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
+        this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.logout, validLogoutRequest.correlationId);
 
         try {
-            this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
             this.emitEvent(EventType.LOGOUT_START, InteractionType.Redirect, logoutRequest);
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, logoutRequest && logoutRequest.authority);
             // create logout string and navigate user window to logout. Auth module will clear cache.

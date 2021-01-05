@@ -16,18 +16,19 @@ export abstract class InteractionHandler {
 
     protected authModule: AuthorizationCodeClient;
     protected browserStorage: BrowserCacheManager;
-    protected authCodeRequest: AuthorizationCodeRequest|undefined;
+    protected authCodeRequest: AuthorizationCodeRequest;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: AuthorizationCodeRequest) {
         this.authModule = authCodeModule;
         this.browserStorage = storageImpl;
+        this.authCodeRequest = authCodeRequest;
     }
 
     /**
      * Function to enable user interaction.
      * @param requestUrl
      */
-    abstract initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, params: InteractionParams): Window | Promise<HTMLIFrameElement> | Promise<void>;
+    abstract initiateAuthRequest(requestUrl: string, params: InteractionParams): Window | Promise<HTMLIFrameElement> | Promise<void>;
 
     /**
      * Function to handle response parameters from hash.
@@ -37,10 +38,6 @@ export abstract class InteractionHandler {
         // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {
             throw BrowserAuthError.createEmptyHashError(locationHash);
-        }
-
-        if (!this.authCodeRequest) {
-            throw BrowserAuthError.createAuthRequestNotSetError();
         }
 
         // Handle code response.

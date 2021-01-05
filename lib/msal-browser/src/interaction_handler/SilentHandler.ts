@@ -13,8 +13,8 @@ import { DEFAULT_IFRAME_TIMEOUT_MS } from "../config/Configuration";
 export class SilentHandler extends InteractionHandler {
 
     private navigateFrameWait: number;
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, navigateFrameWait: number) {
-        super(authCodeModule, storageImpl);
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: AuthorizationCodeRequest, navigateFrameWait: number) {
+        super(authCodeModule, storageImpl, authCodeRequest);
         this.navigateFrameWait = navigateFrameWait;
     }
 
@@ -23,14 +23,12 @@ export class SilentHandler extends InteractionHandler {
      * @param urlNavigate 
      * @param userRequestScopes
      */
-    async initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest): Promise<HTMLIFrameElement> {
+    async initiateAuthRequest(requestUrl: string): Promise<HTMLIFrameElement> {
         if (StringUtils.isEmpty(requestUrl)) {
             // Throw error if request URL is empty.
             this.authModule.logger.info("Navigate url is empty");
             throw BrowserAuthError.createEmptyNavigationUriError();
         }
-        // Save auth code request
-        this.authCodeRequest = authCodeRequest;
 
         return this.navigateFrameWait ? await this.loadFrame(requestUrl) : this.loadFrameSync(requestUrl);
     }
