@@ -20,8 +20,8 @@ export class RedirectHandler extends InteractionHandler {
 
     private browserCrypto: ICrypto;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, browserCrypto: ICrypto) {
-        super(authCodeModule, storageImpl);
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: AuthorizationCodeRequest, browserCrypto: ICrypto) {
+        super(authCodeModule, storageImpl, authCodeRequest);
         this.browserCrypto = browserCrypto;
     }
 
@@ -29,7 +29,7 @@ export class RedirectHandler extends InteractionHandler {
      * Redirects window to given URL.
      * @param urlNavigate
      */
-    initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, params: RedirectParams): Promise<void> {
+    initiateAuthRequest(requestUrl: string, params: RedirectParams): Promise<void> {
         // Navigate if valid URL
         if (!StringUtils.isEmpty(requestUrl)) {
             // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true
@@ -39,7 +39,7 @@ export class RedirectHandler extends InteractionHandler {
 
             // Set interaction status in the library.
             this.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
-            this.browserStorage.cacheCodeRequest(authCodeRequest, this.browserCrypto);
+            this.browserStorage.cacheCodeRequest(this.authCodeRequest, this.browserCrypto);
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
             // If onRedirectNavigate is implemented, invoke it and provide requestUrl
             if (typeof params.onRedirectNavigate === "function") {
@@ -90,7 +90,6 @@ export class RedirectHandler extends InteractionHandler {
         // Get cached items
         const nonceKey = this.browserStorage.generateNonceKey(requestState);
         const cachedNonce = this.browserStorage.getTemporaryCache(nonceKey);
-        this.authCodeRequest = this.browserStorage.getCachedRequest(requestState, this.browserCrypto);
         
         // Assign code to request
         this.authCodeRequest.code = authCodeResponse.code;
