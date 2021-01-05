@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { UrlString, StringUtils, AuthorizationCodeRequest, AuthorizationCodeClient } from "@azure/msal-common";
+import { UrlString, StringUtils, AuthorizationCodeRequest, AuthorizationCodeClient, Constants } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
@@ -61,21 +61,22 @@ export class SilentHandler extends InteractionHandler {
                     return;
                 }
 
-                let href: string;
+                let href: string = Constants.EMPTY_STRING;
+                const contentWindow = iframe.contentWindow;
                 try {
                     /*
                      * Will throw if cross origin,
                      * which should be caught and ignored
                      * since we need the interval to keep running while on STS UI.
                      */
-                    href = iframe.contentWindow.location.href;
+                    href = contentWindow ? contentWindow.location.href : Constants.EMPTY_STRING;
                 } catch (e) {}
 
                 if (StringUtils.isEmpty(href)) {
                     return;
                 }
 
-                const contentHash = iframe.contentWindow.location.hash;
+                const contentHash = contentWindow ? contentWindow.location.hash: Constants.EMPTY_STRING;
                 if (UrlString.hashContainsKnownProperties(contentHash)) {
                     // Success case
                     this.removeHiddenIframe(iframe);

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { StringUtils, AuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient, AuthorityFactory, Authority, INetworkModule } from "@azure/msal-common";
+import { StringUtils, AuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient, AuthorityFactory, Authority, INetworkModule, ClientAuthError } from "@azure/msal-common";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 
@@ -16,7 +16,7 @@ export abstract class InteractionHandler {
 
     protected authModule: AuthorizationCodeClient;
     protected browserStorage: BrowserCacheManager;
-    protected authCodeRequest: AuthorizationCodeRequest;
+    protected authCodeRequest: AuthorizationCodeRequest|undefined;
 
     constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager) {
         this.authModule = authCodeModule;
@@ -39,9 +39,16 @@ export abstract class InteractionHandler {
             throw BrowserAuthError.createEmptyHashError(locationHash);
         }
 
+        if (!this.authCodeRequest) {
+            throw BrowserAuthError.createAuthRequestNotSetError();
+        }
+
         // Handle code response.
         const stateKey = this.browserStorage.generateStateKey(state);
         const requestState = this.browserStorage.getTemporaryCache(stateKey);
+        if (!requestState) {
+            throw ClientAuthError.createStateNotFoundError("Cached State");
+        }
         const authCodeResponse = this.authModule.handleFragmentResponse(locationHash, requestState);
 
         // Get cached items
@@ -56,7 +63,7 @@ export abstract class InteractionHandler {
             await this.updateTokenEndpointAuthority(authCodeResponse.cloud_instance_host_name, authority, networkModule);
         }
 
-        authCodeResponse.nonce = cachedNonce;
+        authCodeResponse.nonce = cachedNonce || undefined;
         authCodeResponse.state = requestState;
 
         // Acquire token with retrieved code.
