@@ -37,7 +37,7 @@ This sample was bootstrapped with [Create React App](https://github.com/facebook
 // Install dev dependencies for msal-react and msal-browser from root of repo
 npm install
 // Change directory to sample directory
-cd samples/msal-react-samples/default
+cd samples/msal-react-samples/react-router-sample
 // Build packages locally
 npm run build:package
 // Install sample dependencies
@@ -59,7 +59,7 @@ These samples are configured to be used with the development builds of our packa
 
 ```bash
 // Change directory to sample directory
-cd samples/msal-react-samples/default
+cd samples/msal-react-samples/react-router-sample
 // Install packages from npm
 npm install @azure/msal-react@latest @azure/msal-browser@latest react@17 react-dom@17
 // Install rest of dependencies
