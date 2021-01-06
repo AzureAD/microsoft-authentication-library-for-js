@@ -14,13 +14,11 @@ import {
  } from "../testUtils";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
-const SUCCESSFUL_SIGNED_IN_MESSAGE = "You have signed in";
 
 let username: string;
 let accountPwd: string;
 
 describe('Device Code AAD PPE Tests', () => {
-    jest.setTimeout(60000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -40,7 +38,7 @@ describe('Device Code AAD PPE Tests', () => {
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
 
         browser = await puppeteer.launch({
-            headless: false,
+            headless: true,
             ignoreDefaultArgs: ['--no-sandbox', '-disable-setuid-sandbox', '--disable-extensions']
         });
     });
