@@ -144,7 +144,7 @@ export default class AuthProvider {
 
     async logout(): Promise<void> {
         if (this.account) {
-            this.clientApplication.getTokenCache().removeAccount(this.account);
+            await this.clientApplication.getTokenCache().removeAccount(this.account);
             this.account = null;
         }
     }
