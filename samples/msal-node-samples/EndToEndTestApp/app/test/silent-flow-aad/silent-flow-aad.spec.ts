@@ -22,7 +22,6 @@ let username: string;
 let accountPwd: string;
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
-console.log(TEST_CACHE_LOCATION);
 
 describe("Silent Flow AAD PPE Tests", () => {
     let browser: puppeteer.Browser;
