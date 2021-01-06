@@ -1,4 +1,5 @@
 import { MsalAuthenticationTemplate, useMsal, useAccount } from "@azure/msal-react";
+import { InteractionType } from "@azure/msal-browser";
 import { loginRequest } from "../src/authConfig";
 import React, { useEffect, useState } from "react";
 import { ProfileData } from "../src/ProfileData";
@@ -21,8 +22,10 @@ const ProfileContent = () => {
     }
 
     useEffect(() => {
-        requestProfileData();
-    }, []);
+        if (account) {
+            requestProfileData();
+        }
+    }, [account]);
   
     return (
         <Paper>
