@@ -10,12 +10,12 @@
     "react": "file:../../../lib/msal-react/node_modules/react",
     "react-dom": "file:../../../lib/msal-react/node_modules/react-dom",
     "react-router-dom": "^5.2.0",
-    "react-scripts": "4.0.1"
+    "react-scripts": "^4.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
+    "test": "cd .. && jest --selectProjects \"React Router\"",
     "build": "react-scripts build",
-    "test": "react-scripts test",
     "eject": "react-scripts eject"
   },
   "eslintConfig": {
