@@ -59,20 +59,20 @@ function handleResponse(resp) {
                         scopes: ["openid", "profile", "User.Read"],
                         loginHint: "idlab@msidlab4.onmicrosoft.com" 
                     };
-                    // await myMSALObj.ssoSilent(loginReq).then(() => {
-                    //     contentElement.innerHTML = "Fetched data!";
-                    // }).catch(err => {
-                    //     console.error(err);
-                    //     if (err instanceof msal.InteractionRequiredAuthError) {
-                    //         return myMSALObj.loginPopup(loginReq);
-                    //     }
-                    //     contentElement.innerHTML = "I am unable to get data, from where I sit, the Identity provider does not think I am logged in";
-                    //     exit = true;
-                    // }).catch(err => {
-                    //     console.error(err);
-                    //     contentElement.innerHTML = "I am unable to get data, from where I sit, the Identity provider does not think I am logged in. Tried a popup.";
-                    //     exit = true;
-                    // });
+                    await myMSALObj.ssoSilent(loginReq).then(() => {
+                        contentElement.innerHTML = "Fetched data!";
+                    }).catch(err => {
+                        console.error(err);
+                        if (err instanceof msal.InteractionRequiredAuthError) {
+                            return myMSALObj.loginPopup(loginReq);
+                        }
+                        contentElement.innerHTML = "I am unable to get data, from where I sit, the Identity provider does not think I am logged in";
+                        exit = true;
+                    }).catch(err => {
+                        console.error(err);
+                        contentElement.innerHTML = "I am unable to get data, from where I sit, the Identity provider does not think I am logged in. Tried a popup.";
+                        exit = true;
+                    });
         
                     if (exit) {
                         return;

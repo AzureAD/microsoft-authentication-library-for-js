@@ -198,15 +198,4 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         }
         super.setActiveAccount(account);
     }
-
-    /**
-     * Gets the currently active account
-     */
-    getActiveAccount(asBroker?: boolean): AccountInfo | null {
-        if (asBroker) {
-            return this.broker.getActiveAccount();
-        }
-
-        return super.getActiveAccount();
-    }
 }
