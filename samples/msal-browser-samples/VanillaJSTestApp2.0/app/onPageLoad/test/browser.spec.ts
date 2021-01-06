@@ -20,10 +20,17 @@ async function enterCredentials(page: puppeteer.Page, screenshot: Screenshot): P
     await page.waitForSelector("#idA_PWD_ForgotPassword");
     await screenshot.takeScreenshot(page, "pwdInputPage");
     await page.type("#i0118", accountPwd);
-    await Promise.all([
-        page.click("#idSIButton9"),
-        page.waitForNavigation({ waitUntil: "networkidle0"})
-    ]);
+    await page.click("#idSIButton9");
+    try {
+        await page.waitForSelector('#KmsiCheckboxField', {timeout: 1000});
+        await screenshot.takeScreenshot(page, "kmsiPage");
+        await Promise.all([
+            page.click("#idSIButton9"),
+            page.waitForNavigation({ waitUntil: "networkidle0"})
+        ]);
+    } catch (e) {
+        return;
+    }
 }
 
 describe("On Page Load tests", function () {
