@@ -13,7 +13,7 @@ import {
     SilentFlowRequest } from "@azure/msal-node";
 import { AuthCodeListener } from "./AuthCodeListener";
 import { cachePlugin } from "./CachePlugin";
-import { BrowserWindow  } from "electron";
+import { BrowserWindow } from "electron";
 import { CustomFileProtocolListener } from "./CustomFileProtocol";
 
 const CUSTOM_FILE_PROTOCOL_NAME = "msal";
