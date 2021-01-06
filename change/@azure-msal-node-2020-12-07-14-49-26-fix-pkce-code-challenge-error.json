@@ -1,0 +1,8 @@
+{
+  "type": "patch",
+  "comment": "change the code challenge encoding to uniform base64",
+  "packageName": "@azure/msal-node",
+  "email": "samuel.kamau@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2020-12-07T11:49:26.980Z"
+}
