@@ -19,7 +19,7 @@ let username: string;
 let accountPwd: string;
 
 describe('Auth Code AAD PPE Tests', () => {
-    jest.setTimeout(60000);
+    jest.setTimeout(90000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;

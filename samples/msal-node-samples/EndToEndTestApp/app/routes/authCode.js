@@ -28,8 +28,6 @@ module.exports = function(app, clientApplication, msalTokenCache, scenarioConfig
             authCodeUrlParameters.domainHint = req.query.domainHint;
         }
         
-        console.log('Request parameters: ', authCodeUrlParameters);
-
         // get url to sign user in and consent to scopes needed for applicatio
         clientApplication.getAuthCodeUrl(requestConfig.authCodeUrlParameters).then((response) => {
             res.redirect(response);
@@ -43,7 +41,6 @@ module.exports = function(app, clientApplication, msalTokenCache, scenarioConfig
         };
     
         clientApplication.acquireTokenByCode(tokenRequest).then((response) => {
-            console.log("\nResponse: \n:", response);
             res.sendStatus(200);
         }).catch((error) => {
             console.log(error);
