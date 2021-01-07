@@ -1,6 +1,6 @@
 {
   "type": "prerelease",
-  "comment": "Omit scopes from guard config (#2829)",
+  "comment": "Make scopes optional for msal-guard config (#2829)",
   "packageName": "@azure/msal-angular",
   "email": "joarroyo@microsoft.com",
   "dependentChangeType": "patch"
