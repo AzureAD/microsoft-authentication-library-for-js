@@ -556,17 +556,6 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
-     * Sets the cacheKey for and stores the authority information in cache
-     * @param state
-     * @param authority
-     */
-    setAuthorityCache(authority: string, state: string): void {
-        // Cache authorityKey
-        const authorityCacheKey = this.generateAuthorityKey(state);
-        this.setItem(authorityCacheKey, authority);
-    }
-
-    /**
      * Gets the cached authority based on the cached state. Returns empty if no cached state found.
      */
     getCachedAuthority(cachedState: string): string | null {
@@ -595,7 +584,8 @@ export class BrowserCacheManager extends CacheManager {
         this.setTemporaryCache(nonceCacheKey, nonce, false);
 
         // Cache authorityKey
-        this.setAuthorityCache(authorityInstance, state);
+        const authorityCacheKey = this.generateAuthorityKey(state);
+        this.setTemporaryCache(authorityCacheKey, authorityInstance, false);
     }
 
     /**
