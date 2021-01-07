@@ -20,6 +20,7 @@ export const AuthErrorMessage = {
  */
 export class AuthError extends Error {
 
+    static AUTH_ERROR_NAME: string = "AuthError";
     // Short string denoting error
     errorCode: string;
     // Detailed description of error
@@ -34,7 +35,7 @@ export class AuthError extends Error {
         this.errorCode = errorCode || Constants.EMPTY_STRING;
         this.errorMessage = errorMessage || "";
         this.subError = suberror || "";
-        this.name = "AuthError";
+        this.name = AuthError.AUTH_ERROR_NAME;
     }
 
     /**

@@ -112,6 +112,7 @@ export const BrowserAuthErrorMessage = {
  */
 export class BrowserAuthError extends AuthError {
 
+    static BROWSER_AUTH_ERROR_NAME: string = "BrowserAuthError";
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
 

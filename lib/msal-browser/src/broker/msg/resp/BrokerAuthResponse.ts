@@ -10,6 +10,7 @@ import { BrowserCacheManager } from "../../../cache/BrowserCacheManager";
 import { BrowserAuthError } from "../../../error/BrowserAuthError";
 import { BrowserConfigurationAuthError } from "../../../error/BrowserConfigurationAuthError";
 import { BrokerAuthError } from "../../../error/BrokerAuthError";
+import { ErrorPayload } from "../ErrorPayload";
 
 /**
  * Message type for responses to BrokerAuthRequests
@@ -17,54 +18,54 @@ import { BrokerAuthError } from "../../../error/BrokerAuthError";
 export class BrokerAuthResponse extends BrokerMessage {
     public interactionType: InteractionType;
     public result: BrokerAuthenticationResult;
-    public error: AuthError;
+    public errorPayload: ErrorPayload;
 
     constructor(interactionType: InteractionType, authResult: BrokerAuthenticationResult, authError?: AuthError) {
         super(BrokerMessageType.AUTH_RESULT);
         this.interactionType = interactionType;
         this.result = authResult;
-        this.error = authError;
+        this.errorPayload = this.generateErrorPayload(authError);
+    }
+
+    private generateErrorPayload(authError?: AuthError): ErrorPayload {
+        return !authError ? undefined : {
+            ...authError
+        };
     }
 
     static validate(message: MessageEvent): BrokerAuthResponse | null {
         if (message.data &&
             message.data.messageType === BrokerMessageType.AUTH_RESULT &&
             message.data.interactionType &&
-            (message.data.result || message.data.error)) {
+            (message.data.result || message.data.errorPayload)) {
 
-            return new BrokerAuthResponse(message.data.interactionType, message.data.result, BrokerAuthResponse.detectError(message));
+            return new BrokerAuthResponse(message.data.interactionType, message.data.result, message.data.errorPayload);
         }
 
         return null;
     }
 
-    static detectError(message: MessageEvent): AuthError {
-        const messageError = message.data.error;
-        if (!messageError) {
-            return undefined;
+    static detectError(errPayload: ErrorPayload): AuthError {
+        switch (errPayload.name) {
+            case InteractionRequiredAuthError.INTERACTION_REQ_ERROR_NAME:
+                return new InteractionRequiredAuthError(errPayload.errorCode, errPayload.errorMessage, errPayload.subError);
+            case ServerError.SERVER_ERROR_NAME:
+                return new ServerError(errPayload.errorCode, errPayload.errorMessage, errPayload.subError);
+            case ClientAuthError.CLIENT_AUTH_ERR_NAME:
+                return new ClientAuthError(errPayload.errorCode, errPayload.errorMessage);
+            case ClientConfigurationError.CLIENT_CONFIG_ERROR_NAME:
+                return new ClientConfigurationError(errPayload.errorCode, errPayload.errorMessage);
+            case BrowserAuthError.BROWSER_AUTH_ERROR_NAME:
+                return new BrowserAuthError(errPayload.errorCode, errPayload.errorMessage);
+            case BrowserConfigurationAuthError.BROWSER_CONFIG_ERROR_NAME:
+                return new BrowserConfigurationAuthError(errPayload.errorCode, errPayload.errorMessage);
+            case BrokerAuthError.BROKER_AUTH_ERROR_NAME:
+                return new BrokerAuthError(errPayload.errorCode, errPayload.errorMessage);
+            case AuthError.AUTH_ERROR_NAME:
+                return new AuthError(errPayload.errorCode, errPayload.errorMessage, errPayload.subError);
+            default:
+                return AuthError.createUnexpectedError(`Unknown error: ${JSON.stringify(errPayload)}`);
         }
-        const errorStack = messageError.stack;
-        const errMessage = messageError.message.split(":");
-        const code = errMessage.shift().trim();
-        const messageBody = errMessage.join().trim();
-        if (errorStack.indexOf("InteractionRequiredAuthError") === 0) {
-            return new InteractionRequiredAuthError(code, messageBody);
-        } else if (errorStack.indexOf("ServerError") === 0) {
-            return new ServerError(code, messageBody);
-        } else if (errorStack.indexOf("ClientAuthError") === 0) {
-            return new ClientAuthError(code, messageBody);
-        } else if (errorStack.indexOf("ClientConfigurationError") === 0) {
-            return new ClientConfigurationError(code, messageBody);
-        } else if (errorStack.indexOf("BrowserAuthError") === 0) {
-            return new BrowserAuthError(code, messageBody);
-        } else if (errorStack.indexOf("BrowserConfigurationAuthError") === 0) {
-            return new BrowserConfigurationAuthError(code, messageBody);   
-        } else if (errorStack.indexOf("BrokerAuthError") === 0) {
-            return new BrokerAuthError(code, messageBody);
-        } else if (errorStack.indexOf("AuthError") === 0) {
-            return new AuthError(code, messageBody);
-        }
-        return messageError;
     }
 
     static processBrokerResponseMessage(brokerAuthResultMessage: MessageEvent, browserStorage: BrowserCacheManager): AuthenticationResult {
@@ -73,8 +74,8 @@ export class BrokerAuthResponse extends BrokerMessage {
     }
 
     static processBrokerResponse(brokerAuthResult: BrokerAuthResponse, browserStorage: BrowserCacheManager): AuthenticationResult {
-        if (brokerAuthResult && brokerAuthResult.error) {
-            throw brokerAuthResult.error;
+        if (brokerAuthResult && brokerAuthResult.errorPayload) {
+            throw BrokerAuthResponse.detectError(brokerAuthResult.errorPayload);
         }
 
         if (!brokerAuthResult || !brokerAuthResult.result) {

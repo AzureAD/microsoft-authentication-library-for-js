@@ -169,10 +169,12 @@ export const ClientAuthErrorMessage = {
  * Error thrown when there is an error in the client code running on the browser.
  */
 export class ClientAuthError extends AuthError {
+    
+    static CLIENT_AUTH_ERR_NAME: string = "ClientAuthError";
 
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
-        this.name = "ClientAuthError";
+        this.name = ClientAuthError.CLIENT_AUTH_ERR_NAME;
 
         Object.setPrototypeOf(this, ClientAuthError.prototype);
     }

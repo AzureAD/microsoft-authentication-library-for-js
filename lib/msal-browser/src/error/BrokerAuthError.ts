@@ -20,11 +20,12 @@ export const BrokerAuthErrorMessage = {
  */
 export class BrokerAuthError extends BrowserAuthError {
 
+    static BROKER_AUTH_ERROR_NAME: string = "BrokerAuthError";
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
 
         Object.setPrototypeOf(this, BrokerAuthError.prototype);
-        this.name = "BrokerAuthError";
+        this.name = BrokerAuthError.BROKER_AUTH_ERROR_NAME;
     }
 
     /**
