@@ -11,6 +11,16 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
     await screenshot.takeScreenshot(page, "pwdInputPage");
     await page.type("#i0118", accountPwd);
     await page.click("#idSIButton9");
+    try {
+        await page.waitForSelector('#KmsiCheckboxField', {timeout: 1000});
+        await screenshot.takeScreenshot(page, "kmsiPage");
+        await Promise.all([
+            page.click("#idSIButton9"),
+            page.waitForNavigation({ waitUntil: "networkidle0"})
+        ]);
+    } catch (e) {
+        return;
+    }
 }
 
 export async function b2cAadPpeEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
@@ -20,9 +30,6 @@ export async function b2cAadPpeEnterCredentials(page: Page, screenshot: Screensh
     await page.click("#MSIDLAB4_AzureAD");
     // Enter credentials
     await enterCredentials(page, screenshot, username, accountPwd);
-    // Keep me signed in dialog box
-    await page.waitForSelector("#idSIButton9");
-    await page.click("#idSIButton9");
 }
 
 export async function b2cLocalAccountEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string) {
