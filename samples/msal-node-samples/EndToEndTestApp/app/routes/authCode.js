@@ -22,6 +22,11 @@ module.exports = function(app, clientApplication, msalTokenCache, scenarioConfig
         if (req.query && req.query.loginHint) {
             authCodeUrlParameters.loginHint = req.query.loginHint;
         }
+
+        // Check for the domainHint parameter
+        if (req.query && req.query.domainHint) {
+            authCodeUrlParameters.domainHint = req.query.domainHint;
+        }
         
         console.log('Request parameters: ', authCodeUrlParameters);
 

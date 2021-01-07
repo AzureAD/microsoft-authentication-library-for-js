@@ -151,5 +151,16 @@ describe('Auth Code ADFS PPE Tests', () => {
             const email = await page.evaluate(element => element.value, emailInput);
             expect(email).toBe(USERNAME);
         });
+
+        // NOTE: This test runs successfully only when we are running in headless mode
+        it.skip("Performs acquire token with domain hint", async () => {
+            const DOMAIN = "microsoft.com";
+            const MS_LOGIN_URL = "msft.sts.microsoft.com";
+            await page.goto(`${HOME_ROUTE}/?domainHint=${DOMAIN}`);
+            await page.waitForNavigation({ waitUntil: 'networkidle2' });
+            const url = await page.url();
+            console.log(url);
+            expect(url.includes(MS_LOGIN_URL)).toBe(true);
+        });
     });
 });
