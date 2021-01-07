@@ -496,18 +496,17 @@ describe("BrowserCacheManager tests", () => {
         });
 
         it("updateCacheEntries() correctly updates the authority, state and nonce in the cache", () => {
-            const authorityCacheSpy = sinon.spy(BrowserCacheManager.prototype, "setAuthorityCache");
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             const testNonce = "testNonce";
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
             browserStorage.updateCacheEntries(stateString, testNonce, `${Constants.DEFAULT_AUTHORITY}/`);
 
-            expect(authorityCacheSpy.calledOnce).to.be.true;
+            const stateKey = browserStorage.generateStateKey(stateString);
             const nonceKey = browserStorage.generateNonceKey(stateString);
             const authorityKey = browserStorage.generateAuthorityKey(stateString);
 
-            expect(window.sessionStorage[browserStorage.generateStateKey(stateString)]).to.be.eq(stateString);
+            expect(window.sessionStorage[`${stateKey}`]).to.be.eq(stateString);
             expect(window.sessionStorage[`${nonceKey}`]).to.be.eq(testNonce);
             expect(window.sessionStorage[`${authorityKey}`]).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
         });
