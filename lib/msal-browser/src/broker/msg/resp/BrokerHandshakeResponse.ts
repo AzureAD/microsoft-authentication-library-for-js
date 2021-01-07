@@ -36,9 +36,7 @@ export class BrokerHandshakeResponse extends BrokerMessage {
             message.data.messageType === BrokerMessageType.HANDSHAKE_RESPONSE &&
             message.data.version) {
             // TODO, verify version compatibility
-            const matchedDomains = trustedBrokerDomains.filter((domain: string) => {
-                return StringUtils.matchPattern(domain, message.origin);
-            });
+            const matchedDomains = trustedBrokerDomains.filter((domain: string) => StringUtils.matchPattern(domain, message.origin));
 
             if (matchedDomains.length <= 0) {
                 throw BrowserAuthError.createUntrustedBrokerError();
