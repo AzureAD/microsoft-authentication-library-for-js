@@ -67,11 +67,6 @@ export function extractDeviceCodeParameters(output: string): { deviceCode: strin
     return null;
 }
 
-export function checkTimeoutError(output: string): boolean {
-    const timeoutErrorRegex = /user_timeout_reached/;
-    return timeoutErrorRegex.test(output);
-}
-
 export function takeScreenshotAfter(duration: number, screenshot: Screenshot, page: Page, label: string): Promise<void> {
     return new Promise(resolve => setTimeout(() => screenshot.takeScreenshot(page, label).then(() => resolve()), duration));
 }
