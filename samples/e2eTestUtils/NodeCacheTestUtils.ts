@@ -87,7 +87,11 @@ export class NodeCacheTestUtils {
         const serializedCache = Serializer.serializeAllCache(cache);
 
         try {
-            fs.writeFileSync(cacheLocation, JSON.stringify(serializedCache, null, 1));
+            fs.writeFile(cacheLocation, JSON.stringify(serializedCache, null, 1), (err) => {
+                if (err) {
+                    console.log(err);
+                }
+            });
         } catch (error) {
             console.error("Error writing to cache file in resetCache: ", error);
         }

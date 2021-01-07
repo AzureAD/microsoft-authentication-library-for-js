@@ -13,6 +13,7 @@ export const SUCCESSFUL_GRAPH_CALL_ID = "graph-called-successfully";
 export const SUCCESSFUL_GET_ALL_ACCOUNTS_ID = "accounts-retrieved-successfully";
 
 export async function enterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
+    await page.waitForNavigation({ waitUntil: "networkidle0"});
     await page.waitForSelector("#i0116");
     await screenshot.takeScreenshot(page, "loginPage");
     await page.type("#i0116", username);
@@ -21,7 +22,16 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
     await screenshot.takeScreenshot(page, "pwdInputPage");
     await page.type("#i0118", accountPwd);
     await page.click("#idSIButton9");
-    await takeScreenshotAfter(6000, screenshot, page, `pwdSubmitted`);
+    try {
+        await page.waitForSelector('#KmsiCheckboxField', {timeout: 1000});
+        await screenshot.takeScreenshot(page, "kmsiPage");
+        await Promise.all([
+            page.click("#idSIButton9"),
+            page.waitForNavigation({ waitUntil: "networkidle0"})
+        ]);
+    } catch (e) {
+        return;
+    }
 }
 
 export async function clickSignIn(page: Page, screenshot: Screenshot): Promise<void> {

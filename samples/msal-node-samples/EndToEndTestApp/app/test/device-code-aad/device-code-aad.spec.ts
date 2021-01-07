@@ -41,7 +41,7 @@ describe('Device Code AAD PPE Tests', () => {
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
 
         browser = await puppeteer.launch({
-            headless: true,
+            headless: false,
             ignoreDefaultArgs: ['--no-sandbox', '-disable-setuid-sandbox', '--disable-extensions']
         });
     });
