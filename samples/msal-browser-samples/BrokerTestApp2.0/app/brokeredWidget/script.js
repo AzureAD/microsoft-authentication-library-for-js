@@ -67,7 +67,7 @@ function handleResponse(resp) {
                         scopes: ["openid", "profile", "User.Read"],
                         loginHint: "idlab@msidlab4.onmicrosoft.com" 
                     };
-                    myMSALObj.experimental.ssoSilent(loginReq).then(() => {
+                    await myMSALObj.ssoSilent(loginReq).then(() => {
                         contentElement.innerHTML = "Fetched data!";
                     }).catch(err => {
                         console.error(err);
