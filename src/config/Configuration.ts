@@ -83,7 +83,7 @@ export type BrowserSystemOptions = SystemOptions & {
  * - system: this is where you can configure the network client, logger, token renewal offset
  */
 export type Configuration = {
-    auth?: BrowserAuthOptions,
+    auth: BrowserAuthOptions,
     cache?: CacheOptions,
     system?: BrowserSystemOptions
 };
