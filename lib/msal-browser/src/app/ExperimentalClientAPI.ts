@@ -223,15 +223,4 @@ export class ExperimentalClientAPI extends ClientApplication implements IPublicC
         }
         super.setActiveAccount(account);
     }
-
-    /**
-     * Gets the currently active account
-     */
-    getActiveAccount(asBroker?: boolean): AccountInfo | null {
-        if (asBroker) {
-            return this.broker.getActiveAccount();
-        }
-
-        return super.getActiveAccount();
-    }
 }
