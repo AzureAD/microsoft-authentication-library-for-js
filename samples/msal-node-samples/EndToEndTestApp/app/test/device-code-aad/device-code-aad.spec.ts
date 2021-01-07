@@ -11,6 +11,7 @@ import {
     enterDeviceCode,
     SCREENSHOT_BASE_FOLDER_NAME,
     extractDeviceCodeParameters,
+    checkTimeoutError,
  } from "../testUtils";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
@@ -40,7 +41,7 @@ describe('Device Code AAD PPE Tests', () => {
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
 
         browser = await puppeteer.launch({
-            headless: false,
+            headless: true,
             ignoreDefaultArgs: ['--no-sandbox', '-disable-setuid-sandbox', '--disable-extensions']
         });
     });
