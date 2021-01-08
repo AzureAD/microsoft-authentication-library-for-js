@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { AuthError } from "../error/AuthError";
 import { NetworkResponse } from "./NetworkManager";
 
 /**
@@ -35,3 +36,14 @@ export interface INetworkModule {
      */
     sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>>;
 }
+
+export const StubbedNetworkModule: INetworkModule = {
+    sendGetRequestAsync: () => {
+        const notImplErr = "Network interface - sendGetRequestAsync() has not been implemented for the Network interface.";
+        return Promise.reject(AuthError.createUnexpectedError(notImplErr));
+    },
+    sendPostRequestAsync: () => {
+        const notImplErr = "Network interface - sendPostRequestAsync() has not been implemented for the Network interface.";
+        return Promise.reject(AuthError.createUnexpectedError(notImplErr));
+    }
+};
