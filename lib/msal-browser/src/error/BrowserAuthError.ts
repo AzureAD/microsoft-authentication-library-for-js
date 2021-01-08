@@ -29,6 +29,18 @@ export const BrowserAuthErrorMessage = {
         code: "hash_empty_error",
         desc: "Hash value cannot be processed because it is empty."
     },
+    hashDoesNotContainStateError: {
+        code: "no_state_in_hash",
+        desc: "Hash does not contain state. Please verify that the request originated from msal."
+    },
+    unableToParseStateError: {
+        code: "unable_to_parse_state",
+        desc: "Unable to parse state. Please verify that the request originated from msal."
+    },
+    stateInteractionTypeMismatchError: {
+        code: "state_interaction_type_mismatch",
+        desc: "Hash contains state but the interaction type does not match the caller."
+    },
     interactionInProgress: {
         code: "interaction_in_progress",
         desc: "Interaction is currently in progress. Please ensure that this interaction has been completed before calling an interactive API."
@@ -69,13 +81,29 @@ export const BrowserAuthErrorMessage = {
         code: "silent_sso_error",
         desc: "Silent SSO could not be completed - insufficient information was provided. Please provide either a loginHint or sid."
     },
+    noAccountError: {
+        code: "no_account_error",
+        desc: "No account object provided to acquireTokenSilent and no active account has been set. Please call setActiveAccount or provide an account on the request."
+    },
     silentPromptValueError: {
         code: "silent_prompt_value_error",
         desc: "The value given for the prompt value is not valid for silent requests - must be set to 'none'."
     },
-    tokenRequestCacheError: {
-        code: "token_request_cache_error",
-        desc: "The token request could not be fetched from the cache correctly."
+    noTokenRequestCacheError: {
+        code: "no_token_request_cache_error",
+        desc: "No token request in found in cache."
+    },
+    unableToParseTokenRequestCacheError: {
+        code: "unable_to_parse_token_request_cache_error",
+        desc: "The cached token request could not be parsed."
+    },
+    noCachedAuthorityError: {
+        code: "no_cached_authority_error",
+        desc: "No cached authority found."
+    },
+    authRequestNotSet: {
+        code: "auth_request_not_set_error",
+        desc: "Auth Request not set. Please ensure initiateAuthRequest was called from the InteractionHandler"
     },
     invalidCacheType: {
         code: "invalid_cache_type",
@@ -84,6 +112,10 @@ export const BrowserAuthErrorMessage = {
     notInBrowserEnvironment: {
         code: "non_browser_environment",
         desc: "Login and token requests are not supported in non-browser environments."
+    },
+    databaseNotOpen: {
+        code: "database_not_open",
+        desc: "Database is not open!"
     }
 };
 
@@ -139,6 +171,27 @@ export class BrowserAuthError extends AuthError {
      */
     static createEmptyHashError(hashValue: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.hashEmptyError.code, `${BrowserAuthErrorMessage.hashEmptyError.desc} Given Url: ${hashValue}`);
+    }
+
+    /**
+     * Creates an error thrown when the hash string value is unexpectedly empty.
+     */
+    static createHashDoesNotContainStateError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.hashDoesNotContainStateError.code, BrowserAuthErrorMessage.hashDoesNotContainStateError.desc);
+    }
+
+    /**
+     * Creates an error thrown when the hash string value is unexpectedly empty.
+     */
+    static createUnableToParseStateError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.unableToParseStateError.code, BrowserAuthErrorMessage.unableToParseStateError.desc);
+    }
+
+    /**
+     * Creates an error thrown when the state value in the hash does not match the interaction type of the API attempting to consume it.
+     */
+    static createStateInteractionTypeMismatchError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.stateInteractionTypeMismatchError.code, BrowserAuthErrorMessage.stateInteractionTypeMismatchError.desc);
     }
 
     /**
@@ -222,6 +275,13 @@ export class BrowserAuthError extends AuthError {
     }
 
     /**
+     * Creates an error thrown when the account object is not provided in the acquireTokenSilent API.
+     */
+    static createNoAccountError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.noAccountError.code, BrowserAuthErrorMessage.noAccountError.desc);
+    }
+
+    /**
      * Creates an error thrown when a given prompt value is invalid for silent requests.
      */
     static createSilentPromptValueError(givenPrompt: string): BrowserAuthError {
@@ -229,12 +289,35 @@ export class BrowserAuthError extends AuthError {
     }
 
     /**
-     * Creates an error thrown when the token request could not be retrieved from the cache
-     * @param errDetail
+     * Creates an error thrown when the cached token request could not be retrieved from the cache
      */
-    static createTokenRequestCacheError(errDetail: string): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.tokenRequestCacheError.code,
-            `${BrowserAuthErrorMessage.tokenRequestCacheError.desc} Error Detail: ${errDetail}`);
+    static createUnableToParseTokenRequestCacheError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.unableToParseTokenRequestCacheError.code,
+            BrowserAuthErrorMessage.unableToParseTokenRequestCacheError.desc);
+    }
+
+    /**
+     * Creates an error thrown when the token request could not be retrieved from the cache
+     */
+    static createNoTokenRequestCacheError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.noTokenRequestCacheError.code,
+            BrowserAuthErrorMessage.noTokenRequestCacheError.desc);
+    }
+
+    /**
+     * Creates an error thrown when handleCodeResponse is called before initiateAuthRequest (InteractionHandler)
+     */
+    static createAuthRequestNotSetError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.authRequestNotSet.code,
+            BrowserAuthErrorMessage.authRequestNotSet.desc);
+    }
+
+    /**
+     * Creates an error thrown when the authority could not be retrieved from the cache
+     */
+    static createNoCachedAuthorityError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.noCachedAuthorityError.code,
+            BrowserAuthErrorMessage.noCachedAuthorityError.desc);
     }
 
     /**
@@ -249,5 +332,12 @@ export class BrowserAuthError extends AuthError {
      */
     static createNonBrowserEnvironmentError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.notInBrowserEnvironment.code, BrowserAuthErrorMessage.notInBrowserEnvironment.desc);
+    }
+
+    /**
+     * Create an error thrown when indexDB database is not open
+     */
+    static createDatabaseNotOpenError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.databaseNotOpen.code, BrowserAuthErrorMessage.databaseNotOpen.desc);
     }
 }
