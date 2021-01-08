@@ -25,7 +25,7 @@ export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
 export { ProtocolMode } from "./authority/ProtocolMode";
 // Cache
-export { CacheManager } from "./cache/CacheManager";
+export { CacheManager, DefaultStorageClass } from "./cache/CacheManager";
 export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache, ValidCacheType, ValidCredentialType } from "./cache/utils/CacheTypes";
 export { CredentialEntity } from "./cache/entities/CredentialEntity";
 export { AppMetadataEntity } from "./cache/entities/AppMetadataEntity";
@@ -40,14 +40,14 @@ export { ICachePlugin } from "./cache/interface/ICachePlugin";
 export { TokenCacheContext } from "./cache/persistence/TokenCacheContext";
 export { ISerializableTokenCache } from "./cache/interface/ISerializableTokenCache";
 // Network Interface
-export { INetworkModule, NetworkRequestOptions } from "./network/INetworkModule";
+export { INetworkModule, NetworkRequestOptions, StubbedNetworkModule } from "./network/INetworkModule";
 export { NetworkManager, NetworkResponse } from "./network/NetworkManager";
 export { ThrottlingUtils } from "./network/ThrottlingUtils";
 export { RequestThumbprint } from "./network/RequestThumbprint";
 export { IUri } from "./url/IUri";
 export { UrlString } from "./url/UrlString";
 // Crypto Interface
-export { ICrypto, PkceCodes } from "./crypto/ICrypto";
+export { ICrypto, PkceCodes, DEFAULT_CRYPTO_IMPLEMENTATION } from "./crypto/ICrypto";
 export { SignedHttpRequest } from "./crypto/SignedHttpRequest";
 // Request and Response
 export { BaseAuthRequest } from "./request/BaseAuthRequest";
