@@ -22,7 +22,7 @@ export class MsalInterceptor implements HttpInterceptor {
 
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
         const scopes = this.getScopesForEndpoint(req.url);
-        const account = this.authService.getAllAccounts()[0];
+        const account = this.authService.instance.getActiveAccount() || this.authService.instance.getAllAccounts()[0];
 
         if (!scopes || scopes.length === 0) {
             return next.handle(req);
