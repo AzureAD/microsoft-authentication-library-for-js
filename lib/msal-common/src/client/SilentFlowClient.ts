@@ -28,7 +28,7 @@ export class SilentFlowClient extends BaseClient {
      * the given token and returns the renewed token
      * @param request
      */
-    async acquireToken(request: SilentFlowRequest): Promise<AuthenticationResult | null> {
+    async acquireToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
         try {
             return await this.acquireCachedToken(request);
         } catch (e) {
