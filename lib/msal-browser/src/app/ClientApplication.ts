@@ -300,6 +300,13 @@ export abstract class ClientApplication {
         return this.acquireTokenRedirectAsync(validRequest, request.redirectStartPage, request.onRedirectNavigate);
     }
 
+    /**
+     * Helper which obtains an access_token for an API via redirecting the user's browser.
+     * 
+     * @param validRequest 
+     * @param userRedirectStartPage 
+     * @param userOnRedirectNavigate 
+     */
     protected async acquireTokenRedirectAsync(validRequest: AuthorizationUrlRequest, userRedirectStartPage: string, userOnRedirectNavigate: (url: string) => void | boolean): Promise<void> {
         const loggedInAccounts = this.getAllAccounts();
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect, validRequest.correlationId);
@@ -314,9 +321,9 @@ export abstract class ClientApplication {
             const interactionHandler = new RedirectHandler(authClient, this.browserStorage, this.browserCrypto);
 
             // Create acquire token url.
-            const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
+            const navigateUrl = await authClient.getAuthCodeUrl(validRequest); 
 
-            const redirectStartPage = (validRequest && userRedirectStartPage) || window.location.href;
+            const redirectStartPage = userRedirectStartPage || window.location.href;
 
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
             return interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, {
