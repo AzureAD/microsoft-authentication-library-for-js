@@ -1016,7 +1016,7 @@ export abstract class ClientApplication {
         if (sku.match(/^@azure\/msal\-[a-z]+$/g)) {
             this.wrapperSKU = sku;
         } else {
-            this.logger.warning("initiailzeWrapperLibrary - provided sku failed validation. Please ensure it starts with @azure/msal-");
+            this.logger.warning("initializeWrapperLibrary - provided sku failed validation. Please ensure it starts with @azure/msal-");
         }
         
         // Validate the version passed in
