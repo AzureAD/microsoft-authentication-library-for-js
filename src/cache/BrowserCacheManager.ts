@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -323,11 +323,11 @@ export class BrowserCacheManager extends CacheManager {
      */
     getAuthorityMetadata(key: string) : AuthorityMetadataEntity | null {
         const value = this.internalStorage.getItem(key);
-        if (StringUtils.isEmpty(value)) {
+        if (!value) {
             return null;
         }
         const parsedMetadata = this.validateAndParseJson(value);
-        if (AuthorityMetadataEntity.isAuthorityMetadataEntity(key, parsedMetadata)) {
+        if (parsedMetadata && AuthorityMetadataEntity.isAuthorityMetadataEntity(key, parsedMetadata)) {
             return CacheManager.toObject(new AuthorityMetadataEntity(), parsedMetadata);
         }
         return null;

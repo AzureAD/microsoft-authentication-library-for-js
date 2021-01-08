@@ -4,7 +4,7 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { Authority, StringUtils, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationCodeClient, PromptValue, ServerError, InteractionRequiredAuthError, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, AuthenticationScheme, SilentFlowRequest, EndSessionRequest as CommonEndSessionRequest, AccountEntity, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION } from "@azure/msal-common";
+import { Authority, StringUtils, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationCodeClient, PromptValue, ServerError, InteractionRequiredAuthError, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, AuthenticationScheme, SilentFlowRequest, EndSessionRequest as CommonEndSessionRequest, AccountEntity, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthorityOptions } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
 import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, BrowserCacheLocation } from "../utils/BrowserConstants";
@@ -81,7 +81,6 @@ export abstract class ClientApplication {
         // Set the configuration.
         this.config = buildConfiguration(configuration, this.isBrowserEnvironment);
 
-        this.defaultAuthority = null;
         this.activeLocalAccountId = null;
 
         // Array of events
