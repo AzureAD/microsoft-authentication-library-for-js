@@ -15,11 +15,13 @@
   "dependencies": {
     "@azure/msal-node": "file:../../../lib/msal-node",
     "@jest/types": "^26.6.2",
+    "@types/jest-environment-puppeteer": "^4.4.1",
     "axios": "^0.20.0",
     "e2eTestUtils": "file:../../.",
     "express": "^4.17.1",
     "express-handlebars": "^5.1.0",
     "express-promise-router": "^4.0.1",
+    "jest-puppeteer": "^4.4.0",
     "yargs": "^16.1.1"
   },
   "devDependencies": {

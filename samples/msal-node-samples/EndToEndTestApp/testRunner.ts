@@ -28,7 +28,6 @@ const argv: Arguments = yargs(process.argv).options({
 async function runE2ETests(testScenarios: Array<string>, currentScenarioIndex: number, totalScenarios: number, globalResults: Array<any>) {
     if (currentScenarioIndex < totalScenarios) {
         const currentScenario = testScenarios[currentScenarioIndex];
-        console.log(`STARTING SCENARIO: ${currentScenario}`);
         const results = await testScenario(currentScenario);
         globalResults = [...globalResults, results];
         await runE2ETests(testScenarios, currentScenarioIndex + 1, totalScenarios, globalResults);
