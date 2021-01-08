@@ -5,22 +5,19 @@ import Grid from "@material-ui/core/Grid";
 import { theme } from "./styles/theme";
 
 // MSAL imports
-import { PublicClientApplication } from "@azure/msal-browser";
 import { MsalProvider } from "@azure/msal-react";
-import { msalConfig } from "./authConfig";
 
 // Sample app imports
 import { PageLayout } from "./ui-components/PageLayout";
 import { Home } from "./pages/Home";
 import { Profile } from "./pages/Profile";
 
-function App() {
-  const msalInstance = new PublicClientApplication(msalConfig);
+function App({pca}) {
 
   return (
     <Router>
       <ThemeProvider theme={theme}>
-        <MsalProvider instance={msalInstance}>
+        <MsalProvider instance={pca}>
             <PageLayout>
               <Grid container justify="center">
                 <Pages />
