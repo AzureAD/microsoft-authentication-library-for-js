@@ -320,10 +320,12 @@ describe("PopupHandler.ts Unit Tests", () => {
             };
 
             expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest, {
-                popup: null
+                popup: null,
+                popupName: "popup"
             })).to.throw(BrowserAuthErrorMessage.emptyWindowError.desc);
             expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest, {
-                popup: null
+                popup: null,
+                popupName: "popup"
             })).to.throw(BrowserAuthError);
         });
     });
@@ -331,16 +333,28 @@ describe("PopupHandler.ts Unit Tests", () => {
     describe("openSizedPopup", () => {
         it("opens a popup with urlNavigate", () => {
             const windowOpenSpy = sinon.stub(window, "open");
-            PopupHandler.openSizedPopup("http://localhost/");
+            PopupHandler.openSizedPopup("http://localhost/", "popup");
 
-            expect(windowOpenSpy.calledWith("http://localhost/")).to.be.true;
+            expect(windowOpenSpy.calledWith("http://localhost/", "popup")).to.be.true;
         });
 
-        it("opens a popup with about:blank if no urlNavigate passed in", () => {
+        it("opens a popup with about:blank", () => {
             const windowOpenSpy = sinon.stub(window, "open");
-            PopupHandler.openSizedPopup();
+            PopupHandler.openSizedPopup("about:blank", "popup");
 
-            expect(windowOpenSpy.calledWith("about:blank")).to.be.true;
+            expect(windowOpenSpy.calledWith("about:blank", "popup")).to.be.true;
         });
     });
+
+    describe("generatePopupName", () => {
+        it("generates expected name", () => {
+            const popupName = PopupHandler.generatePopupName("client-id", {
+                scopes: [ "scope1", "scope2"],
+                authority: "https://login.microsoftonline.com/common",
+                correlationId: "correlation-id"
+            });
+
+            expect(popupName).to.equal("msal.client-id.scope1-scope2.https://login.microsoftonline.com/common.correlation-id");
+        })
+    })
 });
