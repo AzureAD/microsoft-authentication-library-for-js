@@ -13,7 +13,7 @@ export class MemoryStorage implements IWindowStorage {
         this.cache = new Map<string, string>();
     }
 
-    getItem(key: string): string {
+    getItem(key: string): string | null {
         return this.cache.get(key) || null;
     }
 

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { INetworkModule, Logger, UrlString } from "@azure/msal-common";
+import { Constants, INetworkModule, Logger, UrlString } from "@azure/msal-common";
 import { FetchClient } from "../network/FetchClient";
 import { XhrClient } from "../network/XhrClient";
 import { BrowserAuthError } from "../error/BrowserAuthError";
@@ -44,7 +44,7 @@ export class BrowserUtils {
         // Office.js sets history.replaceState to null
         if (typeof history.replaceState === "function") {
             // Full removes "#" from url
-            history.replaceState(null, null, `${window.location.pathname}${window.location.search}`);
+            history.replaceState(null, Constants.EMPTY_STRING, `${window.location.pathname}${window.location.search}`);
         } else {
             window.location.hash = "";
         }
