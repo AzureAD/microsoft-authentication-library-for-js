@@ -6,7 +6,7 @@
 import { Configuration } from "../config/Configuration";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { ClientApplication } from "./ClientApplication";
-import { ExperimentalClientAPI } from "./ExperimentalClientAPI";
+import { ExperimentalClientApplication } from "./ExperimentalClientApplication";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -15,7 +15,7 @@ import { ExperimentalClientAPI } from "./ExperimentalClientAPI";
 export class PublicClientApplication extends ClientApplication implements IPublicClientApplication {
 
     // Experimental object API
-    experimental: ExperimentalClientAPI;
+    experimental: ExperimentalClientApplication;
 
     /**
      * @constructor
@@ -56,7 +56,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 return;
             }
             
-            this.experimental = new ExperimentalClientAPI(this.config, this);
+            this.experimental = new ExperimentalClientApplication(this.config, this);
         }
     }
 }

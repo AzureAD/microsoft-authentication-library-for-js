@@ -17,7 +17,7 @@ import { BrowserUtils } from "../utils/BrowserUtils";
 import { ClientApplication } from "./ClientApplication";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 
-export class ExperimentalClientAPI extends ClientApplication implements IPublicClientApplication {
+export class ExperimentalClientApplication extends ClientApplication implements IPublicClientApplication {
 
     // Broker Objects
     protected embeddedApp: EmbeddedClientApplication;
