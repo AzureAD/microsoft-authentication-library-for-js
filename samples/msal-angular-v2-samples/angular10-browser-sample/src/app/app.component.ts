@@ -4,7 +4,7 @@ import { MSAL_GUARD_CONFIG } from './msal/constants';
 import { MsalGuardConfiguration } from './msal/msal.guard.config';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
-import { EventMessage, EventType, InteractionType } from '@azure/msal-browser';
+import { EventMessage, EventType, InteractionType, AuthenticationResult } from '@azure/msal-browser';
 
 @Component({
   selector: 'app-root',
@@ -44,10 +44,25 @@ export class AppComponent implements OnInit, OnDestroy {
 
   login() {
     if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
-      this.authService.loginPopup({...this.msalGuardConfig.authRequest})
-        .subscribe(() => this.checkAccount());
+      if (this.msalGuardConfig.authRequest){
+        this.authService.loginPopup({...this.msalGuardConfig.authRequest})
+          .subscribe((response: AuthenticationResult) => {
+            this.authService.instance.setActiveAccount(response.account);
+            this.checkAccount();
+          });
+        } else {
+          this.authService.loginPopup()
+            .subscribe((response: AuthenticationResult) => {
+              this.authService.instance.setActiveAccount(response.account);
+              this.checkAccount();
+            });
+      }
     } else {
-      this.authService.loginRedirect({...this.msalGuardConfig.authRequest});
+      if (this.msalGuardConfig.authRequest){
+        this.authService.loginRedirect({...this.msalGuardConfig.authRequest});
+      } else {
+        this.authService.loginRedirect();
+      }
     }
   }
 

@@ -119,7 +119,7 @@ describe('MsalInterceptor', () => {
       })
     ));
 
-    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
+    spyOn(PublicClientApplication.prototype, "getActiveAccount").and.returnValue(sampleAccountInfo);
 
     httpClient.get("https://graph.microsoft.com/v1.0/me").subscribe();
     setTimeout(() => {

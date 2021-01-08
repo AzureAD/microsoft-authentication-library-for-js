@@ -2,7 +2,7 @@ import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from '@angul
 import { MsalService } from './msal.service';
 import { Injectable, Inject } from '@angular/core';
 import { Location } from "@angular/common";
-import { InteractionType} from "@azure/msal-browser";
+import { AuthenticationResult, InteractionType} from "@azure/msal-browser";
 import { MsalGuardConfiguration } from './msal.guard.config';
 import { MSAL_GUARD_CONFIG } from './constants';
 import { concatMap, catchError, map } from 'rxjs/operators';
@@ -43,7 +43,10 @@ export class MsalGuard implements CanActivate {
         if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
             return this.authService.loginPopup({...this.msalGuardConfig.authRequest})
                 .pipe(
-                    map(() => true),
+                    map((response: AuthenticationResult) => {
+                        this.authService.instance.setActiveAccount(response.account);
+                        return true;
+                    }),
                     catchError(() => of(false))
                 );
         }
@@ -61,7 +64,7 @@ export class MsalGuard implements CanActivate {
         return this.authService.handleRedirectObservable()
             .pipe(
                 concatMap(() => {
-                    if (!this.authService.getAllAccounts().length) {
+                    if (!this.authService.instance.getAllAccounts().length) {
                         return this.loginInteractively(state.url);
                     }
                     return of(true);
