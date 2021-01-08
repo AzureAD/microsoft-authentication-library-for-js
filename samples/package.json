@@ -6,6 +6,7 @@
     "dependencies": {
         "@azure/identity": "^1.0.2",
         "axios": "^0.19.2",
+        "dotenv": "^8.2.0",
         "puppeteer": "^5.2.1"
     },
     "devDependencies": {
