@@ -26,6 +26,16 @@ const testPkceCodes = {
     verifier: "TestVerifier"
 } as PkceCodes;
 
+const defaultTokenRequest: AuthorizationCodeRequest = {
+    authenticationScheme: AuthenticationScheme.BEARER,
+    redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+    code: "thisIsATestCode",
+    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+    codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+    authority: `${Constants.DEFAULT_AUTHORITY}/`,
+    correlationId: RANDOM_TEST_GUID
+};
+
 const testNetworkResult = {
     testParam: "testValue"
 };
@@ -51,16 +61,15 @@ let authorityInstance: Authority;
 let authConfig: ClientConfiguration;
 
 describe("RedirectHandler.ts Unit Tests", () => {
-
+    let authCodeModule: AuthorizationCodeClient;
     let browserStorage: BrowserCacheManager;
-    let redirectHandler: RedirectHandler;
     beforeEach(() => {
         const appConfig: Configuration = {
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         };
-        const configObj = buildConfiguration(appConfig);
+        const configObj = buildConfiguration(appConfig, true);
         authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, ProtocolMode.AAD);
         const browserCrypto = new CryptoOps();
         const loggerConfig = {
@@ -119,9 +128,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             },
             loggerOptions: loggerConfig,
         };        
-        const authCodeModule = new AuthorizationCodeClient(authConfig);
-        
-        redirectHandler = new RedirectHandler(authCodeModule, browserStorage, browserCrypto);
+        authCodeModule = new AuthorizationCodeClient(authConfig);
     });
 
     afterEach(() => {
@@ -131,6 +138,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
     describe("Constructor", () => {
 
         it("creates a subclass of InteractionHandler called RedirectHandler", () => {
+            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserCrypto);
             expect(redirectHandler instanceof RedirectHandler).to.be.true;
         });
     });
@@ -138,29 +146,21 @@ describe("RedirectHandler.ts Unit Tests", () => {
     describe("initiateAuthRequest()", () => {
 
         it("throws error if requestUrl is empty", () => {
-            const testTokenReq: AuthorizationCodeRequest = {
-                authenticationScheme: AuthenticationScheme.BEARER,
-                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
-                code: "thisIsATestCode",
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
-                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                correlationId: RANDOM_TEST_GUID
-            };
-            expect(() => redirectHandler.initiateAuthRequest("", testTokenReq, {
+            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserCrypto);
+            expect(() => redirectHandler.initiateAuthRequest("", {
                 redirectTimeout: 3000,
                 redirectStartPage: ""
             })).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => redirectHandler.initiateAuthRequest("", testTokenReq, {
+            expect(() => redirectHandler.initiateAuthRequest("", {
                 redirectTimeout: 3000,
                 redirectStartPage: ""
             })).to.throw(BrowserAuthError);
 
-            expect(() => redirectHandler.initiateAuthRequest(null, testTokenReq, {
+            expect(() => redirectHandler.initiateAuthRequest(null, {
                 redirectTimeout: 3000,
                 redirectStartPage: ""
             })).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => redirectHandler.initiateAuthRequest(null, testTokenReq, {
+            expect(() => redirectHandler.initiateAuthRequest(null, {
                 redirectTimeout: 3000,
                 redirectStartPage: ""
             })).to.throw(BrowserAuthError);
@@ -171,15 +171,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
             sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
                 dbStorage = {};
             });
-            const testTokenReq: AuthorizationCodeRequest = {
-                authenticationScheme: AuthenticationScheme.BEARER,
-                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
-                code: "thisIsATestCode",
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
-                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                correlationId: RANDOM_TEST_GUID
-            };
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((requestUrl, timeout, logger) => {
                 expect(requestUrl).to.be.eq(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
                 expect(timeout).to.be.eq(3000);
@@ -187,7 +178,8 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 expect(browserStorage.getTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, true)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
                 return Promise.resolve(done());
             });
-            redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, {
+            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserCrypto);
+            redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, {
                 redirectStartPage: "",
                 redirectTimeout: 3000
             });
@@ -198,14 +190,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
             sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
                 dbStorage = {};
             });
-            const testTokenReq: AuthorizationCodeRequest = {
-                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
-                code: "thisIsATestCode",
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
-                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                correlationId: RANDOM_TEST_GUID
-            };
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((requestUrl, timeout, logger) => {
                 done("Navigatation should not happen if onRedirectNavigate returns false");
                 return Promise.reject();
@@ -216,7 +200,8 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 done();
                 return false;
             }
-            redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, {
+            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserCrypto);
+            redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, {
                 redirectTimeout: 300,
                 redirectStartPage: "",
                 onRedirectNavigate,
@@ -228,14 +213,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
             sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
                 dbStorage = {};
             });
-            const testTokenReq: AuthorizationCodeRequest = {
-                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
-                code: "thisIsATestCode",
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
-                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                authority: `${Constants.DEFAULT_AUTHORITY}/`,
-                correlationId: RANDOM_TEST_GUID
-            };
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((requestUrl, timeout, logger) => {
                 expect(requestUrl).to.equal(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
                 done();
@@ -245,7 +222,8 @@ describe("RedirectHandler.ts Unit Tests", () => {
             const onRedirectNavigate = url => {
                 expect(url).to.equal(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
             }
-            redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, testTokenReq, {
+            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserCrypto);
+            redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, {
                 redirectTimeout: 3000,
                 redirectStartPage: "",
                 onRedirectNavigate
@@ -256,11 +234,12 @@ describe("RedirectHandler.ts Unit Tests", () => {
     describe("handleCodeResponse()", () => {
 
         it("throws error if given hash is empty", async () => {
-            await expect(redirectHandler.handleCodeResponse("", authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthErrorMessage.hashEmptyError.desc);
-            await expect(redirectHandler.handleCodeResponse("", authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthError);
+            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserCrypto);
+            await expect(redirectHandler.handleCodeResponse("", "", authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthErrorMessage.hashEmptyError.desc);
+            await expect(redirectHandler.handleCodeResponse("", "", authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthError);
 
-            await expect(redirectHandler.handleCodeResponse(null, authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthErrorMessage.hashEmptyError.desc);
-            await expect(redirectHandler.handleCodeResponse(null, authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthError);
+            await expect(redirectHandler.handleCodeResponse(null, "", authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthErrorMessage.hashEmptyError.desc);
+            await expect(redirectHandler.handleCodeResponse(null, "", authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthError);
         });
 
         it("successfully handles response", async () => {
@@ -279,7 +258,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             const testCodeResponse: AuthorizationCodePayload = {
                 code: "authcode",
                 nonce: idTokenClaims.nonce,
-                state: TEST_STATE_VALUES.TEST_STATE
+                state: TEST_STATE_VALUES.TEST_STATE_REDIRECT
             };
 
             const testAccount: AccountInfo = {
@@ -315,14 +294,15 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 authority: authorityInstance.canonicalAuthority,
                 correlationId: RANDOM_TEST_GUID
             };
-            browserStorage.setTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE), TEST_STATE_VALUES.TEST_STATE);
+            browserStorage.setTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT), TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             browserStorage.setTemporaryCache(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest)));
             browserStorage.setTemporaryCache(browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY), BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
-            browserStorage.setTemporaryCache(browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+            browserStorage.setTemporaryCache(browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
             sinon.stub(AuthorizationCodeClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
             sinon.stub(AuthorizationCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
 
-            const tokenResponse = await redirectHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH, authorityInstance, authConfig.networkInterface);
+            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, testAuthCodeRequest, browserCrypto);
+            const tokenResponse = await redirectHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT, TEST_STATE_VALUES.TEST_STATE_REDIRECT, authorityInstance, authConfig.networkInterface);
             expect(tokenResponse).to.deep.eq(testTokenResponse);
             expect(browserStorage.getTemporaryCache(browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY))).to.be.null;
             expect(browserStorage.getTemporaryCache(browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH))).to.be.null;
