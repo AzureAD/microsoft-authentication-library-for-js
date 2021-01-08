@@ -23,41 +23,21 @@ const argv: Arguments = yargs(process.argv).options({
     p: { type: "number", alias: "port"}
 }).argv;
 
-const scenarios = readScenarioNames();
-const tests = readTestFiles();
 
-// Filter so only scenarios that have tests are executed
-let testScenarios = scenarios.filter((scenario: string) => tests.includes(scenario));
 
-const selectedScenario = argv.s;
-
-if (selectedScenario) {
-    testScenarios = testScenarios.filter((scenario: string) => scenario === selectedScenario);
-    if (testScenarios.length === 1) {
-        console.log(`Test Runner executed with scenario flag, executing scenario ${selectedScenario} only.`);
-    } else if (testScenarios.length < 0) {
-        console.log(`Selected test scenario ${selectedScenario} not found, aborting.`);
-    }
-}
-
-async function runE2ETests() {
-    let globalResults: Array<any> = [];
-    // Using reduce instead of map to chain each test scenario execution in serial, initial accumulator is a dummy Promise
-    await testScenarios.reduce((currentScenarioPromise: Promise<string>, nextScenario: string) => {
-        const currentScenarioResults = currentScenarioPromise.then(() => {
-            return testScenario(nextScenario);
-        });
-        globalResults = [...globalResults, currentScenarioResults];
-        return currentScenarioResults;
-    }, Promise.resolve(null));
-    
-    Promise.all(globalResults).then((globalResults: Array<any>) => {
+async function runE2ETests(testScenarios: Array<string>, currentScenarioIndex: number, totalScenarios: number, globalResults: Array<any>) {
+    if (currentScenarioIndex < totalScenarios) {
+        const currentScenario = testScenarios[currentScenarioIndex];
+        const results = await testScenario(currentScenario);
+        globalResults = [...globalResults, results];
+        runE2ETests(testScenarios, currentScenarioIndex + 1, totalScenarios, globalResults);
+    } else {
         const globalFailedTests = globalResults.reduce((totalFailedTests: number, scenarioResults: any) => {
             return totalFailedTests + scenarioResults.results.numFailedTests;
         }, 0);
         // If any tests fail, exit with code 1 so CI/CD check fails
         process.exitCode = (globalFailedTests > 0) ? 1 : 0;
-    });
+    }
 }
 
 async function testScenario (scenario: string): Promise<any> {
@@ -96,4 +76,24 @@ async function testScenario (scenario: string): Promise<any> {
     });
 }
 
-runE2ETests();
+
+// Execution script
+
+const scenarios = readScenarioNames();
+const tests = readTestFiles();
+
+// Filter so only scenarios that have tests are executed
+let testScenarios = scenarios.filter((scenario: string) => tests.includes(scenario));
+
+const selectedScenario = argv.s;
+
+if (selectedScenario) {
+    testScenarios = testScenarios.filter((scenario: string) => scenario === selectedScenario);
+    if (testScenarios.length === 1) {
+        console.log(`Test Runner executed with scenario flag, executing scenario ${selectedScenario} only.`);
+    } else if (testScenarios.length < 0) {
+        console.log(`Selected test scenario ${selectedScenario} not found, aborting.`);
+    }
+}
+
+runE2ETests(testScenarios, 0, testScenarios.length, []);
