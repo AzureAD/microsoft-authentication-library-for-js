@@ -51,8 +51,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     private checkExperimentalConfig(userConfig: Configuration): void {
         if (userConfig.experimental) {
             this.logger.warning("Experimental features are subject to changes or removal without warning.");
-            if (!userConfig.experimental.enableExperimentalApi) {
-                this.logger.warning("Experimental features were detected but the experimental API was not enabled. Please set enableExperimentalApi to true in the configuration object.");
+            if (!userConfig.experimental.enable) {
+                this.logger.warning("Experimental features were detected but the experimental API was not enabled. Please set 'enable' to true in the configuration object.");
                 return;
             }
             
