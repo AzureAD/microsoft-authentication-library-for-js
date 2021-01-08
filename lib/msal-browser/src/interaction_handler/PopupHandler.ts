@@ -20,10 +20,10 @@ export type PopupParams = InteractionParams & {
  */
 export class PopupHandler extends InteractionHandler {
 
-    private currentWindow: Window;
+    private currentWindow: Window|undefined;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager) {
-        super(authCodeModule, storageImpl);
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: AuthorizationCodeRequest) {
+        super(authCodeModule, storageImpl, authCodeRequest);
 
         // Properly sets this reference for the unload event.
         this.unloadWindow = this.unloadWindow.bind(this);
@@ -33,11 +33,9 @@ export class PopupHandler extends InteractionHandler {
      * Opens a popup window with given request Url.
      * @param requestUrl
      */
-    initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, params: PopupParams): Window {
+    initiateAuthRequest(requestUrl: string, params: PopupParams): Window {
         // Check that request url is not empty.
         if (!StringUtils.isEmpty(requestUrl)) {
-            // Save auth code request
-            this.authCodeRequest = authCodeRequest;
             // Set interaction status in the library.
             this.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
@@ -74,7 +72,7 @@ export class PopupHandler extends InteractionHandler {
                     return;
                 }
 
-                let href: string;
+                let href: string = Constants.EMPTY_STRING;
                 try {
                     /*
                      * Will throw if cross origin,
@@ -175,9 +173,11 @@ export class PopupHandler extends InteractionHandler {
      */
     unloadWindow(e: Event): void {
         this.browserStorage.cleanRequestByInteractionType(InteractionType.Popup);
-        this.currentWindow.close();
+        if (this.currentWindow) {
+            this.currentWindow.close();
+        }
         // Guarantees browser unload will happen, so no other errors will be thrown.
-        delete e["returnValue"];
+        e.preventDefault();
     }
 
     /**
