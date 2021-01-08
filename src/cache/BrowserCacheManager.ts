@@ -559,7 +559,7 @@ export class BrowserCacheManager extends CacheManager {
     setAuthorityCache(authority: string, state: string): void {
         // Cache authorityKey
         const authorityCacheKey = this.generateAuthorityKey(state);
-        this.setItem(authorityCacheKey, authority);
+        this.setTemporaryCache(authorityCacheKey, authority);
     }
 
     /**
