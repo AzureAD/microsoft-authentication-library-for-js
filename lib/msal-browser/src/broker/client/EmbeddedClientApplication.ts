@@ -170,7 +170,8 @@ export class EmbeddedClientApplication {
                         window.removeEventListener("message", onHandshakeResponse);
                         resolve(brokerHandshakeResponse);
                     } else {
-                        this.logger.warning(`Message is not handshake response: ${JSON.stringify(message.data)}`);
+                        this.logger.warning("Message is not handshake response");
+                        this.logger.verbosePii(`${JSON.stringify(message.data)}`);
                     }
                 } catch (e) {
                     window.removeEventListener("message", onHandshakeResponse);
