@@ -6,7 +6,7 @@
 import { Configuration } from "../config/Configuration";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { ClientApplication } from "./ClientApplication";
-import { ExperimentalClientAPI } from "./ExperimentalClientAPI";
+import { ExperimentalClientApplication } from "./ExperimentalClientApplication";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -15,7 +15,7 @@ import { ExperimentalClientAPI } from "./ExperimentalClientAPI";
 export class PublicClientApplication extends ClientApplication implements IPublicClientApplication {
 
     // Experimental object API
-    experimental: ExperimentalClientAPI;
+    experimental: ExperimentalClientApplication;
 
     /**
      * @constructor
@@ -51,12 +51,12 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     private checkExperimentalConfig(userConfig: Configuration): void {
         if (userConfig.experimental) {
             this.logger.warning("Experimental features are subject to changes or removal without warning.");
-            if (!userConfig.experimental.enableExperimentalApi) {
-                this.logger.warning("Experimental features were detected but the experimental API was not enabled. Please set enableExperimentalApi to true in the configuration object.");
+            if (!userConfig.experimental.enable) {
+                this.logger.warning("Experimental features were detected but the experimental API was not enabled. Please set 'enable' to true in the configuration object.");
                 return;
             }
             
-            this.experimental = new ExperimentalClientAPI(this.config, this);
+            this.experimental = new ExperimentalClientApplication(this.config, this);
         }
     }
 }

@@ -6,6 +6,7 @@
 import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode, LogLevel } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { InteractionType, BrowserCacheLocation } from "../utils/BrowserConstants";
+import { RedirectRequest } from "../request/RedirectRequest";
 
 // Default timeout for popup windows and iframes in milliseconds
 export const DEFAULT_POPUP_TIMEOUT_MS = 60000;
@@ -57,8 +58,7 @@ export type BrokerOptions = {
     preferredInteractionType?: InteractionType.Popup | InteractionType.Redirect | InteractionType.None;
     allowBrokering?: boolean;
     trustedBrokerDomains?: string[];
-    brokerRedirectStartPage?: string;
-    onBrokerRedirectNavigate?: (url: string) => boolean | void;
+    brokerRedirectParams?: Pick<RedirectRequest, "redirectStartPage" | "onRedirectNavigate">;
 };
 
 /**
@@ -88,7 +88,7 @@ export type BrowserSystemOptions = SystemOptions & {
 };
 
 export type ExperimentalOptions = {
-    enableExperimentalApi?: boolean;
+    enable?: boolean;
     brokerOptions?: BrokerOptions;
 };
 
@@ -155,8 +155,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     // Default broker options for browser
     const DEFAULT_BROKER_OPTIONS: Required<BrokerOptions> = {
         preferredInteractionType: undefined,
-        brokerRedirectStartPage: undefined,
-        onBrokerRedirectNavigate: undefined,
+        brokerRedirectParams: undefined,
         actAsBroker: false,
         allowBrokering: false,
         trustedBrokerDomains: []
@@ -178,7 +177,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     };
 
     const DEFAULT_EXPERIMENTAL_OPTIONS: Required<ExperimentalOptions> = {
-        enableExperimentalApi: false,
+        enable: false,
         brokerOptions: DEFAULT_BROKER_OPTIONS
     };
 
