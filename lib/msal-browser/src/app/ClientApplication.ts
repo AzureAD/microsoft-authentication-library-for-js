@@ -335,20 +335,24 @@ export abstract class ClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
+        let validRequest: AuthorizationUrlRequest;
         try {
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
+            validRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
         } catch (e) {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
         }
 
+        const popupName = PopupHandler.generatePopupName(this.config.auth.clientId, validRequest);
+
         // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
         if (this.config.system.asyncPopups) {
-            return this.acquireTokenPopupAsync(request);
+            return this.acquireTokenPopupAsync(validRequest, popupName);
         } else {
             // asyncPopups flag is set to false. Opens popup before acquiring token.
-            const popup = PopupHandler.openSizedPopup();
-            return this.acquireTokenPopupAsync(request, popup);
+            const popup = PopupHandler.openSizedPopup("about:blank", popupName);
+            return this.acquireTokenPopupAsync(validRequest, popupName, popup);
         }
     }
 
@@ -358,17 +362,15 @@ export abstract class ClientApplication {
      *
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    private async acquireTokenPopupAsync(request: PopupRequest, popup?: Window|null): Promise<AuthenticationResult> {
+    private async acquireTokenPopupAsync(validRequest: AuthorizationUrlRequest, popupName: string, popup?: Window|null): Promise<AuthenticationResult> {
         // If logged in, emit acquire token events
         const loggedInAccounts = this.getAllAccounts();
         if (loggedInAccounts.length > 0) {
-            this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Popup, request);
+            this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Popup, validRequest);
         } else {
-            this.emitEvent(EventType.LOGIN_START, InteractionType.Popup, request);
+            this.emitEvent(EventType.LOGIN_START, InteractionType.Popup, validRequest);
         }
 
-        // Preflight request
-        const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup, validRequest.correlationId);
 
         try {
@@ -385,10 +387,7 @@ export abstract class ClientApplication {
             const interactionHandler = new PopupHandler(authClient, this.browserStorage);
 
             // Show the UI once the url has been created. Get the window handle for the popup.
-            const popupParameters = {
-                popup: popup
-            };
-            const popupWindow: Window = interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, popupParameters);
+            const popupWindow: Window = interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, { popup, popupName });
 
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
             const hash = await interactionHandler.monitorPopupForHash(popupWindow, this.config.system.windowHashTimeout);
