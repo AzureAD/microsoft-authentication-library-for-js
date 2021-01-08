@@ -850,7 +850,9 @@ export abstract class ClientApplication {
             clientId: this.config.auth.clientId,
             correlationId: correlationId,
             apiId: apiId,
-            forceRefresh: forceRefresh || false
+            forceRefresh: forceRefresh || false,
+            wrapperSKU: this.wrapperSKU,
+            wrapperVer: this.wrapperVer
         };
 
         return new ServerTelemetryManager(telemetryPayload, this.browserStorage);
