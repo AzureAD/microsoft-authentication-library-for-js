@@ -37,6 +37,7 @@ async function runE2ETests(testScenarios: Array<string>, currentScenarioIndex: n
         }, 0);
         // If any tests fail, exit with code 1 so CI/CD check fails
         process.exitCode = (globalFailedTests > 0) ? 1 : 0;
+        process.exit();
     }
 }
 
