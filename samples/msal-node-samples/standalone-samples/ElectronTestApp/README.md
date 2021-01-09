@@ -28,7 +28,7 @@ You can also download the repository as a zip file by selecting "Download ZIP" f
 
 ### Pre-requisites
 - By using MSAL Node, you are working with the Microsoft Identity ecosystem. Read about [App Registrations](https://docs.microsoft.com/en-us/graph/auth-register-app-v2) and register one for use with this code.
-- Install [Node.js](https://nodejs.org/en/), [Electron.js](https://www.electronjs.org/) and[TypeScript](https://www.typescriptlang.org/) if needed.
+- Install [Node.js](https://nodejs.org/en/), [Electron.js](https://www.electronjs.org/) and [TypeScript](https://www.typescriptlang.org/) if needed.
 - Install the MSAL Node package:  
 ```bash
 npm install @azure/msal-node
