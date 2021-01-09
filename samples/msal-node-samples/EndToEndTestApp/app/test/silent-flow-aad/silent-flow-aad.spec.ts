@@ -24,7 +24,6 @@ let accountPwd: string;
 const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
 
 describe("Silent Flow AAD PPE Tests", () => {
-    jest.setTimeout(0);
     jest.retryTimes(1);
 
     let browser: puppeteer.Browser;
