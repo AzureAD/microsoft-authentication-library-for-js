@@ -16,6 +16,10 @@ export const BrokerAuthErrorMessage = {
     brokerResponseInvalidError: {
         code: "broker_response_invalid",
         desc: "The broker response did not have the expected values."
+    },
+    brokerRequestIncompleteError: {
+        code: "broker_request_incomplete",
+        desc: "The brokered request did not have the expected values."
     }
 };
 
@@ -46,5 +50,14 @@ export class BrokerAuthError extends BrowserAuthError {
     static createBrokerResponseInvalidError(): BrokerAuthError {
         return new BrokerAuthError(BrokerAuthErrorMessage.brokerResponseInvalidError.code,
             `${BrokerAuthErrorMessage.brokerResponseInvalidError.desc}`);
+    }
+
+    /**
+     * Creates an error thrown when the broker response is invalid.
+     * @param errDetail 
+     */
+    static createBrokerRequestIncompleteError(): BrokerAuthError {
+        return new BrokerAuthError(BrokerAuthErrorMessage.brokerRequestIncompleteError.code,
+            `${BrokerAuthErrorMessage.brokerRequestIncompleteError.desc}`);
     }
 }

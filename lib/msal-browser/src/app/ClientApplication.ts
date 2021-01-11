@@ -325,7 +325,7 @@ export abstract class ClientApplication {
      * @param userRedirectStartPage 
      * @param userOnRedirectNavigate 
      */
-    protected async acquireTokenRedirectAsync(validRequest: AuthorizationUrlRequest, userRedirectStartPage: string, userOnRedirectNavigate: (url: string) => void | boolean): Promise<void> {
+    protected async acquireTokenRedirectAsync(validRequest: AuthorizationUrlRequest, userRedirectStartPage?: string, userOnRedirectNavigate?: (url: string) => void | boolean): Promise<void> {
         const loggedInAccounts = this.getAllAccounts();
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect, validRequest.correlationId);
         try {
