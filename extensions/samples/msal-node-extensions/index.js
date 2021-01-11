@@ -13,20 +13,23 @@ const SERVER_PORT = process.env.PORT || 3000;
 const cachePath = path.join(__dirname, "./cache.json");
 
 createPersistence().then((filePersistence) => {
-
     const publicClientConfig = {
         auth: {
-            clientId: "99cab759-2aab-420b-91d8-5e3d8d4f063b",
-            authority: "https://login.microsoftonline.com/90b8faa8-cc95-460e-a618-ee770bee1759",
+            clientId: "8fcb9fc1-d8f9-49c0-b80e-a8a8a201d051",
+            authority: "https://login.windows-ppe.net/common/"
         },
         cache: {
             cachePlugin: new extensions.PersistenceCachePlugin(filePersistence)
         },
     };
+
     const pca = new msal.PublicClientApplication(publicClientConfig);
 
     // Create Express App and Routes
     const app = express();
+    
+    // Set homeAccountId in memory
+    app.locals.homeAccountId = null;
 
     app.get('/', (req, res) => {
         const authCodeUrlParameters = {
@@ -35,9 +38,11 @@ createPersistence().then((filePersistence) => {
         };
 
         // get url to sign user in and consent to scopes needed for application
-        pca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
-            res.redirect(response);
-        }).catch((error) => console.log(JSON.stringify(error)));
+        pca.getAuthCodeUrl(authCodeUrlParameters)
+            .then((response) => {
+                res.redirect(response);
+            })
+            .catch((error) => console.log(JSON.stringify(error)));
     });
 
     app.get('/redirect', (req, res) => {
@@ -47,13 +52,43 @@ createPersistence().then((filePersistence) => {
             scopes: ["user.read"],
         };
 
-        pca.acquireTokenByCode(tokenRequest).then((response) => {
-            console.log("\nResponse: \n", response);
-            res.sendStatus(200);
-        }).catch((error) => {
-            console.log(error);
-            res.status(500).send(error);
-        });
+        pca.acquireTokenByCode(tokenRequest)
+            .then((response) => {
+                app.locals.homeAccountId = response.account.homeAccountId;
+                console.log("\nResponse: \n", response);
+                res.status(200)
+                    .send(`
+                        <h3>Successfully authenticated!</h3>
+                        <p>User <b>${response.account.username}</b> successfully authenticated with the home account Id (${response.account.homeAccountId})</p>
+                        <h5>Related links:</h5>
+                        <ul>
+                            <li>
+                                <a href="http://localhost:3000/cache">Access cache</a>
+                            </li>
+                        </ul>
+                    `);
+            })
+            .catch((error) => {
+                console.log(error);
+                res.status(500).send(error);
+            });
+    });
+
+    app.get('/cache', async (req, res) => {
+        const cache = pca.getTokenCache();
+        const accounts = await cache.getAllAccounts();
+        const authenticatedAccount = await cache.getAccountByHomeId(app.locals.homeAccountId);
+
+        if (accounts.length) {
+            res.status(200)
+            .json({
+                authenticatedAccount,
+                accounts,
+            });
+        } else {
+            res.status(200)
+            .send('No accounts found in the cache.');
+        }
     });
 
     app.listen(SERVER_PORT, () => console.log(`Msal Extensions Sample app listening on port ${SERVER_PORT}!`));
