@@ -6,7 +6,6 @@
 import { BrokerMessage } from "../BrokerMessage";
 import { BrokerMessageType } from "../../../utils/BrowserConstants";
 import { BrowserAuthError } from "../../../error/BrowserAuthError";
-import { BrokerAuthResponse } from "./BrokerAuthResponse";
 
 /**
  * Message type for responses to BrokerHandshakeRequests
@@ -14,9 +13,8 @@ import { BrokerAuthResponse } from "./BrokerAuthResponse";
 export class BrokerHandshakeResponse extends BrokerMessage {
     public version: string;
     public readonly brokerOrigin: string;
-    public readonly authResult: BrokerAuthResponse;
 
-    constructor(version: string, brokerOrigin?: string) {
+    constructor(version: string, brokerOrigin: string) {
         super(BrokerMessageType.HANDSHAKE_RESPONSE);
 
         this.version = version;
@@ -28,19 +26,20 @@ export class BrokerHandshakeResponse extends BrokerMessage {
      * @param message 
      * @param trustedBrokerDomains 
      */
-    static validate(message: MessageEvent, trustedBrokerDomains: string[]): BrokerHandshakeResponse|null {
+    static validate(message: MessageEvent, trustedBrokerDomains?: string[]): BrokerHandshakeResponse|null {
         // First, validate message type
-        message = BrokerMessage.validateMessage(message);
-        if (message && 
-            message.data.messageType === BrokerMessageType.HANDSHAKE_RESPONSE &&
-            message.data.version) {
+        const validMessage = BrokerMessage.validateMessage(message);
+        if (trustedBrokerDomains &&
+            validMessage && 
+            validMessage.data.messageType === BrokerMessageType.HANDSHAKE_RESPONSE &&
+            validMessage.data.version) {
             // TODO, verify version compatibility
-            if (trustedBrokerDomains.indexOf(message.origin) < 0) {
+            if (trustedBrokerDomains.indexOf(validMessage.origin) < 0) {
                 // TODO make this a browser Error
                 throw BrowserAuthError.createUntrustedBrokerError();
             }
 
-            return new BrokerHandshakeResponse(message.data.version, message.origin);
+            return new BrokerHandshakeResponse(validMessage.data.version, validMessage.origin);
         }
 
         return null;

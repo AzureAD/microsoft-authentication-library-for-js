@@ -7,16 +7,17 @@ import { BrokerMessage } from "../BrokerMessage";
 import { BrokerAuthenticationResult, AccessTokenEntity, IdTokenEntity, AccountEntity, CacheManager, AuthenticationResult, CacheRecord } from "@azure/msal-common";
 import { InteractionType, BrokerMessageType } from "../../../utils/BrowserConstants";
 import { BrowserCacheManager } from "../../../cache/BrowserCacheManager";
+import { BrokerAuthError } from "../../../error/BrokerAuthError";
 
 /**
  * Message type for responses to BrokerAuthRequests
  */
 export class BrokerAuthResponse extends BrokerMessage {
     public interactionType: InteractionType;
-    public result: BrokerAuthenticationResult;
-    public error: Error;
+    public result: BrokerAuthenticationResult | null;
+    public error?: Error;
 
-    constructor(interactionType: InteractionType, authResult: BrokerAuthenticationResult, authError?: Error) {
+    constructor(interactionType: InteractionType, authResult: BrokerAuthenticationResult | null, authError?: Error) {
         super(BrokerMessageType.AUTH_RESULT);
         this.interactionType = interactionType;
         this.result = authResult;
@@ -37,12 +38,12 @@ export class BrokerAuthResponse extends BrokerMessage {
         return null;
     }
 
-    static processBrokerResponseMessage(brokerAuthResultMessage: MessageEvent, browserStorage: BrowserCacheManager): AuthenticationResult {
+    static processBrokerResponseMessage(brokerAuthResultMessage: MessageEvent, browserStorage: BrowserCacheManager): AuthenticationResult | null {
         const brokerAuthResult = BrokerAuthResponse.validate(brokerAuthResultMessage);
         return BrokerAuthResponse.processBrokerResponse(brokerAuthResult, browserStorage);
     }
 
-    static processBrokerResponse(brokerAuthResult: BrokerAuthResponse, browserStorage: BrowserCacheManager): AuthenticationResult {
+    static processBrokerResponse(brokerAuthResult: BrokerAuthResponse | null, browserStorage: BrowserCacheManager): AuthenticationResult | null {
         if (!brokerAuthResult) {
             return null;
         }
@@ -50,6 +51,12 @@ export class BrokerAuthResponse extends BrokerMessage {
         if (brokerAuthResult.error) {
             throw brokerAuthResult.error;
         }
+
+        if (!brokerAuthResult.result || !brokerAuthResult.result.tokensToCache) {
+            // If we reach here without a result object or tokensToCache, throw error as it is an unexpected code path.
+            throw BrokerAuthError.createBrokerResponseInvalidError();
+        }
+
         const accessTokenEntity: AccessTokenEntity = new AccessTokenEntity();
         const idTokenEntity: IdTokenEntity = new IdTokenEntity();
         const accountEntity: AccountEntity = new AccountEntity();
