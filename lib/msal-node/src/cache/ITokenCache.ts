@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { NodeConfigurationAuthError } from "../error/NodeConfigurationAuthError";
 import { AccountInfo } from "@azure/msal-common";
 
 export interface ITokenCache {
