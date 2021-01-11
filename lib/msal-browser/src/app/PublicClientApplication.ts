@@ -15,7 +15,7 @@ import { ExperimentalClientApplication } from "./ExperimentalClientApplication";
 export class PublicClientApplication extends ClientApplication implements IPublicClientApplication {
 
     // Experimental object API
-    experimental: ExperimentalClientApplication;
+    experimental?: ExperimentalClientApplication;
 
     /**
      * @constructor

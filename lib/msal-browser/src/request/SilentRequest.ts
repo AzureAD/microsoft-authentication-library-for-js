@@ -22,7 +22,7 @@ export type SilentRequest = Omit<SilentFlowRequest, "authority"|"correlationId"|
     redirectUri?: string;
     extraQueryParameters?: StringDict;
     authority?: string;
-    account?: AccountInfo;
+    account: AccountInfo;
     correlationId?: string;
     forceRefresh?: boolean;
 };

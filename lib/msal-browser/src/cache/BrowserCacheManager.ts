@@ -3,9 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, RequestThumbprint } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, RequestThumbprint, DEFAULT_CRYPTO_IMPLEMENTATION } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
-import { CryptoOps } from "../crypto/CryptoOps";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheLocation, InteractionType, MemoryCacheKeys, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserStorage } from "./BrowserStorage";
@@ -32,7 +31,7 @@ export class BrowserCacheManager extends CacheManager {
     // Cookie life calculation (hours * minutes * seconds * ms)
     private readonly COOKIE_LIFE_MULTIPLIER = 24 * 60 * 60 * 1000;
 
-    constructor(clientId: string, cacheConfig: CacheOptions, cryptoImpl: CryptoOps, logger: Logger) {
+    constructor(clientId: string, cacheConfig: Required<CacheOptions>, cryptoImpl: ICrypto, logger: Logger) {
         super(clientId, cryptoImpl);
 
         this.cacheConfig = cacheConfig;
@@ -93,7 +92,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param value
      * @param storeAuthStateInCookie
      */
-    private migrateCacheEntry(newKey: string, value: string): void {
+    private migrateCacheEntry(newKey: string, value: string|null): void {
         if (value) {
             this.setTemporaryCache(newKey, value, true);
         }
@@ -103,7 +102,7 @@ export class BrowserCacheManager extends CacheManager {
      * Parses passed value as JSON object, JSON.parse() will throw an error.
      * @param input
      */
-    private validateAndParseJson(jsonValue: string): object {
+    private validateAndParseJson(jsonValue: string): object | null {
         try {
             const parsedJson = JSON.parse(jsonValue);
             /**
@@ -122,7 +121,7 @@ export class BrowserCacheManager extends CacheManager {
      * fetches the entry from the browser storage based off the key
      * @param key
      */
-    getItem(key: string): string {
+    getItem(key: string): string | null {
         return this.browserStorage.getItem(key);
     }
 
@@ -141,11 +140,15 @@ export class BrowserCacheManager extends CacheManager {
      */
     getAccount(accountKey: string): AccountEntity | null {
         const account = this.getItem(accountKey);
-        if (StringUtils.isEmpty(account)) {
+        if (!account) {
             return null;
         }
 
         const parsedAccount = this.validateAndParseJson(account);
+        if (!parsedAccount) {
+            return null;
+        }
+
         const accountEntity = CacheManager.toObject<AccountEntity>(new AccountEntity(), parsedAccount);
         if (AccountEntity.isAccountEntity(accountEntity)) {
             return accountEntity;
@@ -167,13 +170,17 @@ export class BrowserCacheManager extends CacheManager {
      * generates idToken entity from a string
      * @param idTokenKey
      */
-    getIdTokenCredential(idTokenKey: string): IdTokenEntity {
+    getIdTokenCredential(idTokenKey: string): IdTokenEntity | null {
         const value = this.getItem(idTokenKey);
-        if (StringUtils.isEmpty(value)) {
+        if (!value) {
             return null;
         }
 
         const parsedIdToken = this.validateAndParseJson(value);
+        if (!parsedIdToken) {
+            return null;
+        }
+
         const idToken: IdTokenEntity = CacheManager.toObject(new IdTokenEntity(), parsedIdToken);
         if (IdTokenEntity.isIdTokenEntity(idToken)) {
             return idToken;
@@ -194,12 +201,16 @@ export class BrowserCacheManager extends CacheManager {
      * generates accessToken entity from a string
      * @param key
      */
-    getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity {
+    getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity | null {
         const value = this.getItem(accessTokenKey);
-        if (StringUtils.isEmpty(value)) {
+        if (!value) {
             return null;
         }
         const parsedAccessToken = this.validateAndParseJson(value);
+        if (!parsedAccessToken) {
+            return null;
+        }
+
         const accessToken: AccessTokenEntity = CacheManager.toObject(new AccessTokenEntity(), parsedAccessToken);
         if (AccessTokenEntity.isAccessTokenEntity(accessToken)) {
             return accessToken;
@@ -220,12 +231,16 @@ export class BrowserCacheManager extends CacheManager {
      * generates refreshToken entity from a string
      * @param refreshTokenKey
      */
-    getRefreshTokenCredential(refreshTokenKey: string): RefreshTokenEntity {
+    getRefreshTokenCredential(refreshTokenKey: string): RefreshTokenEntity | null {
         const value = this.getItem(refreshTokenKey);
-        if (StringUtils.isEmpty(value)) {
+        if (!value) {
             return null;
         }
         const parsedRefreshToken = this.validateAndParseJson(value);
+        if (!parsedRefreshToken) {
+            return null;
+        }
+
         const refreshToken: RefreshTokenEntity = CacheManager.toObject(new RefreshTokenEntity(), parsedRefreshToken);
         if (RefreshTokenEntity.isRefreshTokenEntity(refreshToken)) {
             return refreshToken;
@@ -246,13 +261,17 @@ export class BrowserCacheManager extends CacheManager {
      * fetch appMetadata entity from the platform cache
      * @param appMetadataKey
      */
-    getAppMetadata(appMetadataKey: string): AppMetadataEntity {
+    getAppMetadata(appMetadataKey: string): AppMetadataEntity | null {
         const value = this.getItem(appMetadataKey);
-        if (StringUtils.isEmpty(value)) {
+        if (!value) {
             return null;
         }
 
         const parsedMetadata = this.validateAndParseJson(value);
+        if (!parsedMetadata) {
+            return null;
+        }
+
         const appMetadata: AppMetadataEntity = CacheManager.toObject(new AppMetadataEntity(), parsedMetadata);
         if (AppMetadataEntity.isAppMetadataEntity(appMetadataKey, appMetadata)) {
             return appMetadata;
@@ -275,10 +294,14 @@ export class BrowserCacheManager extends CacheManager {
      */
     getServerTelemetry(serverTelemetryKey: string): ServerTelemetryEntity | null {
         const value = this.getItem(serverTelemetryKey);
-        if (StringUtils.isEmpty(value)) {
+        if (!value) {
             return null;
         }
         const parsedMetadata = this.validateAndParseJson(value);
+        if (!parsedMetadata) {
+            return null;
+        }
+
         const serverTelemetryEntity = CacheManager.toObject(new ServerTelemetryEntity(), parsedMetadata);
         if (ServerTelemetryEntity.isServerTelemetryEntity(serverTelemetryKey, serverTelemetryEntity)) {
             return serverTelemetryEntity;
@@ -301,11 +324,15 @@ export class BrowserCacheManager extends CacheManager {
      */
     getThrottlingCache(throttlingCacheKey: string): ThrottlingEntity | null {
         const value = this.getItem(throttlingCacheKey);
-        if (StringUtils.isEmpty(value)) {
+        if (!value) {
             return null;
         }
         
         const parsedThrottlingCache = this.validateAndParseJson(value);
+        if (!parsedThrottlingCache) {
+            return null;
+        }
+
         const throttlingCache = CacheManager.toObject(new ThrottlingEntity(), parsedThrottlingCache);
         if (ThrottlingEntity.isThrottlingEntity(throttlingCacheKey, throttlingCache)) {
             return throttlingCache;
@@ -327,7 +354,7 @@ export class BrowserCacheManager extends CacheManager {
      * Will retrieve frm cookies if storeAuthStateInCookie is set to true.
      * @param key
      */
-    getTemporaryCache(cacheKey: string, generateKey?: boolean): string {
+    getTemporaryCache(cacheKey: string, generateKey?: boolean): string | null {
         const key = generateKey ? this.generateCacheKey(cacheKey) : cacheKey;
         if (this.cacheConfig.storeAuthStateInCookie) {
             const itemCookie = this.getItemCookie(key);
@@ -337,7 +364,7 @@ export class BrowserCacheManager extends CacheManager {
         }
 
         const value = this.getItem(key);
-        if (StringUtils.isEmpty(value)) {
+        if (!value) {
             return null;
         }
         return value;
@@ -363,11 +390,11 @@ export class BrowserCacheManager extends CacheManager {
      * Gets internal cache item with given key.
      * @param key
      */
-    getMemoryCache(cacheKey: string): string {
+    getMemoryCache(cacheKey: string): string | null {
         const key = this.generateCacheKey(cacheKey);
 
         const value = this.internalStorage.getItem(key);
-        if (StringUtils.isEmpty(value)) {
+        if (value) {
             return null;
         }
         return value;
@@ -480,16 +507,6 @@ export class BrowserCacheManager extends CacheManager {
      */
     clearItemCookie(cookieName: string): void {
         this.setItemCookie(cookieName, "", -1);
-    }
-
-    /**
-     * Clear all msal cookies
-     */
-    clearMsalCookie(stateString?: string): void {
-        const nonceKey = stateString ? this.generateNonceKey(stateString) : this.generateStateKey(TemporaryCacheKeys.NONCE_IDTOKEN);
-        this.clearItemCookie(this.generateStateKey(stateString));
-        this.clearItemCookie(nonceKey);
-        this.clearItemCookie(this.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI));
     }
 
     /**
@@ -648,7 +665,7 @@ export class BrowserCacheManager extends CacheManager {
     /**
      * Gets the cached authority based on the cached state. Returns empty if no cached state found.
      */
-    getCachedAuthority(cachedState: string): string {
+    getCachedAuthority(cachedState: string): string | null {
         const stateCacheKey = this.generateStateKey(cachedState);
         const state = this.getTemporaryCache(stateCacheKey);
         if (!state) {
@@ -674,7 +691,8 @@ export class BrowserCacheManager extends CacheManager {
         this.setTemporaryCache(nonceCacheKey, nonce, false);
 
         // Cache authorityKey
-        this.setAuthorityCache(authorityInstance, state);
+        const authorityCacheKey = this.generateAuthorityKey(state);
+        this.setTemporaryCache(authorityCacheKey, authorityInstance, false);
     }
 
     /**
@@ -717,8 +735,11 @@ export class BrowserCacheManager extends CacheManager {
             }
 
             const value = this.browserStorage.getItem(key);
+            if (!value) {
+                return;
+            }
             const parsedState = BrowserProtocolUtils.extractBrowserRequestState(this.cryptoImpl, value);
-            if (parsedState.interactionType === interactionType) {
+            if (parsedState && parsedState.interactionType === interactionType) {
                 this.resetRequestCache(value);
             }
         });
@@ -733,22 +754,36 @@ export class BrowserCacheManager extends CacheManager {
      * Gets the token exchange parameters from the cache. Throws an error if nothing is found.
      */
     getCachedRequest(state: string, browserCrypto: ICrypto): AuthorizationCodeRequest {
-        try {
-            // Get token request from cache and parse as TokenExchangeParameters.
-            const encodedTokenRequest = this.getTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, true);
-
-            const parsedRequest = JSON.parse(browserCrypto.base64Decode(encodedTokenRequest)) as AuthorizationCodeRequest;
-            this.removeItem(this.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS));
-
-            // Get cached authority and use if no authority is cached with request.
-            if (StringUtils.isEmpty(parsedRequest.authority)) {
-                const authorityCacheKey: string = this.generateAuthorityKey(state);
-                const cachedAuthority: string = this.getTemporaryCache(authorityCacheKey);
-                parsedRequest.authority = cachedAuthority;
-            }
-            return parsedRequest;
-        } catch (err) {
-            throw BrowserAuthError.createTokenRequestCacheError(err);
+        // Get token request from cache and parse as TokenExchangeParameters.
+        const encodedTokenRequest = this.getTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, true);
+        if (!encodedTokenRequest) {
+            throw BrowserAuthError.createNoTokenRequestCacheError();
         }
+
+        const parsedRequest = this.validateAndParseJson(browserCrypto.base64Decode(encodedTokenRequest)) as AuthorizationCodeRequest;
+        if (!parsedRequest) {
+            throw BrowserAuthError.createUnableToParseTokenRequestCacheError();
+        }
+        this.removeItem(this.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS));
+
+        // Get cached authority and use if no authority is cached with request.
+        if (StringUtils.isEmpty(parsedRequest.authority)) {
+            const authorityCacheKey: string = this.generateAuthorityKey(state);
+            const cachedAuthority = this.getTemporaryCache(authorityCacheKey);
+            if (!cachedAuthority) {
+                throw BrowserAuthError.createNoCachedAuthorityError();
+            }
+            parsedRequest.authority = cachedAuthority;
+        }
+        
+        return parsedRequest;
     }
 }
+
+export const DEFAULT_BROWSER_CACHE_MANAGER = (clientId: string, logger: Logger) => {
+    const cacheOptions = {
+        cacheLocation: BrowserCacheLocation.MemoryStorage,
+        storeAuthStateInCookie: false
+    };
+    return new BrowserCacheManager(clientId, cacheOptions, DEFAULT_CRYPTO_IMPLEMENTATION, logger);
+};
