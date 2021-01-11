@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add interface stubs (#2792)",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -116,7 +116,7 @@ export class ResponseHandler {
         authCodePayload?: AuthorizationCodePayload,
         requestScopes?: string[],
         oboAssertion?: string,
-        handlingRefreshTokenResponse?: boolean): Promise<AuthenticationResult | null> {
+        handlingRefreshTokenResponse?: boolean): Promise<AuthenticationResult> {
 
         // create an idToken object (not entity)
         let idTokenObj: AuthToken | undefined;
@@ -158,7 +158,7 @@ export class ResponseHandler {
                 const account = this.cacheStorage.getAccount(key);
                 if (!account) {
                     this.logger.warning("Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache");
-                    return null;
+                    return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, idTokenObj, requestStateObj, resourceRequestMethod, resourceRequestUri);
                 }
             }
             this.cacheStorage.saveCacheRecord(cacheRecord);
@@ -171,7 +171,7 @@ export class ResponseHandler {
         return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, idTokenObj, requestStateObj, resourceRequestMethod, resourceRequestUri);
     }
 
-    async handleBrokeredServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, embeddedAppClientId: string, embeddedAppOrigin: string, authCodePayload?: AuthorizationCodePayload, requestScopes?: string[]): Promise<BrokerAuthenticationResult | null> {
+    async handleBrokeredServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, embeddedAppClientId: string, embeddedAppOrigin: string, authCodePayload?: AuthorizationCodePayload, requestScopes?: string[]): Promise<BrokerAuthenticationResult> {
         // create an idToken object (not entity)
         let idTokenObj: AuthToken | undefined;
         if (serverTokenResponse.id_token) {

@@ -16,10 +16,10 @@ import { BrokerAuthError } from "../../../error/BrokerAuthError";
  */
 export class BrokerAuthResponse extends BrokerMessage {
     public interactionType: InteractionType;
-    public result: BrokerAuthenticationResult;
-    public error: AuthError;
+    public result: BrokerAuthenticationResult | null;
+    public error?: Error;
 
-    constructor(interactionType: InteractionType, authResult: BrokerAuthenticationResult, authError?: AuthError) {
+    constructor(interactionType: InteractionType, authResult: BrokerAuthenticationResult | null, authError?: Error) {
         super(BrokerMessageType.AUTH_RESULT);
         this.interactionType = interactionType;
         this.result = authResult;
@@ -38,7 +38,7 @@ export class BrokerAuthResponse extends BrokerMessage {
         return null;
     }
 
-    static detectError(message: MessageEvent): AuthError {
+    static detectError(message: MessageEvent): AuthError | undefined {
         const messageError = message.data.error;
         if (!messageError) {
             return undefined;
@@ -67,18 +67,23 @@ export class BrokerAuthResponse extends BrokerMessage {
         return messageError;
     }
 
-    static processBrokerResponseMessage(brokerAuthResultMessage: MessageEvent, browserStorage: BrowserCacheManager): AuthenticationResult {
+    static processBrokerResponseMessage(brokerAuthResultMessage: MessageEvent, browserStorage: BrowserCacheManager): AuthenticationResult | null {
         const brokerAuthResult = BrokerAuthResponse.validate(brokerAuthResultMessage);
         return BrokerAuthResponse.processBrokerResponse(brokerAuthResult, browserStorage);
     }
 
-    static processBrokerResponse(brokerAuthResult: BrokerAuthResponse, browserStorage: BrowserCacheManager): AuthenticationResult {
-        if (brokerAuthResult && brokerAuthResult.error) {
-            throw brokerAuthResult.error;
+    static processBrokerResponse(brokerAuthResult: BrokerAuthResponse | null, browserStorage: BrowserCacheManager): AuthenticationResult | null {
+        if (!brokerAuthResult) {
+            return null;
         }
 
         if (!brokerAuthResult || !brokerAuthResult.result) {
             return null;
+        }
+
+        if (!brokerAuthResult.result || !brokerAuthResult.result.tokensToCache) {
+            // If we reach here without a result object or tokensToCache, throw error as it is an unexpected code path.
+            throw BrokerAuthError.createBrokerResponseInvalidError();
         }
 
         const accessTokenEntity: AccessTokenEntity = new AccessTokenEntity();

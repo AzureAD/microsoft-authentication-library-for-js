@@ -9,8 +9,8 @@ import { TEST_HASHES } from "./StringConstants";
 
 describe("BrowserProtocolUtils.ts Unit Tests", () => {
 
-    const browserRedirectRequestState: BrowserStateObject = { interactionType: InteractionType.REDIRECT };
-    const browserPopupRequestState: BrowserStateObject = { interactionType: InteractionType.POPUP };
+    const browserRedirectRequestState: BrowserStateObject = { interactionType: InteractionType.Redirect };
+    const browserPopupRequestState: BrowserStateObject = { interactionType: InteractionType.Popup };
 
     let cryptoInterface: CryptoOps;
     let dbStorage = {};
@@ -37,14 +37,14 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
         const redirectState = ProtocolUtils.setRequestState(cryptoInterface, null, browserRedirectRequestState);
         const popupState = ProtocolUtils.setRequestState(cryptoInterface, null, browserPopupRequestState);
         const redirectPlatformState = BrowserProtocolUtils.extractBrowserRequestState(cryptoInterface, redirectState);
-        expect(redirectPlatformState.interactionType).to.be.eq(InteractionType.REDIRECT);
+        expect(redirectPlatformState.interactionType).to.be.eq(InteractionType.Redirect);
         const popupPlatformState = BrowserProtocolUtils.extractBrowserRequestState(cryptoInterface, popupState);
-        expect(popupPlatformState.interactionType).to.be.eq(InteractionType.POPUP);
+        expect(popupPlatformState.interactionType).to.be.eq(InteractionType.Popup);
     });
 
     describe("parseServerResponseFromHash", () => {
         it("parses code from hash", () => {
-            const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+            const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
 
             expect(serverParams).to.deep.equal({
                 "client_info": "eyJ1aWQiOiIxMjMtdGVzdC11aWQiLCJ1dGlkIjoiNDU2LXRlc3QtdXRpZCJ9",

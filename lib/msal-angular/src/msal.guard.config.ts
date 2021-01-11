@@ -7,5 +7,6 @@ import { PopupRequest, RedirectRequest,InteractionType } from "@azure/msal-brows
 
 export type MsalGuardConfiguration = {
     interactionType: InteractionType.Popup | InteractionType.Redirect;
-    authRequest?: PopupRequest | Omit<RedirectRequest, "redirectStartPage">;
+    authRequest?: Partial<PopupRequest> | Partial<Omit<RedirectRequest, "redirectStartPage">>;
+    loginFailedRoute?: string;
 };
