@@ -4,6 +4,8 @@
   "compilerOptions": {
     "target": "es5",
     "module": "esnext",
+    "declaration": true,
+    "declarationMap": true,
     "lib": ["dom", "esnext"],
     "importHelpers": true,
     "declaration": true,

@@ -1,0 +1,3925 @@
+{
+  "metadata": {
+    "toolPackage": "@microsoft/api-extractor",
+    "toolVersion": "7.12.1",
+    "schemaVersion": 1003,
+    "oldestForwardsCompatibleVersion": 1001
+  },
+  "kind": "Package",
+  "canonicalReference": "@azure/msal-node!",
+  "docComment": "",
+  "name": "@azure/msal-node",
+  "members": [
+    {
+      "kind": "EntryPoint",
+      "canonicalReference": "@azure/msal-node!",
+      "name": "",
+      "members": [
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@azure/msal-node!AuthorizationCodeRequest:type",
+          "docComment": "/**\n * Request object passed by user to acquire a token from the server exchanging a valid authorization code (second leg of OAuth2.0 Authorization Code flow)\n *\n * - scopes - Array of scopes the application is requesting access to. - claims - A stringified claims request which will be added to all /authorize and /token calls - authority: - URL of the authority, the security token service (STS) from which MSAL will acquire tokens. If authority is set on client application object, this will override that value. Overriding the value will cause for authority validation to happen each time. If the same authority will be used for all request, set on the application object instead of the requests. - correlationId - Unique GUID set per request to trace a request end-to-end for telemetry purposes. - redirectUri - The redirect URI of your app, where the authority will redirect to after the user inputs credentials and consents. It must exactly match one of the redirect URIs you registered in the portal. - code - The authorization_code that the user acquired in the first leg of the flow. - codeVerifier - The same code_verifier that was used to obtain the authorization_code. Required if PKCE was used in the authorization code grant request.For more information, see the PKCE RFC: https://tools.ietf.org/html/rfc7636\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare type AuthorizationCodeRequest = "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "CommonAuthorizationCodeRequest",
+              "canonicalReference": "@azure/msal-common!AuthorizationCodeRequest:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", \"scopes\" | \"redirectUri\" | \"code\" | \"authenticationScheme\" | \"resourceRequestMethod\" | \"resourceRequestUri\">> & {\n    scopes: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Array",
+              "canonicalReference": "!Array:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<string>;\n    redirectUri: string;\n    code: string;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "AuthorizationCodeRequest",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 9
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@azure/msal-node!AuthorizationUrlRequest:type",
+          "docComment": "/**\n * Request object passed by user to retrieve a Code from the server (first leg of authorization code grant flow)\n *\n * - scopes - Array of scopes the application is requesting access to. - claims - A stringified claims request which will be added to all /authorize and /token calls - authority - Url of the authority which the application acquires tokens from. - correlationId - Unique GUID set per request to trace a request end-to-end for telemetry purposes. - redirectUri - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal. - extraScopesToConsent - Scopes for a different resource when the user needs consent upfront. - responseMode - Specifies the method that should be used to send the authentication result to your app. Can be query, form_post, or fragment. If no value is passed in, it defaults to query. - codeChallenge - Used to secure authorization code grant via Proof of Key for Code Exchange (PKCE). For more information, see the PKCE RCF:https://tools.ietf.org/html/rfc7636 - codeChallengeMethod - The method used to encode the code verifier for the code challenge parameter. Can be \"plain\" or \"S256\". If excluded, code challenge is assumed to be plaintext. For more information, see the PKCE RCF: https://tools.ietf.org/html/rfc7636 - state - A value included in the request that is also returned in the token response. A randomly generated unique value is typically used for preventing cross site request forgery attacks. The state is also used to encode information about the user's state in the app before the authentication request occurred. - prompt - Indicates the type of user interaction that is required. login: will force the user to enter their credentials on that request, negating single-sign on none: will ensure that the user isn't presented with any interactive prompt. if request can't be completed via single-sign on, the endpoint will return an interaction_required error consent: will the trigger the OAuth consent dialog after the user signs in, asking the user to grant permissions to the app select_account: will interrupt single sign-=on providing account selection experience listing all the accounts in session or any remembered accounts or an option to choose to use a different account - account - AccountInfo obtained from a getAccount API. Will be used in certain scenarios to generate login_hint if both loginHint and sid params are not provided. - loginHint - Can be used to pre-fill the username/email address field of the sign-in page for the user, if you know the username/email address ahead of time. Often apps use this parameter during re-authentication, having already extracted the username from a previous sign-in using the preferred_username claim. - sid - Session ID, unique identifier for the session. Available as an optional claim on ID tokens. - domainHint - Provides a hint about the tenant or domain that the user should use to sign in. The value of the domain hint is a registered domain for the tenant. - extraQueryParameters - String to string map of custom query parameters. - nonce - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare type AuthorizationUrlRequest = "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "CommonAuthorizationUrlRequest",
+              "canonicalReference": "@azure/msal-common!AuthorizationUrlRequest:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", \"scopes\" | \"redirectUri\" | \"resourceRequestMethod\" | \"resourceRequestUri\" | \"authenticationScheme\">> & {\n    scopes: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Array",
+              "canonicalReference": "!Array:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<string>;\n    redirectUri: string;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "AuthorizationUrlRequest",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 9
+          }
+        },
+        {
+          "kind": "Function",
+          "canonicalReference": "@azure/msal-node!buildAppConfiguration:function(1)",
+          "docComment": "/**\n * Sets the default options when not explicitly configured from app developer\n *\n * @param auth - \n *\n * @param cache - \n *\n * @param system - \n *\n * @returns Configuration\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare function buildAppConfiguration({ auth, cache, system, }: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Configuration",
+              "canonicalReference": "@azure/msal-node!Configuration:type"
+            },
+            {
+              "kind": "Content",
+              "text": "): "
+            },
+            {
+              "kind": "Reference",
+              "text": "Configuration",
+              "canonicalReference": "@azure/msal-node!Configuration:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "returnTypeTokenRange": {
+            "startIndex": 3,
+            "endIndex": 4
+          },
+          "releaseTag": "Public",
+          "overloadIndex": 1,
+          "parameters": [
+            {
+              "parameterName": "{ auth, cache, system, }",
+              "parameterTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              }
+            }
+          ],
+          "name": "buildAppConfiguration"
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@azure/msal-node!CacheKVStore:type",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare type CacheKVStore = "
+            },
+            {
+              "kind": "Reference",
+              "text": "Record",
+              "canonicalReference": "!Record:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<string, "
+            },
+            {
+              "kind": "Reference",
+              "text": "ValidCacheType",
+              "canonicalReference": "@azure/msal-common!ValidCacheType:type"
+            },
+            {
+              "kind": "Content",
+              "text": ">"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "CacheKVStore",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 5
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@azure/msal-node!ClientCredentialRequest:type",
+          "docComment": "/**\n * CommonClientCredentialRequest - scopes - Array of scopes the application is requesting access to. - authority - URL of the authority, the security token service (STS) from which MSAL will acquire tokens. - correlationId - Unique GUID set per request to trace a request end-to-end for telemetry purposes. - skipCache - Skip token cache lookup and force request to authority to get a a new token. Defaults to false.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare type ClientCredentialRequest = "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "CommonClientCredentialRequest",
+              "canonicalReference": "@azure/msal-common!ClientCredentialRequest:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", \"scopes\" | \"resourceRequestMethod\" | \"resourceRequestUri\">> & {\n    scopes: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Array",
+              "canonicalReference": "!Array:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<string>;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "ClientCredentialRequest",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 9
+          }
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "@azure/msal-node!ConfidentialClientApplication:class",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class ConfidentialClientApplication extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "ClientApplication",
+              "canonicalReference": "@azure/msal-node!ClientApplication:class"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "ConfidentialClientApplication",
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "@azure/msal-node!ConfidentialClientApplication:constructor(1)",
+              "docComment": "/**\n * @constructor Constructor for the ConfidentialClientApplication\n *\n * Required attributes in the Configuration object are: - clientID: the application ID of your application. You can obtain one by registering your application with our application registration portal - authority: the authority URL for your application. - client credential: Must set either client secret, certificate, or assertion for confidential clients. You can obtain a client secret from the application registration portal.\n *\n * In Azure AD, authority is a URL indicating of the form https://login.microsoftonline.com/{Enter_the_Tenant_Info_Here}. If your application supports Accounts in one organizational directory, replace \"Enter_the_Tenant_Info_Here\" value with the Tenant Id or Tenant name (for example, contoso.microsoft.com). If your application supports Accounts in any organizational directory, replace \"Enter_the_Tenant_Info_Here\" value with organizations. If your application supports Accounts in any organizational directory and personal Microsoft accounts, replace \"Enter_the_Tenant_Info_Here\" value with common. To restrict support to Personal Microsoft accounts only, replace \"Enter_the_Tenant_Info_Here\" value with consumers.\n *\n * In Azure B2C, authority is of the form https://{instance}/tfp/{tenant}/{policyName}/ Full B2C functionality will be available in this library in future versions.\n *\n * @param  - {@link (Configuration:type)} configuration object for the MSAL ConfidentialClientApplication instance\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(configuration: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Configuration",
+                  "canonicalReference": "@azure/msal-node!Configuration:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "configuration",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!ConfidentialClientApplication#acquireTokenByClientCredential:member(1)",
+              "docComment": "/**\n * Acquires tokens from the authority for the application (not for an end user).\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "acquireTokenByClientCredential(request: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ClientCredentialRequest",
+                  "canonicalReference": "@azure/msal-node!ClientCredentialRequest:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AuthenticationResult",
+                  "canonicalReference": "@azure/msal-common!AuthenticationResult:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | null>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "request",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "acquireTokenByClientCredential"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!ConfidentialClientApplication#acquireTokenOnBehalfOf:member(1)",
+              "docComment": "/**\n * Acquires tokens from the authority for the application.\n *\n * Used in scenarios where the current app is a middle-tier service which was called with a token representing an end user. The current app can use the token (oboAssertion) to request another token to access downstream web API, on behalf of that user.\n *\n * The current middle-tier app has no user interaction to obtain consent. See how to gain consent upfront for your middle-tier app from this article. https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow#gaining-consent-for-the-middle-tier-application\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "acquireTokenOnBehalfOf(request: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "OnBehalfOfRequest",
+                  "canonicalReference": "@azure/msal-node!OnBehalfOfRequest:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AuthenticationResult",
+                  "canonicalReference": "@azure/msal-common!AuthenticationResult:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | null>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "request",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "acquireTokenOnBehalfOf"
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@azure/msal-node!Configuration:type",
+          "docComment": "/**\n * Use the configuration object to configure MSAL and initialize the client application object\n *\n * - auth: this is where you configure auth elements like clientID, authority used for authenticating against the Microsoft Identity Platform - cache: this is where you configure cache location - system: this is where you can configure the network client, logger\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare type Configuration = "
+            },
+            {
+              "kind": "Content",
+              "text": "{\n    auth: "
+            },
+            {
+              "kind": "Reference",
+              "text": "NodeAuthOptions",
+              "canonicalReference": "@azure/msal-node!NodeAuthOptions:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    cache?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "CacheOptions",
+              "canonicalReference": "@azure/msal-node!CacheOptions:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    system?: "
+            },
+            {
+              "kind": "Reference",
+              "text": "NodeSystemOptions",
+              "canonicalReference": "@azure/msal-node!NodeSystemOptions:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "Configuration",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 8
+          }
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "@azure/msal-node!CryptoProvider:class",
+          "docComment": "/**\n * This class implements MSAL node's crypto interface, which allows it to perform base64 encoding and decoding, generating cryptographically random GUIDs and implementing Proof Key for Code Exchange specs for the OAuth Authorization Code Flow using PKCE (rfc here: https://tools.ietf.org/html/rfc7636).\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class CryptoProvider implements "
+            },
+            {
+              "kind": "Reference",
+              "text": "ICrypto",
+              "canonicalReference": "@azure/msal-common!ICrypto:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "CryptoProvider",
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "@azure/msal-node!CryptoProvider:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `CryptoProvider` class\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor();"
+                }
+              ],
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": []
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!CryptoProvider#base64Decode:member(1)",
+              "docComment": "/**\n * Decodes input string from base64.\n *\n * @param input - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "base64Decode(input: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "input",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "base64Decode"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!CryptoProvider#base64Encode:member(1)",
+              "docComment": "/**\n * Encodes input string to base64.\n *\n * @param input - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "base64Encode(input: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "input",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "base64Encode"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!CryptoProvider#createNewGuid:member(1)",
+              "docComment": "/**\n * Creates a new random GUID - used to populate state and nonce.\n *\n * @returns string (GUID)\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "createNewGuid(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "createNewGuid"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!CryptoProvider#generatePkceCodes:member(1)",
+              "docComment": "/**\n * Generates PKCE codes used in Authorization Code Flow.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "generatePkceCodes(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "PkceCodes",
+                  "canonicalReference": "@azure/msal-common!PkceCodes:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "generatePkceCodes"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!CryptoProvider#getPublicKeyThumbprint:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getPublicKeyThumbprint(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "getPublicKeyThumbprint"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!CryptoProvider#signJwt:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "signJwt(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 3
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "signJwt"
+            }
+          ],
+          "implementsTokenRanges": [
+            {
+              "startIndex": 1,
+              "endIndex": 3
+            }
+          ]
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "@azure/msal-node!Deserializer:class",
+          "docComment": "/**\n * This class deserializes cache entities read from the file into in memory object types defined internally\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class Deserializer "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "Deserializer",
+          "members": [
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Deserializer.deserializeAccessTokens:member(1)",
+              "docComment": "/**\n * Deserializes access tokens to AccessTokenEntity objects\n *\n * @param accessTokens - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static deserializeAccessTokens(accessTokens: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Record",
+                  "canonicalReference": "!Record:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SerializedAccessTokenEntity",
+                  "canonicalReference": "@azure/msal-node!SerializedAccessTokenEntity:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AccessTokenCache",
+                  "canonicalReference": "@azure/msal-common!AccessTokenCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "accessTokens",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 5
+                  }
+                }
+              ],
+              "name": "deserializeAccessTokens"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Deserializer.deserializeAccounts:member(1)",
+              "docComment": "/**\n * Deserializes accounts to AccountEntity objects\n *\n * @param accounts - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static deserializeAccounts(accounts: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Record",
+                  "canonicalReference": "!Record:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SerializedAccountEntity",
+                  "canonicalReference": "@azure/msal-node!SerializedAccountEntity:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AccountCache",
+                  "canonicalReference": "@azure/msal-common!AccountCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "accounts",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 5
+                  }
+                }
+              ],
+              "name": "deserializeAccounts"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Deserializer.deserializeAllCache:member(1)",
+              "docComment": "/**\n * Deserialize an inMemory Cache\n *\n * @param jsonCache - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static deserializeAllCache(jsonCache: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "JsonCache",
+                  "canonicalReference": "@azure/msal-node!JsonCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "InMemoryCache",
+                  "canonicalReference": "@azure/msal-node!InMemoryCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "jsonCache",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "deserializeAllCache"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Deserializer.deserializeAppMetadata:member(1)",
+              "docComment": "/**\n * Deserializes appMetadata to AppMetaData objects\n *\n * @param appMetadata - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static deserializeAppMetadata(appMetadata: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Record",
+                  "canonicalReference": "!Record:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SerializedAppMetadataEntity",
+                  "canonicalReference": "@azure/msal-node!SerializedAppMetadataEntity:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AppMetadataCache",
+                  "canonicalReference": "@azure/msal-common!AppMetadataCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "appMetadata",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 5
+                  }
+                }
+              ],
+              "name": "deserializeAppMetadata"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Deserializer.deserializeIdTokens:member(1)",
+              "docComment": "/**\n * Deserializes id tokens to IdTokenEntity objects\n *\n * @param idTokens - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static deserializeIdTokens(idTokens: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Record",
+                  "canonicalReference": "!Record:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SerializedIdTokenEntity",
+                  "canonicalReference": "@azure/msal-node!SerializedIdTokenEntity:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "IdTokenCache",
+                  "canonicalReference": "@azure/msal-common!IdTokenCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "idTokens",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 5
+                  }
+                }
+              ],
+              "name": "deserializeIdTokens"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Deserializer.deserializeJSONBlob:member(1)",
+              "docComment": "/**\n * Parse the JSON blob in memory and deserialize the content\n *\n * @param cachedJson - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static deserializeJSONBlob(jsonFile: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "JsonCache",
+                  "canonicalReference": "@azure/msal-node!JsonCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "jsonFile",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "deserializeJSONBlob"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Deserializer.deserializeRefreshTokens:member(1)",
+              "docComment": "/**\n * Deserializes refresh tokens to RefreshTokenEntity objects\n *\n * @param refreshTokens - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static deserializeRefreshTokens(refreshTokens: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Record",
+                  "canonicalReference": "!Record:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SerializedRefreshTokenEntity",
+                  "canonicalReference": "@azure/msal-node!SerializedRefreshTokenEntity:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "RefreshTokenCache",
+                  "canonicalReference": "@azure/msal-common!RefreshTokenCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 6,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "refreshTokens",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 5
+                  }
+                }
+              ],
+              "name": "deserializeRefreshTokens"
+            }
+          ],
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@azure/msal-node!DeviceCodeRequest:type",
+          "docComment": "/**\n * Parameters for Oauth2 device code flow. - scopes - Array of scopes the application is requesting access to. - authority: - URL of the authority, the security token service (STS) from which MSAL will acquire tokens. If authority is set on client application object, this will override that value. Overriding the value will cause for authority validation to happen each time. If the same authority will be used for all request, set on the application object instead of the requests. - correlationId - Unique GUID set per request to trace a request end-to-end for telemetry purposes. - deviceCodeCallback - Callback containing device code response. Message should be shown to end user. End user can then navigate to the verification_uri, input the user_code, and input credentials. - cancel - Boolean to cancel polling of device code endpoint. While the user authenticates on a separate device, MSAL polls the the token endpoint of security token service for the interval specified in the device code response (usually 15 minutes). To stop polling and cancel the request, set cancel=true.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare type DeviceCodeRequest = "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "CommonDeviceCodeRequest",
+              "canonicalReference": "@azure/msal-common!DeviceCodeRequest:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", \"scopes\" | \"deviceCodeCallback\" | \"resourceRequestMethod\" | \"resourceRequestUri\">> & {\n    scopes: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Array",
+              "canonicalReference": "!Array:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<string>;\n    deviceCodeCallback: (response: "
+            },
+            {
+              "kind": "Reference",
+              "text": "DeviceCodeResponse",
+              "canonicalReference": "@azure/msal-common!DeviceCodeResponse:type"
+            },
+            {
+              "kind": "Content",
+              "text": ") => void;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "DeviceCodeRequest",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 11
+          }
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@azure/msal-node!OnBehalfOfRequest:type",
+          "docComment": "/**\n * - scopes - Array of scopes the application is requesting access to. - authority - URL of the authority, the security token service (STS) from which MSAL will acquire tokens. - correlationId - Unique GUID set per request to trace a request end-to-end for telemetry purposes. - oboAssertion - The access token that was sent to the middle-tier API. This token must have an audience of the app making this OBO request. - skipCache - Skip token cache lookup and force request to authority to get a a new token. Defaults to false.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare type OnBehalfOfRequest = "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "CommonOnBehalfOfRequest",
+              "canonicalReference": "@azure/msal-common!OnBehalfOfRequest:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", \"oboAssertion\" | \"scopes\" | \"resourceRequestMethod\" | \"resourceRequestUri\">> & {\n    oboAssertion: string;\n    scopes: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Array",
+              "canonicalReference": "!Array:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<string>;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "OnBehalfOfRequest",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 9
+          }
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "@azure/msal-node!PublicClientApplication:class",
+          "docComment": "/**\n * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications are not trusted to safely store application secrets, and therefore can only request tokens in the name of an user.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class PublicClientApplication extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "ClientApplication",
+              "canonicalReference": "@azure/msal-node!ClientApplication:class"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "PublicClientApplication",
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "@azure/msal-node!PublicClientApplication:constructor(1)",
+              "docComment": "/**\n * Important attributes in the Configuration object for auth are: - clientID: the application ID of your application. You can obtain one by registering your application with our Application registration portal. - authority: the authority URL for your application.\n *\n * AAD authorities are of the form https://login.microsoftonline.com/{Enter_the_Tenant_Info_Here}. - If your application supports Accounts in one organizational directory, replace \"Enter_the_Tenant_Info_Here\" value with the Tenant Id or Tenant name (for example, contoso.microsoft.com). - If your application supports Accounts in any organizational directory, replace \"Enter_the_Tenant_Info_Here\" value with organizations. - If your application supports Accounts in any organizational directory and personal Microsoft accounts, replace \"Enter_the_Tenant_Info_Here\" value with common. - To restrict support to Personal Microsoft accounts only, replace \"Enter_the_Tenant_Info_Here\" value with consumers.\n *\n * Azure B2C authorities are of the form https://{instance}/{tenant}/{policy}. Each policy is considered its own authority. You will have to set the all of the knownAuthorities at the time of the client application construction.\n *\n * ADFS authorities are of the form https://{instance}/adfs.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(configuration: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Configuration",
+                  "canonicalReference": "@azure/msal-node!Configuration:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "configuration",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!PublicClientApplication#acquireTokenByDeviceCode:member(1)",
+              "docComment": "/**\n * Acquires a token from the authority using OAuth2.0 device code flow. This flow is designed for devices that do not have access to a browser or have input constraints. The authorization server issues a DeviceCode object with a verification code, an end-user code, and the end-user verification URI. The DeviceCode object is provided through a callback, and the end-user should be instructed to use another device to navigate to the verification URI to input credentials. Since the client cannot receive incoming requests, it polls the authorization server repeatedly until the end-user completes input of credentials.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "acquireTokenByDeviceCode(request: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "DeviceCodeRequest",
+                  "canonicalReference": "@azure/msal-node!DeviceCodeRequest:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AuthenticationResult",
+                  "canonicalReference": "@azure/msal-common!AuthenticationResult:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | null>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "request",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "acquireTokenByDeviceCode"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!PublicClientApplication#acquireTokenByUsernamePassword:member(1)",
+              "docComment": "/**\n * Acquires tokens with password grant by exchanging client applications username and password for credentials\n *\n * The latest OAuth 2.0 Security Best Current Practice disallows the password grant entirely. More details on this recommendation at https://tools.ietf.org/html/draft-ietf-oauth-security-topics-13#section-3.4 Microsoft's documentation and recommendations are at: https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-authentication-flows#usernamepassword\n *\n * @param request - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "acquireTokenByUsernamePassword(request: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "UsernamePasswordRequest",
+                  "canonicalReference": "@azure/msal-node!UsernamePasswordRequest:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AuthenticationResult",
+                  "canonicalReference": "@azure/msal-common!AuthenticationResult:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | null>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "request",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "acquireTokenByUsernamePassword"
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@azure/msal-node!RefreshTokenRequest:type",
+          "docComment": "/**\n * CommonRefreshTokenRequest - scopes - Array of scopes the application is requesting access to. - claims - A stringified claims request which will be added to all /authorize and /token calls - authority - URL of the authority, the security token service (STS) from which MSAL will acquire tokens. - correlationId - Unique GUID set per request to trace a request end-to-end for telemetry purposes. - refreshToken - A refresh token returned from a previous request to the Identity provider.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare type RefreshTokenRequest = "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "CommonRefreshTokenRequest",
+              "canonicalReference": "@azure/msal-common!RefreshTokenRequest:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", \"scopes\" | \"refreshToken\" | \"authenticationScheme\" | \"resourceRequestMethod\" | \"resourceRequestUri\">> & {\n    scopes: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Array",
+              "canonicalReference": "!Array:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<string>;\n    refreshToken: string;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "RefreshTokenRequest",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 9
+          }
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "@azure/msal-node!Serializer:class",
+          "docComment": "",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class Serializer "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "Serializer",
+          "members": [
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Serializer.serializeAccessTokens:member(1)",
+              "docComment": "/**\n * Serializes AccessTokens\n *\n * @param atCache - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static serializeAccessTokens(atCache: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AccessTokenCache",
+                  "canonicalReference": "@azure/msal-common!AccessTokenCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Record",
+                  "canonicalReference": "!Record:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SerializedAccessTokenEntity",
+                  "canonicalReference": "@azure/msal-node!SerializedAccessTokenEntity:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "atCache",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "serializeAccessTokens"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Serializer.serializeAccounts:member(1)",
+              "docComment": "/**\n * Serialize Accounts\n *\n * @param accCache - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static serializeAccounts(accCache: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AccountCache",
+                  "canonicalReference": "@azure/msal-common!AccountCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Record",
+                  "canonicalReference": "!Record:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SerializedAccountEntity",
+                  "canonicalReference": "@azure/msal-node!SerializedAccountEntity:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "accCache",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "serializeAccounts"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Serializer.serializeAllCache:member(1)",
+              "docComment": "/**\n * Serialize the cache\n *\n * @param jsonContent - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static serializeAllCache(inMemCache: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "InMemoryCache",
+                  "canonicalReference": "@azure/msal-node!InMemoryCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "JsonCache",
+                  "canonicalReference": "@azure/msal-node!JsonCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "inMemCache",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "serializeAllCache"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Serializer.serializeAppMetadata:member(1)",
+              "docComment": "/**\n * Serialize amdtCache\n *\n * @param amdtCache - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static serializeAppMetadata(amdtCache: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AppMetadataCache",
+                  "canonicalReference": "@azure/msal-common!AppMetadataCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Record",
+                  "canonicalReference": "!Record:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SerializedAppMetadataEntity",
+                  "canonicalReference": "@azure/msal-node!SerializedAppMetadataEntity:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "amdtCache",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "serializeAppMetadata"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Serializer.serializeIdTokens:member(1)",
+              "docComment": "/**\n * Serialize IdTokens\n *\n * @param idTCache - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static serializeIdTokens(idTCache: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "IdTokenCache",
+                  "canonicalReference": "@azure/msal-common!IdTokenCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Record",
+                  "canonicalReference": "!Record:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SerializedIdTokenEntity",
+                  "canonicalReference": "@azure/msal-node!SerializedIdTokenEntity:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "idTCache",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "serializeIdTokens"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Serializer.serializeJSONBlob:member(1)",
+              "docComment": "/**\n * serialize the JSON blob\n *\n * @param data - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static serializeJSONBlob(data: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "JsonCache",
+                  "canonicalReference": "@azure/msal-node!JsonCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "data",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "serializeJSONBlob"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Serializer.serializeRefreshTokens:member(1)",
+              "docComment": "/**\n * Serialize refreshTokens\n *\n * @param rtCache - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static serializeRefreshTokens(rtCache: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "RefreshTokenCache",
+                  "canonicalReference": "@azure/msal-common!RefreshTokenCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Record",
+                  "canonicalReference": "!Record:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<string, "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "SerializedRefreshTokenEntity",
+                  "canonicalReference": "@azure/msal-node!SerializedRefreshTokenEntity:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ">"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "rtCache",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "serializeRefreshTokens"
+            }
+          ],
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "TypeAlias",
+          "canonicalReference": "@azure/msal-node!SilentFlowRequest:type",
+          "docComment": "/**\n * SilentFlow parameters passed by the user to retrieve credentials silently - scopes - Array of scopes the application is requesting access to. - claims - A stringified claims request which will be added to all /authorize and /token calls. When included on a silent request, cache lookup will be skipped and token will be refreshed. - authority - Url of the authority which the application acquires tokens from. - correlationId - Unique GUID set per request to trace a request end-to-end for telemetry purposes. - account - Account entity to lookup the credentials. - forceRefresh - Forces silent requests to make network calls if true.\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare type SilentFlowRequest = "
+            },
+            {
+              "kind": "Reference",
+              "text": "Partial",
+              "canonicalReference": "!Partial:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "Omit",
+              "canonicalReference": "!Omit:type"
+            },
+            {
+              "kind": "Content",
+              "text": "<"
+            },
+            {
+              "kind": "Reference",
+              "text": "CommonSilentFlowRequest",
+              "canonicalReference": "@azure/msal-common!SilentFlowRequest:type"
+            },
+            {
+              "kind": "Content",
+              "text": ", \"account\" | \"scopes\" | \"resourceRequestMethod\" | \"resourceRequestUri\">> & {\n    account: "
+            },
+            {
+              "kind": "Reference",
+              "text": "AccountInfo",
+              "canonicalReference": "@azure/msal-common!AccountInfo:type"
+            },
+            {
+              "kind": "Content",
+              "text": ";\n    scopes: "
+            },
+            {
+              "kind": "Reference",
+              "text": "Array",
+              "canonicalReference": "!Array:interface"
+            },
+            {
+              "kind": "Content",
+              "text": "<string>;\n}"
+            },
+            {
+              "kind": "Content",
+              "text": ";"
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "SilentFlowRequest",
+          "typeTokenRange": {
+            "startIndex": 1,
+            "endIndex": 11
+          }
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "@azure/msal-node!Storage_2:class",
+          "docComment": "/**\n * This class implements Storage for node, reading cache from user specified storage location or an extension library\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class Storage extends "
+            },
+            {
+              "kind": "Reference",
+              "text": "CacheManager",
+              "canonicalReference": "@azure/msal-common!CacheManager:class"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "Storage_2",
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "@azure/msal-node!Storage_2:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `Storage` class\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(logger: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Logger",
+                  "canonicalReference": "@azure/msal-common!Logger:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", clientId: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", cryptoImpl: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ICrypto",
+                  "canonicalReference": "@azure/msal-common!ICrypto:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "logger",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                },
+                {
+                  "parameterName": "clientId",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  }
+                },
+                {
+                  "parameterName": "cryptoImpl",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 6
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#cacheToInMemoryCache:member(1)",
+              "docComment": "/**\n * Converts cacheKVStore to InMemoryCache\n *\n * @param cache - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "cacheToInMemoryCache(cache: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "CacheKVStore",
+                  "canonicalReference": "@azure/msal-node!CacheKVStore:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "InMemoryCache",
+                  "canonicalReference": "@azure/msal-node!InMemoryCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "cache",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "cacheToInMemoryCache"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#clear:member(1)",
+              "docComment": "/**\n * Clears all cache entries created by MSAL (except tokens).\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "clear(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "clear"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#containsKey:member(1)",
+              "docComment": "/**\n * Checks whether key is in cache.\n *\n * @param key - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "containsKey(key: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "key",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "containsKey"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#emitChange:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "emitChange(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "emitChange"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2.generateInMemoryCache:member(1)",
+              "docComment": "/**\n * Initialize in memory cache from an exisiting cache vault\n *\n * @param cache - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static generateInMemoryCache(cache: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "InMemoryCache",
+                  "canonicalReference": "@azure/msal-node!InMemoryCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "cache",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "generateInMemoryCache"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2.generateJsonCache:member(1)",
+              "docComment": "/**\n * retrieves the final JSON\n *\n * @param inMemoryCache - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "static generateJsonCache(inMemoryCache: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "InMemoryCache",
+                  "canonicalReference": "@azure/msal-node!InMemoryCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "JsonCache",
+                  "canonicalReference": "@azure/msal-node!JsonCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": true,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "inMemoryCache",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "generateJsonCache"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#getAccessTokenCredential:member(1)",
+              "docComment": "/**\n * fetch the accessToken credential\n *\n * @param accessTokenKey - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getAccessTokenCredential(accessTokenKey: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AccessTokenEntity",
+                  "canonicalReference": "@azure/msal-common!AccessTokenEntity:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | null"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "accessTokenKey",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "getAccessTokenCredential"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#getAccount:member(1)",
+              "docComment": "/**\n * fetch the account entity\n *\n * @param accountKey - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getAccount(accountKey: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AccountEntity",
+                  "canonicalReference": "@azure/msal-common!AccountEntity:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | null"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "accountKey",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "getAccount"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#getAppMetadata:member(1)",
+              "docComment": "/**\n * fetch appMetadata entity from the platform cache\n *\n * @param appMetadataKey - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getAppMetadata(appMetadataKey: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AppMetadataEntity",
+                  "canonicalReference": "@azure/msal-common!AppMetadataEntity:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | null"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "appMetadataKey",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "getAppMetadata"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#getCache:member(1)",
+              "docComment": "/**\n * get the current cache key-value store\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getCache(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "CacheKVStore",
+                  "canonicalReference": "@azure/msal-node!CacheKVStore:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "getCache"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#getIdTokenCredential:member(1)",
+              "docComment": "/**\n * fetch the idToken credential\n *\n * @param idTokenKey - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getIdTokenCredential(idTokenKey: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "IdTokenEntity",
+                  "canonicalReference": "@azure/msal-common!IdTokenEntity:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | null"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "idTokenKey",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "getIdTokenCredential"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#getInMemoryCache:member(1)",
+              "docComment": "/**\n * gets the current in memory cache for the client\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getInMemoryCache(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "InMemoryCache",
+                  "canonicalReference": "@azure/msal-node!InMemoryCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "getInMemoryCache"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#getItem:member(1)",
+              "docComment": "/**\n * Gets cache item with given key.\n *\n * @param key - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getItem(key: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ValidCacheType",
+                  "canonicalReference": "@azure/msal-common!ValidCacheType:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "key",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "getItem"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#getKeys:member(1)",
+              "docComment": "/**\n * Gets all keys in window.\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getKeys(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string[]"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "getKeys"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#getRefreshTokenCredential:member(1)",
+              "docComment": "/**\n * fetch the refreshToken credential\n *\n * @param refreshTokenKey - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getRefreshTokenCredential(refreshTokenKey: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "RefreshTokenEntity",
+                  "canonicalReference": "@azure/msal-common!RefreshTokenEntity:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | null"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "refreshTokenKey",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "getRefreshTokenCredential"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#getServerTelemetry:member(1)",
+              "docComment": "/**\n * fetch server telemetry entity from the platform cache\n *\n * @param serverTelemetrykey - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getServerTelemetry(serverTelemetrykey: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ServerTelemetryEntity",
+                  "canonicalReference": "@azure/msal-common!ServerTelemetryEntity:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | null"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "serverTelemetrykey",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "getServerTelemetry"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#getThrottlingCache:member(1)",
+              "docComment": "/**\n * fetch throttling entity from the platform cache\n *\n * @param throttlingCacheKey - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getThrottlingCache(throttlingCacheKey: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ThrottlingEntity",
+                  "canonicalReference": "@azure/msal-common!ThrottlingEntity:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | null"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "throttlingCacheKey",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "getThrottlingCache"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#inMemoryCacheToCache:member(1)",
+              "docComment": "/**\n * converts inMemoryCache to CacheKVStore\n *\n * @param inMemoryCache - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "inMemoryCacheToCache(inMemoryCache: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "InMemoryCache",
+                  "canonicalReference": "@azure/msal-node!InMemoryCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "CacheKVStore",
+                  "canonicalReference": "@azure/msal-node!CacheKVStore:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "inMemoryCache",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "inMemoryCacheToCache"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#registerChangeEmitter:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "registerChangeEmitter(func: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "() => void"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "func",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "registerChangeEmitter"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#removeItem:member(1)",
+              "docComment": "/**\n * Removes the cache item from memory with the given key.\n *\n * @param key - \n *\n * @param inMemory - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "removeItem(key: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "key",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "removeItem"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#setAccessTokenCredential:member(1)",
+              "docComment": "/**\n * set accessToken credential\n *\n * @param accessToken - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "setAccessTokenCredential(accessToken: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AccessTokenEntity",
+                  "canonicalReference": "@azure/msal-common!AccessTokenEntity:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "accessToken",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "setAccessTokenCredential"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#setAccount:member(1)",
+              "docComment": "/**\n * set account entity\n *\n * @param account - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "setAccount(account: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AccountEntity",
+                  "canonicalReference": "@azure/msal-common!AccountEntity:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "account",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "setAccount"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#setAppMetadata:member(1)",
+              "docComment": "/**\n * set appMetadata entity to the platform cache\n *\n * @param appMetadata - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "setAppMetadata(appMetadata: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AppMetadataEntity",
+                  "canonicalReference": "@azure/msal-common!AppMetadataEntity:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "appMetadata",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "setAppMetadata"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#setCache:member(1)",
+              "docComment": "/**\n * sets the current cache (key value store)\n *\n * @param cacheMap - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "setCache(cache: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "CacheKVStore",
+                  "canonicalReference": "@azure/msal-node!CacheKVStore:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "cache",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "setCache"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#setIdTokenCredential:member(1)",
+              "docComment": "/**\n * set idToken credential\n *\n * @param idToken - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "setIdTokenCredential(idToken: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "IdTokenEntity",
+                  "canonicalReference": "@azure/msal-common!IdTokenEntity:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "idToken",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "setIdTokenCredential"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#setInMemoryCache:member(1)",
+              "docComment": "/**\n * sets the current in memory cache for the client\n *\n * @param inMemoryCache - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "setInMemoryCache(inMemoryCache: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "InMemoryCache",
+                  "canonicalReference": "@azure/msal-node!InMemoryCache:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "inMemoryCache",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "setInMemoryCache"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#setItem:member(1)",
+              "docComment": "/**\n * Gets cache item with given <key, value>\n *\n * @param key - \n *\n * @param value - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "setItem(key: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", value: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ValidCacheType",
+                  "canonicalReference": "@azure/msal-common!ValidCacheType:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "key",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                },
+                {
+                  "parameterName": "value",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  }
+                }
+              ],
+              "name": "setItem"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#setRefreshTokenCredential:member(1)",
+              "docComment": "/**\n * set refreshToken credential\n *\n * @param refreshToken - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "setRefreshTokenCredential(refreshToken: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "RefreshTokenEntity",
+                  "canonicalReference": "@azure/msal-common!RefreshTokenEntity:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "refreshToken",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "setRefreshTokenCredential"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#setServerTelemetry:member(1)",
+              "docComment": "/**\n * set server telemetry entity to the platform cache\n *\n * @param serverTelemetryKey - \n *\n * @param serverTelemetry - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "setServerTelemetry(serverTelemetryKey: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", serverTelemetry: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ServerTelemetryEntity",
+                  "canonicalReference": "@azure/msal-common!ServerTelemetryEntity:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "serverTelemetryKey",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                },
+                {
+                  "parameterName": "serverTelemetry",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  }
+                }
+              ],
+              "name": "setServerTelemetry"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!Storage_2#setThrottlingCache:member(1)",
+              "docComment": "/**\n * set throttling entity to the platform cache\n *\n * @param throttlingCacheKey - \n *\n * @param throttlingCache - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "setThrottlingCache(throttlingCacheKey: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", throttlingCache: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ThrottlingEntity",
+                  "canonicalReference": "@azure/msal-common!ThrottlingEntity:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 5,
+                "endIndex": 6
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "throttlingCacheKey",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                },
+                {
+                  "parameterName": "throttlingCache",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  }
+                }
+              ],
+              "name": "setThrottlingCache"
+            }
+          ],
+          "extendsTokenRange": {
+            "startIndex": 1,
+            "endIndex": 3
+          },
+          "implementsTokenRanges": []
+        },
+        {
+          "kind": "Class",
+          "canonicalReference": "@azure/msal-node!TokenCache:class",
+          "docComment": "/**\n * In-memory token cache manager\n */\n",
+          "excerptTokens": [
+            {
+              "kind": "Content",
+              "text": "export declare class TokenCache implements "
+            },
+            {
+              "kind": "Reference",
+              "text": "ISerializableTokenCache",
+              "canonicalReference": "@azure/msal-common!ISerializableTokenCache:interface"
+            },
+            {
+              "kind": "Content",
+              "text": " "
+            }
+          ],
+          "releaseTag": "Public",
+          "name": "TokenCache",
+          "members": [
+            {
+              "kind": "Constructor",
+              "canonicalReference": "@azure/msal-node!TokenCache:constructor(1)",
+              "docComment": "/**\n * Constructs a new instance of the `TokenCache` class\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "constructor(storage: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Storage",
+                  "canonicalReference": "@azure/msal-node!Storage:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", logger: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Logger",
+                  "canonicalReference": "@azure/msal-common!Logger:class"
+                },
+                {
+                  "kind": "Content",
+                  "text": ", cachePlugin?: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "ICachePlugin",
+                  "canonicalReference": "@azure/msal-common!ICachePlugin:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": ");"
+                }
+              ],
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "storage",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                },
+                {
+                  "parameterName": "logger",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 3,
+                    "endIndex": 4
+                  }
+                },
+                {
+                  "parameterName": "cachePlugin",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 5,
+                    "endIndex": 6
+                  }
+                }
+              ]
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!TokenCache#deserialize:member(1)",
+              "docComment": "/**\n * Deserializes JSON to in-memory cache. JSON should be in MSAL cache schema format\n *\n * @param cache - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "deserialize(cache: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "void"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 4
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "cache",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "deserialize"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!TokenCache#getAccountByHomeId:member(1)",
+              "docComment": "/**\n * Returns the signed in account matching homeAccountId. (the account object is created at the time of successful login) or null when no matching account is found\n *\n * @returns {@link AccountInfo} - the account object stored in MSAL\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getAccountByHomeId(homeAccountId: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AccountInfo",
+                  "canonicalReference": "@azure/msal-common!AccountInfo:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | null>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "homeAccountId",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "getAccountByHomeId"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!TokenCache#getAccountByLocalId:member(1)",
+              "docComment": "/**\n * Returns the signed in account matching localAccountId. (the account object is created at the time of successful login) or null when no matching account is found\n *\n * @returns {@link AccountInfo} - the account object stored in MSAL\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getAccountByLocalId(localAccountId: "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AccountInfo",
+                  "canonicalReference": "@azure/msal-common!AccountInfo:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": " | null>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 7
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "localAccountId",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "getAccountByLocalId"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!TokenCache#getAllAccounts:member(1)",
+              "docComment": "/**\n * API that retrieves all accounts currently in cache to the user\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getAllAccounts(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<"
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AccountInfo",
+                  "canonicalReference": "@azure/msal-common!AccountInfo:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "[]>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "getAllAccounts"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!TokenCache#getKVStore:member(1)",
+              "docComment": "",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "getKVStore(): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "CacheKVStore",
+                  "canonicalReference": "@azure/msal-node!CacheKVStore:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "getKVStore"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!TokenCache#hasChanged:member(1)",
+              "docComment": "/**\n * Set to true if cache state has changed since last time serialize or writeToPersistence was called\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "hasChanged(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "boolean"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "hasChanged"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!TokenCache#removeAccount:member(1)",
+              "docComment": "/**\n * API to remove a specific account and the relevant data from cache\n *\n * @param account - \n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "removeAccount(account: "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "AccountInfo",
+                  "canonicalReference": "@azure/msal-common!AccountInfo:type"
+                },
+                {
+                  "kind": "Content",
+                  "text": "): "
+                },
+                {
+                  "kind": "Reference",
+                  "text": "Promise",
+                  "canonicalReference": "!Promise:interface"
+                },
+                {
+                  "kind": "Content",
+                  "text": "<void>"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 3,
+                "endIndex": 5
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [
+                {
+                  "parameterName": "account",
+                  "parameterTypeTokenRange": {
+                    "startIndex": 1,
+                    "endIndex": 2
+                  }
+                }
+              ],
+              "name": "removeAccount"
+            },
+            {
+              "kind": "Method",
+              "canonicalReference": "@azure/msal-node!TokenCache#serialize:member(1)",
+              "docComment": "/**\n * Serializes in memory cache to JSON\n */\n",
+              "excerptTokens": [
+                {
+                  "kind": "Content",
+                  "text": "serialize(): "
+                },
+                {
+                  "kind": "Content",
+                  "text": "string"
+                },
+                {
+                  "kind": "Content",
+                  "text": ";"
+                }
+              ],
+              "isOptional": false,
+              "isStatic": false,
+              "returnTypeTokenRange": {
+                "startIndex": 1,
+                "endIndex": 2
+              },
+              "releaseTag": "Public",
+              "overloadIndex": 1,
+              "parameters": [],
+              "name": "serialize"
+            }
+          ],
+          "implementsTokenRanges": [
+            {
+              "startIndex": 1,
+              "endIndex": 3
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
