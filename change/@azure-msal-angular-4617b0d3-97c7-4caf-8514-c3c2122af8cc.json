@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Msal guard supports angular routes for login failure (#2803)",
+  "packageName": "@azure/msal-angular",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "patch"
+}
