@@ -18,7 +18,7 @@ function startServer(cmd, directory) {
     const child = spawn(cmd, [], { shell: true, cwd: directory});
     
     // store the child instance so we can teardown it later
-    fs.writeFileSync(path.join(directory, '.server.pid'), child.pid);
+    fs.writeFileSync(path.join(directory, '.server.pid'), child.pid.toString());
 }
 
 function killServer(sampleDirectory) {

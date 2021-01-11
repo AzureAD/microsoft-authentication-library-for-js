@@ -31,10 +31,14 @@ jobs:
         RUNNING_NODE_CI: 1
       run: npm ci
 
+    - name: Install Test Tools
+      working-directory: samples
+      run: npm ci
+
     - name: Build packages
       working-directory: samples/msal-core-samples/VanillaJSTestApp
       run: |
-        npm install
+        npm ci
         npm run build:package
 
     - name: E2E Tests

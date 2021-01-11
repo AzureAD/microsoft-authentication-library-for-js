@@ -37,7 +37,7 @@ jobs:
       run: npm run build:all
 
     - name: Install Test Tools
-      working-directory: samples/msal-react-samples
+      working-directory: samples
       run: npm ci
 
     - name: Install/Build React Router Sample
