@@ -93,7 +93,7 @@ class TestCacheStorage extends CacheManager {
 
 describe("BrowserCacheManager tests", () => {
 
-    let cacheConfig: CacheOptions;
+    let cacheConfig: Required<CacheOptions>;
     let logger: Logger;
     let windowRef: Window & typeof globalThis;
     const browserCrypto = new CryptoOps();
@@ -471,19 +471,6 @@ describe("BrowserCacheManager tests", () => {
             expect(document.cookie).to.be.empty;
         });
 
-        it("clearMsalCookie()", () => {
-            const stateString = TEST_STATE_VALUES.TEST_STATE;
-            const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
-            const nonceKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`;
-            const stateKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`;
-            const originUriKey = `${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`;
-            browserSessionStorage.setItemCookie(nonceKey, "thisIsANonce");
-            browserSessionStorage.setItemCookie(stateKey, stateString);
-            browserSessionStorage.setItemCookie(originUriKey, "https://contoso.com");
-            browserSessionStorage.clearMsalCookie(stateString);
-            expect(document.cookie).to.be.empty;
-        });
-
         it("getCookieExpirationTime()", () => {
             const COOKIE_LIFE_MULTIPLIER = 24 * 60 * 60 * 1000;
             const currentTime = new Date().getTime();
@@ -498,35 +485,34 @@ describe("BrowserCacheManager tests", () => {
 
         it("generateAuthorityKey() creates a valid cache key for authority strings", () => {
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
-            const authorityKey = browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE);
+            const authorityKey = browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             expect(authorityKey).to.be.eq(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${RANDOM_TEST_GUID}`);
         });
 
         it("generateNonceKey() create a valid cache key for nonce strings", () => {
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
-            const nonceKey = browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE);
+            const nonceKey = browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             expect(nonceKey).to.be.eq(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${RANDOM_TEST_GUID}`);
         });
 
         it("updateCacheEntries() correctly updates the authority, state and nonce in the cache", () => {
-            const authorityCacheSpy = sinon.spy(BrowserCacheManager.prototype, "setAuthorityCache");
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             const testNonce = "testNonce";
-            const stateString = TEST_STATE_VALUES.TEST_STATE;
+            const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
             browserStorage.updateCacheEntries(stateString, testNonce, `${Constants.DEFAULT_AUTHORITY}/`);
 
-            expect(authorityCacheSpy.calledOnce).to.be.true;
+            const stateKey = browserStorage.generateStateKey(stateString);
             const nonceKey = browserStorage.generateNonceKey(stateString);
             const authorityKey = browserStorage.generateAuthorityKey(stateString);
 
-            expect(window.sessionStorage[browserStorage.generateStateKey(stateString)]).to.be.eq(stateString);
+            expect(window.sessionStorage[`${stateKey}`]).to.be.eq(stateString);
             expect(window.sessionStorage[`${nonceKey}`]).to.be.eq(testNonce);
             expect(window.sessionStorage[`${authorityKey}`]).to.be.eq(`${Constants.DEFAULT_AUTHORITY}/`);
         });
 
         it("resetTempCacheItems() resets all temporary cache items with the given state", () => {
-            const stateString = TEST_STATE_VALUES.TEST_STATE;
+            const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             browserStorage.updateCacheEntries(stateString, "nonce", `${TEST_URIS.DEFAULT_INSTANCE}/`);
             browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, "TestRequestParams");
@@ -567,7 +553,7 @@ describe("BrowserCacheManager tests", () => {
             const cryptoObj = new CryptoOps();
             // browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, cryptoObj.base64Encode(JSON.stringify(tokenRequest)));
 
-            expect(() => browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)).to.throw(BrowserAuthErrorMessage.tokenRequestCacheError.desc);
+            expect(() => browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)).to.throw(BrowserAuthErrorMessage.noTokenRequestCacheError.desc);
         });
 
         it("Throws error if cached request cannot be parsed correctly", async () => {
@@ -588,7 +574,7 @@ describe("BrowserCacheManager tests", () => {
             };
             const stringifiedRequest = JSON.stringify(tokenRequest);
             browserStorage.setTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, stringifiedRequest.substring(0, stringifiedRequest.length / 2), true);
-            expect(() => browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)).to.throw(BrowserAuthErrorMessage.tokenRequestCacheError.desc);
+            expect(() => browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)).to.throw(BrowserAuthErrorMessage.unableToParseTokenRequestCacheError.desc);
         });
 
         it("Uses authority from cache if not present in cached request", async () => {
@@ -598,7 +584,7 @@ describe("BrowserCacheManager tests", () => {
             });
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             // Set up cache
-            const authorityKey = browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE);
+            const authorityKey = browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             const alternateAuthority = `${TEST_URIS.ALTERNATE_INSTANCE}/common/`;
             browserStorage.setItem(authorityKey, alternateAuthority);
 
@@ -615,7 +601,7 @@ describe("BrowserCacheManager tests", () => {
             browserStorage.setTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, stringifiedRequest, true);
 
             // Perform test
-            const tokenRequest = browserStorage.getCachedRequest(TEST_STATE_VALUES.TEST_STATE, browserCrypto);
+            const tokenRequest = browserStorage.getCachedRequest(TEST_STATE_VALUES.TEST_STATE_REDIRECT, browserCrypto);
             expect(tokenRequest.authority).to.be.eq(alternateAuthority);
         });
     });

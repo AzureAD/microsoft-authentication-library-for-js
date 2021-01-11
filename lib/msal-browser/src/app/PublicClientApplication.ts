@@ -12,6 +12,7 @@ import { PopupRequest } from "../request/PopupRequest";
 import { ClientApplication } from "./ClientApplication";
 import { SilentRequest } from "../request/SilentRequest";
 import { EventType } from "../event/EventType";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -76,9 +77,14 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
+        const account = request.account || this.getActiveAccount();
+        if (!account) {
+            throw BrowserAuthError.createNoAccountError();
+        }
         const silentRequest: SilentFlowRequest = {
             ...request,
             ...this.initializeBaseRequest(request),
+            account: account,
             forceRefresh: request.forceRefresh || false
         };
         this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);

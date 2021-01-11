@@ -83,14 +83,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("handleRedirectPromise returns null if interaction is not in progress", async () => {
             sinon.stub(pca, <any>"interactionInProgress").returns(false);
-            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_ALTERNATE_REDIR_URI);
             expect(await pca.handleRedirectPromise()).to.be.null;
         });
 
         it("navigates and caches hash if navigateToLoginRequestUri is true and interaction type is redirect", (done) => {
             sinon.stub(pca, <any>"interactionInProgress").returns(true);
-            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_ALTERNATE_REDIR_URI);
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory?: boolean) => {
                 expect(noHistory).to.be.true;
@@ -105,7 +105,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("navigates to root and caches hash if navigateToLoginRequestUri is true", (done) => {
             sinon.stub(pca, <any>"interactionInProgress").returns(true);
-            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory?: boolean) => {
                 expect(noHistory).to.be.true;
                 expect(timeout).to.be.greaterThan(0);
@@ -120,7 +120,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("navigates to root and caches hash if navigateToLoginRequestUri is true and loginRequestUrl is 'null'", (done) => {
             sinon.stub(pca, <any>"interactionInProgress").returns(true);
-            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, "null");
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory?: boolean) => {
                 expect(noHistory).to.be.true;
@@ -137,7 +137,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("navigates and caches hash if navigateToLoginRequestUri is true and loginRequestUrl contains query string", (done) => {
             sinon.stub(pca, <any>"interactionInProgress").returns(true);
             const loginRequestUrl = window.location.href + "?testQueryString=1";
-            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory?: boolean) => {
                 expect(noHistory).to.be.true;
@@ -153,7 +153,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("navigates and caches hash if navigateToLoginRequestUri is true and loginRequestUrl contains query string and hash", (done) => {
             sinon.stub(pca, <any>"interactionInProgress").returns(true);
             const loginRequestUrl = window.location.href + "?testQueryString=1#testHash";
-            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
             sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory?: boolean) => {
                 expect(noHistory).to.be.true;
@@ -169,10 +169,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("replaces custom hash if navigateToLoginRequestUri is true and loginRequestUrl contains custom hash", () => {
             sinon.stub(pca, <any>"interactionInProgress").returns(true);
             const loginRequestUrl = window.location.href + "#testHash";
-            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
             sinon.stub(PublicClientApplication.prototype, <any>"handleHash").callsFake((responseHash) => {
-                expect(responseHash).to.be.eq(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+                expect(responseHash).to.be.eq(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
             });
             return pca.handleRedirectPromise()
                 .then(() => {
@@ -185,9 +185,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const loginRequestUrl = window.location.href + "#testHash";
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
             sinon.stub(PublicClientApplication.prototype, <any>"handleHash").callsFake((responseHash) => {
-                expect(responseHash).to.be.eq(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+                expect(responseHash).to.be.eq(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
             });
-            return pca.handleRedirectPromise(TEST_HASHES.TEST_SUCCESS_CODE_HASH)
+            return pca.handleRedirectPromise(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT)
                 .then(() => {
                     expect(window.location.href).to.be.eq(loginRequestUrl);
                 });
@@ -196,10 +196,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("processes hash if navigateToLoginRequestUri is true and loginRequestUrl contains trailing slash", (done) => {
             sinon.stub(pca, <any>"interactionInProgress").returns(true);
             const loginRequestUrl = window.location.href.endsWith("/") ? window.location.href.slice(0, -1) : window.location.href + "/";
-            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
             sinon.stub(PublicClientApplication.prototype, <any>"handleHash").callsFake((responseHash) => {
-                expect(responseHash).to.be.eq(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+                expect(responseHash).to.be.eq(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
                 done();
             });
             pca.handleRedirectPromise();
@@ -214,11 +214,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
             sinon.stub(pca, <any>"interactionInProgress").returns(true);
             const loginRequestUrl = window.location.href + "#testHash";
-            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
             sinon.stub(PublicClientApplication.prototype, <any>"handleHash").callsFake((responseHash) => {
                 expect(window.location.href).to.not.contain("#testHash");
-                expect(responseHash).to.be.eq(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+                expect(responseHash).to.be.eq(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
                 done();
             });
             pca.handleRedirectPromise();
@@ -409,13 +409,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             it("gets hash from cache and processes response", async () => {
                 const b64Encode = new Base64Encode();
-                const stateString = TEST_STATE_VALUES.TEST_STATE;
+                const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
                 const browserCrypto = new CryptoOps();
                 const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
 
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
-                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE);
-                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`, TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`, TEST_CONFIG.validAuthority);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`, TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`, "123523");
                 const testTokenReq: AuthorizationCodeRequest = {
@@ -501,13 +502,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
                 };
 
-                const stateString = TEST_STATE_VALUES.TEST_STATE;
+                const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
                 const browserCrypto = new CryptoOps();
                 const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
 
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`, browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest)));
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
-                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`, TEST_CONFIG.validAuthority);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`, TEST_HASHES.TEST_ERROR_HASH);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
 
@@ -525,13 +527,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             it("processes hash if navigateToLoginRequestUri is false and request origin is the same", async () => {
                 const b64Encode = new Base64Encode();
-                const stateString = TEST_STATE_VALUES.TEST_STATE;
+                const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
                 const browserCrypto = new CryptoOps();
                 const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
 
-                window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
+                window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
-                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`, TEST_CONFIG.validAuthority);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`, "123523");
 
@@ -617,13 +620,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             it("processes hash if navigateToLoginRequestUri is false and request origin is different", async () => {
                 const b64Encode = new Base64Encode();
-                const stateString = TEST_STATE_VALUES.TEST_STATE;
+                const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
                 const browserCrypto = new CryptoOps();
                 const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
 
-                window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH;
+                window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_ALTERNATE_REDIR_URI);
-                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`, TEST_CONFIG.validAuthority);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`, "123523");
 
@@ -728,7 +732,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             it("loginRedirect navigates to created login url", (done) => {
-                sinon.stub(RedirectHandler.prototype, "initiateAuthRequest").callsFake((navigateUrl, request, timeout): Promise<void> => {
+                sinon.stub(RedirectHandler.prototype, "initiateAuthRequest").callsFake((navigateUrl): Promise<void> => {
                     expect(navigateUrl).to.be.eq(testNavUrl);
                     return Promise.resolve(done());
                 });
@@ -753,7 +757,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             it("loginRedirect navigates to created login url, with empty request", (done) => {
-                sinon.stub(RedirectHandler.prototype, "initiateAuthRequest").callsFake((navigateUrl, request, timeout): Promise<void> => {
+                sinon.stub(RedirectHandler.prototype, "initiateAuthRequest").callsFake((navigateUrl): Promise<void> => {
                     expect(navigateUrl.startsWith(testNavUrlNoRequest)).to.be.true;
                     return Promise.resolve(done());
                 });
@@ -797,9 +801,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const browserCrypto = new CryptoOps();
                 const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
                 await pca.loginRedirect(emptyRequest);
-                expect(browserStorage.getTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE))).to.be.deep.eq(TEST_STATE_VALUES.TEST_STATE);
-                expect(browserStorage.getTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE))).to.be.eq(RANDOM_TEST_GUID);
-                expect(browserStorage.getTemporaryCache(browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE))).to.be.eq(`${Constants.DEFAULT_AUTHORITY}`);
+                expect(browserStorage.getTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).to.be.deep.eq(TEST_STATE_VALUES.TEST_STATE_REDIRECT);
+                expect(browserStorage.getTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).to.be.eq(RANDOM_TEST_GUID);
+                expect(browserStorage.getTemporaryCache(browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).to.be.eq(`${Constants.DEFAULT_AUTHORITY}`);
             });
 
             it("Caches token request correctly", async () => {
@@ -923,7 +927,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     ...emptyRequest,
                     scopes: [],
                     loginHint: idTokenClaims.upn,
-                    state: TEST_STATE_VALUES.TEST_STATE,
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                     correlationId: RANDOM_TEST_GUID,
                     nonce: RANDOM_TEST_GUID,
                     authority: `${Constants.DEFAULT_AUTHORITY}`,
@@ -979,7 +983,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const validatedRequest: AuthorizationUrlRequest = {
                     ...loginRequest,
                     scopes: [],
-                    state: TEST_STATE_VALUES.TEST_STATE,
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                     correlationId: RANDOM_TEST_GUID,
                     authority: `${Constants.DEFAULT_AUTHORITY}`,
                     nonce: RANDOM_TEST_GUID,
@@ -1035,7 +1039,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     done();
                 };
 
-                sinon.stub(RedirectHandler.prototype, "initiateAuthRequest").callsFake((navigateUrl, authCodeREquest, {
+                sinon.stub(RedirectHandler.prototype, "initiateAuthRequest").callsFake((navigateUrl, {
                     redirectTimeout: timeout, redirectStartPage, onRedirectNavigate: onRedirectNavigateCb
                 }): Promise<void> => {
                     expect(onRedirectNavigateCb).to.be.eq(onRedirectNavigate);
@@ -1086,9 +1090,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const testLogger = new Logger(loggerOptions);
                 const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
                 await pca.loginRedirect(emptyRequest);
-                expect(browserStorage.getTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE))).to.be.deep.eq(TEST_STATE_VALUES.TEST_STATE);
-                expect(browserStorage.getTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE))).to.be.eq(RANDOM_TEST_GUID);
-                expect(browserStorage.getTemporaryCache(browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE))).to.be.eq(`${Constants.DEFAULT_AUTHORITY}`);
+                expect(browserStorage.getTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).to.be.deep.eq(TEST_STATE_VALUES.TEST_STATE_REDIRECT);
+                expect(browserStorage.getTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).to.be.eq(RANDOM_TEST_GUID);
+                expect(browserStorage.getTemporaryCache(browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).to.be.eq(`${Constants.DEFAULT_AUTHORITY}`);
             });
 
             it("Caches token request correctly", async () => {
@@ -1210,7 +1214,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     ...emptyRequest,
                     scopes: [...emptyRequest.scopes],
                     loginHint: idTokenClaims.upn,
-                    state: TEST_STATE_VALUES.TEST_STATE,
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                     correlationId: RANDOM_TEST_GUID,
                     authority: `${Constants.DEFAULT_AUTHORITY}`,
                     nonce: RANDOM_TEST_GUID,
@@ -1267,7 +1271,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const validatedRequest: AuthorizationUrlRequest = {
                     ...loginRequest,
                     scopes: [...loginRequest.scopes],
-                    state: TEST_STATE_VALUES.TEST_STATE,
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                     correlationId: RANDOM_TEST_GUID,
                     authority: `${Constants.DEFAULT_AUTHORITY}`,
                     nonce: RANDOM_TEST_GUID,
@@ -1353,7 +1357,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(requestUrl).to.be.eq(testNavUrl);
                     return window;
                 });
-                sinon.stub(PopupHandler.prototype, "monitorPopupForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+                sinon.stub(PopupHandler.prototype, "monitorPopupForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
                 sinon.stub(PopupHandler.prototype, "handleCodeResponse").resolves(testTokenResponse);
                 sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                     challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -1525,7 +1529,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(requestUrl).to.be.eq(testNavUrl);
                     return window;
                 });
-                sinon.stub(PopupHandler.prototype, "monitorPopupForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+                sinon.stub(PopupHandler.prototype, "monitorPopupForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
                 sinon.stub(PopupHandler.prototype, "handleCodeResponse").resolves(testTokenResponse);
                 sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                     challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -1643,7 +1647,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").resolves(testNavUrl);
             const loadFrameSyncSpy = sinon.spy(SilentHandler.prototype, <any>"loadFrameSync");
-            sinon.stub(SilentHandler.prototype, "monitorIframeForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+            sinon.stub(SilentHandler.prototype, "monitorIframeForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
             sinon.stub(SilentHandler.prototype, "handleCodeResponse").resolves(testTokenResponse);
             sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -1700,7 +1704,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").resolves(testNavUrl);
             const loadFrameSyncSpy = sinon.spy(SilentHandler.prototype, <any>"loadFrameSync");
-            sinon.stub(SilentHandler.prototype, "monitorIframeForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH);
+            sinon.stub(SilentHandler.prototype, "monitorIframeForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH_SILENT);
             sinon.stub(SilentHandler.prototype, "handleCodeResponse").resolves(testTokenResponse);
             sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -1859,7 +1863,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
-            sinon.stub(ProtocolUtils, "setRequestState").returns(TEST_STATE_VALUES.TEST_STATE);
+            sinon.stub(ProtocolUtils, "setRequestState").returns(TEST_STATE_VALUES.TEST_STATE_SILENT);
             const silentFlowRequest: SilentRequest = {
                 scopes: ["User.Read"],
                 account: testAccount,
@@ -1875,7 +1879,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 prompt: "none",
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
-                state: TEST_STATE_VALUES.TEST_STATE,
+                state: TEST_STATE_VALUES.TEST_STATE_SILENT,
                 nonce: RANDOM_TEST_GUID,
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -2036,6 +2040,110 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("getAccountByHomeId returns null if passed id is null", () => {
             const account = pca.getAccountByHomeId(null);
             expect(account).to.be.null;
+        });
+    });
+
+    describe("activeAccount API tests", () => {
+        // Account 1
+        const testAccountInfo1: AccountInfo = {
+            homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+            environment: "login.windows.net",
+            tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
+            username: "example@microsoft.com",
+            name: "Abe Lincoln",
+            localAccountId: TEST_CONFIG.OID,
+            idTokenClaims: undefined
+        };
+
+        const testAccount1: AccountEntity = new AccountEntity();
+        testAccount1.homeAccountId = testAccountInfo1.homeAccountId;
+        testAccount1.localAccountId = TEST_CONFIG.OID;
+        testAccount1.environment = testAccountInfo1.environment;
+        testAccount1.realm = testAccountInfo1.tenantId;
+        testAccount1.username = testAccountInfo1.username;
+        testAccount1.name = testAccountInfo1.name;
+        testAccount1.authorityType = "MSSTS";
+        testAccount1.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+
+        beforeEach(() => {
+            const cacheKey1 = AccountEntity.generateAccountCacheKey(testAccountInfo1);
+            window.sessionStorage.setItem(cacheKey1, JSON.stringify(testAccount1));
+        });
+
+        afterEach(() => {
+            window.sessionStorage.clear();
+        });
+
+        it("active account is initialized as null", () => {
+            // Public client should initialze with active account set to null.
+            expect(pca.getActiveAccount()).to.be.null;
+        });
+
+        it("setActiveAccount() sets the active account local id value correctly", () => {
+            expect((pca as any).activeLocalAccountId).to.be.null;
+            pca.setActiveAccount(testAccountInfo1);
+            expect((pca as any).activeLocalAccountId).to.be.eq(testAccountInfo1.localAccountId);
+        });
+
+        it("getActiveAccount looks up the current account values and returns them()", () => {
+            pca.setActiveAccount(testAccountInfo1);
+            const activeAccount1 = pca.getActiveAccount();
+            expect(activeAccount1).to.be.deep.eq(testAccountInfo1);
+            
+            const newName = "Ben Franklin";
+            window.sessionStorage.clear();
+            testAccountInfo1.name = newName;
+            testAccount1.name = newName;
+            const cacheKey = AccountEntity.generateAccountCacheKey(testAccountInfo1);
+            window.sessionStorage.setItem(cacheKey, JSON.stringify(testAccount1));
+
+            const activeAccount2 = pca.getActiveAccount();
+            expect(activeAccount2).to.be.deep.eq(testAccountInfo1);
+        });
+
+        describe("activeAccount logout", () => {
+            const testAccountInfo2: AccountInfo = {
+                homeAccountId: "different-home-account-id",
+                environment: "login.windows.net",
+                tenantId: TEST_DATA_CLIENT_INFO.TEST_UTID,
+                username: "anotherExample@microsoft.com",
+                name: "Abe Lincoln",
+                localAccountId: TEST_CONFIG.OID,
+                idTokenClaims: undefined
+            };
+
+            beforeEach(() => {
+                pca.setActiveAccount(testAccountInfo1);
+                sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
+                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory: boolean) => {
+                    expect(urlNavigate).to.be.eq(testLogoutUrl);
+                    expect(logger).to.be.instanceOf(Logger);
+                    expect(noHistory).to.be.undefined;
+                    return Promise.resolve();
+                });
+            });
+
+            it("Clears active account on logout with no account", async () => {
+                expect((pca as any).activeLocalAccountId).to.be.eq(testAccountInfo1.localAccountId);
+                await pca.logout();
+                expect(pca.getActiveAccount()).to.be.null;
+            });
+    
+            it("Clears active account on logout when the given account info matches", async () => {
+                expect((pca as any).activeLocalAccountId).to.be.eq(testAccountInfo1.localAccountId);
+                await pca.logout({
+                    account: testAccountInfo1
+                });
+                expect(pca.getActiveAccount()).to.be.null;
+            });
+
+            it("Does not clear active account on logout if given account object does not match", async () => {
+                expect((pca as any).activeLocalAccountId).to.be.eq(testAccountInfo1.localAccountId);
+                await pca.logout({
+                    account: testAccountInfo2
+                });
+                expect(pca.getActiveAccount()).to.be.deep.eq(testAccountInfo1);
+            });
         });
     });
 
