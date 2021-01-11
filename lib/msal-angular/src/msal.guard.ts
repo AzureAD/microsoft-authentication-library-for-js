@@ -7,7 +7,7 @@ import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, CanActivateCh
 import { MsalService } from "./msal.service";
 import { Injectable, Inject } from "@angular/core";
 import { Location } from "@angular/common";
-import { InteractionType, BrowserConfigurationAuthError, BrowserUtils, UrlString, PopupRequest, RedirectRequest } from "@azure/msal-browser";
+import { InteractionType, BrowserConfigurationAuthError, BrowserUtils, UrlString, PopupRequest, RedirectRequest, AuthenticationResult } from "@azure/msal-browser";
 import { MsalGuardConfiguration } from "./msal.guard.config";
 import { MSAL_GUARD_CONFIG } from "./constants";
 import { concatMap, catchError, map } from "rxjs/operators";
@@ -64,8 +64,9 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
             this.authService.getLogger().verbose("Guard - logging in by popup");
             return this.authService.loginPopup({ ...this.msalGuardConfig.authRequest } as PopupRequest)
                 .pipe(
-                    map(() => {
-                        this.authService.getLogger().verbose("Guard - login by popup successful, can activate");
+                    map((response: AuthenticationResult) => {
+                        this.authService.getLogger().verbose("Guard - login by popup successful, can activate, setting active account");
+                        this.authService.instance.setActiveAccount(response.account);
                         return true;
                     })
                 );

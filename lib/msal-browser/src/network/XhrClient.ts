@@ -64,7 +64,7 @@ export class XhrClient implements INetworkModule {
                 reject(xhr.status);
             };
 
-            if (method === "POST" && options.body) {
+            if (method === "POST" && options && options.body) {
                 xhr.send(options.body);
             } else if (method === "GET") {
                 xhr.send();
@@ -81,8 +81,9 @@ export class XhrClient implements INetworkModule {
      */
     private setXhrHeaders(xhr: XMLHttpRequest, options?: NetworkRequestOptions): void {
         if (options && options.headers) {
-            Object.keys(options.headers).forEach((key: string) => {
-                xhr.setRequestHeader(key, options.headers[key]);
+            const headers = options.headers;
+            Object.keys(headers).forEach((key: string) => {
+                xhr.setRequestHeader(key, headers[key]);
             });
         }
     }
@@ -101,7 +102,9 @@ export class XhrClient implements INetworkModule {
             const parts = value.split(": ");
             const headerName = parts.shift();
             const headerVal = parts.join(": ");
-            headerDict[headerName] = headerVal;
+            if (headerName && headerVal) {
+                headerDict[headerName] = headerVal;
+            }
         });
 
         return headerDict;
