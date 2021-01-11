@@ -20,7 +20,7 @@ export class BrowserProtocolUtils {
      * @param browserCrypto 
      * @param state 
      */
-    static extractBrowserRequestState(browserCrypto: ICrypto, state: string): BrowserStateObject {
+    static extractBrowserRequestState(browserCrypto: ICrypto, state: string): BrowserStateObject | null {
         if (StringUtils.isEmpty(state)) {
             return null;
         }
