@@ -3,7 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, ClientCredentialRequest, Logger, OnBehalfOfRequest, RefreshTokenRequest, SilentFlowRequest } from "@azure/msal-common";
+import { AuthenticationResult, Logger } from "@azure/msal-common";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
+import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
+import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
+import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
+import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
+import { SilentFlowRequest } from "../request/SilentFlowRequest";
 import { TokenCache } from "../cache/TokenCache";
 export interface IConfidentialClientApplication {
     getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;

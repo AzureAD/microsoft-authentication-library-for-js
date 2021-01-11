@@ -3,7 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, DeviceCodeRequest, Logger, RefreshTokenRequest, SilentFlowRequest, UsernamePasswordRequest } from "@azure/msal-common";
+import { AuthenticationResult, Logger } from "@azure/msal-common";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
+import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
+import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
+import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
+import { SilentFlowRequest } from "../request/SilentFlowRequest";
+import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
 import { TokenCache } from "../cache/TokenCache";
 
 export interface IPublicClientApplication {
