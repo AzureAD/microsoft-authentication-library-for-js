@@ -7,10 +7,13 @@ import { InteractionType } from "./BrowserConstants";
 import { StringUtils, ClientAuthError, ICrypto, RequestStateObject, ProtocolUtils, ServerAuthorizationCodeResponse, UrlString } from "@azure/msal-common";
 
 export type BrowserStateObject = {
-    interactionType: InteractionType,
-    brokeredClientId?: string,
-    brokeredReqAuthority?: string,
-    brokeredReqScopes?: string
+    interactionType: InteractionType
+};
+
+export type BrokerStateObject = BrowserStateObject & {
+    brokeredClientId: string,
+    brokeredReqAuthority: string,
+    brokeredReqScopes: string
 };
 
 export class BrowserProtocolUtils {
@@ -20,7 +23,7 @@ export class BrowserProtocolUtils {
      * @param browserCrypto 
      * @param state 
      */
-    static extractBrowserRequestState(browserCrypto: ICrypto, state: string): BrowserStateObject {
+    static extractBrowserRequestState(browserCrypto: ICrypto, state: string): BrowserStateObject | null {
         if (StringUtils.isEmpty(state)) {
             return null;
         }

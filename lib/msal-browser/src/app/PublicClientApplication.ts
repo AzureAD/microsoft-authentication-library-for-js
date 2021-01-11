@@ -16,6 +16,7 @@ import { SilentRequest } from "../request/SilentRequest";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { EventType } from "../event/EventType";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -24,8 +25,8 @@ import { SsoSilentRequest } from "../request/SsoSilentRequest";
 export class PublicClientApplication extends ClientApplication implements IPublicClientApplication {
 
     // Broker Objects
-    protected embeddedApp: EmbeddedClientApplication;
-    protected broker: BrokerClientApplication;
+    protected embeddedApp?: EmbeddedClientApplication;
+    protected broker?: BrokerClientApplication;
 
     /**
      * @constructor
@@ -50,13 +51,15 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     constructor(configuration: Configuration) {
         super(configuration);
+        this.embeddedApp = undefined;
+        this.broker = undefined;
     }
 
     /**
      * 
      */
     async initializeBrokering(): Promise<void> {     
-        if (!this.isBrowserEnvironment) {
+        if (!this.isBrowserEnvironment || !this.config.experimental) {
             return;
         }
 
@@ -69,19 +72,19 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             this.logger.verbose("Acting as Broker");
             this.broker.listenForBrokerMessage();
         } else if (this.config.experimental.brokerOptions.allowBrokering) {
-            this.embeddedApp = new EmbeddedClientApplication(this.config, this.logger, this.browserStorage);
+            this.embeddedApp = new EmbeddedClientApplication(this.config.auth.clientId, this.config.experimental.brokerOptions, this.logger, this.browserStorage);
             this.logger.verbose("Acting as child");
             await this.embeddedApp.initiateHandshake();
         }
     }
 
-    async handleRedirectPromise(): Promise<AuthenticationResult | null> {
+    async handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null> {
         if (this.broker) {
-            return this.broker.handleRedirectPromise();
+            return this.broker.handleRedirectPromise(hash);
         } else if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
             return await this.embeddedApp.sendHandleRedirectRequest();
         }
-        return super.handleRedirectPromise();
+        return super.handleRedirectPromise(hash);
     }
 
     /**
@@ -158,10 +161,14 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
+        const account = request.account || this.getActiveAccount();
+        if (!account) {
+            throw BrowserAuthError.createNoAccountError();
+        }
         const silentRequest: SilentFlowRequest = {
             ...request,
             ...this.initializeBaseRequest(request),
-            account: request.account || this.getActiveAccount(),
+            account: account,
             forceRefresh: request.forceRefresh || false
         };
         this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);

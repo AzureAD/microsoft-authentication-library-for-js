@@ -4,7 +4,7 @@
  */
 
 import { version } from "../../../package.json";
-import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerRefreshTokenClient, RefreshTokenClient, StringUtils, AuthorizationUrlRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, ScopeSet, AccountInfo, AuthenticationScheme } from "@azure/msal-common";
+import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerRefreshTokenClient, RefreshTokenClient, StringUtils, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, ScopeSet, AccountInfo, AuthenticationScheme } from "@azure/msal-common";
 import { BrokerMessage } from "../msg/BrokerMessage";
 import { BrokerMessageType, InteractionType } from "../../utils/BrowserConstants";
 import { Configuration } from "../../config/Configuration";
@@ -18,30 +18,33 @@ import { ClientApplication } from "../../app/ClientApplication";
 import { PopupRequest } from "../../request/PopupRequest";
 import { BrokerHandleRedirectRequest } from "../msg/req/BrokerHandleRedirectRequest";
 import { SsoSilentRequest } from "../../request/SsoSilentRequest";
-import { BrowserStateObject } from "../../utils/BrowserProtocolUtils";
+import { BrokerStateObject } from "../../utils/BrowserProtocolUtils";
 import { BrokerSilentRequest } from "../request/BrokerSilentRequest";
 import { BrokerAuthError } from "../../error/BrokerAuthError";
 import { BrokerPopupRequest } from "../request/BrokerPopupRequest";
 import { BrokerRedirectRequest } from "../request/BrokerRedirectRequst";
 import { BrokerSsoSilentRequest } from "../request/BrokerSsoSilentRequest";
+import { AuthorizationUrlRequest } from "../../request/AuthorizationUrlRequest";
 
 /**
  * Broker Application class to manage brokered requests.
  */
 export class BrokerClientApplication extends ClientApplication {
 
-    private cachedBrokerResponse: Promise<BrokerAuthenticationResult>;
+    private cachedBrokerResponse?: Promise<BrokerAuthenticationResult> | null;
 
     constructor(configuration: Configuration) {
         super(configuration);
+
+        this.cachedBrokerResponse = null;
     }
 
     /**
      * 
      */
-    async handleRedirectPromise(): Promise<BrokerAuthenticationResult | null> {
-        this.cachedBrokerResponse = super.handleRedirectPromise() as Promise<BrokerAuthenticationResult>;
-        const cachedResponse = (await this.cachedBrokerResponse) as BrokerAuthenticationResult;
+    async handleRedirectPromise(hash?: string): Promise<BrokerAuthenticationResult | null> {
+        this.cachedBrokerResponse = super.handleRedirectPromise(hash) as Promise<BrokerAuthenticationResult>;
+        const cachedResponse: BrokerAuthenticationResult = await this.cachedBrokerResponse;
         // TODO: What to do in cases of multi-account in broker?
         if (cachedResponse) {
             if (!cachedResponse.tokensToCache) {
@@ -93,6 +96,7 @@ export class BrokerClientApplication extends ClientApplication {
     private async handleBrokerHandshake(clientMessage: MessageEvent): Promise<void> {
         const validMessage = BrokerHandshakeRequest.validate(clientMessage);
         this.logger.verbose(`Broker handshake validated: ${validMessage}`);
+        // TODO: Add broker origin here
         const brokerHandshakeResponse = new BrokerHandshakeResponse(version, "");
 
         // @ts-ignore
@@ -149,8 +153,8 @@ export class BrokerClientApplication extends ClientApplication {
                 return;
             }
 
-            const currentAccount = this.getActiveAccount();
-            if (currentAccount || validMessage.request.account) {
+            const currentAccount = this.getActiveAccount() || validMessage.request.account;
+            if (currentAccount) {
                 return this.brokeredSilentRequest(validMessage, clientMessage.ports[0], currentAccount);
             }
 
@@ -171,8 +175,8 @@ export class BrokerClientApplication extends ClientApplication {
      * @param messageInteractionType 
      */
     private getInteractionType(messageInteractionType: InteractionType): InteractionType {
-        const brokerHasInteractionPref = !!this.config.experimental.brokerOptions.preferredInteractionType;
-        return brokerHasInteractionPref ? this.config.experimental.brokerOptions.preferredInteractionType : messageInteractionType;
+        const configuredPreferredType = this.config.experimental!.brokerOptions.preferredInteractionType;;
+        return configuredPreferredType ? configuredPreferredType : messageInteractionType;
     }
 
     /**
@@ -273,7 +277,7 @@ export class BrokerClientApplication extends ClientApplication {
      * @param validMessage 
      * @param clientPort 
      */
-    private async brokeredSilentRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort, account?: AccountInfo): Promise<void> {
+    private async brokeredSilentRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort, account: AccountInfo): Promise<void> {
         try {
             const silentRequest = validMessage.request as BrokerSilentRequest;
             silentRequest.embeddedAppClientId = validMessage.embeddedClientId;
@@ -283,8 +287,8 @@ export class BrokerClientApplication extends ClientApplication {
             }
             const response = (await this.acquireTokenByRefreshToken(silentRequest)) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Silent, response);
-            if (brokerAuthResponse.result.tokensToCache) {
-                this.logger.info(`Sending auth response`);
+            if (brokerAuthResponse.result && brokerAuthResponse.result.tokensToCache) {
+                this.logger.info(`Sending auth response: ${JSON.stringify(brokerAuthResponse)}`);
                 clientPort.postMessage(brokerAuthResponse);
                 clientPort.close();
             } else {
@@ -329,8 +333,8 @@ export class BrokerClientApplication extends ClientApplication {
      */
     protected initializeAuthorizationRequest(request: AuthorizationUrlRequest|RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
         const redirectUri = this.getRedirectUri(request.redirectUri);
-        const baseRequestScopes = new ScopeSet(request.scopes);
-        const browserState: BrowserStateObject = {
+        const baseRequestScopes = new ScopeSet(request.scopes || []);
+        const browserState: BrokerStateObject = {
             interactionType: interactionType,
             brokeredClientId: this.config.auth.clientId,
             brokeredReqAuthority: (request && request.authority) || this.config.auth.authority,
@@ -343,7 +347,7 @@ export class BrokerClientApplication extends ClientApplication {
             browserState
         );
 
-        const nonce = StringUtils.isEmpty(request.nonce) ? this.browserCrypto.createNewGuid() : request.nonce;
+        const nonce: string = request.nonce || this.browserCrypto.createNewGuid();
         const authenticationScheme = request.authenticationScheme || AuthenticationScheme.BEARER;
 
         const validatedRequest: AuthorizationUrlRequest = {
