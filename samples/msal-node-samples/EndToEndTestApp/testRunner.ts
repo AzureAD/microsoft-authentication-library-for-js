@@ -51,7 +51,8 @@ async function testScenario (scenario: string): Promise<any> {
         const args = {
             _: [] as any[],
             $0: '',
-            roots: [testLocation]
+            roots: [testLocation],
+            timeout: 20000
         };
         // Run tests for current scenario
         return await runCLI(args as Config.Argv, [testLocation]); 
