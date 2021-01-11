@@ -55,7 +55,7 @@ export type CacheOptions = {
  */
 export type BrokerOptions = {
     actAsBroker?: boolean;
-    preferredInteractionType?: InteractionType.Popup | InteractionType.Redirect | InteractionType.None;
+    preferredInteractionType: InteractionType.Popup | InteractionType.Redirect | InteractionType.None | null;
     allowBrokering?: boolean;
     trustedBrokerDomains?: string[];
     brokerRedirectParams?: Pick<RedirectRequest, "redirectStartPage" | "onRedirectNavigate">;
@@ -154,8 +154,8 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
 
     // Default broker options for browser
     const DEFAULT_BROKER_OPTIONS: Required<BrokerOptions> = {
-        preferredInteractionType: undefined,
-        brokerRedirectParams: undefined,
+        preferredInteractionType: null,
+        brokerRedirectParams: {},
         actAsBroker: false,
         allowBrokering: false,
         trustedBrokerDomains: []

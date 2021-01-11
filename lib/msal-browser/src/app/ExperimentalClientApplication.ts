@@ -3,12 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, AuthorizationUrlRequest, PromptValue, SilentFlowRequest } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, PromptValue, SilentFlowRequest } from "@azure/msal-common";
 import { BrokerClientApplication } from "../broker/client/BrokerClientApplication";
 import { EmbeddedClientApplication } from "../broker/client/EmbeddedClientApplication";
 import { Configuration } from "../config/Configuration";
 import { EventType } from "../event/EventType";
 import { PopupHandler } from "../interaction_handler/PopupHandler";
+import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
@@ -20,8 +21,8 @@ import { IPublicClientApplication } from "./IPublicClientApplication";
 export class ExperimentalClientApplication extends ClientApplication implements IPublicClientApplication {
 
     // Broker Objects
-    protected embeddedApp: EmbeddedClientApplication;
-    protected broker: BrokerClientApplication;
+    protected embeddedApp?: EmbeddedClientApplication;
+    protected broker?: BrokerClientApplication;
     
     constructor(configuration: Configuration, parent: ClientApplication) {
         super(configuration);
@@ -49,7 +50,7 @@ export class ExperimentalClientApplication extends ClientApplication implements 
      * 
      */
     async initializeBrokering(): Promise<void> {
-        if (!this.isBrowserEnvironment) {
+        if (!this.isBrowserEnvironment || !this.config.experimental) {
             return;
         }
 
@@ -62,7 +63,7 @@ export class ExperimentalClientApplication extends ClientApplication implements 
             this.logger.verbose("Acting as Broker");
             this.broker.listenForBrokerMessage();
         } else if (this.config.experimental.brokerOptions.allowBrokering) {
-            this.embeddedApp = new EmbeddedClientApplication(this.config, this.logger, this.browserStorage);
+            this.embeddedApp = new EmbeddedClientApplication(this.config.auth.clientId, this.config.experimental.brokerOptions, this.logger, this.browserStorage);
             this.logger.verbose("Acting as child");
             await this.embeddedApp.initiateHandshake();
         }
