@@ -70,7 +70,7 @@ describe("Silent Flow AAD PPE Tests", () => {
         try {
             await clickSignIn(page, screenshot);
             await enterCredentials(page, screenshot, username, accountPwd);
-            await page.waitForSelector("#acquireTokenSilent");
+            await page.waitForSelector("#acquireTokenSilent", { timeout: 0 });
             await screenshot.takeScreenshot(page, "ATS");
             await page.click("#acquireTokenSilent");
             await page.waitForSelector("#graph-called-successfully");

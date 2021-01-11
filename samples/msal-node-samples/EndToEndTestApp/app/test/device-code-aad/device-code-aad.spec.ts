@@ -88,6 +88,7 @@ describe('Device Code AAD PPE Tests', () => {
             await enterDeviceCode(page, screenshot, deviceCode, deviceLoginUrl);
             await enterCredentials(page, screenshot, username, accountPwd);
             const cachedTokens = NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+            console.log(cachedTokens);
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
