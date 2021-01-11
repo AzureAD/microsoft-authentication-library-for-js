@@ -22,16 +22,6 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
     await screenshot.takeScreenshot(page, "pwdInputPage");
     await page.type("#i0118", accountPwd);
     await page.click("#idSIButton9");
-    try {
-        await page.waitForSelector('#KmsiCheckboxField', {timeout: 1000});
-        await screenshot.takeScreenshot(page, "kmsiPage");
-        await Promise.all([
-            page.click("#idSIButton9"),
-            page.waitForNavigation({ waitUntil: "networkidle0"})
-        ]);
-    } catch (e) {
-        return;
-    }
 }
 
 export async function clickSignIn(page: Page, screenshot: Screenshot): Promise<void> {
