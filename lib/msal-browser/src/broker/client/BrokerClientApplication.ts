@@ -4,7 +4,7 @@
  */
 
 import { version } from "../../../package.json";
-import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerRefreshTokenClient, RefreshTokenClient, AuthorizationUrlRequest, ProtocolUtils, AccountInfo, RequestThumbprint } from "@azure/msal-common";
+import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerRefreshTokenClient, RefreshTokenClient, ProtocolUtils, ScopeSet, AccountInfo, RequestThumbprint, Constants } from "@azure/msal-common";
 import { BrokerMessage } from "../msg/BrokerMessage";
 import { BrokerMessageType, InteractionType } from "../../utils/BrowserConstants";
 import { Configuration } from "../../config/Configuration";
@@ -15,12 +15,13 @@ import { BrokerRedirectResponse } from "../msg/resp/BrokerRedirectResponse";
 import { BrokerAuthResponse } from "../msg/resp/BrokerAuthResponse";
 import { ClientApplication } from "../../app/ClientApplication";
 import { BrokerHandleRedirectRequest } from "../msg/req/BrokerHandleRedirectRequest";
-import { BrowserStateObject } from "../../utils/BrowserProtocolUtils";
 import { BrokerSilentRequest } from "../request/BrokerSilentRequest";
 import { BrokerAuthError } from "../../error/BrokerAuthError";
 import { BrokerPopupRequest } from "../request/BrokerPopupRequest";
 import { BrokerRedirectRequest } from "../request/BrokerRedirectRequst";
 import { BrokerSsoSilentRequest } from "../request/BrokerSsoSilentRequest";
+import { AuthorizationUrlRequest } from "../../request/AuthorizationUrlRequest";
+import { BrokerStateObject } from "../../utils/BrowserProtocolUtils";
 
 /**
  * Broker Application class to manage brokered requests.
@@ -28,10 +29,12 @@ import { BrokerSsoSilentRequest } from "../request/BrokerSsoSilentRequest";
 export class BrokerClientApplication extends ClientApplication {
 
     // Current promise which is processing the hash in the url response, trading for tokens, and caching the brokered response in memory.
-    private currentBrokerRedirectResponse: Promise<BrokerAuthenticationResult>;
+    private currentBrokerRedirectResponse?: Promise<BrokerAuthenticationResult | null>;
 
     constructor(configuration: Configuration) {
         super(configuration);
+
+        this.currentBrokerRedirectResponse = undefined;
     }
 
     /**
@@ -112,6 +115,7 @@ export class BrokerClientApplication extends ClientApplication {
     private async handleBrokerHandshake(clientMessage: MessageEvent): Promise<void> {
         const validMessage = BrokerHandshakeRequest.validate(clientMessage);
         this.logger.verbose(`Broker handshake validated: ${validMessage}`);
+        // TODO: Add broker origin here
         const brokerHandshakeResponse = new BrokerHandshakeResponse(version, "");
 
         // @ts-ignore
@@ -159,8 +163,11 @@ export class BrokerClientApplication extends ClientApplication {
     private async handleBrokerAuthRequest(clientMessage: MessageEvent): Promise<void> {
         const validMessage = BrokerAuthRequest.validate(clientMessage);
         if (validMessage) {
-            this.logger.verbose(`Broker auth request validated: ${validMessage}`);
+            if (!validMessage.request.authority || !validMessage.request.scopes) {
+                throw BrokerAuthError.createBrokerRequestIncompleteError();
+            }
 
+            this.logger.verbose(`Broker auth request validated: ${validMessage}`);
             // If a current broker redirect response is in progress, wait for it to complete before proceeding with the brokered request.
             if (this.currentBrokerRedirectResponse) {
                 await this.currentBrokerRedirectResponse;
@@ -186,8 +193,8 @@ export class BrokerClientApplication extends ClientApplication {
             }
 
             // Get the currently set active account, and attempt a silent request if there is one set (or one is provided in the request)
-            const currentAccount = this.getActiveAccount();
-            if (currentAccount || validMessage.request.account) {
+            const currentAccount = this.getActiveAccount() || validMessage.request.account;
+            if (currentAccount) {
                 return this.brokeredSilentRequest(validMessage, clientMessage.ports[0], currentAccount);
             }
 
@@ -209,8 +216,8 @@ export class BrokerClientApplication extends ClientApplication {
      * @param messageInteractionType 
      */
     private getInteractionType(messageInteractionType: InteractionType): InteractionType {
-        const brokerHasInteractionPref = !!this.config.experimental.brokerOptions.preferredInteractionType;
-        return brokerHasInteractionPref ? this.config.experimental.brokerOptions.preferredInteractionType : messageInteractionType;
+        const configuredPreferredType = this.config.experimental!.brokerOptions.preferredInteractionType;;
+        return configuredPreferredType ? configuredPreferredType : messageInteractionType;
     }
 
     /**
@@ -261,7 +268,10 @@ export class BrokerClientApplication extends ClientApplication {
             const validatedBrokerRequest = this.initializeBrokeredRequest(redirectRequest, InteractionType.Redirect, validMessage.embeddedAppOrigin);
 
             // Call acquireTokenRedirect()
-            this.acquireTokenRedirectAsync(validatedBrokerRequest, this.config.experimental.brokerOptions.brokerRedirectParams.redirectStartPage, this.config.experimental.brokerOptions.brokerRedirectParams.onRedirectNavigate);
+            this.acquireTokenRedirectAsync(
+                validatedBrokerRequest, 
+                this.config.experimental?.brokerOptions.brokerRedirectParams?.redirectStartPage, 
+                this.config.experimental?.brokerOptions.brokerRedirectParams?.onRedirectNavigate);
         } catch (err) {
             const brokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, null, err);
             this.logger.info(`Found auth error in popup: ${err}`);
@@ -335,7 +345,7 @@ export class BrokerClientApplication extends ClientApplication {
      * @param validMessage 
      * @param clientPort 
      */
-    private async brokeredSilentRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort, account?: AccountInfo): Promise<void> {
+    private async brokeredSilentRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort, account: AccountInfo): Promise<void> {
         try {
             // Initialize the brokered silent request with required parameters
             const silentRequest = validMessage.request as BrokerSilentRequest;
@@ -349,8 +359,8 @@ export class BrokerClientApplication extends ClientApplication {
             const response = (await this.acquireTokenByRefreshToken(silentRequest)) as BrokerAuthenticationResult;
             // Check whether response contains tokens for the child to cache, and sends the response. Otherwise, sends an error back to the child app.
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Silent, response);
-            if (brokerAuthResponse.result.tokensToCache) {
-                this.logger.info(`Sending auth response`);
+            if (brokerAuthResponse.result && brokerAuthResponse.result.tokensToCache) {
+                this.logger.info(`Sending auth response: ${JSON.stringify(brokerAuthResponse)}`);
                 clientPort.postMessage(brokerAuthResponse);
                 clientPort.close();
             } else {
@@ -395,16 +405,19 @@ export class BrokerClientApplication extends ClientApplication {
      * @param interactionType 
      * @param messageOrigin 
      */
-    private initializeBrokeredRequest(embeddedRequest: AuthorizationUrlRequest, interactionType: InteractionType, messageOrigin: string): AuthorizationUrlRequest {
-        let embeddedState: string;
+    private initializeBrokeredRequest(embeddedRequest: BrokerRedirectRequest|BrokerPopupRequest|BrokerSsoSilentRequest, interactionType: InteractionType, messageOrigin: string): AuthorizationUrlRequest {
+        let embeddedState: string = Constants.EMPTY_STRING;
         if (embeddedRequest.state) {
             const embeddedStateObj = ProtocolUtils.parseRequestState(this.browserCrypto, embeddedRequest.state);
             embeddedState = (embeddedStateObj && embeddedStateObj.userRequestState) || "";
         }
 
-        const browserState: BrowserStateObject = {
+        const baseRequestScopes = new ScopeSet(embeddedRequest.scopes || []);
+        const browserState: BrokerStateObject = {
             interactionType: interactionType,
-            brokeredOrigin: messageOrigin
+            brokeredClientId: embeddedRequest.embeddedAppClientId,
+            brokeredReqAuthority: embeddedRequest.authority,
+            brokeredReqScopes: baseRequestScopes.printScopes()
         };
 
         const brokerState = ProtocolUtils.setRequestState(
@@ -413,10 +426,13 @@ export class BrokerClientApplication extends ClientApplication {
             browserState
         );
 
-        this.browserStorage.updateCacheEntries(brokerState, embeddedRequest.nonce, embeddedRequest.authority);
+        const requestNonce = embeddedRequest.nonce || this.browserCrypto.createNewGuid();
+
+        this.browserStorage.updateCacheEntries(brokerState, requestNonce, embeddedRequest.authority);
         return {
             ...embeddedRequest,
-            state: brokerState
+            state: brokerState,
+            nonce: requestNonce
         };
     }
 }

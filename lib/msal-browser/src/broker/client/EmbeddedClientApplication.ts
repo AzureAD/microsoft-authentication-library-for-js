@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { Configuration } from "../../config/Configuration";
-import { Logger, AuthenticationResult } from "@azure/msal-common";
+import { BrokerOptions } from "../../config/Configuration";
+import { Logger, AuthenticationResult, Constants } from "@azure/msal-common";
 import { BrokerHandshakeRequest } from "../msg/req/BrokerHandshakeRequest";
 import { BrokerHandshakeResponse } from "../msg/resp/BrokerHandshakeResponse";
 import { PopupRequest } from "../../request/PopupRequest";
@@ -19,6 +19,7 @@ import { version } from "../../../package.json";
 import { BrokerHandleRedirectRequest } from "../msg/req/BrokerHandleRedirectRequest";
 import { BrowserCacheManager } from "../../cache/BrowserCacheManager";
 import { SsoSilentRequest } from "../../request/SsoSilentRequest";
+import { BrokerAuthError } from "../../error/BrokerAuthError";
 
 const DEFAULT_MESSAGE_TIMEOUT = 2000;
 const DEFAULT_POPUP_MESSAGE_TIMEOUT = 60000;
@@ -27,22 +28,25 @@ const DEFAULT_POPUP_MESSAGE_TIMEOUT = 60000;
  */
 export class EmbeddedClientApplication {
     private logger: Logger;
-    private config: Configuration;
+    private clientId: string;
+    private brokerOpts: BrokerOptions;
     private version: string;
     private brokerOrigin: string;
     private browserStorage: BrowserCacheManager;
 
     private get trustedBrokersProvided(): boolean {
-        return this.config.experimental.brokerOptions.trustedBrokerDomains && this.config.experimental.brokerOptions.trustedBrokerDomains.length >= 1;
+        return !!this.brokerOpts.trustedBrokerDomains && this.brokerOpts.trustedBrokerDomains.length >= 1;
     }
     public brokerConnectionEstablished: boolean;
 
-    constructor(configuration: Configuration, logger: Logger, browserStorage: BrowserCacheManager) {
-        this.config = configuration;
+    constructor(clientId: string, experimentalConfig: BrokerOptions, logger: Logger, browserStorage: BrowserCacheManager) {
+        this.brokerOpts = experimentalConfig;
+        this.clientId = clientId;
         this.logger = logger;
         this.browserStorage = browserStorage;
         this.brokerConnectionEstablished = false;
         this.version = version;
+        this.brokerOrigin = Constants.EMPTY_STRING;
     }
 
     /**
@@ -57,13 +61,6 @@ export class EmbeddedClientApplication {
             const response = await this.sendHandshakeRequest();
             this.brokerOrigin = response.brokerOrigin;
             this.brokerConnectionEstablished = true;
-            if (response.authResult) {
-                try {
-                    BrokerAuthResponse.processBrokerResponse(response.authResult, this.browserStorage);
-                } catch (e) {
-                    this.logger.error(e);
-                }
-            }
         } catch (e) {
             this.logger.error(e);
             this.brokerConnectionEstablished = false;
@@ -93,7 +90,12 @@ export class EmbeddedClientApplication {
         await this.preflightBrokerRequest();
 
         const brokerAuthResultMessage = await this.sendRequest(request, InteractionType.Silent, DEFAULT_MESSAGE_TIMEOUT);
-        return BrokerAuthResponse.processBrokerResponseMessage(brokerAuthResultMessage, this.browserStorage);
+        const brokerAuthResult = BrokerAuthResponse.processBrokerResponseMessage(brokerAuthResultMessage, this.browserStorage);
+        if (!brokerAuthResult) {
+            this.logger.errorPii(`Broker response is empty in brokered ssoSilent request: ${JSON.stringify(brokerAuthResult)}`);
+            throw BrokerAuthError.createBrokerResponseInvalidError();
+        }
+        return brokerAuthResult;
     }
 
     /**
@@ -104,7 +106,12 @@ export class EmbeddedClientApplication {
         await this.preflightBrokerRequest();
 
         const brokerAuthResultMessage = await this.sendRequest(request, InteractionType.Popup, DEFAULT_POPUP_MESSAGE_TIMEOUT);
-        return BrokerAuthResponse.processBrokerResponseMessage(brokerAuthResultMessage, this.browserStorage);
+        const brokerAuthResult = BrokerAuthResponse.processBrokerResponseMessage(brokerAuthResultMessage, this.browserStorage);
+        if (!brokerAuthResult) {
+            this.logger.errorPii(`Broker response is empty in brokered popup request: ${JSON.stringify(brokerAuthResult)}`);
+            throw BrokerAuthError.createBrokerResponseInvalidError();
+        }
+        return brokerAuthResult;
     }
 
     /**
@@ -121,9 +128,9 @@ export class EmbeddedClientApplication {
     /**
      * Send request to broker to handle redirect response for child.
      */
-    async sendHandleRedirectRequest(): Promise<AuthenticationResult> {
+    async sendHandleRedirectRequest(): Promise<AuthenticationResult | null> {
         await this.preflightBrokerRequest();
-        const brokerHandleRedirectRequest = new BrokerHandleRedirectRequest(this.config.auth.clientId, this.version);
+        const brokerHandleRedirectRequest = new BrokerHandleRedirectRequest(this.clientId, this.version);
 
         const brokerRedirectResponse = await this.messageBroker<MessageEvent>(brokerHandleRedirectRequest, DEFAULT_MESSAGE_TIMEOUT);
         return BrokerAuthResponse.processBrokerResponseMessage(brokerRedirectResponse, this.browserStorage);
@@ -136,7 +143,12 @@ export class EmbeddedClientApplication {
     async sendSilentRefreshRequest(request: SilentRequest): Promise<AuthenticationResult> {
         await this.preflightBrokerRequest();
         const brokerAuthResultMessage = await this.sendRequest(request, InteractionType.Silent, DEFAULT_MESSAGE_TIMEOUT);
-        return BrokerAuthResponse.processBrokerResponseMessage(brokerAuthResultMessage, this.browserStorage);
+        const brokerAuthResult = BrokerAuthResponse.processBrokerResponseMessage(brokerAuthResultMessage, this.browserStorage);
+        if (!brokerAuthResult) {
+            this.logger.errorPii(`Broker response is empty in brokered silent refresh request: ${JSON.stringify(brokerAuthResult)}`);
+            throw BrokerAuthError.createBrokerResponseInvalidError();
+        }
+        return brokerAuthResult;
     }
 
     /**
@@ -146,7 +158,7 @@ export class EmbeddedClientApplication {
      * @param timeoutMs 
      */
     private async sendRequest(request: PopupRequest|RedirectRequest|SsoSilentRequest, interactionType: InteractionType, timeoutMs: number): Promise<MessageEvent> {
-        const brokerRequest = new BrokerAuthRequest(this.config.auth.clientId, interactionType, request);
+        const brokerRequest = new BrokerAuthRequest(this.clientId, interactionType, request, Constants.EMPTY_STRING);
         return this.messageBroker<MessageEvent>(brokerRequest, timeoutMs);
     }
 
@@ -162,7 +174,7 @@ export class EmbeddedClientApplication {
 
             const onHandshakeResponse = (message: MessageEvent) => {
                 try {
-                    const brokerHandshakeResponse = BrokerHandshakeResponse.validate(message, this.config.experimental.brokerOptions.trustedBrokerDomains);
+                    const brokerHandshakeResponse = BrokerHandshakeResponse.validate(message, this.brokerOpts.trustedBrokerDomains);
                     if (brokerHandshakeResponse) {
                         clearTimeout(timeoutId);
                         this.logger.info(`Received handshake response: ${JSON.stringify(brokerHandshakeResponse)}`);
@@ -178,7 +190,7 @@ export class EmbeddedClientApplication {
 
             window.addEventListener("message", onHandshakeResponse);
 
-            const handshakeRequest = new BrokerHandshakeRequest(this.config.auth.clientId, this.version);
+            const handshakeRequest = new BrokerHandshakeRequest(this.clientId, this.version);
             this.logger.verbose(`Sending handshake request: ${handshakeRequest}`);
             // Message top frame window
             window.top.postMessage(handshakeRequest, "*");

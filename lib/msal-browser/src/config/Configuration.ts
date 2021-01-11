@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode, LogLevel } from "@azure/msal-common";
+import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode, LogLevel, StubbedNetworkModule } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { InteractionType, BrowserCacheLocation } from "../utils/BrowserConstants";
 import { RedirectRequest } from "../request/RedirectRequest";
@@ -101,7 +101,7 @@ export type ExperimentalOptions = {
  * - experimental: this is where you can experiment with new featueres (i.e. broker)
  */
 export type Configuration = {
-    auth?: BrowserAuthOptions;
+    auth: BrowserAuthOptions;
     cache?: CacheOptions;
     system?: BrowserSystemOptions;
     experimental?: ExperimentalOptions;
@@ -123,7 +123,7 @@ export type BrowserConfiguration = {
  *
  * @returns Configuration object
  */
-export function buildConfiguration({ auth: userInputAuth, cache: userInputCache, system: userInputSystem, experimental: userExperimental }: Configuration): BrowserConfiguration {
+export function buildConfiguration({ auth: userInputAuth, cache: userInputCache, system: userInputSystem, experimental: userExperimental }: Configuration, isBrowserEnvironment: boolean): BrowserConfiguration {
 
     // Default auth options for browser
     const DEFAULT_AUTH_OPTIONS: Required<BrowserAuthOptions> = {
@@ -162,12 +162,12 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     const DEFAULT_BROWSER_SYSTEM_OPTIONS: Required<BrowserSystemOptions> = {
         ...DEFAULT_SYSTEM_OPTIONS,
         loggerOptions: DEFAULT_LOGGER_OPTIONS,
-        networkClient: BrowserUtils.getBrowserNetworkClient(),
+        networkClient: isBrowserEnvironment ? BrowserUtils.getBrowserNetworkClient() : StubbedNetworkModule,
         loadFrameTimeout: 0,
         // If loadFrameTimeout is provided, use that as default.
         windowHashTimeout: (userInputSystem && userInputSystem.loadFrameTimeout) || DEFAULT_POPUP_TIMEOUT_MS,
         iframeHashTimeout: (userInputSystem && userInputSystem.loadFrameTimeout) || DEFAULT_IFRAME_TIMEOUT_MS,
-        navigateFrameWait: BrowserUtils.detectIEOrEdge() ? 500 : 0,
+        navigateFrameWait: isBrowserEnvironment && BrowserUtils.detectIEOrEdge() ? 500 : 0,
         redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
         asyncPopups: false,
         allowRedirectInIframe: false
