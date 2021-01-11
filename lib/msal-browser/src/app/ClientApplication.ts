@@ -394,31 +394,22 @@ export abstract class ClientApplication {
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         try {
+            // Preflight request
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
+            const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
+            this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority);
+
+            // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
+            if (this.config.system.asyncPopups) {
+                return this.acquireTokenPopupAsync(validRequest);
+            } else {
+            // asyncPopups flag is set to false. Opens popup before acquiring token.
+                const popup = PopupHandler.openSizedPopup();
+                return this.acquireTokenPopupAsync(validRequest, popup);
+            }
         } catch (e) {
             // Since this function is synchronous we need to reject
             return Promise.reject(e);
-        }
-
-        // If logged in, emit acquire token events
-        const loggedInAccounts = this.getAllAccounts();
-        if (loggedInAccounts.length > 0) {
-            this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Popup, request);
-        } else {
-            this.emitEvent(EventType.LOGIN_START, InteractionType.Popup, request);
-        }
-
-        // Preflight request
-        const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
-        this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority);
-
-        // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
-        if (this.config.system.asyncPopups) {
-            return this.acquireTokenPopupAsync(validRequest);
-        } else {
-            // asyncPopups flag is set to false. Opens popup before acquiring token.
-            const popup = PopupHandler.openSizedPopup();
-            return this.acquireTokenPopupAsync(validRequest, popup);
         }
     }
 
@@ -513,12 +504,22 @@ export abstract class ClientApplication {
         this.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
         try {
+            // Check that we have some SSO data
+            if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
+                throw BrowserAuthError.createSilentSSOInsufficientInfoError();
+            }
+
+            // Check that prompt is set to none, throw error if it is set to anything else.
+            if (request.prompt && request.prompt !== PromptValue.NONE) {
+                throw BrowserAuthError.createSilentPromptValueError(request.prompt);
+            }
+
             // Create silent request
             const silentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
                 ...request,
                 prompt: PromptValue.NONE
             }, InteractionType.Silent);
-    
+
             this.browserStorage.updateCacheEntries(silentRequest.state, silentRequest.nonce, silentRequest.authority);
             const silentTokenResult = await this.acquireTokenByIframe(silentRequest);
             this.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);

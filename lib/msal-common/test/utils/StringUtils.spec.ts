@@ -131,7 +131,7 @@ describe("StringUtils.ts Class Unit Tests", () => {
         const arr = ["S1", "S2", ""];
         const expected = ["S1", "S2"];
 
-        expect(StringUtils.removeEmptyStringsFromArray(arr)).to.be.eq(expected);
+        expect(StringUtils.removeEmptyStringsFromArray(arr)).to.be.deep.eq(expected);
     });
 
     describe("jsonParseHelper", () => {
