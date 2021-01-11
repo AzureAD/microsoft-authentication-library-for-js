@@ -8,7 +8,7 @@ export interface IWindowStorage {
      * Get the item from the window storage object matching the given key.
      * @param key 
      */
-    getItem(key: string): string;
+    getItem(key: string): string | null;
 
     /**
      * Sets the item in the window storage object with the given key.

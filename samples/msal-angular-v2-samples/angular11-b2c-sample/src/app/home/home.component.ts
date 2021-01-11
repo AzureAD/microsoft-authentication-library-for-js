@@ -1,5 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { MsalService } from '@azure/msal-angular';
+import { AuthenticationResult } from '@azure/msal-browser';
 
 @Component({
   selector: 'app-home',
@@ -12,7 +13,12 @@ export class HomeComponent implements OnInit {
 
   ngOnInit(): void {
     this.authService.handleRedirectObservable().subscribe({
-      next: (result) => console.log(result),
+      next: (result: AuthenticationResult) => {
+        if (result) {
+          this.authService.instance.setActiveAccount(result.account);
+          console.log(result);
+        }
+      },
       error: (error) => console.log(error)
     });
   }

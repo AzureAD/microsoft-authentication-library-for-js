@@ -17,6 +17,7 @@ export { Storage } from "./cache/Storage";
 export { Serializer } from "./cache/serializer/Serializer";
 export { Deserializer } from "./cache/serializer/Deserializer";
 export { TokenCache } from "./cache/TokenCache";
+export { CacheKVStore } from "./cache/serializer/SerializerTypes";
 
 // crypto
 export { CryptoProvider } from "./crypto/CryptoProvider";

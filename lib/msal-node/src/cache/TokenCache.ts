@@ -5,7 +5,7 @@
 
 import { Storage } from "./Storage";
 import { StringUtils, AccountEntity, AccountInfo, Logger, ISerializableTokenCache, ICachePlugin, TokenCacheContext } from "@azure/msal-common";
-import { InMemoryCache, JsonCache, SerializedAccountEntity, SerializedAccessTokenEntity, SerializedRefreshTokenEntity, SerializedIdTokenEntity, SerializedAppMetadataEntity } from "./serializer/SerializerTypes";
+import { InMemoryCache, JsonCache, SerializedAccountEntity, SerializedAccessTokenEntity, SerializedRefreshTokenEntity, SerializedIdTokenEntity, SerializedAppMetadataEntity, CacheKVStore } from "./serializer/SerializerTypes";
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
 import { ITokenCache } from "./ITokenCache";
@@ -87,6 +87,10 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
         } else {
             this.logger.verbose("No cache snapshot to deserialize");
         }
+    }
+
+    getKVStore(): CacheKVStore {
+        return this.storage.getCache();
     }
 
     /**

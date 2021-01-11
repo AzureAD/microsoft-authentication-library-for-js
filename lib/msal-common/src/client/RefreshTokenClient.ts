@@ -30,7 +30,7 @@ export class RefreshTokenClient extends BaseClient {
         super(configuration);
     }
 
-    public async acquireToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>{
+    public async acquireToken(request: RefreshTokenRequest): Promise<AuthenticationResult>{
         const response = await this.executeTokenRequest(request, this.authority);
 
         const responseHandler = new ResponseHandler(
@@ -59,7 +59,7 @@ export class RefreshTokenClient extends BaseClient {
      * Gets cached refresh token and attaches to request, then calls acquireToken API
      * @param request
      */
-    public async acquireTokenByRefreshToken(request: SilentFlowRequest): Promise<AuthenticationResult | null> {
+    public async acquireTokenByRefreshToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
         // Cannot renew token if no request object is given.
         if (!request) {
             throw ClientConfigurationError.createEmptyTokenRequestError();
