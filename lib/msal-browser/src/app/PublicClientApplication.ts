@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, AuthorizationUrlRequest, PromptValue, SilentFlowRequest } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, PromptValue, SilentFlowRequest } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, ApiId, InteractionType } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -17,6 +17,8 @@ import { BrowserUtils } from "../utils/BrowserUtils";
 import { EventType } from "../event/EventType";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { PopupHandler } from "../interaction_handler/PopupHandler";
+import { BrowserAuthError } from "../error/BrowserAuthError";
+import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -25,8 +27,8 @@ import { PopupHandler } from "../interaction_handler/PopupHandler";
 export class PublicClientApplication extends ClientApplication implements IPublicClientApplication {
 
     // Broker Objects
-    protected embeddedApp: EmbeddedClientApplication;
-    protected broker: BrokerClientApplication;
+    protected embeddedApp?: EmbeddedClientApplication;
+    protected broker?: BrokerClientApplication;
 
     /**
      * @constructor
@@ -51,13 +53,15 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     constructor(configuration: Configuration) {
         super(configuration);
+        this.embeddedApp = undefined;
+        this.broker = undefined;
     }
 
     /**
      * 
      */
     async initializeBrokering(): Promise<void> {     
-        if (!this.isBrowserEnvironment) {
+        if (!this.isBrowserEnvironment || !this.config.experimental) {
             return;
         }
 
@@ -70,7 +74,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             this.logger.verbose("Acting as Broker");
             this.broker.listenForBrokerMessage();
         } else if (this.config.experimental.brokerOptions.allowBrokering) {
-            this.embeddedApp = new EmbeddedClientApplication(this.config, this.logger, this.browserStorage);
+            this.embeddedApp = new EmbeddedClientApplication(this.config.auth.clientId, this.config.experimental.brokerOptions, this.logger, this.browserStorage);
             this.logger.verbose("Acting as child");
             await this.embeddedApp.initiateHandshake();
         }
@@ -211,10 +215,14 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
+        const account = request.account || this.getActiveAccount();
+        if (!account) {
+            throw BrowserAuthError.createNoAccountError();
+        }
         const silentRequest: SilentFlowRequest = {
             ...request,
             ...this.initializeBaseRequest(request),
-            account: request.account || this.getActiveAccount(),
+            account: account,
             forceRefresh: request.forceRefresh || false
         };
         this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);

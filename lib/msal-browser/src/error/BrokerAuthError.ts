@@ -12,6 +12,14 @@ export const BrokerAuthErrorMessage = {
     noTokensToCacheError: {
         code: "no_tokens_to_cache",
         desc: "The broker did not have any tokens for the client to cache."
+    },
+    brokerResponseInvalidError: {
+        code: "broker_response_invalid",
+        desc: "The broker response did not have the expected values."
+    },
+    brokerRequestIncompleteError: {
+        code: "broker_request_incomplete",
+        desc: "The brokered request did not have the expected values."
     }
 };
 
@@ -33,5 +41,23 @@ export class BrokerAuthError extends BrowserAuthError {
     static createNoTokensToCacheError(): BrokerAuthError {
         return new BrokerAuthError(BrokerAuthErrorMessage.noTokensToCacheError.code,
             `${BrokerAuthErrorMessage.noTokensToCacheError.desc}`);
+    }
+
+    /**
+     * Creates an error thrown when the broker response is invalid.
+     * @param errDetail 
+     */
+    static createBrokerResponseInvalidError(): BrokerAuthError {
+        return new BrokerAuthError(BrokerAuthErrorMessage.brokerResponseInvalidError.code,
+            `${BrokerAuthErrorMessage.brokerResponseInvalidError.desc}`);
+    }
+
+    /**
+     * Creates an error thrown when the broker response is invalid.
+     * @param errDetail 
+     */
+    static createBrokerRequestIncompleteError(): BrokerAuthError {
+        return new BrokerAuthError(BrokerAuthErrorMessage.brokerRequestIncompleteError.code,
+            `${BrokerAuthErrorMessage.brokerRequestIncompleteError.desc}`);
     }
 }
