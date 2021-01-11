@@ -3,13 +3,12 @@
     "version": "0.0.1",
     "license": "MIT",
     "private": true,
-    "devDependencies": {
+    "dependencies": {
         "@azure/identity": "^1.0.2",
-        "@types/puppeteer": "^5.4.2",
         "axios": "^0.21.1",
-        "jest": "^26.6.3",
-        "puppeteer": "^5.5.0",
-        "tree-kill": "^1.2.2",
-        "wait-on": "^5.2.1"
+        "puppeteer": "^5.5.0"
+    },
+    "devDependencies": {
+        "@types/puppeteer": "^5.4.2"
     }
 }
