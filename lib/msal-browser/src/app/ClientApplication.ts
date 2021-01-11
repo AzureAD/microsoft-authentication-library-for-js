@@ -377,6 +377,11 @@ export abstract class ClientApplication {
     protected async acquireTokenPopupAsync(validRequest: AuthorizationUrlRequest, popup?: Window|null): Promise<AuthenticationResult> {
         // If logged in, emit acquire token events
         const loggedInAccounts = this.getAllAccounts();
+        if (loggedInAccounts.length > 0) {
+            this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Popup, validRequest);
+        } else {
+            this.emitEvent(EventType.LOGIN_START, InteractionType.Popup, validRequest);
+        }
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup, validRequest.correlationId);
         try {
             // Create auth code request and generate PKCE params
@@ -439,16 +444,6 @@ export abstract class ClientApplication {
      * @param silentRequest
      */
     protected async acquireTokenByIframe(silentRequest: AuthorizationUrlRequest): Promise<AuthenticationResult> {
-        // Check that we have some SSO data
-        if (StringUtils.isEmpty(silentRequest.loginHint) && StringUtils.isEmpty(silentRequest.sid) && (!silentRequest.account || StringUtils.isEmpty(silentRequest.account.username))) {
-            throw BrowserAuthError.createSilentSSOInsufficientInfoError();
-        }
-
-        // Check that prompt is set to none, throw error if it is set to anything else.
-        if (silentRequest.prompt && silentRequest.prompt !== PromptValue.NONE) {
-            throw BrowserAuthError.createSilentPromptValueError(silentRequest.prompt);
-        }
-
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.ssoSilent, silentRequest.correlationId);
         try {
             // Create auth code request and generate PKCE params
@@ -500,12 +495,12 @@ export abstract class ClientApplication {
             const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
 
             // Create silent request
-            const ssoSilentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
-                ...request,
-                prompt: PromptValue.NONE
-            }, InteractionType.Silent);
-            this.browserStorage.updateCacheEntries(ssoSilentRequest.state, ssoSilentRequest.nonce, ssoSilentRequest.authority);
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
+                const ssoSilentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
+                    ...request,
+                    prompt: PromptValue.NONE
+                }, InteractionType.Silent);
+                this.browserStorage.updateCacheEntries(ssoSilentRequest.state, ssoSilentRequest.nonce, ssoSilentRequest.authority);
                 return await this.acquireTokenByIframe(ssoSilentRequest);
             }
             throw e;

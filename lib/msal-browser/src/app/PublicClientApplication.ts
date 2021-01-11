@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, PromptValue, SilentFlowRequest } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, PromptValue, SilentFlowRequest, StringUtils } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, ApiId, InteractionType } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -133,35 +133,26 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         try {
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
+            // Preflight request
+            const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
+
+            if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
+                return this.embeddedApp.sendPopupRequest(validRequest);
+            }
+
+            this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority);
+
+            // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
+            if (this.config.system.asyncPopups) {
+                return super.acquireTokenPopupAsync(validRequest);
+            } else {
+            // asyncPopups flag is set to false. Opens popup before acquiring token.
+                const popup = PopupHandler.openSizedPopup();
+                return super.acquireTokenPopupAsync(validRequest, popup);
+            }
         } catch (e) {
             // Since this function is synchronous we need to reject
             return Promise.reject(e);
-        }
-
-        // If logged in, emit acquire token events
-        const loggedInAccounts = this.getAllAccounts();
-        if (loggedInAccounts.length > 0) {
-            this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Popup, request);
-        } else {
-            this.emitEvent(EventType.LOGIN_START, InteractionType.Popup, request);
-        }
-
-        // Preflight request
-        const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
-
-        if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
-            return this.embeddedApp.sendPopupRequest(validRequest);
-        }
-
-        this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority);
-
-        // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
-        if (this.config.system.asyncPopups) {
-            return super.acquireTokenPopupAsync(validRequest);
-        } else {
-            // asyncPopups flag is set to false. Opens popup before acquiring token.
-            const popup = PopupHandler.openSizedPopup();
-            return super.acquireTokenPopupAsync(validRequest, popup);
         }
     }
 
@@ -187,6 +178,16 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         this.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
         try {
+            // Check that we have some SSO data
+            if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
+                throw BrowserAuthError.createSilentSSOInsufficientInfoError();
+            }
+
+            // Check that prompt is set to none, throw error if it is set to anything else.
+            if (request.prompt && request.prompt !== PromptValue.NONE) {
+                throw BrowserAuthError.createSilentPromptValueError(request.prompt);
+            }
+
             // Create silent request
             const silentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
                 ...request,

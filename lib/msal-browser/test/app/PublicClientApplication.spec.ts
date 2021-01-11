@@ -4,7 +4,7 @@
  */
 
 import "mocha";
-import chai, { config } from "chai";
+import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
