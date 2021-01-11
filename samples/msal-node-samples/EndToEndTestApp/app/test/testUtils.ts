@@ -5,6 +5,7 @@
 
 import { Screenshot } from "../../../../e2eTestUtils/TestUtils";
 import { Page } from "puppeteer";
+import fs from "fs";
 
 // Constants
 export const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
@@ -26,8 +27,7 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
 export async function clickSignIn(page: Page, screenshot: Screenshot): Promise<void> {
     await screenshot.takeScreenshot(page, "samplePageInit");
     await page.click("#SignIn");
-    await screenshot.takeScreenshot(page, "signInClicked");    
-    await page.waitForNavigation({ waitUntil: "networkidle0", timeout: 0 });
+    await screenshot.takeScreenshot(page, "signInClicked");
 }
 
 export async function enterCredentialsADFS(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
@@ -68,4 +68,16 @@ export function extractDeviceCodeParameters(output: string): { deviceCode: strin
 
 export function takeScreenshotAfter(duration: number, screenshot: Screenshot, page: Page, label: string): Promise<void> {
     return new Promise(resolve => setTimeout(() => screenshot.takeScreenshot(page, label).then(() => resolve()), duration));
+}
+
+export async function validateCacheLocation(cacheLocation: string): Promise<void> {
+    fs.readFile(cacheLocation, "utf-8", (err, data) => {
+        if (err || data === "") {
+            fs.writeFile(cacheLocation, "{}", (error) => {
+                if (error) {
+                    console.log("Error writing to cache file: ", error);
+                }
+            });
+        }
+    });
 }

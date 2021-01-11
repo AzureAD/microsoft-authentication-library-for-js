@@ -2,7 +2,7 @@ import "jest";
 import puppeteer from "puppeteer";
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import { Screenshot, createFolder, setupCredentials } from "../../../../../e2eTestUtils/TestUtils";
-import { NodeCacheTestUtils } from "../../../../../e2eTestUtils/NodeCacheTestUtils";
+import { NodeCacheTestUtils, tokenMap } from "../../../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AppTypes, AzureEnvironments } from "../../../../../e2eTestUtils/Constants";
@@ -11,7 +11,9 @@ import {
     enterDeviceCode,
     SCREENSHOT_BASE_FOLDER_NAME,
     extractDeviceCodeParameters,
+    validateCacheLocation
  } from "../testUtils";
+import { InMemoryCache } from "../../../../../../lib/msal-node/dist/cache/serializer/SerializerTypes";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
 
@@ -26,9 +28,8 @@ describe('Device Code AAD PPE Tests', () => {
     let device: ChildProcessWithoutNullStreams;
     const stream: Array<any> = [];
     
-    beforeAll(async() => {
+    beforeAll(async () => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
-
         const labApiParms: LabApiQueryParams = {
             azureEnvironment: AzureEnvironments.PPE,
             appType: AppTypes.CLOUD,
@@ -42,6 +43,8 @@ describe('Device Code AAD PPE Tests', () => {
             headless: true,
             ignoreDefaultArgs: ['--no-sandbox', '-disable-setuid-sandbox', '--disable-extensions']
         });
+        
+        await validateCacheLocation(TEST_CACHE_LOCATION);
     });
 
     afterAll(async () => {
@@ -87,11 +90,14 @@ describe('Device Code AAD PPE Tests', () => {
 
             await enterDeviceCode(page, screenshot, deviceCode, deviceLoginUrl);
             await enterCredentials(page, screenshot, username, accountPwd);
-            const cachedTokens = NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
-            console.log(cachedTokens);
-            expect(cachedTokens.accessTokens.length).toBe(1);
-            expect(cachedTokens.idTokens.length).toBe(1);
-            expect(cachedTokens.refreshTokens.length).toBe(1);
+            await page.waitForSelector("#message");
+
+            NodeCacheTestUtils.readCacheFile(TEST_CACHE_LOCATION, (deserializedCache: InMemoryCache) => {
+                const cachedTokens = NodeCacheTestUtils.getTokens(deserializedCache);
+                expect(cachedTokens.accessTokens.length).toBe(1);
+                expect(cachedTokens.idTokens.length).toBe(1);
+                expect(cachedTokens.refreshTokens.length).toBe(1);
+            });
          });
     });
 });
