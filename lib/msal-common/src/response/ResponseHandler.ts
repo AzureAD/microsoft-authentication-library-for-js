@@ -170,7 +170,7 @@ export class ResponseHandler {
         return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, idTokenObj, requestStateObj, resourceRequestMethod, resourceRequestUri);
     }
 
-    async handleBrokeredServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, authCodePayload?: AuthorizationCodePayload, requestScopes?: string[]): Promise<BrokerAuthenticationResult> {
+    async handleBrokeredServerTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, authCodePayload?: AuthorizationCodePayload, requestScopes?: string[], embeddedAppClientId?: string): Promise<BrokerAuthenticationResult> {
         // create an idToken object (not entity)
         let idTokenObj: AuthToken | undefined;
         if (serverTokenResponse.id_token) {
@@ -193,7 +193,7 @@ export class ResponseHandler {
             requestStateObj = ProtocolUtils.parseRequestState(this.cryptoObj, authCodePayload.state);
         }
 
-        const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, idTokenObj, requestStateObj && requestStateObj.libraryState, requestScopes, undefined, authCodePayload);// Save refresh token
+        const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, idTokenObj, requestStateObj && requestStateObj.libraryState, requestScopes, undefined, authCodePayload, embeddedAppClientId);// Save refresh token
         if (!!cacheRecord.refreshToken) {
             this.cacheStorage.setRefreshTokenCredential(cacheRecord.refreshToken);
         }
@@ -214,8 +214,16 @@ export class ResponseHandler {
      * @param idTokenObj
      * @param authority
      */
-    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, idTokenObj?: AuthToken, libraryState?: LibraryStateObject, requestScopes?: string[], oboAssertion?: string, authCodePayload?: AuthorizationCodePayload): CacheRecord {
-
+    private generateCacheRecord(
+        serverTokenResponse: ServerAuthorizationTokenResponse, 
+        authority: Authority, 
+        idTokenObj?: AuthToken, 
+        libraryState?: LibraryStateObject, 
+        requestScopes?: string[], 
+        oboAssertion?: string, 
+        authCodePayload?: AuthorizationCodePayload,
+        embeddedAppClientId?: string
+    ): CacheRecord {
         const env = Authority.generateEnvironmentFromAuthority(authority);
         if (StringUtils.isEmpty(env)) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
@@ -229,7 +237,7 @@ export class ResponseHandler {
                 this.homeAccountIdentifier,
                 env,
                 serverTokenResponse.id_token || Constants.EMPTY_STRING,
-                this.clientId,
+                embeddedAppClientId || this.clientId,
                 idTokenObj.claims.tid || Constants.EMPTY_STRING,
                 oboAssertion
             );
@@ -263,7 +271,7 @@ export class ResponseHandler {
                 this.homeAccountIdentifier,
                 env,
                 serverTokenResponse.access_token || Constants.EMPTY_STRING,
-                this.clientId,
+                embeddedAppClientId || this.clientId,
                 idTokenObj ? idTokenObj.claims.tid || Constants.EMPTY_STRING : authority.tenant,
                 responseScopes.printScopes(),
                 tokenExpirationSeconds,
@@ -289,7 +297,7 @@ export class ResponseHandler {
         // appMetadata
         let cachedAppMetadata: AppMetadataEntity | null = null;
         if (!StringUtils.isEmpty(serverTokenResponse.foci)) {
-            cachedAppMetadata = AppMetadataEntity.createAppMetadataEntity(this.clientId, env, serverTokenResponse.foci);
+            cachedAppMetadata = AppMetadataEntity.createAppMetadataEntity(embeddedAppClientId || this.clientId, env, serverTokenResponse.foci);
         }
 
         return new CacheRecord(cachedAccount, cachedIdToken, cachedAccessToken, cachedRefreshToken, cachedAppMetadata);
@@ -339,7 +347,7 @@ export class ResponseHandler {
         fromTokenCache: boolean, 
         idTokenObj?: AuthToken,
         requestState?: RequestStateObject,
-        resourceRequestMethod?: string, 
+        resourceRequestMethod?: string,
         resourceRequestUri?: string): Promise<AuthenticationResult> {
         let accessToken: string = "";
         let responseScopes: Array<string> = [];

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, SilentFlowRequest } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, SilentFlowRequest } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, ApiId, InteractionType } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -172,9 +172,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             forceRefresh: request.forceRefresh || false
         };
         this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
-        if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
-            return this.embeddedApp.sendSilentRefreshRequest(request);
-        }
 
         try {
             // Telemetry manager only used to increment cacheHits here
@@ -185,6 +182,9 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             return cachedToken;
         } catch (e) {
             try {
+                if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
+                    return this.embeddedApp.sendSilentRefreshRequest(request);
+                }
                 const tokenRenewalResult = await this.acquireTokenByRefreshToken(silentRequest);
                 this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, tokenRenewalResult);
                 return tokenRenewalResult;
@@ -193,5 +193,16 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 throw tokenRenewalError;
             }
         }
+    }
+
+    /**
+     * Sets the account to use as the active account. If no account is passed to the acquireToken APIs, then MSAL will use this active account.
+     * @param account 
+     */
+    setActiveAccount(account: AccountInfo | null): void {
+        if (this.broker) {
+            this.broker.setActiveAccount(account);
+        }
+        super.setActiveAccount(account);
     }
 }

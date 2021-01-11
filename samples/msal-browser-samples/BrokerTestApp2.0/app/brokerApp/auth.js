@@ -29,6 +29,7 @@ myMSALObj.initializeBrokering().then(() => {
 
 function handleResponse(resp) {
     if (resp !== null) {
+        myMSALObj.setActiveAccount(resp.account);
         username = resp.account.username;
         showWelcomeMessage(resp.account);
     } else {
@@ -39,8 +40,10 @@ function handleResponse(resp) {
         } else if (currentAccounts.length > 1) {
             // Add choose account code here
         } else if (currentAccounts.length === 1) {
-            username = currentAccounts[0].username;
-            showWelcomeMessage(currentAccounts[0]);
+            const accountObj = currentAccounts[0];
+            myMSALObj.setActiveAccount(accountObj);
+            username = accountObj.username;
+            showWelcomeMessage(accountObj);
         }
     }
 }

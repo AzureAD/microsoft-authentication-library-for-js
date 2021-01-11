@@ -32,13 +32,11 @@ import { AuthorizationUrlRequest } from "../../request/AuthorizationUrlRequest";
 export class BrokerClientApplication extends ClientApplication {
 
     private cachedBrokerResponse?: Promise<BrokerAuthenticationResult> | null;
-    private brokerAccount: AccountInfo | null;
 
     constructor(configuration: Configuration) {
         super(configuration);
 
         this.cachedBrokerResponse = null;
-        this.brokerAccount = null;
     }
 
     /**
@@ -46,18 +44,21 @@ export class BrokerClientApplication extends ClientApplication {
      */
     async handleRedirectPromise(hash?: string): Promise<BrokerAuthenticationResult | null> {
         this.cachedBrokerResponse = super.handleRedirectPromise(hash) as Promise<BrokerAuthenticationResult>;
-        const cachedResponse = (await this.cachedBrokerResponse);
+        const cachedResponse: BrokerAuthenticationResult = await this.cachedBrokerResponse;
         // TODO: What to do in cases of multi-account in broker?
         if (cachedResponse) {
-            this.brokerAccount = cachedResponse.account;
-            // TODO: only return if cachedResponse is for broker, not client.
+            if (!cachedResponse.tokensToCache) {
+                this.cachedBrokerResponse = undefined;
+                return cachedResponse;
+            }
+            this.setActiveAccount(cachedResponse.account);
         }
-        
+
         return null;
     }
 
     /**
-     * 
+     * Add event listener to start listening for messages to the broker.
      */
     listenForBrokerMessage(): void {
         window.addEventListener("message", this.handleBrokerMessage.bind(this));
@@ -107,7 +108,7 @@ export class BrokerClientApplication extends ClientApplication {
      * 
      * @param clientMessage 
      */
-    async handleBrokerRedirectResponse(clientMessage: MessageEvent): Promise<void> {
+    private async handleBrokerRedirectResponse(clientMessage: MessageEvent): Promise<void> {
         const validMessage = BrokerHandleRedirectRequest.validate(clientMessage);
         if (validMessage) {
             // TODO: Calculate request thumbprint
@@ -115,7 +116,7 @@ export class BrokerClientApplication extends ClientApplication {
             const brokerResult = await this.cachedBrokerResponse;
             if (brokerResult) {
                 // TODO: Replace with in-memory cache lookup
-                this.cachedBrokerResponse = null;
+                this.cachedBrokerResponse = undefined;
                 const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Redirect, brokerResult);
                 this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
                 clientPort.postMessage(brokerAuthResponse);
@@ -123,7 +124,8 @@ export class BrokerClientApplication extends ClientApplication {
                 return;
             } else {
                 // TODO: Throw error or return null?
-                clientPort.postMessage(null);
+                const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Redirect, null);
+                clientPort.postMessage(brokerAuthResponse);
                 clientPort.close();
             }
         }
@@ -142,17 +144,18 @@ export class BrokerClientApplication extends ClientApplication {
             const brokerResult = await this.cachedBrokerResponse;
             if (brokerResult && brokerResult.tokensToCache) {
                 // TODO: Replace with in-memory cache lookup
-                this.cachedBrokerResponse = null;
+                this.cachedBrokerResponse = undefined;
                 const clientPort = clientMessage.ports[0];
                 const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Redirect, brokerResult);
-                this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
+                this.logger.info(`Sending auth response`);
                 clientPort.postMessage(brokerAuthResponse);
                 clientPort.close();
                 return;
             }
 
-            if (this.brokerAccount) {
-                return this.brokeredSilentRequest(validMessage, clientMessage.ports[0], this.brokerAccount);
+            const currentAccount = this.getActiveAccount() || validMessage.request.account;
+            if (currentAccount) {
+                return this.brokeredSilentRequest(validMessage, clientMessage.ports[0], currentAccount);
             }
 
             switch (validMessage.interactionType) {
@@ -189,7 +192,11 @@ export class BrokerClientApplication extends ClientApplication {
             case InteractionType.Popup:
                 return this.brokeredPopupRequest(validMessage, clientMessage.ports[0]);
             case InteractionType.Silent:
+                this.logger.error("Invalid code path. interactiveBrokerRequest() should only be called for interactive requests.")
+                return;
             case InteractionType.None:
+                this.logger.error("Broker is blocking interactive requests. Please attempt a silent request or sign into the broker first.")
+                return;
             default:
                 this.logger.error("Invalid code path. interactiveBrokerRequest() should only be called for interactive requests.")
                 return;
@@ -230,7 +237,7 @@ export class BrokerClientApplication extends ClientApplication {
             popupRequest.brokerRedirectUri = this.getRedirectUri();
             const response = (await this.acquireTokenPopup(popupRequest)) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, response);
-            this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
+            this.logger.info(`Sending auth response`);
             clientPort.postMessage(brokerAuthResponse);
             clientPort.close();
         } catch (err) {
@@ -254,7 +261,7 @@ export class BrokerClientApplication extends ClientApplication {
             silentRequest.brokerRedirectUri = this.getRedirectUri();
             const response: BrokerAuthenticationResult = (await this.ssoSilent(silentRequest)) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, response);
-            this.logger.info(`Sending auth response: ${brokerAuthResponse}`);
+            this.logger.info(`Sending auth response`);
             clientPort.postMessage(brokerAuthResponse);
             clientPort.close();
         } catch (err) {

@@ -27,16 +27,15 @@ export class BrokerAuthError extends BrowserAuthError {
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
 
-        Object.setPrototypeOf(this, BrowserAuthError.prototype);
+        Object.setPrototypeOf(this, BrokerAuthError.prototype);
         this.name = "BrokerAuthError";
     }
 
     /**
-     * Creates an error thrown when tokens to be cached by the embedded application are not found.
-     * @param errDetail 
+     * Creates an error thrown when PKCE is not implemented.
      */
     static createNoTokensToCacheError(): BrokerAuthError {
-        return new BrowserAuthError(BrokerAuthErrorMessage.noTokensToCacheError.code,
+        return new BrokerAuthError(BrokerAuthErrorMessage.noTokensToCacheError.code,
             `${BrokerAuthErrorMessage.noTokensToCacheError.desc}`);
     }
 
@@ -45,7 +44,7 @@ export class BrokerAuthError extends BrowserAuthError {
      * @param errDetail 
      */
     static createBrokerResponseInvalidError(): BrokerAuthError {
-        return new BrowserAuthError(BrokerAuthErrorMessage.brokerResponseInvalidError.code,
+        return new BrokerAuthError(BrokerAuthErrorMessage.brokerResponseInvalidError.code,
             `${BrokerAuthErrorMessage.brokerResponseInvalidError.desc}`);
     }
 }

@@ -48,7 +48,7 @@ export abstract class ClientApplication {
     protected isBrowserEnvironment: boolean;
 
     // Sets the account to use if no account info is given
-    private activeLocalAccountId: string | null;
+    protected activeLocalAccountId: string | null;
 
     // Callback for subscribing to events
     private eventCallbacks: Map<string, EventCallbackFunction>;

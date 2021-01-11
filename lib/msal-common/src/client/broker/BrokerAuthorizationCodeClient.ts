@@ -49,7 +49,7 @@ export class BrokerAuthorizationCodeClient extends AuthorizationCodeClient {
         if (!request.embeddedAppClientId) {
             return await responseHandler.handleServerTokenResponse(response.body, this.authority, undefined, undefined, authCodePayload, request.scopes);
         } else {
-            return await responseHandler.handleBrokeredServerTokenResponse(response.body, this.authority, authCodePayload, request.scopes);
+            return await responseHandler.handleBrokeredServerTokenResponse(response.body, this.authority, authCodePayload, request.scopes, request.embeddedAppClientId);
         }
     }
 

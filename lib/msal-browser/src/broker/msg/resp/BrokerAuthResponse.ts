@@ -4,9 +4,11 @@
  */
 
 import { BrokerMessage } from "../BrokerMessage";
-import { BrokerAuthenticationResult, AccessTokenEntity, IdTokenEntity, AccountEntity, CacheManager, AuthenticationResult, CacheRecord } from "@azure/msal-common";
+import { BrokerAuthenticationResult, AccessTokenEntity, IdTokenEntity, AccountEntity, CacheManager, AuthenticationResult, CacheRecord, AuthError, InteractionRequiredAuthError, ServerError, ClientAuthError, ClientConfigurationError } from "@azure/msal-common";
 import { InteractionType, BrokerMessageType } from "../../../utils/BrowserConstants";
 import { BrowserCacheManager } from "../../../cache/BrowserCacheManager";
+import { BrowserAuthError } from "../../../error/BrowserAuthError";
+import { BrowserConfigurationAuthError } from "../../../error/BrowserConfigurationAuthError";
 import { BrokerAuthError } from "../../../error/BrokerAuthError";
 
 /**
@@ -30,12 +32,39 @@ export class BrokerAuthResponse extends BrokerMessage {
             message.data.interactionType &&
             (message.data.result || message.data.error)) {
 
-            // TODO: verify version compat
-
-            return new BrokerAuthResponse(message.data.interactionType, message.data.result, message.data.error);
+            return new BrokerAuthResponse(message.data.interactionType, message.data.result, BrokerAuthResponse.detectError(message));
         }
 
         return null;
+    }
+
+    static detectError(message: MessageEvent): AuthError | undefined {
+        const messageError = message.data.error;
+        if (!messageError) {
+            return undefined;
+        }
+        const errorStack = messageError.stack;
+        const errMessage = messageError.message.split(":");
+        const code = errMessage.shift().trim();
+        const messageBody = errMessage.join().trim();
+        if (errorStack.indexOf("InteractionRequiredAuthError") === 0) {
+            return new InteractionRequiredAuthError(code, messageBody);
+        } else if (errorStack.indexOf("ServerError") === 0) {
+            return new ServerError(code, messageBody);
+        } else if (errorStack.indexOf("ClientAuthError") === 0) {
+            return new ClientAuthError(code, messageBody);
+        } else if (errorStack.indexOf("ClientConfigurationError") === 0) {
+            return new ClientConfigurationError(code, messageBody);
+        } else if (errorStack.indexOf("BrowserAuthError") === 0) {
+            return new BrowserAuthError(code, messageBody);
+        } else if (errorStack.indexOf("BrowserConfigurationAuthError") === 0) {
+            return new BrowserConfigurationAuthError(code, messageBody);   
+        } else if (errorStack.indexOf("BrokerAuthError") === 0) {
+            return new BrokerAuthError(code, messageBody);
+        } else if (errorStack.indexOf("AuthError") === 0) {
+            return new AuthError(code, messageBody);
+        }
+        return messageError;
     }
 
     static processBrokerResponseMessage(brokerAuthResultMessage: MessageEvent, browserStorage: BrowserCacheManager): AuthenticationResult | null {
@@ -48,8 +77,8 @@ export class BrokerAuthResponse extends BrokerMessage {
             return null;
         }
 
-        if (brokerAuthResult.error) {
-            throw brokerAuthResult.error;
+        if (!brokerAuthResult || !brokerAuthResult.result) {
+            return null;
         }
 
         if (!brokerAuthResult.result || !brokerAuthResult.result.tokensToCache) {

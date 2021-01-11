@@ -20,7 +20,7 @@ import { ClientConfigurationError } from "../../error/ClientConfigurationError";
  * Oauth2.0 Refresh Token client implementing the broker protocol for browsers.
  */
 export class BrokerRefreshTokenClient extends RefreshTokenClient {
-    async acquireToken(request: BrokeredRefreshTokenRequest): Promise<AuthenticationResult | BrokerAuthenticationResult>{
+    async acquireToken(request: BrokeredRefreshTokenRequest): Promise<AuthenticationResult | BrokerAuthenticationResult> {
         const response = await this.executeTokenRequest(request, this.authority);
 
         const responseHandler = new ResponseHandler(
@@ -36,7 +36,10 @@ export class BrokerRefreshTokenClient extends RefreshTokenClient {
         if (request.embeddedAppClientId) {
             return responseHandler.handleBrokeredServerTokenResponse(
                 response.body,
-                this.authority
+                this.authority,
+                undefined,
+                request.scopes,
+                request.embeddedAppClientId
             );
         } else {
             return responseHandler.handleServerTokenResponse(
