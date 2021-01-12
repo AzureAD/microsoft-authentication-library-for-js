@@ -14,4 +14,4 @@ export const MSAL_INTERCEPTOR_CONFIG = new InjectionToken<string>("MSAL_INTERCEP
 export const Constants = {
     SKU: "@azure/msal-angular",
     VERSION: "2.0.0-alpha.2"
-}
+};
