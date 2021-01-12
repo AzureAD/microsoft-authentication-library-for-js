@@ -394,31 +394,22 @@ export abstract class ClientApplication {
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         try {
+            // Preflight request
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
+            const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
+            this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority);
+
+            // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
+            if (this.config.system.asyncPopups) {
+                return this.acquireTokenPopupAsync(validRequest);
+            } else {
+            // asyncPopups flag is set to false. Opens popup before acquiring token.
+                const popup = PopupHandler.openSizedPopup();
+                return this.acquireTokenPopupAsync(validRequest, popup);
+            }
         } catch (e) {
             // Since this function is synchronous we need to reject
             return Promise.reject(e);
-        }
-
-        // If logged in, emit acquire token events
-        const loggedInAccounts = this.getAllAccounts();
-        if (loggedInAccounts.length > 0) {
-            this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Popup, request);
-        } else {
-            this.emitEvent(EventType.LOGIN_START, InteractionType.Popup, request);
-        }
-
-        // Preflight request
-        const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
-        this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority);
-
-        // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
-        if (this.config.system.asyncPopups) {
-            return this.acquireTokenPopupAsync(validRequest);
-        } else {
-            // asyncPopups flag is set to false. Opens popup before acquiring token.
-            const popup = PopupHandler.openSizedPopup();
-            return this.acquireTokenPopupAsync(validRequest, popup);
         }
     }
 
@@ -432,6 +423,11 @@ export abstract class ClientApplication {
     protected async acquireTokenPopupAsync(validRequest: AuthorizationUrlRequest, popup?: Window|null): Promise<AuthenticationResult> {
         // If logged in, emit acquire token events
         const loggedInAccounts = this.getAllAccounts();
+        if (loggedInAccounts.length > 0) {
+            this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Popup, validRequest);
+        } else {
+            this.emitEvent(EventType.LOGIN_START, InteractionType.Popup, validRequest);
+        }
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup, validRequest.correlationId);
         try {
             // Create auth code request and generate PKCE params
@@ -508,12 +504,22 @@ export abstract class ClientApplication {
         this.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
         try {
+            // Check that we have some SSO data
+            if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
+                throw BrowserAuthError.createSilentSSOInsufficientInfoError();
+            }
+
+            // Check that prompt is set to none, throw error if it is set to anything else.
+            if (request.prompt && request.prompt !== PromptValue.NONE) {
+                throw BrowserAuthError.createSilentPromptValueError(request.prompt);
+            }
+
             // Create silent request
             const silentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
                 ...request,
                 prompt: PromptValue.NONE
             }, InteractionType.Silent);
-    
+
             this.browserStorage.updateCacheEntries(silentRequest.state, silentRequest.nonce, silentRequest.authority);
             const silentTokenResult = await this.acquireTokenByIframe(silentRequest);
             this.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
@@ -569,16 +575,6 @@ export abstract class ClientApplication {
      * @param silentRequest
      */
     protected async acquireTokenByIframe(silentRequest: AuthorizationUrlRequest): Promise<AuthenticationResult> {
-        // Check that we have some SSO data
-        if (StringUtils.isEmpty(silentRequest.loginHint) && StringUtils.isEmpty(silentRequest.sid) && (!silentRequest.account || StringUtils.isEmpty(silentRequest.account.username))) {
-            throw BrowserAuthError.createSilentSSOInsufficientInfoError();
-        }
-
-        // Check that prompt is set to none, throw error if it is set to anything else.
-        if (silentRequest.prompt && silentRequest.prompt !== PromptValue.NONE) {
-            throw BrowserAuthError.createSilentPromptValueError(silentRequest.prompt);
-        }
-
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.ssoSilent, silentRequest.correlationId);
         try {
             // Create auth code request and generate PKCE params
@@ -630,12 +626,12 @@ export abstract class ClientApplication {
             const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
 
             // Create silent request
-            const ssoSilentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
-                ...request,
-                prompt: PromptValue.NONE
-            }, InteractionType.Silent);
-            this.browserStorage.updateCacheEntries(ssoSilentRequest.state, ssoSilentRequest.nonce, ssoSilentRequest.authority);
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
+                const ssoSilentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
+                    ...request,
+                    prompt: PromptValue.NONE
+                }, InteractionType.Silent);
+                this.browserStorage.updateCacheEntries(ssoSilentRequest.state, ssoSilentRequest.nonce, ssoSilentRequest.authority);
                 return await this.acquireTokenByIframe(ssoSilentRequest);
             }
             throw e;
