@@ -58,8 +58,9 @@ export class FetchClient implements INetworkModule {
         if (!(options && options.headers)) {
             return headers;
         }
-        Object.keys(options.headers).forEach((key) => {
-            headers.append(key, options.headers[key]);
+        const optionsHeaders = options.headers;
+        Object.keys(optionsHeaders).forEach((key) => {
+            headers.append(key, optionsHeaders[key]);
         });
         return headers;
     }

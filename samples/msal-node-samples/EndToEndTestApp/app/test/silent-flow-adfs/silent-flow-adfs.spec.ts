@@ -24,7 +24,6 @@ let accountPwd: string;
 const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
 
 describe("Silent Flow ADFS 2019 Tests", () => {
-    jest.setTimeout(60000);
     let browser: puppeteer.Browser;
 
     beforeAll(async () => {
