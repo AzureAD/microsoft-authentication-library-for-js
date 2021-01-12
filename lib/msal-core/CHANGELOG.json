@@ -2,6 +2,33 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Tue, 12 Jan 2021 00:51:26 GMT",
+      "tag": "msal_v1.4.4",
+      "version": "1.4.4",
+      "comments": {
+        "none": [
+          {
+            "comment": "package-lock changes",
+            "author": "prkanher@microsoft.com",
+            "commit": "c092667cd997935625eafbc491ede54417d4b657",
+            "package": "msal"
+          },
+          {
+            "comment": "package.lock change",
+            "author": "samuel.kamau@microsoft.com",
+            "commit": "4e50ca592f5a17578072be9e4ac28e05b3e6d594",
+            "package": "msal"
+          },
+          {
+            "comment": "Fix npm audit warnings",
+            "author": "janutter@microsoft.com",
+            "commit": "751026cdaa24dd370c50ad714bf0b1d54c71fbde",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 07 Dec 2020 22:19:03 GMT",
       "tag": "msal_v1.4.4",
       "version": "1.4.4",
