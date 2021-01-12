@@ -32,6 +32,7 @@ export class MsalInterceptor implements HttpInterceptor {
         this.authService.getLogger().verbose("MSAL Interceptor activated");
         const scopes = this.getScopesForEndpoint(req.url);
 
+        // Sets account as active account or first account
         let account: AccountInfo;
         if (!!this.authService.instance.getActiveAccount()) {
             this.authService.getLogger().verbose("Interceptor - active account selected");
@@ -41,6 +42,7 @@ export class MsalInterceptor implements HttpInterceptor {
             account = this.authService.instance.getAllAccounts()[0];
         }
 
+        // If no scopes for endpoint, does not acquire token
         if (!scopes || scopes.length === 0) {
             this.authService.getLogger().verbose("Interceptor - no scopes for endpoint");
             return next.handle(req);
@@ -71,6 +73,10 @@ export class MsalInterceptor implements HttpInterceptor {
 
     }
 
+    /**
+     * Gets scopes for endpoint from the protectedResourceMap
+     * @param endpoint 
+     */
     private getScopesForEndpoint(endpoint: string): Array<string>|null {
         this.authService.getLogger().verbose("Interceptor - getting scopes for endpoint");
         const protectedResourcesArray = Array.from(this.msalInterceptorConfig.protectedResourceMap.keys());
@@ -78,7 +84,7 @@ export class MsalInterceptor implements HttpInterceptor {
             return StringUtils.matchPattern(key, endpoint);
         });
 
-        // process all protected resources and send the first matched resource
+        // Process all protected resources and send the first matched resource
         if (keyMatchesEndpointArray.length > 0) {
             const keyForEndpoint = keyMatchesEndpointArray[0];
             if (keyForEndpoint) {
