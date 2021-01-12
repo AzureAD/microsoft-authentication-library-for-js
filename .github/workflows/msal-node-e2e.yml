@@ -30,16 +30,12 @@ jobs:
       env:
         RUNNING_NODE_CI: 1
       run: npm ci
-
-    - name: Install Test Tools
-      working-directory: samples
-      run: npm ci
     
     - name: Build Package
       working-directory: samples/msal-node-samples/EndToEndTestApp
       run: |
         npm run build:package
-        npm ci
+        npm install
 
     - name: E2E Tests
       working-directory: samples/msal-node-samples/EndToEndTestApp
