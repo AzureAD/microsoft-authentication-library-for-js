@@ -347,7 +347,7 @@ export abstract class ClientApplication {
             const interactionHandler = new RedirectHandler(authClient, this.browserStorage, authCodeRequest, this.browserCrypto);
 
             // Create acquire token url.
-            const navigateUrl = await authClient.getAuthCodeUrl(validRequest); 
+            const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
 
             const redirectStartPage = userRedirectStartPage || window.location.href;
 
