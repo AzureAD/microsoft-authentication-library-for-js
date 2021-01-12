@@ -4,7 +4,7 @@ This log was last generated on Tue, 12 Jan 2021 00:51:26 GMT and should not be m
 
 <!-- Start content -->
 
-## 2.0.0-alpha.2
+## 2.0.0-alpha.3
 
 Tue, 12 Jan 2021 00:51:26 GMT
 
