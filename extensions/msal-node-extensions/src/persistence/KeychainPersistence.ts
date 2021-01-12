@@ -38,8 +38,13 @@ export class KeychainPersistence implements IPersistence {
     }
 
     public async save(contents: string): Promise<void> {
+        const TIMESTAMP_LABEL = "save -> KeychainPersistence";
         try {
+            // eslint-disable-next-line no-console
+            console.time(TIMESTAMP_LABEL);
             await setPassword(this.serviceName, this.accountName, contents);
+            // eslint-disable-next-line no-console
+            console.timeEnd(TIMESTAMP_LABEL);
         } catch (err) {
             throw PersistenceError.createKeychainPersistenceError(err.message);
         }
@@ -48,8 +53,14 @@ export class KeychainPersistence implements IPersistence {
     }
 
     public async load(): Promise<string | null> {
+        const TIMESTAMP_LABEL = "load -> KeychainPersistence";
         try{
-            return await getPassword(this.serviceName, this.accountName);
+            // eslint-disable-next-line no-console
+            console.time(TIMESTAMP_LABEL);
+            const data = await getPassword(this.serviceName, this.accountName);
+            // eslint-disable-next-line no-console
+            console.timeEnd(TIMESTAMP_LABEL);
+            return data;
         } catch(err){
             throw PersistenceError.createKeychainPersistenceError(err.message);
         }

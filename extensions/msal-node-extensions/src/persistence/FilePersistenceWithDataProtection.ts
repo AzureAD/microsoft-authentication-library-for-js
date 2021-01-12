@@ -39,28 +39,39 @@ export class FilePersistenceWithDataProtection implements IPersistence {
     }
 
     public async save(contents: string): Promise<void> {
+        const TIMESTAMP_LABEL = "save -> FilePersistenceWithDataProtection";
         try {
+            // eslint-disable-next-line no-console
+            console.time(TIMESTAMP_LABEL);
             const encryptedContents = Dpapi.protectData(
                 Buffer.from(contents, "utf-8"),
                 this.optionalEntropy,
                 this.scope.toString());
             await this.filePersistence.saveBuffer(encryptedContents);
+            // eslint-disable-next-line no-console
+            console.timeEnd(TIMESTAMP_LABEL);
         } catch (err) {
             throw PersistenceError.createFilePersistenceWithDPAPIError(err.message);
         }
     }
 
     public async load(): Promise<string | null> {
+        const TIMESTAMP_LABEL = "load -> FilePersistenceWithDataProtection";
         try {
+            // eslint-disable-next-line no-console
+            console.time(TIMESTAMP_LABEL);
             const encryptedContents = await this.filePersistence.loadBuffer();
             if (typeof encryptedContents === "undefined" || !encryptedContents || 0 === encryptedContents.length) {
                 this.filePersistence.getLogger().info("Encrypted contents loaded from file were null or empty");
                 return null;
             }
-            return Dpapi.unprotectData(
+            const data = Dpapi.unprotectData(
                 encryptedContents,
                 this.optionalEntropy,
                 this.scope.toString()).toString();
+            // eslint-disable-next-line no-console
+            console.timeEnd(TIMESTAMP_LABEL);
+            return data;
         } catch (err) {
             throw PersistenceError.createFilePersistenceWithDPAPIError(err.message);
         }

@@ -76,7 +76,12 @@ createPersistence().then((filePersistence) => {
 
     app.get('/cache', async (req, res) => {
         const cache = pca.getTokenCache();
+
+        const CACHE_RETRIVAL = 'CACHE RETRIVAL'
+        console.time(CACHE_RETRIVAL);
         const accounts = await cache.getAllAccounts();
+        console.timeEnd(CACHE_RETRIVAL);
+
         const authenticatedAccount = await cache.getAccountByHomeId(app.locals.homeAccountId);
 
         if (accounts.length) {
@@ -98,6 +103,8 @@ createPersistence().then((filePersistence) => {
  * Builds persistence based on operating system. Falls back to storing in plain text.
  */
 async function createPersistence() {
+    console.log(`Detected the platform as: ${process.platform}`);
+
     // On Windows, uses a DPAPI encrypted file
     if (process.platform === "win32") {
         return extensions.FilePersistenceWithDataProtection.create(cachePath, extensions.DataProtectionScope.CurrentUser);
