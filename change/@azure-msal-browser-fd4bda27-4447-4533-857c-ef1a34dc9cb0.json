@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update event docs in msal-browser (#2764)",
-  "packageName": "@azure/msal-browser",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "none"
-}

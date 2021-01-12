@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Fix redirect loop when service returns error (#2762)",
-  "packageName": "@azure/msal-react",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
