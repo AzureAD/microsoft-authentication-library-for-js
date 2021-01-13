@@ -4,9 +4,9 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { Authority, TrustedAuthority, StringUtils, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthorizationCodeClient, PromptValue, ServerError, InteractionRequiredAuthError, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, AuthenticationScheme, SilentFlowRequest, EndSessionRequest as CommonEndSessionRequest, AccountEntity } from "@azure/msal-common";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { buildConfiguration, Configuration } from "../config/Configuration";
+import { Authority, TrustedAuthority, StringUtils, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationCodeClient, PromptValue, ServerError, InteractionRequiredAuthError, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, AuthenticationScheme, SilentFlowRequest, EndSessionRequest as CommonEndSessionRequest, AccountEntity, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION } from "@azure/msal-common";
+import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
+import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
 import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, BrowserCacheLocation } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserStateObject, BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
@@ -15,6 +15,7 @@ import { PopupHandler } from "../interaction_handler/PopupHandler";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
+import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { version, name } from "../../package.json";
@@ -26,7 +27,7 @@ import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuth
 export abstract class ClientApplication {
 
     // Crypto interface implementation
-    protected readonly browserCrypto: CryptoOps;
+    protected readonly browserCrypto: ICrypto;
 
     // Storage interface implementation
     protected readonly browserStorage: BrowserCacheManager;
@@ -34,14 +35,11 @@ export abstract class ClientApplication {
     // Network interface implementation
     protected readonly networkClient: INetworkModule;
 
-    // Response promise
-    protected readonly tokenExchangePromise: Promise<AuthenticationResult>;
-
     // Input configuration by developer/user
-    protected config: Configuration;
+    protected config: BrowserConfiguration;
 
     // Default authority
-    protected defaultAuthority: Authority;
+    protected defaultAuthority: Authority | null;
 
     // Logger
     protected logger: Logger;
@@ -83,33 +81,35 @@ export abstract class ClientApplication {
          * This is to support server-side rendering environments.
          */
         this.isBrowserEnvironment = typeof window !== "undefined";
-        if (!this.isBrowserEnvironment) {
-            return;
-        }
-
         // Set the configuration.
-        this.config = buildConfiguration(configuration);
+        this.config = buildConfiguration(configuration, this.isBrowserEnvironment);
 
-        // Initialize the crypto class.
-        this.browserCrypto = new CryptoOps();
-
-        // Initialize the network module class.
-        this.networkClient = this.config.system.networkClient;
-
-        // Initialize logger
-        this.logger = new Logger(this.config.system.loggerOptions, name, version);
-
-        // Initialize the browser storage class.
-        this.browserStorage = new BrowserCacheManager(this.config.auth.clientId, this.config.cache, this.browserCrypto, this.logger);
+        this.defaultAuthority = null;
+        this.activeLocalAccountId = null;
 
         // Array of events
         this.eventCallbacks = new Map();
 
+        // Initialize logger
+        this.logger = new Logger(this.config.system.loggerOptions, name, version);
+
+        // Initialize the network module class.
+        this.networkClient = this.config.system.networkClient;
+
+        if (!this.isBrowserEnvironment) {
+            this.browserStorage = DEFAULT_BROWSER_CACHE_MANAGER(this.config.auth.clientId, this.logger);
+            this.browserCrypto = DEFAULT_CRYPTO_IMPLEMENTATION;
+            return;
+        }
+
+        // Initialize the crypto class.
+        this.browserCrypto = new CryptoOps();
+
+        // Initialize the browser storage class.
+        this.browserStorage = new BrowserCacheManager(this.config.auth.clientId, this.config.cache, this.browserCrypto, this.logger);
+
         // Initialize default authority instance
         TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
-
-        this.defaultAuthority = null;
-        this.activeLocalAccountId = null;
     }
 
     // #region Redirect Flow
@@ -126,7 +126,7 @@ export abstract class ClientApplication {
         const loggedInAccounts = this.getAllAccounts();
         if (this.isBrowserEnvironment) {
             return this.handleRedirectResponse(hash)
-                .then((result: AuthenticationResult) => {
+                .then((result: AuthenticationResult | null) => {
                     if (result) {
                         // Emit login event if number of accounts change
                         const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
@@ -167,19 +167,30 @@ export abstract class ClientApplication {
         }
 
         const responseHash = this.getRedirectResponseHash(hash || window.location.hash);
-        if (StringUtils.isEmpty(responseHash)) {
+        if (!responseHash) {
             // Not a recognized server response hash or hash not associated with a redirect request
+            this.browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
+            return null;
+        }
+
+        let state: string;
+        try {
+            state = this.validateAndExtractStateFromHash(responseHash, InteractionType.Redirect);
+            BrowserUtils.clearHash();
+        } catch (e) {
+            this.logger.info(`handleRedirectPromise was unable to extract state due to: ${e}`);
+            this.browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
             return null;
         }
 
         // If navigateToLoginRequestUrl is true, get the url where the redirect request was initiated
-        const loginRequestUrl = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.ORIGIN_URI, true);
-        const loginRequestUrlNormalized = UrlString.removeHashFromUrl(loginRequestUrl || "");
+        const loginRequestUrl = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.ORIGIN_URI, true) || "";
+        const loginRequestUrlNormalized = UrlString.removeHashFromUrl(loginRequestUrl);
         const currentUrlNormalized = UrlString.removeHashFromUrl(window.location.href);
 
         if (loginRequestUrlNormalized === currentUrlNormalized && this.config.auth.navigateToLoginRequestUrl) {
             // We are on the page we need to navigate to - handle hash
-            const handleHashResult = await this.handleHash(responseHash);
+            const handleHashResult = await this.handleHash(responseHash, state);
 
             if (loginRequestUrl.indexOf("#") > -1) {
                 // Replace current hash with non-msal hash, if present
@@ -188,7 +199,7 @@ export abstract class ClientApplication {
 
             return handleHashResult;
         } else if (!this.config.auth.navigateToLoginRequestUrl) {
-            return this.handleHash(responseHash);
+            return this.handleHash(responseHash, state);
         } else if (!BrowserUtils.isInIframe()) {
             /*
              * Returned from authority using redirect - need to perform navigation before processing response
@@ -219,24 +230,34 @@ export abstract class ClientApplication {
     private getRedirectResponseHash(hash: string): string | null {
         // Get current location hash from window or cache.
         const isResponseHash: boolean = UrlString.hashContainsKnownProperties(hash);
-        const cachedHash: string = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.URL_HASH, true);
+        const cachedHash = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.URL_HASH, true);
         this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH));
 
-        const responseHash: string = isResponseHash ? hash : cachedHash;
-        if (responseHash) {
-            // Deserialize hash fragment response parameters.
-            const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(responseHash);
-            const platformStateObj: BrowserStateObject = BrowserProtocolUtils.extractBrowserRequestState(this.browserCrypto, serverParams.state);
-            if (platformStateObj.interactionType !== InteractionType.Redirect) {
-                return null;
-            } else {
-                BrowserUtils.clearHash();
-                return responseHash;
-            }
+        return isResponseHash ? hash : cachedHash;
+    }
+
+    /**
+     * 
+     * @param hash 
+     * @param interactionType 
+     */
+    private validateAndExtractStateFromHash(hash: string, interactionType: InteractionType): string {
+        // Deserialize hash fragment response parameters.
+        const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(hash);
+        if (!serverParams.state) {
+            throw BrowserAuthError.createHashDoesNotContainStateError();
         }
 
-        this.browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
-        return null;
+        const platformStateObj = BrowserProtocolUtils.extractBrowserRequestState(this.browserCrypto, serverParams.state);
+        if (!platformStateObj) {
+            throw BrowserAuthError.createUnableToParseStateError();
+        }
+
+        if (platformStateObj.interactionType !== interactionType) {
+            throw BrowserAuthError.createStateInteractionTypeMismatchError();
+        }
+
+        return serverParams.state;
     }
 
     /**
@@ -244,20 +265,20 @@ export abstract class ClientApplication {
      * @param responseHash
      * @param interactionHandler
      */
-    private async handleHash(responseHash: string): Promise<AuthenticationResult> {
-        const encodedTokenRequest = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, true);
-        const cachedRequest = JSON.parse(this.browserCrypto.base64Decode(encodedTokenRequest)) as AuthorizationCodeRequest;
+    private async handleHash(hash: string, state: string): Promise<AuthenticationResult> {
+        const cachedRequest = this.browserStorage.getCachedRequest(state, this.browserCrypto);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.handleRedirectPromise, cachedRequest.correlationId);
-
-        // Deserialize hash fragment response parameters.
-        const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(responseHash);
 
         try {
             // Hash contains known properties - handle and return in callback
-            const currentAuthority = this.browserStorage.getCachedAuthority(serverParams.state);
+            const currentAuthority = this.browserStorage.getCachedAuthority(state);
+            if (!currentAuthority) {
+                throw BrowserAuthError.createNoCachedAuthorityError();
+            }
+
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority);
-            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, this.browserCrypto);
-            return await interactionHandler.handleCodeResponse(responseHash, authClient.authority, this.networkClient, this.config.auth.clientId);
+            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, cachedRequest, this.browserCrypto);
+            return await interactionHandler.handleCodeResponse(hash, state, authClient.authority, this.networkClient, this.config.auth.clientId);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
@@ -297,7 +318,7 @@ export abstract class ClientApplication {
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority);
 
             // Create redirect interaction handler.
-            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, this.browserCrypto);
+            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, authCodeRequest, this.browserCrypto);
 
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
@@ -305,7 +326,7 @@ export abstract class ClientApplication {
             const redirectStartPage = (request && request.redirectStartPage) || window.location.href;
 
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            return interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, {
+            return interactionHandler.initiateAuthRequest(navigateUrl, {
                 redirectTimeout: this.config.system.redirectNavigationTimeout, 
                 redirectStartPage: redirectStartPage,
                 onRedirectNavigate: request.onRedirectNavigate
@@ -384,19 +405,23 @@ export abstract class ClientApplication {
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
 
             // Create popup interaction handler.
-            const interactionHandler = new PopupHandler(authClient, this.browserStorage);
+            const interactionHandler = new PopupHandler(authClient, this.browserStorage, authCodeRequest);
 
             // Show the UI once the url has been created. Get the window handle for the popup.
-            const popupWindow: Window = interactionHandler.initiateAuthRequest(navigateUrl, authCodeRequest, { popup, popupName });
+            const popupParameters = {
+                popup: popup
+            };
+            const popupWindow: Window = interactionHandler.initiateAuthRequest(navigateUrl, popupParameters);
 
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
             const hash = await interactionHandler.monitorPopupForHash(popupWindow, this.config.system.windowHashTimeout);
+            const state = this.validateAndExtractStateFromHash(hash, InteractionType.Popup);
 
             // Remove throttle if it exists
             ThrottlingUtils.removeThrottle(this.browserStorage, this.config.auth.clientId, authCodeRequest.authority, authCodeRequest.scopes);
 
             // Handle response from hash string.
-            const result = await interactionHandler.handleCodeResponse(hash, authClient.authority, this.networkClient);
+            const result = await interactionHandler.handleCodeResponse(hash, state, authClient.authority, this.networkClient);
 
             // If logged in, emit acquire token events
             const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
@@ -540,13 +565,15 @@ export abstract class ClientApplication {
      */
     private async silentTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, authClient: AuthorizationCodeClient): Promise<AuthenticationResult> {
         // Create silent handler
-        const silentHandler = new SilentHandler(authClient, this.browserStorage, this.config.system.navigateFrameWait);
+        const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.config.system.navigateFrameWait);
         // Get the frame handle for the silent request
-        const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl, authCodeRequest);
+        const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl);
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const hash = await silentHandler.monitorIframeForHash(msalFrame, this.config.system.iframeHashTimeout);
+        const state = this.validateAndExtractStateFromHash(hash, InteractionType.Silent);
+
         // Handle response from hash string
-        return silentHandler.handleCodeResponse(hash, authClient.authority, this.networkClient);
+        return silentHandler.handleCodeResponse(hash, state, authClient.authority, this.networkClient);
     }
 
     // #endregion
@@ -559,11 +586,13 @@ export abstract class ClientApplication {
      * @param {@link (EndSessionRequest:type)}
      */
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
+        this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
+        const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.logout, validLogoutRequest.correlationId);
+
         try {
-            this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
             this.emitEvent(EventType.LOGOUT_START, InteractionType.Redirect, logoutRequest);
-            const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
-            const authClient = await this.createAuthCodeClient(null, logoutRequest && logoutRequest.authority);
+            const authClient = await this.createAuthCodeClient(serverTelemetryManager, logoutRequest && logoutRequest.authority);
             // create logout string and navigate user window to logout. Auth module will clear cache.
             const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
             this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
@@ -586,6 +615,7 @@ export abstract class ClientApplication {
                 return BrowserUtils.navigateWindow(logoutUri, this.config.system.redirectNavigationTimeout, this.logger);
             }
         } catch(e) {
+            serverTelemetryManager.cacheFailedRequest(e);
             this.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Redirect, null, e);
             throw e;
         }
@@ -749,7 +779,7 @@ export abstract class ClientApplication {
      */
     protected async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string): Promise<ClientConfiguration> {
         // If the requestAuthority is passed and is not equivalent to the default configured authority, create new authority and discover endpoints. Return default authority otherwise.
-        const discoveredAuthority = (!StringUtils.isEmpty(requestAuthority) && requestAuthority !== this.config.auth.authority) ? await AuthorityFactory.createDiscoveredInstance(requestAuthority, this.config.system.networkClient, this.config.auth.protocolMode)
+        const discoveredAuthority = (requestAuthority && requestAuthority !== this.config.auth.authority) ? await AuthorityFactory.createDiscoveredInstance(requestAuthority, this.config.system.networkClient, this.config.auth.protocolMode)
             : await this.getDiscoveredDefaultAuthority();
         return {
             authOptions: {
@@ -822,10 +852,7 @@ export abstract class ClientApplication {
      * @param request
      */
     protected initializeBaseRequest(request: Partial<BaseAuthRequest>): BaseAuthRequest {
-        let authority = request.authority;
-        if (StringUtils.isEmpty(authority)) {
-            authority = this.config.auth.authority;
-        }
+        const authority = request.authority || this.config.auth.authority;
 
         const scopes = [...((request && request.scopes) || [])];
         const correlationId = (request && request.correlationId) || this.browserCrypto.createNewGuid();
@@ -867,28 +894,27 @@ export abstract class ClientApplication {
             browserState
         );
 
-        let nonce = request.nonce;
-        if (StringUtils.isEmpty(nonce)) {
-            nonce = this.browserCrypto.createNewGuid();
-        }
-
         const authenticationScheme = request.authenticationScheme || AuthenticationScheme.BEARER;
 
         const validatedRequest: AuthorizationUrlRequest = {
             ...this.initializeBaseRequest(request),
             redirectUri: redirectUri,
             state: state,
-            nonce: nonce,
+            nonce: request.nonce || this.browserCrypto.createNewGuid(),
             responseMode: ResponseMode.FRAGMENT,
-            authenticationScheme: authenticationScheme,
-            account: request.account || this.getActiveAccount()
+            authenticationScheme: authenticationScheme
         };
+
+        const account = request.account || this.getActiveAccount();
+        if (account) {
+            validatedRequest.account = account;
+        }
 
         // Check for ADAL SSO
         if (StringUtils.isEmpty(validatedRequest.loginHint)) {
             // Only check for adal token if no SSO params are being used
             const adalIdTokenString = this.browserStorage.getTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN);
-            if (!StringUtils.isEmpty(adalIdTokenString)) {
+            if (adalIdTokenString) {
                 const adalIdToken = new IdToken(adalIdTokenString, this.browserCrypto);
                 this.browserStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
                 if (adalIdToken.claims && adalIdToken.claims.upn) {
@@ -927,7 +953,7 @@ export abstract class ClientApplication {
      * @param logoutRequest
      */
     protected initializeLogoutRequest(logoutRequest?: EndSessionRequest): CommonEndSessionRequest {
-        const validLogoutRequest = {
+        const validLogoutRequest: CommonEndSessionRequest = {
             correlationId: this.browserCrypto.createNewGuid(),
             ...logoutRequest
         };

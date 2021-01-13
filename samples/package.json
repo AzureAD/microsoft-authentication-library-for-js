@@ -5,8 +5,7 @@
     "private": true,
     "dependencies": {
         "@azure/identity": "^1.0.2",
-        "axios": "^0.19.2",
-        "dotenv": "^8.2.0",
+        "axios": "^0.21.1",
         "puppeteer": "^5.2.1"
     },
     "devDependencies": {

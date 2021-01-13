@@ -1,8 +1,22 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Mon, 07 Dec 2020 22:19:03 GMT and should not be manually modified.
+This log was last generated on Tue, 12 Jan 2021 00:51:26 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-beta.3
+
+Tue, 12 Jan 2021 00:51:26 GMT
+
+### Patches
+
+- change the code challenge encoding to uniform base64 (samuel.kamau@microsoft.com)
+
+### Changes
+
+- ClientAssertion.parseCertificate - allow newlines in cert (#2721). (email not defined)
+- feat: bump up the axios version on msal-node (samuel.kamau@microsoft.com)
+- Add getKVStore to tokenCache (#2771) (thomas.norling@microsoft.com)
 
 ## 1.0.0-beta.2
 
