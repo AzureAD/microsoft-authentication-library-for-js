@@ -34,7 +34,7 @@ createPersistence().then((filePersistence) => {
     app.get('/', (req, res) => {
         const authCodeUrlParameters = {
             scopes: ["user.read"],
-            redirectUri: "http://localhost:3000/redirect",
+            redirectUri: `http://localhost:${SERVER_PORT}/redirect`,
         };
 
         // get url to sign user in and consent to scopes needed for application
@@ -48,7 +48,7 @@ createPersistence().then((filePersistence) => {
     app.get('/redirect', (req, res) => {
         const tokenRequest = {
             code: req.query.code,
-            redirectUri: "http://localhost:3000/redirect",
+            redirectUri: `http://localhost:${SERVER_PORT}/redirect`,
             scopes: ["user.read"],
         };
 
@@ -76,12 +76,7 @@ createPersistence().then((filePersistence) => {
 
     app.get('/cache', async (req, res) => {
         const cache = pca.getTokenCache();
-
-        const CACHE_RETRIVAL = 'CACHE RETRIVAL'
-        console.time(CACHE_RETRIVAL);
         const accounts = await cache.getAllAccounts();
-        console.timeEnd(CACHE_RETRIVAL);
-
         const authenticatedAccount = await cache.getAccountByHomeId(app.locals.homeAccountId);
 
         if (accounts.length) {
