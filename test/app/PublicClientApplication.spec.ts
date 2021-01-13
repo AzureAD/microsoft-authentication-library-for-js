@@ -1433,7 +1433,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 try {
                     await pca.acquireTokenPopup(request);
                 } catch(e) {}
-                expect(popupSpy.getCall(0).args).to.be.length(0);
+                expect(popupSpy.getCall(0).args).to.be.length(2);
             });
 
             it("opens popups asynchronously if configured", async () => {
@@ -1469,7 +1469,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     await pca.acquireTokenPopup(request);
                 } catch(e) {}
                 expect(popupSpy.calledOnce).to.be.true;
-                expect(popupSpy.getCall(0).args).to.be.length(1);
+                expect(popupSpy.getCall(0).args).to.be.length(2);
                 expect(popupSpy.getCall(0).args[0].startsWith(TEST_URIS.TEST_AUTH_ENDPT)).to.be.true;
                 expect(popupSpy.getCall(0).args[0]).to.include(`client_id=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
                 expect(popupSpy.getCall(0).args[0]).to.include(`redirect_uri=${encodeURIComponent(request.redirectUri)}`);
