@@ -11,7 +11,7 @@ import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, BrowserCa
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserStateObject, BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
-import { PopupHandler } from "../interaction_handler/PopupHandler";
+import { PopupHandler, PopupParams } from "../interaction_handler/PopupHandler";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
@@ -356,20 +356,24 @@ export abstract class ClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
+        let validRequest: AuthorizationUrlRequest;
         try {
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
+            validRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
         } catch (e) {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
         }
 
+        const popupName = PopupHandler.generatePopupName(this.config.auth.clientId, validRequest);
+
         // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
         if (this.config.system.asyncPopups) {
-            return this.acquireTokenPopupAsync(request);
+            return this.acquireTokenPopupAsync(validRequest, popupName);
         } else {
             // asyncPopups flag is set to false. Opens popup before acquiring token.
-            const popup = PopupHandler.openSizedPopup();
-            return this.acquireTokenPopupAsync(request, popup);
+            const popup = PopupHandler.openSizedPopup("about:blank", popupName);
+            return this.acquireTokenPopupAsync(validRequest, popupName, popup);
         }
     }
 
@@ -379,17 +383,15 @@ export abstract class ClientApplication {
      *
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    private async acquireTokenPopupAsync(request: PopupRequest, popup?: Window|null): Promise<AuthenticationResult> {
+    private async acquireTokenPopupAsync(validRequest: AuthorizationUrlRequest, popupName: string, popup?: Window|null): Promise<AuthenticationResult> {
         // If logged in, emit acquire token events
         const loggedInAccounts = this.getAllAccounts();
         if (loggedInAccounts.length > 0) {
-            this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Popup, request);
+            this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Popup, validRequest);
         } else {
-            this.emitEvent(EventType.LOGIN_START, InteractionType.Popup, request);
+            this.emitEvent(EventType.LOGIN_START, InteractionType.Popup, validRequest);
         }
 
-        // Preflight request
-        const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup, validRequest.correlationId);
 
         try {
@@ -406,8 +408,9 @@ export abstract class ClientApplication {
             const interactionHandler = new PopupHandler(authClient, this.browserStorage, authCodeRequest);
 
             // Show the UI once the url has been created. Get the window handle for the popup.
-            const popupParameters = {
-                popup: popup
+            const popupParameters: PopupParams = {
+                popup,
+                popupName
             };
             const popupWindow: Window = interactionHandler.initiateAuthRequest(navigateUrl, popupParameters);
 
