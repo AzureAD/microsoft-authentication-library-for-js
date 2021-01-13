@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Mon, 07 Dec 2020 23:02:52 GMT and should not be manually modified.
+This log was last generated on Tue, 12 Jan 2021 00:51:26 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.0.0-alpha.3
+
+Tue, 12 Jan 2021 00:51:26 GMT
+
+### Changes
+
+- Make scopes optional for msal-guard config (#2829) (joarroyo@microsoft.com)
+- Interceptor, guard, and samples to use active account (#2784) (joarroyo@microsoft.com)
+- Msal guard supports angular routes for login failure (#2803) (joarroyo@microsoft.com)
+- Add additional interfaces to msal-guard (#2759) (joarroyo@microsoft.com)
 
 ## 2.0.0-alpha.1
 

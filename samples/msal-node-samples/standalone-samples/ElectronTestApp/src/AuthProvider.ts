@@ -16,6 +16,8 @@ import { cachePlugin } from "./CachePlugin";
 import { BrowserWindow } from "electron";
 import { CustomFileProtocolListener } from "./CustomFileProtocol";
 
+const CUSTOM_FILE_PROTOCOL_NAME = "msal";
+
 const MSAL_CONFIG: Configuration = {
     auth: {
         clientId: "89e61572-2f96-47ba-b571-9d8c8f96b69d",
@@ -122,7 +124,7 @@ export default class AuthProvider {
     async getTokenInteractive(authWindow: BrowserWindow, tokenRequest: AuthorizationUrlRequest ): Promise<AuthenticationResult> {
         const authCodeUrlParams = { ...this.authCodeUrlParams, scopes: tokenRequest.scopes };
         const authCodeUrl = await this.clientApplication.getAuthCodeUrl(authCodeUrlParams);
-        this.authCodeListener = new CustomFileProtocolListener("msal");
+        this.authCodeListener = new CustomFileProtocolListener(CUSTOM_FILE_PROTOCOL_NAME);
         this.authCodeListener.start();
         const authCode = await this.listenForAuthCode(authCodeUrl, authWindow);
         const authResult = await this.clientApplication.acquireTokenByCode({ ...this.authCodeRequest, scopes: tokenRequest.scopes, code: authCode});
@@ -135,7 +137,11 @@ export default class AuthProvider {
     }
 
     async loginSilent(): Promise<AccountInfo> {
-        return this.account || await this.getAccount();
+        if (!this.account) {
+            this.account = await this.getAccount();
+        }
+
+        return this.account;
     }
 
     async logout(): Promise<void> {
