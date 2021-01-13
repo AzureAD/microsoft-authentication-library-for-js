@@ -90,10 +90,16 @@ export class AppComponent implements OnInit, OnDestroy {
     if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
       if (this.msalGuardConfig.authRequest) {
         this.authService.loginPopup({...this.msalGuardConfig.authRequest, ...userFlowRequest} as PopupRequest)
-          .subscribe(() => this.checkAccount());
+          .subscribe((response: AuthenticationResult) => {
+            this.authService.instance.setActiveAccount(response.account);
+            this.checkAccount();
+          });
       } else {
         this.authService.loginPopup(userFlowRequest)
-          .subscribe(() => this.checkAccount());
+          .subscribe((response: AuthenticationResult) => {
+            this.authService.instance.setActiveAccount(response.account);
+            this.checkAccount();
+          });
       }
     } else {
       if (this.msalGuardConfig.authRequest){
