@@ -17,7 +17,7 @@
     "@material-ui/icons": "^4.11.2",
     "gatsby": "^2.29.2",
     "gatsby-material-ui-components": "^1.0.3",
-    "react": "^17.0.1",
-    "react-dom": "^17.0.1"
+    "react": "^16.4.2",
+    "react-dom": "^16.4.2"
   }
 }

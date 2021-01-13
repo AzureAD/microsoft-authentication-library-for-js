@@ -1,4 +1,4 @@
-module.exports = {
+const jestConfig = {
   projects : [
     {
       displayName: "React Router",
@@ -20,3 +20,5 @@ module.exports = {
     }
   ]
 };
+
+export default jestConfig;

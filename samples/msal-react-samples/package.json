@@ -2,6 +2,7 @@
   "name": "msal-react-samples",
   "version": "1.0.0",
   "description": "End-to-end test suite for msal-react",
+  "type": "module",
   "scripts": {
     "test": "jest",
     "preinstall": "cd .. && npm install"
