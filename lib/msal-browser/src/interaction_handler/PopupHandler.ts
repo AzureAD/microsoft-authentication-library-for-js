@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { UrlString, StringUtils, AuthorizationCodeRequest, AuthorizationCodeClient } from "@azure/msal-common";
+import { UrlString, StringUtils, AuthorizationCodeRequest, AuthorizationCodeClient, Constants } from "@azure/msal-common";
 import { InteractionHandler, InteractionParams } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
