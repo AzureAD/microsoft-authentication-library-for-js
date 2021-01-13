@@ -11,6 +11,7 @@ export type OpenIdConfigResponse = {
     token_endpoint: string;
     end_session_endpoint: string;
     issuer: string;
+    boundrt_supported?: boolean;
 };
 
 export function isOpenIdConfigResponse(response: object): boolean {

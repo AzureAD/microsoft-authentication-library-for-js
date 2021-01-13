@@ -132,13 +132,18 @@ describe("Authority.ts Class Unit Tests", () => {
                 expect(authority.selfSignedJwtAudience).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace("{tenant}", "common"));
             });
 
-            it("Throws error if endpoint discovery is incomplete for authorizationEndpoint, tokenEndpoint, endSessionEndpoint and selfSignedJwtAudience", () => {
+            it("Returns boundrt_supported of tenantDiscoveryResponse", () => {
+                expect(authority.supportsBoundRefreshTokens).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.boundrt_supported);
+            })
+
+            it("Throws error if endpoint discovery is incomplete for authorizationEndpoint, tokenEndpoint, endSessionEndpoint, selfSignedJwtAudience and boundRtSupported", () => {
                 authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
                 expect(() => authority.authorizationEndpoint).to.throw(ClientAuthErrorMessage.endpointResolutionError.desc);
                 expect(() => authority.tokenEndpoint).to.throw(ClientAuthErrorMessage.endpointResolutionError.desc);
                 expect(() => authority.endSessionEndpoint).to.throw(ClientAuthErrorMessage.endpointResolutionError.desc);
                 expect(() => authority.deviceCodeEndpoint).to.throw(ClientAuthErrorMessage.endpointResolutionError.desc);
                 expect(() => authority.selfSignedJwtAudience).to.throw(ClientAuthErrorMessage.endpointResolutionError.desc);
+                expect(() => authority.supportsBoundRefreshTokens).to.throw(ClientAuthErrorMessage.endpointResolutionError.desc);
             });
         });
     });
@@ -186,6 +191,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 expect(authority.deviceCodeEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace("/token", "/devicecode"));
                 expect(authority.endSessionEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common"));
                 expect(authority.selfSignedJwtAudience).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace("{tenant}", "common"));
+                expect(authority.supportsBoundRefreshTokens).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.boundrt_supported);
 
                 // Test that the metadata is cached
                 const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
@@ -198,6 +204,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     expect(cachedAuthorityMetadata.end_session_endpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint);
                     expect(cachedAuthorityMetadata.issuer).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer);
                     expect(cachedAuthorityMetadata.endpointsFromNetwork).to.be.false;
+                    expect(cachedAuthorityMetadata.boundrt_supported).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.boundrt_supported);
                 }
             });
 
@@ -232,6 +239,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 expect(authority.deviceCodeEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace("/token", "/devicecode"));
                 expect(authority.endSessionEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common"));
                 expect(authority.selfSignedJwtAudience).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace("{tenant}", "common"));
+                expect(authority.supportsBoundRefreshTokens).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.boundrt_supported);
 
                 // Test that the metadata is cached
                 const cachedAuthorityMetadata = mockStorage.getAuthorityMetadata(key);
@@ -243,6 +251,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     expect(cachedAuthorityMetadata.end_session_endpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint);
                     expect(cachedAuthorityMetadata.issuer).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer);
                     expect(cachedAuthorityMetadata.endpointsFromNetwork).to.be.true;
+                    expect(cachedAuthorityMetadata.boundrt_supported).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.boundrt_supported);
                 }
             });
 
@@ -267,6 +276,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 expect(authority.deviceCodeEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace("/token", "/devicecode"));
                 expect(authority.endSessionEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common"));
                 expect(authority.selfSignedJwtAudience).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace("{tenant}", "common"));
+                expect(authority.supportsBoundRefreshTokens).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.boundrt_supported);
 
                 // Test that the metadata is cached
                 const cachedAuthorityMetadata = mockStorage.getAuthorityMetadata(key);
@@ -278,6 +288,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     expect(cachedAuthorityMetadata.end_session_endpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint);
                     expect(cachedAuthorityMetadata.issuer).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer);
                     expect(cachedAuthorityMetadata.endpointsFromNetwork).to.be.true;
+                    expect(cachedAuthorityMetadata.boundrt_supported).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.boundrt_supported);
                 }
             });
 
@@ -294,6 +305,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 expect(authority.deviceCodeEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace("/token", "/devicecode"));
                 expect(authority.endSessionEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common"));
                 expect(authority.selfSignedJwtAudience).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace("{tenant}", "common"));
+                expect(authority.supportsBoundRefreshTokens).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.boundrt_supported);
 
                 // Test that the metadata is cached
                 const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
@@ -305,6 +317,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     expect(cachedAuthorityMetadata.token_endpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint);
                     expect(cachedAuthorityMetadata.end_session_endpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint);
                     expect(cachedAuthorityMetadata.issuer).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer);
+                    expect(cachedAuthorityMetadata.boundrt_supported).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.boundrt_supported);
                     expect(cachedAuthorityMetadata.endpointsFromNetwork).to.be.true;
                 }
             });

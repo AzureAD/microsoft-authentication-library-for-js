@@ -19,6 +19,7 @@ export class AuthorityMetadataEntity {
     aliasesFromNetwork: boolean;
     endpointsFromNetwork: boolean;
     expiresAt: number;
+    boundrt_supported?: boolean;
 
     constructor() {
         this.expiresAt = TimeUtils.nowSeconds() + AUTHORITY_METADATA_CONSTANTS.REFRESH_TIME_SECONDS;
@@ -47,6 +48,7 @@ export class AuthorityMetadataEntity {
         this.end_session_endpoint = metadata.end_session_endpoint;
         this.issuer = metadata.issuer;
         this.endpointsFromNetwork = fromNetwork;
+        this.boundrt_supported = metadata.boundrt_supported;
     }
 
     /**

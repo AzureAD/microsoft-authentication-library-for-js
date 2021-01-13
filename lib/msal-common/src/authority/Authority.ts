@@ -9,7 +9,7 @@ import { UrlString } from "../url/UrlString";
 import { IUri } from "../url/IUri";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { INetworkModule } from "../network/INetworkModule";
-import { AuthorityMetadataSource, Constants } from "../utils/Constants";
+import { AADServerParamKeys, AuthorityMetadataSource, Constants } from "../utils/Constants";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ProtocolMode } from "./ProtocolMode";
 import { ICacheManager } from "../cache/interface/ICacheManager";
@@ -17,6 +17,7 @@ import { AuthorityMetadataEntity } from "../cache/entities/AuthorityMetadataEnti
 import { AuthorityOptions } from "./AuthorityOptions";
 import { CloudInstanceDiscoveryResponse, isCloudInstanceDiscoveryResponse } from "./CloudInstanceDiscoveryResponse";
 import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
+import { version } from "../../package.json";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
@@ -164,6 +165,18 @@ export class Authority {
     }
 
     /**
+     * 
+     * Bound Refresh Token support flag for requests
+     */
+    public get supportsBoundRefreshTokens(): boolean {
+        if(this.discoveryComplete()) {
+            return this.metadata.boundrt_supported || false;
+        } else {
+            throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
+        }
+    }
+
+    /**
      * Replaces tenant in url path with current tenant. Defaults to common.
      * @param urlString
      */
@@ -256,8 +269,11 @@ export class Authority {
      * Gets OAuth endpoints from the given OpenID configuration endpoint.
      */
     private async getEndpointMetadataFromNetwork(): Promise<OpenIdConfigResponse | null> {
+        const headers: Record<string, string> = {};
+        headers[AADServerParamKeys.X_CLIENT_SKU] = Constants.SKU;
+        headers[AADServerParamKeys.X_CLIENT_VER] = version;
         try {
-            const response = await this.networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(this.defaultOpenIdConfigurationEndpoint);
+            const response = await this.networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(this.defaultOpenIdConfigurationEndpoint, { headers: headers });
             return isOpenIdConfigResponse(response.body) ? response.body : null;
         } catch (e) {
             return null;

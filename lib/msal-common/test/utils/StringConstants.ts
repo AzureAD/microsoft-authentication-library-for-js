@@ -220,7 +220,8 @@ export const DEFAULT_OPENID_CONFIG_RESPONSE = {
         "cloud_instance_name": "microsoftonline.com",
         "cloud_graph_host_name": "graph.windows.net",
         "msgraph_host": "graph.microsoft.com",
-        "rbac_url": "https://pas.windows.net"
+        "rbac_url": "https://pas.windows.net",
+        "boundrt_supported": true
     }
 };
 
