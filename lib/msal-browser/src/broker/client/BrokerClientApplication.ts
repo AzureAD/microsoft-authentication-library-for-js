@@ -297,7 +297,7 @@ export class BrokerClientApplication extends ClientApplication {
             const validatedBrokerRequest = this.initializeBrokeredRequest(popupRequest, InteractionType.Popup, validMessage.embeddedAppOrigin);
             
             // Call acquireTokenPopup() and send the response back to the embedded application. 
-            const response = (await this.acquireTokenPopupAsync(validatedBrokerRequest)) as BrokerAuthenticationResult;
+            const response = (await this.acquireTokenPopupAsync(validatedBrokerRequest, "")) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, response);
             this.logger.info(`Sending auth response`);
             clientPort.postMessage(brokerAuthResponse);

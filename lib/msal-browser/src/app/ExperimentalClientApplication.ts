@@ -106,14 +106,15 @@ export class ExperimentalClientApplication extends ClientApplication implements 
                 return this.embeddedApp.sendPopupRequest(validRequest);
             }
             this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority);
+            const popupName = PopupHandler.generatePopupName(this.config.auth.clientId, validRequest);
 
             // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
             if (this.config.system.asyncPopups) {
-                return super.acquireTokenPopupAsync(validRequest);
+                return this.acquireTokenPopupAsync(validRequest, popupName);
             } else {
-            // asyncPopups flag is set to false. Opens popup before acquiring token.
-                const popup = PopupHandler.openSizedPopup();
-                return super.acquireTokenPopupAsync(validRequest, popup);
+                // asyncPopups flag is set to false. Opens popup before acquiring token.
+                const popup = PopupHandler.openSizedPopup("about:blank", popupName);
+                return this.acquireTokenPopupAsync(validRequest, popupName, popup);
             }
         } catch (e) {
             // Since this function is synchronous we need to reject
@@ -183,10 +184,14 @@ export class ExperimentalClientApplication extends ClientApplication implements 
      */
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
+        const accountObj = request.account || this.getActiveAccount();
+        if (!accountObj) {
+            throw BrowserAuthError.createNoAccountError();
+        }
         const silentRequest: SilentFlowRequest = {
             ...request,
             ...this.initializeBaseRequest(request),
-            account: request.account || this.getActiveAccount(),
+            account: accountObj,
             forceRefresh: request.forceRefresh || false
         };
         this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
