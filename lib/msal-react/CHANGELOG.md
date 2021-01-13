@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-react
 
-This log was last generated on Mon, 07 Dec 2020 22:19:03 GMT and should not be manually modified.
+This log was last generated on Tue, 12 Jan 2021 00:51:26 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.2
+
+Tue, 12 Jan 2021 00:51:26 GMT
+
+### Changes
+
+- Add logger (#2727) (thomas.norling@microsoft.com)
+- Fix redirect loop when service returns error (#2762) (thomas.norling@microsoft.com)
 
 ## 1.0.0-alpha.1
 
