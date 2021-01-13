@@ -55,7 +55,7 @@ export type CacheOptions = {
  */
 export type BrokerOptions = {
     actAsBroker?: boolean;
-    preferredInteractionType?: InteractionType.Popup | InteractionType.Redirect | InteractionType.None;
+    preferredInteractionType: InteractionType.Popup | InteractionType.Redirect | InteractionType.None | null;
     allowBrokering?: boolean;
     trustedBrokerDomains?: string[];
     brokerRedirectParams?: Pick<RedirectRequest, "redirectStartPage" | "onRedirectNavigate">;
@@ -88,6 +88,7 @@ export type BrowserSystemOptions = SystemOptions & {
 };
 
 export type ExperimentalOptions = {
+    enable?: boolean;
     brokerOptions?: BrokerOptions;
 };
 
@@ -152,7 +153,9 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     };
 
     // Default broker options for browser
-    const DEFAULT_BROKER_OPTIONS: BrokerOptions = {
+    const DEFAULT_BROKER_OPTIONS: Required<BrokerOptions> = {
+        preferredInteractionType: null,
+        brokerRedirectParams: {},
         actAsBroker: false,
         allowBrokering: false,
         trustedBrokerDomains: []
@@ -173,7 +176,8 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         allowRedirectInIframe: false
     };
 
-    const DEFAULT_EXPERIMENTAL_OPTIONS: ExperimentalOptions = {
+    const DEFAULT_EXPERIMENTAL_OPTIONS: Required<ExperimentalOptions> = {
+        enable: false,
         brokerOptions: DEFAULT_BROKER_OPTIONS
     };
 

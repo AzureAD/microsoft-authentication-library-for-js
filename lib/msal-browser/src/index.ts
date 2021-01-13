@@ -4,6 +4,7 @@
  */
 
 export { PublicClientApplication } from "./app/PublicClientApplication";
+export { ExperimentalClientApplication } from "./app/ExperimentalClientApplication";
 export { Configuration } from "./config/Configuration";
 export { InteractionType, BrowserCacheLocation } from "./utils/BrowserConstants";
 export { BrowserUtils } from "./utils/BrowserUtils";

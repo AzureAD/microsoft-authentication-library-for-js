@@ -77,8 +77,8 @@ export class BrokerAuthResponse extends BrokerMessage {
             return null;
         }
 
-        if (!brokerAuthResult || !brokerAuthResult.result) {
-            return null;
+        if (brokerAuthResult.error) {
+            throw brokerAuthResult.error;
         }
 
         if (!brokerAuthResult.result || !brokerAuthResult.result.tokensToCache) {

@@ -26,7 +26,6 @@ export interface IPublicClientApplication {
     loginRedirect(request?: RedirectRequest): Promise<void>;
     logout(logoutRequest?: EndSessionRequest): Promise<void>;
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
-    initializeBrokering(): Promise<void>;
     getLogger(): Logger;
     setLogger(logger: Logger): void;
     setActiveAccount(account: AccountInfo | null): void;
@@ -81,9 +80,6 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     },
     setLogger: () => {
         return;
-    },
-    initializeBrokering: () => {
-        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);
     },
     setActiveAccount: () => {
         return;

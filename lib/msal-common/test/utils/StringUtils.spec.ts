@@ -3,7 +3,6 @@ import { StringUtils } from "../../src/utils/StringUtils";
 import { TEST_TOKENS } from "./StringConstants";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { AuthError } from "../../src/error/AuthError";
-import { IdToken } from "../../src";
 
 describe("StringUtils.ts Class Unit Tests", () => {
     
@@ -129,7 +128,10 @@ describe("StringUtils.ts Class Unit Tests", () => {
     });
 
     it("removeEmptyStringsFromArray() removes empty strings from an array", () => {
+        const arr = ["S1", "S2", ""];
+        const expected = ["S1", "S2"];
 
+        expect(StringUtils.removeEmptyStringsFromArray(arr)).to.be.deep.eq(expected);
     });
 
     describe("jsonParseHelper", () => {
