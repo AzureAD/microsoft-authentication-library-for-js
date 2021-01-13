@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, SilentFlowRequest } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, PromptValue, SilentFlowRequest, StringUtils } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, ApiId, InteractionType } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -16,7 +16,9 @@ import { SilentRequest } from "../request/SilentRequest";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { EventType } from "../event/EventType";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
+import { PopupHandler } from "../interaction_handler/PopupHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
+import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -78,6 +80,13 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         }
     }
 
+    /**
+     * Event handler function which allows users to fire events after the PublicClientApplication object
+     * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
+     * auth flows.
+     * @param hash Hash to process. Defaults to the current value of window.location.hash. Only needs to be provided explicitly if the response to be handled is not contained in the current value.
+     * @returns {Promise.<AuthenticationResult | null>} token response or null. If the return value is null, then no auth redirect was detected.
+     */
     async handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null> {
         if (this.broker) {
             return this.broker.handleRedirectPromise(hash);
@@ -122,10 +131,29 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
-        if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
-            return this.embeddedApp.sendPopupRequest(request);
+        try {
+            this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
+            // Preflight request
+            const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
+
+            if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
+                return this.embeddedApp.sendPopupRequest(validRequest);
+            }
+
+            this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority);
+
+            // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
+            if (this.config.system.asyncPopups) {
+                return super.acquireTokenPopupAsync(validRequest);
+            } else {
+            // asyncPopups flag is set to false. Opens popup before acquiring token.
+                const popup = PopupHandler.openSizedPopup();
+                return super.acquireTokenPopupAsync(validRequest, popup);
+            }
+        } catch (e) {
+            // Since this function is synchronous we need to reject
+            return Promise.reject(e);
         }
-        return super.acquireTokenPopup(request);
     }
 
     // #endregion
@@ -146,11 +174,38 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
-        if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
-            return this.embeddedApp.sendSsoSilentRequest(request);
-        }
+        this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
+        this.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
-        return super.ssoSilent(request);
+        try {
+            // Check that we have some SSO data
+            if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
+                throw BrowserAuthError.createSilentSSOInsufficientInfoError();
+            }
+
+            // Check that prompt is set to none, throw error if it is set to anything else.
+            if (request.prompt && request.prompt !== PromptValue.NONE) {
+                throw BrowserAuthError.createSilentPromptValueError(request.prompt);
+            }
+
+            // Create silent request
+            const silentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
+                ...request,
+                prompt: PromptValue.NONE
+            }, InteractionType.Silent);
+
+            if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
+                return this.embeddedApp.sendSsoSilentRequest(silentRequest);
+            }
+    
+            this.browserStorage.updateCacheEntries(silentRequest.state, silentRequest.nonce, silentRequest.authority);
+            const silentTokenResult = await this.acquireTokenByIframe(silentRequest);
+            this.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
+            return silentTokenResult;
+        } catch (e) {
+            this.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
+            throw e;
+        }
     }
 
     /**

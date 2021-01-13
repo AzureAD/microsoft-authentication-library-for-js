@@ -18,7 +18,6 @@ import { SilentRequest } from "../../request/SilentRequest";
 import { version } from "../../../package.json";
 import { BrokerHandleRedirectRequest } from "../msg/req/BrokerHandleRedirectRequest";
 import { BrowserCacheManager } from "../../cache/BrowserCacheManager";
-import { BrowserUtils } from "../../utils/BrowserUtils";
 import { SsoSilentRequest } from "../../request/SsoSilentRequest";
 import { BrokerAuthError } from "../../error/BrokerAuthError";
 
@@ -159,7 +158,7 @@ export class EmbeddedClientApplication {
      * @param timeoutMs 
      */
     private async sendRequest(request: PopupRequest|RedirectRequest|SsoSilentRequest, interactionType: InteractionType, timeoutMs: number): Promise<MessageEvent> {
-        const brokerRequest = new BrokerAuthRequest(this.clientId, BrowserUtils.getCurrentUri(), interactionType, request);
+        const brokerRequest = new BrokerAuthRequest(this.clientId, interactionType, request, Constants.EMPTY_STRING);
         return this.messageBroker<MessageEvent>(brokerRequest, timeoutMs);
     }
 

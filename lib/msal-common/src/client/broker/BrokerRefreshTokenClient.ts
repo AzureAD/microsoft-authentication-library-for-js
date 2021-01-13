@@ -37,9 +37,10 @@ export class BrokerRefreshTokenClient extends RefreshTokenClient {
             return responseHandler.handleBrokeredServerTokenResponse(
                 response.body,
                 this.authority,
+                request.embeddedAppClientId,
+                request.embeddedAppRedirectUri,
                 undefined,
-                request.scopes,
-                request.embeddedAppClientId
+                request.scopes
             );
         } else {
             return responseHandler.handleServerTokenResponse(

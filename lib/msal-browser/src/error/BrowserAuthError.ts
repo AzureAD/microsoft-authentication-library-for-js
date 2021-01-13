@@ -79,7 +79,7 @@ export const BrowserAuthErrorMessage = {
     },
     silentSSOInsufficientInfoError: {
         code: "silent_sso_error",
-        desc: "Silent SSO could not be completed - insufficient information was provided. Please provide either a loginHint or sid."
+        desc: "Silent SSO could not be completed - insufficient information was provided. Please provide an account, loginHint or sid."
     },
     noAccountError: {
         code: "no_account_error",

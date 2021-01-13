@@ -8,4 +8,5 @@ import { CacheRecord } from "../cache/entities/CacheRecord";
 
 export type BrokerAuthenticationResult = AuthenticationResult & {
     tokensToCache?: CacheRecord;
+    responseThumbprint: string;
 };
