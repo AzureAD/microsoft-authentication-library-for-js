@@ -17,7 +17,7 @@ console.log("Installing packages for samples");
 sampleFolders.forEach((sample) => {
     const directory = `${PARENT_DIR}/${sample}`;
     const install = new Promise ((resolve, reject) => {
-        exec("npm install", {cwd: directory}, (error) => {
+        exec("npm ci", {cwd: directory}, (error) => {
             if (error) {
                 console.log(`${sample}: ${error}`);
                 reject();
