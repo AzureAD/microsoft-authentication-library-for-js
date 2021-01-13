@@ -11,7 +11,7 @@ import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, BrowserCa
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserStateObject, BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
-import { PopupHandler } from "../interaction_handler/PopupHandler";
+import { PopupHandler, PopupParams } from "../interaction_handler/PopupHandler";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
@@ -408,8 +408,9 @@ export abstract class ClientApplication {
             const interactionHandler = new PopupHandler(authClient, this.browserStorage, authCodeRequest);
 
             // Show the UI once the url has been created. Get the window handle for the popup.
-            const popupParameters = {
-                popup: popup
+            const popupParameters: PopupParams = {
+                popup,
+                popupName
             };
             const popupWindow: Window = interactionHandler.initiateAuthRequest(navigateUrl, popupParameters);
 

@@ -20,7 +20,7 @@ import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 export class BrowserCacheManager extends CacheManager {
 
     // Cache configuration, either set by user or default values.
-    private cacheConfig: CacheOptions;
+    private cacheConfig: Required<CacheOptions>;
     // Window storage object (either local or sessionStorage)
     private browserStorage: IWindowStorage;
     // Internal in-memory storage object used for data used by msal that does not need to persist across page loads
@@ -39,7 +39,9 @@ export class BrowserCacheManager extends CacheManager {
         this.cacheConfig = cacheConfig;
         this.logger = logger;
 
-        this.setupBrowserStorage(cacheConfig.cacheLocation);
+        this.internalStorage = new MemoryStorage();
+        this.browserStorage = this.setupBrowserStorage(this.cacheConfig.cacheLocation);
+        this.temporaryCacheStorage = this.setupTemporaryCacheStorage(this.cacheConfig.cacheLocation);
 
         // Migrate any cache entries from older versions of MSAL.
         this.migrateCacheEntries();
@@ -49,28 +51,43 @@ export class BrowserCacheManager extends CacheManager {
      * Returns a window storage class implementing the IWindowStorage interface that corresponds to the configured cacheLocation.
      * @param cacheLocation 
      */
-    private setupBrowserStorage(cacheLocation: BrowserCacheLocation | string): void {
-        this.internalStorage = new MemoryStorage();
-
+    private setupBrowserStorage(cacheLocation: BrowserCacheLocation | string): IWindowStorage {
         switch (cacheLocation) {
             case BrowserCacheLocation.LocalStorage:
             case BrowserCacheLocation.SessionStorage:
                 try {
                     // Temporary cache items will always be stored in session storage to mitigate problems caused by multiple tabs
-                    this.temporaryCacheStorage = new BrowserStorage(BrowserCacheLocation.SessionStorage);
-                    this.browserStorage = new BrowserStorage(cacheLocation);
-                    break;
+                    return new BrowserStorage(cacheLocation);
                 } catch (e) {
                     this.logger.verbose(e);
-                    this.temporaryCacheStorage = this.internalStorage;
-                    this.cacheConfig.cacheLocation = BrowserCacheLocation.MemoryStorage;
-                    this.browserStorage = new MemoryStorage();
                     break;
                 }
             case BrowserCacheLocation.MemoryStorage:
             default:
-                this.browserStorage = new MemoryStorage();
-                this.temporaryCacheStorage = this.internalStorage;
+                break;
+        }
+        this.cacheConfig.cacheLocation = BrowserCacheLocation.MemoryStorage;
+        return new MemoryStorage();
+    }
+
+    /**
+     * 
+     * @param cacheLocation 
+     */
+    private setupTemporaryCacheStorage(cacheLocation: BrowserCacheLocation | string): IWindowStorage {
+        switch (cacheLocation) {
+            case BrowserCacheLocation.LocalStorage:
+            case BrowserCacheLocation.SessionStorage:
+                try {
+                    // Temporary cache items will always be stored in session storage to mitigate problems caused by multiple tabs
+                    return new BrowserStorage(BrowserCacheLocation.SessionStorage);
+                } catch (e) {
+                    this.logger.verbose(e);
+                    return this.internalStorage;
+                }
+            case BrowserCacheLocation.MemoryStorage:
+            default:
+                return this.internalStorage;
         }
     }
 
