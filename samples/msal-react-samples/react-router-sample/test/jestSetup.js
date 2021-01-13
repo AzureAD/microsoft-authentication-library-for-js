@@ -1,8 +1,9 @@
 const serverUtils = require("../../../e2eTestUtils/jest-puppeteer-utils/serverUtils");
+const path = require('path');
 
 module.exports = async (jestConfig) => {
-    const folders = __dirname.split("\\");
-    const sampleName = folders[folders.length - 2];
+    const parent = path.resolve(__dirname, "..");
+    const sampleName = parent.split(path.sep).pop();
     console.log(`Starting Server for: ${sampleName}`);
     const port = serverUtils.getPortForProject(jestConfig.projects, sampleName);
     process.env.PORT = port;
