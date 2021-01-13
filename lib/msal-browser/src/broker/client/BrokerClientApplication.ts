@@ -120,7 +120,7 @@ export class BrokerClientApplication extends ClientApplication {
 
         // @ts-ignore
         clientMessage.source.postMessage(brokerHandshakeResponse, clientMessage.origin);
-        this.logger.info(`Sending handshake response: ${brokerHandshakeResponse}`);
+        this.logger.info(`Sending handshake response to ${clientMessage.origin}`);
     }
 
     /**

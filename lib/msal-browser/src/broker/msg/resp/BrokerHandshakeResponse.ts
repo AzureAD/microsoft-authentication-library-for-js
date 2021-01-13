@@ -43,7 +43,6 @@ export class BrokerHandshakeResponse extends BrokerMessage {
 
             return new BrokerHandshakeResponse(validMessage.data.version, validMessage.origin);
         }
-
         return null;
     }
 }
