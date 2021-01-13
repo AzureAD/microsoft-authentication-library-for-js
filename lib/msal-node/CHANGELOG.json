@@ -2,6 +2,61 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 12 Jan 2021 00:51:26 GMT",
+      "tag": "@azure/msal-node_v1.0.0-beta.3",
+      "version": "1.0.0-beta.3",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "ClientAssertion.parseCertificate - allow newlines in cert (#2721).",
+            "author": "email not defined",
+            "commit": "199c99ef23aeb013f8dcec94e3210332fbc42ed0",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "feat: bump up the axios version on msal-node",
+            "author": "samuel.kamau@microsoft.com",
+            "commit": "0d8e60f38340cb7b9a49dc3e0be28503105b5857",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Add getKVStore to tokenCache (#2771)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "bb8ef90bcd20f111b903214c10429c1d507eafcf",
+            "package": "@azure/msal-node"
+          }
+        ],
+        "none": [
+          {
+            "comment": "package-lock changes",
+            "author": "prkanher@microsoft.com",
+            "commit": "c092667cd997935625eafbc491ede54417d4b657",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "package.lock change",
+            "author": "samuel.kamau@microsoft.com",
+            "commit": "4e50ca592f5a17578072be9e4ac28e05b3e6d594",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Fix npm audit warnings",
+            "author": "janutter@microsoft.com",
+            "commit": "751026cdaa24dd370c50ad714bf0b1d54c71fbde",
+            "package": "@azure/msal-node"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "change the code challenge encoding to uniform base64",
+            "author": "samuel.kamau@microsoft.com",
+            "commit": "c0cce3b6f6199bf0db5d77a07c557c8cdb4e383c",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 07 Dec 2020 22:19:03 GMT",
       "tag": "@azure/msal-node_v1.0.0-beta.2",
       "version": "1.0.0-beta.2",
