@@ -731,7 +731,7 @@ export abstract class ClientApplication {
      * @param requestStartPage 
      */
     protected getRedirectStartPage(requestStartPage?: string): string {
-        const redirectStartPage = requestStartPage || BrowserUtils.getCurrentUri();
+        const redirectStartPage = requestStartPage || window.location.href;
         return UrlString.getAbsoluteUrl(redirectStartPage, BrowserUtils.getCurrentUri());
     }
 
