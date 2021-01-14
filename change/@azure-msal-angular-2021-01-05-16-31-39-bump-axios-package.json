@@ -1,8 +1,0 @@
-{
-  "type": "none",
-  "comment": "package.lock changes",
-  "packageName": "@azure/msal-angular",
-  "email": "samuel.kamau@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2021-01-05T13:31:28.300Z"
-}

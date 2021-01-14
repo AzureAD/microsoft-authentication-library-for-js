@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update storybook to v6",
-  "packageName": "@azure/msal-react",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none"
-}

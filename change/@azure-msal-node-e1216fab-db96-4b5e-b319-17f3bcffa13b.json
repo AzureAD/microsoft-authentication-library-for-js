@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "ClientAssertion.parseCertificate - allow newlines in cert (#2721).",
-  "packageName": "@azure/msal-node",
-  "email": "email not defined",
-  "dependentChangeType": "patch"
-}
