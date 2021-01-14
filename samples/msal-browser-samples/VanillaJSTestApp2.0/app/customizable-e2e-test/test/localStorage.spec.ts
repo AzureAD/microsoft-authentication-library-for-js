@@ -116,7 +116,7 @@ describe("LocalStorage Tests", function () {
             await popupPage.close();
             await popupWindowClosed;
             // Wait for processing
-            await page.waitFor(500);
+            await page.waitFor(1000);
             // Wait until popup window closes
             const storage = await BrowserCache.getWindowStorage();
             expect(Object.keys(storage).length).to.be.eq(1); // Telemetry
