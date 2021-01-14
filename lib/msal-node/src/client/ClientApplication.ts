@@ -37,7 +37,6 @@ import { SilentFlowRequest } from "../request/SilentFlowRequest";
 import { version, name } from "../../package.json";
 
 export abstract class ClientApplication {
-    private _authority: Authority;
     private readonly cryptoProvider: CryptoProvider;
     protected storage: Storage;
     private tokenCache: TokenCache;
@@ -211,10 +210,12 @@ export abstract class ClientApplication {
         this.logger.verbose("buildOauthClientConfiguration called");
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
 
+        const discoveredAuthority = await this.createAuthority(authority);
+
         return {
             authOptions: {
                 clientId: this.config.auth.clientId,
-                authority: await this.createAuthority(authority),
+                authority: discoveredAuthority,
                 clientCapabilities: this.config.auth.clientCapabilities
             },
             loggerOptions: {
@@ -229,7 +230,7 @@ export abstract class ClientApplication {
             serverTelemetryManager: serverTelemetryManager,
             clientCredentials: {
                 clientSecret: this.clientSecret,
-                clientAssertion: this.clientAssertion ? this.getClientAssertion() : undefined,
+                clientAssertion: this.clientAssertion ? this.getClientAssertion(discoveredAuthority) : undefined,
             },
             libraryInfo: {
                 sku: NodeConstants.MSAL_SKU,
@@ -242,9 +243,9 @@ export abstract class ClientApplication {
         };
     }
 
-    private getClientAssertion(): { assertion: string, assertionType: string } {
+    private getClientAssertion(authority: Authority): { assertion: string, assertionType: string } {
         return {
-            assertion: this.clientAssertion.getJwt(this.cryptoProvider, this.config.auth.clientId, this._authority.tokenEndpoint),
+            assertion: this.clientAssertion.getJwt(this.cryptoProvider, this.config.auth.clientId, authority.tokenEndpoint),
             assertionType: NodeConstants.JWT_BEARER_ASSERTION_TYPE
         };
     }
