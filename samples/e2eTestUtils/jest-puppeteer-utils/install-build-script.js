@@ -8,7 +8,7 @@ async function installPackages(sample) {
     console.log(`Installing packages for ${sample}`);
     const directory = `${PARENT_DIR}/${sample}`;
     return new Promise ((resolve, reject) => {
-        exec("npm run install:local && npm ci", {cwd: directory}, (error) => {
+        exec("npm install && npm install:local", {cwd: directory}, (error) => {
             if (error) {
                 console.log(`${sample}: ${error}`);
                 reject();
