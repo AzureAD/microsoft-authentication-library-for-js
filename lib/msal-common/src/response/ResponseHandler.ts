@@ -26,7 +26,7 @@ import { CacheRecord } from "../cache/entities/CacheRecord";
 import { CacheManager } from "../cache/CacheManager";
 import { ProtocolUtils, LibraryStateObject, RequestStateObject } from "../utils/ProtocolUtils";
 import { AuthenticationScheme, Constants, THE_FAMILY_ID } from "../utils/Constants";
-import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
+import { PopKeyManager} from "../crypto/PopKeyManager";
 import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity";
 import { ICachePlugin } from "../cache/interface/ICachePlugin";
 import { TokenCacheContext } from "../cache/persistence/TokenCacheContext";
@@ -309,12 +309,12 @@ export class ResponseHandler {
         let familyId: string = Constants.EMPTY_STRING;
         if (cacheRecord.accessToken) {
             if (cacheRecord.accessToken.tokenType === AuthenticationScheme.POP) {
-                const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(cryptoObj);
+                const popKeyManager: PopKeyManager= new PopKeyManager(cryptoObj);
 
                 if (!resourceRequestMethod || !resourceRequestUri) {
                     throw ClientConfigurationError.createResourceRequestParametersRequiredError();
                 }
-                accessToken = await popTokenGenerator.signPopToken(cacheRecord.accessToken.secret, resourceRequestMethod, resourceRequestUri);
+                accessToken = await popKeyManager.signPopToken(cacheRecord.accessToken.secret, resourceRequestMethod, resourceRequestUri);
             } else {
                 accessToken = cacheRecord.accessToken.secret;
             }

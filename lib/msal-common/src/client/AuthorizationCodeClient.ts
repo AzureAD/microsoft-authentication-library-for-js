@@ -21,7 +21,7 @@ import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorization
 import { AccountEntity } from "../cache/entities/AccountEntity";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
+import { PopKeyManager } from "../crypto/PopKeyManager";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload";
 
@@ -185,8 +185,8 @@ export class AuthorizationCodeClient extends BaseClient {
         parameterBuilder.addClientInfo();
 
         if (request.authenticationScheme === AuthenticationScheme.POP && !!request.resourceRequestMethod && !!request.resourceRequestUri) {
-            const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
-            const cnfString = await popTokenGenerator.generateCnf(request.resourceRequestMethod, request.resourceRequestUri);
+            const popKeyManager = new PopKeyManager(this.cryptoUtils);
+            const cnfString = await popKeyManager.generateCnf(request.resourceRequestMethod, request.resourceRequestUri);
             parameterBuilder.addPopToken(cnfString);
         }
 
