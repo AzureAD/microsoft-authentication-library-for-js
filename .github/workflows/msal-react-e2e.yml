@@ -42,9 +42,19 @@ jobs:
       working-directory: samples/msal-react-samples
       run: npm ci
 
-    - name: Install/Build Samples
-      working-directory: samples/msal-react-samples
-      run: npm run samples:install:build
+    - name: Install/Build React Router Sample
+      working-directory: samples/msal-react-samples/react-router-sample
+      run: |
+        npm run install:local
+        npm ci
+        npm run build
+
+    - name: Install/Build Next.js Sample
+      working-directory: samples/msal-react-samples/nextjs-sample
+      run: |
+        npm run install:local
+        npm ci
+        npm run build
 
     - name: E2E Tests
       working-directory: samples/msal-react-samples
