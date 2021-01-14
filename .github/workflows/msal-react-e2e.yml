@@ -44,7 +44,7 @@ jobs:
 
     - name: Install/Build Samples
       working-directory: samples/msal-react-samples
-      run: node ./install-build-script.js
+      run: npm run samples:install:build
 
     - name: E2E Tests
       working-directory: samples/msal-react-samples
