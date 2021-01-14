@@ -11,9 +11,9 @@ import {
     enterDeviceCode,
     SCREENSHOT_BASE_FOLDER_NAME,
     extractDeviceCodeParameters,
-    validateCacheLocation
+    validateCacheLocation,
+    sleep
  } from "../testUtils";
-import { InMemoryCache } from "../../../../../../lib/msal-node/dist/cache/serializer/SerializerTypes";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
 
@@ -29,6 +29,7 @@ describe('Device Code AAD PPE Tests', () => {
     const stream: Array<any> = [];
     
     beforeAll(async () => {
+        await validateCacheLocation(TEST_CACHE_LOCATION);
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
         const labApiParms: LabApiQueryParams = {
             azureEnvironment: AzureEnvironments.PPE,
@@ -43,8 +44,6 @@ describe('Device Code AAD PPE Tests', () => {
             headless: true,
             ignoreDefaultArgs: ['--no-sandbox', '-disable-setuid-sandbox', '--disable-extensions']
         });
-        
-        await validateCacheLocation(TEST_CACHE_LOCATION);
     });
 
     afterAll(async () => {
@@ -62,7 +61,6 @@ describe('Device Code AAD PPE Tests', () => {
 
         beforeEach(async () => {
             device = spawn(/^win/.test(process.platform) ? "npm.cmd" : "npm", ["start", "--", "-s", "device-code-aad", "-c", TEST_CACHE_LOCATION]);
-
             device.stdout.on('data', (chunk) => stream.push(chunk));
 
             context = await browser.createIncognitoBrowserContext();
@@ -91,13 +89,11 @@ describe('Device Code AAD PPE Tests', () => {
             await enterDeviceCode(page, screenshot, deviceCode, deviceLoginUrl);
             await enterCredentials(page, screenshot, username, accountPwd);
             await page.waitForSelector("#message");
-
-            NodeCacheTestUtils.readCacheFile(TEST_CACHE_LOCATION, (deserializedCache: InMemoryCache) => {
-                const cachedTokens = NodeCacheTestUtils.getTokens(deserializedCache);
-                expect(cachedTokens.accessTokens.length).toBe(1);
-                expect(cachedTokens.idTokens.length).toBe(1);
-                expect(cachedTokens.refreshTokens.length).toBe(1);
-            });
-         });
+            await sleep(10000);
+            const cachedTokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+            expect(cachedTokens.accessTokens.length).toBe(1);
+            expect(cachedTokens.idTokens.length).toBe(1);
+            expect(cachedTokens.refreshTokens.length).toBe(1);
+        });
     });
 });

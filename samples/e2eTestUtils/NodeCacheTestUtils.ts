@@ -1,7 +1,6 @@
 import { Deserializer, Serializer, TokenCache } from "../../lib/msal-node";
 import { InMemoryCache, JsonCache } from '../../lib/msal-node/dist/cache/serializer/SerializerTypes';
 import fs from "fs";
-import { AccessToken } from '@azure/identity';
 
 export type tokenMap = {
     idTokens: string[],
@@ -10,51 +9,55 @@ export type tokenMap = {
 };
 
 export class NodeCacheTestUtils {
-    static getTokens(deserializedCache: InMemoryCache): tokenMap {
-            const tokenCache: tokenMap = {
-                idTokens: [],
-                accessTokens: [],
-                refreshTokens: []
-            };
-    
-            Object.keys(tokenCache).forEach((cacheSectionKey: string) => {
-                Object.keys(deserializedCache[cacheSectionKey]).map((cacheKey) => {
-                    const cacheSection = deserializedCache[cacheSectionKey];
-                    tokenCache[cacheSectionKey].push({ 
-                        key: cacheKey,
-                        token: cacheSection[cacheKey]
-                    });
-                })
+    static async getTokens(cacheLocation: string): Promise<tokenMap> {
+        const deserializedCache = await NodeCacheTestUtils.readCacheFile(cacheLocation);
+        const tokenCache: tokenMap = {
+            idTokens: [],
+            accessTokens: [],
+            refreshTokens: []
+        };
+
+        Object.keys(tokenCache).forEach((cacheSectionKey: string) => {
+            Object.keys(deserializedCache[cacheSectionKey]).map((cacheKey) => {
+                const cacheSection = deserializedCache[cacheSectionKey];
+                tokenCache[cacheSectionKey].push({ 
+                    key: cacheKey,
+                    token: cacheSection[cacheKey]
+                });
+            })
+        });
+
+        return Promise.resolve(tokenCache);
+    }
+
+    static async readCacheFile(cacheLocation: string): Promise<InMemoryCache> {
+        return new Promise((resolve, reject) => {
+            fs.readFile(cacheLocation, "utf-8", (err, data) => {
+                if (err) {
+                    console.log("Error getting tokens from cache: ", err);
+                    reject(err);
+                }
+                const cache = (data) ? data : this.getCacheTemplate();
+                const deserializedCache = Deserializer.deserializeAllCache(JSON.parse(cache));
+                resolve(deserializedCache);
             });
-
-        return tokenCache;
-    }
-
-    static readCacheFile(cacheLocation: string, callback: Function) {
-        fs.readFile(cacheLocation, "utf-8", (err, data) => {
-            if (err) {
-                console.log("Error getting tokens from cache: ", err);
-            }
-            const cache = (data) ? data : this.getCacheTemplate();
-            
-            const deserializedCache = Deserializer.deserializeAllCache(JSON.parse(cache));
-            callback(deserializedCache);
         });
     }
 
-    static writeToCacheFile(cacheLocation: string, deserializedCache: InMemoryCache, callback: Function) {
-        fs.writeFile(cacheLocation, JSON.stringify(deserializedCache, null, 1), (error) => {
-            if (error) {
-                console.error("Error writing to cache file in resetCache: ", error);
-            }
-
-            if(callback) {
-                callback();
-            }
+    static async writeToCacheFile(cacheLocation: string, deserializedCache: InMemoryCache): Promise<void> {
+        return new Promise((resolve, reject) => {
+            fs.writeFile(cacheLocation, JSON.stringify(deserializedCache, null, 1), (error) => {
+                if (error) {
+                    console.error("Error writing to cache file in resetCache: ", error);
+                    reject(error);
+                }
+                resolve();
+            });
         });
     }
 
-    static async expireAccessTokens(deserializedCache: InMemoryCache): Promise<InMemoryCache> {
+    static async expireAccessTokens(cacheLocation: string): Promise<void> {
+        const deserializedCache = await NodeCacheTestUtils.readCacheFile(cacheLocation);
         const atKeys = Object.keys(deserializedCache.accessTokens);
 
         atKeys.forEach((atKey: string) => {
@@ -62,12 +65,22 @@ export class NodeCacheTestUtils {
             deserializedCache.accessTokens[atKey].extendedExpiresOn = "0";
         });
 
-        return deserializedCache;
+        const serializedCache = Serializer.serializeAllCache(deserializedCache);
+
+        return new Promise((resolve, reject) => {
+            fs.writeFile(cacheLocation, JSON.stringify(serializedCache, null, 1), (error) => {
+                if(error) {
+                    reject(error);
+                }
+
+                resolve();
+            })
+        });
     }
 
-    static resetCache(cacheLocation: string) {
+    static async resetCache(cacheLocation: string) {
         const emptyCache = this.getCacheSchema();
-        NodeCacheTestUtils.writeToCacheFile(cacheLocation, emptyCache, null);
+        await NodeCacheTestUtils.writeToCacheFile(cacheLocation, emptyCache);
     }
 
     private static getCacheSchema(): any {

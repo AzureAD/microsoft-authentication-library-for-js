@@ -19,6 +19,7 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
     await page.type("#i0116", username);
     await page.click("#idSIButton9");
     await page.waitForSelector("#idA_PWD_ForgotPassword");
+    await page.waitForSelector("#idSIButton9");
     await screenshot.takeScreenshot(page, "pwdInputPage");
     await page.type("#i0118", accountPwd);
     await page.click("#idSIButton9");
@@ -71,13 +72,24 @@ export function takeScreenshotAfter(duration: number, screenshot: Screenshot, pa
 }
 
 export async function validateCacheLocation(cacheLocation: string): Promise<void> {
-    fs.readFile(cacheLocation, "utf-8", (err, data) => {
-        if (err || data === "") {
-            fs.writeFile(cacheLocation, "{}", (error) => {
-                if (error) {
-                    console.log("Error writing to cache file: ", error);
-                }
-            });
-        }
+    return new Promise((resolve, reject) => {
+        fs.readFile(cacheLocation, "utf-8", (err, data) => {
+            if (err || data === "") {
+                fs.writeFile(cacheLocation, "{}", (error) => {
+                    if (error) {
+                        console.log("Error writing to cache file: ", error);
+                        reject();
+                    } else {
+                        resolve();
+                    }
+                });
+            } else {
+                resolve();
+            }
+        });
     });
+}
+
+export async function sleep(delay: number) {
+    return new Promise((resolve) => setTimeout(resolve, delay));
 }

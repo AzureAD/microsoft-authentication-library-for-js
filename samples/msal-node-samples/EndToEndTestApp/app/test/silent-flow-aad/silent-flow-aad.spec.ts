@@ -78,48 +78,30 @@ describe("Silent Flow AAD PPE Tests", () => {
         expect(htmlBody).toContain(SUCCESSFUL_GRAPH_CALL_ID);
     });
 
-    it.only("Refreshes an expired access token", async (done) => {
+    it("Refreshes an expired access token", async () => {
         const testName = "AADRefreshExpiredToken";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         await clickSignIn(page, screenshot);
         await enterCredentials(page, screenshot, username, accountPwd);
         await page.waitForSelector("#acquireTokenSilent");
 
-        try {
-            NodeCacheTestUtils.readCacheFile(TEST_CACHE_LOCATION, async (deserializedCache: InMemoryCache) => {
-                const tokens = NodeCacheTestUtils.getTokens(deserializedCache);
-                const originalAccessToken = tokens.accessTokens[0].token;
-                // Expire access tokens
-                const expiredTokenCache = await NodeCacheTestUtils.expireAccessTokens(deserializedCache);
-                NodeCacheTestUtils.writeToCacheFile(TEST_CACHE_LOCATION, expiredTokenCache, async () => {
-                    NodeCacheTestUtils.readCacheFile(TEST_CACHE_LOCATION, async (deserializedCache: InMemoryCache) => {
-                        console.log(deserializedCache);
-                        const tokens = NodeCacheTestUtils.getTokens(deserializedCache);
-                        const expiredAccessToken = tokens.accessTokens[0].token;
-                        await page.click("#acquireTokenSilent");
-                        await page.waitForSelector(`#${SUCCESSFUL_GRAPH_CALL_ID}`);
+        let tokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+        const originalAccessToken = tokens.accessTokens[0].token;
+        await NodeCacheTestUtils.expireAccessTokens(TEST_CACHE_LOCATION);
+        tokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+        const expiredAccessToken = tokens.accessTokens[0].token;
+        await page.click("#acquireTokenSilent");
+        await page.waitForSelector(`#${SUCCESSFUL_GRAPH_CALL_ID}`);
+        tokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+        const refreshedAccessToken = tokens.accessTokens[0].token;
+        await screenshot.takeScreenshot(page, "acquireTokenSilentGotTokens");
+        const htmlBody = await page.evaluate(() => document.body.innerHTML);
 
-                        NodeCacheTestUtils.readCacheFile(TEST_CACHE_LOCATION, async (deserializedCache: InMemoryCache) => {
-                            const tokens = NodeCacheTestUtils.getTokens(deserializedCache);
-                            console.log(tokens);
-                            const refreshedAccessToken = tokens.accessTokens[0].token;
-                            await screenshot.takeScreenshot(page, "acquireTokenSilentGotTokens");
-                            const htmlBody = await page.evaluate(() => document.body.innerHTML);
-
-                            expect(htmlBody).toContain(SUCCESSFUL_GRAPH_CALL_ID);
-                            expect(Number(originalAccessToken.expiresOn)).toBeGreaterThan(0);
-                            expect(Number(expiredAccessToken.expiresOn)).toBe(0);
-                            expect(Number(refreshedAccessToken.expiresOn)).toBeGreaterThan(0);
-                            expect(refreshedAccessToken.secret).not.toEqual(originalAccessToken.secret);
-                            done();
-                        });
-                    });
-                });
-
-        });
-        } catch (error) {
-            done();
-        }
+        expect(htmlBody).toContain(SUCCESSFUL_GRAPH_CALL_ID);
+        expect(Number(originalAccessToken.expiresOn)).toBeGreaterThan(0);
+        expect(Number(expiredAccessToken.expiresOn)).toBe(0);
+        expect(Number(refreshedAccessToken.expiresOn)).toBeGreaterThan(0);
+        expect(refreshedAccessToken.secret).not.toEqual(originalAccessToken.secret);
     });
 
     it("Gets all accounts", async () => {
