@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Add logger (#2727)",
-  "packageName": "@azure/msal-react",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
