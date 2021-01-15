@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "test": "cd .. && jest --selectProjects \"Next.js\"",
+    "test": "jest",
     "build": "next build",
     "start": "next start",
     "install:local": "npm install ../../../lib/msal-react ../../../lib/msal-react/node_modules/react ../../../lib/msal-react/node_modules/react-dom ../../../lib/msal-browser",
@@ -18,5 +18,8 @@
     "next": "^10.0.0",
     "react": "^17.0.1",
     "react-dom": "^17.0.1"
+  },
+  "devDependencies": {
+    "jest": "^26.6.3"
   }
 }
