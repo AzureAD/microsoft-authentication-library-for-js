@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Add missing license files",
+  "packageName": "@azure/msal-react",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "patch"
+}
