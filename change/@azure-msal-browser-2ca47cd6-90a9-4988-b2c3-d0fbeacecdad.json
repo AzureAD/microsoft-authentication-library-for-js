@@ -1,6 +1,6 @@
 {
-  "type": "minor",
-  "comment": "Enable strict TypeScript option (#2792)",
+  "type": "patch",
+  "comment": "redirectStartPage supports relative URIs (#2866)",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
