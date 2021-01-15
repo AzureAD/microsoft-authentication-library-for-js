@@ -113,6 +113,8 @@ export class BrokerRefreshTokenClient extends RefreshTokenClient {
         parameterBuilder.addBrokerClientId(this.config.authOptions.clientId);
         parameterBuilder.addRedirectUri(request.embeddedAppRedirectUri, this.config.authOptions.clientId);
 
+        parameterBuilder.addTestSlice();
+
         return parameterBuilder.createQueryString();
     }
 }

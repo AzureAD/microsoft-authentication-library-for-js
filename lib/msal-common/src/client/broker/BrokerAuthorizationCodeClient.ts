@@ -127,6 +127,7 @@ export class BrokerAuthorizationCodeClient extends AuthorizationCodeClient {
         // Add broker params
         parameterBuilder.addBrokerClientId(this.config.authOptions.clientId);
         parameterBuilder.addBrokerRedirectUri(request.brokerRedirectUri);
+        parameterBuilder.addTestSlice();
 
         return parameterBuilder.createQueryString();
     }
@@ -175,6 +176,7 @@ export class BrokerAuthorizationCodeClient extends AuthorizationCodeClient {
         // Add broker params
         parameterBuilder.addBrokerClientId(this.config.authOptions.clientId);
         parameterBuilder.addBrokerRedirectUri(request.brokerRedirectUri);
+        parameterBuilder.addTestSlice();
 
         return parameterBuilder.createQueryString();
     }

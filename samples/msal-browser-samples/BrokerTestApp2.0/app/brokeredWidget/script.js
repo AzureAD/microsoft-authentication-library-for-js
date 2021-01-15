@@ -32,7 +32,7 @@ const msalConfig = {
         }
     },
     experimental: {
-        enableExperimentalApi: true,
+        enable: false,
         brokerOptions: {
             allowBrokering: true,
             trustedBrokerDomains: ["http://localhost:30663"],
@@ -43,11 +43,33 @@ const msalConfig = {
 
 let username;
 const myMSALObj = new msal.PublicClientApplication(msalConfig);
-myMSALObj.experimental.initializeBrokering().then(() => {
-        // Must ensure that initialize has completed before calling any other MSAL functions
-    myMSALObj.experimental.handleRedirectPromise().then(handleResponse).catch(err => {
+// myMSALObj.initializeBrokering().then(() => {
+//         // Must ensure that initialize has completed before calling any other MSAL functions
+    
+// });
+
+myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
+    console.error(err);
+});  
+
+const contentElement = document.getElementsByClassName("myContent")[0];
+
+document.getElementById("brokerLoginBtn").addEventListener("click", () => {
+    const loginReq = { 
+        scopes: ["openid", "profile", "User.Read"],
+        loginHint: "idlab@msidlab4.onmicrosoft.com" 
+    };
+    
+    myMSALObj.ssoSilent(loginReq).then(handleResponse).catch(err => {
         console.error(err);
-    });  
+        if (err instanceof msal.InteractionRequiredAuthError) {
+            return myMSALObj.loginPopup(loginReq).then(handleResponse);
+        }
+        contentElement.innerHTML = "I am unable to get data, from where I sit, the Identity provider does not think I am logged in";
+    }).catch(err => {
+        console.error(err);
+        contentElement.innerHTML = "I am unable to get data, from where I sit, the Identity provider does not think I am logged in. Tried a popup.";
+    });
 });
 
 function handleResponse(resp) {
@@ -57,85 +79,62 @@ function handleResponse(resp) {
         // need to call getAccount here?
         const currentAccounts = myMSALObj.getAllAccounts();
         if (!currentAccounts || currentAccounts.length < 1) {
-            setTimeout(() => {
-                const contentElement = document.getElementsByClassName("myContent")[0];
-                contentElement.innerHTML = "I am now trying to fetch profile data";
-        
-                setTimeout(async () => {
-                    let exit = false;
-                    const loginReq = { 
-                        scopes: ["openid", "profile", "User.Read"],
-                        loginHint: "idlab@msidlab4.onmicrosoft.com" 
-                    };
-                    await myMSALObj.ssoSilent(loginReq).then(() => {
-                        contentElement.innerHTML = "Fetched data!";
-                    }).catch(err => {
-                        console.error(err);
-                        if (err instanceof msal.InteractionRequiredAuthError) {
-                            return myMSALObj.experimental.loginPopup(loginReq);
-                        }
-                        contentElement.innerHTML = "I am unable to get data, from where I sit, the Identity provider does not think I am logged in";
-                        exit = true;
-                    }).catch(err => {
-                        console.error(err);
-                        contentElement.innerHTML = "I am unable to get data, from where I sit, the Identity provider does not think I am logged in. Tried a popup.";
-                        exit = true;
-                    });
-        
-                    if (exit) {
-                        return;
-                    }
-                }, 500);
-            }, 500);
+            contentElement.innerHTML = "Currently signed out";
         } else if (currentAccounts.length > 1) {
             // Add choose account code here
         } else if (currentAccounts.length === 1) {
             username = currentAccounts[0].username;
         }
     }
+    getGraphUserData();
 }
 
-const accounts = myMSALObj.getAllAccounts();
-if (accounts && accounts.length > 0) {
-    const request = {
-        scopes: ["openid", "profile", "User.Read"],
-        account: accounts[0]
-    };
-    myMSALObj.experimental.acquireTokenSilent(request).then(res => {
-        setTimeout(() => {
-            const contentElement = document.getElementsByClassName("myContent")[0];
-            contentElement.innerHTML = "Great I was able to get an access token for this data, and now I going to go get it!";
-
+function getGraphUserData() {
+    const accounts = myMSALObj.getAllAccounts();
+    if (accounts && accounts.length > 0) {
+        const request = {
+            scopes: ["openid", "profile", "User.Read"],
+            account: accounts[0]
+        };
+        myMSALObj.acquireTokenSilent(request).then(res => {
             setTimeout(() => {
-                const headers = new Headers();
-                const bearer = `Bearer ${res.accessToken}`;
-
-                headers.append("Authorization", bearer);
-                const options = {
-                    method: "GET",
-                    headers: headers
-                };
-                fetch("https://graph.microsoft.com/v1.0/me", options)
-                    .then(response => response.json())
-                    .then(response => {
-                        contentElement.innerHTML = "";
-                        const title = document.createElement("p");
-                        title.innerHTML = "<strong>Title: </strong>" + response.jobTitle;
-                        const email = document.createElement("p");
-                        email.innerHTML = "<strong>Mail: </strong>" + response.mail;
-                        const phone = document.createElement("p");
-                        phone.innerHTML = "<strong>Phone: </strong>" + response.businessPhones[0];
-                        const address = document.createElement("p");
-                        address.innerHTML = "<strong>Location: </strong>" + response.officeLocation;
-                        contentElement.appendChild(title);
-                        contentElement.appendChild(email);
-                        contentElement.appendChild(phone);
-                        contentElement.appendChild(address);
-                    })
-                    .catch(error => console.log(error));
-            }, 1000);
-
-        }, 500);
-    })
-    .catch(console.error);
+                const contentElement = document.getElementsByClassName("myContent")[0];
+                contentElement.innerHTML = "Great I was able to get an access token for this data, and now I going to go get it!";
+    
+                setTimeout(() => {
+                    const headers = new Headers();
+                    const bearer = `Bearer ${res.accessToken}`;
+    
+                    headers.append("Authorization", bearer);
+                    const options = {
+                        method: "GET",
+                        headers: headers
+                    };
+                    fetch("https://graph.microsoft.com/v1.0/me", options)
+                        .then(response => response.json())
+                        .then(response => {
+                            contentElement.innerHTML = "";
+                            const title = document.createElement("p");
+                            title.innerHTML = "<strong>Title: </strong>" + response.jobTitle;
+                            const email = document.createElement("p");
+                            email.innerHTML = "<strong>Mail: </strong>" + response.mail;
+                            const phone = document.createElement("p");
+                            phone.innerHTML = "<strong>Phone: </strong>" + response.businessPhones[0];
+                            const address = document.createElement("p");
+                            address.innerHTML = "<strong>Location: </strong>" + response.officeLocation;
+                            contentElement.appendChild(title);
+                            contentElement.appendChild(email);
+                            contentElement.appendChild(phone);
+                            contentElement.appendChild(address);
+                        })
+                        .catch(error => console.log(error));
+                }, 1000);
+    
+            }, 500);
+        })
+        .catch(console.error);
+    }
+    
 }
+
+

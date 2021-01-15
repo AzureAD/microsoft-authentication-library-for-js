@@ -295,6 +295,11 @@ export class RequestParameterBuilder {
         this.parameters.set(ClientInfo, "1");
     }
 
+    addTestSlice(): void {
+        const name = "ESTS-PUB-WUS2-AZ1-TEST1";
+        this.parameters.set("dc", name);
+    }
+
     /**
      * add extraQueryParams
      * @param eQparams

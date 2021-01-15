@@ -20,11 +20,13 @@ import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 export class BrowserCacheManager extends CacheManager {
 
     // Cache configuration, either set by user or default values.
-    private cacheConfig: CacheOptions;
+    private cacheConfig: Required<CacheOptions>;
     // Window storage object (either local or sessionStorage)
     private browserStorage: IWindowStorage;
     // Internal in-memory storage object used for data used by msal that does not need to persist across page loads
     private internalStorage: MemoryStorage;
+    // Temporary cache 
+    private temporaryCacheStorage: IWindowStorage;
     // Client id of application. Used in cache keys to partition cache correctly in the case of multiple instances of MSAL.
     private logger: Logger;
 
@@ -37,8 +39,9 @@ export class BrowserCacheManager extends CacheManager {
         this.cacheConfig = cacheConfig;
         this.logger = logger;
 
-        this.browserStorage = this.setupBrowserStorage(cacheConfig.cacheLocation);
         this.internalStorage = new MemoryStorage();
+        this.browserStorage = this.setupBrowserStorage(this.cacheConfig.cacheLocation);
+        this.temporaryCacheStorage = this.setupTemporaryCacheStorage(this.cacheConfig.cacheLocation);
 
         // Migrate any cache entries from older versions of MSAL.
         this.migrateCacheEntries();
@@ -53,15 +56,38 @@ export class BrowserCacheManager extends CacheManager {
             case BrowserCacheLocation.LocalStorage:
             case BrowserCacheLocation.SessionStorage:
                 try {
+                    // Temporary cache items will always be stored in session storage to mitigate problems caused by multiple tabs
                     return new BrowserStorage(cacheLocation);
                 } catch (e) {
                     this.logger.verbose(e);
-                    this.cacheConfig.cacheLocation = BrowserCacheLocation.MemoryStorage;
-                    return new MemoryStorage();
+                    break;
                 }
             case BrowserCacheLocation.MemoryStorage:
             default:
-                return new MemoryStorage();
+                break;
+        }
+        this.cacheConfig.cacheLocation = BrowserCacheLocation.MemoryStorage;
+        return new MemoryStorage();
+    }
+
+    /**
+     * 
+     * @param cacheLocation 
+     */
+    private setupTemporaryCacheStorage(cacheLocation: BrowserCacheLocation | string): IWindowStorage {
+        switch (cacheLocation) {
+            case BrowserCacheLocation.LocalStorage:
+            case BrowserCacheLocation.SessionStorage:
+                try {
+                    // Temporary cache items will always be stored in session storage to mitigate problems caused by multiple tabs
+                    return new BrowserStorage(BrowserCacheLocation.SessionStorage);
+                } catch (e) {
+                    this.logger.verbose(e);
+                    return this.internalStorage;
+                }
+            case BrowserCacheLocation.MemoryStorage:
+            default:
+                return this.internalStorage;
         }
     }
 
@@ -363,7 +389,7 @@ export class BrowserCacheManager extends CacheManager {
             }
         }
 
-        const value = this.getItem(key);
+        const value = this.temporaryCacheStorage.getItem(key);
         if (!value) {
             return null;
         }
@@ -380,7 +406,7 @@ export class BrowserCacheManager extends CacheManager {
     setTemporaryCache(cacheKey: string, value: string, generateKey?: boolean): void {
         const key = generateKey ? this.generateCacheKey(cacheKey) : cacheKey;
 
-        this.setItem(key, value);
+        this.temporaryCacheStorage.setItem(key, value);
         if (this.cacheConfig.storeAuthStateInCookie) {
             this.setItemCookie(key, value);
         }
@@ -418,6 +444,7 @@ export class BrowserCacheManager extends CacheManager {
      */
     removeItem(key: string): boolean {
         this.browserStorage.removeItem(key);
+        this.temporaryCacheStorage.removeItem(key);
         if (this.cacheConfig.storeAuthStateInCookie) {
             this.clearItemCookie(key);
         }
@@ -438,14 +465,17 @@ export class BrowserCacheManager extends CacheManager {
      * @param key
      */
     containsKey(key: string): boolean {
-        return this.browserStorage.containsKey(key);
+        return this.browserStorage.containsKey(key) || this.temporaryCacheStorage.containsKey(key);
     }
 
     /**
      * Gets all keys in window.
      */
     getKeys(): string[] {
-        return this.browserStorage.getKeys();
+        return [
+            ...this.browserStorage.getKeys(),
+            ...this.temporaryCacheStorage.getKeys()
+        ];
     }
 
     getMemoryKeys(): string[] {
@@ -458,9 +488,9 @@ export class BrowserCacheManager extends CacheManager {
     clear(): void {
         this.removeAllAccounts();
         this.removeAppMetadata();
-        this.browserStorage.getKeys().forEach((cacheKey: string) => {
+        this.getKeys().forEach((cacheKey: string) => {
             // Check if key contains msal prefix; For now, we are clearing all the cache items created by MSAL.js
-            if (this.browserStorage.containsKey(cacheKey) && ((cacheKey.indexOf(Constants.CACHE_PREFIX) !== -1) || (cacheKey.indexOf(this.clientId) !== -1))) {
+            if ((this.browserStorage.containsKey(cacheKey) || this.temporaryCacheStorage.containsKey(cacheKey)) && ((cacheKey.indexOf(Constants.CACHE_PREFIX) !== -1) || (cacheKey.indexOf(this.clientId) !== -1))) {
                 this.removeItem(cacheKey);
             }
         });
