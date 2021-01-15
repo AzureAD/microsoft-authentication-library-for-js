@@ -69,7 +69,7 @@ const publicClientConfig = {
 
 MSAL enables PKCE in the Authorization Code Grant Flow by including the `codeChallenge` and `codeChallengeMethod` parameters in the request passed into `getAuthCodeUrl()` API, as well as the `codeVerifier` parameter in the second leg (`acquireTokenByCode()` API).
 
-Generating the `codeVerifier` and the `codeChallenge` is the client application's responsibility. For this sample, you can either implement your own PKCE code generation logic or use an existing tool to manually generate a **Code Verifier** and **Code Challenge**, plugging them into the `pkceCodes` object below.
+For generating the `codeVerifier` and the `codeChallenge` you can either use the `generatePkceCodes` method in the `CryptoProvider` provided by the library, implement your own PKCE code generation logic or use an existing tool to manually generate a **Code Verifier** and **Code Challenge**, plugging them into the `pkceCodes` object below.
 
 For details on implementing your own PKCE code generation logic, consult the PKCE specification `https://tools.ietf.org/html/rfc7636#section-4`
 
