@@ -19,12 +19,20 @@ jobs:
   run-e2e:
     if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [ '12', '14' ]
+
+    name: Node ${{ matrix.node }} Tests
 
     steps:
     - uses: actions/checkout@v2
 
     - name: Use Node.js
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v2
+      with: 
+        node-version: ${{ matrix.node }}
 
     - name: Clean Install
       env:
