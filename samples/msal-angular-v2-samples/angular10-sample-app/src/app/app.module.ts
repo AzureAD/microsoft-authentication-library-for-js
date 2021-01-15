@@ -17,7 +17,7 @@ import { MsalGuard, MsalInterceptor, MsalBroadcastService, MsalInterceptorConfig
 
 const isIE = window.navigator.userAgent.indexOf("MSIE ") > -1 || window.navigator.userAgent.indexOf("Trident/") > -1;
 
-export function loggerCallback(logLevel, message) {
+export function loggerCallback(logLevel: LogLevel, message: string) {
   console.log(message);
 }
 
