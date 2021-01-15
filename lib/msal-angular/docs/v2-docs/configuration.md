@@ -149,7 +149,9 @@ export class AppModule { }
 
 ## platformBrowserDynamic
 
-If you need to dynamically configure MSAL Angular (e.g. based on values returned from an API), you can use `platformBrowserDynamic`.
+If you need to dynamically configure MSAL Angular (e.g. based on values returned from an API), you can use `platformBrowserDynamic`. `platformBrowserDyamic` is a platform factory, used to bootstrap the application, and is able to take in configuration options. `platformBrowserDynamic` should already be present when the Angular application is set up.
+
+The following is an example of how to dynamically configure MSAL Angular with `platformBrowserDynamic` and a json file:
 
 `app.module.ts`
 ```typescript
