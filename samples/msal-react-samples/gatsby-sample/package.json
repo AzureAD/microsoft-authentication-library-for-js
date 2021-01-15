@@ -9,7 +9,7 @@
     "start": "npm run develop",
     "serve": "gatsby serve -p 3000",
     "clean": "gatsby clean",
-    "install:local": "npm install ../../../lib/msal-react ../../../lib/msal-react/node_modules/react ../../../lib/msal-react/node_modules/react-dom ../../../lib/msal-browser --only=prod",
+    "install:local": "npm install ../../../lib/msal-react ../../../lib/msal-react/node_modules/react ../../../lib/msal-react/node_modules/react-dom ../../../lib/msal-browser",
     "install:published": "npm install @azure/msal-browser@latest @azure/msal-react@latest react@^16 react-dom@^16"
   },
   "dependencies": {

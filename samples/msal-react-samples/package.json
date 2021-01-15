@@ -5,8 +5,7 @@
     "type": "module",
     "scripts": {
         "test": "jest",
-        "preinstall": "cd .. && npm install",
-        "samples:install:build": "node ../e2eTestUtils/jest-puppeteer-utils/install-build-script.js"
+        "preinstall": "cd .. && npm install"
     },
     "devDependencies": {
         "jest": "^26.6.3"

@@ -17,7 +17,7 @@
     "test": "cd .. && jest --selectProjects \"React Router\"",
     "build": "react-scripts build",
     "eject": "react-scripts eject",
-    "install:local": "npm install ../../../lib/msal-react ../../../lib/msal-react/node_modules/react ../../../lib/msal-react/node_modules/react-dom ../../../lib/msal-browser --only=prod",
+    "install:local": "npm install ../../../lib/msal-react ../../../lib/msal-react/node_modules/react ../../../lib/msal-react/node_modules/react-dom ../../../lib/msal-browser",
     "install:published": "npm install @azure/msal-browser@latest @azure/msal-react@latest react@^17 react-dom@^17"
   },
   "eslintConfig": {
