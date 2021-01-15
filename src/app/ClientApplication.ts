@@ -316,7 +316,7 @@ export abstract class ClientApplication {
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
 
-            const redirectStartPage = (request && request.redirectStartPage) || window.location.href;
+            const redirectStartPage = this.getRedirectStartPage(request.redirectStartPage);
 
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
             return interactionHandler.initiateAuthRequest(navigateUrl, {
@@ -717,6 +717,15 @@ export abstract class ClientApplication {
     protected getPostLogoutRedirectUri(requestPostLogoutRedirectUri?: string): string {
         const postLogoutRedirectUri = requestPostLogoutRedirectUri || this.config.auth.postLogoutRedirectUri || BrowserUtils.getCurrentUri();
         return UrlString.getAbsoluteUrl(postLogoutRedirectUri, BrowserUtils.getCurrentUri());
+    }
+
+    /**
+     * Use to get the redirectStartPage either from request or use current window
+     * @param requestStartPage 
+     */
+    protected getRedirectStartPage(requestStartPage?: string): string {
+        const redirectStartPage = requestStartPage || window.location.href;
+        return UrlString.getAbsoluteUrl(redirectStartPage, BrowserUtils.getCurrentUri());
     }
 
     /**
