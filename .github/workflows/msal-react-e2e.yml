@@ -30,7 +30,7 @@ jobs:
     - name: Clean Install
       env:
         RUNNING_NODE_CI: 1
-      run: npm install --no-audit
+      run: npm ci
 
     - name: Build packages
       working-directory: lib/msal-react
@@ -38,21 +38,27 @@ jobs:
 
     - name: Install Test Tools
       working-directory: samples/msal-react-samples
-      run: npm install --no-audit
+      run: npm ci
 
-    - name: Install/Build React Router Sample
+    - name: Install React Router Sample
       working-directory: samples/msal-react-samples/react-router-sample
       run: |
         npm run install:local
-        npm install --no-audit
-        npm run build
+        npm ci
 
-    - name: Install/Build Next.js Sample
+    - name: Build React Router Sample
+      working-directory: samples/msal-react-samples/react-router-sample
+      run: npm run build
+
+    - name: Install Next.js Sample
       working-directory: samples/msal-react-samples/nextjs-sample
       run: |
         npm run install:local
-        npm install --no-audit
-        npm run build
+        npm ci
+
+    - name: Build Next.js Sample
+      working-directory: samples/msal-react-samples/nextjs-sample
+      run: npm run build
 
     - name: E2E Tests
       working-directory: samples/msal-react-samples

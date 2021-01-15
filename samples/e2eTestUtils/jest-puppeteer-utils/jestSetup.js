@@ -34,7 +34,7 @@ async function startServer(jestConfig) {
     console.log(`Starting Server for: ${sampleName}`);
     process.env.PORT = port;
     serverUtils.startServer(startCommand, jestConfig.rootDir);
-    const serverUp = await serverUtils.isServerUp(port, 20000);
+    const serverUp = await serverUtils.isServerUp(port, 30000);
     if (serverUp) {
         console.log(`Server for ${sampleName} running on port ${port}`);
     } else {
