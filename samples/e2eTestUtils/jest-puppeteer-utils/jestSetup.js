@@ -34,9 +34,17 @@ async function startServer(jestConfig) {
 
     console.log(`Starting Server for: ${sampleName}`);
     process.env.PORT = port;
-    let serverOutput;
+    let serverOutput = "";
     const serverCallback = (error, stdout, stderr) => {
-        serverOutput = stdout;
+        if (error) {
+            serverOutput += error;
+        } 
+        if (stderr) {
+            serverOutput += stderr;
+        }
+        if (stdout) {
+            serverOutput += stdout;
+        }
     };
     serverUtils.startServer(startCommand, jestConfig.rootDir, serverCallback);
 
@@ -51,7 +59,7 @@ async function startServer(jestConfig) {
 }
 
 module.exports = async (jestOptions) => {
-    if(jestOptions.projects) {
+    if(jestOptions.projects && jestOptions.projects.length > 0) {
         const servers = [];
         jestOptions.projects.forEach((project) => {
             const jestConfig = require(path.resolve(project, "jest.config.js"));

@@ -6,7 +6,7 @@ function kill(rootDir) {
 };
 
 module.exports = (jestOptions) => {
-    if(jestOptions.projects) {
+    if(jestOptions.projects && jestOptions.projects.length > 0) {
         jestOptions.projects.forEach((project) => {
             const jestConfig = require(path.resolve(project, "jest.config.js"));
             kill(jestConfig.rootDir);
