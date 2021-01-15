@@ -57,10 +57,8 @@ describe('Device Code AAD PPE Tests', () => {
         let testName: string;
         let screenshot: Screenshot;
 
-        beforeAll(() => {
-            testName = "deviceCodeAADFlowBaseCase";
-            screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
-            NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+        beforeAll(async () => {
+            await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
 
         beforeEach(async () => {
@@ -79,6 +77,9 @@ describe('Device Code AAD PPE Tests', () => {
         });
 
         it("Performs acquire token with Device Code flow", async () => {
+            testName = "AADAcquireTokenWithDeviceCode";
+            screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+
             const { deviceCode, deviceLoginUrl }: { deviceCode: string, deviceLoginUrl: string } = await new Promise((resolve) => {
                 const intervalId = setInterval(() => {
                     const output = Buffer.concat(stream).toString();
@@ -93,6 +94,7 @@ describe('Device Code AAD PPE Tests', () => {
             await enterDeviceCode(page, screenshot, deviceCode, deviceLoginUrl);
             await enterCredentials(page, screenshot, username, accountPwd);
             await page.waitForSelector("#message");
+            await screenshot.takeScreenshot(page, "SuccessfulDeviceCodeMessage");
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
@@ -101,43 +103,43 @@ describe('Device Code AAD PPE Tests', () => {
 
     });
     
-    // describe("Cancellation", () => {
-    //     let testName: string;
-    //     let screenshot: Screenshot;
+    describe("Cancellation", () => {
+        let testName: string;
+        let screenshot: Screenshot;
 
-    //     beforeAll(async () => {
-    //         testName = "deviceCodeAADFlowCancellation";
-    //         screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
-    //         await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
-    //     });
+        beforeAll(async () => {
+            await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+        });
 
 
-    //     afterEach(async () => {
-    //         device.kill();
-    //         await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
-    //     });
+        afterEach(async () => {
+            device.kill();
+            await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+        });
 
-    //     it("Cancels polling when a user timeout is provided", async () => {
-    //         const TIMEOUT_DURATION = 500;
-    //         const deviceStream: Array<any> = [];
-    //         device = spawn(
-    //             /^win/.test(process.platform) ? "npm.cmd" : "npm",
-    //             ["start", "--", "-s", "device-code-aad", "-c", TEST_CACHE_LOCATION, "--ro", JSON.stringify({ timeout: TIMEOUT_DURATION })]
-    //         );
-    //         device.stdout.on('data', (chunk) => deviceStream.push(chunk));
+        it("Cancels polling when a user timeout is provided", async () => {
+            testName = "AADDeviceCodeTimeout";
+            screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            const TIMEOUT_DURATION = 5000;
+            const deviceStream: Array<any> = [];
+            device = spawn(
+                /^win/.test(process.platform) ? "npm.cmd" : "npm",
+                ["start", "--", "-s", "device-code-aad", "-c", TEST_CACHE_LOCATION, "--ro", JSON.stringify({ timeout: TIMEOUT_DURATION })]
+            );
+            device.stdout.on('data', (chunk) => deviceStream.push(chunk));
 
-    //         const timeoutErrorShown: boolean = await new Promise((resolve) => {
-    //             const intervalId = setInterval(() => {
-    //                 const output = Buffer.concat(deviceStream).toString();
-    //                 const timeoutErrorShown = checkTimeoutError(output);
-    //                 if (timeoutErrorShown) {
-    //                     clearInterval(intervalId);
-    //                     resolve(timeoutErrorShown);
-    //                 }
-    //             }, 1000);
-    //         });
+            const timeoutErrorShown: boolean = await new Promise((resolve) => {
+                const intervalId = setInterval(() => {
+                    const output = Buffer.concat(deviceStream).toString();
+                    const timeoutErrorShown = checkTimeoutError(output);
+                    if (timeoutErrorShown) {
+                        clearInterval(intervalId);
+                        resolve(timeoutErrorShown);
+                    }
+                }, 1000);
+            });
 
-    //         expect(timeoutErrorShown).toBe(true);
-    //     });
-    // });
+            expect(timeoutErrorShown).toBe(true);
+        });
+    });
 });
