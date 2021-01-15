@@ -14,6 +14,7 @@ on:
       - 'lib/msal-common/**/*'
       - 'samples/msal-node-samples/EndToEndTestApp/**/*'
       - '!**.md'
+      - '.github/workflows/msal-node-e2e.yml'
 
 jobs:
   run-e2e:
