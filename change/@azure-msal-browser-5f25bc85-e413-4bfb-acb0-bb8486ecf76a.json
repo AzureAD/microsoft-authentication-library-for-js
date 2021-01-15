@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update msal-angular link in msal-browser readme (#2751)",
-  "packageName": "@azure/msal-browser",
-  "email": "suhendri_s@outlook.com",
-  "dependentChangeType": "none"
-}
