@@ -1,6 +1,6 @@
 {
-  "type": "prerelease",
-  "comment": "Make scopes optional for msal-guard config (#2829)",
+  "type": "none",
+  "comment": "Update configuration.md with platformBrowserDynamic (#2879)",
   "packageName": "@azure/msal-angular",
   "email": "joarroyo@microsoft.com",
   "dependentChangeType": "patch"

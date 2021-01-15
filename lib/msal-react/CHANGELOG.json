@@ -2,6 +2,59 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Tue, 12 Jan 2021 00:51:26 GMT",
+      "tag": "@azure/msal-react_v1.0.0-alpha.2",
+      "version": "1.0.0-alpha.2",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Add logger (#2727)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "cc0c22274fabb4304ce8b574c488cc5191362848",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "Fix redirect loop when service returns error (#2762)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "730d30b7bb2afa597d7b23dc0393dc78d01f849e",
+            "package": "@azure/msal-react"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Update storybook to v6",
+            "author": "janutter@microsoft.com",
+            "commit": "df94f4216584735768589fb047d74762bfa75911",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "Readme Update (#2814)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "194f21637c900f3e4afb64bbcf47cfc1328cb1bf",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "package-lock changes",
+            "author": "prkanher@microsoft.com",
+            "commit": "c092667cd997935625eafbc491ede54417d4b657",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "package.lock change",
+            "author": "samuel.kamau@microsoft.com",
+            "commit": "4e50ca592f5a17578072be9e4ac28e05b3e6d594",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "Readme update (#2813)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "c22616826105ea3bad37745e6ffcf27e409fe774",
+            "package": "@azure/msal-react"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 07 Dec 2020 22:19:03 GMT",
       "tag": "@azure/msal-react_v1.0.0-alpha.1",
       "version": "1.0.0-alpha.1",

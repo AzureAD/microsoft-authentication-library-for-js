@@ -1,7 +1,7 @@
 {
   "type": "prerelease",
-  "comment": "Add logger (#2727)",
+  "comment": "Add missing license files",
   "packageName": "@azure/msal-react",
-  "email": "thomas.norling@microsoft.com",
+  "email": "janutter@microsoft.com",
   "dependentChangeType": "patch"
 }
