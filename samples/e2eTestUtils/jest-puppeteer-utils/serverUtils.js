@@ -1,4 +1,4 @@
-const { spawn } = require('child_process');
+const { exec } = require('child_process');
 const waitOn  = require('wait-on');
 const kill = require("tree-kill");
 const fs = require("fs");
@@ -14,8 +14,8 @@ async function isServerUp(port, timeout) {
     return true;
 }
 
-function startServer(cmd, directory) {
-    const child = spawn(cmd, [], { shell: true, cwd: directory});
+function startServer(cmd, directory, callback) {
+    const child = exec(cmd, {cwd: directory}, callback);
     
     // store the child instance so we can teardown it later
     fs.writeFileSync(path.join(directory, '.server.pid'), child.pid.toString());

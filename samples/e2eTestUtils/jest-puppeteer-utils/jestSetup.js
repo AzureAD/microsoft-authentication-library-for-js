@@ -1,4 +1,5 @@
 const serverUtils = require("./serverUtils");
+const path = require("path");
 
 const ports = [];
 
@@ -33,12 +34,18 @@ async function startServer(jestConfig) {
 
     console.log(`Starting Server for: ${sampleName}`);
     process.env.PORT = port;
-    serverUtils.startServer(startCommand, jestConfig.rootDir);
+    let serverOutput;
+    const serverCallback = (error, stdout, stderr) => {
+        serverOutput = stdout;
+    };
+    serverUtils.startServer(startCommand, jestConfig.rootDir, serverCallback);
+
     const serverUp = await serverUtils.isServerUp(port, 30000);
     if (serverUp) {
         console.log(`Server for ${sampleName} running on port ${port}`);
     } else {
         console.error(`Unable to start server for ${sampleName} on port ${port}`);
+        console.log(serverOutput);
         throw new Error();
     }
 }
@@ -47,13 +54,13 @@ module.exports = async (jestOptions) => {
     if(jestOptions.projects) {
         const servers = [];
         jestOptions.projects.forEach((project) => {
-            const jestConfig = require(`${project}\\jest.config.js`);
+            const jestConfig = require(path.resolve(project, "jest.config.js"));
             servers.push(startServer(jestConfig));
         });
 
         await Promise.all(servers).catch(() => process.exit(1));
     } else {
-        const jestConfig = require(`${jestOptions.rootDir}\\jest.config.js`);
+        const jestConfig = require(path.resolve(jestOptions.rootDir, "jest.config.js"));
         await startServer(jestConfig).catch(() => process.exit(1));
     } 
 }
