@@ -26,13 +26,11 @@ jobs:
 
     - name: Use Node.js
       uses: actions/setup-node@v2
-      with:
-        node-version: '14'
 
     - name: Clean Install
       env:
         RUNNING_NODE_CI: 1
-      run: npm ci
+      run: npm install --no-audit
 
     - name: Build packages
       working-directory: lib/msal-react
@@ -40,20 +38,20 @@ jobs:
 
     - name: Install Test Tools
       working-directory: samples/msal-react-samples
-      run: npm ci
+      run: npm install --no-audit
 
     - name: Install/Build React Router Sample
       working-directory: samples/msal-react-samples/react-router-sample
       run: |
         npm run install:local
-        npm ci
+        npm install --no-audit
         npm run build
 
     - name: Install/Build Next.js Sample
       working-directory: samples/msal-react-samples/nextjs-sample
       run: |
         npm run install:local
-        npm ci
+        npm install --no-audit
         npm run build
 
     - name: E2E Tests
