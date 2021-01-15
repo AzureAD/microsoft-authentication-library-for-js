@@ -10,14 +10,23 @@ const process = require("process");
 const path = require("path");
 
 const SERVER_PORT = process.env.PORT || 3000;
+const APPLICATION = process.env.APPLICATION || 'aad';
 const cachePath = path.join(__dirname, "./cache.json");
+
+const applications = {
+    aad: {
+        clientId: "8fcb9fc1-d8f9-49c0-b80e-a8a8a201d051",
+        authority: "https://login.windows-ppe.net/common/"
+    },
+    adfs: {
+        clientId: "c3f3b506-8ca9-4c23-acda-035ee2c9d960",
+        authority: "https://login.microsoftonline.com/common"
+    }
+};
 
 createPersistence().then((filePersistence) => {
     const publicClientConfig = {
-        auth: {
-            clientId: "8fcb9fc1-d8f9-49c0-b80e-a8a8a201d051",
-            authority: "https://login.windows-ppe.net/common/"
-        },
+        auth: applications[APPLICATION],
         cache: {
             cachePlugin: new extensions.PersistenceCachePlugin(filePersistence)
         },
@@ -63,7 +72,7 @@ createPersistence().then((filePersistence) => {
                         <h5>Related links:</h5>
                         <ul>
                             <li>
-                                <a href="http://localhost:3000/cache">Access cache</a>
+                                <a href="http://localhost:${SERVER_PORT}/cache">Access cache</a>
                             </li>
                         </ul>
                     `);
@@ -91,7 +100,7 @@ createPersistence().then((filePersistence) => {
         }
     });
 
-    app.listen(SERVER_PORT, () => console.log(`Msal Extensions Sample app listening on port ${SERVER_PORT}!`));
+    app.listen(SERVER_PORT, () => console.log(`Msal Extensions Sample ${APPLICATION} app listening on port ${SERVER_PORT}!`));
 });
 
 /**
