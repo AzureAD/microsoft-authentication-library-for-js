@@ -1,5 +1,5 @@
 import { Deserializer, Serializer, TokenCache } from "../../lib/msal-node";
-import { InMemoryCache, JsonCache } from '../../lib/msal-node/dist/cache/serializer/SerializerTypes';
+import { InMemoryCache } from '../../lib/msal-node/dist/cache/serializer/SerializerTypes';
 import fs from "fs";
 
 export type tokenMap = {
@@ -42,6 +42,25 @@ export class NodeCacheTestUtils {
                 resolve(deserializedCache);
             });
         });
+    }
+
+    static async waitForTokens(cacheLocation: string, interval: number): Promise<tokenMap> {
+        let tokenCache = await this.getTokens(cacheLocation);
+
+        if (tokenCache.idTokens.length) {
+            return tokenCache;
+        }
+
+        return new Promise(resolve => {
+            const intervalId = setInterval(async () => {
+                tokenCache = await this.getTokens(cacheLocation);
+
+                if (tokenCache.idTokens.length) {
+                    clearInterval(intervalId);
+                    resolve(tokenCache);
+                } 
+            }, interval);
+        })
     }
 
     static async writeToCacheFile(cacheLocation: string, deserializedCache: InMemoryCache): Promise<void> {

@@ -1,7 +1,7 @@
 {
-    "Account": {},
-    "IdToken": {},
-    "AccessToken": {},
-    "RefreshToken": {},
-    "AppMetadata": {}
-   }
+  "Account": {},
+  "IdToken": {},
+  "AccessToken": {},
+  "RefreshToken": {},
+  "AppMetadata": {}
+}

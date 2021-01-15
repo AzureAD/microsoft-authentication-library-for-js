@@ -40,6 +40,7 @@ export async function enterCredentialsADFS(page: Page, screenshot: Screenshot, u
     await screenshot.takeScreenshot(page, "adfsUsernameInputPage");
     await page.type("#passwordInput", accountPwd);
     await page.click("#submitButton");
+    await takeScreenshotAfter(6000, screenshot, page, `pwdSubmitted`);
 }
 
 export async function enterDeviceCode(page: Page, screenshot: Screenshot, code: string, deviceCodeUrl: string): Promise<void> {
@@ -92,4 +93,9 @@ export async function validateCacheLocation(cacheLocation: string): Promise<void
 
 export async function sleep(delay: number) {
     return new Promise((resolve) => setTimeout(resolve, delay));
+}
+
+export function checkTimeoutError(output: string): boolean {
+    const timeoutErrorRegex = /user_timeout_reached/;
+    return timeoutErrorRegex.test(output);
 }
