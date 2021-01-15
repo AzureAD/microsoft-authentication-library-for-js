@@ -1,5 +1,5 @@
 {
-  "type": "prerelease",
+  "type": "none",
   "comment": "Update configuration.md with platformBrowserDynamic (#2879)",
   "packageName": "@azure/msal-angular",
   "email": "joarroyo@microsoft.com",
