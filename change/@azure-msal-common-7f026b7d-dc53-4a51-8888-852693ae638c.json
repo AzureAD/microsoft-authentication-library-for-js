@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Add missing license files",
+  "packageName": "@azure/msal-common",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "none"
+}
