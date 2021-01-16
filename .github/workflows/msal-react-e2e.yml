@@ -15,6 +15,7 @@ on:
       - 'lib/msal-common/**/*'
       - 'samples/msal-react-samples/**/*'
       - '!**.md'
+      - '.github/workflows/msal-react-e2e.yml'
 
 jobs:
   run-e2e:
