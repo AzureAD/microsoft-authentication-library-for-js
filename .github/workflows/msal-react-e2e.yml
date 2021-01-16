@@ -22,6 +22,13 @@ jobs:
     if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
     runs-on: ubuntu-latest
 
+    strategy:
+      fail-fast: false
+      matrix:
+        sample:
+          - 'react-router-sample'
+          - 'nextjs-sample'
+
     steps:
     - uses: actions/checkout@v2
 
@@ -41,28 +48,18 @@ jobs:
       working-directory: samples/msal-react-samples
       run: npm ci
 
-    - name: Install React Router Sample
-      working-directory: samples/msal-react-samples/react-router-sample
+    - name: Install ${{ matrix.sample }}
+      working-directory: samples/msal-react-samples/${{ matrix.sample }}
       run: |
         npm run install:local
         npm ci
 
-    - name: Build React Router Sample
-      working-directory: samples/msal-react-samples/react-router-sample
-      run: npm run build
-
-    - name: Install Next.js Sample
-      working-directory: samples/msal-react-samples/nextjs-sample
-      run: |
-        npm run install:local
-        npm ci
-
-    - name: Build Next.js Sample
-      working-directory: samples/msal-react-samples/nextjs-sample
+    - name: Build ${{ matrix.sample }}
+      working-directory: samples/msal-react-samples/${{ matrix.sample }}
       run: npm run build
 
     - name: E2E Tests
-      working-directory: samples/msal-react-samples
+      working-directory: samples/msal-react-samples/${{ matrix.sample }}
       timeout-minutes: 5
       env:
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
