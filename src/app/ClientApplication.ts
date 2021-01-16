@@ -123,6 +123,7 @@ export abstract class ClientApplication {
      */
     async handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null> {
         this.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
+        this.logger.verbose("handleRedirectPromise called");
         const loggedInAccounts = this.getAllAccounts();
         if (this.isBrowserEnvironment) {
             return this.handleRedirectResponse(hash)
@@ -132,8 +133,10 @@ export abstract class ClientApplication {
                         const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
                         if (isLoggingIn) {
                             this.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect, result);
+                            this.logger.verbose("handleRedirectResponse returned result, login success");
                         } else {
                             this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Redirect, result);
+                            this.logger.verbose("handleRedirectResponse returned result, acquire token success");
                         }
                     }
                     this.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
@@ -168,6 +171,7 @@ export abstract class ClientApplication {
 
         const responseHash = this.getRedirectResponseHash(hash || window.location.hash);
         if (!responseHash) {
+            this.logger.verbose("Hash returned not recognized or associated with redirect request, returning null");
             // Not a recognized server response hash or hash not associated with a redirect request
             this.browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
             return null;
@@ -177,6 +181,7 @@ export abstract class ClientApplication {
         try {
             state = this.validateAndExtractStateFromHash(responseHash, InteractionType.Redirect);
             BrowserUtils.clearHash();
+            this.logger.verbose("State extracted from hash");
         } catch (e) {
             this.logger.info(`handleRedirectPromise was unable to extract state due to: ${e}`);
             this.browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
@@ -190,6 +195,7 @@ export abstract class ClientApplication {
 
         if (loginRequestUrlNormalized === currentUrlNormalized && this.config.auth.navigateToLoginRequestUrl) {
             // We are on the page we need to navigate to - handle hash
+            this.logger.verbose("Current page is loginRequestUrl, handling hash");
             const handleHashResult = await this.handleHash(responseHash, state);
 
             if (loginRequestUrl.indexOf("#") > -1) {
@@ -199,6 +205,7 @@ export abstract class ClientApplication {
 
             return handleHashResult;
         } else if (!this.config.auth.navigateToLoginRequestUrl) {
+            this.logger.verbose("NavigateToLoginRequestUrl set to false, handling hash");
             return this.handleHash(responseHash, state);
         } else if (!BrowserUtils.isInIframe()) {
             /*
@@ -215,6 +222,7 @@ export abstract class ClientApplication {
                 await BrowserUtils.navigateWindow(homepage, this.config.system.redirectNavigationTimeout, this.logger, true);
             } else {
                 // Navigate to page that initiated the redirect request
+                this.logger.verbose("Navigating to loginRequestUrl");
                 await BrowserUtils.navigateWindow(loginRequestUrl, this.config.system.redirectNavigationTimeout, this.logger, true);
             }
         }
@@ -228,6 +236,7 @@ export abstract class ClientApplication {
      * @returns {string}
      */
     private getRedirectResponseHash(hash: string): string | null {
+        this.logger.verbose("getRedirectResponseHash called");
         // Get current location hash from window or cache.
         const isResponseHash: boolean = UrlString.hashContainsKnownProperties(hash);
         const cachedHash = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.URL_HASH, true);
@@ -242,6 +251,7 @@ export abstract class ClientApplication {
      * @param interactionType 
      */
     private validateAndExtractStateFromHash(hash: string, interactionType: InteractionType): string {
+        this.logger.verbose("validateAndExtractStateFromHash called");
         // Deserialize hash fragment response parameters.
         const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(hash);
         if (!serverParams.state) {
@@ -266,6 +276,7 @@ export abstract class ClientApplication {
      * @param interactionHandler
      */
     private async handleHash(hash: string, state: string): Promise<AuthenticationResult> {
+        this.logger.verbose("handleHash called");
         const cachedRequest = this.browserStorage.getCachedRequest(state, this.browserCrypto);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.handleRedirectPromise, cachedRequest.correlationId);
 
@@ -298,6 +309,7 @@ export abstract class ClientApplication {
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         // Preflight request
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
+        this.logger.verbose("acquireTokenRedirect called");
 
         // If logged in, emit acquire token events
         const isLoggedIn = this.getAllAccounts().length > 0;
@@ -359,6 +371,7 @@ export abstract class ClientApplication {
         let validRequest: AuthorizationUrlRequest;
         try {
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
+            this.logger.verbose("acquireTokenPopup called");
             validRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
         } catch (e) {
             // Since this function is syncronous we need to reject
@@ -369,9 +382,11 @@ export abstract class ClientApplication {
 
         // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
         if (this.config.system.asyncPopups) {
+            this.logger.verbose("asyncPopups set to true, acquiring token");
             return this.acquireTokenPopupAsync(validRequest, popupName);
         } else {
             // asyncPopups flag is set to false. Opens popup before acquiring token.
+            this.logger.verbose("asyncPopup set to false, opening popup before acquiring token");
             const popup = PopupHandler.openSizedPopup("about:blank", popupName);
             return this.acquireTokenPopupAsync(validRequest, popupName, popup);
         }
@@ -384,6 +399,7 @@ export abstract class ClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     private async acquireTokenPopupAsync(validRequest: AuthorizationUrlRequest, popupName: string, popup?: Window|null): Promise<AuthenticationResult> {
+        this.logger.verbose("acquireTokenPopupAsync called");
         // If logged in, emit acquire token events
         const loggedInAccounts = this.getAllAccounts();
         if (loggedInAccounts.length > 0) {
@@ -467,6 +483,7 @@ export abstract class ClientApplication {
      */
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
+        this.logger.verbose("ssoSilent called");
         this.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
         try {
@@ -485,6 +502,7 @@ export abstract class ClientApplication {
      * @param request
      */
     private async acquireTokenByIframe(request: SsoSilentRequest): Promise<AuthenticationResult> {
+        this.logger.verbose("acquireTokenByIframe called");
         // Check that we have some SSO data
         if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
             throw BrowserAuthError.createSilentSSOInsufficientInfoError();
@@ -534,6 +552,7 @@ export abstract class ClientApplication {
      *
      */
     protected async acquireTokenByRefreshToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
+        this.logger.verbose("acquireTokenByRefreshToken called");
         this.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, request);
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
@@ -565,6 +584,7 @@ export abstract class ClientApplication {
      * @param userRequestScopes
      */
     private async silentTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, authClient: AuthorizationCodeClient): Promise<AuthenticationResult> {
+        this.logger.verbose("silentTokenHelper called");
         // Create silent handler
         const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.config.system.navigateFrameWait);
         // Get the frame handle for the silent request
@@ -588,6 +608,7 @@ export abstract class ClientApplication {
      */
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
+        this.logger.verbose("logout called");
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.logout, validLogoutRequest.correlationId);
 
@@ -599,6 +620,7 @@ export abstract class ClientApplication {
             this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
 
             if (!validLogoutRequest.account || AccountEntity.accountInfoIsEqual(validLogoutRequest.account, this.getActiveAccount())) {
+                this.logger.verbose("Active account set to null");
                 this.setActiveAccount(null);
             }
 
@@ -633,6 +655,7 @@ export abstract class ClientApplication {
      * @returns {@link AccountInfo[]} - Array of account objects in cache
      */
     getAllAccounts(): AccountInfo[] {
+        this.logger.verbose("getAllAccounts called");
         return this.isBrowserEnvironment ? this.browserStorage.getAllAccounts() : [];
     }
 
@@ -644,10 +667,13 @@ export abstract class ClientApplication {
      * @returns {@link AccountInfo} - the account object stored in MSAL
      */
     getAccountByUsername(userName: string): AccountInfo|null {
+        this.logger.verbose("getAccountByUsername called");
         const allAccounts = this.getAllAccounts();
         if (!StringUtils.isEmpty(userName) && allAccounts && allAccounts.length) {
+            this.logger.verbose(`Returning signed-in accounts matching username: ${userName}`);
             return allAccounts.filter(accountObj => accountObj.username.toLowerCase() === userName.toLowerCase())[0] || null;
         } else {
+            this.logger.verbose("No matching account found, returning null");
             return null;
         }
     }
@@ -659,10 +685,13 @@ export abstract class ClientApplication {
      * @returns {@link AccountInfo} - the account object stored in MSAL
      */
     getAccountByHomeId(homeAccountId: string): AccountInfo|null {
+        this.logger.verbose("getAccountByHomeId called");
         const allAccounts = this.getAllAccounts();
         if (!StringUtils.isEmpty(homeAccountId) && allAccounts && allAccounts.length) {
+            this.logger.verbose(`Returning signed-in accounts matching homeAccountId: ${homeAccountId}`);
             return allAccounts.filter(accountObj => accountObj.homeAccountId === homeAccountId)[0] || null;
         } else {
+            this.logger.verbose("No matching account found, returning null");
             return null;
         }
     }
@@ -674,10 +703,13 @@ export abstract class ClientApplication {
      * @returns {@link AccountInfo} - the account object stored in MSAL
      */
     getAccountByLocalId(localAccountId: string): AccountInfo | null {
+        this.logger.verbose("getAccountByLocalId called");
         const allAccounts = this.getAllAccounts();
         if (!StringUtils.isEmpty(localAccountId) && allAccounts && allAccounts.length) {
+            this.logger.verbose(`Returning signed-in accounts matching localAccountId: ${localAccountId}`);
             return allAccounts.filter(accountObj => accountObj.localAccountId === localAccountId)[0] || null;
         } else {
+            this.logger.verbose("No matching account found, returning null");
             return null;
         }
     }
@@ -687,7 +719,13 @@ export abstract class ClientApplication {
      * @param account 
      */
     setActiveAccount(account: AccountInfo | null): void {
-        this.activeLocalAccountId = account ? account.localAccountId : null;
+        if (account) {
+            this.logger.verbose("activeLocalAccountId set");
+            this.activeLocalAccountId = account.localAccountId;
+        } else {
+            this.logger.verbose("No account passed, no activeLocalAccountId set");
+            this.activeLocalAccountId = null;
+        }
     }
 
     /**
@@ -695,6 +733,7 @@ export abstract class ClientApplication {
      */
     getActiveAccount(): AccountInfo | null {
         if (!this.activeLocalAccountId) {
+            this.logger.verbose("No active account");
             return null;
         }
 
@@ -712,6 +751,7 @@ export abstract class ClientApplication {
      *
      */
     protected getRedirectUri(requestRedirectUri?: string): string {
+        this.logger.verbose("getRedirectUri called");
         const redirectUri = requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
         return UrlString.getAbsoluteUrl(redirectUri, BrowserUtils.getCurrentUri());
     }
@@ -722,6 +762,7 @@ export abstract class ClientApplication {
      * @returns {string} post logout redirect URL
      */
     protected getPostLogoutRedirectUri(requestPostLogoutRedirectUri?: string): string {
+        this.logger.verbose("getPostLogoutRedirectUri called");
         const postLogoutRedirectUri = requestPostLogoutRedirectUri || this.config.auth.postLogoutRedirectUri || BrowserUtils.getCurrentUri();
         return UrlString.getAbsoluteUrl(postLogoutRedirectUri, BrowserUtils.getCurrentUri());
     }
@@ -731,6 +772,7 @@ export abstract class ClientApplication {
      * @param requestStartPage 
      */
     protected getRedirectStartPage(requestStartPage?: string): string {
+        this.logger.verbose("getRedirectStartPage called");
         const redirectStartPage = requestStartPage || window.location.href;
         return UrlString.getAbsoluteUrl(redirectStartPage, BrowserUtils.getCurrentUri());
     }
