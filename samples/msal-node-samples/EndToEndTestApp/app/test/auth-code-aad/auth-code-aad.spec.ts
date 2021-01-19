@@ -143,7 +143,7 @@ describe('Auth Code AAD PPE Tests', () => {
         });
 
         // NOTE: This test runs successfully only when we are running in headless mode
-        it("Performs acquire token with domain hint", async () => {
+        it.skip("Performs acquire token with domain hint", async () => {
             const DOMAIN = "microsoft.com";
             const MS_LOGIN_URL = "msft.sts.microsoft.com";
             await page.goto(`${HOME_ROUTE}/?domainHint=${DOMAIN}`);
