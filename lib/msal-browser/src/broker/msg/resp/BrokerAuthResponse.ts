@@ -17,7 +17,7 @@ import { ErrorPayload } from "../ErrorPayload";
  */
 export class BrokerAuthResponse extends BrokerMessage {
     public interactionType: InteractionType;
-    public result: BrokerAuthenticationResult;
+    public result: BrokerAuthenticationResult | null;
     public errorPayload?: ErrorPayload;
 
     constructor(interactionType: InteractionType, authResult: BrokerAuthenticationResult | null, authError?: AuthError) {

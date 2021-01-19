@@ -32,25 +32,22 @@ const msalConfig = {
         }
     },
     experimental: {
-        enable: false,
+        enable: true,
         brokerOptions: {
             allowBrokering: true,
-            trustedBrokerDomains: ["http://localhost:30663"],
-            brokeredRedirectUri: "http://localhost:30662"
+            trustedBrokerDomains: ["http://localhost:30663"]
         }
     }
 };
 
 let username;
 const myMSALObj = new msal.PublicClientApplication(msalConfig);
-// myMSALObj.initializeBrokering().then(() => {
-//         // Must ensure that initialize has completed before calling any other MSAL functions
-    
-// });
-
-myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
-    console.error(err);
-});  
+myMSALObj.experimental.initializeBrokering().then(() => {
+    // Must ensure that initialize has completed before calling any other MSAL functions
+    myMSALObj.experimental.handleRedirectPromise().then(handleResponse).catch(err => {
+        console.error(err);
+    });   
+});
 
 const contentElement = document.getElementsByClassName("myContent")[0];
 
@@ -59,11 +56,11 @@ document.getElementById("brokerLoginBtn").addEventListener("click", () => {
         scopes: ["openid", "profile", "User.Read"],
         loginHint: "idlab@msidlab4.onmicrosoft.com" 
     };
-    
-    myMSALObj.ssoSilent(loginReq).then(handleResponse).catch(err => {
+
+    myMSALObj.experimental.ssoSilent(loginReq).then(handleResponse).catch(err => {
         console.error(err);
         if (err instanceof msal.InteractionRequiredAuthError) {
-            return myMSALObj.loginPopup(loginReq).then(handleResponse);
+            return myMSALObj.experimental.loginPopup(loginReq).then(handleResponse);
         }
         contentElement.innerHTML = "I am unable to get data, from where I sit, the Identity provider does not think I am logged in";
     }).catch(err => {
@@ -96,7 +93,7 @@ function getGraphUserData() {
             scopes: ["openid", "profile", "User.Read"],
             account: accounts[0]
         };
-        myMSALObj.acquireTokenSilent(request).then(res => {
+        myMSALObj.experimental.acquireTokenSilent(request).then(res => {
             setTimeout(() => {
                 const contentElement = document.getElementsByClassName("myContent")[0];
                 contentElement.innerHTML = "Great I was able to get an access token for this data, and now I going to go get it!";

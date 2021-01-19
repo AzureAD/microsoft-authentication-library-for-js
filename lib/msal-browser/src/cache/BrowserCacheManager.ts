@@ -420,7 +420,7 @@ export class BrowserCacheManager extends CacheManager {
         const key = this.generateCacheKey(cacheKey);
 
         const value = this.internalStorage.getItem(key);
-        if (value) {
+        if (!value) {
             return null;
         }
         return value;

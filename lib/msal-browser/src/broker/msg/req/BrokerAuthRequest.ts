@@ -31,7 +31,7 @@ export class BrokerAuthRequest extends BrokerMessage {
         this.request = request;
     }
 
-    static validate(message: MessageEvent): BrokerAuthRequest| null {
+    static validate(message: MessageEvent): BrokerAuthRequest | null {
         // First, validate message type
         if (message.data && 
             message.data.messageType === BrokerMessageType.AUTH_REQUEST &&
