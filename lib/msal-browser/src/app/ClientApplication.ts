@@ -51,8 +51,8 @@ export abstract class ClientApplication {
     private activeLocalAccountId: string | null;
 
     // Set the SKU and Version for wrapper library if applicable
-    private wrapperSKU: string;
-    private wrapperVer: string;
+    private wrapperSKU: string | undefined;
+    private wrapperVer: string | undefined;
 
     // Callback for subscribing to events
     private eventCallbacks: Map<string, EventCallbackFunction>;
