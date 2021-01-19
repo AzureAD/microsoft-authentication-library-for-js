@@ -76,13 +76,13 @@ describe("Silent Flow ADFS 2019 Tests", () => {
             afterEach(async () => {
                 await page.close();
                 await context.close();
-                NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+                await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
             });
     
             it("Performs acquire token with Auth Code flow", async () => {
                 await page.waitForSelector("#acquireTokenSilent");
                 await page.click("#acquireTokenSilent");
-                const cachedTokens = NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+                const cachedTokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
                 expect(cachedTokens.accessTokens.length).toBe(1);
                 expect(cachedTokens.idTokens.length).toBe(1);
                 expect(cachedTokens.refreshTokens.length).toBe(1);
@@ -97,12 +97,12 @@ describe("Silent Flow ADFS 2019 Tests", () => {
     
             it("Refreshes an expired access token", async () => {
                 await page.waitForSelector("#acquireTokenSilent");
-                const originalAccessToken = NodeCacheTestUtils.getAccessTokens(TEST_CACHE_LOCATION)[0].token;
-                NodeCacheTestUtils.expireAccessTokens(TEST_CACHE_LOCATION);
-                const expiredAccessToken = NodeCacheTestUtils.getAccessTokens(TEST_CACHE_LOCATION)[0].token;
+                const originalAccessToken = (await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION)).accessTokens[0].token;
+                await NodeCacheTestUtils.expireAccessTokens(TEST_CACHE_LOCATION);
+                const expiredAccessToken = (await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION)).accessTokens[0].token;
                 await page.click("#acquireTokenSilent");
                 await page.waitForSelector(`#${SUCCESSFUL_GRAPH_CALL_ID}`);
-                const refreshedAccessToken = NodeCacheTestUtils.getAccessTokens(TEST_CACHE_LOCATION)[0].token;
+                const refreshedAccessToken = (await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION)).accessTokens[0].token;
                 await screenshot.takeScreenshot(page, "acquireTokenSilentGotTokens");
                 const htmlBody = await page.evaluate(() => document.body.innerHTML);
                 expect(htmlBody).toContain(SUCCESSFUL_GRAPH_CALL_ID);
@@ -137,7 +137,7 @@ describe("Silent Flow ADFS 2019 Tests", () => {
             afterEach(async () => {
                 await page.close();
                 await context.close();
-                NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+                await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
             });
 
             it("Returns empty account array", async () => {

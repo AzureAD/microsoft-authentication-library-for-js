@@ -67,7 +67,7 @@ describe("Silent Flow AAD PPE Tests", () => {
 
     afterEach(async (done) => {
         await page.close();
-        NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+        await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         done();
     });
 
@@ -98,12 +98,12 @@ describe("Silent Flow AAD PPE Tests", () => {
         await clickSignIn(page, screenshot);
         await enterCredentials(page, screenshot, username, accountPwd);
         await page.waitForSelector("#acquireTokenSilent");
-        const originalAccessToken = NodeCacheTestUtils.getAccessTokens(TEST_CACHE_LOCATION)[0].token;
-        NodeCacheTestUtils.expireAccessTokens(TEST_CACHE_LOCATION);
-        const expiredAccessToken = NodeCacheTestUtils.getAccessTokens(TEST_CACHE_LOCATION)[0].token;
+        const originalAccessToken = (await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION)).accessTokens[0].token;
+        await NodeCacheTestUtils.expireAccessTokens(TEST_CACHE_LOCATION);
+        const expiredAccessToken = (await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION)).accessTokens[0].token;
         await page.click("#acquireTokenSilent");
         await page.waitForSelector(`#${SUCCESSFUL_GRAPH_CALL_ID}`);
-        const refreshedAccessToken = NodeCacheTestUtils.getAccessTokens(TEST_CACHE_LOCATION)[0].token;
+        const refreshedAccessToken = (await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION)).accessTokens[0].token;
         await screenshot.takeScreenshot(page, "acquireTokenSilentGotTokens");
         const htmlBody = await page.evaluate(() => document.body.innerHTML);
         expect(htmlBody).toContain(SUCCESSFUL_GRAPH_CALL_ID);

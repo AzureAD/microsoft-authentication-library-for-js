@@ -56,10 +56,10 @@ describe('Auth Code ADFS PPE Tests', () => {
         let screenshot: Screenshot;
         let environment = 'adfs';
 
-        beforeAll(() => {
+        beforeAll(async () => {
             testName = "authCodeAcquireToken";
             screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}/${environment}`);
-            NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+            await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
 
         beforeEach(async () => {
@@ -71,7 +71,7 @@ describe('Auth Code ADFS PPE Tests', () => {
         afterEach(async () => {
             await page.close();
             await context.close();
-            NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+            await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
 
         it("Performs acquire token", async () => {
@@ -79,7 +79,7 @@ describe('Auth Code ADFS PPE Tests', () => {
             await enterCredentialsADFS(page, screenshot, username, accountPwd);
             const htmlBody = await page.evaluate(() => document.body.innerHTML);
             expect(htmlBody).toContain(SUCCESSFUL_SIGNED_IN_MESSAGE);
-            const cachedTokens = NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+            const cachedTokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
@@ -90,7 +90,7 @@ describe('Auth Code ADFS PPE Tests', () => {
             await enterCredentialsADFS(page, screenshot, username, accountPwd);
             const htmlBody = await page.evaluate(() => document.body.innerHTML);
             expect(htmlBody).toContain(SUCCESSFUL_SIGNED_IN_MESSAGE);
-            const cachedTokens = NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+            const cachedTokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
@@ -101,7 +101,7 @@ describe('Auth Code ADFS PPE Tests', () => {
             await enterCredentialsADFSWithConsent(page, screenshot, username, accountPwd);
             const htmlBody = await page.evaluate(() => document.body.innerHTML);
             expect(htmlBody).toContain(SUCCESSFUL_SIGNED_IN_MESSAGE);
-            const cachedTokens = NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+            const cachedTokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
@@ -115,14 +115,14 @@ describe('Auth Code ADFS PPE Tests', () => {
             expect(htmlBody).toContain(SUCCESSFUL_SIGNED_IN_MESSAGE);
 
             // Reset the cache
-            NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+            await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
 
 
             await page.goto(`${HOME_ROUTE}/?prompt=none`);
             await new Promise(resolve => { setTimeout(() => { resolve(true) }, 4000)})
             htmlBody = await page.evaluate(() => document.body.innerHTML);
             expect(htmlBody).toContain(SUCCESSFUL_SIGNED_IN_MESSAGE);
-            const cachedTokens = NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+            const cachedTokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
@@ -137,7 +137,7 @@ describe('Auth Code ADFS PPE Tests', () => {
             expect(url.includes(`state=${STATE_VALUE}`)).toBe(true);
             const htmlBody = await page.evaluate(() => document.body.innerHTML);
             expect(htmlBody).toContain(SUCCESSFUL_SIGNED_IN_MESSAGE);
-            const cachedTokens = NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+            const cachedTokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);

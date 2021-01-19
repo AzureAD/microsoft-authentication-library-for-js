@@ -9,10 +9,8 @@ export type tokenMap = {
 };
 
 export class NodeCacheTestUtils {
-    static getTokens(cacheLocation: string): tokenMap {
-        const cache = (fs.existsSync(cacheLocation)) ?  fs.readFileSync(cacheLocation, { encoding: 'utf-8' }) : "{}";
-        const deserializedCache = Deserializer.deserializeAllCache(JSON.parse(cache));
-
+    static async getTokens(cacheLocation: string): Promise<tokenMap> {
+        const deserializedCache = await NodeCacheTestUtils.readCacheFile(cacheLocation);
         const tokenCache: tokenMap = {
             idTokens: [],
             accessTokens: [],
@@ -29,22 +27,56 @@ export class NodeCacheTestUtils {
             })
         });
 
-        return tokenCache;
+        return Promise.resolve(tokenCache);
     }
 
-    static getAccessTokens(cacheLocation: string): Array<any> {
-        const allTokens = NodeCacheTestUtils.getTokens(cacheLocation);
-        return allTokens.accessTokens;
+    static async readCacheFile(cacheLocation: string): Promise<InMemoryCache> {
+        return new Promise((resolve, reject) => {
+            fs.readFile(cacheLocation, "utf-8", (err, data) => {
+                if (err) {
+                    console.log("Error getting tokens from cache: ", err);
+                    reject(err);
+                }
+                const cache = (data) ? data : this.getCacheTemplate();
+                const deserializedCache = Deserializer.deserializeAllCache(JSON.parse(cache));
+                resolve(deserializedCache);
+            });
+        });
     }
 
-    static getDeserializedCache(cacheLocation: string): InMemoryCache {
-        const cache = (fs.existsSync(cacheLocation)) ?  fs.readFileSync(cacheLocation, { encoding: 'utf-8' }) : "{}";
-        const deserializedCache = Deserializer.deserializeAllCache(JSON.parse(cache));
-        return deserializedCache;
+    static async waitForTokens(cacheLocation: string, interval: number): Promise<tokenMap> {
+        let tokenCache = await this.getTokens(cacheLocation);
+
+        if (tokenCache.idTokens.length) {
+            return tokenCache;
+        }
+
+        return new Promise(resolve => {
+            const intervalId = setInterval(async () => {
+                tokenCache = await this.getTokens(cacheLocation);
+
+                if (tokenCache.idTokens.length) {
+                    clearInterval(intervalId);
+                    resolve(tokenCache);
+                } 
+            }, interval);
+        })
     }
 
-    static expireAccessTokens(cacheLocation: string): void {
-        const deserializedCache = NodeCacheTestUtils.getDeserializedCache(cacheLocation);
+    static async writeToCacheFile(cacheLocation: string, deserializedCache: InMemoryCache): Promise<void> {
+        return new Promise((resolve, reject) => {
+            fs.writeFile(cacheLocation, JSON.stringify(deserializedCache, null, 1), (error) => {
+                if (error) {
+                    console.error("Error writing to cache file in resetCache: ", error);
+                    reject(error);
+                }
+                resolve();
+            });
+        });
+    }
+
+    static async expireAccessTokens(cacheLocation: string): Promise<void> {
+        const deserializedCache = await NodeCacheTestUtils.readCacheFile(cacheLocation);
         const atKeys = Object.keys(deserializedCache.accessTokens);
 
         atKeys.forEach((atKey: string) => {
@@ -53,33 +85,34 @@ export class NodeCacheTestUtils {
         });
 
         const serializedCache = Serializer.serializeAllCache(deserializedCache);
-        try {
-            fs.writeFileSync(cacheLocation, JSON.stringify(serializedCache, null, 1));
-        } catch (error) {
-            console.error("Error writing to cache file in resetCache: ", error);
-        }
+
+        return new Promise((resolve, reject) => {
+            fs.writeFile(cacheLocation, JSON.stringify(serializedCache, null, 1), (error) => {
+                if(error) {
+                    reject(error);
+                }
+
+                resolve();
+            })
+        });
     }
 
-    static resetCache(cacheLocation: string): void {
-        const jsonCache = (fs.existsSync(cacheLocation)) ? require(cacheLocation) : this.getCacheTemplate();
-        const cache: InMemoryCache = Deserializer.deserializeAllCache(jsonCache);
-        Object.keys(cache).forEach( key => cache[key] = []);
-        const serializedCache = Serializer.serializeAllCache(cache);
-
-        try {
-            fs.writeFileSync(cacheLocation, JSON.stringify(serializedCache, null, 1));
-        } catch (error) {
-            console.error("Error writing to cache file in resetCache: ", error);
-        }
+    static async resetCache(cacheLocation: string) {
+        const emptyCache = this.getCacheSchema();
+        await NodeCacheTestUtils.writeToCacheFile(cacheLocation, emptyCache);
     }
 
-    private static getCacheTemplate(): any {
-        return JSON.stringify({
+    private static getCacheSchema(): any {
+        return {
             Account: {},
             IdToken: {},
             AccessToken: {},
             RefreshToken: {},
             AppMetadata: {}
-        });
+        };
+    }
+
+    private static getCacheTemplate(): string {
+        return JSON.stringify(this.getCacheSchema());
     }
 }
