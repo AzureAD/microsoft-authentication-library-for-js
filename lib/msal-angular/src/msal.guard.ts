@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, CanActivateChild, CanLoad } from "@angular/router";
+import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, CanActivateChild, CanLoad, UrlTree, Router } from "@angular/router";
 import { MsalService } from "./msal.service";
 import { Injectable, Inject } from "@angular/core";
 import { Location } from "@angular/common";
-import { InteractionType, BrowserConfigurationAuthError, BrowserUtils, UrlString, PopupRequest, RedirectRequest } from "@azure/msal-browser";
+import { InteractionType, BrowserConfigurationAuthError, BrowserUtils, UrlString, PopupRequest, RedirectRequest, AuthenticationResult } from "@azure/msal-browser";
 import { MsalGuardConfiguration } from "./msal.guard.config";
 import { MSAL_GUARD_CONFIG } from "./constants";
 import { concatMap, catchError, map } from "rxjs/operators";
@@ -15,11 +15,22 @@ import { Observable, of } from "rxjs";
 
 @Injectable()
 export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
+    private loginFailedRoute?: UrlTree;
+
     constructor(
         @Inject(MSAL_GUARD_CONFIG) private msalGuardConfig: MsalGuardConfiguration,
         private authService: MsalService,
         private location: Location,
+        private router: Router
     ) { }
+
+    /**
+     * Parses url string to UrlTree
+     * @param url 
+     */
+    parseUrl(url: string): UrlTree {
+        return this.router.parseUrl(url);
+    }
 
     /**
      * Builds the absolute url for the destination page
@@ -53,11 +64,11 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
             this.authService.getLogger().verbose("Guard - logging in by popup");
             return this.authService.loginPopup({ ...this.msalGuardConfig.authRequest } as PopupRequest)
                 .pipe(
-                    map(() => {
-                        this.authService.getLogger().verbose("Guard - login by popup successful, can activate");
+                    map((response: AuthenticationResult) => {
+                        this.authService.getLogger().verbose("Guard - login by popup successful, can activate, setting active account");
+                        this.authService.instance.setActiveAccount(response.account);
                         return true;
-                    }),
-                    catchError(() => of(false))
+                    })
                 );
         }
 
@@ -70,7 +81,7 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
         return of(false);
     }
 
-    private activateHelper(state?: RouterStateSnapshot): Observable<boolean> {
+    private activateHelper(state?: RouterStateSnapshot): Observable<boolean|UrlTree> {
         if (this.msalGuardConfig.interactionType !== InteractionType.Popup && this.msalGuardConfig.interactionType !== InteractionType.Redirect) {
             throw new BrowserConfigurationAuthError("invalid_interaction_type", "Invalid interaction type provided to MSAL Guard. InteractionType.Popup or InteractionType.Redirect must be provided in the MsalGuardConfiguration");
         }
@@ -84,6 +95,13 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
         if (UrlString.hashContainsKnownProperties(window.location.hash) && BrowserUtils.isInIframe()) {
             this.authService.getLogger().warning("Guard - redirectUri set to page with MSAL Guard. It is recommended to not set redirectUri to a page that requires authentication.");
             return of(false);
+        }
+
+        /**
+         * If a loginFailedRoute is set in the config, set this as the loginFailedRoute
+         */
+        if (this.msalGuardConfig.loginFailedRoute) {
+            this.loginFailedRoute = this.parseUrl(this.msalGuardConfig.loginFailedRoute);
         }
 
         return this.authService.handleRedirectObservable()
@@ -102,22 +120,26 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
                 }),
                 catchError(() => {
                     this.authService.getLogger().verbose("Guard - error while logging in, unable to activate");
+                    if (this.loginFailedRoute) {
+                        this.authService.getLogger().verbose("Guard - loginFailedRoute set, redirecting");
+                        return of(this.loginFailedRoute);
+                    }
                     return of(false);
                 })
             );
     }
 
-    canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
+    canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean|UrlTree> {
         this.authService.getLogger().verbose("Guard - canActivate");
         return this.activateHelper(state);
     }
 
-    canActivateChild(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
+    canActivateChild(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean|UrlTree> {
         this.authService.getLogger().verbose("Guard - canActivateChild");
         return this.activateHelper(state);
     }
 
-    canLoad(): Observable<boolean> {
+    canLoad(): Observable<boolean|UrlTree> {
         this.authService.getLogger().verbose("Guard - canLoad");
         return this.activateHelper();
     }
