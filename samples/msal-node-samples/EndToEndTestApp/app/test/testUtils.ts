@@ -17,12 +17,30 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
     await page.waitForSelector("#i0116");
     await screenshot.takeScreenshot(page, "loginPage");
     await page.type("#i0116", username);
+    await screenshot.takeScreenshot(page, "loginPageUsernameFilled")
     await page.click("#idSIButton9");
     await page.waitForSelector("#idA_PWD_ForgotPassword");
     await page.waitForSelector("#idSIButton9");
     await screenshot.takeScreenshot(page, "pwdInputPage");
     await page.type("#i0118", accountPwd);
+    await screenshot.takeScreenshot(page, "loginPagePasswordFilled")
     await page.click("#idSIButton9");
+}
+
+export async function enterCredentialsWithConsent(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
+    await this.enterCredentials(page, screenshot, username, accountPwd);
+    await this.approveConsent(page, screenshot);
+}
+
+export async function enterCredentialsADFSWithConsent(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
+    await this.enterCredentialsADFS(page, screenshot, username, accountPwd);
+    await this.approveConsent(page, screenshot);
+}
+
+export async function approveConsent(page: Page, screenshot: Screenshot): Promise<void> {
+    await page.waitForSelector("#idSIButton9");
+    await page.click("#idSIButton9");
+    await takeScreenshotAfter(6000, screenshot, page, 'consentApproved'); 
 }
 
 export async function clickSignIn(page: Page, screenshot: Screenshot): Promise<void> {

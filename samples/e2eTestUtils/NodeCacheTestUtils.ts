@@ -1,6 +1,6 @@
-import { Deserializer, Serializer, TokenCache } from "../../lib/msal-node";
-import { InMemoryCache } from '../../lib/msal-node/dist/cache/serializer/SerializerTypes';
 import fs from "fs";
+import { Deserializer, Serializer } from "../../lib/msal-node";
+import { InMemoryCache } from '../../lib/msal-node/dist/cache/serializer/SerializerTypes';
 
 export type tokenMap = {
     idTokens: string[],

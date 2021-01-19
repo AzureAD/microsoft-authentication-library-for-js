@@ -2,7 +2,7 @@ import "jest";
 import puppeteer from "puppeteer";
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import { Screenshot, createFolder, setupCredentials } from "../../../../../e2eTestUtils/TestUtils";
-import { NodeCacheTestUtils, tokenMap } from "../../../../../e2eTestUtils/NodeCacheTestUtils";
+import { NodeCacheTestUtils } from "../../../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AppTypes, AzureEnvironments } from "../../../../../e2eTestUtils/Constants";
@@ -12,10 +12,8 @@ import {
     SCREENSHOT_BASE_FOLDER_NAME,
     extractDeviceCodeParameters,
     validateCacheLocation,
-    sleep,
     checkTimeoutError
  } from "../testUtils";
-import { time } from "console";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
 
@@ -73,7 +71,7 @@ describe('Device Code AAD PPE Tests', () => {
             device.kill();
             await page.close();
             await context.close();
-            NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+            await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
 
         it("Performs acquire token with Device Code flow", async () => {
@@ -117,7 +115,7 @@ describe('Device Code AAD PPE Tests', () => {
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
 
-        it("Cancels polling when a user timeout is provided", async () => {
+        it.skip("Cancels polling when a user timeout is provided", async () => {
             testName = "AADDeviceCodeTimeout";
             screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
             const TIMEOUT_DURATION = 5000;

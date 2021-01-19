@@ -77,7 +77,6 @@ describe("Silent Flow AAD PPE Tests", () => {
             expect(cachedTokens.refreshTokens.length).toBe(1);
         });
 
-
         it("Performs acquire token silent", async () => {
             const testName = "AADAcquireTokenSilent";
             const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
