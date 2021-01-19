@@ -192,7 +192,7 @@ We recommend that your app calls the `acquireTokenSilent` API on your `PublicCli
 
 ```javascript
 import React, { useState, useEffect } from "react"
-import { useMsal } from "@azure/msal-react";
+import { useMsal, useAccount } from "@azure/msal-react";
 
 export function App() {
     const { instance, accounts, inProgress } = useMsal();
