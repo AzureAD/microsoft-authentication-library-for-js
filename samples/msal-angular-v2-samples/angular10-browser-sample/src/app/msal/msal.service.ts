@@ -38,12 +38,6 @@ export class MsalService implements IMsalService {
     acquireTokenSilent(silentRequest: SilentRequest): Observable<AuthenticationResult> {
         return from(this.instance.acquireTokenSilent(silentRequest));
     }
-    getAccountByUsername(userName: string): AccountInfo {
-        return this.instance.getAccountByUsername(userName);
-    }
-    getAllAccounts(): AccountInfo[] {
-        return this.instance.getAllAccounts();
-    }
     handleRedirectObservable(): Observable<AuthenticationResult> {
         return from(this.instance.handleRedirectPromise(this.redirectHash));
     }

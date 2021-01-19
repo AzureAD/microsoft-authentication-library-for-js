@@ -5,6 +5,7 @@
 
 import { Screenshot } from "../../../../e2eTestUtils/TestUtils";
 import { Page } from "puppeteer";
+import fs from "fs";
 
 // Constants
 export const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
@@ -19,11 +20,11 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
     await screenshot.takeScreenshot(page, "loginPageUsernameFilled")
     await page.click("#idSIButton9");
     await page.waitForSelector("#idA_PWD_ForgotPassword");
+    await page.waitForSelector("#idSIButton9");
     await screenshot.takeScreenshot(page, "pwdInputPage");
     await page.type("#i0118", accountPwd);
     await screenshot.takeScreenshot(page, "loginPagePasswordFilled")
     await page.click("#idSIButton9");
-    await takeScreenshotAfter(6000, screenshot, page, `pwdSubmitted`);
 }
 
 export async function enterCredentialsWithConsent(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
@@ -87,4 +88,32 @@ export function extractDeviceCodeParameters(output: string): { deviceCode: strin
 
 export function takeScreenshotAfter(duration: number, screenshot: Screenshot, page: Page, label: string): Promise<void> {
     return new Promise(resolve => setTimeout(() => screenshot.takeScreenshot(page, label).then(() => resolve()), duration));
+}
+
+export async function validateCacheLocation(cacheLocation: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+        fs.readFile(cacheLocation, "utf-8", (err, data) => {
+            if (err || data === "") {
+                fs.writeFile(cacheLocation, "{}", (error) => {
+                    if (error) {
+                        console.log("Error writing to cache file: ", error);
+                        reject();
+                    } else {
+                        resolve();
+                    }
+                });
+            } else {
+                resolve();
+            }
+        });
+    });
+}
+
+export async function sleep(delay: number) {
+    return new Promise((resolve) => setTimeout(resolve, delay));
+}
+
+export function checkTimeoutError(output: string): boolean {
+    const timeoutErrorRegex = /user_timeout_reached/;
+    return timeoutErrorRegex.test(output);
 }

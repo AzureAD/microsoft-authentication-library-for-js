@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { AuthError } from "../error/AuthError";
 import { SignedHttpRequest } from "./SignedHttpRequest";
 
 /**
@@ -49,3 +50,30 @@ export interface ICrypto {
      */
     signJwt(payload: SignedHttpRequest, kid: string): Promise<string>;
 }
+
+export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
+    createNewGuid: (): string => {
+        const notImplErr = "Crypto interface - createNewGuid() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    base64Decode: (): string => {
+        const notImplErr = "Crypto interface - base64Decode() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    base64Encode: (): string => {
+        const notImplErr = "Crypto interface - base64Encode() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async generatePkceCodes(): Promise<PkceCodes> {
+        const notImplErr = "Crypto interface - generatePkceCodes() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async getPublicKeyThumbprint(): Promise<string> {
+        const notImplErr = "Crypto interface - getPublicKeyThumbprint() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async signJwt(): Promise<string> {
+        const notImplErr = "Crypto interface - signJwt() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+};

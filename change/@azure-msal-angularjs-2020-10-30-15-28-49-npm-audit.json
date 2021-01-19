@@ -1,8 +1,0 @@
-{
-  "type": "none",
-  "comment": "Fix npm audit warnings",
-  "packageName": "@azure/msal-angularjs",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2020-10-30T22:28:39.239Z"
-}

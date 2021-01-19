@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Merge angular-v2 to dev (#2709)",
-  "packageName": "@azure/msal-common",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "none"
-}

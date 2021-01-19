@@ -13,14 +13,17 @@ const argv = require('yargs')
     .alias('p', 'port')
     .alias('s', 'scenario')
     .alias('c', 'cache')
+    .alias('ro', 'runtime-options')
     .describe('scenario', '(Optional) Name of scenario to run - default is silent-flow-aad')
     .describe('port', '(Optional) Port Number - default is 3000')
     .describe('cache', `(Optional) Cache location - default is ${DEFAULT_CACHE_LOCATION}`)
+    .describe('runtime-options', '(Optional) Runtime options to inject into the application - default is null')
     .strict()
     .argv;
 
+
 // Main Script
-async function runSample(scenario, port, cacheLocation) {
+async function runSample(scenario, port, cacheLocation, runtimeOptions) {
     // Sample selection
     const scenarios = SampleUtils.readScenarios();
     scenario = SampleUtils.validateScenario(scenarios, scenario);
@@ -46,7 +49,7 @@ async function runSample(scenario, port, cacheLocation) {
             return initializeWebApp(scenarioConfig, port, clientApplication, routesPath);
         case Constants.CLI_APP_TYPE:
             // CLI app types only need to be required to execute
-            require(routesPath)(scenarioConfig, clientApplication);
+            require(routesPath)(scenarioConfig, clientApplication, SampleUtils.extractRuntimeOptions(runtimeOptions));
             break;
         default:
             console.log("Unsupported appType: ", sampleConfig.appType, clientApplication);
@@ -57,7 +60,7 @@ async function runSample(scenario, port, cacheLocation) {
 // If the app is executed manually, the $0 argument in argv will correspond to this index.js file
 if(argv.$0 === "index.js") {
     console.log("End to End Test App is being executed manually.");
-    runSample(argv.s, argv.p, argv.c);
+    runSample(argv.s, argv.p, argv.c, argv.ro);
 } else {
     // Whenever argv.$0 is not index.js, it means it was required and executed in an external script
     console.log("End to End Test App is being executed from an external script.");

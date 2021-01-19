@@ -24,7 +24,6 @@ let accountPwd: string;
 const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
 
 describe("Silent Flow ADFS 2019 Tests", () => {
-    jest.setTimeout(60000);
     let browser: puppeteer.Browser;
 
     beforeAll(async () => {
@@ -105,6 +104,7 @@ describe("Silent Flow ADFS 2019 Tests", () => {
                 const refreshedAccessToken = (await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION)).accessTokens[0].token;
                 await screenshot.takeScreenshot(page, "acquireTokenSilentGotTokens");
                 const htmlBody = await page.evaluate(() => document.body.innerHTML);
+        
                 expect(htmlBody).toContain(SUCCESSFUL_GRAPH_CALL_ID);
                 expect(Number(originalAccessToken.expiresOn)).toBeGreaterThan(0);
                 expect(Number(expiredAccessToken.expiresOn)).toBe(0);
