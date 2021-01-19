@@ -96,16 +96,12 @@ describe("Silent Flow ADFS 2019 Tests", () => {
     
             it("Refreshes an expired access token", async () => {
                 await page.waitForSelector("#acquireTokenSilent");
-        
-                let tokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
-                const originalAccessToken = tokens.accessTokens[0].token;
+                const originalAccessToken = (await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION)).accessTokens[0].token;
                 await NodeCacheTestUtils.expireAccessTokens(TEST_CACHE_LOCATION);
-                tokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
-                const expiredAccessToken = tokens.accessTokens[0].token;
+                const expiredAccessToken = (await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION)).accessTokens[0].token;
                 await page.click("#acquireTokenSilent");
                 await page.waitForSelector(`#${SUCCESSFUL_GRAPH_CALL_ID}`);
-                tokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
-                const refreshedAccessToken = tokens.accessTokens[0].token;
+                const refreshedAccessToken = (await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION)).accessTokens[0].token;
                 await screenshot.takeScreenshot(page, "acquireTokenSilentGotTokens");
                 const htmlBody = await page.evaluate(() => document.body.innerHTML);
         

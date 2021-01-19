@@ -75,7 +75,7 @@ describe('Device Code AAD PPE Tests', () => {
             device.kill();
             await page.close();
             await context.close();
-            NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+            await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
 
         it("Performs acquire token with Device Code flow", async () => {
@@ -92,8 +92,9 @@ describe('Device Code AAD PPE Tests', () => {
 
             await enterDeviceCode(page, screenshot, deviceCode, deviceLoginUrl);
             await enterCredentials(page, screenshot, username, accountPwd);
-            await page.waitForSelector("#message");
-            const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
+            const htmlBody = await page.evaluate(() => document.body.innerHTML);
+            expect(htmlBody).toContain(SUCCESSFUL_SIGNED_IN_MESSAGE);
+            const cachedTokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
