@@ -134,6 +134,24 @@ describe("Default tests", function () {
                 // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
                 await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
             });
+
+            it("Performs loginRedirect with relative redirectStartPage", async () => {
+                const relativeRedirectUriRequest: RedirectRequest = {
+                    ...aadTokenRequest,
+                    redirectStartPage: "/"
+                }
+                fs.writeFileSync("./app/customizable-e2e-test/testConfig.json", JSON.stringify({msalConfig: aadMsalConfig, request: relativeRedirectUriRequest}));
+                page.reload();
+
+                const testName = "redirectBaseCase";
+                const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+
+                await clickLoginRedirect(screenshot, page);
+                await enterCredentials(page, screenshot, username, accountPwd);
+                await waitForReturnToApp(screenshot, page);
+                // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
+                await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            });
             
             it("Performs loginPopup", async () => {
                 const testName = "popupBaseCase";

@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Adding an active account API to PublicClientApplication (#2728)",
-  "packageName": "@azure/msal-browser",
-  "email": "prkanher@microsoft.com",
-  "dependentChangeType": "patch"
-}
