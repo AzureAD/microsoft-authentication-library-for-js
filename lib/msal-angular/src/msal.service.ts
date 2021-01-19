@@ -15,7 +15,7 @@ import {
     SsoSilentRequest,
     Logger
 } from "@azure/msal-browser";
-import { MSAL_INSTANCE, name, version } from "./constants";
+import { MSAL_INSTANCE, Constants } from "./constants";
 import { Observable, from } from "rxjs";
 import { IMsalService } from "./IMsalService";
 
@@ -32,6 +32,7 @@ export class MsalService implements IMsalService {
         if (hash) {
             this.redirectHash = `#${hash}`;
         }
+        this.instance.initializeWrapperLibrary(Constants.SKU, Constants.VERSION);
     }
 
     acquireTokenPopup(request: PopupRequest): Observable<AuthenticationResult> {
@@ -62,12 +63,12 @@ export class MsalService implements IMsalService {
     }
     getLogger(): Logger {
         if (!this.logger) {
-            this.logger = this.instance.getLogger().clone(name, version);
+            this.logger = this.instance.getLogger().clone(Constants.SKU, Constants.VERSION);
         }
         return this.logger;
     }
     setLogger(logger: Logger): void {
-        this.logger = logger.clone(name, version);
+        this.logger = logger.clone(Constants.SKU, Constants.VERSION);
         this.instance.setLogger(logger);
     }
 
