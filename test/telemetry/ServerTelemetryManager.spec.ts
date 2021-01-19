@@ -113,14 +113,14 @@ describe("ServerTelemetryManager.ts", () => {
         it("Adds telemetry headers with current request", () => {
             const telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
             const currHeaderVal = telemetryManager.generateCurrentRequestHeaderValue();
-            expect(currHeaderVal).to.eq(`2|${testApiCode},0|`);
+            expect(currHeaderVal).to.eq(`2|${testApiCode},0|,`);
         });
 
         it("Adds telemetry headers with current request with forceRefresh true", () => {
             const testPayload: ServerTelemetryRequest = {...testTelemetryPayload, forceRefresh: true };
             const telemetryManager = new ServerTelemetryManager(testPayload, testCacheManager);
             const currHeaderVal = telemetryManager.generateCurrentRequestHeaderValue();
-            expect(currHeaderVal).to.eq(`2|${testApiCode},1|`);
+            expect(currHeaderVal).to.eq(`2|${testApiCode},1|,`);
         });
 
         it("Adds telemetry headers with last failed request", () => {
