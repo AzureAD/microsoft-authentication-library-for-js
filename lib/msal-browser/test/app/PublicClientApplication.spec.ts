@@ -9,7 +9,7 @@ import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, testNavUrlNoRequest } from "../utils/StringConstants";
-import { ServerError, Constants, AccountInfo, TokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthToken, PersistentCacheKeys, TimeUtils, AuthorizationCodeClient, ResponseMode, TrustedAuthority, CloudDiscoveryMetadata, AccountEntity, ProtocolUtils, AuthenticationScheme, RefreshTokenClient, Logger, ServerTelemetryEntity, SilentFlowRequest, EndSessionRequest as CommonEndSessionRequest, LogLevel } from "@azure/msal-common";
+import { ServerError, Constants, AccountInfo, TokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthToken, PersistentCacheKeys, TimeUtils, AuthorizationCodeClient, ResponseMode, TrustedAuthority, CloudDiscoveryMetadata, AccountEntity, ProtocolUtils, AuthenticationScheme, RefreshTokenClient, Logger, ServerTelemetryEntity, SilentFlowRequest, EndSessionRequest as CommonEndSessionRequest, LogLevel, ServerTelemetryManager } from "@azure/msal-common";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { BrowserConstants, TemporaryCacheKeys, ApiId, InteractionType, BrowserCacheLocation } from "../../src/utils/BrowserConstants";
 import { Base64Encode } from "../../src/encode/Base64Encode";
@@ -2247,6 +2247,40 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(pca.getLogger()).to.equal(logger);
 
             pca.getLogger().info("Message");
+        });
+    });
+
+    describe("initializeWrapperLibrary Tests", () => {
+        it("Sets wrapperSKU and wrapperVer with passed values", () => {
+            pca.initializeWrapperLibrary("@azure/msal-react", "1.0.0");
+
+            // @ts-ignore
+            const telemetryManager = pca.initializeServerTelemetryManager(100, "test-correlationId");
+            const currentHeader = telemetryManager.generateCurrentRequestHeaderValue();
+
+            expect(currentHeader).to.include("@azure/msal-react,1.0.0");
+        });
+
+        it("Non-msal SKU does not set sku or version", () => {
+            pca.initializeWrapperLibrary("@fake/not-an-msal-sku", "1.0.0");
+
+            // @ts-ignore
+            const telemetryManager = pca.initializeServerTelemetryManager(100, "test-correlationId");
+            const currentHeader = telemetryManager.generateCurrentRequestHeaderValue();
+
+            expect(currentHeader).not.to.include("@fake/not-an-msal-sku");
+            expect(currentHeader).not.to.include("1.0.0");
+        });
+
+        it("Invalid version does not set sku or version", () => {
+            pca.initializeWrapperLibrary("@azure/msal-react", "version@1");
+
+            // @ts-ignore
+            const telemetryManager = pca.initializeServerTelemetryManager(100, "test-correlationId");
+            const currentHeader = telemetryManager.generateCurrentRequestHeaderValue();
+
+            expect(currentHeader).not.to.include("@azure/msal-react");
+            expect(currentHeader).not.to.include("version1");
         });
     });
 });
