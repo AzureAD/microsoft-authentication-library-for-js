@@ -16,8 +16,8 @@ import {
     SCREENSHOT_BASE_FOLDER_NAME,
     SAMPLE_HOME_URL,
     SUCCESSFUL_GRAPH_CALL_ID, 
-    SUCCESSFUL_GET_ALL_ACCOUNTS_ID } from "../testUtils";
-import { InMemoryCache } from "../../../../../../lib/msal-node/dist/cache/serializer/SerializerTypes";
+    SUCCESSFUL_GET_ALL_ACCOUNTS_ID
+} from "../testUtils";
 
 let username: string;
 let accountPwd: string;
@@ -61,8 +61,7 @@ describe("Silent Flow AAD PPE Tests", () => {
     afterEach(async () => {
         await page.close();
         await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
-        done();
-    });
+     });
 
     it("Performs acquire token silent", async () => {
         const testName = "AADAcquireTokenSilent";

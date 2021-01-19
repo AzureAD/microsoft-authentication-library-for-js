@@ -2,7 +2,7 @@ import "jest";
 import puppeteer from "puppeteer";
 import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import { Screenshot, createFolder, setupCredentials } from "../../../../../e2eTestUtils/TestUtils";
-import { NodeCacheTestUtils, tokenMap } from "../../../../../e2eTestUtils/NodeCacheTestUtils";
+import { NodeCacheTestUtils } from "../../../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AppTypes, AzureEnvironments } from "../../../../../e2eTestUtils/Constants";
@@ -12,10 +12,7 @@ import {
     SCREENSHOT_BASE_FOLDER_NAME,
     extractDeviceCodeParameters,
     validateCacheLocation,
-    sleep,
-    checkTimeoutError
  } from "../testUtils";
-import { time } from "console";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
 
@@ -92,9 +89,7 @@ describe('Device Code AAD PPE Tests', () => {
 
             await enterDeviceCode(page, screenshot, deviceCode, deviceLoginUrl);
             await enterCredentials(page, screenshot, username, accountPwd);
-            const htmlBody = await page.evaluate(() => document.body.innerHTML);
-            expect(htmlBody).toContain(SUCCESSFUL_SIGNED_IN_MESSAGE);
-            const cachedTokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+            const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
