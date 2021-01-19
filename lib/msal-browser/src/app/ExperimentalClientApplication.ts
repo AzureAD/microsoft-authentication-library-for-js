@@ -102,18 +102,25 @@ export class ExperimentalClientApplication extends ClientApplication implements 
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
             const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
 
-            if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
-                return this.embeddedApp.sendPopupRequest(validRequest);
-            }
-            this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority);
+            // Generate popup name for app or broker to use
             const popupName = PopupHandler.generatePopupName(this.config.auth.clientId, validRequest);
 
             // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
             if (this.config.system.asyncPopups) {
+                if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
+                    // Send popup name and request to broker
+                    return this.embeddedApp.sendPopupRequest(validRequest);
+                }
+                this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority);
                 return this.acquireTokenPopupAsync(validRequest, popupName);
             } else {
                 // asyncPopups flag is set to false. Opens popup before acquiring token.
                 const popup = PopupHandler.openSizedPopup("about:blank", popupName);
+                if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
+                    // Send popup name and request to broker
+                    return this.embeddedApp.sendPopupRequest(validRequest, popupName);
+                }
+                this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority);
                 return this.acquireTokenPopupAsync(validRequest, popupName, popup);
             }
         } catch (e) {

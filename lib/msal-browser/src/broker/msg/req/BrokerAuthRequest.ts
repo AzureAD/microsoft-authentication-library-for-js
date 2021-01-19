@@ -17,18 +17,20 @@ export class BrokerAuthRequest extends BrokerMessage {
     public embeddedClientId: string;
     public interactionType: InteractionType;
     public request: RedirectRequest | PopupRequest | SsoSilentRequest | SilentRequest;
+    public popupName?: string;
 
     private _embeddedAppOrigin: string;
     public get embeddedAppOrigin(): string {
         return this._embeddedAppOrigin;
     }
 
-    constructor(embeddedClientId: string, interactionType: InteractionType, request: RedirectRequest | PopupRequest | SsoSilentRequest, embeddedAppRedirectUri: string) {
+    constructor(embeddedClientId: string, interactionType: InteractionType, request: RedirectRequest | PopupRequest | SsoSilentRequest, embeddedAppRedirectUri: string, popupName?: string) {
         super(BrokerMessageType.AUTH_REQUEST);
         this.embeddedClientId = embeddedClientId;
         this._embeddedAppOrigin = embeddedAppRedirectUri;
         this.interactionType = interactionType;
         this.request = request;
+        this.popupName = popupName;
     }
 
     static validate(message: MessageEvent): BrokerAuthRequest | null {

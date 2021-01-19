@@ -22,6 +22,7 @@ import { BrokerRedirectRequest } from "../request/BrokerRedirectRequst";
 import { BrokerSsoSilentRequest } from "../request/BrokerSsoSilentRequest";
 import { AuthorizationUrlRequest } from "../../request/AuthorizationUrlRequest";
 import { BrokerStateObject } from "../../utils/BrowserProtocolUtils";
+import { PopupHandler } from "../../interaction_handler/PopupHandler";
 
 /**
  * Broker Application class to manage brokered requests.
@@ -137,7 +138,7 @@ export class BrokerClientApplication extends ClientApplication {
             }
 
             // Get cached response from in-memory storage that matches given origin.
-            const cachedBrokerResponse = this.browserStorage.getBrokerResponseByOrigin(clientMessage.origin);
+            const cachedBrokerResponse = this.browserStorage.getBrokerResponseByOrigin(clientMessage.origin); 
             if (cachedBrokerResponse) {
                 // If response is retrieved, parse and return to embedded application.
                 const brokerResponse = JSON.parse(cachedBrokerResponse) as BrokerAuthenticationResult;
@@ -295,9 +296,12 @@ export class BrokerClientApplication extends ClientApplication {
             
             // Update parameters in request with required broker parameters
             const validatedBrokerRequest = this.initializeBrokeredRequest(popupRequest, InteractionType.Popup, validMessage.embeddedAppOrigin);
+
+            // Get popup name from message channel, fallback to generate if not available.
+            const popupName = validMessage.popupName || PopupHandler.generatePopupName(this.config.auth.clientId, validatedBrokerRequest);
             
             // Call acquireTokenPopup() and send the response back to the embedded application. 
-            const response = (await this.acquireTokenPopupAsync(validatedBrokerRequest, "")) as BrokerAuthenticationResult;
+            const response = (await this.acquireTokenPopupAsync(validatedBrokerRequest, popupName)) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, response);
             this.logger.info(`Sending auth response`);
             clientPort.postMessage(brokerAuthResponse);

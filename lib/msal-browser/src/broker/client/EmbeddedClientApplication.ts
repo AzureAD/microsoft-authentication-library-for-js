@@ -101,11 +101,12 @@ export class EmbeddedClientApplication {
     /**
      * Send popup flow request to broker.
      * @param request 
+     * @param popupName 
      */
-    async sendPopupRequest(request: PopupRequest): Promise<AuthenticationResult> {
+    async sendPopupRequest(request: PopupRequest, popupName?: string): Promise<AuthenticationResult> {
         await this.preflightBrokerRequest();
 
-        const brokerAuthResultMessage = await this.sendRequest(request, InteractionType.Popup, DEFAULT_POPUP_MESSAGE_TIMEOUT);
+        const brokerAuthResultMessage = await this.sendRequest(request, InteractionType.Popup, DEFAULT_POPUP_MESSAGE_TIMEOUT, popupName);
         const brokerAuthResult = BrokerAuthResponse.processBrokerResponseMessage(brokerAuthResultMessage, this.browserStorage);
         if (!brokerAuthResult) {
             this.logger.errorPii(`Broker response is empty in brokered popup request: ${JSON.stringify(brokerAuthResult)}`);
@@ -157,8 +158,8 @@ export class EmbeddedClientApplication {
      * @param interactionType 
      * @param timeoutMs 
      */
-    private async sendRequest(request: PopupRequest|RedirectRequest|SsoSilentRequest, interactionType: InteractionType, timeoutMs: number): Promise<MessageEvent> {
-        const brokerRequest = new BrokerAuthRequest(this.clientId, interactionType, request, Constants.EMPTY_STRING);
+    private async sendRequest(request: PopupRequest|RedirectRequest|SsoSilentRequest, interactionType: InteractionType, timeoutMs: number, popupName?: string): Promise<MessageEvent> {
+        const brokerRequest = new BrokerAuthRequest(this.clientId, interactionType, request, Constants.EMPTY_STRING, popupName);
         return this.messageBroker<MessageEvent>(brokerRequest, timeoutMs);
     }
 
