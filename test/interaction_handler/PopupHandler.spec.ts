@@ -30,6 +30,16 @@ const testNetworkResult = {
 
 const testKeySet = ["testKey1", "testKey2"];
 
+const defaultTokenRequest: AuthorizationCodeRequest = {
+    authenticationScheme: AuthenticationScheme.BEARER,
+    redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+    code: "thisIsATestCode",
+    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+    codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+    authority: `${Constants.DEFAULT_AUTHORITY}/`,
+    correlationId: RANDOM_TEST_GUID
+};
+
 const networkInterface = {
     sendGetRequestAsync<T>(
         url: string,
@@ -46,9 +56,8 @@ const networkInterface = {
 };
 
 describe("PopupHandler.ts Unit Tests", () => {
-
+    let authCodeModule: AuthorizationCodeClient;
     let browserStorage: BrowserCacheManager;
-    let popupHandler: PopupHandler;
     const cryptoOps = new CryptoOps();
     beforeEach(() => {
         const appConfig: Configuration = {
@@ -56,7 +65,7 @@ describe("PopupHandler.ts Unit Tests", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         };
-        const configObj = buildConfiguration(appConfig);
+        const configObj = buildConfiguration(appConfig, true);
         const authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, ProtocolMode.AAD);
         const authConfig = {
             authOptions: {
@@ -112,10 +121,9 @@ describe("PopupHandler.ts Unit Tests", () => {
             },
         };
         authConfig.storageInterface = new TestStorageManager(TEST_CONFIG.MSAL_CLIENT_ID, authConfig.cryptoInterface);
-        const authCodeModule = new AuthorizationCodeClient(authConfig);
+        authCodeModule = new AuthorizationCodeClient(authConfig);
         const logger = new Logger(authConfig.loggerOptions);
         browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, cryptoOps, logger);
-        popupHandler = new PopupHandler(authCodeModule, browserStorage);
     });
 
     afterEach(() => {
@@ -125,6 +133,7 @@ describe("PopupHandler.ts Unit Tests", () => {
     describe("Constructor", () => {
 
         it("creates a valid PopupHandler", () => {
+            const popupHandler = new PopupHandler(authCodeModule, browserStorage, defaultTokenRequest);
             expect(popupHandler instanceof PopupHandler).to.be.true;
             expect(popupHandler instanceof InteractionHandler).to.be.true;
         });
@@ -142,11 +151,12 @@ describe("PopupHandler.ts Unit Tests", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}/`,
                 correlationId: RANDOM_TEST_GUID
             };
-            expect(() => popupHandler.initiateAuthRequest("", testTokenReq, {})).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => popupHandler.initiateAuthRequest("", testTokenReq, {})).to.throw(BrowserAuthError);
+            const popupHandler = new PopupHandler(authCodeModule, browserStorage, testTokenReq);
+            expect(() => popupHandler.initiateAuthRequest("", {})).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            expect(() => popupHandler.initiateAuthRequest("", {})).to.throw(BrowserAuthError);
 
-            expect(() => popupHandler.initiateAuthRequest(null, testTokenReq, {})).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => popupHandler.initiateAuthRequest(null, testTokenReq, {})).to.throw(BrowserAuthError);
+            expect(() => popupHandler.initiateAuthRequest(null, {})).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            expect(() => popupHandler.initiateAuthRequest(null, {})).to.throw(BrowserAuthError);
         });
 
         it("opens a popup window", () => {
@@ -168,7 +178,8 @@ describe("PopupHandler.ts Unit Tests", () => {
                 return window;
             };
 
-            popupHandler.initiateAuthRequest(TEST_URIS.ALTERNATE_INSTANCE, testTokenReq, {});
+            const popupHandler = new PopupHandler(authCodeModule, browserStorage, testTokenReq);
+            popupHandler.initiateAuthRequest(TEST_URIS.ALTERNATE_INSTANCE, {});
             expect(browserStorage.getTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, true)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
         });
     });
@@ -183,6 +194,7 @@ describe("PopupHandler.ts Unit Tests", () => {
                 close: () => {}
             };
 
+            const popupHandler = new PopupHandler(authCodeModule, browserStorage, defaultTokenRequest);
             // @ts-ignore
             popupHandler.monitorPopupForHash(popup, 500)
                 .catch(() => {
@@ -199,6 +211,7 @@ describe("PopupHandler.ts Unit Tests", () => {
                 close: () => {}
             };
 
+            const popupHandler = new PopupHandler(authCodeModule, browserStorage, defaultTokenRequest);
             // @ts-ignore
             popupHandler.monitorPopupForHash(popup, 1000)
                 .then((hash: string) => {
@@ -224,6 +237,7 @@ describe("PopupHandler.ts Unit Tests", () => {
                 closed: false
             };
 
+            const popupHandler = new PopupHandler(authCodeModule, browserStorage, defaultTokenRequest);
             // @ts-ignore
             popupHandler.monitorPopupForHash(popup, 1000)
                 .catch((error) => {
@@ -263,8 +277,8 @@ describe("PopupHandler.ts Unit Tests", () => {
                 authenticationScheme: AuthenticationScheme.BEARER
             };
 
-            
-            const popupWindow = popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest, {
+            const popupHandler = new PopupHandler(authCodeModule, browserStorage, testRequest);
+            const popupWindow = popupHandler.initiateAuthRequest("http://localhost/#/code=hello", {
                 // @ts-ignore
                 popup: windowObject
             });
@@ -287,7 +301,8 @@ describe("PopupHandler.ts Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID
             };
 
-            const popupWindow = popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest, {});
+            const popupHandler = new PopupHandler(authCodeModule, browserStorage, testRequest);
+            const popupWindow = popupHandler.initiateAuthRequest("http://localhost/#/code=hello", {});
 
             expect(popupWindow).to.equal(window);
         });
@@ -305,7 +320,8 @@ describe("PopupHandler.ts Unit Tests", () => {
                 authenticationScheme: AuthenticationScheme.BEARER
             };
 
-            expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest, {})).to.throw(BrowserAuthErrorMessage.emptyWindowError.desc);
+            const popupHandler = new PopupHandler(authCodeModule, browserStorage, testRequest);
+            expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", {})).to.throw(BrowserAuthErrorMessage.emptyWindowError.desc);
         });
 
         it("throws error if popup passed in is null", () => {
@@ -319,10 +335,11 @@ describe("PopupHandler.ts Unit Tests", () => {
                 authenticationScheme: AuthenticationScheme.BEARER
             };
 
-            expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest, {
+            const popupHandler = new PopupHandler(authCodeModule, browserStorage, testRequest);
+            expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", {
                 popup: null
             })).to.throw(BrowserAuthErrorMessage.emptyWindowError.desc);
-            expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", testRequest, {
+            expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", {
                 popup: null
             })).to.throw(BrowserAuthError);
         });
@@ -331,16 +348,28 @@ describe("PopupHandler.ts Unit Tests", () => {
     describe("openSizedPopup", () => {
         it("opens a popup with urlNavigate", () => {
             const windowOpenSpy = sinon.stub(window, "open");
-            PopupHandler.openSizedPopup("http://localhost/");
+            PopupHandler.openSizedPopup("http://localhost/", "popup");
 
-            expect(windowOpenSpy.calledWith("http://localhost/")).to.be.true;
+            expect(windowOpenSpy.calledWith("http://localhost/", "popup")).to.be.true;
         });
 
-        it("opens a popup with about:blank if no urlNavigate passed in", () => {
+        it("opens a popup with about:blank", () => {
             const windowOpenSpy = sinon.stub(window, "open");
-            PopupHandler.openSizedPopup();
+            PopupHandler.openSizedPopup("about:blank", "popup");
 
-            expect(windowOpenSpy.calledWith("about:blank")).to.be.true;
+            expect(windowOpenSpy.calledWith("about:blank", "popup")).to.be.true;
         });
     });
+
+    describe("generatePopupName", () => {
+        it("generates expected name", () => {
+            const popupName = PopupHandler.generatePopupName("client-id", {
+                scopes: [ "scope1", "scope2"],
+                authority: "https://login.microsoftonline.com/common",
+                correlationId: "correlation-id"
+            });
+
+            expect(popupName).to.equal("msal.client-id.scope1-scope2.https://login.microsoftonline.com/common.correlation-id");
+        })
+    })
 });

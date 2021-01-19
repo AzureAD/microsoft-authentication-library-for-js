@@ -2,6 +2,59 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 12 Jan 2021 00:51:26 GMT",
+      "tag": "@azure/msal-browser_v2.9.0",
+      "version": "2.9.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update event docs in msal-browser (#2764)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "f85db233464aed9718444ab4d29d19f432850bdf",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update msal-angular link in msal-browser readme (#2751)",
+            "author": "suhendri_s@outlook.com",
+            "commit": "16e2b6cf3d4294c3723db49e1eace1d5354e4dcb",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "package.lock change",
+            "author": "samuel.kamau@microsoft.com",
+            "commit": "4e50ca592f5a17578072be9e4ac28e05b3e6d594",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Fix npm audit warnings",
+            "author": "janutter@microsoft.com",
+            "commit": "751026cdaa24dd370c50ad714bf0b1d54c71fbde",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Adding an active account API to PublicClientApplication (#2728)",
+            "author": "prkanher@microsoft.com",
+            "commit": "ca8c0d55d2abc4eefaa52c833510e313610eb424",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add internal in-memory storage to BrowserCacheManager (#2765)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "d97cc2e1dc08a56614b66404294c45ff9ab43bca",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Enable strict TypeScript option (#2792)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "a6fae46d307d0a6101e926cb28298fd9f60d4a49",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 07 Dec 2020 22:19:03 GMT",
       "tag": "@azure/msal-browser_v2.8.0",
       "version": "2.8.0",
