@@ -1048,17 +1048,12 @@ export abstract class ClientApplication {
      */
     initializeWrapperLibrary(sku: string, version: string): void {
         // Validate the SKU passed in is one we expect
-        if (sku.match(/^@azure\/msal\-[a-z]+$/g)) {
+        if (sku.match(/^@azure\/msal\-[a-z]+$/g) && version.match(/^[0-9a-z\.\-]+$/g)) {
             this.wrapperSKU = sku;
-        } else {
-            this.logger.warning("initializeWrapperLibrary - provided sku failed validation. Please ensure it starts with @azure/msal-");
-        }
-        
-        // Validate the version passed in
-        if (version.match(/^[0-9a-z\.\-]+$/g)) {
             this.wrapperVer = version;
         } else {
-            this.logger.warning("intitializeWrapperLibrary - provided version failed validation");
+            this.logger.warning("initializeWrapperLibrary - provided sku or version failed validation. Please ensure sku starts with '@azure/msal-'");
+            return;
         }
     }
     // #endregion
