@@ -3,12 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfiguration, Constants, LogLevel, NetworkRequestOptions, PkceCodes, ClientAuthError, AccountEntity, CredentialEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, ProtocolMode , AuthorityFactory } from "../../src";
-import { ADFS_AUTHORITY, PREFERRED_CACHE_ALIAS, RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES } from "../utils/StringConstants";
+import { ClientConfiguration, Constants, PkceCodes, ClientAuthError, AccountEntity, CredentialEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, ProtocolMode , AuthorityFactory, AuthorityOptions, AuthorityMetadataEntity } from "../../src";
+import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES } from "../utils/StringConstants";
 
-import { TrustedAuthority } from "../../src/authority/TrustedAuthority";
-import sinon from "sinon";
-import { CloudDiscoveryMetadata } from "../../src/authority/CloudDiscoveryMetadata";
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
 
@@ -84,6 +81,14 @@ export class MockStorageClass extends CacheManager {
         this.store[key] = value;
     }
 
+    // Authority Metadata Cache
+    getAuthorityMetadata(key: string): AuthorityMetadataEntity | null {
+        return this.store[key] as AuthorityMetadataEntity;
+    }
+    setAuthorityMetadata(key: string, value: AuthorityMetadataEntity): void {
+        this.store[key] = value;
+    }
+
     // Throttling cache
     getThrottlingCache(key: string): ThrottlingEntity | null {
         return this.store[key] as ThrottlingEntity;
@@ -106,31 +111,73 @@ export class MockStorageClass extends CacheManager {
     getKeys(): string[] {
         return Object.keys(this.store);
     }
+    getAuthorityMetadataKeys(): string[] {
+        return this.getKeys();
+    }
     clear(): void {
         this.store = {};
     }
 }
 
+export const mockCrypto = {
+    createNewGuid(): string {
+        return RANDOM_TEST_GUID;
+    },
+    base64Decode(input: string): string {
+        switch (input) {
+            case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                return TEST_POP_VALUES.DECODED_REQ_CNF;
+            default:
+                return input;
+        }
+    },
+    base64Encode(input: string): string {
+        switch (input) {
+            case TEST_POP_VALUES.DECODED_REQ_CNF:
+                return TEST_POP_VALUES.ENCODED_REQ_CNF;
+            default:
+                return input;
+        }
+    },
+    async generatePkceCodes(): Promise<PkceCodes> {
+        return {
+            challenge: TEST_CONFIG.TEST_CHALLENGE,
+            verifier: TEST_CONFIG.TEST_VERIFIER,
+        };
+    },
+    async getPublicKeyThumbprint(): Promise<string> {
+        return TEST_POP_VALUES.KID;
+    },
+    async signJwt(): Promise<string> {
+        return "";
+    }
+};
+
 export class ClientTestUtils {
-
+    
     static async createTestClientConfiguration(): Promise<ClientConfiguration>{
+        const mockStorage = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
 
-        const testLoggerCallback = (level: LogLevel, message: string, containsPii: boolean): void => {
-            if (containsPii) {
-                console.log(`Log level: ${level} Message: ${message}`);
-            }
+        const testLoggerCallback = (): void => {
+            return;
         };
 
         const mockHttpClient = {
-            sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+            sendGetRequestAsync<T>(): T {
                 return null;
             },
-            sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+            sendPostRequestAsync<T>(): T {
                 return null;
             }
         };
 
-        const authority  = AuthorityFactory.createInstance(TEST_CONFIG.validAuthority, mockHttpClient, ProtocolMode.AAD);
+        const authorityOptions: AuthorityOptions = {
+            protocolMode: ProtocolMode.AAD,
+            knownAuthorities: [TEST_CONFIG.validAuthority],
+            cloudDiscoveryMetadata: "",
+            authorityMetadata: ""
+        };
+        const authority  = AuthorityFactory.createInstance(TEST_CONFIG.validAuthority, mockHttpClient, mockStorage, authorityOptions);
 
         await authority.resolveEndpointsAsync().catch(error => {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError(error);
@@ -139,57 +186,11 @@ export class ClientTestUtils {
         return {
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                authority: authority,
-                knownAuthorities: [],
+                authority: authority
             },
-            storageInterface: new MockStorageClass(),
-            networkInterface: {
-                sendGetRequestAsync<T>(
-                    url: string,
-                    options?: NetworkRequestOptions
-                ): T {
-                    return null;
-                },
-                sendPostRequestAsync<T>(
-                    url: string,
-                    options?: NetworkRequestOptions
-                ): T {
-                    return null;
-                },
-            },
-            cryptoInterface: {
-                createNewGuid(): string {
-                    return RANDOM_TEST_GUID;
-                },
-                base64Decode(input: string): string {
-                    switch (input) {
-                        case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                            return TEST_POP_VALUES.DECODED_REQ_CNF;
-                        default:
-                            return input;
-                    }
-                },
-                base64Encode(input: string): string {
-                    switch (input) {
-                        case TEST_POP_VALUES.DECODED_REQ_CNF:
-                            return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                        default:
-                            return input;
-                    }
-                },
-                async generatePkceCodes(): Promise<PkceCodes> {
-                    return {
-                        challenge: TEST_CONFIG.TEST_CHALLENGE,
-                        verifier: TEST_CONFIG.TEST_VERIFIER,
-                    };
-                },
-                async getPublicKeyThumbprint(): Promise<string> {
-                    return TEST_POP_VALUES.KID;
-                },
-                async signJwt(): Promise<string> {
-                    return "";
-                }
-            },
+            storageInterface: mockStorage,
+            networkInterface: mockHttpClient,
+            cryptoInterface: mockCrypto,
             loggerOptions: {
                 loggerCallback: testLoggerCallback,
             },
@@ -203,27 +204,5 @@ export class ClientTestUtils {
                 cpu: TEST_CONFIG.TEST_CPU,
             },
         };
-    }
-
-    static setCloudDiscoveryMetadataStubs(): void {
-        sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(true);
-        const stubbedCloudDiscoveryMetadata: CloudDiscoveryMetadata = {
-            preferred_cache: PREFERRED_CACHE_ALIAS, // login.windows.net
-            preferred_network: "login.microsoftonline.com",
-            aliases: ["login.microsoftonline.com", "login.windows.net", "login.microsoft.com", "sts.windows.net"]
-        };
-        sinon.stub(TrustedAuthority, "getTrustedHostList").returns(stubbedCloudDiscoveryMetadata.aliases);
-        sinon.stub(TrustedAuthority, "getCloudDiscoveryMetadata").returns(stubbedCloudDiscoveryMetadata);
-    }
-
-    static setCloudDiscoveryMetadataStubsForADFS(): void {
-        sinon.stub(TrustedAuthority, "IsInTrustedHostList").returns(true);
-        const stubbedCloudDiscoveryMetadata: CloudDiscoveryMetadata = {
-            preferred_cache: ADFS_AUTHORITY,
-            preferred_network: ADFS_AUTHORITY,
-            aliases: [ADFS_AUTHORITY]
-        };
-        sinon.stub(TrustedAuthority, "getTrustedHostList").returns(stubbedCloudDiscoveryMetadata.aliases);
-        sinon.stub(TrustedAuthority, "getCloudDiscoveryMetadata").returns(stubbedCloudDiscoveryMetadata);
     }
 }

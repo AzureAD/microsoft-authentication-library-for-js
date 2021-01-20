@@ -1,9 +1,9 @@
-import { LogLevel, Logger, AccountEntity, CacheManager, AccessTokenEntity } from '@azure/msal-common';
+import { LogLevel, Logger, AccountEntity, CacheManager, AccessTokenEntity, AuthorityMetadataEntity } from '@azure/msal-common';
 import { JsonCache, InMemoryCache } from './../../src/cache/serializer/SerializerTypes';
 import { Deserializer } from './../../src/cache/serializer/Deserializer';
 import { Storage } from './../../src/cache/Storage';
 import { version, name } from '../../package.json';
-import { DEFAULT_CRYPTO_IMPLEMENTATION, TEST_CONSTANTS } from '../utils/TestConstants';
+import { DEFAULT_CRYPTO_IMPLEMENTATION, DEFAULT_OPENID_CONFIG_RESPONSE, TEST_CONSTANTS } from '../utils/TestConstants';
 
 const cacheJson = require('./serializer/cache.json');
 const clientId = TEST_CONSTANTS.CLIENT_ID;
@@ -33,6 +33,10 @@ describe("Storage tests for msal-node: ", () => {
             logLevel: LogLevel.Info,
         };
         logger = new Logger(loggerOptions!, name, version);
+    });
+
+    afterEach(() => {
+        jest.clearAllMocks();
     });
 
     it("Constructor tests: ", () => {
@@ -194,6 +198,49 @@ describe("Storage tests for msal-node: ", () => {
 
         nodeStorage.removeItem(accountKey);
         expect(newInMemoryCache.accounts[accountKey]).toBeUndefined;
+    });
+
+    describe("Getters and Setters", () => {
+        describe("AuthorityMetadata", () =>{
+            const host = "login.microsoftonline.com";
+            const key = `authority-metadata-${clientId}-${host}`;
+            const testObj: AuthorityMetadataEntity = new AuthorityMetadataEntity();
+            testObj.aliases = [host];
+            testObj.preferred_cache = host;
+            testObj.preferred_network = host;
+            testObj.authorization_endpoint = DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint;
+            testObj.token_endpoint = DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint;
+            testObj.end_session_endpoint = DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint;
+            testObj.issuer = DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer;
+            testObj.aliasesFromNetwork = false;
+            testObj.endpointsFromNetwork = false;
+
+            it("getAuthorityMetadata() returns null if key is not in cache", () => {
+                const nodeStorage = new Storage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
+                expect(nodeStorage.containsKey(key)).toBe(false);
+                expect(nodeStorage.getAuthorityMetadataKeys()).not.toContain(key);
+                expect(nodeStorage.getAuthorityMetadata(key)).toBeNull;
+            });
+
+            it("getAuthorityMetadata() returns null if isAuthorityMetadataEntity returns false", () => {
+                const nodeStorage = new Storage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
+                // @ts-ignore
+                nodeStorage.setAuthorityMetadata(key, {});
+
+                expect(nodeStorage.getAuthorityMetadata(key)).toBeNull;
+                expect(nodeStorage.containsKey(key)).toBe(true);
+                expect(nodeStorage.getAuthorityMetadataKeys()).toContain(key);
+            });
+
+            it("setAuthorityMetadata() and getAuthorityMetadata() sets and returns AuthorityMetadataEntity in-memory", () => {
+                const nodeStorage = new Storage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
+                nodeStorage.setAuthorityMetadata(key, testObj);
+
+                expect(nodeStorage.getAuthorityMetadata(key)).toStrictEqual(testObj);
+                expect(nodeStorage.containsKey(key)).toBe(true);
+                expect(nodeStorage.getAuthorityMetadataKeys()).toContain(key);
+            });
+        });
     });
 });
 
