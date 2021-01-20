@@ -15,7 +15,7 @@ import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { CacheManager } from "../cache/CacheManager";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 import { RequestThumbprint } from "../network/RequestThumbprint";
-import { version, name } from "../../package.json";
+import { version, name } from "../version.json";
 import { ClientAuthError } from "../error/ClientAuthError";
 
 /**

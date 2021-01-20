@@ -25,6 +25,7 @@
         "noUnusedParameters": false,
         "noFallthroughCasesInSwitch": true,
     },
+    "rootDir": "./src",
     "include": [
         "src/**/*"
     ],

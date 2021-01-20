@@ -54,7 +54,8 @@
     "build:modules:watch": "rollup -cw",
     "build": "npm run clean && npm run build:modules",
     "build:all": "npm run build",
-    "prepack": "npm run build"
+    "prepack": "npm run updateVersion && npm run build",
+    "updateVersion": "node ../../release/updateVersion.js"
   },
   "devDependencies": {
     "@babel/core": "^7.7.2",
