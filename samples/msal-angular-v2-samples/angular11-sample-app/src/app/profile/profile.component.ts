@@ -4,7 +4,7 @@ import { HttpClient } from '@angular/common/http';
 const GRAPH_ENDPOINT = 'https://graph.microsoft.com/v1.0/me';
 
 type ProfileType = {
-  displayName?: String
+  displayName?: string
 }
 
 @Component({
