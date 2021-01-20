@@ -113,7 +113,6 @@ describe('Auth Code AAD PPE Tests', () => {
 
             // Login without a prompt 
             await page.goto(`${HOME_ROUTE}/?prompt=none`);
-            await new Promise(resolve => { setTimeout(() => { resolve(true) }, 4000)})
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
