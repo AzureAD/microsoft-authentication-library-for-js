@@ -149,7 +149,7 @@ export class BrowserAuthError extends AuthError {
         super(errorCode, errorMessage);
 
         Object.setPrototypeOf(this, BrowserAuthError.prototype);
-        this.name = "BrowserAuthError";
+        this.name = BrowserAuthError.BROWSER_AUTH_ERROR_NAME;
     }
 
     /**
