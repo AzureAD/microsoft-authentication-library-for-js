@@ -12,3 +12,10 @@ export type CloudInstanceDiscoveryResponse = {
     tenant_discovery_endpoint: string;
     metadata: Array<CloudDiscoveryMetadata>;
 };
+
+export function isCloudInstanceDiscoveryResponse(response: object): boolean {
+    return (
+        response.hasOwnProperty("tenant_discovery_endpoint") &&
+        response.hasOwnProperty("metadata")
+    );
+}

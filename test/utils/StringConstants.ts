@@ -172,13 +172,21 @@ export const ADFS_AUTHORITY = "myadfs.com/adfs";
 
 export const DEFAULT_TENANT_DISCOVERY_RESPONSE = {
     body: {
-        "tenant_discovery_endpoint": "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration"
+        "tenant_discovery_endpoint": "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
+        "api-version": "1.1",
+        "metadata": [
+            {
+                "preferred_network": "login.windows.net",
+                "preferred_cache": "sts.windows.net",
+                "aliases": ["login.microsoftonline.com","login.windows.net","login.microsoft.com","sts.windows.net"]
+            }
+        ]
     }
 };
 
 export const TEST_TENANT_DISCOVERY_RESPONSE = {
     body: {
-        "tenant_discovery_endpoint": "https://login.contoso.com/tenant-id/v2.0/.well-known/openid-configuration"
+        "tenant_discovery_endpoint": "https://login.contoso.com/tenant-id/v2.0/.well-known/openid-configuration",
     }
 };
 

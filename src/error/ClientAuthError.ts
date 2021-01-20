@@ -30,6 +30,10 @@ export const ClientAuthErrorMessage = {
         code: "endpoints_resolution_error",
         desc: "Error: could not resolve endpoints. Please check network and try again."
     },
+    unableToGetOpenidConfigError: {
+        code: "openid_config_error",
+        desc: "Could not retrieve endpoints. Check your authority and verify the .well-known/openid-configuration endpoint returns the required endpoints."
+    },
     hashNotDeserialized: {
         code: "hash_not_deserialized",
         desc: "The hash parameters could not be deserialized. Please review the trace to determine the root cause."
@@ -219,6 +223,14 @@ export class ClientAuthError extends AuthError {
     static createEndpointDiscoveryIncompleteError(errDetail: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.endpointResolutionError.code,
             `${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${errDetail}`);
+    }
+
+    /**
+     * Creates an error thrown when the openid-configuration endpoint cannot be reached or does not contain the required data
+     */
+    static createUnableToGetOpenidConfigError(errDetail: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.unableToGetOpenidConfigError.code,
+            `${ClientAuthErrorMessage.unableToGetOpenidConfigError.desc} Attempted to retrieve endpoints from: ${errDetail}`);
     }
 
     /**
