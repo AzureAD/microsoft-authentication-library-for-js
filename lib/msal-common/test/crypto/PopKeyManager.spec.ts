@@ -8,7 +8,7 @@ import { ICrypto, PkceCodes, UrlString, SignedHttpRequest, TimeUtils } from "../
 import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS, TEST_TOKENS } from "../utils/StringConstants";
 import { PopKeyManager } from "../../src/crypto/PopKeyManager";
 
-describe.only("PopKeyManager Unit Tests", () => {
+describe("PopKeyManager Unit Tests", () => {
 
     const cryptoInterface: ICrypto = {
         createNewGuid(): string {
