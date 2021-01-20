@@ -14,7 +14,8 @@ import {
     CacheManager,
     Logger,
     ValidCacheType,
-    ICrypto
+    ICrypto,
+    AuthorityMetadataEntity
 } from "@azure/msal-common";
 import { Deserializer } from "./serializer/Deserializer";
 import { Serializer } from "./serializer/Serializer";
@@ -290,6 +291,36 @@ export class Storage extends CacheManager {
      */
     setServerTelemetry(serverTelemetryKey: string, serverTelemetry: ServerTelemetryEntity): void {
         this.setItem(serverTelemetryKey, serverTelemetry);
+    }
+
+    /**
+     * fetch authority metadata entity from the platform cache
+     * @param key
+     */
+    getAuthorityMetadata(key: string): AuthorityMetadataEntity | null {
+        const authorityMetadataEntity: AuthorityMetadataEntity = this.getItem(key) as AuthorityMetadataEntity;
+        if (authorityMetadataEntity && AuthorityMetadataEntity.isAuthorityMetadataEntity(key, authorityMetadataEntity)) {
+            return authorityMetadataEntity;
+        }
+        return null;
+    }
+
+    /**
+     * Get all authority metadata keys
+     */
+    getAuthorityMetadataKeys(): Array<string> {
+        return this.getKeys().filter((key) => {
+            return this.isAuthorityMetadata(key);
+        });
+    }
+
+    /**
+     * set authority metadata entity to the platform cache
+     * @param key
+     * @param metadata
+     */
+    setAuthorityMetadata(key: string, metadata: AuthorityMetadataEntity): void {
+        this.setItem(key, metadata);
     }
 
     /**
