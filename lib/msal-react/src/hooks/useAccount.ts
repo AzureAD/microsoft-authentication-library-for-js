@@ -7,6 +7,7 @@ import { useState, useEffect } from "react";
 import { AccountInfo, IPublicClientApplication } from "@azure/msal-browser";
 import { useMsal } from "./useMsal";
 import { AccountIdentifiers } from "../types/AccountIdentifiers";
+import { InteractionStatus } from "../utils/Constants";
 
 function getAccount(instance: IPublicClientApplication, accountIdentifiers: AccountIdentifiers): AccountInfo | null {
     const allAccounts = instance.getAllAccounts();
@@ -34,7 +35,8 @@ function getAccount(instance: IPublicClientApplication, accountIdentifiers: Acco
 export function useAccount(accountIdentifiers: AccountIdentifiers): AccountInfo | null {
     const { instance, inProgress } = useMsal();
 
-    const [account, setAccount] = useState<AccountInfo|null>(null);
+    const initialStateValue = inProgress === InteractionStatus.Startup ? null : getAccount(instance, accountIdentifiers);
+    const [account, setAccount] = useState<AccountInfo|null>(initialStateValue);
 
     useEffect(() => {
         setAccount(getAccount(instance, accountIdentifiers));

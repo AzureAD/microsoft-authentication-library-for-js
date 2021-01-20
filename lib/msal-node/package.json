@@ -26,8 +26,8 @@
     "dist"
   ],
   "scripts": {
-    "start": "tsdx watch",
-    "build": "tsdx build",
+    "start": "tsdx watch --tsconfig ./tsconfig.build.json",
+    "build": "tsdx build --tsconfig ./tsconfig.build.json",
     "build:modules:watch": "tsdx watch --verbose",
     "doc": "npm run doc:generate && npm run doc:deploy",
     "doc:generate": "typedoc --mode modules --excludePrivate --excludeProtected --excludeNotExported --out ./ref ./src/ --gitRevision dev",

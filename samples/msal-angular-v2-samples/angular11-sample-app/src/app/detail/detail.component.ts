@@ -4,8 +4,8 @@ import { HttpClient } from '@angular/common/http';
 const GRAPH_ENDPOINT = 'https://graph.microsoft.com/v1.0/me';
 
 type DetailType = {
-  displayName?: String
-  jobTitle?: String
+  displayName?: string
+  jobTitle?: string
 }
 
 @Component({

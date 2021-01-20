@@ -12,7 +12,6 @@ import { version } from "../version.json";
 import { Authority } from "../authority/Authority";
 import { CacheManager, DefaultStorageClass } from "../cache/CacheManager";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
-import { ProtocolMode } from "../authority/ProtocolMode";
 import { ICachePlugin } from "../cache/interface/ICachePlugin";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
 
@@ -73,10 +72,7 @@ export type CommonClientConfiguration = {
 export type AuthOptions = {
     clientId: string;
     authority: Authority;
-    knownAuthorities?: Array<string>;
-    cloudDiscoveryMetadata?: string;
     clientCapabilities?: Array<string>;
-    protocolMode?: ProtocolMode;
 };
 
 /**
@@ -200,10 +196,7 @@ export function buildClientConfiguration(
  */
 function buildAuthOptions(authOptions: AuthOptions): Required<AuthOptions> {
     return {
-        knownAuthorities: [],
-        cloudDiscoveryMetadata: "",
         clientCapabilities: [],
-        protocolMode: ProtocolMode.AAD,
         ...authOptions
     };
 }
