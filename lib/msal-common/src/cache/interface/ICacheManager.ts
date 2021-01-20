@@ -19,6 +19,7 @@ import { ThrottlingEntity } from "../entities/ThrottlingEntity";
 import { IdTokenEntity } from "../entities/IdTokenEntity";
 import { AccessTokenEntity } from "../entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
+import { AuthorityMetadataEntity } from "../entities/AuthorityMetadataEntity";
 
 export interface ICacheManager {
 
@@ -94,6 +95,36 @@ export interface ICacheManager {
      * @param serverTelemetry
      */
     setServerTelemetry(serverTelemetryKey: string, serverTelemetry: ServerTelemetryEntity): void;
+
+    /**
+     * fetch cloud discovery metadata entity from the platform cache
+     * @param key
+     */
+    getAuthorityMetadata(key: string): AuthorityMetadataEntity | null;
+
+    /**
+     * Get cache keys for authority metadata
+     */
+    getAuthorityMetadataKeys(): Array<string>;
+
+    /**
+     * set cloud discovery metadata entity to the platform cache
+     * @param key
+     * @param value
+     */
+    setAuthorityMetadata(key: string, value: AuthorityMetadataEntity): void;
+
+    /**
+     * Provide an alias to find a matching AuthorityMetadataEntity in cache
+     * @param host 
+     */
+    getAuthorityMetadataByAlias(host: string): AuthorityMetadataEntity | null;
+
+    /**
+     * given an authority generates the cache key for authorityMetadata
+     * @param authority 
+     */
+    generateAuthorityMetadataCacheKey(authority: string): string;
 
     /**
      * fetch throttling entity from the platform cache
