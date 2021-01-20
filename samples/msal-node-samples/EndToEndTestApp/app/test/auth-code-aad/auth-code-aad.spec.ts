@@ -18,6 +18,7 @@ let username: string;
 let accountPwd: string;
 
 describe('Auth Code AAD PPE Tests', () => {
+    jest.setTimeout(95000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -112,7 +113,6 @@ describe('Auth Code AAD PPE Tests', () => {
 
             // Login without a prompt 
             await page.goto(`${HOME_ROUTE}/?prompt=none`);
-            await new Promise(resolve => { setTimeout(() => { resolve(true) }, 4000)})
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
@@ -148,7 +148,6 @@ describe('Auth Code AAD PPE Tests', () => {
             await page.goto(`${HOME_ROUTE}/?domainHint=${DOMAIN}`);
             await page.waitForNavigation({ waitUntil: 'networkidle2' });
             const url = await page.url();
-            console.log(url);
             expect(url.includes(MS_LOGIN_URL)).toBe(true);
         });
     });
