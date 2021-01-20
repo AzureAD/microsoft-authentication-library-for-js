@@ -16,6 +16,8 @@ import {
     StringUtils,
     ClientAuthError } from "@azure/msal-common";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication";
+import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
+import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
 
 export class ConfidentialClientApplication extends ClientApplication implements IConfidentialClientApplication{
 
@@ -47,7 +49,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
     /**
      * Acquires tokens from the authority for the application (not for an end user).
      */
-    public async acquireTokenByClientCredential(request: CommonClientCredentialRequest): Promise<AuthenticationResult | null> {
+    public async acquireTokenByClientCredential(request: ClientCredentialRequest): Promise<AuthenticationResult | null> {
         this.logger.info("acquireTokenByClientCredential called");
         const validRequest: CommonClientCredentialRequest = {
             ...request,
@@ -79,7 +81,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
      * See how to gain consent upfront for your middle-tier app from this article.
      * https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow#gaining-consent-for-the-middle-tier-application
      */
-    public async acquireTokenOnBehalfOf(request: CommonOnBehalfOfRequest): Promise<AuthenticationResult | null> {
+    public async acquireTokenOnBehalfOf(request: OnBehalfOfRequest): Promise<AuthenticationResult | null> {
         this.logger.info("acquireTokenOnBehalfOf called");
         const validRequest: CommonOnBehalfOfRequest = {
             ...request,
