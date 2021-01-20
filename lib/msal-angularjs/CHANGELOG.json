@@ -2,6 +2,27 @@
   "name": "@azure/msal-angularjs",
   "entries": [
     {
+      "date": "Tue, 12 Jan 2021 00:51:26 GMT",
+      "tag": "@azure/msal-angularjs_v0.1.2",
+      "version": "0.1.2",
+      "comments": {
+        "none": [
+          {
+            "comment": "package.lock change",
+            "author": "samuel.kamau@microsoft.com",
+            "commit": "4e50ca592f5a17578072be9e4ac28e05b3e6d594",
+            "package": "@azure/msal-angularjs"
+          },
+          {
+            "comment": "Fix npm audit warnings",
+            "author": "janutter@microsoft.com",
+            "commit": "751026cdaa24dd370c50ad714bf0b1d54c71fbde",
+            "package": "@azure/msal-angularjs"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 07 Dec 2020 22:19:03 GMT",
       "tag": "@azure/msal-angularjs_v0.1.2",
       "version": "0.1.2",

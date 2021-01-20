@@ -24,3 +24,4 @@ Please see instructions from the [Angular docs](https://angular.io/guide/univers
 
 ## Additional notes
 - The default interaction type for the sample is redirect. The sample can be configured to use popups by changing the `interactionType` in `app.module.ts` to `InteractionType.Popup`. 
+- This sample demonstrates the use of `canActivateChild` and `canLoad` in the `app-routing.module.ts`, and has more components and modules than the other available samples. See our [initialization doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/initialization.md#secure-the-routes-in-your-application) for more information on securing routes.

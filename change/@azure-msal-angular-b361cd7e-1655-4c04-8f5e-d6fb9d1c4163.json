@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Temporarily use npm-force-resolutions to get update transitive deps for MSAL Angular",
-  "packageName": "@azure/msal-angular",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none"
-}
