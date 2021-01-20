@@ -5,6 +5,7 @@ import Typography from "@material-ui/core/Typography";
 import WelcomeName from "./WelcomeName";
 import SignInSignOutButton from "./SignInSignOutButton";
 import useStyles from "../styles/useStyles";
+import { Link as RouterLink } from "react-router-dom";
 
 const NavBar = () => {
     const classes = useStyles();
@@ -14,7 +15,7 @@ const NavBar = () => {
             <AppBar position="static">
             <Toolbar>
                 <Typography className={classes.title}>
-                    <Link href="/" color="inherit" variant="h6">MS Identity Platform</Link>
+                    <Link component={RouterLink} to="/" color="inherit" variant="h6">MS Identity Platform</Link>
                 </Typography>
                 <WelcomeName />
                 <SignInSignOutButton />
