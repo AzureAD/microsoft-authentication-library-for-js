@@ -3,11 +3,6 @@
  * Licensed under the MIT License.
  */
 
-export const Constants = {
-    SKU: "@azure/msal-react",
-    VERSION: "1.0.0-alpha.1"
-};
-
 export enum InteractionStatus {
     Startup = "startup",
     Login = "login",

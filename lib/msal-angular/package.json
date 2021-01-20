@@ -15,8 +15,9 @@
     "lint": "cd ../../ && npm run lint:angular",
     "lint:fix": "npm run lint -- -- --fix",
     "e2e": "ng e2e",
-    "prepack": "npm run build:all",
-    "preinstall": "npx npm-force-resolutions"
+    "prepack": "npm run updateVersion && npm run build:all",
+    "preinstall": "npx npm-force-resolutions",
+    "updateVersion": "node ../../release/updateVersion.js"
   },
   "main": "./dist/bundles/azure-msal-angular.umd.js",
   "typings": "./dist/azure-msal-angular.d.ts",

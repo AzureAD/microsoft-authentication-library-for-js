@@ -32,8 +32,9 @@
     "build:all": "npm run build:common && npm run build:browser && npm run build",
     "build:browser": "cd ../msal-browser && npm run build",
     "build:common": "cd ../msal-common && npm run build",
-    "prepack": "npm run build:all",
+    "prepack": "npm run updateVersion && npm run build:all",
     "storybook": "start-storybook -p 6006",
+    "updateVersion": "node ../../release/updateVersion.js",
     "build-storybook": "build-storybook"
   },
   "peerDependencies": {

@@ -55,7 +55,8 @@
     "build:modules": "rollup -c",
     "build:modules:watch": "rollup -cw",
     "build": "npm run clean && npm run build:modules",
-    "prepack": "npm run build:all"
+    "prepack": "npm run updateVersion && npm run build:all",
+    "updateVersion": "node ../../release/updateVersion.js"
   },
   "devDependencies": {
     "@azure/storage-blob": "^12.2.1",

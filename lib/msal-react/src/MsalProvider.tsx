@@ -12,9 +12,10 @@ import {
     Logger
 } from "@azure/msal-browser";
 import { MsalContext, IMsalContext } from "./MsalContext";
-import { Constants, InteractionStatus } from "./utils/Constants";
+import { InteractionStatus } from "./utils/Constants";
 import { accountArraysAreEqual } from "./utils/utilities";
 import { AccountIdentifiers } from "./types/AccountIdentifiers";
+import { name as SKU, version } from "./version.json";
 
 export type MsalProviderProps = PropsWithChildren<{
     instance: IPublicClientApplication;
@@ -23,7 +24,7 @@ export type MsalProviderProps = PropsWithChildren<{
 export function MsalProvider({instance, children}: MsalProviderProps): React.ReactElement {
     // Create a logger instance for msal-react with the same options as PublicClientApplication
     const logger: Logger = useMemo(() => {
-        return instance.getLogger().clone(Constants.SKU, Constants.VERSION);
+        return instance.getLogger().clone(SKU, version);
     }, [instance]);
 
     // State hook to store accounts
