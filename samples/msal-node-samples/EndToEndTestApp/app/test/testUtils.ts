@@ -40,7 +40,7 @@ export async function enterCredentialsADFSWithConsent(page: Page, screenshot: Sc
 export async function approveConsent(page: Page, screenshot: Screenshot): Promise<void> {
     await page.waitForSelector("#idSIButton9");
     await page.click("#idSIButton9");
-    await takeScreenshotAfter(6000, screenshot, page, 'consentApproved'); 
+    await takeScreenshotAfter(2000, screenshot, page, 'consentApproved'); 
 }
 
 export async function clickSignIn(page: Page, screenshot: Screenshot): Promise<void> {
@@ -58,7 +58,7 @@ export async function enterCredentialsADFS(page: Page, screenshot: Screenshot, u
     await screenshot.takeScreenshot(page, "adfsUsernameInputPage");
     await page.type("#passwordInput", accountPwd);
     await page.click("#submitButton");
-    await takeScreenshotAfter(6000, screenshot, page, `pwdSubmitted`);
+    await takeScreenshotAfter(2000, screenshot, page, `pwdSubmitted`);
 }
 
 export async function enterDeviceCode(page: Page, screenshot: Screenshot, code: string, deviceCodeUrl: string): Promise<void> {
@@ -107,10 +107,6 @@ export async function validateCacheLocation(cacheLocation: string): Promise<void
             }
         });
     });
-}
-
-export async function sleep(delay: number) {
-    return new Promise((resolve) => setTimeout(resolve, delay));
 }
 
 export function checkTimeoutError(output: string): boolean {
