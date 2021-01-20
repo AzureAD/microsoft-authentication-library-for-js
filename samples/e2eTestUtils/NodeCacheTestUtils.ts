@@ -1,11 +1,14 @@
 import fs from "fs";
 import { Deserializer, Serializer } from "../../lib/msal-node";
+import { IdTokenEntity } from "../../lib/msal-common/src/cache/entities/IdTokenEntity";
+import { AccessTokenEntity } from "../../lib/msal-common/src/cache/entities/AccessTokenEntity";
+import { RefreshTokenEntity } from "../../lib/msal-common/src/cache/entities/RefreshTokenEntity";
 import { InMemoryCache } from '../../lib/msal-node/dist/cache/serializer/SerializerTypes';
 
 export type tokenMap = {
-    idTokens: string[],
-    accessTokens: any[],
-    refreshTokens: string[]
+    idTokens: IdTokenEntity[],
+    accessTokens: AccessTokenEntity[],
+    refreshTokens: RefreshTokenEntity[]
 };
 
 export class NodeCacheTestUtils {
@@ -20,12 +23,10 @@ export class NodeCacheTestUtils {
         Object.keys(tokenCache).forEach((cacheSectionKey: string) => {
             Object.keys(deserializedCache[cacheSectionKey]).map((cacheKey) => {
                 const cacheSection = deserializedCache[cacheSectionKey];
-                tokenCache[cacheSectionKey].push({ 
-                    key: cacheKey,
-                    token: cacheSection[cacheKey]
-                });
+                tokenCache[cacheSectionKey].push(cacheSection[cacheKey]);
             })
         });
+
 
         return Promise.resolve(tokenCache);
     }

@@ -99,14 +99,14 @@ describe("Silent Flow AAD PPE Tests", () => {
             await page.waitForSelector("#acquireTokenSilent");
 
             let tokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
-            const originalAccessToken = tokens.accessTokens[0].token;
+            const originalAccessToken = tokens.accessTokens[0];
             await NodeCacheTestUtils.expireAccessTokens(TEST_CACHE_LOCATION);
             tokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
-            const expiredAccessToken = tokens.accessTokens[0].token;
+            const expiredAccessToken = tokens.accessTokens[0];
             await page.click("#acquireTokenSilent");
             await page.waitForSelector(`#${SUCCESSFUL_GRAPH_CALL_ID}`);
             tokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
-            const refreshedAccessToken = tokens.accessTokens[0].token;
+            const refreshedAccessToken = tokens.accessTokens[0];
             await screenshot.takeScreenshot(page, "acquireTokenSilentGotTokens");
             const htmlBody = await page.evaluate(() => document.body.innerHTML);
 

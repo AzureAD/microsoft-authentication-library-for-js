@@ -21,8 +21,6 @@ let username: string;
 let accountPwd: string;
 
 describe('Device Code AAD PPE Tests', () => {
-    jest.setTimeout(90000);
-
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -115,10 +113,10 @@ describe('Device Code AAD PPE Tests', () => {
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
 
-        it.skip("Cancels polling when a user timeout is provided", async () => {
+        it("Cancels polling when a user timeout is provided", async () => {
             testName = "AADDeviceCodeTimeout";
             screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
-            const TIMEOUT_DURATION = 5000;
+            const TIMEOUT_DURATION = 5;
             const deviceStream: Array<any> = [];
             device = spawn(
                 /^win/.test(process.platform) ? "npm.cmd" : "npm",

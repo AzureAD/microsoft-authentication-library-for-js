@@ -21,7 +21,6 @@ let username: string;
 let accountPwd: string;
 
 describe('Device Code ADFS PPE Tests', () => {
-    jest.setTimeout(90000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;

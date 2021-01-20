@@ -109,10 +109,6 @@ export async function validateCacheLocation(cacheLocation: string): Promise<void
     });
 }
 
-export async function sleep(delay: number) {
-    return new Promise((resolve) => setTimeout(resolve, delay));
-}
-
 export function checkTimeoutError(output: string): boolean {
     const timeoutErrorRegex = /user_timeout_reached/;
     return timeoutErrorRegex.test(output);
