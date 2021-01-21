@@ -23,12 +23,8 @@
         "alwaysStrict": true,
         "noUnusedLocals": true,
         "noUnusedParameters": false,
-        "noFallthroughCasesInSwitch": true,
+        "noFallthroughCasesInSwitch": true
     },
-    "rootDir": "./src",
-    "include": [
-        "src/**/*"
-    ],
     "exclude": [
         "node_modules"
     ],
