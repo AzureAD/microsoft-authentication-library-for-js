@@ -6,7 +6,6 @@
     "target": "es2015",
     "declaration": true,
     "inlineSources": true,
-    "resolveJsonModule": true,
     "types": [],
     "lib": [
       "dom",
