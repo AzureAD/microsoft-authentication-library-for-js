@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Tue, 12 Jan 2021 00:51:26 GMT and should not be manually modified.
+This log was last generated on Thu, 21 Jan 2021 21:48:01 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-beta.4
+
+Thu, 21 Jan 2021 21:48:01 GMT
+
+### Changes
+
+- Authority metadata caching (#2758) (thomas.norling@microsoft.com)
 
 ## 1.0.0-beta.3
 

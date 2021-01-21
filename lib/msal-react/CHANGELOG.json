@@ -2,6 +2,35 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Thu, 21 Jan 2021 21:48:01 GMT",
+      "tag": "@azure/msal-react_v1.0.0-alpha.3",
+      "version": "1.0.0-alpha.3",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Fix initial state values (#2865)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "4b41890cf56b9cb60043587dd6065fb4c9144606",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "Add missing license files",
+            "author": "janutter@microsoft.com",
+            "commit": "bee8cbd1f3a22efccb83ba045231eb611e2a7f7d",
+            "package": "@azure/msal-react"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Issue-2887 fix missing import in quickstart",
+            "author": "simon.j.duff@gmail.com",
+            "commit": "4d065cbc8793bb76db40d43517860a55a4cafdd4",
+            "package": "@azure/msal-react"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 12 Jan 2021 00:51:26 GMT",
       "tag": "@azure/msal-react_v1.0.0-alpha.2",
       "version": "1.0.0-alpha.2",
