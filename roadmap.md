@@ -10,5 +10,4 @@ Msal Node Middleware Design|In Progress|February 2021|Work to understand the mid
 Broker In Browser |In Progress|TBD|Application model for application nested in iframes, to support silent token acquisition where 3p cookies are blocked. 
 Msal React GA|Not Started|TBD|After Public Preview, we will continue to evaulate customer feedback, while working to get testing and documentation to GA level.
 Msal Angular 2.0 GA|Not Started|TBD|After Public Preview, we will continue to evaulate customer feedback, while working to get testing and documentation to GA level.
-Support Logout Popup |In Progress|March 2021| Support a popup for logout screen that may require some interaction or be popped from a nested frame. 
-
+Support Logout Popup |In Progress|March 2021| Support logging out via popup, to support scenarios where redirect is not desired or not possible (e.g. nested frame). 
