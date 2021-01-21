@@ -3,9 +3,6 @@
  * Licensed under the MIT License.
  */
 
-/**
- * The Cloud Discovery Metadata Response type.
- */
 export type CloudDiscoveryMetadata = {
     preferred_network: string;
     preferred_cache: string;
