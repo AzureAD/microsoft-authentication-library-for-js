@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, DEFAULT_CRYPTO_IMPLEMENTATION } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -345,6 +345,39 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
+     * 
+     */
+    getAuthorityMetadata(key: string) : AuthorityMetadataEntity | null {
+        const value = this.internalStorage.getItem(key);
+        if (!value) {
+            return null;
+        }
+        const parsedMetadata = this.validateAndParseJson(value);
+        if (parsedMetadata && AuthorityMetadataEntity.isAuthorityMetadataEntity(key, parsedMetadata)) {
+            return CacheManager.toObject(new AuthorityMetadataEntity(), parsedMetadata);
+        }
+        return null;
+    }
+
+    /**
+     * 
+     */
+    getAuthorityMetadataKeys(): Array<string> {
+        const allKeys = this.internalStorage.getKeys();
+        return allKeys.filter((key) => {
+            return this.isAuthorityMetadata(key);
+        });
+    }
+
+    /**
+     * 
+     * @param entity 
+     */
+    setAuthorityMetadata(key: string, entity: AuthorityMetadataEntity): void {
+        this.internalStorage.setItem(key, JSON.stringify(entity));
+    }
+
+    /**
      * fetch throttling entity from the platform cache
      * @param throttlingCacheKey
      */
@@ -456,6 +489,8 @@ export class BrowserCacheManager extends CacheManager {
                 this.removeItem(cacheKey);
             }
         });
+
+        this.internalStorage.clear();
     }
 
     /**

@@ -31,8 +31,7 @@ describe("DeviceCodeClient unit tests", async () => {
     });
 
     beforeEach(async () => {
-        ClientTestUtils.setCloudDiscoveryMetadataStubs();
-        sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+        sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
         config = await ClientTestUtils.createTestClientConfiguration();
         // Set up required objects and mocked return values
         const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
