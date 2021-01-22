@@ -5,7 +5,7 @@
 
 export const Constants = {
     SKU: "@azure/msal-react",
-    VERSION: "1.0.0-alpha.1"
+    VERSION: "1.0.0-alpha.3"
 };
 
 export enum InteractionStatus {

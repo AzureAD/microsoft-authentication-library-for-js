@@ -26,8 +26,7 @@ describe("Username Password unit tests", () => {
     let config: ClientConfiguration;
 
     beforeEach(async () => {
-        ClientTestUtils.setCloudDiscoveryMetadataStubs();
-        sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+        sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
         config = await ClientTestUtils.createTestClientConfiguration();
         // Set up required objects and mocked return values
         const decodedLibState = `{ "id": "testid", "ts": 1592846482 }`;

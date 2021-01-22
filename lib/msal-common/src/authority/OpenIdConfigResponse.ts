@@ -12,3 +12,12 @@ export type OpenIdConfigResponse = {
     end_session_endpoint: string;
     issuer: string;
 };
+
+export function isOpenIdConfigResponse(response: object): boolean {
+    return (
+        response.hasOwnProperty("authorization_endpoint") &&
+        response.hasOwnProperty("token_endpoint") && 
+        response.hasOwnProperty("end_session_endpoint") &&
+        response.hasOwnProperty("issuer")
+    );
+}
