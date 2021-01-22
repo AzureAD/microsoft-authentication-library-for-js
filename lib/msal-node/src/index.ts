@@ -10,6 +10,7 @@ export { IConfidentialClientApplication } from "./client/IConfidentialClientAppl
 // Clients and Configuration
 export { PublicClientApplication } from "./client/PublicClientApplication";
 export { ConfidentialClientApplication } from "./client/ConfidentialClientApplication";
+export { ClientApplication } from "./client/ClientApplication";
 export { Configuration, buildAppConfiguration } from "./config/Configuration";
 
 // Cache and Scetorage

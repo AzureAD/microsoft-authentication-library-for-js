@@ -60,7 +60,7 @@
    * This would direct API Extractor to embed those types directly in the .d.ts rollup, as if they had been
    * local files for library1.
    */
-  "bundledPackages": [],
+  "bundledPackages": ["@azure/msal-common"],
 
   /**
    * Determines how the TypeScript compiler engine will be invoked by API Extractor.
@@ -150,7 +150,7 @@
      * SUPPORTED TOKENS: <projectFolder>, <packageName>, <unscopedPackageName>
      * DEFAULT VALUE: "<projectFolder>/temp/"
      */
-    // "reportTempFolder": "<projectFolder>/temp/"
+    "reportTempFolder": "<projectFolder>/temp/"
   },
 
   /**
@@ -308,7 +308,7 @@
          *
          * DEFAULT VALUE: false
          */
-        // "addToApiReportFile": false
+        "addToApiReportFile": false
       }
 
       // "TS2551": {

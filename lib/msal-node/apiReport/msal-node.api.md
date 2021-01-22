@@ -4,65 +4,59 @@
 
 ```ts
 
-import { AccessTokenCache } from '@azure/msal-common';
-import { AccessTokenEntity } from '@azure/msal-common';
-import { AccountCache } from '@azure/msal-common';
-import { AccountEntity } from '@azure/msal-common';
-import { AccountInfo } from '@azure/msal-common';
-import { AppMetadataCache } from '@azure/msal-common';
-import { AppMetadataEntity } from '@azure/msal-common';
-import { AuthenticationResult } from '@azure/msal-common';
-import { AuthError } from '@azure/msal-common';
-import { AuthErrorMessage } from '@azure/msal-common';
-import { AuthorizationCodeRequest as AuthorizationCodeRequest_2 } from '@azure/msal-common';
-import { AuthorizationUrlRequest as AuthorizationUrlRequest_2 } from '@azure/msal-common';
-import { BaseAuthRequest } from '@azure/msal-common';
-import { CacheManager } from '@azure/msal-common';
-import { ClientAuthError } from '@azure/msal-common';
-import { ClientAuthErrorMessage } from '@azure/msal-common';
-import { ClientConfiguration } from '@azure/msal-common';
-import { ClientConfigurationError } from '@azure/msal-common';
-import { ClientConfigurationErrorMessage } from '@azure/msal-common';
-import { ClientCredentialRequest as ClientCredentialRequest_2 } from '@azure/msal-common';
-import { DeviceCodeRequest as DeviceCodeRequest_2 } from '@azure/msal-common';
-import { DeviceCodeResponse } from '@azure/msal-common';
-import { ICachePlugin } from '@azure/msal-common';
-import { ICrypto } from '@azure/msal-common';
-import { IdTokenCache } from '@azure/msal-common';
-import { IdTokenEntity } from '@azure/msal-common';
-import { INetworkModule } from '@azure/msal-common';
-import { InteractionRequiredAuthError } from '@azure/msal-common';
-import { ISerializableTokenCache } from '@azure/msal-common';
-import { Logger } from '@azure/msal-common';
-import { LoggerOptions } from '@azure/msal-common';
-import { LogLevel } from '@azure/msal-common';
-import { NetworkRequestOptions } from '@azure/msal-common';
-import { NetworkResponse } from '@azure/msal-common';
-import { OnBehalfOfRequest as OnBehalfOfRequest_2 } from '@azure/msal-common';
-import { PkceCodes } from '@azure/msal-common';
-import { PromptValue } from '@azure/msal-common';
-import { ProtocolMode } from '@azure/msal-common';
-import { RefreshTokenCache } from '@azure/msal-common';
-import { RefreshTokenEntity } from '@azure/msal-common';
-import { RefreshTokenRequest as RefreshTokenRequest_2 } from '@azure/msal-common';
-import { ResponseMode } from '@azure/msal-common';
-import { ServerError } from '@azure/msal-common';
-import { ServerTelemetryEntity } from '@azure/msal-common';
-import { ServerTelemetryManager } from '@azure/msal-common';
-import { SilentFlowRequest as SilentFlowRequest_2 } from '@azure/msal-common';
-import { ThrottlingEntity } from '@azure/msal-common';
-import { TokenCacheContext } from '@azure/msal-common';
-import { UsernamePasswordRequest as UsernamePasswordRequest_2 } from '@azure/msal-common';
-import { ValidCacheType } from '@azure/msal-common';
+// @public
+export type AccountInfo = {
+    homeAccountId: string;
+    environment: string;
+    tenantId: string;
+    username: string;
+    localAccountId: string;
+    name?: string;
+    idTokenClaims?: object;
+};
 
-export { AccountInfo }
+// @public
+export type AuthenticationResult = {
+    authority: string;
+    uniqueId: string;
+    tenantId: string;
+    scopes: Array<string>;
+    account: AccountInfo | null;
+    idToken: string;
+    idTokenClaims: object;
+    accessToken: string;
+    fromCache: boolean;
+    expiresOn: Date | null;
+    tokenType: string;
+    extExpiresOn?: Date;
+    state?: string;
+    familyId?: string;
+    cloudGraphHostName?: string;
+    msGraphHost?: string;
+};
 
-export { AuthenticationResult }
+// @public
+export class AuthError extends Error {
+    constructor(errorCode?: string, errorMessage?: string, suberror?: string);
+    static createUnexpectedError(errDesc: string): AuthError;
+    // (undocumented)
+    errorCode: string;
+    // (undocumented)
+    errorMessage: string;
+    // (undocumented)
+    subError: string;
+}
 
-export { AuthError }
+// @public
+export const AuthErrorMessage: {
+    unexpectedError: {
+        code: string;
+        desc: string;
+    };
+};
 
-export { AuthErrorMessage }
-
+// Warning: (ae-forgotten-export) The symbol "AuthorizationCodeRequest" needs to be exported by the entry point index.d.ts
+//
 // @public
 export type AuthorizationCodeRequest = Partial<Omit<AuthorizationCodeRequest_2, "scopes" | "redirectUri" | "code" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri">> & {
     scopes: Array<string>;
@@ -70,6 +64,8 @@ export type AuthorizationCodeRequest = Partial<Omit<AuthorizationCodeRequest_2, 
     code: string;
 };
 
+// Warning: (ae-forgotten-export) The symbol "AuthorizationUrlRequest" needs to be exported by the entry point index.d.ts
+//
 // @public
 export type AuthorizationUrlRequest = Partial<Omit<AuthorizationUrlRequest_2, "scopes" | "redirectUri" | "resourceRequestMethod" | "resourceRequestUri" | "authenticationScheme">> & {
     scopes: Array<string>;
@@ -79,26 +75,362 @@ export type AuthorizationUrlRequest = Partial<Omit<AuthorizationUrlRequest_2, "s
 // @public
 export function buildAppConfiguration({ auth, cache, system, }: Configuration): Configuration;
 
+// Warning: (ae-forgotten-export) The symbol "ValidCacheType" needs to be exported by the entry point index.d.ts
+//
 // @public (undocumented)
 export type CacheKVStore = Record<string, ValidCacheType>;
 
-export { ClientAuthError }
+// @public (undocumented)
+export abstract class ClientApplication {
+    protected constructor(configuration: Configuration);
+    acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult | null>;
+    acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
+    acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null>;
+    // Warning: (ae-forgotten-export) The symbol "ServerTelemetryManager" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "ClientConfiguration" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    protected buildOauthClientConfiguration(authority: string, serverTelemetryManager?: ServerTelemetryManager): Promise<ClientConfiguration>;
+    // Warning: (ae-forgotten-export) The symbol "ClientAssertion" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    protected clientAssertion: ClientAssertion;
+    // (undocumented)
+    protected clientSecret: string;
+    // (undocumented)
+    protected config: Configuration;
+    getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
+    getLogger(): Logger;
+    getTokenCache(): TokenCache;
+    // Warning: (ae-forgotten-export) The symbol "BaseAuthRequest" needs to be exported by the entry point index.d.ts
+    protected initializeBaseRequest(authRequest: Partial<BaseAuthRequest>): BaseAuthRequest;
+    // (undocumented)
+    protected initializeServerTelemetryManager(apiId: number, correlationId: string, forceRefresh?: boolean): ServerTelemetryManager;
+    // (undocumented)
+    protected logger: Logger;
+    setLogger(logger: Logger): void;
+    // (undocumented)
+    protected storage: Storage_2;
+    }
 
-export { ClientAuthErrorMessage }
+// @public
+export class ClientAuthError extends AuthError {
+    constructor(errorCode: string, errorMessage?: string);
+    static createAppendEmptyScopeToSetError(givenScope: string): ClientAuthError;
+    static createAppendScopeSetError(appendError: string): ClientAuthError;
+    static createCachePluginError(): ClientAuthError;
+    static createClientInfoDecodingError(caughtError: string): ClientAuthError;
+    static createClientInfoEmptyError(): ClientAuthError;
+    static createDeviceCodeCancelledError(): ClientAuthError;
+    static createDeviceCodeExpiredError(): ClientAuthError;
+    // Warning: (ae-forgotten-export) The symbol "ScopeSet" needs to be exported by the entry point index.d.ts
+    static createEmptyInputScopeSetError(givenScopeSet: ScopeSet): ClientAuthError;
+    static createEndpointDiscoveryIncompleteError(errDetail: string): ClientAuthError;
+    static createHashNotDeserializedError(hashParamObj: string): ClientAuthError;
+    static createInvalidAssertionError(): ClientAuthError;
+    static createInvalidCacheEnvironmentError(): ClientAuthError;
+    static createInvalidCacheTypeError(): ClientAuthError;
+    static createInvalidCredentialError(): ClientAuthError;
+    static createInvalidStateError(invalidState: string, errorString?: string): ClientAuthError;
+    static createMultipleMatchingAccountsInCacheError(): ClientAuthError;
+    static createMultipleMatchingAppMetadataInCacheError(): ClientAuthError;
+    static createMultipleMatchingTokensInCacheError(): ClientAuthError;
+    static createNoAccountFoundError(): ClientAuthError;
+    static createNoAccountInSilentRequestError(): ClientAuthError;
+    static createNoAuthCodeInServerResponseError(): ClientAuthError;
+    static createNoCryptoObjectError(operationName: string): ClientAuthError;
+    static createNonceMismatchError(): ClientAuthError;
+    static createNonceNotFoundError(missingNonce: string): ClientAuthError;
+    static createNoTokensFoundError(): ClientAuthError;
+    static createNullOrUndefinedCacheRecord(): ClientAuthError;
+    static createRefreshRequiredError(): ClientAuthError;
+    static createRemoveEmptyScopeFromSetError(givenScope: string): ClientAuthError;
+    static createStateMismatchError(): ClientAuthError;
+    static createStateNotFoundError(missingState: string): ClientAuthError;
+    // (undocumented)
+    static createTokenClaimsRequiredError(): ClientAuthError;
+    static createTokenNullOrEmptyError(invalidRawTokenString: string): ClientAuthError;
+    static createTokenParsingError(caughtExtractionError: string): ClientAuthError;
+    static createTokenRequestCannotBeMadeError(): ClientAuthError;
+    static createUnableToGetOpenidConfigError(errDetail: string): ClientAuthError;
+    static createUnexpectedAccountTypeError(): ClientAuthError;
+    static createUnexpectedCredentialTypeError(): ClientAuthError;
+    static createUserTimeoutReachedError(): ClientAuthError;
+}
 
-export { ClientConfigurationError }
+// @public
+export const ClientAuthErrorMessage: {
+    clientInfoDecodingError: {
+        code: string;
+        desc: string;
+    };
+    clientInfoEmptyError: {
+        code: string;
+        desc: string;
+    };
+    tokenParsingError: {
+        code: string;
+        desc: string;
+    };
+    nullOrEmptyToken: {
+        code: string;
+        desc: string;
+    };
+    endpointResolutionError: {
+        code: string;
+        desc: string;
+    };
+    unableToGetOpenidConfigError: {
+        code: string;
+        desc: string;
+    };
+    hashNotDeserialized: {
+        code: string;
+        desc: string;
+    };
+    blankGuidGenerated: {
+        code: string;
+        desc: string;
+    };
+    invalidStateError: {
+        code: string;
+        desc: string;
+    };
+    stateMismatchError: {
+        code: string;
+        desc: string;
+    };
+    stateNotFoundError: {
+        code: string;
+        desc: string;
+    };
+    nonceMismatchError: {
+        code: string;
+        desc: string;
+    };
+    nonceNotFoundError: {
+        code: string;
+        desc: string;
+    };
+    noTokensFoundError: {
+        code: string;
+        desc: string;
+    };
+    multipleMatchingTokens: {
+        code: string;
+        desc: string;
+    };
+    multipleMatchingAccounts: {
+        code: string;
+        desc: string;
+    };
+    multipleMatchingAppMetadata: {
+        code: string;
+        desc: string;
+    };
+    tokenRequestCannotBeMade: {
+        code: string;
+        desc: string;
+    };
+    appendEmptyScopeError: {
+        code: string;
+        desc: string;
+    };
+    removeEmptyScopeError: {
+        code: string;
+        desc: string;
+    };
+    appendScopeSetError: {
+        code: string;
+        desc: string;
+    };
+    emptyInputScopeSetError: {
+        code: string;
+        desc: string;
+    };
+    DeviceCodePollingCancelled: {
+        code: string;
+        desc: string;
+    };
+    DeviceCodeExpired: {
+        code: string;
+        desc: string;
+    };
+    NoAccountInSilentRequest: {
+        code: string;
+        desc: string;
+    };
+    invalidCacheRecord: {
+        code: string;
+        desc: string;
+    };
+    invalidCacheEnvironment: {
+        code: string;
+        desc: string;
+    };
+    noAccountFound: {
+        code: string;
+        desc: string;
+    };
+    CachePluginError: {
+        code: string;
+        desc: string;
+    };
+    noCryptoObj: {
+        code: string;
+        desc: string;
+    };
+    invalidCacheType: {
+        code: string;
+        desc: string;
+    };
+    unexpectedAccountType: {
+        code: string;
+        desc: string;
+    };
+    unexpectedCredentialType: {
+        code: string;
+        desc: string;
+    };
+    invalidAssertion: {
+        code: string;
+        desc: string;
+    };
+    invalidClientCredential: {
+        code: string;
+        desc: string;
+    };
+    tokenRefreshRequired: {
+        code: string;
+        desc: string;
+    };
+    userTimeoutReached: {
+        code: string;
+        desc: string;
+    };
+    tokenClaimsRequired: {
+        code: string;
+        desc: string;
+    };
+    noAuthorizationCodeFromServer: {
+        code: string;
+        desc: string;
+    };
+};
 
-export { ClientConfigurationErrorMessage }
+// @public
+export class ClientConfigurationError extends ClientAuthError {
+    constructor(errorCode: string, errorMessage?: string);
+    static createClaimsRequestParsingError(claimsRequestParseError: string): ClientConfigurationError;
+    static createClientIdSingleScopeError(inputScopes: Array<string>): ClientConfigurationError;
+    static createEmptyLogoutRequestError(): ClientConfigurationError;
+    static createEmptyScopesArrayError(inputScopes: Array<string>): ClientConfigurationError;
+    static createEmptyTokenRequestError(): ClientConfigurationError;
+    static createInsecureAuthorityUriError(urlString: string): ClientConfigurationError;
+    static createInvalidAuthorityMetadataError(): ClientConfigurationError;
+    static createInvalidClaimsRequestError(): ClientConfigurationError;
+    static createInvalidCloudDiscoveryMetadataError(): ClientConfigurationError;
+    static createInvalidCodeChallengeMethodError(): ClientConfigurationError;
+    static createInvalidCodeChallengeParamsError(): ClientConfigurationError;
+    static createInvalidPromptError(promptValue: string): ClientConfigurationError;
+    static createPostLogoutRedirectUriEmptyError(): ClientConfigurationError;
+    static createRedirectUriEmptyError(): ClientConfigurationError;
+    static createResourceRequestParametersRequiredError(): ClientConfigurationError;
+    static createScopesNonArrayError(inputScopes: Array<string>): ClientConfigurationError;
+    static createUntrustedAuthorityError(): ClientConfigurationError;
+    static createUrlEmptyError(): ClientConfigurationError;
+    static createUrlParseError(urlParseError: string): ClientConfigurationError;
+}
 
+// @public
+export const ClientConfigurationErrorMessage: {
+    redirectUriNotSet: {
+        code: string;
+        desc: string;
+    };
+    postLogoutUriNotSet: {
+        code: string;
+        desc: string;
+    };
+    claimsRequestParsingError: {
+        code: string;
+        desc: string;
+    };
+    authorityUriInsecure: {
+        code: string;
+        desc: string;
+    };
+    urlParseError: {
+        code: string;
+        desc: string;
+    };
+    urlEmptyError: {
+        code: string;
+        desc: string;
+    };
+    emptyScopesError: {
+        code: string;
+        desc: string;
+    };
+    nonArrayScopesError: {
+        code: string;
+        desc: string;
+    };
+    clientIdSingleScopeError: {
+        code: string;
+        desc: string;
+    };
+    invalidPrompt: {
+        code: string;
+        desc: string;
+    };
+    invalidClaimsRequest: {
+        code: string;
+        desc: string;
+    };
+    tokenRequestEmptyError: {
+        code: string;
+        desc: string;
+    };
+    logoutRequestEmptyError: {
+        code: string;
+        desc: string;
+    };
+    invalidCodeChallengeMethod: {
+        code: string;
+        desc: string;
+    };
+    invalidCodeChallengeParams: {
+        code: string;
+        desc: string;
+    };
+    invalidCloudDiscoveryMetadata: {
+        code: string;
+        desc: string;
+    };
+    invalidAuthorityMetadata: {
+        code: string;
+        desc: string;
+    };
+    untrustedAuthority: {
+        code: string;
+        desc: string;
+    };
+    resourceRequestParametersRequired: {
+        code: string;
+        desc: string;
+    };
+};
+
+// Warning: (ae-forgotten-export) The symbol "ClientCredentialRequest" needs to be exported by the entry point index.d.ts
+//
 // @public
 export type ClientCredentialRequest = Partial<Omit<ClientCredentialRequest_2, "scopes" | "resourceRequestMethod" | "resourceRequestUri">> & {
     scopes: Array<string>;
 };
 
-// Warning: (ae-forgotten-export) The symbol "ClientApplication" needs to be exported by the entry point index.d.ts
-//
 // @public (undocumented)
-export class ConfidentialClientApplication extends ClientApplication {
+export class ConfidentialClientApplication extends ClientApplication implements IConfidentialClientApplication {
     constructor(configuration: Configuration);
     acquireTokenByClientCredential(request: ClientCredentialRequest): Promise<AuthenticationResult | null>;
     acquireTokenOnBehalfOf(request: OnBehalfOfRequest): Promise<AuthenticationResult | null>;
@@ -111,12 +443,15 @@ export type Configuration = {
     system?: NodeSystemOptions;
 };
 
+// Warning: (ae-forgotten-export) The symbol "ICrypto" needs to be exported by the entry point index.d.ts
+//
 // @public
 export class CryptoProvider implements ICrypto {
     constructor();
     base64Decode(input: string): string;
     base64Encode(input: string): string;
     createNewGuid(): string;
+    // Warning: (ae-forgotten-export) The symbol "PkceCodes" needs to be exported by the entry point index.d.ts
     generatePkceCodes(): Promise<PkceCodes>;
     // (undocumented)
     getPublicKeyThumbprint(): Promise<string>;
@@ -127,68 +462,199 @@ export class CryptoProvider implements ICrypto {
 // @public
 export class Deserializer {
     // Warning: (ae-forgotten-export) The symbol "SerializedAccessTokenEntity" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "AccessTokenCache" needs to be exported by the entry point index.d.ts
     static deserializeAccessTokens(accessTokens: Record<string, SerializedAccessTokenEntity>): AccessTokenCache;
     // Warning: (ae-forgotten-export) The symbol "SerializedAccountEntity" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "AccountCache" needs to be exported by the entry point index.d.ts
     static deserializeAccounts(accounts: Record<string, SerializedAccountEntity>): AccountCache;
     // Warning: (ae-forgotten-export) The symbol "InMemoryCache" needs to be exported by the entry point index.d.ts
     static deserializeAllCache(jsonCache: JsonCache): InMemoryCache;
     // Warning: (ae-forgotten-export) The symbol "SerializedAppMetadataEntity" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "AppMetadataCache" needs to be exported by the entry point index.d.ts
     static deserializeAppMetadata(appMetadata: Record<string, SerializedAppMetadataEntity>): AppMetadataCache;
     // Warning: (ae-forgotten-export) The symbol "SerializedIdTokenEntity" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "IdTokenCache" needs to be exported by the entry point index.d.ts
     static deserializeIdTokens(idTokens: Record<string, SerializedIdTokenEntity>): IdTokenCache;
     // Warning: (ae-forgotten-export) The symbol "JsonCache" needs to be exported by the entry point index.d.ts
     static deserializeJSONBlob(jsonFile: string): JsonCache;
     // Warning: (ae-forgotten-export) The symbol "SerializedRefreshTokenEntity" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "RefreshTokenCache" needs to be exported by the entry point index.d.ts
     static deserializeRefreshTokens(refreshTokens: Record<string, SerializedRefreshTokenEntity>): RefreshTokenCache;
 }
 
+// Warning: (ae-forgotten-export) The symbol "DeviceCodeRequest" needs to be exported by the entry point index.d.ts
+//
 // @public
 export type DeviceCodeRequest = Partial<Omit<DeviceCodeRequest_2, "scopes" | "deviceCodeCallback" | "resourceRequestMethod" | "resourceRequestUri">> & {
     scopes: Array<string>;
     deviceCodeCallback: (response: DeviceCodeResponse) => void;
 };
 
-export { ICachePlugin }
+// @public (undocumented)
+export interface ICachePlugin {
+    // (undocumented)
+    afterCacheAccess: (tokenCacheContext: TokenCacheContext) => Promise<void>;
+    // (undocumented)
+    beforeCacheAccess: (tokenCacheContext: TokenCacheContext) => Promise<void>;
+}
 
-export { INetworkModule }
+// @public (undocumented)
+export interface IConfidentialClientApplication {
+    // (undocumented)
+    acquireTokenByClientCredential(request: ClientCredentialRequest): Promise<AuthenticationResult | null>;
+    // (undocumented)
+    acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult | null>;
+    // (undocumented)
+    acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
+    // (undocumented)
+    acquireTokenOnBehalfOf(request: OnBehalfOfRequest): Promise<AuthenticationResult | null>;
+    // (undocumented)
+    acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null>;
+    // (undocumented)
+    getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
+    // (undocumented)
+    getLogger(): Logger;
+    // (undocumented)
+    getTokenCache(): TokenCache;
+    // (undocumented)
+    setLogger(logger: Logger): void;
+}
 
-export { InteractionRequiredAuthError }
+// @public
+export interface INetworkModule {
+    sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>>;
+    sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>>;
+}
 
-export { ISerializableTokenCache }
+// @public
+export class InteractionRequiredAuthError extends ServerError {
+    constructor(errorCode?: string, errorMessage?: string, subError?: string);
+    // (undocumented)
+    static isInteractionRequiredError(errorCode?: string, errorString?: string, subError?: string): boolean;
+}
 
-export { Logger }
+// @public (undocumented)
+export interface IPublicClientApplication {
+    // (undocumented)
+    acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult | null>;
+    // (undocumented)
+    acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null>;
+    // (undocumented)
+    acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
+    // Warning: (ae-forgotten-export) The symbol "UsernamePasswordRequest" needs to be exported by the entry point index.d.ts
+    //
+    // (undocumented)
+    acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
+    // (undocumented)
+    acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null>;
+    // (undocumented)
+    getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
+    // (undocumented)
+    getLogger(): Logger;
+    // (undocumented)
+    getTokenCache(): TokenCache;
+    // (undocumented)
+    setLogger(logger: Logger): void;
+}
 
-export { LogLevel }
+// @public (undocumented)
+export interface ISerializableTokenCache {
+    // (undocumented)
+    deserialize: (cache: string) => void;
+    // (undocumented)
+    serialize: () => string;
+}
 
-export { NetworkRequestOptions }
+// @public
+export class Logger {
+    // Warning: (ae-forgotten-export) The symbol "LoggerOptions" needs to be exported by the entry point index.d.ts
+    constructor(loggerOptions: LoggerOptions, packageName?: string, packageVersion?: string);
+    clone(packageName: string, packageVersion: string): Logger;
+    error(message: string, correlationId?: string): void;
+    errorPii(message: string, correlationId?: string): void;
+    executeCallback(level: LogLevel, message: string, containsPii: boolean): void;
+    info(message: string, correlationId?: string): void;
+    infoPii(message: string, correlationId?: string): void;
+    isPiiLoggingEnabled(): boolean;
+    verbose(message: string, correlationId?: string): void;
+    verbosePii(message: string, correlationId?: string): void;
+    warning(message: string, correlationId?: string): void;
+    warningPii(message: string, correlationId?: string): void;
+}
 
-export { NetworkResponse }
+// @public
+export enum LogLevel {
+    // (undocumented)
+    Error = 0,
+    // (undocumented)
+    Info = 2,
+    // (undocumented)
+    Verbose = 3,
+    // (undocumented)
+    Warning = 1
+}
 
+// @public
+export type NetworkRequestOptions = {
+    headers?: Record<string, string>;
+    body?: string;
+};
+
+// @public (undocumented)
+export type NetworkResponse<T> = {
+    headers: Record<string, string>;
+    body: T;
+    status: number;
+};
+
+// Warning: (ae-forgotten-export) The symbol "OnBehalfOfRequest" needs to be exported by the entry point index.d.ts
+//
 // @public
 export type OnBehalfOfRequest = Partial<Omit<OnBehalfOfRequest_2, "oboAssertion" | "scopes" | "resourceRequestMethod" | "resourceRequestUri">> & {
     oboAssertion: string;
     scopes: Array<string>;
 };
 
-export { PromptValue }
-
-export { ProtocolMode }
+// @public
+export const PromptValue: {
+    LOGIN: string;
+    SELECT_ACCOUNT: string;
+    CONSENT: string;
+    NONE: string;
+};
 
 // @public
-export class PublicClientApplication extends ClientApplication {
+export enum ProtocolMode {
+    // (undocumented)
+    AAD = "AAD",
+    // (undocumented)
+    OIDC = "OIDC"
+}
+
+// @public
+export class PublicClientApplication extends ClientApplication implements IPublicClientApplication {
     constructor(configuration: Configuration);
     acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null>;
-    // Warning: (ae-forgotten-export) The symbol "UsernamePasswordRequest" needs to be exported by the entry point index.d.ts
     acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
 }
 
+// Warning: (ae-forgotten-export) The symbol "RefreshTokenRequest" needs to be exported by the entry point index.d.ts
+//
 // @public
 export type RefreshTokenRequest = Partial<Omit<RefreshTokenRequest_2, "scopes" | "refreshToken" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri">> & {
     scopes: Array<string>;
     refreshToken: string;
 };
 
-export { ResponseMode }
+// @public
+export enum ResponseMode {
+    // (undocumented)
+    FORM_POST = "form_post",
+    // (undocumented)
+    FRAGMENT = "fragment",
+    // (undocumented)
+    QUERY = "query"
+}
 
 // @public (undocumented)
 export class Serializer {
@@ -201,14 +667,21 @@ export class Serializer {
     static serializeRefreshTokens(rtCache: RefreshTokenCache): Record<string, SerializedRefreshTokenEntity>;
 }
 
-export { ServerError }
+// @public
+export class ServerError extends AuthError {
+    constructor(errorCode?: string, errorMessage?: string, subError?: string);
+}
 
+// Warning: (ae-forgotten-export) The symbol "SilentFlowRequest" needs to be exported by the entry point index.d.ts
+//
 // @public
 export type SilentFlowRequest = Partial<Omit<SilentFlowRequest_2, "account" | "scopes" | "resourceRequestMethod" | "resourceRequestUri">> & {
     account: AccountInfo;
     scopes: Array<string>;
 };
 
+// Warning: (ae-forgotten-export) The symbol "CacheManager" needs to be exported by the entry point index.d.ts
+//
 // @public
 class Storage_2 extends CacheManager {
     constructor(logger: Logger, clientId: string, cryptoImpl: ICrypto);
@@ -219,16 +692,26 @@ class Storage_2 extends CacheManager {
     emitChange(): void;
     static generateInMemoryCache(cache: string): InMemoryCache;
     static generateJsonCache(inMemoryCache: InMemoryCache): JsonCache;
+    // Warning: (ae-forgotten-export) The symbol "AccessTokenEntity" needs to be exported by the entry point index.d.ts
     getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity | null;
+    // Warning: (ae-forgotten-export) The symbol "AccountEntity" needs to be exported by the entry point index.d.ts
     getAccount(accountKey: string): AccountEntity | null;
+    // Warning: (ae-forgotten-export) The symbol "AppMetadataEntity" needs to be exported by the entry point index.d.ts
     getAppMetadata(appMetadataKey: string): AppMetadataEntity | null;
+    // Warning: (ae-forgotten-export) The symbol "AuthorityMetadataEntity" needs to be exported by the entry point index.d.ts
+    getAuthorityMetadata(key: string): AuthorityMetadataEntity | null;
+    getAuthorityMetadataKeys(): Array<string>;
     getCache(): CacheKVStore;
+    // Warning: (ae-forgotten-export) The symbol "IdTokenEntity" needs to be exported by the entry point index.d.ts
     getIdTokenCredential(idTokenKey: string): IdTokenEntity | null;
     getInMemoryCache(): InMemoryCache;
     getItem(key: string): ValidCacheType;
     getKeys(): string[];
+    // Warning: (ae-forgotten-export) The symbol "RefreshTokenEntity" needs to be exported by the entry point index.d.ts
     getRefreshTokenCredential(refreshTokenKey: string): RefreshTokenEntity | null;
+    // Warning: (ae-forgotten-export) The symbol "ServerTelemetryEntity" needs to be exported by the entry point index.d.ts
     getServerTelemetry(serverTelemetrykey: string): ServerTelemetryEntity | null;
+    // Warning: (ae-forgotten-export) The symbol "ThrottlingEntity" needs to be exported by the entry point index.d.ts
     getThrottlingCache(throttlingCacheKey: string): ThrottlingEntity | null;
     inMemoryCacheToCache(inMemoryCache: InMemoryCache): CacheKVStore;
     // (undocumented)
@@ -237,6 +720,7 @@ class Storage_2 extends CacheManager {
     setAccessTokenCredential(accessToken: AccessTokenEntity): void;
     setAccount(account: AccountEntity): void;
     setAppMetadata(appMetadata: AppMetadataEntity): void;
+    setAuthorityMetadata(key: string, metadata: AuthorityMetadataEntity): void;
     setCache(cache: CacheKVStore): void;
     setIdTokenCredential(idToken: IdTokenEntity): void;
     setInMemoryCache(inMemoryCache: InMemoryCache): void;
@@ -248,8 +732,10 @@ class Storage_2 extends CacheManager {
 
 export { Storage_2 as Storage }
 
+// Warning: (ae-forgotten-export) The symbol "ITokenCache" needs to be exported by the entry point index.d.ts
+//
 // @public
-export class TokenCache implements ISerializableTokenCache {
+export class TokenCache implements ISerializableTokenCache, ITokenCache {
     constructor(storage: Storage_2, logger: Logger, cachePlugin?: ICachePlugin);
     deserialize(cache: string): void;
     getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null>;
@@ -262,14 +748,26 @@ export class TokenCache implements ISerializableTokenCache {
     serialize(): string;
     }
 
-export { TokenCacheContext }
+// @public (undocumented)
+export class TokenCacheContext {
+    constructor(tokenCache: ISerializableTokenCache, hasChanged: boolean);
+    // (undocumented)
+    cache: ISerializableTokenCache;
+    // (undocumented)
+    get cacheHasChanged(): boolean;
+    // (undocumented)
+    hasChanged: boolean;
+    // (undocumented)
+    get tokenCache(): ISerializableTokenCache;
+}
 
 
 // Warnings were encountered during analysis:
 //
-// dist/config/Configuration.d.ts:52:5 - (ae-forgotten-export) The symbol "NodeAuthOptions" needs to be exported by the entry point index.d.ts
-// dist/config/Configuration.d.ts:53:5 - (ae-forgotten-export) The symbol "CacheOptions" needs to be exported by the entry point index.d.ts
-// dist/config/Configuration.d.ts:54:5 - (ae-forgotten-export) The symbol "NodeSystemOptions" needs to be exported by the entry point index.d.ts
+// dist/config/Configuration.d.ts:53:5 - (ae-forgotten-export) The symbol "NodeAuthOptions" needs to be exported by the entry point index.d.ts
+// dist/config/Configuration.d.ts:54:5 - (ae-forgotten-export) The symbol "CacheOptions" needs to be exported by the entry point index.d.ts
+// dist/config/Configuration.d.ts:55:5 - (ae-forgotten-export) The symbol "NodeSystemOptions" needs to be exported by the entry point index.d.ts
+// dist/request/DeviceCodeRequest.d.ts:12:5 - (ae-forgotten-export) The symbol "DeviceCodeResponse" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
