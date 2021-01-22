@@ -16,7 +16,8 @@ import {
     SCREENSHOT_BASE_FOLDER_NAME,
     SAMPLE_HOME_URL,
     SUCCESSFUL_GRAPH_CALL_ID, 
-    SUCCESSFUL_GET_ALL_ACCOUNTS_ID } from "../testUtils";
+    SUCCESSFUL_GET_ALL_ACCOUNTS_ID, 
+    validateCacheLocation} from "../testUtils";
 
 let username: string;
 let accountPwd: string;
@@ -24,9 +25,11 @@ let accountPwd: string;
 const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
 
 describe("Silent Flow AAD PPE Tests", () => {
+    jest.setTimeout(10000);
     let browser: puppeteer.Browser;
 
     beforeAll(async () => {
+        await validateCacheLocation(TEST_CACHE_LOCATION);
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
         const labApiParms: LabApiQueryParams = {
             azureEnvironment: AzureEnvironments.PPE,
@@ -71,7 +74,7 @@ describe("Silent Flow AAD PPE Tests", () => {
             await enterCredentials(page, screenshot, username, accountPwd);
             await page.waitForSelector("#acquireTokenSilent");
             await page.click("#acquireTokenSilent");
-            const cachedTokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+            const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
@@ -98,14 +101,14 @@ describe("Silent Flow AAD PPE Tests", () => {
             await enterCredentials(page, screenshot, username, accountPwd);
             await page.waitForSelector("#acquireTokenSilent");
 
-            let tokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+            let tokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             const originalAccessToken = tokens.accessTokens[0];
             await NodeCacheTestUtils.expireAccessTokens(TEST_CACHE_LOCATION);
-            tokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+            tokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             const expiredAccessToken = tokens.accessTokens[0];
             await page.click("#acquireTokenSilent");
             await page.waitForSelector(`#${SUCCESSFUL_GRAPH_CALL_ID}`);
-            tokens = await NodeCacheTestUtils.getTokens(TEST_CACHE_LOCATION);
+            tokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             const refreshedAccessToken = tokens.accessTokens[0];
             await screenshot.takeScreenshot(page, "acquireTokenSilentGotTokens");
             const htmlBody = await page.evaluate(() => document.body.innerHTML);
