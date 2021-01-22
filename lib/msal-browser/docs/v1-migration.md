@@ -124,4 +124,4 @@ Please see the [login](./login-user.md) and [acquire token](./acquire-token.md) 
 
 Refresh tokens are now returned as part of the token responses, and are used by the library to renew access tokens without interaction or the use of iframes. See the [token lifetimes docs](./token-lifetimes.md) for more information on renewing tokens.
 
-All other APIs should work as before. It is recommended to take a look at the [default sample](../../../samples/VanillaJSTestApp2.0/default) to see a working example of MSAL 2.0.
+All other APIs should work as before. It is recommended to take a look at the [default sample](../../../samples/msal-browser-samples/VanillaJSTestApp2.0) to see a working example of MSAL 2.0.
