@@ -14,18 +14,22 @@ import {
     checkTimeoutError,
  } from "../testUtils";
 
-const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
-const SUCCESSFUL_SIGNED_IN_MESSAGE = "You have signed in";
+ import scenarioConfig from "../../scenarios/device-code-adfs.json";
+ import { PublicClientApplication } from "../../../../../../lib/msal-node";
+ const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
+ 
+ const getDeviceCode = require("../../routes/deviceCode.js");
+ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
+ 
 
 let username: string;
 let accountPwd: string;
 
 describe('Device Code ADFS PPE Tests', () => {
+    jest.setTimeout(15000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
-    let device: ChildProcessWithoutNullStreams;
-    const stream: Array<any> = [];
     
     beforeAll(async() => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
@@ -54,50 +58,44 @@ describe('Device Code ADFS PPE Tests', () => {
     describe("Acquire Token", () => {
         let testName: string;
         let screenshot: Screenshot;
+        let publicClientApplication: PublicClientApplication;
 
         beforeAll(() => {
-            testName = "deviceCodeADFSFlowBaseCase";
-            screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            const clientConfig = { auth: scenarioConfig.authOptions, cache: { cachePlugin }};
+            publicClientApplication = new PublicClientApplication(clientConfig);
             NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
 
         beforeEach(async () => {
-            device = spawn(/^win/.test(process.platform) ? "npm.cmd" : "npm", ["start", "--", "-s", "device-code-adfs", "-c", TEST_CACHE_LOCATION]);
-
-            device.stdout.on('data', (chunk) => stream.push(chunk));
-
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
             page.setDefaultNavigationTimeout(0);
         });
 
         afterEach(async () => {
-            device.kill();
             await page.close();
             await context.close();
             NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
 
-        it("Performs acquire token with Device Code flow", async () => {
-            const { deviceCode, deviceLoginUrl }: { deviceCode: string, deviceLoginUrl: string } = await new Promise((resolve) => {
-                const intervalId = setInterval(() => {
-                    const output = Buffer.concat(stream).toString();
-                    const deviceCodeParameters = extractDeviceCodeParameters(output);
-                    if (deviceCodeParameters) {
-                        clearInterval(intervalId);  
-                        resolve(deviceCodeParameters);
-                    }
-                }, 500);
-            });
+        it("Performs acquire token with Device Code flow", async (done) => {
+            testName = "AADAcquireTokenWithDeviceCode";
+            screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
 
-            await enterDeviceCode(page, screenshot, deviceCode, deviceLoginUrl);
-            await enterCredentialsADFS(page, screenshot, username, accountPwd);
-            const htmlBody = await page.evaluate(() => document.body.innerHTML);
-            expect(htmlBody).toContain(SUCCESSFUL_SIGNED_IN_MESSAGE);
+            const deviceCodeCallback = async(deviceCodeResponse: any) => {
+                const { userCode, verificationUri} = deviceCodeResponse;
+                await enterDeviceCode(page, screenshot, userCode, verificationUri);
+                await enterCredentialsADFS(page, screenshot, username, accountPwd);
+                await page.waitForSelector("#message");
+                await screenshot.takeScreenshot(page, "SuccessfulDeviceCodeMessage");
+            };
+            
+            await getDeviceCode(scenarioConfig, publicClientApplication, { deviceCodeCallback: deviceCodeCallback });
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
+            done();
          });
     });
 });

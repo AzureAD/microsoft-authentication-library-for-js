@@ -1,6 +1,5 @@
 import "jest";
 import puppeteer from "puppeteer";
-import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import { Screenshot, createFolder, setupCredentials } from "../../../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
@@ -19,12 +18,9 @@ let username: string;
 let accountPwd: string;
 
 describe('Auth Code ADFS PPE Tests', () => {
-    jest.setTimeout(60000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
-    let device: ChildProcessWithoutNullStreams;
-    const stream: Array<any> = [];
     
     beforeAll(async() => {
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);

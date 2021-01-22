@@ -8,9 +8,9 @@ const fs = require('fs');
  * Cache Plugin configuration
  */
 
-module.exports = async function(cacheLocation) {
-    const beforeCacheAccess = async (cacheContext) => {
-        return new Promise(async (resolve, reject) => {
+module.exports = function (cacheLocation) {
+    const beforeCacheAccess = (cacheContext) => {
+        return new Promise((resolve, reject) => {
             if (fs.existsSync(cacheLocation)) {
                 fs.readFile(cacheLocation, "utf-8", (err, data) => {
                     if (err) {
@@ -28,17 +28,23 @@ module.exports = async function(cacheLocation) {
                 });
             }
         });
+    }
+    
+    const afterCacheAccess = (cacheContext) => {
+        return new Promise((resolve, reject) => {
+            if(cacheContext.cacheHasChanged){
+                fs.writeFile(cacheLocation, cacheContext.tokenCache.serialize(), (err) => {
+                    if (err) {
+                        reject(err);
+                    }
+                    resolve();
+                });
+            } else {
+                resolve();
+            }
+        });
     };
     
-    const afterCacheAccess = async (cacheContext) => {
-        if(cacheContext.cacheHasChanged){
-            await fs.writeFile(cacheLocation, cacheContext.tokenCache.serialize(), (err) => {
-                if (err) {
-                    console.log(err);
-                }
-            });
-        }
-    };
     
     return {
         beforeCacheAccess,

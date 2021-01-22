@@ -5,10 +5,11 @@
 
  module.exports = function(scenarioConfig, clientApplication, runtimeOptions) {
     const requestConfig = scenarioConfig.request;
+    const defaultCallback = (response) => console.log(response.message);
 
     const deviceCodeRequest = { 
         ...requestConfig.deviceCodeUrlParameters,
-        deviceCodeCallback: (response) => (console.log(response.message))
+        deviceCodeCallback: runtimeOptions.deviceCodeCallback || defaultCallback
     };
 
     // Check if a timeout was provided at runtime.
@@ -16,9 +17,9 @@
         deviceCodeRequest.timeout = runtimeOptions.timeout;
     }
     
-    clientApplication.acquireTokenByDeviceCode(deviceCodeRequest).then((response) => {
-        console.log(JSON.stringify(response));
+    return clientApplication.acquireTokenByDeviceCode(deviceCodeRequest).then((response) => {
+        return response;
     }).catch((error) => {
-        console.log(JSON.stringify(error));
+        return error;
     });
  }
