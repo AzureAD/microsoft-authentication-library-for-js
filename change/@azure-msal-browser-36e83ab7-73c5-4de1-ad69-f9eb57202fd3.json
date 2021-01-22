@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Add missing license files",
-  "packageName": "@azure/msal-browser",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none"
-}
