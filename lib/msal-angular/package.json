@@ -18,7 +18,7 @@
     "prepack": "npm run updateVersion && npm run build:all",
     "preinstall": "npx npm-force-resolutions",
     "prepublishOnly": "echo Use npm run deploy && exit 1",
-    "updateVersion": "node ../../release/updateVersion.js"
+    "updateVersion": "node ../../release-scripts/updateVersion.js"
   },
   "main": "./dist/bundles/azure-msal-angular.umd.js",
   "typings": "./dist/azure-msal-angular.d.ts",

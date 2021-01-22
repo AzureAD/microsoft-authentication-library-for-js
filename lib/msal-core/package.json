@@ -46,7 +46,7 @@
     "lint:fix": "npm run lint -- -- --fix",
     "build:webpack": "webpack",
     "prepack": "npm run updateVersion && npm run lint && npm test && npm run build",
-    "updateVersion": "node ../../release/updateVersion.js"
+    "updateVersion": "node ../../release-scripts/updateVersion.js"
   },
   "dependencies": {
     "tslib": "^1.9.3"
