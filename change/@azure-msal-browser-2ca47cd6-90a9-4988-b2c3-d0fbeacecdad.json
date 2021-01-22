@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "redirectStartPage supports relative URIs (#2866)",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
