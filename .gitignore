@@ -271,5 +271,6 @@ lib/msal-core/lib-es6
 *.zip
 samples/**/screenshots
 samples/**/data/cache.json
+samples/**/data/testCache.json
 samples/**/dist/
 .env
