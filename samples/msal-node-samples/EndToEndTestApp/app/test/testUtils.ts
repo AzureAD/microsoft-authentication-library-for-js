@@ -25,6 +25,16 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
     await page.type("#i0118", accountPwd);
     await screenshot.takeScreenshot(page, "loginPagePasswordFilled")
     await page.click("#idSIButton9");
+    try {
+        await page.waitForSelector('#KmsiCheckboxField', {timeout: 1000});
+        await screenshot.takeScreenshot(page, "kmsiPage");
+        await Promise.all([
+            page.click("#idSIButton9"),
+            page.waitForNavigation({ waitUntil: "networkidle0"})
+        ]);
+    } catch (e) {
+        return;
+    }
 }
 
 export async function enterCredentialsWithConsent(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
@@ -67,23 +77,6 @@ export async function enterDeviceCode(page: Page, screenshot: Screenshot, code: 
     await screenshot.takeScreenshot(page, 'deviceCodePage');
     await page.type("#otc", code);
     await page.click("#idSIButton9");
-}
-
-export function extractDeviceCodeParameters(output: string): { deviceCode: string, deviceLoginUrl: string } | null {
-    const deviceLoginUrlRegex = /(?<url>(https?|chrome):\/\/[^\s$.?#].[^\s]*)/;
-    const deviceCodeRegex = /code (?<code>\w+)/
-
-    if (deviceCodeRegex.test(output) && deviceLoginUrlRegex.test(output)) {
-        const deviceCode = output.match(deviceCodeRegex).groups.code;
-        const deviceLoginUrl = output.match(deviceLoginUrlRegex).groups.url;
-
-        return {
-            deviceCode,
-            deviceLoginUrl,
-        };
-    }
-
-    return null;
 }
 
 export function takeScreenshotAfter(duration: number, screenshot: Screenshot, page: Page, label: string): Promise<void> {

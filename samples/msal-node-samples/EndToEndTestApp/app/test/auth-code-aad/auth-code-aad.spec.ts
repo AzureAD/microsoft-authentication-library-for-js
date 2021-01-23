@@ -122,8 +122,7 @@ describe('Auth Code AAD PPE Tests', () => {
             const STATE_VALUE = "value_on_state";
             await page.goto(`${HOME_ROUTE}/?prompt=login&state=${STATE_VALUE}`);
             await enterCredentials(page, screenshot, username, accountPwd);
-            await new Promise(resolve => { setTimeout(() => { resolve(true) }, 4000)});
-            const url = await page.url();
+            const url = page.url();
             expect(url.includes(`state=${STATE_VALUE}`)).toBe(true);
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             expect(cachedTokens.accessTokens.length).toBe(1);

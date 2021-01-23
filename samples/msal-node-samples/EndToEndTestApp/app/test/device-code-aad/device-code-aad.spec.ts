@@ -9,9 +9,7 @@ import {
     enterCredentials, 
     enterDeviceCode,
     SCREENSHOT_BASE_FOLDER_NAME,
-    extractDeviceCodeParameters,
-    validateCacheLocation,
-    checkTimeoutError
+    validateCacheLocation
  } from "../testUtils";
 
 import scenarioConfig from "../../scenarios/device-code-aad.json";
@@ -34,6 +32,7 @@ describe('Device Code AAD PPE Tests', () => {
     let clientConfig: Configuration;
     
     beforeAll(async () => {
+        await validateCacheLocation(TEST_CACHE_LOCATION);
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
         const labApiParms: LabApiQueryParams = {
             azureEnvironment: AzureEnvironments.PPE,

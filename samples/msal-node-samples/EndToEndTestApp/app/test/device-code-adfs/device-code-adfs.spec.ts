@@ -9,9 +9,8 @@ import { AppTypes, AzureEnvironments, FederationProviders, UserTypes } from "../
 import { 
     enterDeviceCode,
     SCREENSHOT_BASE_FOLDER_NAME,
-    extractDeviceCodeParameters,
     enterCredentialsADFS,
-    checkTimeoutError,
+    validateCacheLocation
  } from "../testUtils";
 
  import scenarioConfig from "../../scenarios/device-code-adfs.json";
@@ -32,6 +31,7 @@ describe('Device Code ADFS PPE Tests', () => {
     let page: puppeteer.Page;
     
     beforeAll(async() => {
+        await validateCacheLocation(TEST_CACHE_LOCATION)
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
 
         const labApiParms: LabApiQueryParams = {
