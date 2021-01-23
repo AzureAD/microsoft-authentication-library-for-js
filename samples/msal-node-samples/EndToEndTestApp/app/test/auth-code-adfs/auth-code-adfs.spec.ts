@@ -104,9 +104,7 @@ describe('Auth Code ADFS PPE Tests', () => {
             // Reset the cache
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
 
-
             await page.goto(`${HOME_ROUTE}/?prompt=none`);
-            await new Promise(resolve => { setTimeout(() => { resolve(true) }, 4000)})
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
@@ -117,8 +115,7 @@ describe('Auth Code ADFS PPE Tests', () => {
             const STATE_VALUE = "value_on_state";
             await page.goto(`${HOME_ROUTE}/?prompt=login&state=${STATE_VALUE}`);
             await enterCredentialsADFS(page, screenshot, username, accountPwd);
-            await new Promise(resolve => { setTimeout(() => { resolve(true) }, 4000)});
-            const url = await page.url();
+            const url = page.url();
             expect(url.includes(`state=${STATE_VALUE}`)).toBe(true);
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             expect(cachedTokens.accessTokens.length).toBe(1);
