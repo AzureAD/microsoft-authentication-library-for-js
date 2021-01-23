@@ -2,6 +2,21 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Thu, 21 Jan 2021 21:48:01 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-alpha.3",
+      "version": "2.0.0-alpha.3",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update configuration.md with platformBrowserDynamic (#2879)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "04fbd99cab9807919584d065b34e3a342ff88f3e",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 12 Jan 2021 00:51:26 GMT",
       "tag": "@azure/msal-angular_v2.0.0-alpha.3",
       "version": "2.0.0-alpha.3",

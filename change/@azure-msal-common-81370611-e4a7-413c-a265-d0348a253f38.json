@@ -1,7 +1,0 @@
-{
-  "type": "major",
-  "comment": "Authority metadata caching (#2758)",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
