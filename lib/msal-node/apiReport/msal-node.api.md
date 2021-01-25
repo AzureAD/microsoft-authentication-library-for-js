@@ -741,23 +741,18 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null>;
     getAccountByLocalId(localAccountId: string): Promise<AccountInfo | null>;
     getAllAccounts(): Promise<AccountInfo[]>;
-    // (undocumented)
     getKVStore(): CacheKVStore;
     hasChanged(): boolean;
     removeAccount(account: AccountInfo): Promise<void>;
     serialize(): string;
     }
 
-// @public (undocumented)
+// @public
 export class TokenCacheContext {
     constructor(tokenCache: ISerializableTokenCache, hasChanged: boolean);
-    // (undocumented)
     cache: ISerializableTokenCache;
-    // (undocumented)
     get cacheHasChanged(): boolean;
-    // (undocumented)
     hasChanged: boolean;
-    // (undocumented)
     get tokenCache(): ISerializableTokenCache;
 }
 

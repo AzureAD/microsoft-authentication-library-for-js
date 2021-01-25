@@ -9891,7 +9891,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@azure/msal-node!TokenCache#getKVStore:member(1)",
-              "docComment": "",
+              "docComment": "/**\n * Fetches the cache key-value map\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -10042,7 +10042,7 @@
         {
           "kind": "Class",
           "canonicalReference": "@azure/msal-node!TokenCacheContext:class",
-          "docComment": "",
+          "docComment": "/**\n * This class instance helps track the memory changes facilitating decisions to read from and write to the persistent cache\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -10101,7 +10101,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@azure/msal-node!TokenCacheContext#cache:member",
-              "docComment": "",
+              "docComment": "/**\n * sjfhjdsfghj\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -10129,7 +10129,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@azure/msal-node!TokenCacheContext#cacheHasChanged:member",
-              "docComment": "",
+              "docComment": "/**\n * boolean which indicates the changes in cache\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -10156,7 +10156,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@azure/msal-node!TokenCacheContext#hasChanged:member",
-              "docComment": "",
+              "docComment": "/**\n * shjbfdhjsfvhjd\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -10183,7 +10183,7 @@
             {
               "kind": "Property",
               "canonicalReference": "@azure/msal-node!TokenCacheContext#tokenCache:member",
-              "docComment": "",
+              "docComment": "/**\n * function to retrieve the token cache\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",

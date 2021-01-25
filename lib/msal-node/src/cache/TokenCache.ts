@@ -89,6 +89,9 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
         }
     }
 
+    /**
+     * Fetches the cache key-value map
+     */
     getKVStore(): CacheKVStore {
         return this.storage.getCache();
     }
