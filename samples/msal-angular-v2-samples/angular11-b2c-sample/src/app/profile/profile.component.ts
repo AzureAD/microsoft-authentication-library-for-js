@@ -3,7 +3,7 @@ import { HttpClient } from '@angular/common/http';
 import { apiConfig } from '../b2c-config';
 
 type ProfileType = {
-  name?: String
+  name?: string
 }
 
 @Component({

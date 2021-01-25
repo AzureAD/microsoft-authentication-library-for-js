@@ -33,6 +33,7 @@ export type NodeAuthOptions = {
     };
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;
+    authorityMetadata?: string,
     clientCapabilities?: [];
     protocolMode?: ProtocolMode;
 };
@@ -82,6 +83,7 @@ const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
     },
     knownAuthorities: [],
     cloudDiscoveryMetadata: "",
+    authorityMetadata: "",
     clientCapabilities: [],
     protocolMode: ProtocolMode.AAD
 };
