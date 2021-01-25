@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-react
 
-This log was last generated on Tue, 12 Jan 2021 00:51:26 GMT and should not be manually modified.
+This log was last generated on Thu, 21 Jan 2021 21:48:01 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.3
+
+Thu, 21 Jan 2021 21:48:01 GMT
+
+### Changes
+
+- Fix initial state values (#2865) (thomas.norling@microsoft.com)
+- Add missing license files (janutter@microsoft.com)
 
 ## 1.0.0-alpha.2
 

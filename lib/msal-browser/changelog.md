@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 12 Jan 2021 00:51:26 GMT and should not be manually modified.
+This log was last generated on Thu, 21 Jan 2021 21:48:01 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.10.0
+
+Thu, 21 Jan 2021 21:48:01 GMT
+
+### Minor changes
+
+- Authority metadata caching (#2758) (thomas.norling@microsoft.com)
+
+### Patches
+
+- Fix handling of multiple popup windows (#2842) (janutter@microsoft.com)
+- redirectStartPage supports relative URIs (#2866) (thomas.norling@microsoft.com)
 
 ## 2.9.0
 

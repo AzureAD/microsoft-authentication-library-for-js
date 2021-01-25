@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Fix initial state values (#2865)",
-  "packageName": "@azure/msal-react",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
