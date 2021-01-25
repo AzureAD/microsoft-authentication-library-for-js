@@ -87,3 +87,9 @@ export const DEFAULT_REQUEST: RedirectRequest|PopupRequest = {
 
 // JWK Key Format string (Type MUST be defined for window crypto APIs)
 export const KEY_FORMAT_JWK = "jwk";
+
+// Supported wrapper SKUs
+export enum WrapperSKUs {
+    React = "@azure/msal-react",
+    Angular = "@azure/msal-angular"
+}
