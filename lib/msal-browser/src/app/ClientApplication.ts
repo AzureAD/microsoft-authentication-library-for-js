@@ -162,6 +162,7 @@ export abstract class ClientApplication {
         const responseHash = this.getRedirectResponseHash(hash || window.location.hash);
         if (!responseHash) {
             // Not a recognized server response hash or hash not associated with a redirect request
+            this.logger.info("handleRedirectPromise did not detect a response hash as a result of a redirect. Cleaning temporary cache.");
             this.browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
             return null;
         }
