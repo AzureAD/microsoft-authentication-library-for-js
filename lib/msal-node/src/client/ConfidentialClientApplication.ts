@@ -10,16 +10,16 @@ import { ApiId } from "../utils/Constants";
 import {
     ClientCredentialClient,
     OnBehalfOfClient,
+    ClientCredentialRequest as CommonClientCredentialRequest,
+    OnBehalfOfRequest as CommonOnBehalfOfRequest,
     AuthenticationResult,
     StringUtils,
-    ClientAuthError,
-    ClientCredentialRequest as CommonClientCredentialRequest,
-    OnBehalfOfRequest as CommonOnBehalfOfRequest
-} from "@azure/msal-common";
+    ClientAuthError } from "@azure/msal-common";
+import { IConfidentialClientApplication } from "./IConfidentialClientApplication";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
 
-export class ConfidentialClientApplication extends ClientApplication {
+export class ConfidentialClientApplication extends ClientApplication implements IConfidentialClientApplication{
 
     /**
      * @constructor
