@@ -24,6 +24,7 @@ export class AuthError extends Error {
     errorCode: string;
     // Detailed description of error
     errorMessage: string;
+    // Describes the subclass of an error
     subError: string;
 
     constructor(errorCode?: string, errorMessage?: string, suberror?: string) {
