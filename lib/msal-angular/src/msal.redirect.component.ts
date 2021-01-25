@@ -24,6 +24,6 @@
  *  ngOnInit(): void {    
  *    this.authService.handleRedirectObservable().subscribe();
  *  }
-
+ *
  *}
  */

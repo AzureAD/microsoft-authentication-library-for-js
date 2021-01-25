@@ -36,7 +36,7 @@ export class MsalBroadcastService {
                 case EventType.ACQUIRE_TOKEN_START:
                     this.msalInstance.getLogger().verbose("BroadcastService - Interactive acquireToken called, setting inProgress to 'acquireToken'");
                     if (message.interactionType === InteractionType.Redirect || message.interactionType === InteractionType.Popup) {
-                        this._inProgress.next(InteractionStatus.AcquireToken)
+                        this._inProgress.next(InteractionStatus.AcquireToken);
                     }
                     break;
                 case EventType.HANDLE_REDIRECT_START:
