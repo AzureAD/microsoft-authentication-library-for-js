@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Authority metadata caching (#2758)",
-  "packageName": "@azure/msal-node",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
