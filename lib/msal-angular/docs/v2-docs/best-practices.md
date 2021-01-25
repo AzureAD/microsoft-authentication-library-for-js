@@ -2,120 +2,177 @@
 
 Here are some of our optional but recommended practices when using MSAL Angular 2.x.
 
-## Dedicated redirect component
+## Using redirects
 
-MSAL Angular 2.x provides a dedicated redirect component that can be incorporated into your application. We recommend using this, as `msal.redirect.component.ts` is designed to handle all redirects for your application without your components needing to call `handleRedirectObservable()` manually. 
+Users of MSAL find redirects confusing. The following are two approaches that we would recommend when using redirects:
 
-### Steps for adding the redirect component with hash routing
-Hash routing is only compatible with using your home route as the `redirectUri`. If you are wanting to use a different page as your `redirectUri`, consider using path routing below.
+### 1. Subscribing to handleRedirectObservable
+- `handleRedirectObservable()` should be subscribed to on every page to which a redirect may occur. Pages protected by the MSAL Guard do not need to subscribe to `handleRedirectObservable()`, as redirects are processed in the Guard.
+- Accessing or performing any action related to user accounts should not be done until `handleRedirectObservable()` is complete. This prevents multiple `handleRedirectObservables()` being called, resulting in an `interaction_in_progress` error.
 
-1. Set your home page as the `redirectUri` in your app.module configuration, e.g. `http://localhost:4200`.
-1. Make sure the `redirectUri` is saved in your application registration in the Azure Portal
-1. Have hash routes in your `app-routing.module.ts`
-1. You can use the `msal.redirect.component` as the component for the hash routes
-1. Make sure that `useHash` is set to true in your `app-routing.module.ts`
-
-- Do not need to call handleRedirectObservable in app (handleRedirectObservable is called and resolved in the auth component)
-
-Your `app-routing.module.ts` may look something like this:
+Example of home.component.ts file:
 ```js
-import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
-import { ProfileComponent } from './profile/profile.component';
-import { HomeComponent } from './home/home.component';
-import { MsalGuard } from '@azure/msal-angular';
-import { MsalRedirectComponent } from './msal-redirect/msal.redirect.component';
+import { Component, OnInit } from '@angular/core';
+import { MsalBroadcastService, MsalService } from '@azure/msal-angular';
+import { AuthenticationResult } from '@azure/msal-browser';
 
-const routes: Routes = [
-  {
-    path: 'profile',
-    component: ProfileComponent,
-    canActivate: [
-      MsalGuard,
-    ]
-  },
-  {
-    // Needed for hash routing
-    path: 'error',
-    component: MsalRedirectComponent
-  },
-  {
-    // Needed for hash routing
-    path: 'state',
-    component: MsalRedirectComponent
-  },
-  {
-    // Needed for hash routing
-    path: 'code',
-    component: MsalRedirectComponent
-  },
-  {
-    path: '',
-    component: HomeComponent
-  }
-];
-
-const isIframe = window !== window.parent && !window.opener;
-
-@NgModule({
-  imports: [RouterModule.forRoot(routes, {
-    useHash: true, // Set tp true for hash routing
-    initialNavigation: !isIframe ? 'enabled' : 'disabled'
-  })],
-  exports: [RouterModule]
+@Component({
+  selector: 'app-home',
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.css']
 })
-export class AppRoutingModule { }
+export class HomeComponent implements OnInit {
+
+  constructor(private authService: MsalService) { }
+
+  ngOnInit(): void {
+    this.authService.handleRedirectObservable().subscribe({
+      next: (result: AuthenticationResult) => {
+        // Perform actions related to user accounts here
+      },
+      error: (error) => console.log(error)
+    });
+  }
+
+}
 ```
 
-### Steps for adding the redirect component with path routing
+### 2. Dedicated handleRedirectObservable component
+- MSAL Angular 2.x provides a dedicated redirect component that can be incorporated into your application. We recommend bootstrapping this alongside `AppComponent` in your application on the `app.module.ts`, as this will handle all redirects without your components needing to subscribe to `handleRedirectObservable()` manually.
+- Pages that wish to perform user account functions following redirects should subscribe to **INSERT EVENTS**.
 
-If you do not want to use the home page as the `redirectUri`, you may consider using the redirect component with path routing. 
-
-1. Set the `redirectUri` in your app.module configuration to your desired page, e.g. `http://localhost:4200/auth`
-1. Make sure the `redirectUri` is saved in your application registration in the Azure Portal
-1. Add the routing path to your `app-routing.module.ts` and use the `msal.redirect.component` as the component
-1. Make sure that `useHash` is set to false in your `app-routing.module.ts`
-
-- (Still needs to call handleRedirectObservable in Home component???)
-- Weird webpack warning??
-- (Can't type /auth in address bar???)
-
-Your `app-routing.module.ts` may look something like this:
+msal.redirect.component.ts
 ```js
-import { NgModule } from '@angular/core';
-import { Routes, RouterModule } from '@angular/router';
-import { ProfileComponent } from './profile/profile.component';
-import { HomeComponent } from './home/home.component';
-import { MsalGuard } from '@azure/msal-angular';
-import { MsalRedirectComponent } from './msal-redirect/msal.redirect.component';
+import { Component, OnInit } from "@angular/core";
+import { MsalService } from "@azure/msal-angular";
 
-const routes: Routes = [
-  {
-    // Dedicated component and path for redirects with path routing.
-    path: 'auth',
-    component: MsalRedirectComponent
-  },
-  {
-    path: 'profile',
-    component: ProfileComponent,
-    canActivate: [
-      MsalGuard,
-    ]
-  },
-  {
-    path: '',
-    component: HomeComponent
+@Component({
+  selector: 'app-redirect', // Selector to be added to index.html
+  template: ''
+})
+export class MsalRedirectComponent implements OnInit {
+  
+  constructor(private authService: MsalService) { }
+  
+  ngOnInit(): void {    
+      this.authService.handleRedirectObservable().subscribe();
   }
-];
+  
+}
 
-const isIframe = window !== window.parent && !window.opener;
+```
+
+index.html
+```js 
+<body>
+  <app-root></app-root>
+  <app-redirect></app-redirect> // Selector for additional bootstrapped component
+</body>
+```
+
+app.module.ts
+
+```js
+import { BrowserModule } from '@angular/platform-browser';
+import { BrowserAnimationsModule } from '@angular/platform-browser/animations';
+import { NgModule } from '@angular/core';
+
+import { MatButtonModule } from '@angular/material/button';
+import { MatToolbarModule } from '@angular/material/toolbar';
+import { MatListModule } from '@angular/material/list';
+
+import { AppRoutingModule } from './app-routing.module';
+import { AppComponent } from './app.component';
+import { HomeComponent } from './home/home.component';
+import { ProfileComponent } from './profile/profile.component';
+import { MsalRedirectComponent } from './redirect/msal.redirect.component';
+
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { IPublicClientApplication, PublicClientApplication, InteractionType, BrowserCacheLocation, LogLevel } from '@azure/msal-browser';
+import { MsalGuard, MsalInterceptor, MsalBroadcastService, MsalInterceptorConfiguration, MsalModule, MsalService, MSAL_GUARD_CONFIG, MSAL_INSTANCE, MSAL_INTERCEPTOR_CONFIG, MsalGuardConfiguration } from '@azure/msal-angular';
+
+const isIE = window.navigator.userAgent.indexOf("MSIE ") > -1 || window.navigator.userAgent.indexOf("Trident/") > -1;
+
+export function loggerCallback(logLevel: LogLevel, message: string) {
+  console.log(message);
+}
+
+export function MSALInstanceFactory(): IPublicClientApplication {
+  return new PublicClientApplication({
+    auth: {
+      clientId: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
+      redirectUri: 'http://localhost:4200',
+      postLogoutRedirectUri: 'http://localhost:4200'
+    },
+    cache: {
+      cacheLocation: BrowserCacheLocation.LocalStorage,
+      storeAuthStateInCookie: isIE, // set to true for IE 11
+    },
+    system: {
+      loggerOptions: {
+        loggerCallback,
+        logLevel: LogLevel.Info,
+        piiLoggingEnabled: false
+      }
+    }
+  });
+}
+
+export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
+  const protectedResourceMap = new Map<string, Array<string>>();
+  protectedResourceMap.set('https://graph.microsoft.com/v1.0/me', ['user.read']);
+
+  return {
+    interactionType: InteractionType.Redirect,
+    protectedResourceMap
+  };
+}
+
+export function MSALGuardConfigFactory(): MsalGuardConfiguration {
+  return { interactionType: InteractionType.Redirect };
+}
 
 @NgModule({
-  imports: [RouterModule.forRoot(routes, {
-    useHash: false, // Set to false for path routing
-    initialNavigation: !isIframe ? 'enabled' : 'disabled'
-  })],
-  exports: [RouterModule]
+  declarations: [
+    AppComponent,
+    HomeComponent,
+    ProfileComponent,
+    MsalRedirectComponent // Redirect component added here
+  ],
+  imports: [
+    BrowserModule,
+    BrowserAnimationsModule,
+    AppRoutingModule,
+    MatButtonModule,
+    MatToolbarModule,
+    MatListModule,
+    HttpClientModule,
+    MsalModule
+  ],
+  providers: [
+    {
+      provide: HTTP_INTERCEPTORS,
+      useClass: MsalInterceptor,
+      multi: true
+    },
+    {
+      provide: MSAL_INSTANCE,
+      useFactory: MSALInstanceFactory
+    },
+    {
+      provide: MSAL_GUARD_CONFIG,
+      useFactory: MSALGuardConfigFactory
+    },
+    {
+      provide: MSAL_INTERCEPTOR_CONFIG,
+      useFactory: MSALInterceptorConfigFactory
+    },
+    MsalService,
+    MsalGuard,
+    MsalBroadcastService
+  ],
+  bootstrap: [AppComponent, MsalRedirectComponent] // Redirect component bootstrapped here
 })
-export class AppRoutingModule { }
+export class AppModule { }
+
 ```

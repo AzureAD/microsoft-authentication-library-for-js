@@ -14,15 +14,16 @@
  *import { MsalService } from "@azure/msal-angular";
  *
  *@Component({
- *  template: ""
+ *  selector: 'app-redirect',
+ *  template: ''
  *})
  *export class MsalRedirectComponent implements OnInit {
- *  
+ *
  *  constructor(private authService: MsalService) { }
- *  
+ *
  *  ngOnInit(): void {    
- *      this.authService.handleRedirectObservable().subscribe();
+ *    this.authService.handleRedirectObservable().subscribe();
  *  }
- *  
+
  *}
  */
