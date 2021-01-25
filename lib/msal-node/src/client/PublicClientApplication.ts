@@ -13,6 +13,7 @@ import {
 } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { ClientApplication } from "./ClientApplication";
+import { IPublicClientApplication } from "./IPublicClientApplication";
 import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
 import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
 
@@ -20,7 +21,7 @@ import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications
  * are not trusted to safely store application secrets, and therefore can only request tokens in the name of an user.
  */
-export class PublicClientApplication extends ClientApplication {
+export class PublicClientApplication extends ClientApplication implements IPublicClientApplication {
     /**
      * Important attributes in the Configuration object for auth are:
      * - clientID: the application ID of your application. You can obtain one by registering your application with our Application registration portal.
