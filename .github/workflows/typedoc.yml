@@ -68,3 +68,11 @@ jobs:
           publish_dir: ./lib/msal-node/ref
           destination_dir: ./ref/msal-node
           keep_files: true
+
+      - name: Deploy - msal-react
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: ./lib/msal-react/ref
+          destination_dir: ./ref/msal-react
+          keep_files: true
