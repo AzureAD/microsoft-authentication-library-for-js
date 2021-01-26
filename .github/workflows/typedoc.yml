@@ -5,7 +5,6 @@ on:
     branches:
       - master  # Set a branch name to trigger deployment
       - typedoc-action
-      - msal-react-typedocs
 
 jobs:
   deploy:
