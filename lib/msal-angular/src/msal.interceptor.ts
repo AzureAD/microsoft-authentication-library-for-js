@@ -74,7 +74,12 @@ export class MsalInterceptor implements HttpInterceptor {
             );
     }
 
-    private acquireTokenInteractively(scopes: string[]) {
+    /**
+     * Invoke interaction for the given set of scopes
+     * @param scopes Array of scopes for the request
+     * @returns Result from the interactive request
+     */
+    private acquireTokenInteractively(scopes: string[]): Observable<AuthenticationResult> {
         if (this.msalInterceptorConfig.interactionType === InteractionType.Popup) {
             this.authService.getLogger().verbose("Interceptor - error acquiring token silently, acquiring by popup");
             return this.authService.acquireTokenPopup({...this.msalInterceptorConfig.authRequest, scopes});
@@ -85,6 +90,11 @@ export class MsalInterceptor implements HttpInterceptor {
         return EMPTY;
     }
 
+    /**
+     * Looks up the scopes for the given endpoint from the protectedResourceMap
+     * @param endpoint Url of the request
+     * @returns Array of scopes, or null if not found
+     */
     private getScopesForEndpoint(endpoint: string): Array<string>|null {
         this.authService.getLogger().verbose("Interceptor - getting scopes for endpoint");
         const protectedResourcesArray = Array.from(this.msalInterceptorConfig.protectedResourceMap.keys());
