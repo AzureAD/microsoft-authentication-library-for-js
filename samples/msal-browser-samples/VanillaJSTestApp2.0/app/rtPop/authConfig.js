@@ -35,7 +35,6 @@ const msalConfig = {
 
 // RT PoP Test Slice params
 const extraQueryParams = {
-    slice: "TestSlice",
     dc: "ESTS-PUB-WUS2-AZ1-TEST1"
 };
 

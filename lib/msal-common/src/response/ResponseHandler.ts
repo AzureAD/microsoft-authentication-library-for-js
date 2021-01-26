@@ -33,6 +33,8 @@ import { TokenCacheContext } from "../cache/persistence/TokenCacheContext";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { BoundServerAuthorizationTokenResponse } from "./BoundServerAuthorizationTokenResponse";
+import { server } from "sinon";
 
 /**
  * Class that handles response parsing.
@@ -102,12 +104,54 @@ export class ResponseHandler {
     }
 
     /**
-     * Returns a constructed token response based on given string. Also manages the cache updates and cleanups.
+     * Returns a constructed token response based on given serverTokenResponse. Also manages the cache updates and cleanups.
      * @param serverTokenResponse
      * @param authority
      */
     async handleServerTokenResponse(
-        serverTokenResponse: ServerAuthorizationTokenResponse,
+        serverTokenResponse: ServerAuthorizationTokenResponse & BoundServerAuthorizationTokenResponse,
+        authority: Authority,
+        resourceRequestMethod?: string,
+        resourceRequestUri?: string,
+        stkJwkThumbprint?: string,
+        authCodePayload?: AuthorizationCodePayload,
+        requestScopes?: string[],
+        oboAssertion?: string,
+        handlingRefreshTokenResponse?: boolean): Promise<AuthenticationResult> {
+        
+        let decryptedTokenResponse: ServerAuthorizationTokenResponse;
+
+        if (serverTokenResponse.session_key_jwe && serverTokenResponse.response_jwe && stkJwkThumbprint) {
+            decryptedTokenResponse = await this.handleBoundServerTokenResponse(serverTokenResponse, stkJwkThumbprint);
+        } else {
+            decryptedTokenResponse = serverTokenResponse;
+        }
+
+        return this.handleTokenResponse(decryptedTokenResponse, authority, resourceRequestMethod, resourceRequestUri, authCodePayload, requestScopes, oboAssertion, handlingRefreshTokenResponse);
+    }
+
+    /**
+     * Returns the decrypted contents of an encrypted Bound Refresh Token response. Also manages the cache updates and cleanups.
+     * @param boundServerTokenResponse 
+     * @param stkJwkThumbprint 
+     */
+    async handleBoundServerTokenResponse(boundServerTokenResponse: BoundServerAuthorizationTokenResponse, stkJwkThumbprint: string): Promise<ServerAuthorizationTokenResponse> {
+        const popKeyManager = new PopKeyManager(this.cryptoObj);
+        return await popKeyManager.decryptBoundTokenResponse(boundServerTokenResponse, stkJwkThumbprint);
+    }
+
+    /**
+     * Returns a constructed token response based on given unencrypted serverTokenResponse. Also manages the cache updates and cleanups.
+     * @param serverTokenResponse 
+     * @param authority 
+     * @param resourceRequestMethod 
+     * @param resourceRequestUri 
+     * @param authCodePayload 
+     * @param requestScopes 
+     * @param oboAssertion 
+     * @param handlingRefreshTokenResponse 
+     */
+    async handleTokenResponse(serverTokenResponse: ServerAuthorizationTokenResponse,
         authority: Authority,
         resourceRequestMethod?: string,
         resourceRequestUri?: string,

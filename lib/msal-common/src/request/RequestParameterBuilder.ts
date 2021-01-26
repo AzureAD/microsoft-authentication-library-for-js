@@ -10,6 +10,7 @@ import { StringDict } from "../utils/MsalTypes";
 import { RequestValidator } from "./RequestValidator";
 import { LibraryInfo } from "../config/ClientConfiguration";
 import { StringUtils } from "../utils/StringUtils";
+import { StkJwkThumbprint } from "../crypto/PopKeyManager";
 
 export class RequestParameterBuilder {
 
@@ -336,6 +337,30 @@ export class RequestParameterBuilder {
         if (!StringUtils.isEmpty(cnfString)) {
             this.parameters.set(AADServerParamKeys.TOKEN_TYPE, AuthenticationScheme.POP);
             this.parameters.set(AADServerParamKeys.REQ_CNF, encodeURIComponent(cnfString));
+        }
+    }
+
+    /**
+     * add stk_jwk to query params
+     * @param stkJwkKid
+     */
+    addStkJwkThumbprint(stkJwkKid: string): void {
+        if(!StringUtils.isEmpty(stkJwkKid)) {
+            const stkJwkThumbprint: StkJwkThumbprint = {
+                kid: stkJwkKid
+            };
+
+            this.parameters.set(AADServerParamKeys.STK_JWK, encodeURIComponent(JSON.stringify(stkJwkThumbprint)));
+        }
+    }
+
+    /**
+     * add stk_jwk to query params
+     * @param stkJwkKid
+     */
+    addStkJwk(stkJwk: string): void {
+        if(!StringUtils.isEmpty(stkJwk)) {
+            this.parameters.set(AADServerParamKeys.STK_JWK, encodeURIComponent(stkJwk));
         }
     }
 

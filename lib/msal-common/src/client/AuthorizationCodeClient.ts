@@ -24,6 +24,7 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { PopKeyManager } from "../crypto/PopKeyManager";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload";
+import { BoundServerAuthorizationTokenResponse } from "../response/BoundServerAuthorizationTokenResponse";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -61,7 +62,7 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         const response = await this.executeTokenRequest(this.authority, request);
-
+        // console.log("R: ", response);
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
             this.cacheManager,
@@ -73,7 +74,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        return await responseHandler.handleServerTokenResponse(response.body, this.authority, request.resourceRequestMethod, request.resourceRequestUri, authCodePayload);
+        return await responseHandler.handleServerTokenResponse(response.body, this.authority, request.resourceRequestMethod, request.resourceRequestUri, request.stkJwk, authCodePayload);
     }
 
     /**
@@ -135,7 +136,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param authority
      * @param request
      */
-    private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+    private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse | BoundServerAuthorizationTokenResponse>> {
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
@@ -144,8 +145,8 @@ export class AuthorizationCodeClient extends BaseClient {
 
         const requestBody = await this.createTokenRequestBody(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
-
-        return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
+        const endpoint = `${authority.tokenEndpoint}?slice=TestSlice&dc=ESTS-PUB-WUS2-AZ1-TEST1`;
+        return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
     }
 
     /**
@@ -188,6 +189,12 @@ export class AuthorizationCodeClient extends BaseClient {
             const popKeyManager = new PopKeyManager(this.cryptoUtils);
             const cnfString = await popKeyManager.generateCnf(request.resourceRequestMethod, request.resourceRequestUri);
             parameterBuilder.addPopToken(cnfString);
+        }
+
+        if(request.stkJwk) {
+            const popKeyManager = new PopKeyManager(this.cryptoUtils);
+            const stkJwk = await popKeyManager.getStkJwkPublicKey(request.stkJwk);
+            parameterBuilder.addStkJwk(stkJwk);
         }
 
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
@@ -266,6 +273,10 @@ export class AuthorizationCodeClient extends BaseClient {
 
         if (request.extraQueryParameters) {
             parameterBuilder.addExtraQueryParameters(request.extraQueryParameters);
+        }
+
+        if (request.stkJwk) {
+            parameterBuilder.addStkJwkThumbprint(request.stkJwk);
         }
 
         return parameterBuilder.createQueryString();

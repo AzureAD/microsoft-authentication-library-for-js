@@ -111,6 +111,13 @@ export class BrowserCrypto {
     }
 
     /**
+     * Extracts session key from Session Key JWE using provided key
+     */
+    async extractSessionKey(sessionKeyJwe: string, key: CrytpoKey): Promise<> {
+        //
+    }
+
+    /**
      * Check whether IE crypto or other browser cryptography is available.
      */
     private hasCryptoAPI(): boolean {

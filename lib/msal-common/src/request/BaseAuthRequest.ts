@@ -19,4 +19,5 @@ export type BaseAuthRequest = {
     claims?: string;
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
+    stkJwk?: string;
 };

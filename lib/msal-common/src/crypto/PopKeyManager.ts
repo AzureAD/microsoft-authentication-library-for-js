@@ -10,6 +10,8 @@ import { TimeUtils } from "../utils/TimeUtils";
 import { UrlString } from "../url/UrlString";
 import { IUri } from "../url/IUri";
 import { ClientAuthError } from "../error/ClientAuthError";
+import { BoundServerAuthorizationTokenResponse } from "../response/BoundServerAuthorizationTokenResponse";
+import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 
 /**
  * See eSTS docs for more info.
@@ -23,7 +25,7 @@ type ReqCnf = {
     xms_ksl: KeyLocation;
 };
 
-type StkJwkThumbprint = {
+export type StkJwkThumbprint = {
     kid: string;
 };
 
@@ -49,14 +51,12 @@ export class PopKeyManager {
         return this.cryptoUtils.base64Encode(JSON.stringify(reqCnf));
     }
 
-    async generateSessionTransportKey(): Promise<string> {
-        const kid = await this.cryptoUtils.getPublicKeyThumbprint();
-        
-        const stkJwkThumbprint: StkJwkThumbprint = {
-            kid: kid
-        };
+    async getStkJwkPublicKey(stkJwkThumbprint: string): Promise<string> {
+        return await this.cryptoUtils.getStkJwkPublicKey(stkJwkThumbprint);
+    }
 
-        return encodeURIComponent(JSON.stringify(stkJwkThumbprint));
+    async decryptBoundTokenResponse(boundServerTokenResponse: BoundServerAuthorizationTokenResponse, stkJwkThumbprint: string): Promise<ServerAuthorizationTokenResponse> {
+        return await this.cryptoUtils.decryptBoundTokenResponse(boundServerTokenResponse.session_key_jwe, boundServerTokenResponse.response_jwe, stkJwkThumbprint);
     }
 
     async signPopToken(accessToken: string, resourceRequestMethod: string, resourceRequestUri: string): Promise<string> {

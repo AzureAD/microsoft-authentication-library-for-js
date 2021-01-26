@@ -944,6 +944,8 @@ export abstract class ClientApplication {
      */
     protected async initializeAuthorizationCodeRequest(request: AuthorizationUrlRequest): Promise<AuthorizationCodeRequest> {
         const generatedPkceParams = await this.browserCrypto.generatePkceCodes();
+        const kid = await this.browserCrypto.getPublicKeyThumbprint();
+        request.stkJwk = kid;
 
         const authCodeRequest: AuthorizationCodeRequest = {
             ...request,

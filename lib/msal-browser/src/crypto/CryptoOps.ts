@@ -12,6 +12,7 @@ import { BrowserCrypto } from "./BrowserCrypto";
 import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
+import { ServerAuthorizationTokenResponse } from "@azure/msal-common/dist/src/response/ServerAuthorizationTokenResponse";
 
 export type CachedKeyPair = {
     publicKey: CryptoKey,
@@ -152,5 +153,20 @@ export class CryptoOps implements ICrypto {
         const encodedSignature = this.b64Encode.urlEncodeArr(new Uint8Array(signatureBuffer));
 
         return `${tokenString}.${encodedSignature}`;
+    }
+
+    async getStkJwkPublicKey(stkJwkThumbprint: string): Promise<string> {
+        const cachedKeyPair: CachedKeyPair = await this.cache.get(stkJwkThumbprint);
+        // Get public key as JWK
+        const publicKeyJwk = await this.browserCrypto.exportJwk(cachedKeyPair.publicKey);
+        return BrowserCrypto.getJwkString(publicKeyJwk);
+    }
+
+    async decryptBoundTokenResponse(sessionKeyJwe: string, responseJwe: string, stkJwkThumbprint: string): Promise<ServerAuthorizationTokenResponse> {
+        // Get keypair from cache
+        const cachedKeyPair: CachedKeyPair = await this.cache.get(stkJwkThumbprint);
+        const sessionKey = this.browserCrypto.extractSessionKey(this.base64Decode(sessionKeyJwe), cachedKeyPair.privateKey);
+        const { ctx } = // Get ctx value from responseJWE header (BrowserCrypto will likely handle this)
+        // const derivedKey = KeyDerivationService.sp800108(sessionKey, responseJwe.ctx, label);
     }
 }

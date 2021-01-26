@@ -4,6 +4,8 @@
  */
 
 import { AuthError } from "../error/AuthError";
+import { BoundServerAuthorizationTokenResponse } from "../response/BoundServerAuthorizationTokenResponse";
+import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { SignedHttpRequest } from "./SignedHttpRequest";
 
 /**
@@ -49,6 +51,18 @@ export interface ICrypto {
      * @param accessToken 
      */
     signJwt(payload: SignedHttpRequest, kid: string): Promise<string>;
+    /** 
+     * Returns the public key of the Session Transport Key in stringified JWK object format
+     * @param keyId 
+     */
+    getStkJwkPublicKey(stkJwkThumbprint: string): Promise<string>;
+    /**
+     * Returns the decrypted server token response
+     * @param sessionKeyJwe
+     * @param responseJwe
+     * @param stkJwkThumbprint
+     */
+    decryptBoundTokenResponse(sessionKeyJwe: string, responseJwe: string, stkJwkThumbprint: string): Promise<ServerAuthorizationTokenResponse>;
 }
 
 export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
@@ -74,6 +88,14 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     },
     async signJwt(): Promise<string> {
         const notImplErr = "Crypto interface - signJwt() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async getStkJwkPublicKey(): Promise<string> {
+        const notImplErr = "Crypto interface - getStkJwk() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async decryptBoundTokenResponse(): Promise<string> {
+        const notImplErr = "Crypto interface - decryptBoundTokenResponse() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
     }
 };
