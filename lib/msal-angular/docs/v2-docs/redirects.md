@@ -1,10 +1,8 @@
-# MSAL Angular 2.x Best Practices
-
-Here are some of our optional but recommended practices when using MSAL Angular 2.x.
+# Using redirects in MSAL Angular 2.x
 
 ## Using redirects
 
-Users of MSAL find redirects confusing. The following are two approaches that we would recommend when using redirects:
+Some users of MSAL find redirects confusing. The following are two approaches that we would recommend when using redirects:
 
 ### 1. Subscribing to handleRedirectObservable
 - `handleRedirectObservable()` should be subscribed to on every page to which a redirect may occur. Pages protected by the MSAL Guard do not need to subscribe to `handleRedirectObservable()`, as redirects are processed in the Guard.
@@ -39,7 +37,7 @@ export class HomeComponent implements OnInit {
 
 ### 2. Dedicated handleRedirectObservable component
 - MSAL Angular 2.x provides a dedicated redirect component that can be incorporated into your application. We recommend bootstrapping this alongside `AppComponent` in your application on the `app.module.ts`, as this will handle all redirects without your components needing to subscribe to `handleRedirectObservable()` manually.
-- Pages that wish to perform user account functions following redirects should subscribe to **INSERT EVENTS**.
+- Pages that wish to perform user account functions following redirects should subscribe to the `inProgress$` subject, filtering for `InteractionStatus.None`. This will ensure that there are no interactions in progress when performing user account functions. 
 
 msal.redirect.component.ts
 ```js
@@ -175,4 +173,36 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
 })
 export class AppModule { }
 
+```
+
+app.component.ts
+```js
+import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
+import { MsalBroadcastService, InteractionStatus } from '@azure/msal-angular';
+import { Subject } from 'rxjs';
+import { filter, takeUntil } from 'rxjs/operators';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+
+export class AppComponent implements OnInit, OnDestroy {
+  private readonly _destroying$ = new Subject<void>();
+
+  constructor(
+    private msalBroadcastService: MsalBroadcastService
+  ) {}
+
+  ngOnInit(): void {
+    this.msalBroadcastService.inProgress$
+      .pipe(
+        filter((status: InteractionStatus) => status === InteractionStatus.None),
+        takeUntil(this._destroying$)
+      )
+      .subscribe(() => {
+        // Do user account functions here
+      })
+  }
 ```
