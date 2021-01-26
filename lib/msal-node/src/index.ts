@@ -3,9 +3,16 @@
  * Licensed under the MIT License.
  */
 
+// Interfaces
+export { IPublicClientApplication } from "./client/IPublicClientApplication";
+export { IConfidentialClientApplication } from "./client/IConfidentialClientApplication";
+
+// Clients and Configuration
 export { PublicClientApplication } from "./client/PublicClientApplication";
 export { ConfidentialClientApplication } from "./client/ConfidentialClientApplication";
 export { Configuration, buildAppConfiguration } from "./config/Configuration";
+
+// Cache and Scetorage
 export { Storage } from "./cache/Storage";
 export { Serializer } from "./cache/serializer/Serializer";
 export { Deserializer } from "./cache/serializer/Deserializer";

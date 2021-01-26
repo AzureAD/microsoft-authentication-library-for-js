@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Issue-2887 fix missing import in quickstart",
-  "packageName": "@azure/msal-react",
-  "email": "simon.j.duff@gmail.com",
-  "dependentChangeType": "none"
-}

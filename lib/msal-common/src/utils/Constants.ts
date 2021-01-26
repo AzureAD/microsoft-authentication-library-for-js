@@ -265,6 +265,17 @@ export const APP_METADATA = "appmetadata";
 export const ClientInfo = "client_info";
 export const THE_FAMILY_ID = "1";
 
+export const AUTHORITY_METADATA_CONSTANTS = {
+    CACHE_KEY: "authority-metadata",
+    REFRESH_TIME_SECONDS: 3600 * 24 // 24 Hours
+};
+
+export enum AuthorityMetadataSource {
+    CONFIG = "config",
+    CACHE = "cache",
+    NETWORK = "network"
+}
+
 export const SERVER_TELEM_CONSTANTS = {
     SCHEMA_VERSION: 2,
     MAX_HEADER_BYTES: 4000, // Max is 4KB, 4000 Bytes provides 96 Byte buffer for separators, schema version, etc. 

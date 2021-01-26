@@ -2,6 +2,21 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Thu, 21 Jan 2021 21:48:01 GMT",
+      "tag": "@azure/msal-node_v1.0.0-beta.4",
+      "version": "1.0.0-beta.4",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Authority metadata caching (#2758)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "28b3268b1385e99249c0b7a95b0b14299011ca46",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 12 Jan 2021 00:51:26 GMT",
       "tag": "@azure/msal-node_v1.0.0-beta.3",
       "version": "1.0.0-beta.3",
