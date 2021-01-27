@@ -14,6 +14,7 @@ import { TokenCache } from "../cache/TokenCache";
 
 /**
  * Interface for the ConfidentialClientApplication class defining the public API signatures
+ * @interface
  */
 export interface IConfidentialClientApplication {
     /**

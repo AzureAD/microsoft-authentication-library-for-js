@@ -20,6 +20,7 @@ const defaultSerializedCache: JsonCache = {
 
 /**
  * In-memory token cache manager
+ * @beta
  */
 export class TokenCache implements ISerializableTokenCache, ITokenCache {
 
@@ -72,7 +73,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
 
     /**
      * Deserializes JSON to in-memory cache. JSON should be in MSAL cache schema format
-     * @param cache
+     * @param cache - blob formatted cache
      */
     deserialize(cache: string): void {
         this.logger.verbose("Deserializing JSON to in-memory cache");
@@ -120,7 +121,8 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      * Returns the signed in account matching homeAccountId.
      * (the account object is created at the time of successful login)
      * or null when no matching account is found
-     * @returns {@link AccountInfo} - the account object stored in MSAL
+     * @returns {@link AccountInfo - the account object stored in MSAL}
+     * @param homeAccountId - unique identifier for an account (uid.utid)
      */
     async getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null> {
         const allAccounts = await this.getAllAccounts();
@@ -136,6 +138,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      * (the account object is created at the time of successful login)
      * or null when no matching account is found
      * @returns {@link AccountInfo} - the account object stored in MSAL
+     * @param localAccountId - unique identifier of an account (sub/obj when homeAccountId cannot be populated)
      */
     async getAccountByLocalId(localAccountId: string): Promise<AccountInfo | null> {
         const allAccounts = await this.getAllAccounts();
@@ -148,7 +151,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
 
     /**
      * API to remove a specific account and the relevant data from cache
-     * @param account
+     * @param account - AccountInfo passed by the user
      */
     async removeAccount(account: AccountInfo): Promise<void> {
         this.logger.verbose("removeAccount called");
@@ -175,8 +178,8 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
 
     /**
      * Merge in memory cache with the cache snapshot.
-     * @param oldState
-     * @param currentState
+     * @param oldState - cache before changes
+     * @param currentState - current cache state in the library
      */
     private mergeState(oldState: JsonCache, currentState: JsonCache): JsonCache {
         this.logger.verbose("Merging in-memory cache with cache snapshot");
@@ -186,8 +189,8 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
 
     /**
      * Deep update of oldState based on newState values
-     * @param oldState
-     * @param newState
+     * @param oldState - cache before changes
+     * @param newState - updated cache
      */
     private mergeUpdates(oldState: any, newState: any): JsonCache {
         Object.keys(newState).forEach((newKey: string) => {
@@ -219,8 +222,8 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     /**
      * Removes entities in oldState that the were removed from newState. If there are any unknown values in root of
      * oldState that are not recognized, they are left untouched.
-     * @param oldState
-     * @param newState
+     * @param oldState - cache before changes
+     * @param newState - updated cache
      */
     private mergeRemovals(oldState: JsonCache, newState: JsonCache): JsonCache {
         this.logger.verbose("Remove updated entries in cache");
@@ -240,6 +243,11 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
         };
     }
 
+    /**
+     * helper to merge new cache with the old one
+     * @param oldState - cache before changes
+     * @param newState - updated cache
+     */
     private mergeRemovalsDict<T>(oldState: Record<string, T>, newState?: Record<string, T>): Record<string, T> {
         const finalState = { ...oldState };
         Object.keys(oldState).forEach((oldKey) => {
@@ -250,6 +258,10 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
         return finalState;
     }
 
+    /**
+     * helper to overlay as a part of cache merge
+     * @param passedInCache - cache read from the blob
+     */
     private overlayDefaults(passedInCache: JsonCache): JsonCache {
         this.logger.verbose("Overlaying input cache with the default cache");
         return {

@@ -80,7 +80,7 @@ export type AuthorizationUrlRequest = Partial<Omit<AuthorizationUrlRequest_2, "s
 // @public
 export function buildAppConfiguration({ auth, cache, system, }: Configuration): Configuration;
 
-// @public (undocumented)
+// @public
 export type CacheKVStore = Record<string, ValidCacheType>;
 
 // @public
@@ -95,11 +95,13 @@ export abstract class ClientApplication {
     protected config: Configuration;
     getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
     getLogger(): Logger;
+    // Warning: (ae-incompatible-release-tags) The symbol "getTokenCache" is marked as @public, but its signature references "TokenCache" which is marked as @beta
     getTokenCache(): TokenCache;
     protected initializeBaseRequest(authRequest: Partial<BaseAuthRequest>): BaseAuthRequest;
     protected initializeServerTelemetryManager(apiId: number, correlationId: string, forceRefresh?: boolean): ServerTelemetryManager;
     protected logger: Logger;
     setLogger(logger: Logger): void;
+    // Warning: (ae-incompatible-release-tags) The symbol "storage" is marked as @public, but its signature references "Storage" which is marked as @beta
     protected storage: Storage_2;
     }
 
@@ -168,31 +170,23 @@ export type DeviceCodeRequest = Partial<Omit<DeviceCodeRequest_2, "scopes" | "de
 
 export { ICachePlugin }
 
-// @public (undocumented)
+// @public
 export interface IConfidentialClientApplication {
-    // (undocumented)
     acquireTokenByClientCredential(request: ClientCredentialRequest): Promise<AuthenticationResult | null>;
-    // (undocumented)
     acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult | null>;
-    // (undocumented)
     acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
-    // (undocumented)
     acquireTokenOnBehalfOf(request: OnBehalfOfRequest): Promise<AuthenticationResult | null>;
-    // (undocumented)
     acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null>;
-    // (undocumented)
     getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
-    // (undocumented)
     getLogger(): Logger;
-    // (undocumented)
+    // Warning: (ae-incompatible-release-tags) The symbol "getTokenCache" is marked as @public, but its signature references "TokenCache" which is marked as @beta
     getTokenCache(): TokenCache;
-    // (undocumented)
     setLogger(logger: Logger): void;
 }
 
 export { INetworkModule }
 
-// @public (undocumented)
+// @public
 export type InMemoryCache = {
     accounts: AccountCache;
     idTokens: IdTokenCache;
@@ -203,33 +197,26 @@ export type InMemoryCache = {
 
 export { InteractionRequiredAuthError }
 
-// @public (undocumented)
+// @public
 export interface IPublicClientApplication {
-    // (undocumented)
     acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult | null>;
-    // (undocumented)
     acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null>;
-    // (undocumented)
     acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
     // Warning: (ae-forgotten-export) The symbol "UsernamePasswordRequest" needs to be exported by the entry point index.d.ts
     //
-    // (undocumented)
+    // @internal
     acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
-    // (undocumented)
     acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null>;
-    // (undocumented)
     getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
-    // (undocumented)
     getLogger(): Logger;
-    // (undocumented)
+    // Warning: (ae-incompatible-release-tags) The symbol "getTokenCache" is marked as @public, but its signature references "TokenCache" which is marked as @beta
     getTokenCache(): TokenCache;
-    // (undocumented)
     setLogger(logger: Logger): void;
 }
 
 export { ISerializableTokenCache }
 
-// @public (undocumented)
+// @public
 export type JsonCache = {
     Account: Record<string, SerializedAccountEntity>;
     IdToken: Record<string, SerializedIdTokenEntity>;
@@ -271,7 +258,7 @@ export type RefreshTokenRequest = Partial<Omit<RefreshTokenRequest_2, "scopes" |
 
 export { ResponseMode }
 
-// @public (undocumented)
+// @public
 export type SerializedAccessTokenEntity = {
     home_account_id: string;
     environment: string;
@@ -288,7 +275,7 @@ export type SerializedAccessTokenEntity = {
     token_type?: string;
 };
 
-// @public (undocumented)
+// @public
 export type SerializedAccountEntity = {
     home_account_id: string;
     environment: string;
@@ -302,14 +289,14 @@ export type SerializedAccountEntity = {
     last_modification_app?: string;
 };
 
-// @public (undocumented)
+// @public
 export type SerializedAppMetadataEntity = {
     client_id: string;
     environment: string;
     family_id?: string;
 };
 
-// @public (undocumented)
+// @public
 export type SerializedIdTokenEntity = {
     home_account_id: string;
     environment: string;
@@ -319,7 +306,7 @@ export type SerializedIdTokenEntity = {
     realm: string;
 };
 
-// @public (undocumented)
+// @public
 export type SerializedRefreshTokenEntity = {
     home_account_id: string;
     environment: string;
@@ -350,7 +337,7 @@ export type SilentFlowRequest = Partial<Omit<SilentFlowRequest_2, "account" | "s
     scopes: Array<string>;
 };
 
-// @public
+// @beta
 class Storage_2 extends CacheManager {
     constructor(logger: Logger, clientId: string, cryptoImpl: ICrypto);
     cacheToInMemoryCache(cache: CacheKVStore): InMemoryCache;
@@ -394,7 +381,7 @@ export { Storage_2 as Storage }
 
 // Warning: (ae-forgotten-export) The symbol "ITokenCache" needs to be exported by the entry point index.d.ts
 //
-// @public
+// @beta
 export class TokenCache implements ISerializableTokenCache, ITokenCache {
     constructor(storage: Storage_2, logger: Logger, cachePlugin?: ICachePlugin);
     deserialize(cache: string): void;
