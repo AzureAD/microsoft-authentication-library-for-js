@@ -109,6 +109,14 @@ if (inProgress === "login") {
 }
 ```
 
+Docs for the APIs `PublicClientApplication` exposes can be found in the `msal-browser` docs:
+
+- [Login APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md)
+- [Logout API](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/logout.md)
+- [AcquireToken APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/acquire-token.md)
+- [Account APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/accounts.md)
+- [Event APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/events.md)
+
 ## `useMsalAuthentication` hook
 
 The `useMsalAuthentication` hook will initiate a login if a user is not already signed in. It accepts an `interactionType` ("Popup", "Redirect", or "Silent") and optionally accepts a [request object](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-react-feature-branch/lib/msal-browser/docs/request-response-object.md#request) and an `accountIdentifiers` object if you would like to ensure a specific user is signed in. The hook will return the `response` or `error` from the login call and the `login` callback which can be used to retry a failed login.
