@@ -81,6 +81,19 @@ export enum InteractionType {
     Silent = "silent"
 }
 
+/**
+ * Type of interaction in progress
+ */
+export enum InteractionStatus {
+    Startup = "startup",
+    Login = "login",
+    Logout = "logout",
+    AcquireToken = "acquireToken",
+    SsoSilent = "ssoSilent",
+    HandleRedirect = "handleRedirect",
+    None = "none"
+}
+
 export const DEFAULT_REQUEST: RedirectRequest|PopupRequest = {
     scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
 };
