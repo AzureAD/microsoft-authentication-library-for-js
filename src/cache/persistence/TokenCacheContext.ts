@@ -10,11 +10,11 @@ import { ISerializableTokenCache } from "../interface/ISerializableTokenCache";
  * decisions to read from and write to the persistent cache
  */export class TokenCacheContext {
     /**
-     * shjbfdhjsfvhjd
+     * boolean indicating cache change
      */
     hasChanged: boolean;
     /**
-     * sjfhjdsfghj
+     * serializable token cache interface
      */
     cache: ISerializableTokenCache;
 
