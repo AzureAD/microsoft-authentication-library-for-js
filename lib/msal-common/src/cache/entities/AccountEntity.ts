@@ -150,7 +150,7 @@ export class AccountEntity {
         account.clientInfo = clientInfo;
         account.homeAccountId = homeAccountId;
 
-        const env = Authority.generateEnvironmentFromAuthority(authority);
+        const env = authority.getPreferredCache();
         if (StringUtils.isEmpty(env)) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
         }
@@ -201,7 +201,7 @@ export class AccountEntity {
         account.realm = "";
         account.oboAssertion = oboAssertion;
 
-        const env = Authority.generateEnvironmentFromAuthority(authority);
+        const env = authority.getPreferredCache();
 
         if (StringUtils.isEmpty(env)) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();

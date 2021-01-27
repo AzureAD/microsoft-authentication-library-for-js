@@ -5,7 +5,6 @@ import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity";
 import { CacheRecord } from "../../src/cache/entities/CacheRecord";
 import { AccountFilter, CredentialFilter } from "../../src/cache/utils/CacheTypes";
 import sinon, { mock } from "sinon";
-import { ClientTestUtils } from "../client/ClientTestUtils";
 import { ScopeSet } from "../../src/request/ScopeSet";
 import {
     TEST_CONFIG,
@@ -15,13 +14,23 @@ import {
 import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { AccountInfo } from "../../src/account/AccountInfo";
 import { MockCache } from "./MockCache";
-import { CacheManager } from "../../src";
+import { AuthorityMetadataEntity, CacheManager } from "../../src";
+import { mockCrypto } from "../client/ClientTestUtils";
 
 describe("CacheManager.ts test cases", () => {
-
-    let mockCache = new MockCache();
+    let mockCache = new MockCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, mockCrypto);
+    let authorityMetadataStub: sinon.SinonStub;
     beforeEach(() => {
         mockCache.initializeCache();
+        authorityMetadataStub = sinon.stub(CacheManager.prototype, "getAuthorityMetadataByAlias").callsFake((host) => {
+            const authorityMetadata = new AuthorityMetadataEntity();
+            authorityMetadata.updateCloudDiscoveryMetadata({
+                aliases: [host],
+                preferred_cache: host,
+                preferred_network: host
+            }, false);
+            return authorityMetadata;
+        })
     });
 
     afterEach(() => {
@@ -120,7 +129,6 @@ describe("CacheManager.ts test cases", () => {
 
         it("environment filter", () => {
             // filter by environment
-            ClientTestUtils.setCloudDiscoveryMetadataStubs();
             const successFilter: AccountFilter = { environment: "login.microsoftonline.com" };
             let accounts = mockCache.cacheManager.getAccountsFilteredBy(successFilter);
             expect(Object.keys(accounts).length).to.eql(1);
@@ -162,7 +170,6 @@ describe("CacheManager.ts test cases", () => {
 
         it("environment filter", () => {
             // filter by environment
-            ClientTestUtils.setCloudDiscoveryMetadataStubs();
             const successFilter: CredentialFilter = { environment: "login.microsoftonline.com" };
             let credentials = mockCache.cacheManager.getCredentialsFilteredBy(successFilter);
             expect(Object.keys(credentials.idTokens).length).to.eql(1);
@@ -251,7 +258,6 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("getAppMetadata and readAppMetadataFromCache", () => {
-        ClientTestUtils.setCloudDiscoveryMetadataStubs();
         const appMetadataKey = "appmetadata-login.microsoftonline.com-mock_client_id_1";
         const appMetadata = mockCache.cacheManager.getAppMetadata(appMetadataKey);
 
@@ -261,8 +267,6 @@ describe("CacheManager.ts test cases", () => {
         const cachedAppMetadata = mockCache.cacheManager.readAppMetadataFromCache(CACHE_MOCKS.MOCK_ACCOUNT_INFO.environment, CACHE_MOCKS.MOCK_CLIENT_ID_1);
         expect(cachedAppMetadata.clientId).to.eql(CACHE_MOCKS.MOCK_CLIENT_ID_1);
         expect(cachedAppMetadata.environment).to.eql(CACHE_MOCKS.MOCK_ACCOUNT_INFO.environment);
-
-        sinon.restore();
     });
 
     it("removeAppMetadata", () => {
@@ -317,8 +321,6 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("readAccessTokenFromCache matches multiple tokens, throws error", () => {
-
-        ClientTestUtils.setCloudDiscoveryMetadataStubs();
         const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             "uid.utid", "login.microsoftonline.com", "an_access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
 
@@ -351,31 +353,36 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("readIdTokenFromCache", () => {
-        ClientTestUtils.setCloudDiscoveryMetadataStubs();
         const idToken = mockCache.cacheManager.readIdTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, CACHE_MOCKS.MOCK_ACCOUNT_INFO);
         expect(idToken.clientId).to.equal(CACHE_MOCKS.MOCK_CLIENT_ID);
     });
 
     it("readRefreshTokenFromCache", () => {
-        ClientTestUtils.setCloudDiscoveryMetadataStubs();
-        const refreshToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, CACHE_MOCKS.MOCK_ACCOUNT_INFO, false);
-        expect(refreshToken.clientId).to.equal(CACHE_MOCKS.MOCK_CLIENT_ID);
+        const refreshToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, CACHE_MOCKS.MOCK_ACCOUNT_INFO, false);
+        expect(refreshToken.clientId).to.equal(CACHE_MOCKS.MOCK_CLIENT_ID_1);
     });
 
     it("readRefreshTokenFromCache Error", () => {
-        ClientTestUtils.setCloudDiscoveryMetadataStubs();
         const refreshToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, CACHE_MOCKS.MOCK_ACCOUNT_INFO, true);
         expect(refreshToken).to.equal(null);
     });
 
     it("readRefreshTokenFromCache with familyId", () => {
-        ClientTestUtils.setCloudDiscoveryMetadataStubs();
         const refreshToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, CACHE_MOCKS.MOCK_ACCOUNT_INFO, true);
         expect(refreshToken.clientId).to.equal(CACHE_MOCKS.MOCK_CLIENT_ID_1);
     });
 
     it("readRefreshTokenFromCache with environment aliases", () => {
-        ClientTestUtils.setCloudDiscoveryMetadataStubs();
+        authorityMetadataStub.callsFake((host) => {
+            const authorityMetadata = new AuthorityMetadataEntity();
+            authorityMetadata.updateCloudDiscoveryMetadata({
+                aliases: ["login.microsoftonline.com", "login.windows.net"],
+                preferred_network: host,
+                preferred_cache: host
+            }, false);
+
+            return authorityMetadata;
+        });
         const mockedAccountInfo: AccountInfo = {
             homeAccountId: "uid.utid",
             environment: "login.windows.net",

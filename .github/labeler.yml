@@ -17,4 +17,5 @@ msal-react:
 samples:
   - samples/**/*
 documentation:
-  - docs/**/*
+  - '**/docs/**/*'
+  - '**/*.md'
