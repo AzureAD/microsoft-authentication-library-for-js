@@ -5,7 +5,7 @@
 
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, CanActivateChild, CanLoad, UrlTree, Router } from "@angular/router";
 import { MsalService } from "./msal.service";
-import { Injectable, Inject } from "@angular/core";
+import { Injectable, Inject, VERSION } from "@angular/core";
 import { Location } from "@angular/common";
 import { InteractionType, BrowserConfigurationAuthError, BrowserUtils, UrlString, PopupRequest, RedirectRequest, AuthenticationResult } from "@azure/msal-browser";
 import { MsalGuardConfiguration } from "./msal.guard.config";
@@ -120,7 +120,7 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
                 }),
                 catchError(() => {
                     this.authService.getLogger().verbose("Guard - error while logging in, unable to activate");
-                    if (this.loginFailedRoute) {
+                    if (this.loginFailedRoute && parseInt(VERSION.major, 10) > 9) {
                         this.authService.getLogger().verbose("Guard - loginFailedRoute set, redirecting");
                         return of(this.loginFailedRoute);
                     }
@@ -139,8 +139,9 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
         return this.activateHelper(state);
     }
 
-    canLoad(): Observable<boolean|UrlTree> {
+    canLoad(): Observable<boolean> {
         this.authService.getLogger().verbose("Guard - canLoad");
+        //@ts-ignore
         return this.activateHelper();
     }
 
