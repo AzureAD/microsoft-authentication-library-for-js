@@ -51,10 +51,16 @@ export class CryptoProvider implements ICrypto {
         return this.pkceGenerator.generatePkceCodes();
     }
 
+    /**
+     * Generates a keypair, stores it and returns a thumbprint - not yet implemented for node
+     */
     getPublicKeyThumbprint(): Promise<string> {
         throw new Error("Method not implemented.");
     }
 
+    /**
+     * Signs the given object as a jwt payload with private key retrieved by given kid - currently not implemented for node
+     */
     signJwt(): Promise<string> {
         throw new Error("Method not implemented.");
     }

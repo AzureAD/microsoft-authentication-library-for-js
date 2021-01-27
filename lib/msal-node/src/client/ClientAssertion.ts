@@ -22,12 +22,22 @@ export class ClientAssertion {
     private jwtAudience: string;
     private publicCertificate: Array<string>;
 
+    /**
+     * initialize the ClientAssertion class from the clientAssertion passed by the user
+     * @param assertion
+     */
     public static fromAssertion(assertion: string): ClientAssertion {
         const clientAssertion = new ClientAssertion();
         clientAssertion.jwt = assertion;
         return clientAssertion;
     }
 
+    /**
+     * initialize the ClientAssertion class from the certificate passed by the user
+     * @param thumbprint
+     * @param privateKey
+     * @param publicCertificate
+     */
     public static fromCertificate(thumbprint: string, privateKey: string, publicCertificate?: string): ClientAssertion {
         const clientAssertion = new ClientAssertion();
         clientAssertion.privateKey = privateKey;
@@ -38,6 +48,12 @@ export class ClientAssertion {
         return clientAssertion;
     }
 
+    /**
+     * Update JWT for certificate based clientAssertion, if passed by the user, uses it as is
+     * @param cryptoProvider
+     * @param issuer
+     * @param jwtAudience
+     */
     public getJwt(cryptoProvider: CryptoProvider, issuer: string, jwtAudience: string) {
         // if assertion was created from certificate, check if jwt is expired and create new one.
         if (this.privateKey && this.thumbprint) {
@@ -60,7 +76,9 @@ export class ClientAssertion {
         throw ClientAuthError.createInvalidAssertionError();
     }
 
-    // JWT format and required claims specified: https://tools.ietf.org/html/rfc7523#section-3
+    /**
+     * JWT format and required claims specified: https://tools.ietf.org/html/rfc7523#section-3
+     */
     private createJwt(cryptoProvider: CryptoProvider, issuer: string, jwtAudience: string): string {
 
         this.issuer = issuer;
@@ -74,8 +92,8 @@ export class ClientAssertion {
         };
 
         if (this.publicCertificate) {
-            Object.assign(header, { 
-                [JwtConstants.X5C]: this.publicCertificate 
+            Object.assign(header, {
+                [JwtConstants.X5C]: this.publicCertificate
             });
         }
 
@@ -92,6 +110,9 @@ export class ClientAssertion {
         return this.jwt;
     }
 
+    /**
+     * utility API to check expiration
+     */
     private isExpired(): boolean {
         return this.expirationTime < TimeUtils.nowSeconds();
     }
@@ -116,7 +137,7 @@ export class ClientAssertion {
             // matches[1] represents the first parens capture group in the regex.
             certs.push(matches[1].replace(/\n/, ""));
         }
-        
+
         return certs;
     }
 }

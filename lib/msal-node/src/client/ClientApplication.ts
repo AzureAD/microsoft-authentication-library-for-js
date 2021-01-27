@@ -36,14 +36,33 @@ import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { SilentFlowRequest } from "../request/SilentFlowRequest";
 import { version, name } from "../../package.json";
 
+/**
+ * Base abstract class for all ClientApplications - public and confidential
+ */
 export abstract class ClientApplication {
-    private readonly cryptoProvider: CryptoProvider;
-    protected storage: Storage;
-    private tokenCache: TokenCache;
-    protected logger: Logger;
-    protected config: Configuration;
 
+    private readonly cryptoProvider: CryptoProvider;
+    private tokenCache: TokenCache;
+
+    /**
+     * Platform storage object
+     */
+    protected storage: Storage;
+    /**
+     * Logger object to log the application flow
+     */
+    protected logger: Logger;
+    /**
+     * Platform configuration initialized by the application
+     */
+    protected config: Configuration;
+    /**
+     * Client assertion passed by the user for confidential client flows
+     */
     protected clientAssertion: ClientAssertion;
+    /**
+     * Client secret passed by the user for confidential client flows
+     */
     protected clientSecret: string;
 
     /**
@@ -206,6 +225,11 @@ export abstract class ClientApplication {
         this.logger = logger;
     }
 
+    /**
+     * Builds the common configuration to be passed to the common component based on the platform configurarion
+     * @param authority
+     * @param serverTelemetryManager
+     */
     protected async buildOauthClientConfiguration(authority: string, serverTelemetryManager?: ServerTelemetryManager): Promise<ClientConfiguration> {
         this.logger.verbose("buildOauthClientConfiguration called");
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
@@ -265,6 +289,12 @@ export abstract class ClientApplication {
         };
     }
 
+    /**
+     * Initializes the server telemetry payload
+     * @param apiId
+     * @param correlationId
+     * @param forceRefresh
+     */
     protected initializeServerTelemetryManager(apiId: number, correlationId: string, forceRefresh?: boolean): ServerTelemetryManager {
         const telemetryPayload: ServerTelemetryRequest = {
             clientId: this.config.auth.clientId,

@@ -19,6 +19,10 @@ import { IConfidentialClientApplication } from "./IConfidentialClientApplication
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
 
+/**
+ *  This class is to be used to acquire tokens for confidential client applications (webApp, webAPI). Confidential client applications
+ *  will configure application secrets, client certificates/assertions as applicable
+ */
 export class ConfidentialClientApplication extends ClientApplication implements IConfidentialClientApplication{
 
     /**

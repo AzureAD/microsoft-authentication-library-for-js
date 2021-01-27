@@ -12,15 +12,25 @@ export { PublicClientApplication } from "./client/PublicClientApplication";
 export { ConfidentialClientApplication } from "./client/ConfidentialClientApplication";
 export { ClientApplication } from "./client/ClientApplication";
 export { Configuration, buildAppConfiguration } from "./config/Configuration";
+export { ClientAssertion } from "./client/ClientAssertion";
 
-// Cache and Scetorage
+// Cache and Storage
 export { Storage } from "./cache/Storage";
 export { Serializer } from "./cache/serializer/Serializer";
 export { Deserializer } from "./cache/serializer/Deserializer";
 export { TokenCache } from "./cache/TokenCache";
-export { CacheKVStore } from "./cache/serializer/SerializerTypes";
+export {
+    CacheKVStore,
+    JsonCache,
+    InMemoryCache,
+    SerializedAccountEntity,
+    SerializedAccessTokenEntity,
+    SerializedIdTokenEntity,
+    SerializedRefreshTokenEntity,
+    SerializedAppMetadataEntity
+} from "./cache/serializer/SerializerTypes";
 
-// crypto
+// Crypto
 export { CryptoProvider } from "./crypto/CryptoProvider";
 
 // Request objects
@@ -41,6 +51,7 @@ export {
     AuthenticationResult,
     // Cache
     AccountInfo,
+    ValidCacheType,
     // Error
     AuthError,
     AuthErrorMessage,
