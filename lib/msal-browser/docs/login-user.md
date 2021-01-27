@@ -100,7 +100,7 @@ These APIs will return an account object or an array of account objects with the
 If you already have a session that exists with the authentication server, you can use the ssoSilent() API to make request for tokens without interaction. You will need to pass a `login_hint` (which can be retrieved from the account object `username` property or the `upn` claim in the ID token) in the request object in order to successfully obtain a token silently.
 
 ```javascript
-const request = {
+const silentRequest = {
     scopes: ["User.Read", "Mail.Read"],
     loginHint: "user@contoso.com"
 };
