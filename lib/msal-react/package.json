@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-react",
-  "version": "1.0.0-alpha.2",
+  "version": "1.0.0-alpha.3",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -37,12 +37,12 @@
     "build-storybook": "build-storybook"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^2.9.0",
+    "@azure/msal-browser": "^2.10.0",
     "react": "^16.13.0 || ^17"
   },
   "module": "dist/msal-react.esm.js",
   "devDependencies": {
-    "@azure/msal-browser": "^2.9.0",
+    "@azure/msal-browser": "^2.10.0",
     "@babel/core": "^7.12.10",
     "@storybook/addon-actions": "^6.1.10",
     "@storybook/addon-docs": "^6.1.10",

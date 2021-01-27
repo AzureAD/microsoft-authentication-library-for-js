@@ -19,10 +19,6 @@ import { CacheManager } from "../../src/cache/CacheManager";
 import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 
 describe("ClientCredentialClient unit tests", () => {
-    beforeEach(() => {
-        ClientTestUtils.setCloudDiscoveryMetadataStubs();
-    });
-
     afterEach(() => {
         sinon.restore();
     });
@@ -30,7 +26,7 @@ describe("ClientCredentialClient unit tests", () => {
     describe("Constructor", async () => {
 
         it("creates a ClientCredentialClient", async () => {
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new ClientCredentialClient(config);
             expect(client).to.be.not.null;
@@ -40,7 +36,7 @@ describe("ClientCredentialClient unit tests", () => {
     });
 
     it("acquires a token", async () => {
-        sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+        sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
         sinon.stub(ClientCredentialClient.prototype, <any>"executePostToTokenEndpoint").resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
 
         const createTokenRequestBodySpy = sinon.spy(ClientCredentialClient.prototype, <any>"createTokenRequestBody");
@@ -68,7 +64,7 @@ describe("ClientCredentialClient unit tests", () => {
     });
 
     it("acquires a token, returns token from the cache", async () => {
-        sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+        sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
         const config = await ClientTestUtils.createTestClientConfiguration();
         const client = new ClientCredentialClient(config);
 
@@ -95,7 +91,7 @@ describe("ClientCredentialClient unit tests", () => {
     });
 
     it("acquires a token, skipCache = true", async () => {
-        sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+        sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
         sinon.stub(ClientCredentialClient.prototype, <any>"executePostToTokenEndpoint").resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
 
         const createTokenRequestBodySpy = sinon.spy(ClientCredentialClient.prototype, <any>"createTokenRequestBody");
@@ -124,8 +120,7 @@ describe("ClientCredentialClient unit tests", () => {
     });
 
     it("Multiple access tokens matched, exception thrown", async () => {
-
-        sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+        sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
         const config = await ClientTestUtils.createTestClientConfiguration();
         
         // mock access token
