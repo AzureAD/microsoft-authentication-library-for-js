@@ -4,11 +4,10 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
-import { PopupRequest, RedirectRequest, SsoSilentRequest, InteractionType, AuthenticationResult, AuthError, EventMessage, EventType } from "@azure/msal-browser";
+import { PopupRequest, RedirectRequest, SsoSilentRequest, InteractionType, AuthenticationResult, AuthError, EventMessage, EventType, InteractionStatus } from "@azure/msal-browser";
 import { useIsAuthenticated } from "./useIsAuthenticated";
 import { AccountIdentifiers } from "../types/AccountIdentifiers";
 import { useMsal } from "./useMsal";
-import { InteractionStatus } from "../utils/Constants";
 
 export type MsalAuthenticationResult = {
     login: Function; 

@@ -26,4 +26,4 @@ export { useAccount } from "./hooks/useAccount";
 export { useIsAuthenticated } from "./hooks/useIsAuthenticated";
 export { useMsalAuthentication } from "./hooks/useMsalAuthentication";
 
-export { InteractionStatus } from "./utils/Constants";
+export { InteractionStatus } from "@azure/msal-browser";
