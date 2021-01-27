@@ -179,6 +179,7 @@ export class BrokerClientApplication extends ClientApplication {
                 clientId: validMessage.embeddedClientId,
                 scopes: validMessage.request.scopes
             };
+
             // Lookup broker response by thumbprint and origin of the embedded app
             const cachedBrokerResponse = this.browserStorage.getBrokerResponseByThumbprint(reqThumbprint, validMessage.embeddedAppOrigin);
             if (cachedBrokerResponse) {
