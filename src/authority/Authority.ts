@@ -112,11 +112,27 @@ export class Authority {
     }
 
     /**
+     * Get B2C policy/user_flow for authority.
+     */
+    public get policy(): string | null {
+        const parts = this.canonicalAuthorityUrlComponents.PathSegments;
+        if (parts.length > 1 && parts[1]) {
+            return parts[1];
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * OAuth /authorize endpoint for requests
      */
     public get authorizationEndpoint(): string {
         if(this.discoveryComplete()) {
-            return this.replaceTenant(this.metadata.authorization_endpoint);
+            let endpoint = this.metadata.authorization_endpoint;
+            if (this.policy) {
+                endpoint = this.replacePolicy(endpoint);
+            }
+            return this.replaceTenant(endpoint);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
         }
@@ -127,7 +143,11 @@ export class Authority {
      */
     public get tokenEndpoint(): string {
         if(this.discoveryComplete()) {
-            return this.replaceTenant(this.metadata.token_endpoint);
+            let endpoint = this.metadata.token_endpoint;
+            if (this.policy) {
+                endpoint = this.replacePolicy(endpoint);
+            }
+            return this.replaceTenant(endpoint);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
         }
@@ -135,7 +155,11 @@ export class Authority {
 
     public get deviceCodeEndpoint(): string {
         if(this.discoveryComplete()) {
-            return this.metadata.token_endpoint.replace("/token", "/devicecode");
+            let endpoint = this.metadata.token_endpoint.replace("/token", "/devicecode");
+            if (this.policy) {
+                endpoint = this.replacePolicy(endpoint);
+            }
+            return this.replaceTenant(endpoint);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
         }
@@ -146,7 +170,11 @@ export class Authority {
      */
     public get endSessionEndpoint(): string {
         if(this.discoveryComplete()) {
-            return this.replaceTenant(this.metadata.end_session_endpoint);
+            let endpoint = this.metadata.end_session_endpoint;
+            if (this.policy) {
+                endpoint = this.replacePolicy(endpoint);
+            }
+            return this.replaceTenant(endpoint);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
         }
@@ -169,6 +197,26 @@ export class Authority {
      */
     private replaceTenant(urlString: string): string {
         return urlString.replace(/{tenant}|{tenantid}/g, this.tenant);
+    }
+
+    /**
+     * Replaces policy in url path with current policy.
+     * @param urlString 
+     */
+    private replacePolicy(urlString: string): string {
+        if (this.policy) {
+            const endpoint = new UrlString(urlString);
+            endpoint.validateAsUri();
+            const endpointParts = endpoint.getUrlComponents().PathSegments;
+            if (endpointParts.length > 1 && endpointParts[1]) {
+                const endpointPolicy = endpointParts[1];
+                if (endpointPolicy !== this.policy) {
+                    return urlString.replace(endpointPolicy, this.policy);
+                }
+            }
+        }
+
+        return urlString;
     }
 
     /**
