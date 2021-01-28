@@ -5,8 +5,8 @@
 
 import { Inject, Injectable } from "@angular/core";
 import { Observable, Subject } from "rxjs";
-import { MSAL_INSTANCE, InteractionStatus } from "./constants";
-import { EventMessage, EventMessageUtils, IPublicClientApplication } from "@azure/msal-browser";
+import { MSAL_INSTANCE } from "./constants";
+import { EventMessage, EventMessageUtils, IPublicClientApplication, InteractionStatus } from "@azure/msal-browser";
 
 @Injectable()
 export class MsalBroadcastService {
