@@ -4,40 +4,13 @@
 
 Some users of MSAL find redirects confusing. The following are two approaches that we would recommend when using redirects:
 
-### 1. Subscribing to handleRedirectObservable
-- `handleRedirectObservable()` should be subscribed to on every page to which a redirect may occur. Pages protected by the MSAL Guard do not need to subscribe to `handleRedirectObservable()`, as redirects are processed in the Guard.
-- Accessing or performing any action related to user accounts should not be done until `handleRedirectObservable()` is complete. This prevents multiple `handleRedirectObservables()` being called, resulting in an `interaction_in_progress` error.
+### 1. Dedicated handleRedirectObservable component
 
-Example of home.component.ts file:
-```js
-import { Component, OnInit } from '@angular/core';
-import { MsalBroadcastService, MsalService } from '@azure/msal-angular';
-import { AuthenticationResult } from '@azure/msal-browser';
+This is our recommended approach for handling redirects:
 
-@Component({
-  selector: 'app-home',
-  templateUrl: './home.component.html',
-  styleUrls: ['./home.component.css']
-})
-export class HomeComponent implements OnInit {
-
-  constructor(private authService: MsalService) { }
-
-  ngOnInit(): void {
-    this.authService.handleRedirectObservable().subscribe({
-      next: (result: AuthenticationResult) => {
-        // Perform actions related to user accounts here
-      },
-      error: (error) => console.log(error)
-    });
-  }
-
-}
-```
-
-### 2. Dedicated handleRedirectObservable component
 - MSAL Angular 2.x provides a dedicated redirect component that can be incorporated into your application. We recommend bootstrapping this alongside `AppComponent` in your application on the `app.module.ts`, as this will handle all redirects without your components needing to subscribe to `handleRedirectObservable()` manually.
-- Pages that wish to perform user account functions following redirects should subscribe to the `inProgress$` subject, filtering for `InteractionStatus.None`. This will ensure that there are no interactions in progress when performing user account functions. 
+- Pages that wish to perform functions following redirects (e.g. user account functions, UI changes, etc) should subscribe to the `inProgress$` subject, filtering for `InteractionStatus.None`. This will ensure that there are no interactions in progress when performing the functions. 
+- See our [Angular 10](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular10-sample-app), [Angular 11](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-sample-app) and [Angular 11 B2C samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-b2c-sample) for examples of this approach.
 
 msal.redirect.component.ts
 ```js
@@ -202,7 +175,42 @@ export class AppComponent implements OnInit, OnDestroy {
         takeUntil(this._destroying$)
       )
       .subscribe(() => {
-        // Do user account functions here
+        // Do user account/UI functions here
       })
   }
+```
+
+### 2. Subscribing to handleRedirectObservable
+
+This is not our recommended approach, but if you are unable to bootstrap the `MsalRedirectComponent`, we would suggest the following:
+
+- `handleRedirectObservable()` should be subscribed to on every page to which a redirect may occur. Pages protected by the MSAL Guard do not need to subscribe to `handleRedirectObservable()`, as redirects are processed in the Guard.
+- Accessing or performing any action related to user accounts should not be done until `handleRedirectObservable()` is complete. This prevents multiple `handleRedirectObservables()` being called, resulting in an `interaction_in_progress` error.
+- See our [Angular 9 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular9-v2-sample-app) for examples of this approach.
+
+Example of home.component.ts file:
+```js
+import { Component, OnInit } from '@angular/core';
+import { MsalBroadcastService, MsalService } from '@azure/msal-angular';
+import { AuthenticationResult } from '@azure/msal-browser';
+
+@Component({
+  selector: 'app-home',
+  templateUrl: './home.component.html',
+  styleUrls: ['./home.component.css']
+})
+export class HomeComponent implements OnInit {
+
+  constructor(private authService: MsalService) { }
+
+  ngOnInit(): void {
+    this.authService.handleRedirectObservable().subscribe({
+      next: (result: AuthenticationResult) => {
+        // Perform actions related to user accounts here
+      },
+      error: (error) => console.log(error)
+    });
+  }
+
+}
 ```
