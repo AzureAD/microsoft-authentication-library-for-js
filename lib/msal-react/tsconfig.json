@@ -21,5 +21,10 @@
     },
     "jsx": "react",
     "esModuleInterop": true
-  }
+  },
+  "references": [
+    {
+      "path": "../msal-browser"
+    }
+  ]
 }
