@@ -93,8 +93,13 @@ describe("LocalStorage Tests", function () {
             // Navigate back to home page
             await page.goto(SAMPLE_HOME_URL);
             await page.waitFor(500);
-            const storage = await BrowserCache.getWindowStorage();
-            expect(Object.keys(storage).length).to.be.eq(0);
+
+            // Temporary Cache always uses sessionStorage
+            const sessionBrowserStorage = new BrowserCacheUtils(page, "sessionStorage");
+            const sessionStorage = await sessionBrowserStorage.getWindowStorage();
+            const localStorage = await BrowserCache.getWindowStorage();
+            expect(Object.keys(localStorage).length).to.be.eq(0);
+            expect(Object.keys(sessionStorage).length).to.be.eq(0);
         });
         
         it("Performs loginPopup", async () => {
@@ -113,13 +118,18 @@ describe("LocalStorage Tests", function () {
             const testName = "popupCloseWindow";
             const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
             const [popupPage, popupWindowClosed] = await clickLoginPopup(screenshot, page);
+            await popupPage.waitForNavigation({waitUntil: 'networkidle0'});
             await popupPage.close();
+            // Wait until popup window closes
             await popupWindowClosed;
             // Wait for processing
-            await page.waitFor(500);
-            // Wait until popup window closes
-            const storage = await BrowserCache.getWindowStorage();
-            expect(Object.keys(storage).length).to.be.eq(1); // Telemetry
+            await page.waitFor(200);
+            // Temporary Cache always uses sessionStorage
+            const sessionBrowserStorage = new BrowserCacheUtils(page, "sessionStorage");
+            const sessionStorage = await sessionBrowserStorage.getWindowStorage();
+            const localStorage = await BrowserCache.getWindowStorage();
+            expect(Object.keys(localStorage).length).to.be.eq(1); // Telemetry
+            expect(Object.keys(sessionStorage).length).to.be.eq(0);
         });
     });
 });

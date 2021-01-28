@@ -29,5 +29,10 @@
     "experimentalDecorators": true
   },
   "compileOnSave": false,
-  "buildOnSave": false
+  "buildOnSave": false,
+  "references": [
+    {
+      "path": "../msal-common"
+    }
+  ]
 }

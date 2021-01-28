@@ -20,6 +20,7 @@
 1. [How can my application recognize a user after sign-in? How do I correlate users between applications?](#how-can-my-application-recognize-a-user-after-sign-in-how-do-i-correlate-users-between-applications)
 
 **[Configuration](#Configuration)**
+
 1. [What is the difference between sessionStorage and localStorage?](#what-is-the-difference-between-sessionstorage-and-localstorage)
 1. [What are the possible configuration options?](#what-are-the-possible-configuration-options)
 1. [Where is the authority string on Azure AD Portal?](#where-is-the-authority-domain-string-on-azure-ad-portal)
@@ -39,6 +40,8 @@
 1. [My application has multiple resources it needs to access to. How should I handle scopes for access tokens?](#my-application-has-multiple-resources-it-needs-to-access-to-how-should-i-handle-scopes-for-access-tokens)
 
 **[B2C](#B2C)**
+
+1. [How do I specify which B2C policy/user flow I would like to use?](#how-do-i-specify-which-b2c-policyuser-flow-i-would-like-to-use)
 1. [Why is getAccountByUsername returning null, even though I'm signed in?](#why-is-getaccountbyusername-returning-null-even-though-im-signed-in)
 1. [I logged out of my application. Why am I not asked for credentials when I try to log back in?](#i-logged-out-of-my-application-why-am-i-not-asked-for-credentials-when-i-try-to-log-back-in)
 1. [Why am I not signed in when returning from an invite link?](#why-am-i-not-signed-in-when-returning-from-an-invite-link)
@@ -46,6 +49,7 @@
 1. [What should I do if I believe my issue is with the B2C service itself rather than with the library](#what-should-i-do-if-i-believe-my-issue-is-with-the-b2c-service-itself-rather-than-with-the-library)
 
 **Common Issues**
+
 1. [Why is MSAL throwing an error?](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser/docs/errors.md)
 
 ***
@@ -171,6 +175,30 @@ Please see the documentation on [Tenancy in Azure Active Directory](https://docs
 Please see the doc about resources and scopes [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/resources-and-scopes.md)
 
 # B2C
+
+## How do I specify which B2C policy/user flow I would like to use?
+
+The policy (a.k.a. user flow) can be appended to the authority url you provide as part of the `PublicClientApplication` configuration or as part of an individual request.
+
+```javascript
+const config = {
+    auth: {
+        clientId: "your-client-id",
+        authority: "https://yourApp.b2clogin.com/yourApp.onmicrosoft.com/your_policy",
+        knownAuthorities: ["yourApp.b2clogin.com"]
+    }
+}
+const pca = new PublicClientApplication(config);
+
+// You can also provide the authority as part of the request object
+const request = {
+    scopes: ["openid"],
+    authority: "https://yourApp.b2clogin.com/yourApp.onmicrosoft.com/your_policy"
+}
+pca.loginRedirect(request);
+```
+
+Note: Msal.js does not support providing the user flow as a query parameter e.g. `https://yourApp.b2clogin.com/yourApp.onmicrosoft.com/?p=your_policy`. Please make sure your authority is formatted as shown above.
 
 ## Why is `getAccountByUsername()` returning null, even though I'm signed in?
 
