@@ -28,6 +28,7 @@
 
 # Build
 /build/ @pkanher617 @jasonnutter @tnorling
+/.github/ @pkanher617 @jasonnutter @tnorling
 
 # Filepaths to ignore
 /change/
