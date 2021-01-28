@@ -17,9 +17,11 @@ export class HomeComponent implements OnInit {
       .pipe(
         filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS),
       )
-      .subscribe((result) => {
+      .subscribe((result: EventMessage) => {
         console.log(result);
-        this.authService.instance.setActiveAccount(result.payload.account);
+        if (result?.payload?.account) {
+          this.authService.instance.setActiveAccount(result.payload.account);
+        }
       });
   }
 

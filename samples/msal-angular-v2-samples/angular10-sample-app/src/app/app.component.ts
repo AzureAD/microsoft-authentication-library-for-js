@@ -44,13 +44,11 @@ export class AppComponent implements OnInit, OnDestroy {
         this.authService.loginPopup({...this.msalGuardConfig.authRequest} as PopupRequest)
           .subscribe((response: AuthenticationResult) => {
             this.authService.instance.setActiveAccount(response.account);
-            this.setLoginDisplay();
           });
         } else {
           this.authService.loginPopup()
             .subscribe((response: AuthenticationResult) => {
               this.authService.instance.setActiveAccount(response.account);
-              this.setLoginDisplay();
             });
       }
     } else {
