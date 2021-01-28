@@ -1,14 +1,14 @@
-* @jasonnutter @tnorling @sameerag @pkanher617 @DarylThayil @jo-arroyo @jmckennon @hectormmg
+* @jasonnutter @tnorling @sameerag @pkanher617 @DarylThayil @jo-arroyo @hectormmg @samuelkubai
 
 # MSAL Angular
-/lib/msal-angular/ @jasonnutter @jo-arroyo
-/lib/msal-angularjs/ @jasonnutter @jo-arroyo
-/samples/msal-angular-samples/ @jasonnutter @jo-arroyo
-/samples/msal-angularjs-samples/ @jasonnutter @jo-arroyo
+/lib/msal-angular/ @jasonnutter @jo-arroyo @tnorling
+/lib/msal-angularjs/ @jasonnutter @jo-arroyo @tnorling
+/samples/msal-angular-samples/ @jasonnutter @jo-arroyo @tnorling
+/samples/msal-angularjs-samples/ @jasonnutter @jo-arroyo @tnorling
 
 # MSAL Browser
-/lib/msal-browser/ @pkanher617 @jmckennon @jasonnutter
-/samples/msal-browser-samples/ @pkanher617 @jmckennon
+/lib/msal-browser/ @pkanher617 @jasonnutter @tnorling
+/samples/msal-browser-samples/ @pkanher617 @jasonnutter @tnorling
 
 # MSAL Common
 /lib/msal-common/ @sameerag @pkanher617 @tnorling
@@ -18,16 +18,17 @@
 /samples/msal-core-samples/ @jasonnutter @sameerag @tnorling
 
 # MSAL Node
-/lib/msal-node/ @sameerag @hectormmg
-/samples/msal-node-samples/ @sameerag @hectormmg
-/extensions/msal-node-extensions/ @sameerag @hectormmg
+/lib/msal-node/ @sameerag @hectormmg @samuelkubai
+/samples/msal-node-samples/ @sameerag @hectormmg @samuelkubai
+/extensions/msal-node-extensions/ @sameerag @hectormmg @samuelkubai
 
 # MSAL React
-/lib/msal-react/ @tnorling @jasonnutter
-/samples/msal-react-samples/ @tnorling @jasonnutter
+/lib/msal-react/ @tnorling @jasonnutter @jo-arroyo
+/samples/msal-react-samples/ @tnorling @jasonnutter @jo-arroyo
 
 # Build
-/build/ @pkanher617 @jasonnutter
+/build/ @pkanher617 @jasonnutter @tnorling
+/.github/ @pkanher617 @jasonnutter @tnorling
 
 # Filepaths to ignore
 /change/

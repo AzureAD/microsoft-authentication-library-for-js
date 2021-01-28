@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix handling of multiple popup windows (#2842)",
-  "packageName": "@azure/msal-browser",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -6,9 +6,9 @@ const expect = chai.expect;
 chai.use(chaiAsPromised);
 import { ICrypto, PkceCodes, UrlString, SignedHttpRequest, TimeUtils } from "../../src";
 import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS, TEST_TOKENS } from "../utils/StringConstants";
-import { PopTokenGenerator } from "../../src/crypto/PopTokenGenerator";
+import { PopKeyManager } from "../../src/crypto/PopKeyManager";
 
-describe("PopTokenGenerator Unit Tests", () => {
+describe.only("PopKeyManager Unit Tests", () => {
 
     const cryptoInterface: ICrypto = {
         createNewGuid(): string {
@@ -55,13 +55,19 @@ describe("PopTokenGenerator Unit Tests", () => {
     };
 
     it("Generates the req_cnf correctly", async () => {
-        const popTokenGenerator = new PopTokenGenerator(cryptoInterface);
-        const req_cnf = await popTokenGenerator.generateCnf("POST", TEST_URIS.TEST_REDIR_URI);
+        const popKeyManager = new PopKeyManager(cryptoInterface);
+        const req_cnf = await popKeyManager.generateCnf("POST", TEST_URIS.TEST_REDIR_URI);
         expect(req_cnf).to.be.eq(TEST_POP_VALUES.ENCODED_REQ_CNF);
     });
 
+    it("Generates stkJwkThumbprint correctly", async () => {
+        const popKeyManager = new PopKeyManager(cryptoInterface);
+        const stkJwkThumbprint = await popKeyManager.generateSessionTransportKey();
+        expect(stkJwkThumbprint).to.be.eq(TEST_POP_VALUES.ENCODED_STK_JWK_THUMBPRINT);
+    });
+
     it("Signs the proof-of-possession JWT token", (done) => {
-        const popTokenGenerator = new PopTokenGenerator(cryptoInterface);
+        const popKeyManager = new PopKeyManager(cryptoInterface);
         const accessToken = TEST_POP_VALUES.SAMPLE_POP_AT;
         const resourceReqMethod = "POST";
         const resourceUrl = TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS;
@@ -84,6 +90,6 @@ describe("PopTokenGenerator Unit Tests", () => {
             done();
             return null;
         };
-        popTokenGenerator.signPopToken(accessToken, resourceReqMethod, resourceUrl);
+        popKeyManager.signPopToken(accessToken, resourceReqMethod, resourceUrl);
     });
 });

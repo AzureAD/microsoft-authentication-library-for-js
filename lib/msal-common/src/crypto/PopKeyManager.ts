@@ -23,12 +23,16 @@ type ReqCnf = {
     xms_ksl: KeyLocation;
 };
 
+type StkJwkThumbprint = {
+    kid: string;
+};
+
 enum KeyLocation {
     SW = "sw",
     UHW = "uhw"
 }
 
-export class PopTokenGenerator {
+export class PopKeyManager {
 
     private cryptoUtils: ICrypto;
 
@@ -43,6 +47,16 @@ export class PopTokenGenerator {
             xms_ksl: KeyLocation.SW
         };
         return this.cryptoUtils.base64Encode(JSON.stringify(reqCnf));
+    }
+
+    async generateSessionTransportKey(): Promise<string> {
+        const kid = await this.cryptoUtils.getPublicKeyThumbprint();
+        
+        const stkJwkThumbprint: StkJwkThumbprint = {
+            kid: kid
+        };
+
+        return encodeURIComponent(JSON.stringify(stkJwkThumbprint));
     }
 
     async signPopToken(accessToken: string, resourceRequestMethod: string, resourceRequestUri: string): Promise<string> {
