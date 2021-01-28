@@ -15,7 +15,12 @@
         "esModuleInterop": true,
         "resolveJsonModule": true
     },
-    "include": ["src", "test"],
+    "references": [
+        {
+            "path": "../msal-common"
+        }
+    ],
+    "include": ["src/**/*"],
     "exclude": [
         "node_modules"
     ],
