@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix B2C policy switching (#2949)",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
