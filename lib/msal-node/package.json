@@ -39,7 +39,7 @@
     "lint:fix": "npm run lint -- -- --fix",
     "build:all": "npm run build:common && npm run build",
     "build:common": "cd ../msal-common && npm run build",
-    "prepack": "npm run updateVersion && npm run build:all",
+    "prepack": "npm run build:all",
     "updateVersion": "node ../../release-scripts/updateVersion.js"
   },
   "peerDependencies": {},

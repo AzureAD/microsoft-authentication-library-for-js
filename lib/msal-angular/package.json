@@ -15,7 +15,7 @@
     "lint": "cd ../../ && npm run lint:angular",
     "lint:fix": "npm run lint -- -- --fix",
     "e2e": "ng e2e",
-    "prepack": "npm run updateVersion && npm run build:all",
+    "prepack": "npm run build:all",
     "preinstall": "npx npm-force-resolutions",
     "prepublishOnly": "echo Use npm run deploy && exit 1",
     "updateVersion": "node ../../release-scripts/updateVersion.js"
