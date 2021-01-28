@@ -183,7 +183,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 expect(authority.discoveryComplete()).to.be.true;
                 expect(authority.authorizationEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
                 expect(authority.tokenEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace("{tenant}", "common"));
-                expect(authority.deviceCodeEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace("/token", "/devicecode"));
+                expect(authority.deviceCodeEndpoint).to.be.eq(authority.tokenEndpoint.replace("/token", "/devicecode"));
                 expect(authority.endSessionEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common"));
                 expect(authority.selfSignedJwtAudience).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace("{tenant}", "common"));
 
@@ -229,7 +229,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 expect(authority.discoveryComplete()).to.be.true;
                 expect(authority.authorizationEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
                 expect(authority.tokenEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace("{tenant}", "common"));
-                expect(authority.deviceCodeEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace("/token", "/devicecode"));
+                expect(authority.deviceCodeEndpoint).to.be.eq(authority.tokenEndpoint.replace("/token", "/devicecode"));
                 expect(authority.endSessionEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common"));
                 expect(authority.selfSignedJwtAudience).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace("{tenant}", "common"));
 
@@ -264,7 +264,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 expect(authority.discoveryComplete()).to.be.true;
                 expect(authority.authorizationEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
                 expect(authority.tokenEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace("{tenant}", "common"));
-                expect(authority.deviceCodeEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace("/token", "/devicecode"));
+                expect(authority.deviceCodeEndpoint).to.be.eq(authority.tokenEndpoint.replace("/token", "/devicecode"));
                 expect(authority.endSessionEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common"));
                 expect(authority.selfSignedJwtAudience).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace("{tenant}", "common"));
 
@@ -291,7 +291,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 expect(authority.discoveryComplete()).to.be.true;
                 expect(authority.authorizationEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
                 expect(authority.tokenEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace("{tenant}", "common"));
-                expect(authority.deviceCodeEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace("/token", "/devicecode"));
+                expect(authority.deviceCodeEndpoint).to.be.eq(authority.tokenEndpoint.replace("/token", "/devicecode"));
                 expect(authority.endSessionEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common"));
                 expect(authority.selfSignedJwtAudience).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer.replace("{tenant}", "common"));
 
