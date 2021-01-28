@@ -120,7 +120,8 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
                 }),
                 catchError(() => {
                     this.authService.getLogger().verbose("Guard - error while logging in, unable to activate");
-                    if (this.loginFailedRoute && parseInt(VERSION.major, 10) > 9) {
+                    // 
+                    if (this.loginFailedRoute && parseInt(VERSION.major, 10) > 9 && state) {
                         this.authService.getLogger().verbose("Guard - loginFailedRoute set, redirecting");
                         return of(this.loginFailedRoute);
                     }
