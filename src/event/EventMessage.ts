@@ -25,7 +25,7 @@ export type EventCallbackFunction = (message: EventMessage) => void;
 export class EventMessageUtils {
 
     /**
-     * Sets interaction status from event message
+     * Gets interaction status from event message
      * @param message 
      */
     static getInteractionStatusFromEvent(message: EventMessage): InteractionStatus|null {
