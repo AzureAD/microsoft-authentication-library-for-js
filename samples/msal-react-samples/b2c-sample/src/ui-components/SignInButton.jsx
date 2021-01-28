@@ -1,33 +1,13 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useMsal } from "@azure/msal-react";
 import Button from "@material-ui/core/Button";
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
 
-import { forgotPasswordRequest, loginRequest } from "../authConfig.js";
-import { EventType, InteractionType } from "@azure/msal-browser";
+import { loginRequest } from "../authConfig.js";
 
 export const SignInButton = () => {
     const { instance } = useMsal();
-    useEffect(()=> {
-        const callbackId = instance.addEventCallback((event)=> {
-            if (event.eventType === EventType.LOGIN_FAILURE) {
-                if (event.error && event.error.errorMessage.indexOf("AADB2C90118") > -1) {
-                    if (event.interactionType === InteractionType.Redirect) {
-                        instance.loginRedirect(forgotPasswordRequest);
-                    } else if (event.interactionType === InteractionType.Popup) {
-                        instance.loginPopup(forgotPasswordRequest);
-                    }
-                }
-            }
-        });
-
-        return () => {
-            if (callbackId) {
-                instance.removeEventCallback(callbackId);
-            }
-        };
-    }, [instance]);
 
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
@@ -36,7 +16,9 @@ export const SignInButton = () => {
         setAnchorEl(null);
 
         if (loginType === "popup") {
-            instance.loginPopup(loginRequest);
+            instance.loginPopup(loginRequest).catch(e => {
+                return;
+            });
         } else if (loginType === "redirect") {
             instance.loginRedirect(loginRequest);
         }
