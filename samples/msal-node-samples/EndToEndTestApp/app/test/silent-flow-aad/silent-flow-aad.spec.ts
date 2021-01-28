@@ -25,7 +25,7 @@ let accountPwd: string;
 const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
 
 describe("Silent Flow AAD PPE Tests", () => {
-    jest.setTimeout(10000);
+    jest.setTimeout(15000);
     let browser: puppeteer.Browser;
 
     beforeAll(async () => {
@@ -64,7 +64,7 @@ describe("Silent Flow AAD PPE Tests", () => {
         afterEach(async () => {
             await page.close();
             await context.close();
-            NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+            await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
 
         it("Performs acquire token with Auth Code flow", async () => {

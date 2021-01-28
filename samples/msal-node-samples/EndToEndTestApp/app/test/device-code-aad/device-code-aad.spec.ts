@@ -19,6 +19,7 @@ const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
 
 const getDeviceCode = require("../../routes/deviceCode.js");
 const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
+
 let username: string;
 let accountPwd: string;
 
@@ -47,8 +48,6 @@ describe('Device Code AAD PPE Tests', () => {
             headless: true,
             ignoreDefaultArgs: ['--no-sandbox', '-disable-setuid-sandbox', '--disable-extensions']
         });
-
-        clientConfig = { auth: scenarioConfig.authOptions, cache: { cachePlugin } };
     });
 
     afterAll(async () => {
@@ -60,6 +59,7 @@ describe('Device Code AAD PPE Tests', () => {
         let screenshot: Screenshot;
 
         beforeAll(async () => {
+            clientConfig = { auth: scenarioConfig.authOptions, cache: { cachePlugin } };
             publicClientApplication = new PublicClientApplication(clientConfig);
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
@@ -94,6 +94,5 @@ describe('Device Code AAD PPE Tests', () => {
             expect(cachedTokens.refreshTokens.length).toBe(1);
             done();
          });
-
     });
 });

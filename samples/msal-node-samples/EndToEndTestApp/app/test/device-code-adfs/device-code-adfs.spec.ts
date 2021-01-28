@@ -1,6 +1,5 @@
 import "jest";
 import puppeteer from "puppeteer";
-import { ChildProcessWithoutNullStreams, spawn } from "child_process";
 import { Screenshot, createFolder, setupCredentials } from "../../../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
@@ -14,7 +13,8 @@ import {
  } from "../testUtils";
 
  import scenarioConfig from "../../scenarios/device-code-adfs.json";
- import { PublicClientApplication } from "../../../../../../lib/msal-node";
+ import { Configuration, PublicClientApplication } from "../../../../../../lib/msal-node";
+
  const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
  
  const getDeviceCode = require("../../routes/deviceCode.js");
@@ -29,11 +29,12 @@ describe('Device Code ADFS PPE Tests', () => {
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
+    let publicClientApplication: PublicClientApplication;
+    let clientConfig: Configuration;
     
     beforeAll(async() => {
         await validateCacheLocation(TEST_CACHE_LOCATION)
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
-
         const labApiParms: LabApiQueryParams = {
             azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD,
@@ -58,24 +59,22 @@ describe('Device Code ADFS PPE Tests', () => {
     describe("Acquire Token", () => {
         let testName: string;
         let screenshot: Screenshot;
-        let publicClientApplication: PublicClientApplication;
 
-        beforeAll(() => {
+        beforeAll(async() => {
             const clientConfig = { auth: scenarioConfig.authOptions, cache: { cachePlugin }};
             publicClientApplication = new PublicClientApplication(clientConfig);
-            NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+            await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
 
         beforeEach(async () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
-            page.setDefaultNavigationTimeout(0);
         });
 
         afterEach(async () => {
             await page.close();
             await context.close();
-            NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
+            await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
 
         it("Performs acquire token with Device Code flow", async (done) => {
