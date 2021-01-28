@@ -145,7 +145,7 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
 
     canLoad(): Observable<boolean> {
         this.authService.getLogger().verbose("Guard - canLoad");
-        //@ts-ignore
+        // @ts-ignore
         return this.activateHelper();
     }
 
