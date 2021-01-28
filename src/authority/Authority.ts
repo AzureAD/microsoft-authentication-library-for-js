@@ -112,26 +112,11 @@ export class Authority {
     }
 
     /**
-     * Get B2C policy/user_flow for authority.
-     */
-    public get policy(): string | null {
-        const parts = this.canonicalAuthorityUrlComponents.PathSegments;
-        if (parts.length > 1 && parts[1]) {
-            return parts[1];
-        } else {
-            return null;
-        }
-    }
-
-    /**
      * OAuth /authorize endpoint for requests
      */
     public get authorizationEndpoint(): string {
         if(this.discoveryComplete()) {
-            let endpoint = this.metadata.authorization_endpoint;
-            if (this.policy) {
-                endpoint = this.replacePolicy(endpoint);
-            }
+            const endpoint = this.replacePath(this.metadata.authorization_endpoint);
             return this.replaceTenant(endpoint);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
@@ -143,10 +128,7 @@ export class Authority {
      */
     public get tokenEndpoint(): string {
         if(this.discoveryComplete()) {
-            let endpoint = this.metadata.token_endpoint;
-            if (this.policy) {
-                endpoint = this.replacePolicy(endpoint);
-            }
+            const endpoint = this.replacePath(this.metadata.token_endpoint);
             return this.replaceTenant(endpoint);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
@@ -155,10 +137,7 @@ export class Authority {
 
     public get deviceCodeEndpoint(): string {
         if(this.discoveryComplete()) {
-            let endpoint = this.metadata.token_endpoint.replace("/token", "/devicecode");
-            if (this.policy) {
-                endpoint = this.replacePolicy(endpoint);
-            }
+            const endpoint = this.replacePath(this.metadata.token_endpoint.replace("/token", "/devicecode"));
             return this.replaceTenant(endpoint);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
@@ -170,10 +149,7 @@ export class Authority {
      */
     public get endSessionEndpoint(): string {
         if(this.discoveryComplete()) {
-            let endpoint = this.metadata.end_session_endpoint;
-            if (this.policy) {
-                endpoint = this.replacePolicy(endpoint);
-            }
+            const endpoint = this.replacePath(this.metadata.end_session_endpoint);
             return this.replaceTenant(endpoint);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
@@ -185,7 +161,8 @@ export class Authority {
      */
     public get selfSignedJwtAudience(): string {
         if(this.discoveryComplete()) {
-            return this.replaceTenant(this.metadata.issuer);
+            const endpoint = this.replacePath(this.metadata.issuer);
+            return this.replaceTenant(endpoint);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
         }
@@ -200,23 +177,23 @@ export class Authority {
     }
 
     /**
-     * Replaces policy in url path with current policy.
+     * Replaces path such as tenant or policy with the current tenant or policy.
      * @param urlString 
      */
-    private replacePolicy(urlString: string): string {
-        if (this.policy) {
-            const endpoint = new UrlString(urlString);
-            endpoint.validateAsUri();
-            const endpointParts = endpoint.getUrlComponents().PathSegments;
-            if (endpointParts.length > 1 && endpointParts[1]) {
-                const endpointPolicy = endpointParts[1];
-                if (endpointPolicy !== this.policy) {
-                    return urlString.replace(endpointPolicy, this.policy);
-                }
-            }
-        }
+    private replacePath(urlString: string): string {
+        let endpoint = urlString;
+        const cachedAuthorityUrl = new UrlString(this.metadata.canonical_authority);
+        const cachedAuthorityParts = cachedAuthorityUrl.getUrlComponents().PathSegments;
+        const currentAuthorityParts = this.canonicalAuthorityUrlComponents.PathSegments;
 
-        return urlString;
+        currentAuthorityParts.forEach((currentPart, index) => {
+            const cachedPart = cachedAuthorityParts[index];
+            if (currentPart !== cachedPart) {
+                endpoint = endpoint.replace(`/${cachedPart}/`, `/${currentPart}/`);
+            }
+        });
+
+        return endpoint;
     }
 
     /**
@@ -244,6 +221,7 @@ export class Authority {
         let metadataEntity = this.cacheManager.getAuthorityMetadataByAlias(this.hostnameAndPort);
         if (!metadataEntity) {
             metadataEntity = new AuthorityMetadataEntity();
+            metadataEntity.updateCanonicalAuthority(this.canonicalAuthority);
         }
 
         const cloudDiscoverySource = await this.updateCloudDiscoveryMetadata(metadataEntity);
@@ -253,6 +231,7 @@ export class Authority {
         if (cloudDiscoverySource !== AuthorityMetadataSource.CACHE && endpointSource !== AuthorityMetadataSource.CACHE) {
             // Reset the expiration time unless both values came from a successful cache lookup
             metadataEntity.resetExpiresAt();
+            metadataEntity.updateCanonicalAuthority(this.canonicalAuthority);
         } 
 
         const cacheKey = this.cacheManager.generateAuthorityMetadataCacheKey(metadataEntity.preferred_cache);
@@ -271,7 +250,7 @@ export class Authority {
             return AuthorityMetadataSource.CONFIG;
         }
 
-        if (metadataEntity.endpointsFromNetwork && !metadataEntity.isExpired()) {
+        if (this.isAuthoritySameType(metadataEntity) && metadataEntity.endpointsFromNetwork && !metadataEntity.isExpired()) {
             // No need to update
             return AuthorityMetadataSource.CACHE;
         }
@@ -283,6 +262,18 @@ export class Authority {
         } else {
             throw ClientAuthError.createUnableToGetOpenidConfigError(this.defaultOpenIdConfigurationEndpoint);
         }
+    }
+
+    /**
+     * Compares the number of url components after the domain to determine if the cached authority metadata can be used for the requested authority
+     * Protects against same domain different authority such as login.microsoftonline.com/tenant and login.microsoftonline.com/tfp/tenant/policy
+     * @param metadataEntity
+     */
+    private isAuthoritySameType(metadataEntity: AuthorityMetadataEntity): boolean {
+        const cachedAuthorityUrl = new UrlString(metadataEntity.canonical_authority);
+        const cachedParts = cachedAuthorityUrl.getUrlComponents().PathSegments;
+        
+        return cachedParts.length === this.canonicalAuthorityUrlComponents.PathSegments.length;
     }
 
     /**
@@ -325,7 +316,7 @@ export class Authority {
         }
 
         // If The cached metadata came from config but that config was not passed to this instance, we must go to the network
-        if (metadataEntity.aliasesFromNetwork && !metadataEntity.isExpired()) {
+        if (this.isAuthoritySameType(metadataEntity) && metadataEntity.aliasesFromNetwork && !metadataEntity.isExpired()) {
             // No need to update
             return AuthorityMetadataSource.CACHE;
         }
