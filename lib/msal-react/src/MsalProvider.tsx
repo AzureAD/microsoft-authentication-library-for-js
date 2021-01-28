@@ -68,7 +68,7 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
         const callbackId = instance.addEventCallback((message: EventMessage) => {
             const status = EventMessageUtils.getInteractionStatusFromEvent(message);
             if (status !== null) {
-                logger.info(`MsalProvider - setting inProgress to ${status}`);
+                logger.info(`MsalProvider - ${message.interactionType} results in setting inProgress to ${status}`);
                 setInProgress(status);
             }
         });
