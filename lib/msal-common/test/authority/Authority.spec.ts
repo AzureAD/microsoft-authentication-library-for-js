@@ -221,6 +221,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 const value = new AuthorityMetadataEntity();
                 value.updateCloudDiscoveryMetadata(DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0], true);
                 value.updateEndpointMetadata(DEFAULT_OPENID_CONFIG_RESPONSE.body, true);
+                value.updateCanonicalAuthority(Constants.DEFAULT_AUTHORITY);
                 mockStorage.setAuthorityMetadata(key, value);
 
                 authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
@@ -251,6 +252,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 const value = new AuthorityMetadataEntity();
                 value.updateCloudDiscoveryMetadata(DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0], true);
                 value.updateEndpointMetadata(DEFAULT_OPENID_CONFIG_RESPONSE.body, true);
+                value.updateCanonicalAuthority(Constants.DEFAULT_AUTHORITY);
                 mockStorage.setAuthorityMetadata(key, value);
 
                 sinon.stub(AuthorityMetadataEntity.prototype, "isExpired").returns(true);
@@ -397,6 +399,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-sts.windows.net`;
                 const value = new AuthorityMetadataEntity();
                 value.updateCloudDiscoveryMetadata(DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0], true);
+                value.updateCanonicalAuthority(Constants.DEFAULT_AUTHORITY);
                 mockStorage.setAuthorityMetadata(key, value);
                 sinon.stub(Authority.prototype, <any>"updateEndpointMetadata").resolves("cache");
                 authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
@@ -433,6 +436,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-sts.windows.net`;
                 const value = new AuthorityMetadataEntity();
                 value.updateCloudDiscoveryMetadata(DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0], true);
+                value.updateCanonicalAuthority(Constants.DEFAULT_AUTHORITY);
                 mockStorage.setAuthorityMetadata(key, value);
                 sinon.stub(AuthorityMetadataEntity.prototype, "isExpired").returns(true);
                 sinon.stub(Authority.prototype, <any>"updateEndpointMetadata").resolves("cache");
