@@ -176,7 +176,6 @@ export class ResponseHandler {
      * @param authority
      */
     private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, idTokenObj?: AuthToken, requestScopes?: string[], oboAssertion?: string, authCodePayload?: AuthorizationCodePayload): CacheRecord {
-
         const env = authority.getPreferredCache();
         if (StringUtils.isEmpty(env)) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
@@ -211,7 +210,7 @@ export class ResponseHandler {
             // If scopes not returned in server response, use request scopes
             const responseScopes = serverTokenResponse.scope ? ScopeSet.fromString(serverTokenResponse.scope) : new ScopeSet(requestScopes || []);
 
-            // If the request timestamp was sent in the library state, use that timestamp to calculate expiration. Otherwise, use current time.
+            // Use timestamp calculated before request
             const timestamp = reqTimestamp;
             const tokenExpirationSeconds = timestamp + (serverTokenResponse.expires_in || 0);
             const extendedTokenExpirationSeconds = tokenExpirationSeconds + (serverTokenResponse.ext_expires_in || 0);
