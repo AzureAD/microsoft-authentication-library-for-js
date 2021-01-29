@@ -9,7 +9,7 @@
  */
 
 export { PublicClientApplication } from "./app/PublicClientApplication";
-export { Configuration } from "./config/Configuration";
+export { Configuration, BrowserAuthOptions, CacheOptions, BrowserSystemOptions } from "./config/Configuration";
 export { InteractionType, BrowserCacheLocation } from "./utils/BrowserConstants";
 export { BrowserUtils } from "./utils/BrowserUtils";
 
