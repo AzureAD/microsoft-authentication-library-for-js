@@ -14,7 +14,7 @@ import {
     PopupRequest,
     SsoSilentRequest,
     Logger,
-    WrapperSKUs
+    WrapperSKU
 } from "@azure/msal-browser";
 import { MSAL_INSTANCE, Constants } from "./constants";
 import { Observable, from } from "rxjs";
@@ -33,7 +33,7 @@ export class MsalService implements IMsalService {
         if (hash) {
             this.redirectHash = `#${hash}`;
         }
-        this.instance.initializeWrapperLibrary(WrapperSKUs.Angular, Constants.VERSION);
+        this.instance.initializeWrapperLibrary(WrapperSKU.Angular, Constants.VERSION);
     }
 
     acquireTokenPopup(request: PopupRequest): Observable<AuthenticationResult> {

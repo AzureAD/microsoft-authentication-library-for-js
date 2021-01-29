@@ -89,7 +89,7 @@ export const DEFAULT_REQUEST: RedirectRequest|PopupRequest = {
 export const KEY_FORMAT_JWK = "jwk";
 
 // Supported wrapper SKUs
-export enum WrapperSKUs {
+export enum WrapperSKU {
     React = "@azure/msal-react",
     Angular = "@azure/msal-angular"
 }
