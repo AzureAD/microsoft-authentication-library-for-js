@@ -42,7 +42,7 @@
     "test:report": "nyc report",
     "test:e2e": "lerna run --concurrency 1 test:e2e",
     "doc": "npm run doc:generate && npm run doc:deploy",
-    "doc:generate": "typedoc",
+    "doc:generate": "rimraf ./ref/* && typedoc",
     "doc:deploy": "gh-pages -d ref -a -e ref",
     "lint": "run-s lint:*",
     "lint:angular": "eslint lib/msal-angular/src --ext .ts",

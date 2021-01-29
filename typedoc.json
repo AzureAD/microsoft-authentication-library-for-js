@@ -9,5 +9,6 @@
     ],
     "out": "./ref",
     "excludePrivate": true,
-    "excludeProtected": true
+    "excludeProtected": true,
+    "readme": "./README.md"
 }
