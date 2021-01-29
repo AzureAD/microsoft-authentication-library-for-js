@@ -1,6 +1,6 @@
 {
   "type": "prerelease",
-  "comment": "Redirect component and sample updates (#2885)",
+  "comment": "Add redirect component, get interactionStatus from msal-browser, add inProgress$, and sample updates (#2885)",
   "packageName": "@azure/msal-angular",
   "email": "joarroyo@microsoft.com",
   "dependentChangeType": "patch"
