@@ -10,7 +10,7 @@ import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
-import { WrapperSKUs } from "../utils/BrowserConstants";
+import { WrapperSKU } from "../utils/BrowserConstants";
 
 export interface IPublicClientApplication {
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
@@ -31,7 +31,7 @@ export interface IPublicClientApplication {
     setLogger(logger: Logger): void;
     setActiveAccount(account: AccountInfo | null): void;
     getActiveAccount(): AccountInfo | null;
-    initializeWrapperLibrary(sku: WrapperSKUs, version: string): void;
+    initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
 }
 
 export const stubbedPublicClientApplication: IPublicClientApplication = {

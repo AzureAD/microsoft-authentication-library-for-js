@@ -5,7 +5,7 @@
 
 export { PublicClientApplication } from "./app/PublicClientApplication";
 export { Configuration } from "./config/Configuration";
-export { InteractionType, BrowserCacheLocation, WrapperSKUs } from "./utils/BrowserConstants";
+export { InteractionType, BrowserCacheLocation, WrapperSKU } from "./utils/BrowserConstants";
 export { BrowserUtils } from "./utils/BrowserUtils";
 
 // Browser Errors
