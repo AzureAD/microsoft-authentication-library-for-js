@@ -81,6 +81,27 @@ export enum InteractionType {
     Silent = "silent"
 }
 
+/**
+ * Types of interaction currently in progress.
+ * Used in events in wrapper libraries to invoke functions when certain interaction is in progress or all interactions are complete.
+ */
+export enum InteractionStatus {
+    // Initial status before interaction occurs
+    Startup = "startup",
+    // Status set when all login calls occuring
+    Login = "login",
+    // Status set when logout call occuring
+    Logout = "logout",
+    // Status set for acquireToken calls
+    AcquireToken = "acquireToken",
+    // Status set for ssoSilent calls
+    SsoSilent = "ssoSilent",
+    // Status set when handleRedirect in progress
+    HandleRedirect = "handleRedirect",
+    // Status set when interaction is complete
+    None = "none"
+}
+
 export const DEFAULT_REQUEST: RedirectRequest|PopupRequest = {
     scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
 };
