@@ -1,6 +1,6 @@
 {
   "type": "none",
-  "comment": "Add APIInterface for msal-node",
+  "comment": "Add API Extractor for msal-node",
   "packageName": "@azure/msal-angular",
   "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "none",
