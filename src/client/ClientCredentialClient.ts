@@ -11,7 +11,7 @@ import { ScopeSet } from "../request/ScopeSet";
 import { GrantType , CredentialType } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
+import { CommonClientCredentialRequest } from "../request/CommonClientCredentialRequest";
 import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { TimeUtils } from "../utils/TimeUtils";
@@ -34,7 +34,7 @@ export class ClientCredentialClient extends BaseClient {
      * Public API to acquire a token with ClientCredential Flow for Confidential clients
      * @param request
      */
-    public async acquireToken(request: ClientCredentialRequest): Promise<AuthenticationResult | null> {
+    public async acquireToken(request: CommonClientCredentialRequest): Promise<AuthenticationResult | null> {
 
         this.scopeSet = new ScopeSet(request.scopes || []);
 
@@ -102,7 +102,7 @@ export class ClientCredentialClient extends BaseClient {
      * @param request
      * @param authority
      */
-    private async executeTokenRequest(request: ClientCredentialRequest, authority: Authority)
+    private async executeTokenRequest(request: CommonClientCredentialRequest, authority: Authority)
         : Promise<AuthenticationResult | null> {
 
         const requestBody = this.createTokenRequestBody(request);
@@ -141,7 +141,7 @@ export class ClientCredentialClient extends BaseClient {
      * generate the request to the server in the acceptable format
      * @param request
      */
-    private createTokenRequestBody(request: ClientCredentialRequest): string {
+    private createTokenRequestBody(request: CommonClientCredentialRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
