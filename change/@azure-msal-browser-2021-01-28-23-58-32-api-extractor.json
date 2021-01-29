@@ -1,0 +1,8 @@
+{
+  "type": "none",
+  "comment": "Add APIInterface for msal-node",
+  "packageName": "@azure/msal-browser",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "none",
+  "date": "2021-01-29T07:57:48.241Z"
+}
