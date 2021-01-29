@@ -252,7 +252,6 @@ export class NodeStorage extends CacheManager {
     cacheToInMemoryCache(cache: CacheKVStore): InMemoryCache;
     clear(): void;
     containsKey(key: string): boolean;
-    // (undocumented)
     emitChange(): void;
     static generateInMemoryCache(cache: string): InMemoryCache;
     static generateJsonCache(inMemoryCache: InMemoryCache): JsonCache;
@@ -270,7 +269,6 @@ export class NodeStorage extends CacheManager {
     getServerTelemetry(serverTelemetrykey: string): ServerTelemetryEntity | null;
     getThrottlingCache(throttlingCacheKey: string): ThrottlingEntity | null;
     inMemoryCacheToCache(inMemoryCache: InMemoryCache): CacheKVStore;
-    // (undocumented)
     registerChangeEmitter(func: () => void): void;
     removeItem(key: string): boolean;
     setAccessTokenCredential(accessToken: AccessTokenEntity): void;

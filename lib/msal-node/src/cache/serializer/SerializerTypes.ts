@@ -7,11 +7,13 @@ import { AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMet
 
 /**
  * Key value store for in-memory cache
+ * @public
  */
 export type CacheKVStore = Record<string, ValidCacheType>;
 
 /**
  * Cache format read from the cache blob provided to the configuration during app instantiation
+ * @public
  */
 export type JsonCache = {
     Account: Record<string, SerializedAccountEntity>;
@@ -23,6 +25,7 @@ export type JsonCache = {
 
 /**
  * Intermittent type to handle in-memory data objects with defined types
+ * @public
  */
 export type InMemoryCache = {
     accounts: AccountCache;
@@ -34,6 +37,7 @@ export type InMemoryCache = {
 
 /**
  * Account type
+ * @public
  */
 export type SerializedAccountEntity = {
     home_account_id: string;
@@ -50,6 +54,7 @@ export type SerializedAccountEntity = {
 
 /**
  * Idtoken credential type
+ * @public
  */
 export type SerializedIdTokenEntity = {
     home_account_id: string;
@@ -62,6 +67,7 @@ export type SerializedIdTokenEntity = {
 
 /**
  * Access token credential type
+ * @public
  */
 export type SerializedAccessTokenEntity = {
     home_account_id: string;
@@ -81,6 +87,7 @@ export type SerializedAccessTokenEntity = {
 
 /**
  * Refresh token credential type
+ * @public
  */
 export type SerializedRefreshTokenEntity = {
     home_account_id: string;
@@ -95,6 +102,7 @@ export type SerializedRefreshTokenEntity = {
 
 /**
  * AppMetadata type
+ * @public
  */
 export type SerializedAppMetadataEntity = {
     client_id: string;

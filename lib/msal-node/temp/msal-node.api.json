@@ -18,7 +18,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "@azure/msal-node!AuthorizationCodeRequest:type",
-          "docComment": "/**\n * Request object passed by user to acquire a token from the server exchanging a valid authorization code (second leg of OAuth2.0 Authorization Code flow)\n *\n * - scopes - Array of scopes the application is requesting access to. - claims - A stringified claims request which will be added to all /authorize and /token calls - authority: - URL of the authority, the security token service (STS) from which MSAL will acquire tokens. If authority is set on client application object, this will override that value. Overriding the value will cause for authority validation to happen each time. If the same authority will be used for all request, set on the application object instead of the requests. - correlationId - Unique GUID set per request to trace a request end-to-end for telemetry purposes. - redirectUri - The redirect URI of your app, where the authority will redirect to after the user inputs credentials and consents. It must exactly match one of the redirect URIs you registered in the portal. - code - The authorization_code that the user acquired in the first leg of the flow. - codeVerifier - The same code_verifier that was used to obtain the authorization_code. Required if PKCE was used in the authorization code grant request.For more information, see the PKCE RFC: https://tools.ietf.org/html/rfc7636\n */\n",
+          "docComment": "/**\n * Request object passed by user to acquire a token from the server exchanging a valid authorization code (second leg of OAuth2.0 Authorization Code flow)\n *\n * - scopes - Array of scopes the application is requesting access to. - claims - A stringified claims request which will be added to all /authorize and /token calls - authority: - URL of the authority, the security token service (STS) from which MSAL will acquire tokens. If authority is set on client application object, this will override that value. Overriding the value will cause for authority validation to happen each time. If the same authority will be used for all request, set on the application object instead of the requests. - correlationId - Unique GUID set per request to trace a request end-to-end for telemetry purposes. - redirectUri - The redirect URI of your app, where the authority will redirect to after the user inputs credentials and consents. It must exactly match one of the redirect URIs you registered in the portal. - code - The authorization_code that the user acquired in the first leg of the flow. - codeVerifier - The same code_verifier that was used to obtain the authorization_code. Required if PKCE was used in the authorization code grant request.For more information, see the PKCE RFC: https://tools.ietf.org/html/rfc7636\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -75,7 +75,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "@azure/msal-node!AuthorizationUrlRequest:type",
-          "docComment": "/**\n * Request object passed by user to retrieve a Code from the server (first leg of authorization code grant flow)\n *\n * - scopes - Array of scopes the application is requesting access to. - claims - A stringified claims request which will be added to all /authorize and /token calls - authority - Url of the authority which the application acquires tokens from. - correlationId - Unique GUID set per request to trace a request end-to-end for telemetry purposes. - redirectUri - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal. - extraScopesToConsent - Scopes for a different resource when the user needs consent upfront. - responseMode - Specifies the method that should be used to send the authentication result to your app. Can be query, form_post, or fragment. If no value is passed in, it defaults to query. - codeChallenge - Used to secure authorization code grant via Proof of Key for Code Exchange (PKCE). For more information, see the PKCE RCF:https://tools.ietf.org/html/rfc7636 - codeChallengeMethod - The method used to encode the code verifier for the code challenge parameter. Can be \"plain\" or \"S256\". If excluded, code challenge is assumed to be plaintext. For more information, see the PKCE RCF: https://tools.ietf.org/html/rfc7636 - state - A value included in the request that is also returned in the token response. A randomly generated unique value is typically used for preventing cross site request forgery attacks. The state is also used to encode information about the user's state in the app before the authentication request occurred. - prompt - Indicates the type of user interaction that is required. login: will force the user to enter their credentials on that request, negating single-sign on none: will ensure that the user isn't presented with any interactive prompt. if request can't be completed via single-sign on, the endpoint will return an interaction_required error consent: will the trigger the OAuth consent dialog after the user signs in, asking the user to grant permissions to the app select_account: will interrupt single sign-=on providing account selection experience listing all the accounts in session or any remembered accounts or an option to choose to use a different account - account - AccountInfo obtained from a getAccount API. Will be used in certain scenarios to generate login_hint if both loginHint and sid params are not provided. - loginHint - Can be used to pre-fill the username/email address field of the sign-in page for the user, if you know the username/email address ahead of time. Often apps use this parameter during re-authentication, having already extracted the username from a previous sign-in using the preferred_username claim. - sid - Session ID, unique identifier for the session. Available as an optional claim on ID tokens. - domainHint - Provides a hint about the tenant or domain that the user should use to sign in. The value of the domain hint is a registered domain for the tenant. - extraQueryParameters - String to string map of custom query parameters. - nonce - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.\n */\n",
+          "docComment": "/**\n * Request object passed by user to retrieve a Code from the server (first leg of authorization code grant flow)\n *\n * - scopes - Array of scopes the application is requesting access to. - claims - A stringified claims request which will be added to all /authorize and /token calls - authority - Url of the authority which the application acquires tokens from. - correlationId - Unique GUID set per request to trace a request end-to-end for telemetry purposes. - redirectUri - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal. - extraScopesToConsent - Scopes for a different resource when the user needs consent upfront. - responseMode - Specifies the method that should be used to send the authentication result to your app. Can be query, form_post, or fragment. If no value is passed in, it defaults to query. - codeChallenge - Used to secure authorization code grant via Proof of Key for Code Exchange (PKCE). For more information, see the PKCE RCF:https://tools.ietf.org/html/rfc7636 - codeChallengeMethod - The method used to encode the code verifier for the code challenge parameter. Can be \"plain\" or \"S256\". If excluded, code challenge is assumed to be plaintext. For more information, see the PKCE RCF: https://tools.ietf.org/html/rfc7636 - state - A value included in the request that is also returned in the token response. A randomly generated unique value is typically used for preventing cross site request forgery attacks. The state is also used to encode information about the user's state in the app before the authentication request occurred. - prompt - Indicates the type of user interaction that is required. login: will force the user to enter their credentials on that request, negating single-sign on none: will ensure that the user isn't presented with any interactive prompt. if request can't be completed via single-sign on, the endpoint will return an interaction_required error consent: will the trigger the OAuth consent dialog after the user signs in, asking the user to grant permissions to the app select_account: will interrupt single sign-=on providing account selection experience listing all the accounts in session or any remembered accounts or an option to choose to use a different account - account - AccountInfo obtained from a getAccount API. Will be used in certain scenarios to generate login_hint if both loginHint and sid params are not provided. - loginHint - Can be used to pre-fill the username/email address field of the sign-in page for the user, if you know the username/email address ahead of time. Often apps use this parameter during re-authentication, having already extracted the username from a previous sign-in using the preferred_username claim. - sid - Session ID, unique identifier for the session. Available as an optional claim on ID tokens. - domainHint - Provides a hint about the tenant or domain that the user should use to sign in. The value of the domain hint is a registered domain for the tenant. - extraQueryParameters - String to string map of custom query parameters. - nonce - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -132,7 +132,7 @@
         {
           "kind": "Function",
           "canonicalReference": "@azure/msal-node!buildAppConfiguration:function(1)",
-          "docComment": "/**\n * Sets the default options when not explicitly configured from app developer\n *\n * @param auth - \n *\n * @param cache - \n *\n * @param system - \n *\n * @returns Configuration\n */\n",
+          "docComment": "/**\n * Sets the default options when not explicitly configured from app developer\n *\n * @param auth - Authentication options\n *\n * @param cache - Cache options\n *\n * @param system - System options\n *\n * @returns Configuration\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -177,7 +177,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "@azure/msal-node!CacheKVStore:type",
-          "docComment": "/**\n * Key value store for in-memory cache\n */\n",
+          "docComment": "/**\n * Key value store for in-memory cache\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -216,7 +216,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "@azure/msal-node!CacheOptions:type",
-          "docComment": "/**\n * Use this to configure the below cache configuration options:\n *\n * - cachePlugin - Plugin for reading and writing token cache to disk.\n */\n",
+          "docComment": "/**\n * Use this to configure the below cache configuration options:\n *\n * - cachePlugin - Plugin for reading and writing token cache to disk.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -250,7 +250,7 @@
         {
           "kind": "Class",
           "canonicalReference": "@azure/msal-node!ClientApplication:class",
-          "docComment": "/**\n * Base abstract class for all ClientApplications - public and confidential\n */\n",
+          "docComment": "/**\n * Base abstract class for all ClientApplications - public and confidential\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -474,7 +474,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@azure/msal-node!ClientApplication#buildOauthClientConfiguration:member(1)",
-              "docComment": "/**\n * Builds the common configuration to be passed to the common component based on the platform configurarion\n *\n * @param authority - \n *\n * @param serverTelemetryManager - \n */\n",
+              "docComment": "/**\n * Builds the common configuration to be passed to the common component based on the platform configurarion\n *\n * @param authority - user passed authority in configuration\n *\n * @param serverTelemetryManager - initializes servertelemetry if passed\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -743,7 +743,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@azure/msal-node!ClientApplication#initializeBaseRequest:member(1)",
-              "docComment": "/**\n * Generates a request with the default scopes & generates a correlationId.\n *\n * @param authRequest - \n */\n",
+              "docComment": "/**\n * Generates a request with the default scopes & generates a correlationId.\n *\n * @param authRequest - BaseAuthrequest for initialization\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -803,7 +803,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@azure/msal-node!ClientApplication#initializeServerTelemetryManager:member(1)",
-              "docComment": "/**\n * Initializes the server telemetry payload\n *\n * @param apiId - \n *\n * @param correlationId - \n *\n * @param forceRefresh - \n */\n",
+              "docComment": "/**\n * Initializes the server telemetry payload\n *\n * @param apiId - Id for a specific request\n *\n * @param correlationId - GUID\n *\n * @param forceRefresh - boolean to indicate network call\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -984,7 +984,7 @@
         {
           "kind": "Class",
           "canonicalReference": "@azure/msal-node!ClientAssertion:class",
-          "docComment": "/**\n * Client assertion of type jwt-bearer used in confidential client flows\n */\n",
+          "docComment": "/**\n * Client assertion of type jwt-bearer used in confidential client flows\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -997,7 +997,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@azure/msal-node!ClientAssertion.fromAssertion:member(1)",
-              "docComment": "/**\n * initialize the ClientAssertion class from the clientAssertion passed by the user\n *\n * @param assertion - \n */\n",
+              "docComment": "/**\n * initialize the ClientAssertion class from the clientAssertion passed by the user\n *\n * @param assertion - refer https://tools.ietf.org/html/rfc7521\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -1043,7 +1043,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@azure/msal-node!ClientAssertion.fromCertificate:member(1)",
-              "docComment": "/**\n * initialize the ClientAssertion class from the certificate passed by the user\n *\n * @param thumbprint - \n *\n * @param privateKey - \n *\n * @param publicCertificate - \n */\n",
+              "docComment": "/**\n * initialize the ClientAssertion class from the certificate passed by the user\n *\n * @param thumbprint - identifier of a certificate\n *\n * @param privateKey - secret key\n *\n * @param publicCertificate - electronic document provided to prove the ownership of the public key\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -1119,7 +1119,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@azure/msal-node!ClientAssertion#getJwt:member(1)",
-              "docComment": "/**\n * Update JWT for certificate based clientAssertion, if passed by the user, uses it as is\n *\n * @param cryptoProvider - \n *\n * @param issuer - \n *\n * @param jwtAudience - \n */\n",
+              "docComment": "/**\n * Update JWT for certificate based clientAssertion, if passed by the user, uses it as is\n *\n * @param cryptoProvider - library's crypto helper\n *\n * @param issuer - iss claim\n *\n * @param jwtAudience - aud claim\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -1195,7 +1195,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@azure/msal-node!ClientAssertion.parseCertificate:member(1)",
-              "docComment": "/**\n * Extracts the raw certs from a given certificate string and returns them in an array.\n *\n * @param publicCertificate - \n */\n",
+              "docComment": "/**\n * Extracts the raw certs from a given certificate string and returns them in an array.\n *\n * @param publicCertificate - electronic document provided to prove the ownership of the public key\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -1248,7 +1248,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "@azure/msal-node!ClientCredentialRequest:type",
-          "docComment": "/**\n * CommonClientCredentialRequest - scopes - Array of scopes the application is requesting access to. - authority - URL of the authority, the security token service (STS) from which MSAL will acquire tokens. - correlationId - Unique GUID set per request to trace a request end-to-end for telemetry purposes. - skipCache - Skip token cache lookup and force request to authority to get a a new token. Defaults to false.\n */\n",
+          "docComment": "/**\n * CommonClientCredentialRequest - scopes - Array of scopes the application is requesting access to. - authority - URL of the authority, the security token service (STS) from which MSAL will acquire tokens. - correlationId - Unique GUID set per request to trace a request end-to-end for telemetry purposes. - skipCache - Skip token cache lookup and force request to authority to get a a new token. Defaults to false.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -1305,7 +1305,7 @@
         {
           "kind": "Class",
           "canonicalReference": "@azure/msal-node!ConfidentialClientApplication:class",
-          "docComment": "/**\n * This class is to be used to acquire tokens for confidential client applications (webApp, webAPI). Confidential client applications will configure application secrets, client certificates/assertions as applicable\n */\n",
+          "docComment": "/**\n * This class is to be used to acquire tokens for confidential client applications (webApp, webAPI). Confidential client applications will configure application secrets, client certificates/assertions as applicable\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -1340,7 +1340,7 @@
             {
               "kind": "Constructor",
               "canonicalReference": "@azure/msal-node!ConfidentialClientApplication:constructor(1)",
-              "docComment": "/**\n * @constructor Constructor for the ConfidentialClientApplication\n *\n * Required attributes in the Configuration object are: - clientID: the application ID of your application. You can obtain one by registering your application with our application registration portal - authority: the authority URL for your application. - client credential: Must set either client secret, certificate, or assertion for confidential clients. You can obtain a client secret from the application registration portal.\n *\n * In Azure AD, authority is a URL indicating of the form https://login.microsoftonline.com/{Enter_the_Tenant_Info_Here}. If your application supports Accounts in one organizational directory, replace \"Enter_the_Tenant_Info_Here\" value with the Tenant Id or Tenant name (for example, contoso.microsoft.com). If your application supports Accounts in any organizational directory, replace \"Enter_the_Tenant_Info_Here\" value with organizations. If your application supports Accounts in any organizational directory and personal Microsoft accounts, replace \"Enter_the_Tenant_Info_Here\" value with common. To restrict support to Personal Microsoft accounts only, replace \"Enter_the_Tenant_Info_Here\" value with consumers.\n *\n * In Azure B2C, authority is of the form https://{instance}/tfp/{tenant}/{policyName}/ Full B2C functionality will be available in this library in future versions.\n *\n * @param  - {@link (Configuration:type)} configuration object for the MSAL ConfidentialClientApplication instance\n */\n",
+              "docComment": "/**\n * Constructor for the ConfidentialClientApplication\n *\n * Required attributes in the Configuration object are: - clientID: the application ID of your application. You can obtain one by registering your application with our application registration portal - authority: the authority URL for your application. - client credential: Must set either client secret, certificate, or assertion for confidential clients. You can obtain a client secret from the application registration portal.\n *\n * In Azure AD, authority is a URL indicating of the form https://login.microsoftonline.com/\\{Enter_the_Tenant_Info_Here\\}. If your application supports Accounts in one organizational directory, replace \"Enter_the_Tenant_Info_Here\" value with the Tenant Id or Tenant name (for example, contoso.microsoft.com). If your application supports Accounts in any organizational directory, replace \"Enter_the_Tenant_Info_Here\" value with organizations. If your application supports Accounts in any organizational directory and personal Microsoft accounts, replace \"Enter_the_Tenant_Info_Here\" value with common. To restrict support to Personal Microsoft accounts only, replace \"Enter_the_Tenant_Info_Here\" value with consumers.\n *\n * In Azure B2C, authority is of the form https://\\{instance\\}/tfp/\\{tenant\\}/\\{policyName\\}/ Full B2C functionality will be available in this library in future versions.\n *\n * @param Configuration - configuration object for the MSAL ConfidentialClientApplication instance\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -1503,7 +1503,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "@azure/msal-node!Configuration:type",
-          "docComment": "/**\n * Use the configuration object to configure MSAL and initialize the client application object\n *\n * - auth: this is where you configure auth elements like clientID, authority used for authenticating against the Microsoft Identity Platform - cache: this is where you configure cache location - system: this is where you can configure the network client, logger\n */\n",
+          "docComment": "/**\n * Use the configuration object to configure MSAL and initialize the client application object\n *\n * - auth: this is where you configure auth elements like clientID, authority used for authenticating against the Microsoft Identity Platform - cache: this is where you configure cache location - system: this is where you can configure the network client, logger\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -1555,7 +1555,7 @@
         {
           "kind": "Class",
           "canonicalReference": "@azure/msal-node!CryptoProvider:class",
-          "docComment": "/**\n * This class implements MSAL node's crypto interface, which allows it to perform base64 encoding and decoding, generating cryptographically random GUIDs and implementing Proof Key for Code Exchange specs for the OAuth Authorization Code Flow using PKCE (rfc here: https://tools.ietf.org/html/rfc7636).\n */\n",
+          "docComment": "/**\n * This class implements MSAL node's crypto interface, which allows it to perform base64 encoding and decoding, generating cryptographically random GUIDs and implementing Proof Key for Code Exchange specs for the OAuth Authorization Code Flow using PKCE (rfc here: https://tools.ietf.org/html/rfc7636).\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -1591,7 +1591,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@azure/msal-node!CryptoProvider#base64Decode:member(1)",
-              "docComment": "/**\n * Decodes input string from base64.\n *\n * @param input - \n */\n",
+              "docComment": "/**\n * Decodes input string from base64.\n *\n * @param input - string to be decoded\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -1636,7 +1636,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@azure/msal-node!CryptoProvider#base64Encode:member(1)",
-              "docComment": "/**\n * Encodes input string to base64.\n *\n * @param input - \n */\n",
+              "docComment": "/**\n * Encodes input string to base64.\n *\n * @param input - string to be encoded\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -1829,7 +1829,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "@azure/msal-node!DeviceCodeRequest:type",
-          "docComment": "/**\n * Parameters for Oauth2 device code flow. - scopes - Array of scopes the application is requesting access to. - authority: - URL of the authority, the security token service (STS) from which MSAL will acquire tokens. If authority is set on client application object, this will override that value. Overriding the value will cause for authority validation to happen each time. If the same authority will be used for all request, set on the application object instead of the requests. - correlationId - Unique GUID set per request to trace a request end-to-end for telemetry purposes. - deviceCodeCallback - Callback containing device code response. Message should be shown to end user. End user can then navigate to the verification_uri, input the user_code, and input credentials. - cancel - Boolean to cancel polling of device code endpoint. While the user authenticates on a separate device, MSAL polls the the token endpoint of security token service for the interval specified in the device code response (usually 15 minutes). To stop polling and cancel the request, set cancel=true.\n */\n",
+          "docComment": "/**\n * Parameters for Oauth2 device code flow. - scopes - Array of scopes the application is requesting access to. - authority: - URL of the authority, the security token service (STS) from which MSAL will acquire tokens. If authority is set on client application object, this will override that value. Overriding the value will cause for authority validation to happen each time. If the same authority will be used for all request, set on the application object instead of the requests. - correlationId - Unique GUID set per request to trace a request end-to-end for telemetry purposes. - deviceCodeCallback - Callback containing device code response. Message should be shown to end user. End user can then navigate to the verification_uri, input the user_code, and input credentials. - cancel - Boolean to cancel polling of device code endpoint. While the user authenticates on a separate device, MSAL polls the the token endpoint of security token service for the interval specified in the device code response (usually 15 minutes). To stop polling and cancel the request, set cancel=true.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -2359,7 +2359,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "@azure/msal-node!InMemoryCache:type",
-          "docComment": "/**\n * Intermittent type to handle in-memory data objects with defined types\n */\n",
+          "docComment": "/**\n * Intermittent type to handle in-memory data objects with defined types\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -3117,7 +3117,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "@azure/msal-node!JsonCache:type",
-          "docComment": "/**\n * Cache format read from the cache blob provided to the configuration during app instantiation\n */\n",
+          "docComment": "/**\n * Cache format read from the cache blob provided to the configuration during app instantiation\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -3232,7 +3232,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "@azure/msal-node!NodeAuthOptions:type",
-          "docComment": "/**\n * - clientId - Client id of the application. - authority - Url of the authority. If no value is set, defaults to https://login.microsoftonline.com/common. - knownAuthorities - Needed for Azure B2C and ADFS. All authorities that will be used in the client application. Only the host of the authority should be passed in. - clientSecret - Secret string that the application uses when requesting a token. Only used in confidential client applications. Can be created in the Azure app registration portal. - clientAssertion - Assertion string that the application uses when requesting a token. Only used in confidential client applications. Assertion should be of type urn:ietf:params:oauth:client-assertion-type:jwt-bearer. - clientCertificate - Certificate that the application uses when requesting a token. Only used in confidential client applications. Requires hex encoded X.509 SHA-1 thumbprint of the certificiate, and the PEM encoded private key (string should contain -----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY----- ) - protocolMode - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.\n */\n",
+          "docComment": "/**\n * - clientId - Client id of the application. - authority - Url of the authority. If no value is set, defaults to https://login.microsoftonline.com/common. - knownAuthorities - Needed for Azure B2C and ADFS. All authorities that will be used in the client application. Only the host of the authority should be passed in. - clientSecret - Secret string that the application uses when requesting a token. Only used in confidential client applications. Can be created in the Azure app registration portal. - clientAssertion - Assertion string that the application uses when requesting a token. Only used in confidential client applications. Assertion should be of type urn:ietf:params:oauth:client-assertion-type:jwt-bearer. - clientCertificate - Certificate that the application uses when requesting a token. Only used in confidential client applications. Requires hex encoded X.509 SHA-1 thumbprint of the certificiate, and the PEM encoded private key (string should contain -----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY----- ) - protocolMode - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -3275,7 +3275,7 @@
         {
           "kind": "Class",
           "canonicalReference": "@azure/msal-node!NodeStorage:class",
-          "docComment": "/**\n * This class implements Storage for node, reading cache from user specified storage location or an extension library\n */\n",
+          "docComment": "/**\n * This class implements Storage for node, reading cache from user specified storage location or an extension library\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -3480,7 +3480,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@azure/msal-node!NodeStorage#emitChange:member(1)",
-              "docComment": "",
+              "docComment": "/**\n * empty the callback queue\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -4218,7 +4218,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@azure/msal-node!NodeStorage#registerChangeEmitter:member(1)",
-              "docComment": "",
+              "docComment": "/**\n * queue up callbacks when cache is modified\n *\n * @param func - a callback function for cache change indication\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -4881,7 +4881,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "@azure/msal-node!NodeSystemOptions:type",
-          "docComment": "/**\n * Type for configuring logger and http client options\n *\n * - logger - Used to initialize the Logger object; TODO: Expand on logger details or link to the documentation on logger - networkClient - Http client used for all http get and post calls. Defaults to using MSAL's default http client.\n */\n",
+          "docComment": "/**\n * Type for configuring logger and http client options\n *\n * - logger - Used to initialize the Logger object; TODO: Expand on logger details or link to the documentation on logger - networkClient - Http client used for all http get and post calls. Defaults to using MSAL's default http client.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -4924,7 +4924,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "@azure/msal-node!OnBehalfOfRequest:type",
-          "docComment": "/**\n * - scopes - Array of scopes the application is requesting access to. - authority - URL of the authority, the security token service (STS) from which MSAL will acquire tokens. - correlationId - Unique GUID set per request to trace a request end-to-end for telemetry purposes. - oboAssertion - The access token that was sent to the middle-tier API. This token must have an audience of the app making this OBO request. - skipCache - Skip token cache lookup and force request to authority to get a a new token. Defaults to false.\n */\n",
+          "docComment": "/**\n * - scopes - Array of scopes the application is requesting access to. - authority - URL of the authority, the security token service (STS) from which MSAL will acquire tokens. - correlationId - Unique GUID set per request to trace a request end-to-end for telemetry purposes. - oboAssertion - The access token that was sent to the middle-tier API. This token must have an audience of the app making this OBO request. - skipCache - Skip token cache lookup and force request to authority to get a a new token. Defaults to false.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -4981,7 +4981,7 @@
         {
           "kind": "Class",
           "canonicalReference": "@azure/msal-node!PublicClientApplication:class",
-          "docComment": "/**\n * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications are not trusted to safely store application secrets, and therefore can only request tokens in the name of an user.\n */\n",
+          "docComment": "/**\n * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications are not trusted to safely store application secrets, and therefore can only request tokens in the name of an user.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -5016,7 +5016,7 @@
             {
               "kind": "Constructor",
               "canonicalReference": "@azure/msal-node!PublicClientApplication:constructor(1)",
-              "docComment": "/**\n * Important attributes in the Configuration object for auth are: - clientID: the application ID of your application. You can obtain one by registering your application with our Application registration portal. - authority: the authority URL for your application.\n *\n * AAD authorities are of the form https://login.microsoftonline.com/{Enter_the_Tenant_Info_Here}. - If your application supports Accounts in one organizational directory, replace \"Enter_the_Tenant_Info_Here\" value with the Tenant Id or Tenant name (for example, contoso.microsoft.com). - If your application supports Accounts in any organizational directory, replace \"Enter_the_Tenant_Info_Here\" value with organizations. - If your application supports Accounts in any organizational directory and personal Microsoft accounts, replace \"Enter_the_Tenant_Info_Here\" value with common. - To restrict support to Personal Microsoft accounts only, replace \"Enter_the_Tenant_Info_Here\" value with consumers.\n *\n * Azure B2C authorities are of the form https://{instance}/{tenant}/{policy}. Each policy is considered its own authority. You will have to set the all of the knownAuthorities at the time of the client application construction.\n *\n * ADFS authorities are of the form https://{instance}/adfs.\n */\n",
+              "docComment": "/**\n * Important attributes in the Configuration object for auth are: - clientID: the application ID of your application. You can obtain one by registering your application with our Application registration portal. - authority: the authority URL for your application.\n *\n * AAD authorities are of the form https://login.microsoftonline.com/\\{Enter_the_Tenant_Info_Here\\}. - If your application supports Accounts in one organizational directory, replace \"Enter_the_Tenant_Info_Here\" value with the Tenant Id or Tenant name (for example, contoso.microsoft.com). - If your application supports Accounts in any organizational directory, replace \"Enter_the_Tenant_Info_Here\" value with organizations. - If your application supports Accounts in any organizational directory and personal Microsoft accounts, replace \"Enter_the_Tenant_Info_Here\" value with common. - To restrict support to Personal Microsoft accounts only, replace \"Enter_the_Tenant_Info_Here\" value with consumers.\n *\n * Azure B2C authorities are of the form https://\\{instance\\}/\\{tenant\\}/\\{policy\\}. Each policy is considered its own authority. You will have to set the all of the knownAuthorities at the time of the client application construction.\n *\n * ADFS authorities are of the form https://\\{instance\\}/adfs.\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -5107,7 +5107,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@azure/msal-node!PublicClientApplication#acquireTokenByUsernamePassword:member(1)",
-              "docComment": "/**\n * Acquires tokens with password grant by exchanging client applications username and password for credentials\n *\n * The latest OAuth 2.0 Security Best Current Practice disallows the password grant entirely. More details on this recommendation at https://tools.ietf.org/html/draft-ietf-oauth-security-topics-13#section-3.4 Microsoft's documentation and recommendations are at: https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-authentication-flows#usernamepassword\n *\n * @param request - \n */\n",
+              "docComment": "/**\n * Acquires tokens with password grant by exchanging client applications username and password for credentials\n *\n * The latest OAuth 2.0 Security Best Current Practice disallows the password grant entirely. More details on this recommendation at https://tools.ietf.org/html/draft-ietf-oauth-security-topics-13#section-3.4 Microsoft's documentation and recommendations are at: https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-authentication-flows#usernamepassword\n *\n * @param request - UsenamePasswordRequest\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -5179,7 +5179,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "@azure/msal-node!RefreshTokenRequest:type",
-          "docComment": "/**\n * CommonRefreshTokenRequest - scopes - Array of scopes the application is requesting access to. - claims - A stringified claims request which will be added to all /authorize and /token calls - authority - URL of the authority, the security token service (STS) from which MSAL will acquire tokens. - correlationId - Unique GUID set per request to trace a request end-to-end for telemetry purposes. - refreshToken - A refresh token returned from a previous request to the Identity provider.\n */\n",
+          "docComment": "/**\n * CommonRefreshTokenRequest - scopes - Array of scopes the application is requesting access to. - claims - A stringified claims request which will be added to all /authorize and /token calls - authority - URL of the authority, the security token service (STS) from which MSAL will acquire tokens. - correlationId - Unique GUID set per request to trace a request end-to-end for telemetry purposes. - refreshToken - A refresh token returned from a previous request to the Identity provider.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -5236,7 +5236,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "@azure/msal-node!SerializedAccessTokenEntity:type",
-          "docComment": "/**\n * Access token credential type\n */\n",
+          "docComment": "/**\n * Access token credential type\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -5261,7 +5261,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "@azure/msal-node!SerializedAccountEntity:type",
-          "docComment": "/**\n * Account type\n */\n",
+          "docComment": "/**\n * Account type\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -5286,7 +5286,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "@azure/msal-node!SerializedAppMetadataEntity:type",
-          "docComment": "/**\n * AppMetadata type\n */\n",
+          "docComment": "/**\n * AppMetadata type\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -5311,7 +5311,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "@azure/msal-node!SerializedIdTokenEntity:type",
-          "docComment": "/**\n * Idtoken credential type\n */\n",
+          "docComment": "/**\n * Idtoken credential type\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -5336,7 +5336,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "@azure/msal-node!SerializedRefreshTokenEntity:type",
-          "docComment": "/**\n * Refresh token credential type\n */\n",
+          "docComment": "/**\n * Refresh token credential type\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -5361,7 +5361,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "@azure/msal-node!SilentFlowRequest:type",
-          "docComment": "/**\n * SilentFlow parameters passed by the user to retrieve credentials silently - scopes - Array of scopes the application is requesting access to. - claims - A stringified claims request which will be added to all /authorize and /token calls. When included on a silent request, cache lookup will be skipped and token will be refreshed. - authority - Url of the authority which the application acquires tokens from. - correlationId - Unique GUID set per request to trace a request end-to-end for telemetry purposes. - account - Account entity to lookup the credentials. - forceRefresh - Forces silent requests to make network calls if true.\n */\n",
+          "docComment": "/**\n * SilentFlow parameters passed by the user to retrieve credentials silently - scopes - Array of scopes the application is requesting access to. - claims - A stringified claims request which will be added to all /authorize and /token calls. When included on a silent request, cache lookup will be skipped and token will be refreshed. - authority - Url of the authority which the application acquires tokens from. - correlationId - Unique GUID set per request to trace a request end-to-end for telemetry purposes. - account - Account entity to lookup the credentials. - forceRefresh - Forces silent requests to make network calls if true.\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -5427,7 +5427,7 @@
         {
           "kind": "Class",
           "canonicalReference": "@azure/msal-node!TokenCache:class",
-          "docComment": "/**\n * In-memory token cache manager\n */\n",
+          "docComment": "/**\n * In-memory token cache manager\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",
@@ -5566,7 +5566,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@azure/msal-node!TokenCache#getAccountByHomeId:member(1)",
-              "docComment": "/**\n * Returns the signed in account matching homeAccountId. (the account object is created at the time of successful login) or null when no matching account is found\n *\n * @param homeAccountId - unique identifier for an account (uid.utid)\n *\n * @returns {@link AccountInfo - the account object stored in MSAL}\n */\n",
+              "docComment": "/**\n * Returns the signed in account matching homeAccountId. (the account object is created at the time of successful login) or null when no matching account is found\n *\n * @param homeAccountId - unique identifier for an account (uid.utid)\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -5625,7 +5625,7 @@
             {
               "kind": "Method",
               "canonicalReference": "@azure/msal-node!TokenCache#getAccountByLocalId:member(1)",
-              "docComment": "/**\n * Returns the signed in account matching localAccountId. (the account object is created at the time of successful login) or null when no matching account is found\n *\n * @param localAccountId - unique identifier of an account (sub/obj when homeAccountId cannot be populated)\n *\n * @returns {@link AccountInfo} - the account object stored in MSAL\n */\n",
+              "docComment": "/**\n * Returns the signed in account matching localAccountId. (the account object is created at the time of successful login) or null when no matching account is found\n *\n * @param localAccountId - unique identifier of an account (sub/obj when homeAccountId cannot be populated)\n */\n",
               "excerptTokens": [
                 {
                   "kind": "Content",
@@ -5878,7 +5878,7 @@
         {
           "kind": "TypeAlias",
           "canonicalReference": "@azure/msal-node!UsernamePasswordRequest:type",
-          "docComment": "/**\n * UsernamePassword parameters passed by the user to retrieve credentials Note: The latest OAuth 2.0 Security Best Current Practice disallows the password grant entirely. This flow is added for internal testing.\n *\n * - scopes - Array of scopes the application is requesting access to. - claims - A stringified claims request which will be added to all /authorize and /token calls. When included on a silent request, cache lookup will be skipped and token will be refreshed. - authority - Url of the authority which the application acquires tokens from. - correlationId - Unique GUID set per request to trace a request end-to-end for telemetry purposes. - username - username of the client - password - credentials\n */\n",
+          "docComment": "/**\n * UsernamePassword parameters passed by the user to retrieve credentials Note: The latest OAuth 2.0 Security Best Current Practice disallows the password grant entirely. This flow is added for internal testing.\n *\n * - scopes - Array of scopes the application is requesting access to. - claims - A stringified claims request which will be added to all /authorize and /token calls. When included on a silent request, cache lookup will be skipped and token will be refreshed. - authority - Url of the authority which the application acquires tokens from. - correlationId - Unique GUID set per request to trace a request end-to-end for telemetry purposes. - username - username of the client - password - credentials\n *\n * @public\n */\n",
           "excerptTokens": [
             {
               "kind": "Content",

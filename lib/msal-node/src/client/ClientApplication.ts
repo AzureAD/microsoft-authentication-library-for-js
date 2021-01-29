@@ -38,6 +38,7 @@ import { version, name } from "../../package.json";
 
 /**
  * Base abstract class for all ClientApplications - public and confidential
+ * @public
  */
 export abstract class ClientApplication {
 
@@ -219,7 +220,7 @@ export abstract class ClientApplication {
 
     /**
      * Replaces the default logger set in configurations with new Logger with new configurations
-     * @param logger Logger instance
+     * @param logger - Logger instance
      */
     setLogger(logger: Logger): void {
         this.logger = logger;
@@ -227,8 +228,8 @@ export abstract class ClientApplication {
 
     /**
      * Builds the common configuration to be passed to the common component based on the platform configurarion
-     * @param authority
-     * @param serverTelemetryManager
+     * @param authority - user passed authority in configuration
+     * @param serverTelemetryManager - initializes servertelemetry if passed
      */
     protected async buildOauthClientConfiguration(authority: string, serverTelemetryManager?: ServerTelemetryManager): Promise<ClientConfiguration> {
         this.logger.verbose("buildOauthClientConfiguration called");
@@ -276,7 +277,7 @@ export abstract class ClientApplication {
 
     /**
      * Generates a request with the default scopes & generates a correlationId.
-     * @param authRequest
+     * @param authRequest - BaseAuthrequest for initialization
      */
     protected initializeBaseRequest(authRequest: Partial<BaseAuthRequest>): BaseAuthRequest {
         this.logger.verbose("initializeRequestScopes called");
@@ -291,9 +292,9 @@ export abstract class ClientApplication {
 
     /**
      * Initializes the server telemetry payload
-     * @param apiId
-     * @param correlationId
-     * @param forceRefresh
+     * @param apiId - Id for a specific request
+     * @param correlationId - GUID
+     * @param forceRefresh - boolean to indicate network call
      */
     protected initializeServerTelemetryManager(apiId: number, correlationId: string, forceRefresh?: boolean): ServerTelemetryManager {
         const telemetryPayload: ServerTelemetryRequest = {
@@ -309,7 +310,7 @@ export abstract class ClientApplication {
     /**
      * Create authority instance. If authority not passed in request, default to authority set on the application
      * object. If no authority set in application object, then default to common authority.
-     * @param authorityString
+     * @param authorityString - authority from user configuration
      */
     private async createAuthority(authorityString: string): Promise<Authority> {
         this.logger.verbose("createAuthority called");

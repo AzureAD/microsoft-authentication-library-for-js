@@ -11,6 +11,7 @@ import { JwtConstants } from "../utils/Constants";
 
 /**
  * Client assertion of type jwt-bearer used in confidential client flows
+ * @public
  */
 export class ClientAssertion {
 
@@ -24,7 +25,7 @@ export class ClientAssertion {
 
     /**
      * initialize the ClientAssertion class from the clientAssertion passed by the user
-     * @param assertion
+     * @param assertion - refer https://tools.ietf.org/html/rfc7521
      */
     public static fromAssertion(assertion: string): ClientAssertion {
         const clientAssertion = new ClientAssertion();
@@ -34,9 +35,9 @@ export class ClientAssertion {
 
     /**
      * initialize the ClientAssertion class from the certificate passed by the user
-     * @param thumbprint
-     * @param privateKey
-     * @param publicCertificate
+     * @param thumbprint - identifier of a certificate
+     * @param privateKey - secret key
+     * @param publicCertificate - electronic document provided to prove the ownership of the public key
      */
     public static fromCertificate(thumbprint: string, privateKey: string, publicCertificate?: string): ClientAssertion {
         const clientAssertion = new ClientAssertion();
@@ -50,9 +51,9 @@ export class ClientAssertion {
 
     /**
      * Update JWT for certificate based clientAssertion, if passed by the user, uses it as is
-     * @param cryptoProvider
-     * @param issuer
-     * @param jwtAudience
+     * @param cryptoProvider - library's crypto helper
+     * @param issuer - iss claim
+     * @param jwtAudience - aud claim
      */
     public getJwt(cryptoProvider: CryptoProvider, issuer: string, jwtAudience: string) {
         // if assertion was created from certificate, check if jwt is expired and create new one.
@@ -119,7 +120,7 @@ export class ClientAssertion {
 
     /**
      * Extracts the raw certs from a given certificate string and returns them in an array.
-     * @param publicCertificate
+     * @param publicCertificate - electronic document provided to prove the ownership of the public key
      */
     public static parseCertificate(publicCertificate: string): Array<string> {
         /**

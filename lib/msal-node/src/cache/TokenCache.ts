@@ -20,6 +20,7 @@ const defaultSerializedCache: JsonCache = {
 
 /**
  * In-memory token cache manager
+ * @public
  */
 export class TokenCache implements ISerializableTokenCache, ITokenCache {
 
@@ -120,7 +121,6 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      * Returns the signed in account matching homeAccountId.
      * (the account object is created at the time of successful login)
      * or null when no matching account is found
-     * @returns {@link AccountInfo - the account object stored in MSAL}
      * @param homeAccountId - unique identifier for an account (uid.utid)
      */
     async getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null> {
@@ -136,7 +136,6 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      * Returns the signed in account matching localAccountId.
      * (the account object is created at the time of successful login)
      * or null when no matching account is found
-     * @returns {@link AccountInfo} - the account object stored in MSAL
      * @param localAccountId - unique identifier of an account (sub/obj when homeAccountId cannot be populated)
      */
     async getAccountByLocalId(localAccountId: string): Promise<AccountInfo | null> {
