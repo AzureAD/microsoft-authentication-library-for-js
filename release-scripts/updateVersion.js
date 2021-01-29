@@ -40,8 +40,8 @@ libFolders.forEach((lib) => {
     }
 });
 
-if (failedPackages.length > 0) {
-    console.error(`Failed to update versions on ${failedPackages.length} packages`);
+if (failures > 0) {
+    console.error(`Failed to update versions on ${failures} packages`);
 } else {
     console.log("All package versions updated successfully!");
 }
