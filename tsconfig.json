@@ -14,7 +14,12 @@
         "jsx": "react",
         "esModuleInterop": true,
         "resolveJsonModule": true,
-        "experimentalDecorators": true
+        "experimentalDecorators": true,
+        "paths": {
+            "@azure/*": [
+                "./lib/*/src"
+            ]
+        }
     }
   }
   
