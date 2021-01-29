@@ -6,7 +6,6 @@
 import { StringUtils } from "./StringUtils";
 import { Constants } from "./Constants";
 import { ICrypto } from "../crypto/ICrypto";
-import { TimeUtils } from "./TimeUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
@@ -18,7 +17,6 @@ import { ClientAuthError } from "../error/ClientAuthError";
  */
 export type LibraryStateObject = {
     id: string,
-    ts: number,
     meta?: Record<string, string>
 };
 
@@ -57,8 +55,7 @@ export class ProtocolUtils {
 
         // Create a state object containing a unique id and the timestamp of the request creation
         const stateObj: LibraryStateObject = {
-            id: cryptoObj.createNewGuid(),
-            ts: TimeUtils.nowSeconds()
+            id: cryptoObj.createNewGuid()
         };
 
         if (meta) {
