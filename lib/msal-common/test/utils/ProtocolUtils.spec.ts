@@ -4,15 +4,13 @@ import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES } from "./StringConstant
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { Constants } from "../../src/utils/Constants";
 import sinon from "sinon";
-import { TimeUtils } from "../../src/utils/TimeUtils";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../src";
 
 describe("ProtocolUtils.ts Class Unit Tests", () => {
 
     const userState = "userState";
-    const testTimeStamp = 1592846482;
-    const decodedLibState = `{"id":"${RANDOM_TEST_GUID}","ts":${testTimeStamp}}`;
-    const encodedLibState = `eyJpZCI6IiR7UkFORE9NX1RFU1RfR1VJRH0iLCJ0cyI6JHt0ZXN0VGltZVN0YW1wfX0=`;
+    const decodedLibState = `{"id":"${RANDOM_TEST_GUID}"}`;
+    const encodedLibState = `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSJ9`;
     const testState = `${encodedLibState}${Constants.RESOURCE_DELIM}${userState}`;
 
     let cryptoInterface: ICrypto;
@@ -61,13 +59,11 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
     });
 
     it("setRequestState() appends library state to given state", () => {
-        sinon.stub(TimeUtils, "nowSeconds").returns(testTimeStamp);
         const requestState = ProtocolUtils.setRequestState(cryptoInterface, userState);
         expect(requestState).to.be.eq(testState);
     });
 
     it("setRequestState() only creates library state", () => {
-        sinon.stub(TimeUtils, "nowSeconds").returns(testTimeStamp);
         const requestState = ProtocolUtils.setRequestState(cryptoInterface, "");
         expect(requestState).to.be.eq(encodedLibState);
     });
