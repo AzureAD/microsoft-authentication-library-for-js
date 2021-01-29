@@ -45,7 +45,7 @@ const MSAL_CONFIG: Configuration = {
 export class AuthModule {
 
     private myMSALObj: PublicClientApplication; // https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/classes/_src_app_publicclientapplication_.publicclientapplication.html
-    private account: AccountInfo; // https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_account_accountinfo_.html
+    private account: AccountInfo | null; // https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-common/modules/_src_account_accountinfo_.html
     private loginRedirectRequest: RedirectRequest; // https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_request_redirectrequest_.html
     private loginRequest: PopupRequest; // https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_request_popuprequest_.html
     private profileRedirectRequest: RedirectRequest;
@@ -59,13 +59,7 @@ export class AuthModule {
     constructor() {
         this.myMSALObj = new PublicClientApplication(MSAL_CONFIG);
         this.account = null;
-        this.setRequestObjects();
-    }
 
-    /**
-     * Initialize request objects used by this AuthModule.
-     */
-    private setRequestObjects(): void {
         this.loginRequest = {
             scopes: []
         };
@@ -96,13 +90,11 @@ export class AuthModule {
 
         this.silentProfileRequest = {
             scopes: ["openid", "profile", "User.Read"],
-            account: null,
             forceRefresh: false
         };
 
         this.silentMailRequest = {
             scopes: ["openid", "profile", "Mail.Read"],
-            account: null,
             forceRefresh: false
         };
 
@@ -117,7 +109,7 @@ export class AuthModule {
      * 
      * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/docs/Accounts.md
      */
-    private getAccount(): AccountInfo {
+    private getAccount(): AccountInfo | null {
         // need to call getAccount here?
         const currentAccounts = this.myMSALObj.getAllAccounts();
         if (currentAccounts === null) {
@@ -132,6 +124,8 @@ export class AuthModule {
         } else if (currentAccounts.length === 1) {
             return currentAccounts[0];
         }
+
+        return null;
     }
 
     /**
@@ -140,7 +134,7 @@ export class AuthModule {
      * https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/initialization.md#redirect-apis
      */
     loadAuthModule(): void {
-        this.myMSALObj.handleRedirectPromise().then((resp: AuthenticationResult) => {
+        this.myMSALObj.handleRedirectPromise().then((resp: AuthenticationResult | null) => {
             this.handleResponse(resp);
         }).catch(console.error);
     }
@@ -149,7 +143,7 @@ export class AuthModule {
      * Handles the response from a popup or redirect. If response is null, will check if we have any accounts and attempt to sign in.
      * @param response 
      */
-    handleResponse(response: AuthenticationResult) {
+    handleResponse(response: AuthenticationResult | null) {
         if (response !== null) {
             this.account = response.account;
         } else {
@@ -168,7 +162,11 @@ export class AuthModule {
     attemptSsoSilent() {
         this.myMSALObj.ssoSilent(this.silentLoginRequest).then(() => {
             this.account = this.getAccount();
-            UIManager.showWelcomeMessage(this.account);
+            if (this.account) {
+                UIManager.showWelcomeMessage(this.account);
+            } else {
+                console.log("No account!");
+            }
         }).catch(error => {
             console.error("Silent Error: " + error);
             if (error instanceof InteractionRequiredAuthError) {
@@ -195,49 +193,61 @@ export class AuthModule {
      * Logs out of current account.
      */
     logout(): void {
+        let account: AccountInfo | undefined;
+        if (this.account) {
+            account = this.account
+        }
         const logOutRequest: EndSessionRequest = {
-            account: this.account
+            account
         };
-
+        
         this.myMSALObj.logout(logOutRequest);
     }
 
     /**
      * Gets the token to read user profile data from MS Graph silently, or falls back to interactive redirect.
      */
-    async getProfileTokenRedirect(): Promise<string> {
-        this.silentProfileRequest.account = this.account;
+    async getProfileTokenRedirect(): Promise<string|null> {
+        if (this.account) {
+            this.silentProfileRequest.account = this.account;
+        }
         return this.getTokenRedirect(this.silentProfileRequest, this.profileRedirectRequest);
     }
 
     /**
      * Gets the token to read user profile data from MS Graph silently, or falls back to interactive popup.
      */
-    async getProfileTokenPopup(): Promise<string> {
-        this.silentProfileRequest.account = this.account;
+    async getProfileTokenPopup(): Promise<string|null> {
+        if (this.account) {
+            this.silentProfileRequest.account = this.account;
+        }
         return this.getTokenPopup(this.silentProfileRequest, this.profileRequest);
     }
 
     /**
      * Gets the token to read mail data from MS Graph silently, or falls back to interactive redirect.
      */
-    async getMailTokenRedirect(): Promise<string> {
-        this.silentMailRequest.account = this.account;
+    async getMailTokenRedirect(): Promise<string|null> {
+        if (this.account) {
+            this.silentMailRequest.account = this.account;
+        }
         return this.getTokenRedirect(this.silentMailRequest, this.mailRedirectRequest);
     }
 
     /**
      * Gets the token to read mail data from MS Graph silently, or falls back to interactive popup.
      */
-    async getMailTokenPopup(): Promise<string> {
-        this.silentMailRequest.account = this.account;
+    async getMailTokenPopup(): Promise<string|null> {
+        if (this.account) {
+            this.silentMailRequest.account = this.account;
+        }
         return this.getTokenPopup(this.silentMailRequest, this.mailRequest);
     }
 
     /**
      * Gets a token silently, or falls back to interactive popup.
      */
-    private async getTokenPopup(silentRequest: SilentRequest, interactiveRequest: PopupRequest): Promise<string> {
+    private async getTokenPopup(silentRequest: SilentRequest, interactiveRequest: PopupRequest): Promise<string|null> {
         try {
             const response: AuthenticationResult = await this.myMSALObj.acquireTokenSilent(silentRequest);
             return response.accessToken;
@@ -255,12 +265,14 @@ export class AuthModule {
                 console.error(e);
             }
         }
+
+        return null;
     }
 
     /**
      * Gets a token silently, or falls back to interactive redirect.
      */
-    private async getTokenRedirect(silentRequest: SilentRequest, interactiveRequest: RedirectRequest): Promise<string> {
+    private async getTokenRedirect(silentRequest: SilentRequest, interactiveRequest: RedirectRequest): Promise<string|null> {
         try {
             const response = await this.myMSALObj.acquireTokenSilent(silentRequest);
             return response.accessToken;
@@ -273,5 +285,7 @@ export class AuthModule {
                 console.error(e);
             }
         }
+
+        return null;
     }
 }

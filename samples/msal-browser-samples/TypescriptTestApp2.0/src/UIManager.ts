@@ -18,17 +18,30 @@ export class UIManager {
 
     static showWelcomeMessage(account: AccountInfo) {
         // Reconfiguring DOM elements
-        UIManager.cardDiv.style.display = 'initial';
-        UIManager.welcomeDiv.innerHTML = `Welcome ${account.username}`;
-        (UIManager.signInButton.nextElementSibling as HTMLElement).style.display = 'none';
-        UIManager.signInButton.setAttribute("onclick", "App.signOut();");
-        UIManager.signInButton.setAttribute('class', "btn btn-success")
-        UIManager.signInButton.innerHTML = "Sign Out";
+        if (UIManager.cardDiv) {
+            UIManager.cardDiv.style.display = 'initial';
+        }
+
+        if (UIManager.welcomeDiv) {
+            UIManager.welcomeDiv.innerHTML = `Welcome ${account.username}`;
+        }
+
+        if (UIManager.signInButton) {
+            (UIManager.signInButton.nextElementSibling as HTMLElement).style.display = 'none';
+            UIManager.signInButton.setAttribute("onclick", "App.signOut();");
+            UIManager.signInButton.setAttribute('class', "btn btn-success")
+            UIManager.signInButton.innerHTML = "Sign Out";
+        }
     }
 
     static clearTabs() {
-        UIManager.tabList.innerHTML = '';
-        UIManager.tabContent.innerHTML = '';
+        if (UIManager.tabList) {
+            UIManager.tabList.innerHTML = '';
+        }
+
+        if (UIManager.tabContent) {
+            UIManager.tabContent.innerHTML = '';
+        }
     }
 
     static updateUI(data: UserInfo | MailInfo, endpoint: string) {
@@ -45,12 +58,15 @@ export class UIManager {
         const profile = document.createElement("pre");
         profile.innerHTML = JSON.stringify(userInfo, null, 4);
         UIManager.clearTabs();
-        UIManager.tabContent.appendChild(profile);
+
+        if (UIManager.tabContent) {
+            UIManager.tabContent.appendChild(profile);
+        }
     }
 
     static setMail(data: MailInfo) {
         const mailInfo = data as MailInfo;
-        if (mailInfo.value.length < 1) {
+        if (!mailInfo.value || mailInfo.value.length < 1) {
             alert("Your mailbox is empty!")
         } else {
             UIManager.clearTabs();
@@ -70,7 +86,10 @@ export class UIManager {
         listItem.setAttribute("role", "tab")
         listItem.setAttribute("aria-controls", `${i}`)
         listItem.innerHTML = d.subject;
-        UIManager.tabList.appendChild(listItem)
+
+        if (UIManager.tabList) {
+            UIManager.tabList.appendChild(listItem)
+        }
     }
 
     static createAndAppendContentItem(d: any, i: Number) {
@@ -81,7 +100,9 @@ export class UIManager {
         contentItem.setAttribute("aria-labelledby", "list" + i + "list")
         if (d.from) {
             contentItem.innerHTML = "<strong> from: " + d.from.emailAddress.address + "</strong><br><br>" + d.bodyPreview + "...";
-            UIManager.tabContent.appendChild(contentItem);
+            if (UIManager.tabContent) {
+                UIManager.tabContent.appendChild(contentItem);
+            }
         }
     }
 }

@@ -3,13 +3,12 @@ import { expect } from "chai";
 import sinon from "sinon";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 import { ResponseHandler } from "../../src/response/ResponseHandler";
-import { AUTHENTICATION_RESULT, RANDOM_TEST_GUID, TEST_CONFIG, ID_TOKEN_CLAIMS, TEST_DATA_CLIENT_INFO, TEST_STATE_VALUES, TEST_POP_VALUES, POP_AUTHENTICATION_RESULT, TEST_URIS } from "../utils/StringConstants";
+import { AUTHENTICATION_RESULT, RANDOM_TEST_GUID, TEST_CONFIG, ID_TOKEN_CLAIMS, TEST_DATA_CLIENT_INFO, TEST_STATE_VALUES, TEST_POP_VALUES, POP_AUTHENTICATION_RESULT, TEST_URIS, DEFAULT_OPENID_CONFIG_RESPONSE } from "../utils/StringConstants";
 import { Authority } from "../../src/authority/Authority";
 import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
-import { CacheManager } from "../../src/cache/CacheManager";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { ClientTestUtils } from "../client/ClientTestUtils";
-import { AccountEntity, TrustedAuthority, ClientAuthError, ClientAuthErrorMessage, InteractionRequiredAuthError, ServerError, AuthToken, AuthenticationResult, AuthError, TokenClaims, AuthenticationScheme, ValidCredentialType, CredentialEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, ProtocolMode, Logger, LogLevel } from "../../src";
+import { AccountEntity, ClientAuthError, ClientAuthErrorMessage, InteractionRequiredAuthError, ServerError, AuthToken, AuthError, TokenClaims, AuthenticationScheme, ProtocolMode, Logger, LogLevel, AuthorityOptions, TimeUtils } from "../../src";
 import { ServerAuthorizationCodeResponse } from "../../src/response/ServerAuthorizationCodeResponse";
 import { MockStorageClass } from "../client/ClientTestUtils";
 
@@ -64,9 +63,15 @@ const cryptoInterface: ICrypto = {
     }
 };
 
-const testCacheManager = new MockStorageClass();
+const testCacheManager = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, cryptoInterface);
 
-const testAuthority = new Authority("https://login.microsoftonline.com/common", networkInterface, ProtocolMode.AAD);
+const authorityOptions: AuthorityOptions = {
+    protocolMode: ProtocolMode.AAD,
+    knownAuthorities: ["login.microsoftonline.com"],
+    cloudDiscoveryMetadata: "",
+    authorityMetadata: ""
+}
+const testAuthority = new Authority("https://login.microsoftonline.com/common", networkInterface, testCacheManager, authorityOptions);
 const testLoggerCallback = (level: LogLevel, message: string, containsPii: boolean): void => {
     if (containsPii) {
         console.log(`Log level: ${level} Message: ${message}`);
@@ -77,8 +82,11 @@ const loggerOptions = {
 }
 
 describe("ResponseHandler.ts", () => {
+    let preferredCacheStub: sinon.SinonStub;
+    let claimsStub: sinon.SinonStub;
     beforeEach(() => {
-        sinon.stub(AuthToken, "extractTokenClaims").callsFake((encodedIdToken, crypto) => {
+        preferredCacheStub = sinon.stub(Authority.prototype, "getPreferredCache").returns("login.microsoftonline.com");
+        claimsStub = sinon.stub(AuthToken, "extractTokenClaims").callsFake((encodedIdToken, crypto) => {
             return ID_TOKEN_CLAIMS as TokenClaims;
         });
         sinon.stub(ResponseHandler.prototype, <any>"generateAccountEntity").returns(new AccountEntity());
@@ -89,7 +97,6 @@ describe("ResponseHandler.ts", () => {
             tenantId: "testTenantId",
             username: "test@contoso.com"
         });
-        ClientTestUtils.setCloudDiscoveryMetadataStubs();
     });
 
     afterEach(() => {
@@ -98,24 +105,12 @@ describe("ResponseHandler.ts", () => {
 
     describe("generateCacheRecord", async () => {
         it("throws invalid cache environment error", async () => {
-            sinon.restore();
-            sinon.stub(AuthToken, "extractTokenClaims").callsFake((encodedIdToken, crypto) => {
-                return ID_TOKEN_CLAIMS as TokenClaims;
-            });
-            sinon.stub(ResponseHandler.prototype, <any>"generateAccountEntity").returns(new AccountEntity());
-            sinon.stub(AccountEntity.prototype, "getAccountInfo").returns({
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "testTenantId",
-                username: "test@contoso.com"
-            });
-            sinon.stub(TrustedAuthority, "getCloudDiscoveryMetadata").returns(null);
-
+            preferredCacheStub.returns("");
             const testResponse: ServerAuthorizationTokenResponse = {...AUTHENTICATION_RESULT.body};
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
             try {
-                const tokenResp = await responseHandler.handleServerTokenResponse(testResponse, testAuthority);
+                const timestamp = TimeUtils.nowSeconds();
+                const tokenResp = await responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp);
                 expect(tokenResp).to.be.undefined;
             } catch(e) {
                 if (e instanceof AuthError) {
@@ -142,8 +137,8 @@ describe("ResponseHandler.ts", () => {
                 done();
                 return null;
             });
-
-            responseHandler.handleServerTokenResponse(testResponse, testAuthority);
+            const timestamp = TimeUtils.nowSeconds();
+            responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp);
         });
 
         it("doesn't create RefreshTokenEntity if refresh_token not in response", (done) => {
@@ -161,7 +156,8 @@ describe("ResponseHandler.ts", () => {
                 return null;
             });
 
-            responseHandler.handleServerTokenResponse(testResponse, testAuthority);
+            const timestamp = TimeUtils.nowSeconds();
+            responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp);
         });
 
         it("create CacheRecord with all token entities", (done) => {
@@ -178,7 +174,8 @@ describe("ResponseHandler.ts", () => {
                 return null;
             });
 
-            responseHandler.handleServerTokenResponse(testResponse, testAuthority);
+            const timestamp = TimeUtils.nowSeconds();
+            responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp);
         });
     });
 
@@ -188,7 +185,8 @@ describe("ResponseHandler.ts", () => {
             testResponse.access_token = null;
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
-            const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority);
+            const timestamp = TimeUtils.nowSeconds();
+            const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp);
 
             expect(result.accessToken).to.be.eq("");
             expect(result.scopes).to.be.length(0);
@@ -201,15 +199,15 @@ describe("ResponseHandler.ts", () => {
             testResponse.refresh_token = null;
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
-            const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority);
+            const timestamp = TimeUtils.nowSeconds();
+            const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp);
 
             expect(result.familyId).to.be.eq("");
         });
 
         it("sets default values for access token using PoP scheme", async () => {
             const testResponse: ServerAuthorizationTokenResponse = { ...POP_AUTHENTICATION_RESULT.body };
-            sinon.restore();
-            sinon.stub(AuthToken, "extractTokenClaims").callsFake((encodedToken: string, crypto: ICrypto): TokenClaims => {
+            claimsStub.callsFake((encodedToken: string, crypto: ICrypto): TokenClaims => {
                 switch (encodedToken) {
                     case testResponse.id_token:
                         return ID_TOKEN_CLAIMS as TokenClaims;
@@ -223,18 +221,10 @@ describe("ResponseHandler.ts", () => {
                         return null;
                 }
             });
-            sinon.stub(ResponseHandler.prototype, <any>"generateAccountEntity").returns(new AccountEntity());
-            sinon.stub(AccountEntity.prototype, "getAccountInfo").returns({
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                environment: "login.windows.net",
-                tenantId: "testTenantId",
-                username: "test@contoso.com"
-            });
-            ClientTestUtils.setCloudDiscoveryMetadataStubs();
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
-            const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority, "POST", TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS);
+            const timestamp = TimeUtils.nowSeconds();
+            const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp, "POST", TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS);
 
             expect(result.tokenType).to.be.eq(AuthenticationScheme.POP);
             expect(result.accessToken).to.be.eq(signedJwt);
