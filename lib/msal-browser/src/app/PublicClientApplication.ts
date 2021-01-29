@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, SilentFlowRequest } from "@azure/msal-common";
+import { AuthenticationResult, ClientAuthErrorMessage, SilentFlowRequest } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, ApiId, InteractionType } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -13,6 +13,7 @@ import { ClientApplication } from "./ClientApplication";
 import { SilentRequest } from "../request/SilentRequest";
 import { EventType } from "../event/EventType";
 import { BrowserAuthError } from "../error/BrowserAuthError";
+import { SsoSilentRequest } from "../request/SsoSilentRequest";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -67,6 +68,85 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
         return this.acquireTokenPopup(request || DEFAULT_REQUEST);
+    }
+
+    /**
+     * This function uses a hidden iframe to fetch an authorization code from the eSTS. There are cases where this may not work:
+     * - Any browser using a form of Intelligent Tracking Prevention
+     * - If there is not an established session with the service
+     *
+     * In these cases, the request must be done inside a popup or full frame redirect.
+     *
+     * For the cases where interaction is required, you cannot send a request with prompt=none.
+     *
+     * If your refresh token has expired, you can use this function to fetch a new set of tokens silently as long as
+     * you session on the server still exists.
+     * @param {@link AuthorizationUrlRequest}
+     *
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     */
+    async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
+        this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
+        this.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
+
+        try {
+            // Build cached account by loginHint, sid, or the request itself
+            const accountByLoginHint = request.loginHint && this.getAccountByUsername(request.loginHint);
+            
+            const accountBySid = request.sid && this.getAccountBySessionId(request.sid);
+            if (request.sid && !accountBySid) {
+                this.logger.warning("ssoSilent - sid provided to ssoSilent, but no cached account found. If this is unexpected, confirm sid is enabled as an optional id token claim for your application");
+            }
+
+            const account = request.account || accountByLoginHint || accountBySid;
+
+            // Only checked for cached credentials if forceRefresh is off and there is an account for the request
+            if (!request.forceRefresh && account) {
+                const silentRequest: SilentRequest = {
+                    ...request,
+                    account,
+                    scopes: request.scopes || DEFAULT_REQUEST.scopes
+                };
+
+                this.logger.verbose("ssoSilent - checking for cached tokens.");
+
+                const silentResponse = await this.acquireTokenSilent(silentRequest)
+                    .catch(error => {
+                        /*
+                         * This error is returned when there is an empty cache. 
+                         * In this scenario, fall through to iframed request.
+                         */
+                        if (error.errorCode === ClientAuthErrorMessage.noTokensFoundError.code) {
+                            return null;
+                        }
+
+                        throw error;
+                    });
+
+                if (silentResponse) {
+                    this.logger.verbose("ssoSilent - tokens returned from acquireTokenSilent");
+                    return silentResponse;
+                }
+            }
+
+            if (request.forceRefresh) {
+                this.logger.verbose("ssoSilent - forceRefesh enabled");
+            }
+
+            if (!account) {
+                this.logger.verbose("ssoSilent - no cached account found");
+            }
+
+            this.logger.verbose("ssoSilent - initiating iframed request");
+            
+            const silentTokenResult = await this.acquireTokenByIframe(request);
+            this.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
+            return silentTokenResult;
+        } catch (e) {
+            this.logger.error("ssoSilent - iframed request failed. This may be due to third-party cookie blocking. Invoke interaction to resolve");
+            this.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
+            throw e;
+        }
     }
 
     /**

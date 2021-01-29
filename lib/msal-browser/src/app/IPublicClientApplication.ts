@@ -20,6 +20,7 @@ export interface IPublicClientApplication {
     getAccountByHomeId(homeAccountId: string): AccountInfo | null;
     getAccountByLocalId(localId: string): AccountInfo | null;
     getAccountByUsername(userName: string): AccountInfo | null;
+    getAccountBySessionId(sid: string): AccountInfo | null;
     getAllAccounts(): AccountInfo[];
     handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null>;
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
@@ -52,6 +53,9 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         return null;	
     },	
     getAccountByLocalId: () => {
+        return null;
+    },
+    getAccountBySessionId: () => {
         return null;
     },
     handleRedirectPromise: () => {	

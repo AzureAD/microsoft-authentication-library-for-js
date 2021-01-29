@@ -445,40 +445,11 @@ export abstract class ClientApplication {
     // #region Silent Flow
 
     /**
-     * This function uses a hidden iframe to fetch an authorization code from the eSTS. There are cases where this may not work:
-     * - Any browser using a form of Intelligent Tracking Prevention
-     * - If there is not an established session with the service
-     *
-     * In these cases, the request must be done inside a popup or full frame redirect.
-     *
-     * For the cases where interaction is required, you cannot send a request with prompt=none.
-     *
-     * If your refresh token has expired, you can use this function to fetch a new set of tokens silently as long as
-     * you session on the server still exists.
-     * @param {@link AuthorizationUrlRequest}
-     *
-     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
-     */
-    async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
-        this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
-        this.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
-
-        try {
-            const silentTokenResult = await this.acquireTokenByIframe(request);
-            this.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
-            return silentTokenResult;
-        } catch (e) {
-            this.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
-            throw e;
-        }
-    }
-
-    /**
      * This function uses a hidden iframe to fetch an authorization code from the eSTS. To be used for silent refresh token acquisition and renewal.
      * @param {@link AuthorizationUrlRequest}
      * @param request
      */
-    private async acquireTokenByIframe(request: SsoSilentRequest): Promise<AuthenticationResult> {
+    protected async acquireTokenByIframe(request: SsoSilentRequest): Promise<AuthenticationResult> {
         // Check that we have some SSO data
         if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
             throw BrowserAuthError.createSilentSSOInsufficientInfoError();
@@ -671,6 +642,22 @@ export abstract class ClientApplication {
         const allAccounts = this.getAllAccounts();
         if (!StringUtils.isEmpty(localAccountId) && allAccounts && allAccounts.length) {
             return allAccounts.filter(accountObj => accountObj.localAccountId === localAccountId)[0] || null;
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * Returns the signed in account matching the given session id,
+     * or null when no matching account is found.
+     * Note: sid must be enabled as an optional id token claim.
+     * @param sid Session ID (optional id token claim)
+     * @returns {@link AccountInfo} - the account object stored in MSAL
+     */
+    public getAccountBySessionId(sid: string): AccountInfo | null {
+        const allAccounts = this.getAllAccounts();
+        if (sid && allAccounts && allAccounts.length) {
+            return allAccounts.filter(accountObj => accountObj.idTokenClaims && accountObj.idTokenClaims["sid"] === sid)[0] || null;
         } else {
             return null;
         }

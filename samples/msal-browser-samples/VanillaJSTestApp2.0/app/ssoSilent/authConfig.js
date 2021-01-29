@@ -10,6 +10,7 @@ const msalConfig = {
     },
     system: {
         loggerOptions: {
+            logLevel: msal.LogLevel.Verbose,
             loggerCallback: (level, message, containsPii) => {
                 if (containsPii) {	
                     return;	
@@ -33,11 +34,6 @@ const msalConfig = {
     }
 };
 
-// Add here scopes for id token to be used at MS Identity Platform endpoints.
-const loginRequest = {
-    scopes: ["User.Read"]
-};
-
 // Add here the endpoints for MS Graph API services you would like to use.
 const graphConfig = {
     graphMeEndpoint: "https://graph.microsoft-ppe.com/v1.0/me",
@@ -46,10 +42,18 @@ const graphConfig = {
 
 // Add here scopes for access token to be used at MS Graph API endpoints.
 const tokenRequest = {
-    scopes: ["Mail.Read", "openid", "profile"],
+    scopes: ["Mail.Read", "User.Read", "openid", "profile"],
     forceRefresh: false // Set this to "true" to skip a cached token and go to the server to get a new token
 };
 
 const silentRequest = {
-    loginHint: "IDLAB@msidlab0.ccsctp.net"
+    loginHint: "IDLAB@msidlab0.ccsctp.net",
+    scopes: tokenRequest.scopes,
+    forceRefresh: false
+};
+
+// Add here scopes for id token to be used at MS Identity Platform endpoints.
+const loginRequest = {
+    scopes: tokenRequest.scopes,
+    loginHint: silentRequest.loginHint
 };
