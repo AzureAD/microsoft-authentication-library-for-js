@@ -3,6 +3,11 @@
  * Licensed under the MIT License.
  */
 
+/**
+ * msal-node: Microsoft authentication library in Node.js
+ * @packageDocumentation
+ */
+
 // Interfaces
 export { IPublicClientApplication } from "./client/IPublicClientApplication";
 export { IConfidentialClientApplication } from "./client/IConfidentialClientApplication";
@@ -12,12 +17,13 @@ export { ITokenCache } from "./cache/ITokenCache";
 export { PublicClientApplication } from "./client/PublicClientApplication";
 export { ConfidentialClientApplication } from "./client/ConfidentialClientApplication";
 export { ClientApplication } from "./client/ClientApplication";
-export { Configuration, buildAppConfiguration } from "./config/Configuration";
+export { Configuration, buildAppConfiguration, NodeAuthOptions, NodeSystemOptions, CacheOptions } from "./config/Configuration";
 export { ClientAssertion } from "./client/ClientAssertion";
 
 // Cache and Storage
-export { Storage } from "./cache/Storage";
 export { TokenCache } from "./cache/TokenCache";
+export { NodeStorage } from "./cache/NodeStorage";
+export { CacheKVStore, JsonCache, InMemoryCache, SerializedAccountEntity, SerializedIdTokenEntity, SerializedAccessTokenEntity, SerializedAppMetadataEntity, SerializedRefreshTokenEntity } from "./cache/serializer/SerializerTypes";
 
 // Crypto
 export { CryptoProvider } from "./crypto/CryptoProvider";
@@ -28,6 +34,7 @@ export type { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest"
 export type { ClientCredentialRequest } from "./request/ClientCredentialRequest";
 export type { DeviceCodeRequest } from "./request/DeviceCodeRequest";
 export type { OnBehalfOfRequest } from "./request/OnBehalfOfRequest";
+export type { UsernamePasswordRequest } from "./request/UsernamePasswordRequest";
 export type { RefreshTokenRequest } from "./request/RefreshTokenRequest";
 export type { SilentFlowRequest } from "./request/SilentFlowRequest";
 

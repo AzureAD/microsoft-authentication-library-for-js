@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Storage } from "./Storage";
+import { NodeStorage } from "./NodeStorage";
 import { StringUtils, AccountEntity, AccountInfo, Logger, ISerializableTokenCache, ICachePlugin, TokenCacheContext } from "@azure/msal-common";
 import { InMemoryCache, JsonCache, SerializedAccountEntity, SerializedAccessTokenEntity, SerializedRefreshTokenEntity, SerializedIdTokenEntity, SerializedAppMetadataEntity, CacheKVStore } from "./serializer/SerializerTypes";
 import { Deserializer } from "./serializer/Deserializer";
@@ -23,13 +23,13 @@ const defaultSerializedCache: JsonCache = {
  */
 export class TokenCache implements ISerializableTokenCache, ITokenCache {
 
-    private storage: Storage;
+    private storage: NodeStorage;
     private cacheHasChanged: boolean;
     private cacheSnapshot: string;
     private readonly persistence: ICachePlugin;
     private logger: Logger;
 
-    constructor(storage: Storage, logger: Logger, cachePlugin?: ICachePlugin) {
+    constructor(storage: NodeStorage, logger: Logger, cachePlugin?: ICachePlugin) {
         this.cacheHasChanged = false;
         this.storage = storage;
         this.storage.registerChangeEmitter(this.handleChangeEvent.bind(this));

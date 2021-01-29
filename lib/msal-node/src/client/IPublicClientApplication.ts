@@ -21,10 +21,10 @@ export interface IPublicClientApplication {
     /** creates the URL of the authorization request */
     getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
 
-    /**  Acquires a token by exchanging the authorization code received from the first step of OAuth 2.0 Authorization Code Flow */
+    /** Acquires a token by exchanging the authorization code received from the first step of OAuth 2.0 Authorization Code Flow */
     acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult | null>;
 
-    /**  Acquires a token silently when a user specifies the account the token is requested for */
+    /** Acquires a token silently when a user specifies the account the token is requested for */
     acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null>;
 
     /** Acquires a token by exchanging the refresh token provided for a new set of tokens */

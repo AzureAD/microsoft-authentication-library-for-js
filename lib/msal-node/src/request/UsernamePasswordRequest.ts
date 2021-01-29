@@ -15,7 +15,6 @@ import { CommonUsernamePasswordRequest } from "@azure/msal-common";
  * - correlationId          - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - username               - username of the client
  * - password               - credentials
- * @internal
  */
 export type UsernamePasswordRequest = Partial<Omit<CommonUsernamePasswordRequest, "scopes"|"resourceRequestMethod"|"resourceRequestUri"|"username"|"password">> & {
     scopes: Array<string>

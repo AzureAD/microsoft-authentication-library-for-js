@@ -81,6 +81,14 @@ export type AuthorizationUrlRequest = Partial<Omit<CommonAuthorizationUrlRequest
 export function buildAppConfiguration({ auth, cache, system, }: Configuration): Configuration;
 
 // @public
+export type CacheKVStore = Record<string, ValidCacheType>;
+
+// @public
+export type CacheOptions = {
+    cachePlugin?: ICachePlugin;
+};
+
+// @public
 export abstract class ClientApplication {
     protected constructor(configuration: Configuration);
     acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult | null>;
@@ -96,8 +104,8 @@ export abstract class ClientApplication {
     protected initializeBaseRequest(authRequest: Partial<BaseAuthRequest>): BaseAuthRequest;
     protected initializeServerTelemetryManager(apiId: number, correlationId: string, forceRefresh?: boolean): ServerTelemetryManager;
     protected logger: Logger;
-    protected platformStorage: Storage_2;
     setLogger(logger: Logger): void;
+    protected storage: NodeStorage;
     }
 
 // @public
@@ -169,6 +177,15 @@ export interface IConfidentialClientApplication {
 
 export { INetworkModule }
 
+// @public
+export type InMemoryCache = {
+    accounts: AccountCache;
+    idTokens: IdTokenCache;
+    accessTokens: AccessTokenCache;
+    refreshTokens: RefreshTokenCache;
+    appMetadata: AppMetadataCache;
+};
+
 export { InteractionRequiredAuthError }
 
 // @public
@@ -176,7 +193,6 @@ export interface IPublicClientApplication {
     acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult | null>;
     acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null>;
     acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
-    // Warning: (ae-forgotten-export) The symbol "UsernamePasswordRequest" needs to be exported by the entry point index.d.ts
     acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
     acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null>;
     getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
@@ -195,6 +211,15 @@ export interface ITokenCache {
     removeAccount(account: AccountInfo): Promise<void>;
 }
 
+// @public
+export type JsonCache = {
+    Account: Record<string, SerializedAccountEntity>;
+    IdToken: Record<string, SerializedIdTokenEntity>;
+    AccessToken: Record<string, SerializedAccessTokenEntity>;
+    RefreshToken: Record<string, SerializedRefreshTokenEntity>;
+    AppMetadata: Record<string, SerializedAppMetadataEntity>;
+};
+
 export { Logger }
 
 export { LogLevel }
@@ -204,50 +229,32 @@ export { NetworkRequestOptions }
 export { NetworkResponse }
 
 // @public
-export type OnBehalfOfRequest = Partial<Omit<CommonOnBehalfOfRequest, "oboAssertion" | "scopes" | "resourceRequestMethod" | "resourceRequestUri">> & {
-    oboAssertion: string;
-    scopes: Array<string>;
-};
-
-export { PromptValue }
-
-export { ProtocolMode }
-
-// @public
-export class PublicClientApplication extends ClientApplication implements IPublicClientApplication {
-    constructor(configuration: Configuration);
-    acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null>;
-    acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
-}
-
-// @public
-export type RefreshTokenRequest = Partial<Omit<CommonRefreshTokenRequest, "scopes" | "refreshToken" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri">> & {
-    scopes: Array<string>;
-    refreshToken: string;
-};
-
-export { ResponseMode }
-
-export { ServerError }
-
-// @public
-export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account" | "scopes" | "resourceRequestMethod" | "resourceRequestUri">> & {
-    account: AccountInfo;
-    scopes: Array<string>;
+export type NodeAuthOptions = {
+    clientId: string;
+    authority?: string;
+    clientSecret?: string;
+    clientAssertion?: string;
+    clientCertificate?: {
+        thumbprint: string;
+        privateKey: string;
+        x5c?: string;
+    };
+    knownAuthorities?: Array<string>;
+    cloudDiscoveryMetadata?: string;
+    authorityMetadata?: string;
+    clientCapabilities?: [];
+    protocolMode?: ProtocolMode;
 };
 
 // @public
-class Storage_2 extends CacheManager {
+export class NodeStorage extends CacheManager {
     constructor(logger: Logger, clientId: string, cryptoImpl: ICrypto);
-    // Warning: (ae-forgotten-export) The symbol "CacheKVStore" needs to be exported by the entry point index.d.ts
-    // Warning: (ae-forgotten-export) The symbol "InMemoryCache" needs to be exported by the entry point index.d.ts
     cacheToInMemoryCache(cache: CacheKVStore): InMemoryCache;
     clear(): void;
     containsKey(key: string): boolean;
     // (undocumented)
     emitChange(): void;
     static generateInMemoryCache(cache: string): InMemoryCache;
-    // Warning: (ae-forgotten-export) The symbol "JsonCache" needs to be exported by the entry point index.d.ts
     static generateJsonCache(inMemoryCache: InMemoryCache): JsonCache;
     getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity | null;
     getAccount(accountKey: string): AccountEntity | null;
@@ -279,11 +286,108 @@ class Storage_2 extends CacheManager {
     setThrottlingCache(throttlingCacheKey: string, throttlingCache: ThrottlingEntity): void;
 }
 
-export { Storage_2 as Storage }
+// @public
+export type NodeSystemOptions = {
+    loggerOptions?: LoggerOptions;
+    networkClient?: INetworkModule;
+};
+
+// @public
+export type OnBehalfOfRequest = Partial<Omit<CommonOnBehalfOfRequest, "oboAssertion" | "scopes" | "resourceRequestMethod" | "resourceRequestUri">> & {
+    oboAssertion: string;
+    scopes: Array<string>;
+};
+
+export { PromptValue }
+
+export { ProtocolMode }
+
+// @public
+export class PublicClientApplication extends ClientApplication implements IPublicClientApplication {
+    constructor(configuration: Configuration);
+    acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null>;
+    acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
+}
+
+// @public
+export type RefreshTokenRequest = Partial<Omit<CommonRefreshTokenRequest, "scopes" | "refreshToken" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri">> & {
+    scopes: Array<string>;
+    refreshToken: string;
+};
+
+export { ResponseMode }
+
+// @public
+export type SerializedAccessTokenEntity = {
+    home_account_id: string;
+    environment: string;
+    credential_type: string;
+    client_id: string;
+    secret: string;
+    realm: string;
+    target: string;
+    cached_at: string;
+    expires_on: string;
+    extended_expires_on?: string;
+    refresh_on?: string;
+    key_id?: string;
+    token_type?: string;
+};
+
+// @public
+export type SerializedAccountEntity = {
+    home_account_id: string;
+    environment: string;
+    realm: string;
+    local_account_id: string;
+    username: string;
+    authority_type: string;
+    name?: string;
+    client_info?: string;
+    last_modification_time?: string;
+    last_modification_app?: string;
+};
+
+// @public
+export type SerializedAppMetadataEntity = {
+    client_id: string;
+    environment: string;
+    family_id?: string;
+};
+
+// @public
+export type SerializedIdTokenEntity = {
+    home_account_id: string;
+    environment: string;
+    credential_type: string;
+    client_id: string;
+    secret: string;
+    realm: string;
+};
+
+// @public
+export type SerializedRefreshTokenEntity = {
+    home_account_id: string;
+    environment: string;
+    credential_type: string;
+    client_id: string;
+    secret: string;
+    family_id?: string;
+    target?: string;
+    realm?: string;
+};
+
+export { ServerError }
+
+// @public
+export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account" | "scopes" | "resourceRequestMethod" | "resourceRequestUri">> & {
+    account: AccountInfo;
+    scopes: Array<string>;
+};
 
 // @public
 export class TokenCache implements ISerializableTokenCache, ITokenCache {
-    constructor(storage: Storage_2, logger: Logger, cachePlugin?: ICachePlugin);
+    constructor(storage: NodeStorage, logger: Logger, cachePlugin?: ICachePlugin);
     deserialize(cache: string): void;
     getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null>;
     getAccountByLocalId(localAccountId: string): Promise<AccountInfo | null>;
@@ -296,15 +400,14 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
 
 export { TokenCacheContext }
 
+// @public
+export type UsernamePasswordRequest = Partial<Omit<CommonUsernamePasswordRequest, "scopes" | "resourceRequestMethod" | "resourceRequestUri" | "username" | "password">> & {
+    scopes: Array<string>;
+    username: string;
+    password: string;
+};
+
 export { ValidCacheType }
 
-
-// Warnings were encountered during analysis:
-//
-// dist/config/Configuration.d.ts:53:5 - (ae-forgotten-export) The symbol "NodeAuthOptions" needs to be exported by the entry point index.d.ts
-// dist/config/Configuration.d.ts:54:5 - (ae-forgotten-export) The symbol "CacheOptions" needs to be exported by the entry point index.d.ts
-// dist/config/Configuration.d.ts:55:5 - (ae-forgotten-export) The symbol "NodeSystemOptions" needs to be exported by the entry point index.d.ts
-
-// (No @packageDocumentation comment for this package)
 
 ```

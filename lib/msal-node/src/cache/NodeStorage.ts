@@ -24,7 +24,7 @@ import { InMemoryCache, JsonCache, CacheKVStore } from "./serializer/SerializerT
 /**
  * This class implements Storage for node, reading cache from user specified storage location or an  extension library
  */
-export class Storage extends CacheManager {
+export class NodeStorage extends CacheManager {
     // Cache configuration, either set by user or default values.
     private logger: Logger;
     private cache: CacheKVStore = {};
@@ -35,10 +35,17 @@ export class Storage extends CacheManager {
         this.logger = logger;
     }
 
+    /**
+     * queue up callbacks when cache is modified
+     * @param func - a callback function for cache change indication
+     */
     registerChangeEmitter(func: () => void): void {
         this.changeEmitters.push(func);
     }
 
+    /**
+     * empty the callback queue
+     */
     emitChange(): void {
         this.changeEmitters.forEach(func => func.call(null));
     }

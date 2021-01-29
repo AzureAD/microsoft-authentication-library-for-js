@@ -26,7 +26,7 @@ import {
 } from "@azure/msal-common";
 import { Configuration, buildAppConfiguration } from "../config/Configuration";
 import { CryptoProvider } from "../crypto/CryptoProvider";
-import { Storage } from "../cache/Storage";
+import { NodeStorage } from "../cache/NodeStorage";
 import { Constants as NodeConstants, ApiId } from "../utils/Constants";
 import { TokenCache } from "../cache/TokenCache";
 import { ClientAssertion } from "./ClientAssertion";
@@ -47,7 +47,7 @@ export abstract class ClientApplication {
     /**
      * Platform storage object
      */
-    protected platformStorage: Storage;
+    protected storage: NodeStorage;
     /**
      * Logger object to log the application flow
      */
@@ -72,9 +72,9 @@ export abstract class ClientApplication {
         this.config = buildAppConfiguration(configuration);
         this.cryptoProvider = new CryptoProvider();
         this.logger = new Logger(this.config.system!.loggerOptions!, name, version);
-        this.platformStorage = new Storage(this.logger, this.config.auth.clientId, this.cryptoProvider);
+        this.storage = new NodeStorage(this.logger, this.config.auth.clientId, this.cryptoProvider);
         this.tokenCache = new TokenCache(
-            this.platformStorage,
+            this.storage,
             this.logger,
             this.config.cache!.cachePlugin
         );
@@ -250,7 +250,7 @@ export abstract class ClientApplication {
             },
             cryptoInterface: this.cryptoProvider,
             networkInterface: this.config.system!.networkClient,
-            storageInterface: this.platformStorage,
+            storageInterface: this.storage,
             serverTelemetryManager: serverTelemetryManager,
             clientCredentials: {
                 clientSecret: this.clientSecret,
@@ -303,7 +303,7 @@ export abstract class ClientApplication {
             forceRefresh: forceRefresh || false
         };
 
-        return new ServerTelemetryManager(telemetryPayload, this.platformStorage);
+        return new ServerTelemetryManager(telemetryPayload, this.storage);
     }
 
     /**
@@ -319,6 +319,6 @@ export abstract class ClientApplication {
             cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata!,
             authorityMetadata: this.config.auth.authorityMetadata!
         };
-        return await AuthorityFactory.createDiscoveredInstance(authorityString, this.config.system!.networkClient!, this.platformStorage, authorityOptions);
+        return await AuthorityFactory.createDiscoveredInstance(authorityString, this.config.system!.networkClient!, this.storage, authorityOptions);
     }
 }
