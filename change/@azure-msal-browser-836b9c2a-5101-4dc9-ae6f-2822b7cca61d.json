@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "ssoSilent should leverage cached credentials if possible",
+  "packageName": "@azure/msal-browser",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "patch"
+}
