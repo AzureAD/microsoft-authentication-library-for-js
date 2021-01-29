@@ -9,7 +9,7 @@ import {
     HttpEvent,
     HttpInterceptor
 } from "@angular/common/http";
-import { Observable, EMPTY } from "rxjs";
+import { Observable, EMPTY, of } from "rxjs";
 import { switchMap, catchError } from "rxjs/operators";
 import { MsalService } from "./msal.service";
 import { AccountInfo, AuthenticationResult, BrowserConfigurationAuthError, InteractionType, StringUtils } from "@azure/msal-browser";
@@ -46,18 +46,22 @@ export class MsalInterceptor implements HttpInterceptor {
             return next.handle(req);
         }
 
+        this.authService.getLogger().info(`Interceptor - ${scopes.length} scopes found for endpoint`);
+        this.authService.getLogger().infoPii(`Interceptor - [${scopes}] scopes found for ${req.url}`);
+
         // Note: For MSA accounts, include openid scope when calling acquireTokenSilent to return idToken
         return this.authService.acquireTokenSilent({...this.msalInterceptorConfig.authRequest, scopes, account})
             .pipe(
                 catchError(() => {
-                    if (this.msalInterceptorConfig.interactionType === InteractionType.Popup) {
-                        this.authService.getLogger().verbose("Interceptor - error acquiring token silently, acquiring by popup");
-                        return this.authService.acquireTokenPopup({...this.msalInterceptorConfig.authRequest, scopes});
+                    this.authService.getLogger().error("Interceptor - acquireTokenSilent rejected with error. Invoking interaction to resolve.");
+                    return this.acquireTokenInteractively(scopes);
+                }),
+                switchMap((result: AuthenticationResult)  => {
+                    if (!result.accessToken) {
+                        this.authService.getLogger().error("Interceptor - acquireTokenSilent resolved with null access token. Known issue with B2C tenants, invoking interaction to resolve.");
+                        return this.acquireTokenInteractively(scopes);
                     }
-                    this.authService.getLogger().verbose("Interceptor - error acquiring token silently, acquiring by redirect");
-                    const redirectStartPage = window.location.href;
-                    this.authService.acquireTokenRedirect({...this.msalInterceptorConfig.authRequest, scopes, redirectStartPage});
-                    return EMPTY;
+                    return of(result);
                 }),
                 switchMap((result: AuthenticationResult) => {
                     this.authService.getLogger().verbose("Interceptor - setting authorization headers");
@@ -68,9 +72,29 @@ export class MsalInterceptor implements HttpInterceptor {
                     return next.handle(requestClone);
                 })
             );
-
     }
 
+    /**
+     * Invoke interaction for the given set of scopes
+     * @param scopes Array of scopes for the request
+     * @returns Result from the interactive request
+     */
+    private acquireTokenInteractively(scopes: string[]): Observable<AuthenticationResult> {
+        if (this.msalInterceptorConfig.interactionType === InteractionType.Popup) {
+            this.authService.getLogger().verbose("Interceptor - error acquiring token silently, acquiring by popup");
+            return this.authService.acquireTokenPopup({...this.msalInterceptorConfig.authRequest, scopes});
+        }
+        this.authService.getLogger().verbose("Interceptor - error acquiring token silently, acquiring by redirect");
+        const redirectStartPage = window.location.href;
+        this.authService.acquireTokenRedirect({...this.msalInterceptorConfig.authRequest, scopes, redirectStartPage});
+        return EMPTY;
+    }
+
+    /**
+     * Looks up the scopes for the given endpoint from the protectedResourceMap
+     * @param endpoint Url of the request
+     * @returns Array of scopes, or null if not found
+     */
     private getScopesForEndpoint(endpoint: string): Array<string>|null {
         this.authService.getLogger().verbose("Interceptor - getting scopes for endpoint");
         const protectedResourcesArray = Array.from(this.msalInterceptorConfig.protectedResourceMap.keys());
