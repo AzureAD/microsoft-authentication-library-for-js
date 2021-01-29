@@ -36,7 +36,7 @@ msalInstance.acquireTokenSilent(request).then(tokenResponse => {
 }).catch(async (error) => {
     if (error instanceof InteractionRequiredAuthError) {
         // fallback to interaction when silent call fails
-        return myMSALObj.acquireTokenPopup(request);
+        return msalInstance.acquireTokenPopup(request);
     }
 }).catch(error => {
     handleError(error);
@@ -54,7 +54,7 @@ msalInstance.acquireTokenSilent(request).then(tokenResponse => {
 }).catch(error => {
     if (error instanceof InteractionRequiredAuthError) {
         // fallback to interaction when silent call fails
-        return myMSALObj.acquireTokenRedirect(request)
+        return msalInstance.acquireTokenRedirect(request)
     }
 });
 ```
