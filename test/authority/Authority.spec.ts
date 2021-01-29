@@ -8,7 +8,8 @@ import {
     RANDOM_TEST_GUID,
     DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_CONFIG,
-    DEFAULT_TENANT_DISCOVERY_RESPONSE
+    DEFAULT_TENANT_DISCOVERY_RESPONSE,
+    B2C_OPENID_CONFIG_RESPONSE
 } from "../utils/StringConstants";
 import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../../src/error/ClientConfigurationError";
 import { AuthorityMetadataEntity, AuthorityOptions, ClientAuthError, ClientAuthErrorMessage, ProtocolMode } from "../../src";
@@ -139,6 +140,26 @@ describe("Authority.ts Class Unit Tests", () => {
                 expect(() => authority.endSessionEndpoint).to.throw(ClientAuthErrorMessage.endpointResolutionError.desc);
                 expect(() => authority.deviceCodeEndpoint).to.throw(ClientAuthErrorMessage.endpointResolutionError.desc);
                 expect(() => authority.selfSignedJwtAudience).to.throw(ClientAuthErrorMessage.endpointResolutionError.desc);
+            });
+
+            it("Returns endpoints for different b2c policy than what is cached", async () => {
+                sinon.restore();
+                const signInPolicy = "b2c_1_sisopolicy";
+                const resetPolicy = "b2c_1_password_reset";
+                const baseAuthority = "https://login.microsoftonline.com/tfp/msidlabb2c.onmicrosoft.com/";
+                sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(B2C_OPENID_CONFIG_RESPONSE.body);
+
+                authority = new Authority(`${baseAuthority}${signInPolicy}`, networkInterface, mockStorage, authorityOptions);
+                await authority.resolveEndpointsAsync();
+                const secondAuthority = new Authority(`${baseAuthority}${resetPolicy}`, networkInterface, mockStorage, authorityOptions);
+                await secondAuthority.resolveEndpointsAsync();
+
+                expect(authority.authorizationEndpoint).to.be.eq(B2C_OPENID_CONFIG_RESPONSE.body.authorization_endpoint);
+                expect(secondAuthority.authorizationEndpoint).to.be.eq(B2C_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace(signInPolicy, resetPolicy));
+                expect(authority.tokenEndpoint).to.be.eq(B2C_OPENID_CONFIG_RESPONSE.body.token_endpoint);
+                expect(secondAuthority.tokenEndpoint).to.be.eq(B2C_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace(signInPolicy, resetPolicy));
+                expect(authority.endSessionEndpoint).to.be.eq(B2C_OPENID_CONFIG_RESPONSE.body.end_session_endpoint);
+                expect(secondAuthority.endSessionEndpoint).to.be.eq(B2C_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace(signInPolicy, resetPolicy));
             });
         });
     });
