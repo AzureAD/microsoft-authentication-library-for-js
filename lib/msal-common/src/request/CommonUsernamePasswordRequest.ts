@@ -6,7 +6,7 @@
 import { BaseAuthRequest } from "./BaseAuthRequest";
 
 /**
- * UsernamePassword parameters passed by the user to retrieve credentials
+ * CommonUsernamePassword parameters passed by the user to retrieve credentials
  * Note: The latest OAuth 2.0 Security Best Current Practice disallows the password grant entirely. This flow is added for internal testing.
  *
  * - scopes                 - Array of scopes the application is requesting access to.
@@ -16,7 +16,7 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  * - username               - username of the client
  * - password               - credentials
  */
-export type UsernamePasswordRequest = BaseAuthRequest & {
+export type CommonUsernamePasswordRequest = BaseAuthRequest & {
     username: string;
     password: string;
 };

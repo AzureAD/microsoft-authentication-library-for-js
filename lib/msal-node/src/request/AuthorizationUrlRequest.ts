@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationUrlRequest as CommonAuthorizationUrlRequest } from "@azure/msal-common";
+import { CommonAuthorizationUrlRequest } from "@azure/msal-common";
 
 /**
  * Request object passed by user to retrieve a Code from the server (first leg of authorization code grant flow)
- * 
+ *
  * - scopes                     - Array of scopes the application is requesting access to.
  * - claims                     - A stringified claims request which will be added to all /authorize and /token calls
  * - authority                  - Url of the authority which the application acquires tokens from.

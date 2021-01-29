@@ -14,60 +14,35 @@ import { TokenCache } from "../cache/TokenCache";
 
 /**
  * Interface for the PublicClientApplication class defining the public API signatures
+ * @public
  */
 export interface IPublicClientApplication {
-    /**
-     * Creates the URL of the authorization request
-     * @param request
-     */
+
+    /** creates the URL of the authorization request */
     getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
 
-    /**
-     * Acquires a token by exchanging the Authorization Code received from the first step of OAuth2.0
-     * Authorization Code flow.
-     * @param request
-     */
+    /**  Acquires a token by exchanging the authorization code received from the first step of OAuth 2.0 Authorization Code Flow */
     acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult | null>;
 
-    /**
-     * Acquires a token silently when a user specifies the account the token is requested for.
-     * @param request
-     */
+    /**  Acquires a token silently when a user specifies the account the token is requested for */
     acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null>;
 
-    /**
-     * Acquires a token by exchanging the refresh token provided for a new set of tokens.
-     * @param request
-     */
+    /** Acquires a token by exchanging the refresh token provided for a new set of tokens */
     acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
 
-    /**
-     * Acquires a token from the authority using OAuth2.0 device code flow.
-     * @param request
-     */
+    /** Acquires a token from the authority using OAuth2.0 device code flow */
     acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null>;
 
-    /**
-     * Acquires tokens with password grant by exchanging client applications username and password for credentials
-     * @internal
-     * @param request
-     */
+    /** Acquires tokens with password grant by exchanging client applications username and password for credentials */
     acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
 
-    /**
-     * Fetches the token cache
-     */
+    /** Gets the token cache for the application */
     getTokenCache(): TokenCache;
 
-    /**
-     * Fetches the logger instance
-     */
+    /** Returns the logger instance */
     getLogger(): Logger;
 
-    /**
-     * Sets the logger instance
-     * @param logger
-     */
+    /** Replaces the default logger set in configurations with new Logger with new configurations */
     setLogger(logger: Logger): void;
 }
 

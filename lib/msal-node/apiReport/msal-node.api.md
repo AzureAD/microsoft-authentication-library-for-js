@@ -15,8 +15,6 @@ import { AuthenticationResult } from '@azure/msal-common';
 import { AuthError } from '@azure/msal-common';
 import { AuthErrorMessage } from '@azure/msal-common';
 import { AuthorityMetadataEntity } from '@azure/msal-common';
-import { AuthorizationCodeRequest as AuthorizationCodeRequest_2 } from '@azure/msal-common';
-import { AuthorizationUrlRequest as AuthorizationUrlRequest_2 } from '@azure/msal-common';
 import { BaseAuthRequest } from '@azure/msal-common';
 import { CacheManager } from '@azure/msal-common';
 import { ClientAuthError } from '@azure/msal-common';
@@ -24,8 +22,14 @@ import { ClientAuthErrorMessage } from '@azure/msal-common';
 import { ClientConfiguration } from '@azure/msal-common';
 import { ClientConfigurationError } from '@azure/msal-common';
 import { ClientConfigurationErrorMessage } from '@azure/msal-common';
-import { ClientCredentialRequest as ClientCredentialRequest_2 } from '@azure/msal-common';
-import { DeviceCodeRequest as DeviceCodeRequest_2 } from '@azure/msal-common';
+import { CommonAuthorizationCodeRequest } from '@azure/msal-common';
+import { CommonAuthorizationUrlRequest } from '@azure/msal-common';
+import { CommonClientCredentialRequest } from '@azure/msal-common';
+import { CommonDeviceCodeRequest } from '@azure/msal-common';
+import { CommonOnBehalfOfRequest } from '@azure/msal-common';
+import { CommonRefreshTokenRequest } from '@azure/msal-common';
+import { CommonSilentFlowRequest } from '@azure/msal-common';
+import { CommonUsernamePasswordRequest } from '@azure/msal-common';
 import { DeviceCodeResponse } from '@azure/msal-common';
 import { ICachePlugin } from '@azure/msal-common';
 import { ICrypto } from '@azure/msal-common';
@@ -39,21 +43,17 @@ import { LoggerOptions } from '@azure/msal-common';
 import { LogLevel } from '@azure/msal-common';
 import { NetworkRequestOptions } from '@azure/msal-common';
 import { NetworkResponse } from '@azure/msal-common';
-import { OnBehalfOfRequest as OnBehalfOfRequest_2 } from '@azure/msal-common';
 import { PkceCodes } from '@azure/msal-common';
 import { PromptValue } from '@azure/msal-common';
 import { ProtocolMode } from '@azure/msal-common';
 import { RefreshTokenCache } from '@azure/msal-common';
 import { RefreshTokenEntity } from '@azure/msal-common';
-import { RefreshTokenRequest as RefreshTokenRequest_2 } from '@azure/msal-common';
 import { ResponseMode } from '@azure/msal-common';
 import { ServerError } from '@azure/msal-common';
 import { ServerTelemetryEntity } from '@azure/msal-common';
 import { ServerTelemetryManager } from '@azure/msal-common';
-import { SilentFlowRequest as SilentFlowRequest_2 } from '@azure/msal-common';
 import { ThrottlingEntity } from '@azure/msal-common';
 import { TokenCacheContext } from '@azure/msal-common';
-import { UsernamePasswordRequest as UsernamePasswordRequest_2 } from '@azure/msal-common';
 import { ValidCacheType } from '@azure/msal-common';
 
 export { AccountInfo }
@@ -65,23 +65,20 @@ export { AuthError }
 export { AuthErrorMessage }
 
 // @public
-export type AuthorizationCodeRequest = Partial<Omit<AuthorizationCodeRequest_2, "scopes" | "redirectUri" | "code" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri">> & {
+export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeRequest, "scopes" | "redirectUri" | "code" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri">> & {
     scopes: Array<string>;
     redirectUri: string;
     code: string;
 };
 
 // @public
-export type AuthorizationUrlRequest = Partial<Omit<AuthorizationUrlRequest_2, "scopes" | "redirectUri" | "resourceRequestMethod" | "resourceRequestUri" | "authenticationScheme">> & {
+export type AuthorizationUrlRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes" | "redirectUri" | "resourceRequestMethod" | "resourceRequestUri" | "authenticationScheme">> & {
     scopes: Array<string>;
     redirectUri: string;
 };
 
 // @public
 export function buildAppConfiguration({ auth, cache, system, }: Configuration): Configuration;
-
-// @public
-export type CacheKVStore = Record<string, ValidCacheType>;
 
 // @public
 export abstract class ClientApplication {
@@ -95,14 +92,12 @@ export abstract class ClientApplication {
     protected config: Configuration;
     getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
     getLogger(): Logger;
-    // Warning: (ae-incompatible-release-tags) The symbol "getTokenCache" is marked as @public, but its signature references "TokenCache" which is marked as @beta
     getTokenCache(): TokenCache;
     protected initializeBaseRequest(authRequest: Partial<BaseAuthRequest>): BaseAuthRequest;
     protected initializeServerTelemetryManager(apiId: number, correlationId: string, forceRefresh?: boolean): ServerTelemetryManager;
     protected logger: Logger;
+    protected platformStorage: Storage_2;
     setLogger(logger: Logger): void;
-    // Warning: (ae-incompatible-release-tags) The symbol "storage" is marked as @public, but its signature references "Storage" which is marked as @beta
-    protected storage: Storage_2;
     }
 
 // @public
@@ -122,7 +117,7 @@ export { ClientConfigurationError }
 export { ClientConfigurationErrorMessage }
 
 // @public
-export type ClientCredentialRequest = Partial<Omit<ClientCredentialRequest_2, "scopes" | "resourceRequestMethod" | "resourceRequestUri">> & {
+export type ClientCredentialRequest = Partial<Omit<CommonClientCredentialRequest, "scopes" | "resourceRequestMethod" | "resourceRequestUri">> & {
     scopes: Array<string>;
 };
 
@@ -152,18 +147,7 @@ export class CryptoProvider implements ICrypto {
 }
 
 // @public
-export class Deserializer {
-    static deserializeAccessTokens(accessTokens: Record<string, SerializedAccessTokenEntity>): AccessTokenCache;
-    static deserializeAccounts(accounts: Record<string, SerializedAccountEntity>): AccountCache;
-    static deserializeAllCache(jsonCache: JsonCache): InMemoryCache;
-    static deserializeAppMetadata(appMetadata: Record<string, SerializedAppMetadataEntity>): AppMetadataCache;
-    static deserializeIdTokens(idTokens: Record<string, SerializedIdTokenEntity>): IdTokenCache;
-    static deserializeJSONBlob(jsonFile: string): JsonCache;
-    static deserializeRefreshTokens(refreshTokens: Record<string, SerializedRefreshTokenEntity>): RefreshTokenCache;
-}
-
-// @public
-export type DeviceCodeRequest = Partial<Omit<DeviceCodeRequest_2, "scopes" | "deviceCodeCallback" | "resourceRequestMethod" | "resourceRequestUri">> & {
+export type DeviceCodeRequest = Partial<Omit<CommonDeviceCodeRequest, "scopes" | "deviceCodeCallback" | "resourceRequestMethod" | "resourceRequestUri">> & {
     scopes: Array<string>;
     deviceCodeCallback: (response: DeviceCodeResponse) => void;
 };
@@ -179,21 +163,11 @@ export interface IConfidentialClientApplication {
     acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null>;
     getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
     getLogger(): Logger;
-    // Warning: (ae-incompatible-release-tags) The symbol "getTokenCache" is marked as @public, but its signature references "TokenCache" which is marked as @beta
     getTokenCache(): TokenCache;
     setLogger(logger: Logger): void;
 }
 
 export { INetworkModule }
-
-// @public
-export type InMemoryCache = {
-    accounts: AccountCache;
-    idTokens: IdTokenCache;
-    accessTokens: AccessTokenCache;
-    refreshTokens: RefreshTokenCache;
-    appMetadata: AppMetadataCache;
-};
 
 export { InteractionRequiredAuthError }
 
@@ -203,13 +177,10 @@ export interface IPublicClientApplication {
     acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null>;
     acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>;
     // Warning: (ae-forgotten-export) The symbol "UsernamePasswordRequest" needs to be exported by the entry point index.d.ts
-    //
-    // @internal
     acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
     acquireTokenSilent(request: SilentFlowRequest): Promise<AuthenticationResult | null>;
     getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
     getLogger(): Logger;
-    // Warning: (ae-incompatible-release-tags) The symbol "getTokenCache" is marked as @public, but its signature references "TokenCache" which is marked as @beta
     getTokenCache(): TokenCache;
     setLogger(logger: Logger): void;
 }
@@ -217,13 +188,12 @@ export interface IPublicClientApplication {
 export { ISerializableTokenCache }
 
 // @public
-export type JsonCache = {
-    Account: Record<string, SerializedAccountEntity>;
-    IdToken: Record<string, SerializedIdTokenEntity>;
-    AccessToken: Record<string, SerializedAccessTokenEntity>;
-    RefreshToken: Record<string, SerializedRefreshTokenEntity>;
-    AppMetadata: Record<string, SerializedAppMetadataEntity>;
-};
+export interface ITokenCache {
+    getAccountByHomeId(homeAccountId: string): Promise<AccountInfo | null>;
+    getAccountByLocalId(localAccountId: string): Promise<AccountInfo | null>;
+    getAllAccounts(): Promise<AccountInfo[]>;
+    removeAccount(account: AccountInfo): Promise<void>;
+}
 
 export { Logger }
 
@@ -234,7 +204,7 @@ export { NetworkRequestOptions }
 export { NetworkResponse }
 
 // @public
-export type OnBehalfOfRequest = Partial<Omit<OnBehalfOfRequest_2, "oboAssertion" | "scopes" | "resourceRequestMethod" | "resourceRequestUri">> & {
+export type OnBehalfOfRequest = Partial<Omit<CommonOnBehalfOfRequest, "oboAssertion" | "scopes" | "resourceRequestMethod" | "resourceRequestUri">> & {
     oboAssertion: string;
     scopes: Array<string>;
 };
@@ -251,101 +221,33 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 }
 
 // @public
-export type RefreshTokenRequest = Partial<Omit<RefreshTokenRequest_2, "scopes" | "refreshToken" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri">> & {
+export type RefreshTokenRequest = Partial<Omit<CommonRefreshTokenRequest, "scopes" | "refreshToken" | "authenticationScheme" | "resourceRequestMethod" | "resourceRequestUri">> & {
     scopes: Array<string>;
     refreshToken: string;
 };
 
 export { ResponseMode }
 
-// @public
-export type SerializedAccessTokenEntity = {
-    home_account_id: string;
-    environment: string;
-    credential_type: string;
-    client_id: string;
-    secret: string;
-    realm: string;
-    target: string;
-    cached_at: string;
-    expires_on: string;
-    extended_expires_on?: string;
-    refresh_on?: string;
-    key_id?: string;
-    token_type?: string;
-};
-
-// @public
-export type SerializedAccountEntity = {
-    home_account_id: string;
-    environment: string;
-    realm: string;
-    local_account_id: string;
-    username: string;
-    authority_type: string;
-    name?: string;
-    client_info?: string;
-    last_modification_time?: string;
-    last_modification_app?: string;
-};
-
-// @public
-export type SerializedAppMetadataEntity = {
-    client_id: string;
-    environment: string;
-    family_id?: string;
-};
-
-// @public
-export type SerializedIdTokenEntity = {
-    home_account_id: string;
-    environment: string;
-    credential_type: string;
-    client_id: string;
-    secret: string;
-    realm: string;
-};
-
-// @public
-export type SerializedRefreshTokenEntity = {
-    home_account_id: string;
-    environment: string;
-    credential_type: string;
-    client_id: string;
-    secret: string;
-    family_id?: string;
-    target?: string;
-    realm?: string;
-};
-
-// @public (undocumented)
-export class Serializer {
-    static serializeAccessTokens(atCache: AccessTokenCache): Record<string, SerializedAccessTokenEntity>;
-    static serializeAccounts(accCache: AccountCache): Record<string, SerializedAccountEntity>;
-    static serializeAllCache(inMemCache: InMemoryCache): JsonCache;
-    static serializeAppMetadata(amdtCache: AppMetadataCache): Record<string, SerializedAppMetadataEntity>;
-    static serializeIdTokens(idTCache: IdTokenCache): Record<string, SerializedIdTokenEntity>;
-    static serializeJSONBlob(data: JsonCache): string;
-    static serializeRefreshTokens(rtCache: RefreshTokenCache): Record<string, SerializedRefreshTokenEntity>;
-}
-
 export { ServerError }
 
 // @public
-export type SilentFlowRequest = Partial<Omit<SilentFlowRequest_2, "account" | "scopes" | "resourceRequestMethod" | "resourceRequestUri">> & {
+export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account" | "scopes" | "resourceRequestMethod" | "resourceRequestUri">> & {
     account: AccountInfo;
     scopes: Array<string>;
 };
 
-// @beta
+// @public
 class Storage_2 extends CacheManager {
     constructor(logger: Logger, clientId: string, cryptoImpl: ICrypto);
+    // Warning: (ae-forgotten-export) The symbol "CacheKVStore" needs to be exported by the entry point index.d.ts
+    // Warning: (ae-forgotten-export) The symbol "InMemoryCache" needs to be exported by the entry point index.d.ts
     cacheToInMemoryCache(cache: CacheKVStore): InMemoryCache;
     clear(): void;
     containsKey(key: string): boolean;
     // (undocumented)
     emitChange(): void;
     static generateInMemoryCache(cache: string): InMemoryCache;
+    // Warning: (ae-forgotten-export) The symbol "JsonCache" needs to be exported by the entry point index.d.ts
     static generateJsonCache(inMemoryCache: InMemoryCache): JsonCache;
     getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity | null;
     getAccount(accountKey: string): AccountEntity | null;
@@ -379,9 +281,7 @@ class Storage_2 extends CacheManager {
 
 export { Storage_2 as Storage }
 
-// Warning: (ae-forgotten-export) The symbol "ITokenCache" needs to be exported by the entry point index.d.ts
-//
-// @beta
+// @public
 export class TokenCache implements ISerializableTokenCache, ITokenCache {
     constructor(storage: Storage_2, logger: Logger, cachePlugin?: ICachePlugin);
     deserialize(cache: string): void;

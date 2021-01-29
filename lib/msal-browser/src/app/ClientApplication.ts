@@ -4,7 +4,7 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { Authority, StringUtils, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationCodeClient, PromptValue, ServerError, InteractionRequiredAuthError, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, AuthenticationScheme, SilentFlowRequest, EndSessionRequest as CommonEndSessionRequest, AccountEntity, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthorityOptions } from "@azure/msal-common";
+import { Authority, StringUtils, UrlString, ServerAuthorizationCodeResponse, CommonAuthorizationCodeRequest, AuthorizationCodeClient, PromptValue, ServerError, InteractionRequiredAuthError, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, AuthenticationScheme, CommonSilentFlowRequest, CommonEndSessionRequest, AccountEntity, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthorityOptions } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
 import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, BrowserCacheLocation } from "../utils/BrowserConstants";
@@ -230,9 +230,9 @@ export abstract class ClientApplication {
     }
 
     /**
-     * 
-     * @param hash 
-     * @param interactionType 
+     *
+     * @param hash
+     * @param interactionType
      */
     private validateAndExtractStateFromHash(hash: string, interactionType: InteractionType): string {
         // Deserialize hash fragment response parameters.
@@ -305,7 +305,7 @@ export abstract class ClientApplication {
 
         try {
             // Create auth code request and generate PKCE params
-            const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
+            const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
 
             // Initialize the client
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority);
@@ -320,7 +320,7 @@ export abstract class ClientApplication {
 
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
             return interactionHandler.initiateAuthRequest(navigateUrl, {
-                redirectTimeout: this.config.system.redirectNavigationTimeout, 
+                redirectTimeout: this.config.system.redirectNavigationTimeout,
                 redirectStartPage: redirectStartPage,
                 onRedirectNavigate: request.onRedirectNavigate
             });
@@ -389,7 +389,7 @@ export abstract class ClientApplication {
 
         try {
             // Create auth code request and generate PKCE params
-            const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
+            const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
 
             // Initialize the client
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority);
@@ -498,7 +498,7 @@ export abstract class ClientApplication {
 
         try {
             // Create auth code request and generate PKCE params
-            const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
+            const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
 
             // Initialize the client
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentRequest.authority);
@@ -526,11 +526,11 @@ export abstract class ClientApplication {
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      *
      */
-    protected async acquireTokenByRefreshToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
+    protected async acquireTokenByRefreshToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
         this.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, request);
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
-        const silentRequest: SilentFlowRequest = {
+        const silentRequest: CommonSilentFlowRequest = {
             ...request,
             ...this.initializeBaseRequest(request)
         };
@@ -557,7 +557,7 @@ export abstract class ClientApplication {
      * @param navigateUrl
      * @param userRequestScopes
      */
-    private async silentTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, authClient: AuthorizationCodeClient): Promise<AuthenticationResult> {
+    private async silentTokenHelper(navigateUrl: string, authCodeRequest: CommonAuthorizationCodeRequest, authClient: AuthorizationCodeClient): Promise<AuthenticationResult> {
         // Create silent handler
         const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.config.system.navigateFrameWait);
         // Get the frame handle for the silent request
@@ -677,7 +677,7 @@ export abstract class ClientApplication {
 
     /**
      * Sets the account to use as the active account. If no account is passed to the acquireToken APIs, then MSAL will use this active account.
-     * @param account 
+     * @param account
      */
     setActiveAccount(account: AccountInfo | null): void {
         this.activeLocalAccountId = account ? account.localAccountId : null;
@@ -721,7 +721,7 @@ export abstract class ClientApplication {
 
     /**
      * Use to get the redirectStartPage either from request or use current window
-     * @param requestStartPage 
+     * @param requestStartPage
      */
     protected getRedirectStartPage(requestStartPage?: string): string {
         const redirectStartPage = requestStartPage || window.location.href;
@@ -939,10 +939,10 @@ export abstract class ClientApplication {
      * Generates an auth code request tied to the url request.
      * @param request
      */
-    protected async initializeAuthorizationCodeRequest(request: AuthorizationUrlRequest): Promise<AuthorizationCodeRequest> {
+    protected async initializeAuthorizationCodeRequest(request: AuthorizationUrlRequest): Promise<CommonAuthorizationCodeRequest> {
         const generatedPkceParams = await this.browserCrypto.generatePkceCodes();
 
-        const authCodeRequest: AuthorizationCodeRequest = {
+        const authCodeRequest: CommonAuthorizationCodeRequest = {
             ...request,
             redirectUri: request.redirectUri,
             code: "",

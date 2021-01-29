@@ -23,7 +23,6 @@ import { InMemoryCache, JsonCache, CacheKVStore } from "./serializer/SerializerT
 
 /**
  * This class implements Storage for node, reading cache from user specified storage location or an  extension library
- * @beta
  */
 export class Storage extends CacheManager {
     // Cache configuration, either set by user or default values.

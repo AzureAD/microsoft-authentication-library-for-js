@@ -20,7 +20,6 @@ const defaultSerializedCache: JsonCache = {
 
 /**
  * In-memory token cache manager
- * @beta
  */
 export class TokenCache implements ISerializableTokenCache, ITokenCache {
 

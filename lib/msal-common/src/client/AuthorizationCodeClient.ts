@@ -4,8 +4,8 @@
  */
 
 import { BaseClient } from "./BaseClient";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
-import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
+import { CommonAuthorizationUrlRequest } from "../request/CommonAuthorizationUrlRequest";
+import { CommonAuthorizationCodeRequest } from "../request/CommonAuthorizationCodeRequest";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { GrantType, AuthenticationScheme } from "../utils/Constants";
@@ -19,7 +19,7 @@ import { ClientAuthError } from "../error/ClientAuthError";
 import { UrlString } from "../url/UrlString";
 import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorizationCodeResponse";
 import { AccountEntity } from "../cache/entities/AccountEntity";
-import { EndSessionRequest } from "../request/EndSessionRequest";
+import { CommonEndSessionRequest } from "../request/CommonEndSessionRequest";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { RequestThumbprint } from "../network/RequestThumbprint";
@@ -44,7 +44,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * acquireToken(AuthorizationCodeRequest)
      * @param request
      */
-    async getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string> {
+    async getAuthCodeUrl(request: CommonAuthorizationUrlRequest): Promise<string> {
         const queryString = this.createAuthCodeUrlQueryString(request);
         return `${this.authority.authorizationEndpoint}?${queryString}`;
     }
@@ -54,7 +54,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * authorization_code_grant
      * @param request
      */
-    async acquireToken(request: AuthorizationCodeRequest, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult> {
+    async acquireToken(request: CommonAuthorizationCodeRequest, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult> {
         this.logger.info("in acquireToken call");
         if (!request || StringUtils.isEmpty(request.code)) {
             throw ClientAuthError.createTokenRequestCannotBeMadeError();
@@ -110,7 +110,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * Default behaviour is to redirect the user to `window.location.href`.
      * @param authorityUri
      */
-    getLogoutUri(logoutRequest: EndSessionRequest): string {
+    getLogoutUri(logoutRequest: CommonEndSessionRequest): string {
         // Throw error if logoutRequest is null/undefined
         if (!logoutRequest) {
             throw ClientConfigurationError.createEmptyLogoutRequestError();
@@ -135,7 +135,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param authority
      * @param request
      */
-    private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+    private async executeTokenRequest(authority: Authority, request: CommonAuthorizationCodeRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
@@ -152,7 +152,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * Generates a map for all the params to be sent to the service
      * @param request
      */
-    private async createTokenRequestBody(request: AuthorizationCodeRequest): Promise<string> {
+    private async createTokenRequestBody(request: CommonAuthorizationCodeRequest): Promise<string> {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -204,7 +204,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * This API validates the `AuthorizationCodeUrlRequest` and creates a URL
      * @param request
      */
-    private createAuthCodeUrlQueryString(request: AuthorizationUrlRequest): string {
+    private createAuthCodeUrlQueryString(request: CommonAuthorizationUrlRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -275,7 +275,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * This API validates the `EndSessionRequest` and creates a URL
      * @param request
      */
-    private createLogoutUrlQueryString(request: EndSessionRequest): string {
+    private createLogoutUrlQueryString(request: CommonEndSessionRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         if (request.postLogoutRedirectUri) {

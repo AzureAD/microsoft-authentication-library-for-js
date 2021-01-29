@@ -6,6 +6,7 @@
 // Interfaces
 export { IPublicClientApplication } from "./client/IPublicClientApplication";
 export { IConfidentialClientApplication } from "./client/IConfidentialClientApplication";
+export { ITokenCache } from "./cache/ITokenCache";
 
 // Clients and Configuration
 export { PublicClientApplication } from "./client/PublicClientApplication";
@@ -16,19 +17,7 @@ export { ClientAssertion } from "./client/ClientAssertion";
 
 // Cache and Storage
 export { Storage } from "./cache/Storage";
-export { Serializer } from "./cache/serializer/Serializer";
-export { Deserializer } from "./cache/serializer/Deserializer";
 export { TokenCache } from "./cache/TokenCache";
-export {
-    CacheKVStore,
-    JsonCache,
-    InMemoryCache,
-    SerializedAccountEntity,
-    SerializedAccessTokenEntity,
-    SerializedIdTokenEntity,
-    SerializedRefreshTokenEntity,
-    SerializedAppMetadataEntity
-} from "./cache/serializer/SerializerTypes";
 
 // Crypto
 export { CryptoProvider } from "./crypto/CryptoProvider";

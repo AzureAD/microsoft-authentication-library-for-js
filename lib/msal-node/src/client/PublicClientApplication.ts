@@ -7,8 +7,8 @@ import { ApiId } from "../utils/Constants";
 import {
     DeviceCodeClient,
     AuthenticationResult,
-    DeviceCodeRequest as CommonDeviceCodeRequest,
-    UsernamePasswordRequest as CommonUsernamePasswordRequest,
+    CommonDeviceCodeRequest,
+    CommonUsernamePasswordRequest,
     UsernamePasswordClient
 } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";

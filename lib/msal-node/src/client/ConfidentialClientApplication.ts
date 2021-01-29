@@ -10,8 +10,8 @@ import { ApiId } from "../utils/Constants";
 import {
     ClientCredentialClient,
     OnBehalfOfClient,
-    ClientCredentialRequest as CommonClientCredentialRequest,
-    OnBehalfOfRequest as CommonOnBehalfOfRequest,
+    CommonClientCredentialRequest,
+    CommonOnBehalfOfRequest,
     AuthenticationResult,
     StringUtils,
     ClientAuthError } from "@azure/msal-common";
