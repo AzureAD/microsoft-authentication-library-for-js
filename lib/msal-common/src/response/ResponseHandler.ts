@@ -211,8 +211,7 @@ export class ResponseHandler {
             const responseScopes = serverTokenResponse.scope ? ScopeSet.fromString(serverTokenResponse.scope) : new ScopeSet(requestScopes || []);
 
             // Use timestamp calculated before request
-            const timestamp = reqTimestamp;
-            const tokenExpirationSeconds = timestamp + (serverTokenResponse.expires_in || 0);
+            const tokenExpirationSeconds = reqTimestamp + (serverTokenResponse.expires_in || 0);
             const extendedTokenExpirationSeconds = tokenExpirationSeconds + (serverTokenResponse.ext_expires_in || 0);
 
             // non AAD scenarios can have empty realm
