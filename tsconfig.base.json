@@ -7,7 +7,9 @@
         "importHelpers": true,
         "noImplicitAny": true,
         "downlevelIteration": true,
-        "strict": true
+        "strict": true,
+        "composite": true,
+        "declarationMap": true
     },
     "compileOnSave": false,
     "buildOnSave": false
