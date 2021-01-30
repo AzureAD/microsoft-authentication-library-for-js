@@ -27,6 +27,8 @@ import { RedirectRequest } from "../../src/request/RedirectRequest";
 import pkg from "../../package.json";
 import { ExperimentalClientApplication } from "../../src/app/ExperimentalClientApplication";
 import { ClientApplication } from "../../src/app/ClientApplication";
+import { EmbeddedClientApplication } from "../../src/broker/client/EmbeddedClientApplication";
+import { BrokerClientApplication } from "../../src/broker/client/BrokerClientApplication";
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
@@ -231,6 +233,187 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
                 done();
             });
             pca.experimental.handleRedirectPromise();
+        });
+
+        it("Uses the broker's version of handleRedirectPromise", async () => {
+            const brokerInstance = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                experimental: {
+                    enable: true,
+                    brokerOptions: {
+                        preferredInteractionType: InteractionType.Redirect,
+                        actAsBroker: true
+                    }
+                }
+            });
+            const listenMsgSpy = sinon.stub(BrokerClientApplication.prototype, "listenForBrokerMessage").callsFake(() => {
+                return;
+            });
+            await brokerInstance.experimental.initializeBrokering();
+            expect(listenMsgSpy.calledOnce).to.be.true;
+
+            const handleRedirectSpy = sinon.stub(BrokerClientApplication.prototype, "handleRedirectPromise").callsFake(async (hash) => {
+                expect(hash).to.be.deep.eq(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
+                return null;
+            });
+
+            const response = await brokerInstance.experimental.handleRedirectPromise(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
+            expect(handleRedirectSpy.calledOnce).to.be.true;
+            expect(response).to.be.null;
+        });
+
+        it("Uses the embedded app's version of handleRedirectPromise", async () => {
+            const embeddedAppInstance = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                experimental: {
+                    enable: true,
+                    brokerOptions: {
+                        preferredInteractionType: InteractionType.Redirect,
+                        allowBrokering: true,
+                        trustedBrokerDomains: ["https://localhost:30662"]
+                    }
+                }
+            });
+            const sendHandshakeSpy = sinon.stub(EmbeddedClientApplication.prototype, <any>"sendHandshakeRequest").callsFake(async () => {
+                return {
+                    brokerOrigin: "http://localhost:30662"
+                };
+            });
+            await embeddedAppInstance.experimental.initializeBrokering();
+            expect(sendHandshakeSpy.calledOnce).to.be.true;
+
+            const handleRedirectSpy = sinon.stub(EmbeddedClientApplication.prototype, "sendHandleRedirectRequest").callsFake(async () => {
+                return null;
+            });
+
+            const response = await embeddedAppInstance.experimental.handleRedirectPromise();
+            expect(handleRedirectSpy.calledOnce).to.be.true;
+            expect(response).to.be.null;
+        });
+    });
+
+    describe("initializeBrokering()", () => {
+        let brokerInstance: PublicClientApplication;
+        let embeddedAppInstance: PublicClientApplication;
+        beforeEach(() => {
+            brokerInstance = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                experimental: {
+                    enable: true,
+                    brokerOptions: {
+                        preferredInteractionType: InteractionType.Redirect,
+                        actAsBroker: true
+                    }
+                }
+            });
+            embeddedAppInstance = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                experimental: {
+                    enable: true,
+                    brokerOptions: {
+                        preferredInteractionType: InteractionType.Redirect,
+                        allowBrokering: true,
+                        trustedBrokerDomains: ["https://localhost:30662"]
+                    }
+                }
+            });
+        });
+
+        it("broker does not call initiateHandshake", async () => {
+            const initHandshakeSpy = sinon.spy(EmbeddedClientApplication.prototype, "initiateHandshake");
+            const listenMsgSpy = sinon.stub(BrokerClientApplication.prototype, "listenForBrokerMessage").callsFake(() => {
+                return;
+            });
+            await brokerInstance.experimental.initializeBrokering();
+            expect(initHandshakeSpy.called).to.be.false;
+            expect(listenMsgSpy.calledOnce).to.be.true;
+        });
+
+        it("embedded app does not call listenForBrokerMessage", async () => {
+            const initHandshakeSpy = sinon.stub(EmbeddedClientApplication.prototype, "initiateHandshake").callsFake(async () => {
+                return;
+            });
+            const listenMsgSpy = sinon.spy(BrokerClientApplication.prototype, "listenForBrokerMessage");
+            await embeddedAppInstance.experimental.initializeBrokering();
+            expect(initHandshakeSpy.called).to.be.true;
+            expect(listenMsgSpy.calledOnce).to.be.false;
+        });
+
+        it("only initializes broker when both broker and embedded app are configured", async () => {
+            const instance = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                experimental: {
+                    enable: true,
+                    brokerOptions: {
+                        preferredInteractionType: InteractionType.Redirect,
+                        allowBrokering: true,
+                        actAsBroker: true
+                    }
+                }
+            });
+            const initHandshakeSpy = sinon.spy(EmbeddedClientApplication.prototype, "initiateHandshake");
+            const listenMsgSpy = sinon.spy(BrokerClientApplication.prototype, "listenForBrokerMessage");
+            await instance.experimental.initializeBrokering();
+            expect(initHandshakeSpy.called).to.be.false;
+            expect(listenMsgSpy.calledOnce).to.be.true;
+        });
+
+        it("does not initialize broker listener if broker is rendered in iframe", async () => {
+            sinon.stub(BrowserUtils, "isInIframe").returns(true);
+            const listenMsgSpy = sinon.spy(BrokerClientApplication.prototype, "listenForBrokerMessage");
+            await brokerInstance.experimental.initializeBrokering();
+            expect(listenMsgSpy.calledOnce).to.be.false;
+        });
+
+        it("returns early if in non-browser environment", async () => {
+            // @ts-ignore
+            const oldWindow = { ...global.window };
+
+            // @ts-ignore
+            global.window = undefined;
+
+            const instance = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                experimental: {
+                    enable: true,
+                    brokerOptions: {
+                        preferredInteractionType: InteractionType.Redirect,
+                        actAsBroker: true
+                    }
+                }
+            });
+            const initHandshakeSpy = sinon.spy(EmbeddedClientApplication.prototype, "initiateHandshake");
+            const listenMsgSpy = sinon.spy(BrokerClientApplication.prototype, "listenForBrokerMessage");
+            await instance.experimental.initializeBrokering();
+            expect(initHandshakeSpy.called).to.be.false;
+            expect(listenMsgSpy.calledOnce).to.be.false;
+
+            // @ts-ignore
+            global.window = oldWindow;
+
+            // @ts-ignore
+            global.window.parent = oldWindow;
+        });
+
+        it("does not create experimental object if experimental APIs are not configured", () => {
+            const instance = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                }
+            });
+            expect(instance.experimental).to.be.undefined;
         });
     });
 
@@ -1531,6 +1714,83 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
                     expect(e).to.be.eq(testError);
                 }
             });
+
+            it("embedded app sends request to broker", async () => {
+                const embeddedApp = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                    },
+                    experimental: {
+                        enable: true,
+                        brokerOptions: {
+                            preferredInteractionType: InteractionType.Redirect,
+                            allowBrokering: true,
+                            trustedBrokerDomains: ["https://localhost:30662"]
+                        }
+                    }
+                });
+                const testServerTokenResponse = {
+                    token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                    scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                    expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                    ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                    access_token: TEST_TOKENS.ACCESS_TOKEN,
+                    refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                    id_token: TEST_TOKENS.IDTOKEN_V2
+                };
+                const testIdTokenClaims: TokenClaims = {
+                    "ver": "2.0",
+                    "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                    "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                    "name": "Abe Lincoln",
+                    "preferred_username": "AbeLi@microsoft.com",
+                    "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                    "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    "nonce": "123523",
+                };
+                const testAccount: AccountInfo = {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                    environment: "login.windows.net",
+                    tenantId: testIdTokenClaims.tid,
+                    username: testIdTokenClaims.preferred_username
+                };
+                const testTokenResponse: AuthenticationResult = {
+                    authority: TEST_CONFIG.validAuthority,
+                    uniqueId: testIdTokenClaims.oid,
+                    tenantId: testIdTokenClaims.tid,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    idToken: testServerTokenResponse.id_token,
+                    idTokenClaims: testIdTokenClaims,
+                    accessToken: testServerTokenResponse.access_token,
+                    fromCache: false,
+                    expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
+                    account: testAccount,
+                    tokenType: AuthenticationScheme.BEARER
+                };
+                
+                sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+                    challenge: TEST_CONFIG.TEST_CHALLENGE,
+                    verifier: TEST_CONFIG.TEST_VERIFIER
+                });
+                sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);                
+                sinon.stub(EmbeddedClientApplication.prototype, <any>"sendHandshakeRequest").callsFake(async () => {
+                    return {
+                        brokerOrigin: "http://localhost:30662"
+                    };
+                });
+                await embeddedApp.experimental.initializeBrokering();
+                const brokeredPopupSpy = sinon.stub(EmbeddedClientApplication.prototype, "sendPopupRequest").callsFake(async (request) => {
+                    return testTokenResponse;
+                });
+                const response = await embeddedApp.experimental.acquireTokenPopup({
+                    redirectUri: TEST_URIS.TEST_REDIR_URI,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES
+                });
+
+                expect(response).to.be.deep.eq(testTokenResponse);
+                expect(brokeredPopupSpy.calledOnce).to.be.true;
+            });
         });
     });
 
@@ -1678,6 +1938,84 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
             });
             expect(loadFrameSyncSpy.calledOnce).to.be.true;
             expect(tokenResp).to.be.deep.eq(testTokenResponse);
+        });
+
+        it("embedded app sends request to broker", async () => {
+            const embeddedApp = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                experimental: {
+                    enable: true,
+                    brokerOptions: {
+                        preferredInteractionType: InteractionType.Redirect,
+                        allowBrokering: true,
+                        trustedBrokerDomains: ["https://localhost:30662"]
+                    }
+                }
+            });
+            const testServerTokenResponse = {
+                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2
+            };
+            const testIdTokenClaims: TokenClaims = {
+                "ver": "2.0",
+                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+            };
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid,
+                username: testIdTokenClaims.preferred_username
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testIdTokenClaims.oid,
+                tenantId: testIdTokenClaims.tid,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: testServerTokenResponse.id_token,
+                idTokenClaims: testIdTokenClaims,
+                accessToken: testServerTokenResponse.access_token,
+                fromCache: false,
+                expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            
+            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER
+            });
+            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);                
+            sinon.stub(EmbeddedClientApplication.prototype, <any>"sendHandshakeRequest").callsFake(async () => {
+                return {
+                    brokerOrigin: "http://localhost:30662"
+                };
+            });
+            await embeddedApp.experimental.initializeBrokering();
+            const brokeredPopupSpy = sinon.stub(EmbeddedClientApplication.prototype, "sendSsoSilentRequest").callsFake(async (request) => {
+                return testTokenResponse;
+            });
+            const response = await embeddedApp.experimental.ssoSilent({
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                sid: TEST_CONFIG.SID
+            });
+
+            expect(response).to.be.deep.eq(testTokenResponse);
+            expect(brokeredPopupSpy.calledOnce).to.be.true;
         });
     });
 

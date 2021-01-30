@@ -81,6 +81,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             done();
         });
 
+        it("does not initialize experimental API if enable is set to false", () => {
+            expect(pca.experimental).to.be.undefined;
+        }); 
+
         it("handleRedirectPromise returns null if interaction is not in progress", async () => {
             sinon.stub(pca, <any>"interactionInProgress").returns(false);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;

@@ -101,7 +101,6 @@ export class ExperimentalClientApplication extends ClientApplication implements 
             // Preflight request
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
             const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
-
             if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
                 return this.embeddedApp.sendPopupRequest(validRequest);
             }
