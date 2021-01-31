@@ -1,6 +1,6 @@
 {
   "type": "prerelease",
-  "comment": "Set the validateStatus locally than globally for `axios`",
+  "comment": "Set the validateStatus locally than globally for `axios` (#2959)",
   "packageName": "@azure/msal-node",
   "email": "sameera.gajjarapu@microsoft.com",
   "dependentChangeType": "patch",
