@@ -32,6 +32,7 @@
     "doc": "npm run doc:generate && npm run doc:deploy",
     "doc:generate": "typedoc --mode modules --excludePrivate --excludeProtected --excludeNotExported --out ./ref ./src/ --gitRevision dev",
     "doc:deploy": "gh-pages -d ref -a -e ref/msal-node",
+    "api:local": "api-extractor run --local --verbose",
     "test": "tsdx test .*.spec.*",
     "test:watch": "tsdx test .*.spec.* --watch",
     "test:coverage": "tsdx test .*.spec.* --coverage",
@@ -67,7 +68,8 @@
     "tsdx": "^0.14.1",
     "tslib": "^1.10.0",
     "typedoc": "^0.19.2",
-    "typescript": "^3.8.3"
+    "typescript": "^3.8.3",
+    "@microsoft/api-extractor": "^7.13.0"
   },
   "dependencies": {
     "@azure/msal-common": "^3.0.0",

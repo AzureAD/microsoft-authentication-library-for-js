@@ -8,7 +8,7 @@
   "apiReport": {
     "enabled": true,
     "reportFileName": "<unscopedPackageName>.api.md",
-    "reportFolder": "<projectFolder>/apiReport/",
+    "reportFolder": "<projectFolder>/api/",
     "reportTempFolder": "<projectFolder>/temp/"
   },
   "docModel": {
@@ -26,7 +26,8 @@
     },
     "extractorMessageReporting": {
       "default": {
-        "logLevel": "warning"
+        "logLevel": "warning",
+        "addToApiReportFile": true
       }
     },
     "tsdocMessageReporting": {
