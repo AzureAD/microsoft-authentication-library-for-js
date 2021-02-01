@@ -98,7 +98,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 this.logger.warning("ssoSilent - sid provided to ssoSilent, but no cached account found. If this is unexpected, confirm sid is enabled as an optional id token claim for your application");
             }
 
-            const account = request.account || accountByLoginHint || accountBySid;
+            const account = request.account || accountBySid || accountByLoginHint;
 
             // Only checked for cached credentials if forceRefresh is off and there is an account for the request
             if (!request.forceRefresh && account) {

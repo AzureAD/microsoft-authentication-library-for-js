@@ -656,7 +656,7 @@ export abstract class ClientApplication {
      */
     public getAccountBySessionId(sid: string): AccountInfo | null {
         const allAccounts = this.getAllAccounts();
-        if (sid && allAccounts && allAccounts.length) {
+        if (sid && allAccounts.length) {
             return allAccounts.filter(accountObj => accountObj.idTokenClaims && accountObj.idTokenClaims["sid"] === sid)[0] || null;
         } else {
             return null;
