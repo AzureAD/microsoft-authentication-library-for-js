@@ -49,7 +49,7 @@ const tokenRequest = {
 const silentRequest = {
     loginHint: "IDLAB@msidlab0.ccsctp.net",
     scopes: tokenRequest.scopes,
-    forceRefresh: false
+    skipCache: true // Set to false to attempt to leverage cached auth state
 };
 
 // Add here scopes for id token to be used at MS Identity Platform endpoints.

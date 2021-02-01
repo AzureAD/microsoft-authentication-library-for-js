@@ -90,18 +90,23 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         this.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
         try {
+            // Default skipCache to true, if not passed. 
+            const {
+                skipCache = true
+            } = request;
+
             // Build cached account by loginHint, sid, or the request itself
             const accountByLoginHint = request.loginHint && this.getAccountByUsername(request.loginHint);
             
             const accountBySid = request.sid && this.getAccountBySessionId(request.sid);
-            if (request.sid && !accountBySid) {
+            if (request.sid && !accountBySid && !skipCache) {
                 this.logger.warning("ssoSilent - sid provided to ssoSilent, but no cached account found. If this is unexpected, confirm sid is enabled as an optional id token claim for your application");
             }
 
             const account = request.account || accountBySid || accountByLoginHint;
 
             // Only checked for cached credentials if forceRefresh is off and there is an account for the request
-            if (!request.forceRefresh && account) {
+            if (!skipCache && account) {
                 const silentRequest: SilentRequest = {
                     ...request,
                     account,
@@ -129,8 +134,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 }
             }
 
-            if (request.forceRefresh) {
-                this.logger.verbose("ssoSilent - forceRefesh enabled");
+            if (request.skipCache) {
+                this.logger.verbose("ssoSilent - skipCache enabled");
             }
 
             if (!account) {

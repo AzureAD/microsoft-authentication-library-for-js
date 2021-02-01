@@ -1765,7 +1765,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(tokenResp).to.be.deep.eq(testTokenResponse);
         });
 
-        it("successfully returns a token response (account + forceRefresh)", async () => {
+        it("successfully returns a token response (account + skipCache)", async () => {
             const testServerTokenResponse = {
                 token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
                 scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
@@ -1820,7 +1820,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 account: testAccount,
-                forceRefresh: true
+                skipCache: true
             });
             expect(loadFrameSyncSpy.calledOnce).to.be.true;
             expect(tokenResp).to.be.deep.eq(testTokenResponse);
@@ -1931,7 +1931,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const tokenResp = await pca.ssoSilent({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
-                sid: TEST_CONFIG.SID
+                sid: TEST_CONFIG.SID,
+                skipCache: false
             });
             expect(tokenResp).to.be.deep.eq(testTokenResponse);
         });
@@ -1981,7 +1982,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const tokenResp = await pca.ssoSilent({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
-                loginHint: testIdTokenClaims.preferred_username
+                loginHint: testIdTokenClaims.preferred_username,
+                skipCache: false
             });
             expect(tokenResp).to.be.deep.eq(testTokenResponse);
         });
@@ -2031,7 +2033,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const tokenResp = await pca.ssoSilent({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
-                account: testAccount
+                account: testAccount,
+                skipCache: false
             });
             expect(tokenResp).to.be.deep.eq(testTokenResponse);
         });
