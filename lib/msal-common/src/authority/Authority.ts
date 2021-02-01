@@ -116,7 +116,8 @@ export class Authority {
      */
     public get authorizationEndpoint(): string {
         if(this.discoveryComplete()) {
-            return this.replaceTenant(this.metadata.authorization_endpoint);
+            const endpoint = this.replacePath(this.metadata.authorization_endpoint);
+            return this.replaceTenant(endpoint);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
         }
@@ -127,7 +128,8 @@ export class Authority {
      */
     public get tokenEndpoint(): string {
         if(this.discoveryComplete()) {
-            return this.replaceTenant(this.metadata.token_endpoint);
+            const endpoint = this.replacePath(this.metadata.token_endpoint);
+            return this.replaceTenant(endpoint);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
         }
@@ -135,7 +137,8 @@ export class Authority {
 
     public get deviceCodeEndpoint(): string {
         if(this.discoveryComplete()) {
-            return this.metadata.token_endpoint.replace("/token", "/devicecode");
+            const endpoint = this.replacePath(this.metadata.token_endpoint.replace("/token", "/devicecode"));
+            return this.replaceTenant(endpoint);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
         }
@@ -146,7 +149,8 @@ export class Authority {
      */
     public get endSessionEndpoint(): string {
         if(this.discoveryComplete()) {
-            return this.replaceTenant(this.metadata.end_session_endpoint);
+            const endpoint = this.replacePath(this.metadata.end_session_endpoint);
+            return this.replaceTenant(endpoint);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
         }
@@ -157,7 +161,8 @@ export class Authority {
      */
     public get selfSignedJwtAudience(): string {
         if(this.discoveryComplete()) {
-            return this.replaceTenant(this.metadata.issuer);
+            const endpoint = this.replacePath(this.metadata.issuer);
+            return this.replaceTenant(endpoint);
         } else {
             throw ClientAuthError.createEndpointDiscoveryIncompleteError("Discovery incomplete.");
         }
@@ -169,6 +174,26 @@ export class Authority {
      */
     private replaceTenant(urlString: string): string {
         return urlString.replace(/{tenant}|{tenantid}/g, this.tenant);
+    }
+
+    /**
+     * Replaces path such as tenant or policy with the current tenant or policy.
+     * @param urlString 
+     */
+    private replacePath(urlString: string): string {
+        let endpoint = urlString;
+        const cachedAuthorityUrl = new UrlString(this.metadata.canonical_authority);
+        const cachedAuthorityParts = cachedAuthorityUrl.getUrlComponents().PathSegments;
+        const currentAuthorityParts = this.canonicalAuthorityUrlComponents.PathSegments;
+
+        currentAuthorityParts.forEach((currentPart, index) => {
+            const cachedPart = cachedAuthorityParts[index];
+            if (currentPart !== cachedPart) {
+                endpoint = endpoint.replace(`/${cachedPart}/`, `/${currentPart}/`);
+            }
+        });
+
+        return endpoint;
     }
 
     /**
@@ -196,6 +221,7 @@ export class Authority {
         let metadataEntity = this.cacheManager.getAuthorityMetadataByAlias(this.hostnameAndPort);
         if (!metadataEntity) {
             metadataEntity = new AuthorityMetadataEntity();
+            metadataEntity.updateCanonicalAuthority(this.canonicalAuthority);
         }
 
         const cloudDiscoverySource = await this.updateCloudDiscoveryMetadata(metadataEntity);
@@ -205,6 +231,7 @@ export class Authority {
         if (cloudDiscoverySource !== AuthorityMetadataSource.CACHE && endpointSource !== AuthorityMetadataSource.CACHE) {
             // Reset the expiration time unless both values came from a successful cache lookup
             metadataEntity.resetExpiresAt();
+            metadataEntity.updateCanonicalAuthority(this.canonicalAuthority);
         } 
 
         const cacheKey = this.cacheManager.generateAuthorityMetadataCacheKey(metadataEntity.preferred_cache);
@@ -223,7 +250,7 @@ export class Authority {
             return AuthorityMetadataSource.CONFIG;
         }
 
-        if (metadataEntity.endpointsFromNetwork && !metadataEntity.isExpired()) {
+        if (this.isAuthoritySameType(metadataEntity) && metadataEntity.endpointsFromNetwork && !metadataEntity.isExpired()) {
             // No need to update
             return AuthorityMetadataSource.CACHE;
         }
@@ -235,6 +262,18 @@ export class Authority {
         } else {
             throw ClientAuthError.createUnableToGetOpenidConfigError(this.defaultOpenIdConfigurationEndpoint);
         }
+    }
+
+    /**
+     * Compares the number of url components after the domain to determine if the cached authority metadata can be used for the requested authority
+     * Protects against same domain different authority such as login.microsoftonline.com/tenant and login.microsoftonline.com/tfp/tenant/policy
+     * @param metadataEntity
+     */
+    private isAuthoritySameType(metadataEntity: AuthorityMetadataEntity): boolean {
+        const cachedAuthorityUrl = new UrlString(metadataEntity.canonical_authority);
+        const cachedParts = cachedAuthorityUrl.getUrlComponents().PathSegments;
+        
+        return cachedParts.length === this.canonicalAuthorityUrlComponents.PathSegments.length;
     }
 
     /**
@@ -277,7 +316,7 @@ export class Authority {
         }
 
         // If The cached metadata came from config but that config was not passed to this instance, we must go to the network
-        if (metadataEntity.aliasesFromNetwork && !metadataEntity.isExpired()) {
+        if (this.isAuthoritySameType(metadataEntity) && metadataEntity.aliasesFromNetwork && !metadataEntity.isExpired()) {
             // No need to update
             return AuthorityMetadataSource.CACHE;
         }
