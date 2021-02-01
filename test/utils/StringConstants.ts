@@ -258,6 +258,57 @@ export const ALTERNATE_OPENID_CONFIG_RESPONSE = {
     }
 };
 
+export const B2C_OPENID_CONFIG_RESPONSE = {
+    body: {
+        "issuer": "https://login.microsoftonline.com/c8f83f7c-a28f-4e0d-a956-6e0d2df3826b/",
+        "authorization_endpoint": "https://login.microsoftonline.com/te/msidlabb2c.onmicrosoft.com/b2c_1_sisopolicy/oauth2/authorize",
+        "token_endpoint": "https://login.microsoftonline.com/te/msidlabb2c.onmicrosoft.com/b2c_1_sisopolicy/oauth2/token",
+        "end_session_endpoint": "https://login.microsoftonline.com/te/msidlabb2c.onmicrosoft.com/b2c_1_sisopolicy/oauth2/logout",
+        "jwks_uri": "https://login.microsoftonline.com/te/msidlabb2c.onmicrosoft.com/b2c_1_sisopolicy/discovery/keys",
+        "response_modes_supported": [
+            "query",
+            "fragment",
+            "form_post"
+        ],
+        "response_types_supported": [
+            "code",
+            "code id_token",
+            "code token",
+            "code id_token token",
+            "id_token",
+            "id_token token",
+            "token",
+            "token id_token"
+        ],
+        "scopes_supported": [
+            "openid"
+        ],
+        "subject_types_supported": [
+            "pairwise"
+        ],
+        "id_token_signing_alg_values_supported": [
+            "RS256"
+        ],
+        "token_endpoint_auth_methods_supported": [],
+        "claims_supported": [
+            "oid",
+            "sub",
+            "newUser",
+            "name",
+            "emails",
+            "idp",
+            "tfp",
+            "iss",
+            "iat",
+            "exp",
+            "aud",
+            "acr",
+            "nonce",
+            "auth_time"
+        ]
+    }
+};
+
 export const AUTHENTICATION_RESULT = {
     status: 200,
     body: {
