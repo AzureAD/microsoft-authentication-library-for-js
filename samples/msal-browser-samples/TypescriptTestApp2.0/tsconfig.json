@@ -5,6 +5,7 @@
         "noImplicitAny": true,
         "moduleResolution": "node",
         "rootDir": "./src",
-        "outDir": "./build-tsc"
+        "outDir": "./build-tsc",
+        "strict": true
     }
 }

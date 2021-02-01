@@ -15,6 +15,7 @@ import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { GrantType } from "../utils/Constants";
 import { StringUtils } from "../utils/StringUtils";
 import { RequestThumbprint } from "../network/RequestThumbprint";
+import { TimeUtils } from "../utils/TimeUtils";
 
 /**
  * Oauth2.0 Password grant client
@@ -34,6 +35,7 @@ export class UsernamePasswordClient extends BaseClient {
     async acquireToken(request: UsernamePasswordRequest): Promise<AuthenticationResult | null> {
         this.logger.info("in acquireToken call");
 
+        const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executeTokenRequest(this.authority, request);
 
         const responseHandler = new ResponseHandler(
@@ -47,7 +49,7 @@ export class UsernamePasswordClient extends BaseClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        const tokenResponse = responseHandler.handleServerTokenResponse(response.body, this.authority);
+        const tokenResponse = responseHandler.handleServerTokenResponse(response.body, this.authority, reqTimestamp);
 
         return tokenResponse;
     }
