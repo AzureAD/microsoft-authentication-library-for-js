@@ -208,6 +208,7 @@ describe("Storage tests for msal-node: ", () => {
             testObj.aliases = [host];
             testObj.preferred_cache = host;
             testObj.preferred_network = host;
+            testObj.canonical_authority = TEST_CONSTANTS.DEFAULT_AUTHORITY;
             testObj.authorization_endpoint = DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint;
             testObj.token_endpoint = DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint;
             testObj.end_session_endpoint = DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint;

@@ -9,6 +9,7 @@ describe("AuthorityMetadataEntity.ts Unit Tests", () => {
         aliases: [Constants.DEFAULT_AUTHORITY_HOST],
         preferred_cache: Constants.DEFAULT_AUTHORITY_HOST,
         preferred_network: Constants.DEFAULT_AUTHORITY_HOST,
+        canonical_authority: Constants.DEFAULT_AUTHORITY,
         authorization_endpoint: DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint,
         token_endpoint: DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint,
         end_session_endpoint: DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint,

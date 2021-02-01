@@ -4,8 +4,8 @@
  */
 
 /**
- * msal-node: Microsoft authentication library in Node.js
  * @packageDocumentation
+ * @module @azure/msal-node
  */
 
 // Interfaces
