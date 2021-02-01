@@ -32,9 +32,9 @@ export class DeviceCodeClient extends BaseClient {
      * @param request
      */
     public async acquireToken(request: DeviceCodeRequest): Promise<AuthenticationResult | null> {
-
         const deviceCodeResponse: DeviceCodeResponse = await this.getDeviceCode(request);
         request.deviceCodeCallback(deviceCodeResponse);
+        const reqTimestamp = TimeUtils.nowSeconds();
         const response: ServerAuthorizationTokenResponse = await this.acquireTokenWithDeviceCode(
             request,
             deviceCodeResponse);
@@ -53,6 +53,7 @@ export class DeviceCodeClient extends BaseClient {
         return await responseHandler.handleServerTokenResponse(
             response,
             this.authority,
+            reqTimestamp,
             request.resourceRequestMethod,
             request.resourceRequestUri
         );
