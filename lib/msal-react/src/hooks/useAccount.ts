@@ -31,6 +31,10 @@ function getAccount(instance: IPublicClientApplication, accountIdentifiers: Acco
     }
 }
 
+/**
+ * Given 1 or more accountIdentifiers, returns the Account object if the user is signed-in
+ * @param accountIdentifiers 
+ */
 export function useAccount(accountIdentifiers: AccountIdentifiers): AccountInfo | null {
     const { instance, inProgress } = useMsal();
 

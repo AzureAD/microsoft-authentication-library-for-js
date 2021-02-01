@@ -3,6 +3,11 @@
  * Licensed under the MIT License.
  */
 
+/**
+ * @packageDocumentation
+ * @module @azure/msal-angular
+ */
+
 export { MsalService } from "./msal.service";
 export { IMsalService } from "./IMsalService";
 export { MsalGuard } from "./msal.guard";
