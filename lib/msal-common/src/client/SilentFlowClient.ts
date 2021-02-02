@@ -46,7 +46,6 @@ export class SilentFlowClient extends BaseClient {
      * @param request
      */
     async acquireCachedToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
-        this.logger.info("acquireCachedToken called");
         // Cannot renew token if no request object is given.
         if (!request) {
             throw ClientConfigurationError.createEmptyTokenRequestError();
@@ -62,10 +61,8 @@ export class SilentFlowClient extends BaseClient {
         const cacheRecord = this.cacheManager.readCacheRecord(request.account, this.config.authOptions.clientId, requestScopes, environment);
 
         if (this.isRefreshRequired(request, cacheRecord.accessToken)) {
-            this.logger.verbose("Refresh required");
             throw ClientAuthError.createRefreshRequiredError();
         } else {
-            this.logger.verbose("Refresh not required");
             if (this.config.serverTelemetryManager) {
                 this.config.serverTelemetryManager.incrementCacheHits();
             }
@@ -102,11 +99,9 @@ export class SilentFlowClient extends BaseClient {
     private isRefreshRequired(request: SilentFlowRequest, cachedAccessToken: AccessTokenEntity|null): boolean {
         if (request.forceRefresh || request.claims) {
             // Must refresh due to request parameters
-            this.logger.verbose("Force refresh set to true, refresh is required.");
             return true;
         } else if (!cachedAccessToken || TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
             // Must refresh due to expired or non-existent access_token
-            this.logger.verbose("Refresh is required because of expired or non-existent token.");
             return true;
         }
 

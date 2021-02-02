@@ -12,7 +12,7 @@ import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { GrantType, AuthenticationScheme, Errors  } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { PopKeyManager } from "../crypto/PopKeyManager";
+import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { StringUtils } from "../utils/StringUtils";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { NetworkResponse } from "../network/NetworkManager";
@@ -171,12 +171,12 @@ export class RefreshTokenClient extends BaseClient {
         }
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
-            const popKeyManager = new PopKeyManager(this.cryptoUtils);
+            const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
             if (!request.resourceRequestMethod || !request.resourceRequestUri) {
                 throw ClientConfigurationError.createResourceRequestParametersRequiredError();
             }
 
-            parameterBuilder.addPopToken(await popKeyManager.generateCnf(request.resourceRequestMethod, request.resourceRequestUri));
+            parameterBuilder.addPopToken(await popTokenGenerator.generateCnf(request.resourceRequestMethod, request.resourceRequestUri));
         }
 
         if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
