@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix PCA stub errors (#2963)",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
