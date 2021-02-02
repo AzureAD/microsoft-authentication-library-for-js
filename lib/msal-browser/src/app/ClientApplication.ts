@@ -170,7 +170,6 @@ export abstract class ClientApplication {
 
         const responseHash = this.getRedirectResponseHash(hash || window.location.hash);
         if (!responseHash) {
-            this.logger.verbose("Hash returned not recognized or associated with redirect request, returning null");
             // Not a recognized server response hash or hash not associated with a redirect request
             this.logger.info("handleRedirectPromise did not detect a response hash as a result of a redirect. Cleaning temporary cache.");
             this.browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
@@ -679,7 +678,7 @@ export abstract class ClientApplication {
     getAccountByUsername(userName: string): AccountInfo|null {
         const allAccounts = this.getAllAccounts();
         if (!StringUtils.isEmpty(userName) && allAccounts && allAccounts.length) {
-            this.logger.verbose(`Returning signed-in accounts matching username: ${userName}`);
+            this.logger.verbosePii(`Returning signed-in accounts matching username: ${userName}`);
             return allAccounts.filter(accountObj => accountObj.username.toLowerCase() === userName.toLowerCase())[0] || null;
         } else {
             this.logger.verbose("No matching account found, returning null");
@@ -697,7 +696,7 @@ export abstract class ClientApplication {
     getAccountByHomeId(homeAccountId: string): AccountInfo|null {
         const allAccounts = this.getAllAccounts();
         if (!StringUtils.isEmpty(homeAccountId) && allAccounts && allAccounts.length) {
-            this.logger.verbose(`Returning signed-in accounts matching homeAccountId: ${homeAccountId}`);
+            this.logger.verbosePii(`Returning signed-in accounts matching homeAccountId: ${homeAccountId}`);
             return allAccounts.filter(accountObj => accountObj.homeAccountId === homeAccountId)[0] || null;
         } else {
             this.logger.verbose("No matching account found, returning null");
@@ -715,7 +714,7 @@ export abstract class ClientApplication {
     getAccountByLocalId(localAccountId: string): AccountInfo | null {
         const allAccounts = this.getAllAccounts();
         if (!StringUtils.isEmpty(localAccountId) && allAccounts && allAccounts.length) {
-            this.logger.verbose(`Returning signed-in accounts matching localAccountId: ${localAccountId}`);
+            this.logger.verbosePii(`Returning signed-in accounts matching localAccountId: ${localAccountId}`);
             return allAccounts.filter(accountObj => accountObj.localAccountId === localAccountId)[0] || null;
         } else {
             this.logger.verbose("No matching account found, returning null");
