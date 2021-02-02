@@ -1883,7 +1883,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("passes logoutUri from authModule to window nav util", (done) => {
             const logoutUriSpy = sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory: boolean) => {
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory: boolean | undefined) => {
                 expect(urlNavigate).to.be.eq(testLogoutUrl);
                 expect(logger).to.be.instanceOf(Logger);
                 expect(noHistory).to.be.undefined;
@@ -1899,7 +1899,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("includes postLogoutRedirectUri if one is passed", (done) => {
             const postLogoutRedirectUri = "https://localhost:8000/logout";
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory: boolean) => {
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory: boolean | undefined) => {
                 expect(urlNavigate).to.include(`post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`);
                 return Promise.resolve(done());
             });
@@ -1910,7 +1910,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("includes postLogoutRedirectUri if one is configured", (done) => {
             const postLogoutRedirectUri = "https://localhost:8000/logout";
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory: boolean) => {
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory: boolean | undefined) => {
                 expect(urlNavigate).to.include(`post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`);
                 return Promise.resolve(done());
             });
@@ -1925,9 +1925,35 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pcaWithPostLogout.logout();
         });
 
-        it("doesnt include postLogoutRedirectUri if none is set", (done) => {
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory: boolean) => {
+        it("doesnt include postLogoutRedirectUri if null is configured", (done) => {
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory: boolean | undefined) => {
+                expect(urlNavigate).to.not.include(`post_logout_redirect_uri`);
+                return Promise.resolve(done());
+            });
+            
+            const pcaWithPostLogout = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    postLogoutRedirectUri: null
+                }
+            });
+
+            pcaWithPostLogout.logout();
+        });
+
+        it("doesnt include postLogoutRedirectUri if null is set on request", (done) => {
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory: boolean | undefined) => {
                 expect(urlNavigate).to.not.include("post_logout_redirect_uri");
+                return Promise.resolve(done());
+            });
+            pca.logout({
+                postLogoutRedirectUri: null
+            });
+        });
+
+        it("includes postLogoutRedirectUri as current page if none is set on request", (done) => {
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory: boolean | undefined) => {
+                expect(urlNavigate).to.include(`post_logout_redirect_uri=${encodeURIComponent("https://localhost:8081/index.html")}`);
                 return Promise.resolve(done());
             });
             pca.logout();
@@ -1935,7 +1961,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("doesnt navigate if onRedirectNavigate returns false", (done) => {
             const logoutUriSpy = sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory: boolean) => {
+            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory: boolean | undefined) => {
                 // If onRedirectNavigate does not stop navigatation, this will be called, failing the test as done will be invoked twice
                 return Promise.resolve(done());
             });
