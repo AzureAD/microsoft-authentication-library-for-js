@@ -1,9 +1,10 @@
 {
     "authOptions":
-        {
-            "clientId": "8fcb9fc1-d8f9-49c0-b80e-a8a8a201d051",
-            "authority": "https://login.windows-ppe.net/common/"
-        },
+    {
+        "clientId": "c3f3b506-8ca9-4c23-acda-035ee2c9d960",
+        "authority": "https://login.microsoftonline.com/common",
+        "redirectUri": "http://localhost:3000/redirect"
+    },    
     "request":
     {
         "authCodeUrlParameters": {
@@ -11,7 +12,11 @@
             "redirectUri": "http://localhost:3000/redirect"
         },
         "tokenRequest": {
+            "code": "",
             "redirectUri": "http://localhost:3000/redirect",
+            "scopes": ["user.read"]
+        },
+        "silentRequest": {
             "scopes": ["user.read"]
         }
     },
@@ -22,7 +27,7 @@
     "sample": 
     {
         "appType": "web",
-        "flow": "authCode",
+        "flow": "silent",
         "clientType": "public"
     }
     

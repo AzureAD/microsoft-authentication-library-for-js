@@ -8,34 +8,43 @@ const fs = require('fs');
  * Cache Plugin configuration
  */
 
-module.exports = async function(cacheLocation) {
-    const beforeCacheAccess = async (cacheContext) => {
-        if (fs.existsSync(cacheLocation)) {
-            cacheContext.tokenCache.deserialize(await fs.readFile(cacheLocation, "utf-8", (err, data) => {
-                if (err) {
-                    console.log(err);
-                } else {
-                    return data;
-                }
-            }));
-        } else {
-            await fs.writeFile(cacheLocation, cacheContext.tokenCache.serialize(), (err) => {
-                if (err) {
-                    console.log(err);
-                }
-            });
-        }
+module.exports = function (cacheLocation) {
+    const beforeCacheAccess = (cacheContext) => {
+        return new Promise((resolve, reject) => {
+            if (fs.existsSync(cacheLocation)) {
+                fs.readFile(cacheLocation, "utf-8", (err, data) => {
+                    if (err) {
+                        reject();
+                    } else {
+                        cacheContext.tokenCache.deserialize(data);
+                        resolve();
+                    }
+                });
+            } else {
+               fs.writeFile(cacheLocation, cacheContext.tokenCache.serialize(), (err) => {
+                    if (err) {
+                        reject();
+                    }
+                });
+            }
+        });
+    }
+    
+    const afterCacheAccess = (cacheContext) => {
+        return new Promise((resolve, reject) => {
+            if(cacheContext.cacheHasChanged){
+                fs.writeFile(cacheLocation, cacheContext.tokenCache.serialize(), (err) => {
+                    if (err) {
+                        reject(err);
+                    }
+                    resolve();
+                });
+            } else {
+                resolve();
+            }
+        });
     };
     
-    const afterCacheAccess = async (cacheContext) => {
-        if(cacheContext.cacheHasChanged){
-            await fs.writeFile(cacheLocation, cacheContext.tokenCache.serialize(), (err) => {
-                if (err) {
-                    console.log(err);
-                }
-            });
-        }
-    };
     
     return {
         beforeCacheAccess,

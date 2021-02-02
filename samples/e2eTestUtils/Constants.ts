@@ -53,7 +53,8 @@ export const HomeDomains = {
     NONE: "none", 
     LAB2: "msidlab2.com", 
     LAB3: "msidlab3.com", 
-    LAB4: "msidlab4.com"
+    LAB4: "msidlab4.com",
+    LAB8: "msidlab8.com"
 };
 
 export const UserTypes = {

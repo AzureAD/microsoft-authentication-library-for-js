@@ -9,22 +9,22 @@ import { Screenshot, createFolder, setupCredentials } from "../../../../../e2eTe
 import { NodeCacheTestUtils } from "../../../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
-import { AppTypes, AzureEnvironments } from "../../../../../e2eTestUtils/Constants";
+import { AppTypes, AzureEnvironments, FederationProviders, UserTypes } from "../../../../../e2eTestUtils/Constants";
 import { 
-    clickSignIn,
-    enterCredentials,
+    clickSignIn, 
+    enterCredentialsADFS,
     SCREENSHOT_BASE_FOLDER_NAME,
     SAMPLE_HOME_URL,
-    SUCCESSFUL_GRAPH_CALL_ID, 
-    SUCCESSFUL_GET_ALL_ACCOUNTS_ID, 
+    SUCCESSFUL_GRAPH_CALL_ID,
+    SUCCESSFUL_GET_ALL_ACCOUNTS_ID,
     validateCacheLocation} from "../testUtils";
-
+    
 let username: string;
 let accountPwd: string;
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
 
-describe("Silent Flow AAD PPE Tests", () => {
+describe("Silent Flow ADFS 2019 Tests", () => {
     jest.setTimeout(15000);
     let browser: puppeteer.Browser;
 
@@ -32,18 +32,20 @@ describe("Silent Flow AAD PPE Tests", () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
         const labApiParms: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
-            appType: AppTypes.CLOUD
+            azureEnvironment: AzureEnvironments.CLOUD,
+            appType: AppTypes.CLOUD,
+            federationProvider: FederationProviders.ADFS2019,
+            userType: UserTypes.FEDERATED
         };
 
         const labClient = new LabClient();
         const envResponse = await labClient.getVarsByCloudEnvironment(labApiParms);
 
         [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
-        
+
         browser = await puppeteer.launch({
             headless: true,
-            ignoreDefaultArgs: ["--no-sandbox", "-disable-setuid-sandbox"]
+            ignoreDefaultArgs: ["--no-sandbox", "-disable-setuid-sandbox", "--disable-extensions"]
         });
     });
 
@@ -54,13 +56,13 @@ describe("Silent Flow AAD PPE Tests", () => {
         await browser.close();
     });
 
-    describe("AcquireToken", () => {
+    describe("Acquire Token", () => {
         beforeEach(async () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
             await page.goto(SAMPLE_HOME_URL);
         });
-
+    
         afterEach(async () => {
             await page.close();
             await context.close();
@@ -68,10 +70,10 @@ describe("Silent Flow AAD PPE Tests", () => {
         });
 
         it("Performs acquire token with Auth Code flow", async () => {
-            const testName = "AADAAcquireTokenAuthCode";
+            const testName = "ADFSAcquireTokenAuthCode";
             const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
             await clickSignIn(page, screenshot);
-            await enterCredentials(page, screenshot, username, accountPwd);
+            await enterCredentialsADFS(page, screenshot, username, accountPwd);
             await page.waitForSelector("#acquireTokenSilent");
             await page.click("#acquireTokenSilent");
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
@@ -81,26 +83,23 @@ describe("Silent Flow AAD PPE Tests", () => {
         });
 
         it("Performs acquire token silent", async () => {
-            const testName = "AADAcquireTokenSilent";
+            const testName = "ADFSAcquireTokenSilent";
             const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
             await clickSignIn(page, screenshot);
-            await enterCredentials(page, screenshot, username, accountPwd);
-            await page.waitForSelector("#acquireTokenSilent", { timeout: 0 });
-            await screenshot.takeScreenshot(page, "ATS");
+            await enterCredentialsADFS(page, screenshot, username, accountPwd);
+            await page.waitForSelector("#acquireTokenSilent");
             await page.click("#acquireTokenSilent");
             await page.waitForSelector("#graph-called-successfully");
             await screenshot.takeScreenshot(page, "acquireTokenSilentGotTokens");
-            const htmlBody = await page.evaluate(() => document.body.innerHTML);
-            expect(htmlBody).toContain(SUCCESSFUL_GRAPH_CALL_ID);
         });
 
         it("Refreshes an expired access token", async () => {
-            const testName = "AADRefreshExpiredToken";
+            const testName = "ADFSRefreshExpiredToken";
             const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
             await clickSignIn(page, screenshot);
-            await enterCredentials(page, screenshot, username, accountPwd);
+            await enterCredentialsADFS(page, screenshot, username, accountPwd);
             await page.waitForSelector("#acquireTokenSilent");
-
+    
             let tokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             const originalAccessToken = tokens.accessTokens[0];
             await NodeCacheTestUtils.expireAccessTokens(TEST_CACHE_LOCATION);
@@ -112,7 +111,7 @@ describe("Silent Flow AAD PPE Tests", () => {
             const refreshedAccessToken = tokens.accessTokens[0];
             await screenshot.takeScreenshot(page, "acquireTokenSilentGotTokens");
             const htmlBody = await page.evaluate(() => document.body.innerHTML);
-
+    
             expect(htmlBody).toContain(SUCCESSFUL_GRAPH_CALL_ID);
             expect(Number(originalAccessToken.expiresOn)).toBeGreaterThan(0);
             expect(Number(expiredAccessToken.expiresOn)).toBe(0);
@@ -135,12 +134,12 @@ describe("Silent Flow AAD PPE Tests", () => {
                 await context.close();
                 await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
             });
-    
-            it("Gets all cached accounts", async () => {
-                const testName = "AADGetAllAccounts";
+
+            it("Gets all accounts", async () => {
+                const testName = "ADFSGetAllAccounts";
                 const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
                 await clickSignIn(page, screenshot);
-                await enterCredentials(page, screenshot, username, accountPwd);
+                await enterCredentialsADFS(page, screenshot, username, accountPwd);
                 await page.waitForSelector("#getAllAccounts");
                 await page.click("#getAllAccounts");
                 await page.waitForSelector(`#${SUCCESSFUL_GET_ALL_ACCOUNTS_ID}`);
@@ -169,7 +168,7 @@ describe("Silent Flow AAD PPE Tests", () => {
             });
 
             it("Returns empty account array", async () => {
-                const testName = "AADNoCachedAccounts";
+                const testName = "ADFSNoCachedAccounts";
                 const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
                 await page.goto(`${SAMPLE_HOME_URL}/allAccounts`);
                 await page.waitForSelector("#getAllAccounts");
@@ -183,5 +182,4 @@ describe("Silent Flow AAD PPE Tests", () => {
             });
         });
     });
-    
 });

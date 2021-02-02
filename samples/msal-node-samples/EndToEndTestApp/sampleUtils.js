@@ -1,9 +1,10 @@
 /*
-*  Copyright (c) Microsoft. All rights reserved. Licensed under the MIT license.
-*  See LICENSE in the source repository root for complete license information.
-*/
-const fs = require('fs');
-const Constants = require('./constants');
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+const fs = require("fs");
+const Constants = require("./constants");
 
 // Check if scenario name already has extension or add it
 function generateScenarioFileName(scenario) {
@@ -20,8 +21,22 @@ function readScenarios() {
     });
 }
 
+function readScenarioType(scenario) {
+    const scenarios = readScenarios();
+    const scenarioFileName = generateScenarioFileName(scenario);
+
+    if (scenarios.includes(scenarioFileName)) {
+       const scenarioConfig = require(`${Constants.SCENARIOS_DIR}/${scenarioFileName}`);
+       return scenarioConfig.sample.appType; 
+    }
+
+    console.error(`ERROR: Scenario ${scenario} not found.\n`);
+    return null;
+}
+
 module.exports = {
     readScenarios: readScenarios,
+    readScenarioType: readScenarioType,
     readScenarioNames: function () {
         return readScenarios().map(function (scenarioName) {
             return scenarioName.split(".")[0];
@@ -51,5 +66,14 @@ module.exports = {
             console.log(`Running default scenario: ${Constants.DEFAULT_SCENARIO_NAME}.\n`);
             return Constants.DEFAULT_SCENARIO_NAME;
         }
+    },
+    extractRuntimeOptions: function (runtimeOptionString) {
+        try { 
+            if (runtimeOptionString) return JSON.parse(runtimeOptionString);
+        } catch (e) {
+            console.warn(`[Warning]: Runtime option string was not a valid javascript object string\n${e}`);
+        }
+
+        return {};
     }
 }
