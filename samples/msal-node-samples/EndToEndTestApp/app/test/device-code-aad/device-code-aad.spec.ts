@@ -25,7 +25,7 @@ let accountPwd: string;
 
 
 describe('Device Code AAD PPE Tests', () => {
-    jest.setTimeout(15000);
+    jest.setTimeout(20000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
