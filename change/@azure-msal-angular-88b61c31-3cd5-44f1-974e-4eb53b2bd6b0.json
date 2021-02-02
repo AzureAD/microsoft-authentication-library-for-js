@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Pass SKU and version to msal-browser (#2845)",
+  "packageName": "@azure/msal-angular",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "patch"
+}
