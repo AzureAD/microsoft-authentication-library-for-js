@@ -3,8 +3,13 @@
  * Licensed under the MIT License.
  */
 
+/**
+ * @packageDocumentation
+ * @module @azure/msal-browser
+ */
+
 export { PublicClientApplication } from "./app/PublicClientApplication";
-export { Configuration } from "./config/Configuration";
+export { Configuration, BrowserAuthOptions, CacheOptions, BrowserSystemOptions } from "./config/Configuration";
 export { InteractionType, BrowserCacheLocation, WrapperSKU } from "./utils/BrowserConstants";
 export { BrowserUtils } from "./utils/BrowserUtils";
 

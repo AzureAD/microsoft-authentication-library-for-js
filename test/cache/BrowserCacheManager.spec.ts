@@ -253,6 +253,7 @@ describe("BrowserCacheManager tests", () => {
                 testObj.aliases = [Constants.DEFAULT_AUTHORITY_HOST];
                 testObj.preferred_cache = Constants.DEFAULT_AUTHORITY_HOST;
                 testObj.preferred_network = Constants.DEFAULT_AUTHORITY_HOST;
+                testObj.canonical_authority = Constants.DEFAULT_AUTHORITY;
                 testObj.authorization_endpoint = DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint;
                 testObj.token_endpoint = DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint;
                 testObj.end_session_endpoint = DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint;
