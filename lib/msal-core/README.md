@@ -2,7 +2,7 @@
 Microsoft Authentication Library for JavaScript (MSAL.js)
 =========================================================
 
-| [Getting Started](https://docs.microsoft.com/azure/active-directory/develop/guidedsetups/active-directory-javascriptspa)| [AAD Docs](https://aka.ms/aaddevv2) | [Library Reference](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-core/) | [Support](README.md#community-help-and-support) | [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples)
+| [Getting Started](https://docs.microsoft.com/azure/active-directory/develop/guidedsetups/active-directory-javascriptspa)| [AAD Docs](https://aka.ms/aaddevv2) | [Library Reference](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal.html) | [Support](README.md#community-help-and-support) | [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples)
 | --- | --- | --- | --- | --- |
 
 ⚠️⚠️⚠️ This library is no longer receiving new features and will only receive critical bug and security fixes. All new applications should use [@azure/msal-browser](https://www.npmjs.com/package/@azure/msal-browser) instead. ⚠️⚠️⚠️
