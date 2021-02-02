@@ -10,7 +10,6 @@ import { TimeUtils } from "../utils/TimeUtils";
 import { UrlString } from "../url/UrlString";
 import { IUri } from "../url/IUri";
 import { ClientAuthError } from "../error/ClientAuthError";
-import { BoundServerAuthorizationTokenResponse } from "../response/BoundServerAuthorizationTokenResponse";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 
 /**
@@ -43,7 +42,7 @@ export class PopKeyManager {
     }
 
     async generateCnf(resourceRequestMethod: string, resourceRequestUri: string): Promise<string> {
-        const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint(resourceRequestMethod, resourceRequestUri);
+        const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint(resourceRequestMethod, resourceRequestUri, "req_cnf");
         const reqCnf: ReqCnf = {
             kid: kidThumbprint,
             xms_ksl: KeyLocation.SW
@@ -55,8 +54,15 @@ export class PopKeyManager {
         return await this.cryptoUtils.getStkJwkPublicKey(stkJwkThumbprint);
     }
 
-    async decryptBoundTokenResponse(boundServerTokenResponse: BoundServerAuthorizationTokenResponse, stkJwkThumbprint: string): Promise<ServerAuthorizationTokenResponse> {
-        return await this.cryptoUtils.decryptBoundTokenResponse(boundServerTokenResponse.session_key_jwe, boundServerTokenResponse.response_jwe, stkJwkThumbprint);
+    async decryptBoundTokenResponse(boundServerTokenResponse: ServerAuthorizationTokenResponse, stkJwkThumbprint: string): Promise<ServerAuthorizationTokenResponse> {
+        const sessionKeyJwe = boundServerTokenResponse.session_key_jwe;
+        const responseJwe = boundServerTokenResponse.response_jwe;
+
+        if (sessionKeyJwe && responseJwe) {
+            return await this.cryptoUtils.decryptBoundTokenResponse(sessionKeyJwe, responseJwe, stkJwkThumbprint);
+        }
+
+        return boundServerTokenResponse;
     }
 
     async signPopToken(accessToken: string, resourceRequestMethod: string, resourceRequestUri: string): Promise<string> {

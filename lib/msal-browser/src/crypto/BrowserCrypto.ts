@@ -11,6 +11,7 @@ import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
  */
 // RSA KeyGen Algorithm
 const PKCS1_V15_KEYGEN_ALG = "RSASSA-PKCS1-v1_5";
+const OAEP = "RSA-OAEP";
 // SHA-256 hashing algorithm
 const S256_HASH_ALG = "SHA-256";
 // MOD length for PoP tokens
@@ -24,15 +25,23 @@ const PUBLIC_EXPONENT: Uint8Array = new Uint8Array([0x01, 0x00, 0x01]);
  */
 export class BrowserCrypto {
 
-    private _keygenAlgorithmOptions: RsaHashedKeyGenParams;
+    private _atPopKeygenAlgorithmOptions: RsaHashedKeyGenParams;
+    private _rtPopKeygenAlgorithmOptions: RsaHashedKeyGenParams;
 
     constructor() {
         if (!(this.hasCryptoAPI())) {
             throw BrowserAuthError.createCryptoNotAvailableError("Browser crypto or msCrypto object not available.");
         }
 
-        this._keygenAlgorithmOptions = {
+        this._atPopKeygenAlgorithmOptions = {
             name: PKCS1_V15_KEYGEN_ALG,
+            hash: S256_HASH_ALG,
+            modulusLength: MODULUS_LENGTH,
+            publicExponent: PUBLIC_EXPONENT
+        };
+
+        this._rtPopKeygenAlgorithmOptions = {
+            name: OAEP,
             hash: S256_HASH_ALG,
             modulusLength: MODULUS_LENGTH,
             publicExponent: PUBLIC_EXPONENT
@@ -66,12 +75,13 @@ export class BrowserCrypto {
      * @param extractable 
      * @param usages 
      */
-    async generateKeyPair(extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKeyPair> {
-        return (
-            this.hasIECrypto() ? 
-                this.msCryptoGenerateKey(extractable, usages) 
-                : window.crypto.subtle.generateKey(this._keygenAlgorithmOptions, extractable, usages)
-        ) as Promise<CryptoKeyPair>;
+    async generateKeyPair(scheme: string, extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKeyPair> {
+        const keygenAlgorithmOptions = (scheme === "at_pop") ? this._atPopKeygenAlgorithmOptions : this._rtPopKeygenAlgorithmOptions;
+        if (this.hasIECrypto()) {
+            return this.msCryptoGenerateKey(extractable, usages) as Promise<CryptoKeyPair>;
+        } else {
+            return window.crypto.subtle.generateKey(keygenAlgorithmOptions, extractable, ["wrapKey"]) as Promise<CryptoKeyPair>;
+        }
     }
 
     /**
@@ -113,8 +123,12 @@ export class BrowserCrypto {
     /**
      * Extracts session key from Session Key JWE using provided key
      */
-    async extractSessionKey(sessionKeyJwe: string, key: CrytpoKey): Promise<> {
-        //
+    async unwrapSessionKey(sessionKeyJwe: string, key: CryptoKey): Promise<CryptoKey> {
+        console.log(sessionKeyJwe);
+        const parts = sessionKeyJwe.split(".");
+        parts.forEach((part, index) => { console.log(index, ". ", part);});
+        console.log(key);
+        return key;
     }
 
     /**

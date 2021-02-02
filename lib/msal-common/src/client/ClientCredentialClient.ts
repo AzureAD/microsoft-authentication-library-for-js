@@ -131,6 +131,7 @@ export class ClientCredentialClient extends BaseClient {
             request.resourceRequestMethod,
             request.resourceRequestUri,
             undefined,
+            undefined,
             request.scopes
         );
 

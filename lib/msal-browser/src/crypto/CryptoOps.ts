@@ -11,7 +11,7 @@ import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
 import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
+import { BrowserConstants, KEY_FORMAT_JWK } from "../utils/BrowserConstants";
 import { ServerAuthorizationTokenResponse } from "@azure/msal-common/dist/src/response/ServerAuthorizationTokenResponse";
 
 export type CachedKeyPair = {
@@ -34,6 +34,7 @@ export class CryptoOps implements ICrypto {
     private pkceGenerator: PkceGenerator;
 
     private static POP_KEY_USAGES: Array<KeyUsage> = ["sign", "verify"];
+    private static BOUNDRT_KEY_USAGES: Array<KeyUsage> = ["wrapKey", "unwrapKey"];
     private static EXTRACTABLE: boolean = true;
 
     private static DB_VERSION = 1;
@@ -87,9 +88,10 @@ export class CryptoOps implements ICrypto {
      * @param resourceRequestMethod 
      * @param resourceRequestUri 
      */
-    async getPublicKeyThumbprint(resourceRequestMethod: string, resourceRequestUri: string): Promise<string> {
+    async getPublicKeyThumbprint(resourceRequestMethod: string, resourceRequestUri: string, keyType: string): Promise<string> {
+        const usages = (keyType === "req_cnf") ? CryptoOps.POP_KEY_USAGES : CryptoOps.BOUNDRT_KEY_USAGES;
         // Generate Keypair
-        const keyPair = await this.browserCrypto.generateKeyPair(CryptoOps.EXTRACTABLE, CryptoOps.POP_KEY_USAGES);
+        const keyPair = await this.browserCrypto.generateKeyPair(CryptoOps.EXTRACTABLE, usages);
 
         // Generate Thumbprint for Public Key
         const publicKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.publicKey);
@@ -165,8 +167,18 @@ export class CryptoOps implements ICrypto {
     async decryptBoundTokenResponse(sessionKeyJwe: string, responseJwe: string, stkJwkThumbprint: string): Promise<ServerAuthorizationTokenResponse> {
         // Get keypair from cache
         const cachedKeyPair: CachedKeyPair = await this.cache.get(stkJwkThumbprint);
-        const sessionKey = this.browserCrypto.extractSessionKey(this.base64Decode(sessionKeyJwe), cachedKeyPair.privateKey);
-        const { ctx } = // Get ctx value from responseJWE header (BrowserCrypto will likely handle this)
-        // const derivedKey = KeyDerivationService.sp800108(sessionKey, responseJwe.ctx, label);
+        console.log(sessionKeyJwe);
+        const sessionKey = this.browserCrypto.unwrapSessionKey(sessionKeyJwe, cachedKeyPair.privateKey);
+        console.log(sessionKey);
+        /*
+         * const { ctx } = // Get ctx value from responseJWE header (BrowserCrypto will likely handle this)
+         * const derivedKey = KeyDerivationService.sp800108(sessionKey, responseJwe.ctx, label);
+         */
+
+        const response: ServerAuthorizationTokenResponse = {
+            token_type: "pop",
+            access_token: "lakjsdlkf"
+        };
+        return response;
     }
 }

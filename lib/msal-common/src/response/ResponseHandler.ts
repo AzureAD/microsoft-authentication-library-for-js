@@ -33,8 +33,6 @@ import { TokenCacheContext } from "../cache/persistence/TokenCacheContext";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { BoundServerAuthorizationTokenResponse } from "./BoundServerAuthorizationTokenResponse";
-import { server } from "sinon";
 
 /**
  * Class that handles response parsing.
@@ -109,7 +107,7 @@ export class ResponseHandler {
      * @param authority
      */
     async handleServerTokenResponse(
-        serverTokenResponse: ServerAuthorizationTokenResponse & BoundServerAuthorizationTokenResponse,
+        serverTokenResponse: ServerAuthorizationTokenResponse,
         authority: Authority,
         resourceRequestMethod?: string,
         resourceRequestUri?: string,
@@ -120,6 +118,8 @@ export class ResponseHandler {
         handlingRefreshTokenResponse?: boolean): Promise<AuthenticationResult> {
         
         let decryptedTokenResponse: ServerAuthorizationTokenResponse;
+
+        console.log("Response: ", serverTokenResponse);
 
         if (serverTokenResponse.session_key_jwe && serverTokenResponse.response_jwe && stkJwkThumbprint) {
             decryptedTokenResponse = await this.handleBoundServerTokenResponse(serverTokenResponse, stkJwkThumbprint);
@@ -135,7 +135,7 @@ export class ResponseHandler {
      * @param boundServerTokenResponse 
      * @param stkJwkThumbprint 
      */
-    async handleBoundServerTokenResponse(boundServerTokenResponse: BoundServerAuthorizationTokenResponse, stkJwkThumbprint: string): Promise<ServerAuthorizationTokenResponse> {
+    async handleBoundServerTokenResponse(boundServerTokenResponse: ServerAuthorizationTokenResponse, stkJwkThumbprint: string): Promise<ServerAuthorizationTokenResponse> {
         const popKeyManager = new PopKeyManager(this.cryptoObj);
         return await popKeyManager.decryptBoundTokenResponse(boundServerTokenResponse, stkJwkThumbprint);
     }

@@ -24,7 +24,6 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { PopKeyManager } from "../crypto/PopKeyManager";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload";
-import { BoundServerAuthorizationTokenResponse } from "../response/BoundServerAuthorizationTokenResponse";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -136,7 +135,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param authority
      * @param request
      */
-    private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse | BoundServerAuthorizationTokenResponse>> {
+    private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,

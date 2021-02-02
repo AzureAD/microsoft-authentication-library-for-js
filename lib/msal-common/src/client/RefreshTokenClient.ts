@@ -49,6 +49,7 @@ export class RefreshTokenClient extends BaseClient {
             request.resourceRequestMethod,
             request.resourceRequestUri,
             undefined,
+            undefined,
             [],
             undefined,
             true

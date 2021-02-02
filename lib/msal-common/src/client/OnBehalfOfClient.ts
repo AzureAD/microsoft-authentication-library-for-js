@@ -182,6 +182,7 @@ export class OnBehalfOfClient extends BaseClient {
             request.resourceRequestMethod,
             request.resourceRequestUri,
             undefined,
+            undefined,
             request.scopes,
             request.oboAssertion
         );
