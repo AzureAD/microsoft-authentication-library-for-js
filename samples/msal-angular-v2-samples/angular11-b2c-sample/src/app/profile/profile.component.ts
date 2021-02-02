@@ -4,7 +4,7 @@ import { apiConfig } from '../b2c-config';
 
 type ProfileType = {
   name?: string
-}
+};
 
 @Component({
   selector: 'app-profile',
@@ -25,7 +25,7 @@ export class ProfileComponent implements OnInit {
   getProfile(url: string) {
     this.http.get(url)
       .subscribe(profile => {
-        console.log(profile)
+        console.log(profile);
         this.profile = profile;
       });
   }

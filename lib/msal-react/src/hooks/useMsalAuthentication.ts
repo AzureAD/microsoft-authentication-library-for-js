@@ -4,11 +4,10 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
-import { PopupRequest, RedirectRequest, SsoSilentRequest, InteractionType, AuthenticationResult, AuthError, EventMessage, EventType } from "@azure/msal-browser";
+import { PopupRequest, RedirectRequest, SsoSilentRequest, InteractionType, AuthenticationResult, AuthError, EventMessage, EventType, InteractionStatus } from "@azure/msal-browser";
 import { useIsAuthenticated } from "./useIsAuthenticated";
 import { AccountIdentifiers } from "../types/AccountIdentifiers";
 import { useMsal } from "./useMsal";
-import { InteractionStatus } from "../utils/Constants";
 
 export type MsalAuthenticationResult = {
     login: Function; 
@@ -16,6 +15,14 @@ export type MsalAuthenticationResult = {
     error: AuthError|null;
 };
 
+/**
+ * Invokes a login call if a user is not currently signed-in. Failed logins can be retried using the login callback returned.
+ * Optionally provide a request object to be used in the login call.
+ * Optionally provide a specific user that should be logged in.
+ * @param interactionType 
+ * @param authenticationRequest 
+ * @param accountIdentifiers 
+ */
 export function useMsalAuthentication(
     interactionType: InteractionType, 
     authenticationRequest?: PopupRequest|RedirectRequest|SsoSilentRequest, 
