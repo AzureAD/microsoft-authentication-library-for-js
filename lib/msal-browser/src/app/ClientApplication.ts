@@ -148,6 +148,7 @@ export abstract class ClientApplication {
                     throw e;
                 });
         }
+        this.logger.verbose("handleRedirectPromise returns null, not browser environment");
         return null;
     }
 
@@ -237,7 +238,13 @@ export abstract class ClientApplication {
         const cachedHash = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.URL_HASH, true);
         this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH));
 
-        return isResponseHash ? hash : cachedHash;
+        if (isResponseHash) {
+            this.logger.verbose("Hash contains known properties, returning response hash");
+            return hash;
+        }
+
+        this.logger.verbose("Hash does not contain known properties, returning cached hash");
+        return cachedHash;
     }
 
     /**
@@ -262,6 +269,7 @@ export abstract class ClientApplication {
             throw BrowserAuthError.createStateInteractionTypeMismatchError();
         }
 
+        this.logger.verbose("Returning state from hash");
         return serverParams.state;
     }
 
@@ -567,6 +575,7 @@ export abstract class ClientApplication {
             const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
             const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
+                this.logger.verbose("Acquiring token by refresh token returned server and invalid grant error, attempting acquire token by iframe");
                 return await this.acquireTokenByIframe(request);
             }
             throw e;
@@ -664,7 +673,6 @@ export abstract class ClientApplication {
      * @returns The account object stored in MSAL
      */
     getAccountByUsername(userName: string): AccountInfo|null {
-        this.logger.verbose("getAccountByUsername called");
         const allAccounts = this.getAllAccounts();
         if (!StringUtils.isEmpty(userName) && allAccounts && allAccounts.length) {
             this.logger.verbose(`Returning signed-in accounts matching username: ${userName}`);
@@ -683,7 +691,6 @@ export abstract class ClientApplication {
      * @returns The account object stored in MSAL
      */
     getAccountByHomeId(homeAccountId: string): AccountInfo|null {
-        this.logger.verbose("getAccountByHomeId called");
         const allAccounts = this.getAllAccounts();
         if (!StringUtils.isEmpty(homeAccountId) && allAccounts && allAccounts.length) {
             this.logger.verbose(`Returning signed-in accounts matching homeAccountId: ${homeAccountId}`);
@@ -702,7 +709,6 @@ export abstract class ClientApplication {
      * @returns The account object stored in MSAL
      */
     getAccountByLocalId(localAccountId: string): AccountInfo | null {
-        this.logger.verbose("getAccountByLocalId called");
         const allAccounts = this.getAllAccounts();
         if (!StringUtils.isEmpty(localAccountId) && allAccounts && allAccounts.length) {
             this.logger.verbose(`Returning signed-in accounts matching localAccountId: ${localAccountId}`);
@@ -719,10 +725,10 @@ export abstract class ClientApplication {
      */
     setActiveAccount(account: AccountInfo | null): void {
         if (account) {
-            this.logger.verbose("activeLocalAccountId set");
+            this.logger.verbose("Active account set");
             this.activeLocalAccountId = account.localAccountId;
         } else {
-            this.logger.verbose("No account passed, no activeLocalAccountId set");
+            this.logger.verbose("No account passed, active account not set");
             this.activeLocalAccountId = null;
         }
     }
@@ -782,6 +788,7 @@ export abstract class ClientApplication {
      * @param requestAuthority
      */
     async getDiscoveredAuthority(requestAuthority?: string): Promise<Authority> {
+        this.logger.verbose("getDiscoveredAuthority called");
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode,
             knownAuthorities: this.config.auth.knownAuthorities,
@@ -790,9 +797,11 @@ export abstract class ClientApplication {
         };
 
         if (requestAuthority) {
+            this.logger.verbose("Creating discovered authority with request authority");
             return await AuthorityFactory.createDiscoveredInstance(requestAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions);
         }
 
+        this.logger.verbose("Creating discovered authority with configured authority");
         return await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient, this.browserStorage, authorityOptions);
     }
 
@@ -810,6 +819,7 @@ export abstract class ClientApplication {
      * @param authorityUrl
      */
     protected async createAuthCodeClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<AuthorizationCodeClient> {
+        this.logger.verbose("createAuthCodeClient called");
         // Create auth module.
         const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
         return new AuthorizationCodeClient(clientConfig);
@@ -821,6 +831,7 @@ export abstract class ClientApplication {
      * @param authorityUrl
      */
     protected async createSilentFlowClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<SilentFlowClient> {
+        this.logger.verbose("createSilentFlowClient called");
         // Create auth module.
         const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
         return new SilentFlowClient(clientConfig);
@@ -832,6 +843,7 @@ export abstract class ClientApplication {
      * @param authorityUrl
      */
     protected async createRefreshTokenClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<RefreshTokenClient> {
+        this.logger.verbose("createRefreshTokenClient called");
         // Create auth module.
         const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
         return new RefreshTokenClient(clientConfig);
@@ -843,6 +855,7 @@ export abstract class ClientApplication {
      * @param requestAuthority
      */
     protected async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string): Promise<ClientConfiguration> {
+        this.logger.verbose("getClientConfiguration called");
         const discoveredAuthority = await this.getDiscoveredAuthority(requestAuthority);
 
         return {
@@ -877,6 +890,7 @@ export abstract class ClientApplication {
      * @param interactionType
      */
     protected preflightInteractiveRequest(request: RedirectRequest|PopupRequest, interactionType: InteractionType): AuthorizationUrlRequest {
+        this.logger.verbose("preflightInteractiveRequest called, validating app environment");
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
@@ -893,6 +907,7 @@ export abstract class ClientApplication {
      * * @param interactionType
      */
     protected preflightBrowserEnvironmentCheck(interactionType: InteractionType): void {
+        this.logger.verbose("preflightBrowserEnvironmentCheck started");
         // Block request if not in browser environment
         BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
 
@@ -915,6 +930,7 @@ export abstract class ClientApplication {
      * @param request
      */
     protected initializeBaseRequest(request: Partial<BaseAuthRequest>): BaseAuthRequest {
+        this.logger.verbose("Initializing BaseAuthRequest");
         const authority = request.authority || this.config.auth.authority;
 
         const scopes = [...((request && request.scopes) || [])];
@@ -937,6 +953,7 @@ export abstract class ClientApplication {
      * @param forceRefresh 
      */
     protected initializeServerTelemetryManager(apiId: number, correlationId: string, forceRefresh?: boolean): ServerTelemetryManager {
+        this.logger.verbose("initializeServerTelemetryManager called");
         const telemetryPayload: ServerTelemetryRequest = {
             clientId: this.config.auth.clientId,
             correlationId: correlationId,
@@ -953,6 +970,7 @@ export abstract class ClientApplication {
      * @param interactionType
      */
     protected initializeAuthorizationRequest(request: RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
+        this.logger.verbose("initializeAuthorizationRequest called");
         const redirectUri = this.getRedirectUri(request.redirectUri);
         const browserState: BrowserStateObject = {
             interactionType: interactionType
@@ -977,6 +995,7 @@ export abstract class ClientApplication {
 
         const account = request.account || this.getActiveAccount();
         if (account) {
+            this.logger.verbosePii(`Setting validated request account: ${account}`);
             validatedRequest.account = account;
         }
 
@@ -988,6 +1007,7 @@ export abstract class ClientApplication {
                 const adalIdToken = new IdToken(adalIdTokenString, this.browserCrypto);
                 this.browserStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
                 if (adalIdToken.claims && adalIdToken.claims.upn) {
+                    this.logger.verbose("No SSO params used and ADAL token retrieved, setting ADAL upn as loginHint");
                     validatedRequest.loginHint = adalIdToken.claims.upn;
                 }
             }
@@ -1003,6 +1023,7 @@ export abstract class ClientApplication {
      * @param request
      */
     protected async initializeAuthorizationCodeRequest(request: AuthorizationUrlRequest): Promise<AuthorizationCodeRequest> {
+        this.logger.verbose("initializeAuthorizationCodeRequest called");
         const generatedPkceParams = await this.browserCrypto.generatePkceCodes();
 
         const authCodeRequest: AuthorizationCodeRequest = {
@@ -1023,6 +1044,7 @@ export abstract class ClientApplication {
      * @param logoutRequest
      */
     protected initializeLogoutRequest(logoutRequest?: EndSessionRequest): CommonEndSessionRequest {
+        this.logger.verbose("initializeLogoutRequest called");
         const validLogoutRequest: CommonEndSessionRequest = {
             correlationId: this.browserCrypto.createNewGuid(),
             ...logoutRequest

@@ -96,7 +96,7 @@ export class MsalInterceptor implements HttpInterceptor {
      * Looks up the scopes for the given endpoint from the protectedResourceMap
      * @param endpoint Url of the request
      * @returns Array of scopes, or null if not found
-
+     *
      */
     private getScopesForEndpoint(endpoint: string): Array<string>|null {
         this.authService.getLogger().verbose("Interceptor - getting scopes for endpoint");
