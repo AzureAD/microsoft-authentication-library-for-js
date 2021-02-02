@@ -12,11 +12,10 @@ import { BrowserConfigurationAuthErrorMessage } from "../../src/error/BrowserCon
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 
-describe.only("IPublicClientApplication.ts Class Unit Tests", () => {
+describe("IPublicClientApplication.ts Class Unit Tests", () => {
     describe("stubbedPublicClientApplication tests", () => {
         it("acquireTokenPopup throws", (done) => {
             stubbedPublicClientApplication.acquireTokenPopup({scopes: ["openid"]}).catch(e => {
-                console.log(e);
                 expect(e.errorCode).to.eq(BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled.code);
                 expect(e.errorMessage).to.eq(BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled.desc);
                 done();
