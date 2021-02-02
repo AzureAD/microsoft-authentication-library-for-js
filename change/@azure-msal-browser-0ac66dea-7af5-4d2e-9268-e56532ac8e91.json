@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "FAQ Update (#2928)",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none"
-}

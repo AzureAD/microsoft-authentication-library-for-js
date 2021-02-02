@@ -2,6 +2,59 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Tue, 02 Feb 2021 01:56:47 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-alpha.4",
+      "version": "2.0.0-alpha.4",
+      "comments": {
+        "none": [
+          {
+            "comment": "Typedocs Updates (#2926)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "3fd4a48143ed4fb62b9e3266338b1abda920d68a",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Add project references (#2930)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "a836e77e372f1b4da28195d4ad8c0c75d6794875",
+            "package": "@azure/msal-angular"
+          }
+        ],
+        "prerelease": [
+          {
+            "comment": "Invoke interaction if MSAL Interceptor resolves with null access token, mitigates B2C service not supporting RTs for multiple resources",
+            "author": "janutter@microsoft.com",
+            "commit": "c701a75f041263aa2c7ce29c6d73f0b1ccc2a379",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Pass SKU and version to msal-browser (#2845)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "aaa262bad9a65a6bc391b7a7585504f6ad6ff833",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Add redirect component, get interactionStatus from msal-browser, add inProgress$, and sample updates (#2885)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "ebd726a6eea98ef097d6f9ee1dc45a206d184065",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Get package version from version.json (#2915)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "a6f4702f9439e318a8cb6dc65d1def16351a84fd",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Add version detection to msal guard for canLoad interface (#2948)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "f0dba5aeb3e0e88ca8816ada5323972e362f9d75",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 21 Jan 2021 21:48:01 GMT",
       "tag": "@azure/msal-angular_v2.0.0-alpha.3",
       "version": "2.0.0-alpha.3",

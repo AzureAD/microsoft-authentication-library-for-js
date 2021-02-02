@@ -23,12 +23,9 @@
         "alwaysStrict": true,
         "noUnusedLocals": true,
         "noUnusedParameters": false,
-        "noFallthroughCasesInSwitch": true,
+        "noFallthroughCasesInSwitch": true
     },
-    "include": [
-        "src/**/*",
-        "./package.json"
-    ],
+    "include": ["src", "src/**/*.json", "test"],
     "exclude": [
         "node_modules"
     ],
