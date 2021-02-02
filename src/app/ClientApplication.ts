@@ -7,7 +7,7 @@ import { CryptoOps } from "../crypto/CryptoOps";
 import { Authority, StringUtils, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationCodeClient, PromptValue, ServerError, InteractionRequiredAuthError, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, AuthenticationScheme, SilentFlowRequest, EndSessionRequest as CommonEndSessionRequest, AccountEntity, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthorityOptions } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
-import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, BrowserCacheLocation } from "../utils/BrowserConstants";
+import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, BrowserCacheLocation, WrapperSKU } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserStateObject, BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
@@ -46,6 +46,10 @@ export abstract class ClientApplication {
 
     // Sets the account to use if no account info is given
     private activeLocalAccountId: string | null;
+
+    // Set the SKU and Version for wrapper library if applicable
+    private wrapperSKU: string | undefined;
+    private wrapperVer: string | undefined;
 
     // Callback for subscribing to events
     private eventCallbacks: Map<string, EventCallbackFunction>;
@@ -899,7 +903,9 @@ export abstract class ClientApplication {
             clientId: this.config.auth.clientId,
             correlationId: correlationId,
             apiId: apiId,
-            forceRefresh: forceRefresh || false
+            forceRefresh: forceRefresh || false,
+            wrapperSKU: this.wrapperSKU,
+            wrapperVer: this.wrapperVer
         };
 
         return new ServerTelemetryManager(telemetryPayload, this.browserStorage);
@@ -1055,6 +1061,17 @@ export abstract class ClientApplication {
      */
     setLogger(logger: Logger): void {
         this.logger = logger;
+    }
+
+    /**
+     * Called by wrapper libraries (Angular & React) to set SKU and Version passed down to telemetry, logger, etc.
+     * @param sku 
+     * @param version 
+     */
+    initializeWrapperLibrary(sku: WrapperSKU, version: string): void {
+        // Validate the SKU passed in is one we expect
+        this.wrapperSKU = sku;
+        this.wrapperVer = version;
     }
     // #endregion
 }
