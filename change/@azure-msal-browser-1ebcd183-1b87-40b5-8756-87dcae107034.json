@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Dont use current page as default postLogoutRedirectUri in MSAL Browser (#2789)",
+  "comment": "Allow apps to not use the current page as default postLogoutRedirectUri in MSAL Browser (#2789)",
   "packageName": "@azure/msal-browser",
   "email": "janutter@microsoft.com",
   "dependentChangeType": "patch"
