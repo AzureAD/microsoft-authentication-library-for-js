@@ -1050,7 +1050,6 @@ export abstract class ClientApplication {
      * @param logoutRequest
      */
     protected initializeLogoutRequest(logoutRequest?: EndSessionRequest): CommonEndSessionRequest {
-        this.logger.verbose("initializeLogoutRequest called");
         const validLogoutRequest: CommonEndSessionRequest = {
             correlationId: this.browserCrypto.createNewGuid(),
             ...logoutRequest
