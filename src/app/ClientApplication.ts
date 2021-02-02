@@ -222,7 +222,7 @@ export abstract class ClientApplication {
                 await BrowserUtils.navigateWindow(homepage, this.config.system.redirectNavigationTimeout, this.logger, true);
             } else {
                 // Navigate to page that initiated the redirect request
-                this.logger.verbose("Navigating to loginRequestUrl");
+                this.logger.verbose(`Navigating to loginRequestUrl: ${loginRequestUrl}`);
                 await BrowserUtils.navigateWindow(loginRequestUrl, this.config.system.redirectNavigationTimeout, this.logger, true);
             }
         }
@@ -579,7 +579,7 @@ export abstract class ClientApplication {
             const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
             const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
-                this.logger.verbose("Acquiring token by refresh token returned server and invalid grant error, attempting acquire token by iframe");
+                this.logger.verbose("Refresh token expired or invalid, attempting acquire token by iframe");
                 return await this.acquireTokenByIframe(request);
             }
             throw e;
