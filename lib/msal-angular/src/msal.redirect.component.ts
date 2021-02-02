@@ -6,24 +6,23 @@
 /**
  * This is a dedicated redirect component to be added to Angular apps to 
  * handle redirects when using @azure/msal-angular.
- * Uncomment the following comment to use it in your app.
+ * Import this component to use redirects in your app.
  */
 
-/**
- *import { Component, OnInit } from "@angular/core";
- *import { MsalService } from "@azure/msal-angular";
- *
- *@Component({
- *  selector: 'app-redirect',
- *  template: ''
- *})
- *export class MsalRedirectComponent implements OnInit {
- *
- *  constructor(private authService: MsalService) { }
- *
- *  ngOnInit(): void {    
- *    this.authService.handleRedirectObservable().subscribe();
- *  }
- *
- *}
- */
+
+import { Component, OnInit } from "@angular/core";
+import { MsalService } from "./msal.service";
+
+@Component({
+  selector: 'app-redirect',
+  template: ''
+})
+export class MsalRedirectComponent implements OnInit {
+
+  constructor(private authService: MsalService) { }
+
+  ngOnInit(): void {    
+    this.authService.handleRedirectObservable().subscribe();
+  }
+
+}

@@ -24,7 +24,7 @@ MSAL for Angular accepts three configuration objects:
 
 ### Configuration for redirects
 
-We recommend bootstrapping `MsalRedirectComponent` with the `AppComponent` if you intend to use redirects. Please see the [redirect documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/redirects.md) for more details. 
+We recommend importing `MsalRedirectComponent` and bootstrapping with the `AppComponent` if you intend to use redirects. Please see the [redirect documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/redirects.md) for more details. 
 
 ## MsalModule.forRoot
 
