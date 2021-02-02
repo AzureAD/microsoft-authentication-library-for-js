@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Get package version from version.json (#2915)",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

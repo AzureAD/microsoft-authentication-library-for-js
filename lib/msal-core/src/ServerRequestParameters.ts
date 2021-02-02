@@ -8,9 +8,10 @@ import { CryptoUtils } from "./utils/CryptoUtils";
 import { AuthenticationParameters } from "./AuthenticationParameters";
 import { StringDict } from "./MsalTypes";
 import { Account } from "./Account";
-import { SSOTypes, Constants, PromptState, libraryVersion, ResponseTypes } from "./utils/Constants";
+import { SSOTypes, Constants, PromptState, ResponseTypes } from "./utils/Constants";
 import { StringUtils } from "./utils/StringUtils";
 import { ScopeSet } from "./ScopeSet";
+import { name as libraryVersion } from "./version.json";
 
 /**
  * Nonce: OIDC Nonce definition: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
@@ -70,7 +71,7 @@ export class ServerRequestParameters {
 
         // telemetry information
         this.xClientSku = "MSAL.JS";
-        this.xClientVer = libraryVersion();
+        this.xClientVer = libraryVersion;
 
         this.responseType = responseType;
         this.redirectUri = redirectUri;

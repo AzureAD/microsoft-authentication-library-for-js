@@ -23,7 +23,7 @@
   ],
   "main": "./dist/index.js",
   "module": "./dist/index.es.js",
-  "types": "./dist/src/index.d.ts",
+  "types": "./dist/index.d.ts",
   "browserslist": [
     "last 1 version",
     "> 1%",

@@ -24,7 +24,7 @@ import { EventType } from "../../src/event/EventType";
 import { SilentRequest } from "../../src/request/SilentRequest";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { RedirectRequest } from "../../src/request/RedirectRequest";
-import pkg from "../../package.json";
+import pkg from "../../src/version.json";
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
