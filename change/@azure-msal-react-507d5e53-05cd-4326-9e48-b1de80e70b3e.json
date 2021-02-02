@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Pass SKU and version to msal-browser (#2845)",
+  "packageName": "@azure/msal-react",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
