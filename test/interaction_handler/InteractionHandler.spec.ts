@@ -5,6 +5,7 @@
 
 import { expect } from "chai";
 import "mocha";
+import chaiAsPromised from "chai-as-promised";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import {
     PkceCodes,
@@ -21,6 +22,7 @@ import {
     Authority,
     ClientConfiguration,
     AuthorizationCodePayload,
+    AuthorityOptions,
 } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES, TEST_POP_VALUES, TEST_STATE_VALUES } from "../utils/StringConstants";
@@ -33,7 +35,7 @@ import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 class TestInteractionHandler extends InteractionHandler {
 
     constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager) {
-        super(authCodeModule, storageImpl);
+        super(authCodeModule, storageImpl, testAuthCodeRequest);
     }
 
     showUI(requestUrl: string): Window {
@@ -81,6 +83,27 @@ const networkInterface = {
     },
 };
 
+const cryptoInterface = {
+    createNewGuid: (): string => {
+        return "newGuid";
+    },
+    base64Decode: (input: string): string => {
+        return "testDecodedString";
+    },
+    base64Encode: (input: string): string => {
+        return "testEncodedString";
+    },
+    generatePkceCodes: async (): Promise<PkceCodes> => {
+        return testPkceCodes;
+    },
+    getPublicKeyThumbprint: async (): Promise<string> => {
+        return TEST_POP_VALUES.ENCODED_REQ_CNF;
+    },
+    signJwt: async (): Promise<string> => {
+        return "signedJwt";
+    }
+}
+
 let authorityInstance: Authority;
 let authConfig: ClientConfiguration;
 
@@ -97,7 +120,13 @@ describe("InteractionHandler.ts Unit Tests", () => {
             }
         };
         const configObj = buildConfiguration(appConfig);
-        authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, ProtocolMode.AAD);
+        const authorityOptions: AuthorityOptions = {
+            protocolMode: ProtocolMode.AAD,
+            knownAuthorities: [configObj.auth.authority],
+            cloudDiscoveryMetadata: "",
+            authorityMetadata: ""
+        }
+        authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, browserStorage, authorityOptions);
         authConfig = {
             authOptions: {
                 ...configObj.auth,
@@ -106,27 +135,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
             systemOptions: {
                 tokenRenewalOffsetSeconds: configObj.system.tokenRenewalOffsetSeconds
             },
-            cryptoInterface: {
-                createNewGuid: (): string => {
-                    return "newGuid";
-                },
-                base64Decode: (input: string): string => {
-                    return "testDecodedString";
-                },
-                base64Encode: (input: string): string => {
-                    return "testEncodedString";
-                },
-                generatePkceCodes: async (): Promise<PkceCodes> => {
-                    return testPkceCodes;
-                },
-                getPublicKeyThumbprint: async (): Promise<string> => {
-                    return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                },
-                signJwt: async (): Promise<string> => {
-                    return "signedJwt";
-                }
-            },
-            storageInterface: new TestStorageManager(),
+            cryptoInterface: cryptoInterface,
+            storageInterface: new TestStorageManager(TEST_CONFIG.MSAL_CLIENT_ID, cryptoInterface),
             networkInterface: {
                 sendGetRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
                     return testNetworkResult;
@@ -160,11 +170,11 @@ describe("InteractionHandler.ts Unit Tests", () => {
 
         it("throws error if given location hash is empty", async () => {
             const interactionHandler = new TestInteractionHandler(authCodeModule, browserStorage);
-            await expect(interactionHandler.handleCodeResponse("", authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthErrorMessage.hashEmptyError.desc);
-            await expect(interactionHandler.handleCodeResponse("", authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthError);
+            await expect(interactionHandler.handleCodeResponse("", "", authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthErrorMessage.hashEmptyError.desc);
+            await expect(interactionHandler.handleCodeResponse("", "", authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthError);
 
-            await expect(interactionHandler.handleCodeResponse(null, authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthErrorMessage.hashEmptyError.desc);
-            await expect(interactionHandler.handleCodeResponse(null, authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthError);
+            await expect(interactionHandler.handleCodeResponse(null, "", authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthErrorMessage.hashEmptyError.desc);
+            await expect(interactionHandler.handleCodeResponse(null, "", authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthError);
         });
         
         // TODO: Need to improve this test
@@ -184,7 +194,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             const testCodeResponse: AuthorizationCodePayload = {
                 code: "authcode",
                 nonce: idTokenClaims.nonce,
-                state: TEST_STATE_VALUES.TEST_STATE,
+                state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 cloud_instance_host_name: "contoso.com"
             };
 
@@ -209,18 +219,24 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 state: "testState",
                 tokenType: AuthenticationScheme.BEARER
             };
-            browserStorage.setTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE), TEST_STATE_VALUES.TEST_STATE);
-            browserStorage.setTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE), idTokenClaims.nonce);
+            browserStorage.setTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT), TEST_STATE_VALUES.TEST_STATE_REDIRECT);
+            browserStorage.setTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT), idTokenClaims.nonce);
             sinon.stub(AuthorizationCodeClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
-            sinon.stub(Authority.prototype, "isAuthorityAlias").returns(false);
-            const authority = new Authority("https://www.contoso.com/common/", networkInterface, ProtocolMode.AAD);
+            sinon.stub(Authority.prototype, "isAlias").returns(false);
+            const authorityOptions: AuthorityOptions = {
+                protocolMode: ProtocolMode.AAD,
+                knownAuthorities: ["www.contoso.com"],
+                cloudDiscoveryMetadata: "",
+                authorityMetadata: ""
+            }
+            const authority = new Authority("https://www.contoso.com/common/", networkInterface, browserStorage, authorityOptions);
             sinon.stub(AuthorityFactory, "createDiscoveredInstance").resolves(authority);
             sinon.stub(Authority.prototype, "discoveryComplete").returns(true);
             const updateAuthoritySpy = sinon.spy(AuthorizationCodeClient.prototype, "updateAuthority");
             const acquireTokenSpy = sinon.stub(AuthorizationCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
             const interactionHandler = new TestInteractionHandler(authCodeModule, browserStorage);
             await interactionHandler.initiateAuthRequest("testNavUrl");
-            const tokenResponse = await interactionHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH, authorityInstance, authConfig.networkInterface);
+            const tokenResponse = await interactionHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT, TEST_STATE_VALUES.TEST_STATE_REDIRECT, authorityInstance, authConfig.networkInterface);
             expect(updateAuthoritySpy.calledWith(authority)).to.be.true;
             expect(tokenResponse).to.deep.eq(testTokenResponse);
             expect(acquireTokenSpy.calledWith(testAuthCodeRequest, testCodeResponse)).to.be.true;
