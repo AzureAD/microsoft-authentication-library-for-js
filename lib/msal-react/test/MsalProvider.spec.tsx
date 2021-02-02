@@ -7,10 +7,9 @@
 import React from "react";
 import { act, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
-import { AccountInfo, Configuration, EventCallbackFunction, EventMessage, EventType, InteractionType, PublicClientApplication } from "@azure/msal-browser";
+import { AccountInfo, Configuration, EventCallbackFunction, EventMessage, EventType, InteractionType, InteractionStatus, PublicClientApplication } from "@azure/msal-browser";
 import { testAccount, TEST_CONFIG } from "./TestConstants";
 import { IMsalContext, MsalConsumer, MsalProvider } from "../src/index";
-import { InteractionStatus } from "../src/utils/Constants";
 
 describe("withMsal tests", () => {
     let pca: PublicClientApplication;

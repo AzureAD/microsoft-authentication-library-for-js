@@ -24,6 +24,7 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload";
+import { TimeUtils } from "../utils/TimeUtils";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -54,12 +55,13 @@ export class AuthorizationCodeClient extends BaseClient {
      * authorization_code_grant
      * @param request
      */
-    async acquireToken(request: AuthorizationCodeRequest, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult | null> {
+    async acquireToken(request: AuthorizationCodeRequest, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult> {
         this.logger.info("in acquireToken call");
         if (!request || StringUtils.isEmpty(request.code)) {
             throw ClientAuthError.createTokenRequestCannotBeMadeError();
         }
 
+        const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executeTokenRequest(this.authority, request);
 
         const responseHandler = new ResponseHandler(
@@ -73,7 +75,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        return await responseHandler.handleServerTokenResponse(response.body, this.authority, request.resourceRequestMethod, request.resourceRequestUri, authCodePayload);
+        return await responseHandler.handleServerTokenResponse(response.body, this.authority, reqTimestamp, request.resourceRequestMethod, request.resourceRequestUri, authCodePayload);
     }
 
     /**

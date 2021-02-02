@@ -2,13 +2,12 @@
 
 **Deliverable**|**Status**|**Expected Delivery**|**Description**
 :-----:|:-----:|:-----:|:-----:
-Msal Node Public Preview|In Progress|October 2020|Our Msal Node library is currently in private preview.  Public preview should include full Public Client and Confidential Client support.  When released, we will be committing to supporting this library at a production level, resolving bugs in a timely manner. 
-Msal React Private Preview|In Progress|November 2020|Release our Msal React wrapper preview, using Auth Code Flow in browser. 
-SN + I Support In Msal Node |Not Started|December 2020|Explanation of the flow from our python library: https://github.com/AzureAD/microsoft-authentication-library-for-python/issues/60
-Refresh Token Proof of Possession [Browser]|Not started|December 2020|Proof of Possession is a feature that enables cryptographically locking a token to a browser.  This feature has already been shipped for Access Tokens.
-Tenant Profile Support |Not Started|December 2020|Support for tenant profiles in our cache and account management.
-Msal Angular 2.0 [Support for Auth Code Flow]|In Progress|December 2020|Upgrading our Msal Angular library to use the Msal Browser lib we recently GA'd to support the Auth Code Flow in the browser.  Helps alleviate some issues caused by blocked 3p cookies. 
-Msal Node Middleware Design|Not Started|December 2020|Work to understand the middleware asks and requirements and then come up with a plan moving forward. 
-Broker In Browser |In Progress|TBD|Application model for application nested in iframes, to support silent token acquisition where 3p cookies are blocked. 
-Msal React Public Preview|Not Started|TBD|Once we are ready to support our msal react library in production we will move to public preview. 
-Msal Node GA|Not Started|January 2021|After public preview, we will work to resolve issues and stabilize the library to be able to announce General Availability. 
+Msal Node GA|In Progress|February 2021|Our Msal Node library is currently in public preview. GA will include meeting our testing bar, fixing bugs from customers using public preview, and fleshing out our documentation. 
+Msal React Public Preview|In Progress|February 2021| Our Msal React library is currently in private preview.  Public preview will include getting our quickstart into the azure portal, better testing, and fixing any bugs we have gotten from customers during private preview. The public preview milestone will include production level support for applications. 
+Refresh Token Proof of Possession [Browser]|In Progress|March 2021|Proof of Possession is a feature that enables cryptographically locking a token to a browser.  This feature has already been shipped for Access Tokens.
+Msal Angular 2.0 [Support for Auth Code Flow] Public Preview|In Progress|February 2021| Msal Angular uses our Auth Code library, and should alleviate some 3p cookie concerns. Our Msal Angular library is currently in private preview.  Public preview will include getting our quickstart into the azure portal, better testing, and fixing any bugs we have gotten from customers during private preview. The public preview milestone will include production level support for applications.  
+Msal Node Middleware Design|In Progress|February 2021|Work to understand the middleware asks and requirements and then come up with a plan moving forward. 
+Trusted Parent Token Broker |In Progress|TBD|Application model for application nested in iframes, to support silent token acquisition where 3p cookies are blocked. 
+Msal React GA|Not Started|TBD|After Public Preview, we will continue to evaulate customer feedback, while working to get testing and documentation to GA level.
+Msal Angular 2.0 GA|Not Started|TBD|After Public Preview, we will continue to evaulate customer feedback, while working to get testing and documentation to GA level.
+Support Logout Popup |In Progress|March 2021| Support logging out via popup, to support scenarios where redirect is not desired or not possible (e.g. nested frame). 

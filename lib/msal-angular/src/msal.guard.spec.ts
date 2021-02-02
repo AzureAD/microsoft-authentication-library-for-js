@@ -1,6 +1,6 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { Router, UrlTree } from '@angular/router';
 import { BrowserUtils, InteractionType, IPublicClientApplication, PublicClientApplication, UrlString } from '@azure/msal-browser';
 import { of } from 'rxjs';
 import { MsalGuardConfiguration } from './msal.guard.config';
@@ -12,6 +12,7 @@ let routeMock: any = { snapshot: {} };
 let routeStateMock: any = { snapshot: {}, url: '/' };
 let routerMock = { navigate: jasmine.createSpy('navigate') };
 let testInteractionType: InteractionType;
+let testLoginFailedRoute: string;
 
 function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
@@ -25,7 +26,8 @@ function MSALInstanceFactory(): IPublicClientApplication {
 function MSALGuardConfigFactory(): MsalGuardConfiguration {
   return {
     //@ts-ignore
-    interactionType: testInteractionType
+    interactionType: testInteractionType,
+    loginFailedRoute: testLoginFailedRoute
   }
 }
 
@@ -54,6 +56,7 @@ function initializeMsal() {
 describe('MsalGuard', () => {
   beforeEach(() => {
     testInteractionType = InteractionType.Popup;
+    testLoginFailedRoute = undefined;
     initializeMsal();
   });
 
@@ -110,7 +113,7 @@ describe('MsalGuard', () => {
     done();
   });
 
-  it("should return false after login with popup fails", (done) => {
+  it("should return false after login with popup fails and no loginFailedRoute set", (done) => {
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
       of("test")
@@ -123,6 +126,29 @@ describe('MsalGuard', () => {
     const listener = jasmine.createSpy();
     guard.canActivate(routeMock, routeStateMock).subscribe(listener);
     expect(listener).toHaveBeenCalledWith(false);
+    done();
+  });
+
+  it("should return loginFailedRoute after login with popup fails and loginFailedRoute set", (done) => {
+    testLoginFailedRoute = "failed";
+    initializeMsal();
+
+    spyOn(guard, "parseUrl").and.returnValue(
+      testLoginFailedRoute as unknown as UrlTree
+    )
+
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
+      //@ts-ignore
+      of("test")
+    );
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([]);
+
+    spyOn(MsalService.prototype, "loginPopup").and.throwError("login error");
+
+    const listener = jasmine.createSpy();
+    guard.canActivate(routeMock, routeStateMock).subscribe(listener);
+    expect(listener).toHaveBeenCalledWith("failed");
     done();
   });
 

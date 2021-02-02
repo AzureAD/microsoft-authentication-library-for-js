@@ -1,8 +1,45 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 07 Dec 2020 22:19:03 GMT and should not be manually modified.
+This log was last generated on Tue, 02 Feb 2021 01:56:47 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.11.0
+
+Tue, 02 Feb 2021 01:56:47 GMT
+
+### Minor changes
+
+- Add initializeWrapperLibrary API (#2845) (thomas.norling@microsoft.com)
+- Add getInteractionStatusFromEvent to msal-browser (#2885) (joarroyo@microsoft.com)
+
+### Patches
+
+- Fix temp cache cleanup when using localStorage (#2935) (thomas.norling@microsoft.com)
+- Get package version from version.json (#2915) (thomas.norling@microsoft.com)
+
+## 2.10.0
+
+Thu, 21 Jan 2021 21:48:01 GMT
+
+### Minor changes
+
+- Authority metadata caching (#2758) (thomas.norling@microsoft.com)
+
+### Patches
+
+- Fix handling of multiple popup windows (#2842) (janutter@microsoft.com)
+- redirectStartPage supports relative URIs (#2866) (thomas.norling@microsoft.com)
+
+## 2.9.0
+
+Tue, 12 Jan 2021 00:51:26 GMT
+
+### Minor changes
+
+- Adding an active account API to PublicClientApplication (#2728) (prkanher@microsoft.com)
+- Add internal in-memory storage to BrowserCacheManager (#2765) (thomas.norling@microsoft.com)
+- Enable strict TypeScript option (#2792) (thomas.norling@microsoft.com)
 
 ## 2.8.0
 

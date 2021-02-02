@@ -88,3 +88,47 @@ export class AppComponent implements OnInit, OnDestroy {
 
 An example of error handling can also be found on our [MSAL Angular v2 B2C Sample App](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4d79b8ebacd7e4d9acf80fd69d602346dee6bf3c/samples/msal-angular-v2-samples/angular11-b2c-sample/src/app/app.component.ts#L68).
 
+## The inProgress$ Observable
+
+The `inProgress$` observable is also handled by the `MsalBroadcastService`, and should be subscribed to when application needs to know the status of interactions, particularly to check that interactions are completed. We recommend checking that the status of interactions is none before functions involving user accounts.
+
+See the example below for its use. A full example can also be found in our [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/home/home.component.ts#L23). A full list of interaction statuses can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/src/utils/BrowserConstants.ts#L87).
+
+```js
+import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
+import { MsalBroadcastService} from '@azure/msal-angular';
+import { InteractionStatus } from '@azure/msal-browser';
+import { Subject } from 'rxjs';
+import { filter, takeUntil } from 'rxjs/operators';
+
+@Component({
+  selector: 'app-root',
+  templateUrl: './app.component.html',
+  styleUrls: ['./app.component.css']
+})
+export class AppComponent implements OnInit, OnDestroy {
+  private readonly _destroying$ = new Subject<void>();
+
+  constructor(
+    private msalBroadcastService: MsalBroadcastService
+  ) {}
+
+  ngOnInit(): void {
+    this.msalBroadcastService.inProgress$
+      .pipe(
+        // Filtering for all interactions to be completed
+        filter((status: InteractionStatus) => status === InteractionStatus.None),
+        takeUntil(this._destroying$)
+      )
+      .subscribe(() => {
+        // Do something related to user accounts or UI here
+      })
+  }
+
+  ngOnDestroy(): void {
+    this._destroying$.next(null);
+    this._destroying$.complete();
+  }
+}
+
+```

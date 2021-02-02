@@ -13,7 +13,6 @@ import { Logger } from "../logger/Logger";
 import { ServerError } from "../error/ServerError";
 import { AuthToken } from "../account/AuthToken";
 import { ScopeSet } from "../request/ScopeSet";
-import { TimeUtils } from "../utils/TimeUtils";
 import { AuthenticationResult } from "./AuthenticationResult";
 import { AccountEntity } from "../cache/entities/AccountEntity";
 import { Authority } from "../authority/Authority";
@@ -24,7 +23,7 @@ import { RefreshTokenEntity } from "../cache/entities/RefreshTokenEntity";
 import { InteractionRequiredAuthError } from "../error/InteractionRequiredAuthError";
 import { CacheRecord } from "../cache/entities/CacheRecord";
 import { CacheManager } from "../cache/CacheManager";
-import { ProtocolUtils, LibraryStateObject, RequestStateObject } from "../utils/ProtocolUtils";
+import { ProtocolUtils, RequestStateObject } from "../utils/ProtocolUtils";
 import { AuthenticationScheme, Constants, THE_FAMILY_ID } from "../utils/Constants";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { AppMetadataEntity } from "../cache/entities/AppMetadataEntity";
@@ -109,12 +108,13 @@ export class ResponseHandler {
     async handleServerTokenResponse(
         serverTokenResponse: ServerAuthorizationTokenResponse,
         authority: Authority,
+        reqTimestamp: number,
         resourceRequestMethod?: string,
         resourceRequestUri?: string,
         authCodePayload?: AuthorizationCodePayload,
         requestScopes?: string[],
         oboAssertion?: string,
-        handlingRefreshTokenResponse?: boolean): Promise<AuthenticationResult | null> {
+        handlingRefreshTokenResponse?: boolean): Promise<AuthenticationResult> {
 
         // create an idToken object (not entity)
         let idTokenObj: AuthToken | undefined;
@@ -138,7 +138,7 @@ export class ResponseHandler {
             requestStateObj = ProtocolUtils.parseRequestState(this.cryptoObj, authCodePayload.state);
         }
 
-        const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, idTokenObj, requestStateObj && requestStateObj.libraryState, requestScopes, oboAssertion, authCodePayload);
+        const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, reqTimestamp, idTokenObj, requestScopes, oboAssertion, authCodePayload);
         let cacheContext;
         try {
             if (this.persistencePlugin && this.serializableCache) {
@@ -156,7 +156,7 @@ export class ResponseHandler {
                 const account = this.cacheStorage.getAccount(key);
                 if (!account) {
                     this.logger.warning("Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache");
-                    return null;
+                    return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, idTokenObj, requestStateObj, resourceRequestMethod, resourceRequestUri);
                 }
             }
             this.cacheStorage.saveCacheRecord(cacheRecord);
@@ -175,9 +175,8 @@ export class ResponseHandler {
      * @param idTokenObj
      * @param authority
      */
-    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, idTokenObj?: AuthToken, libraryState?: LibraryStateObject, requestScopes?: string[], oboAssertion?: string, authCodePayload?: AuthorizationCodePayload): CacheRecord {
-
-        const env = Authority.generateEnvironmentFromAuthority(authority);
+    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, idTokenObj?: AuthToken, requestScopes?: string[], oboAssertion?: string, authCodePayload?: AuthorizationCodePayload): CacheRecord {
+        const env = authority.getPreferredCache();
         if (StringUtils.isEmpty(env)) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
         }
@@ -211,12 +210,8 @@ export class ResponseHandler {
             // If scopes not returned in server response, use request scopes
             const responseScopes = serverTokenResponse.scope ? ScopeSet.fromString(serverTokenResponse.scope) : new ScopeSet(requestScopes || []);
 
-            // Expiration calculation
-            const currentTime = TimeUtils.nowSeconds();
-
-            // If the request timestamp was sent in the library state, use that timestamp to calculate expiration. Otherwise, use current time.
-            const timestamp = libraryState ? libraryState.ts : currentTime;
-            const tokenExpirationSeconds = timestamp + (serverTokenResponse.expires_in || 0);
+            // Use timestamp calculated before request
+            const tokenExpirationSeconds = reqTimestamp + (serverTokenResponse.expires_in || 0);
             const extendedTokenExpirationSeconds = tokenExpirationSeconds + (serverTokenResponse.ext_expires_in || 0);
 
             // non AAD scenarios can have empty realm

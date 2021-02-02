@@ -13,7 +13,7 @@ export class MemoryStorage implements IWindowStorage {
         this.cache = new Map<string, string>();
     }
 
-    getItem(key: string): string {
+    getItem(key: string): string | null {
         return this.cache.get(key) || null;
     }
 
@@ -35,5 +35,9 @@ export class MemoryStorage implements IWindowStorage {
 
     containsKey(key: string): boolean {
         return this.cache.has(key);
+    }
+
+    clear() :void {
+        this.cache.clear();
     }
 }

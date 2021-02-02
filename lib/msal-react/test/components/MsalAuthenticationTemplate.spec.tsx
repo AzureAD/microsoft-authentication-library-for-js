@@ -7,7 +7,7 @@ import React from "react";
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { testAccount, testResult, TEST_CONFIG } from "../TestConstants";
-import { MsalProvider, MsalAuthenticationTemplate, MsalAuthenticationResult, IMsalContext } from "../../src/index";
+import { MsalProvider, MsalAuthenticationTemplate, MsalAuthenticationResult, IMsalContext, useMsal } from "../../src/index";
 import { PublicClientApplication, Configuration, InteractionType, EventType, AccountInfo, EventCallbackFunction, EventMessage, PopupRequest, AuthError } from "@azure/msal-browser";
 
 describe("MsalAuthenticationTemplate tests", () => {
@@ -324,6 +324,36 @@ describe("MsalAuthenticationTemplate tests", () => {
         expect(await screen.findByText("Error Occurred: login_failed")).toBeInTheDocument();
         expect(screen.queryByText("A user is authenticated!")).not.toBeInTheDocument();
         expect(loginRedirectSpy).toHaveBeenCalledTimes(0);
+    });
+
+    test("If user is signed in and MsalAuthenticationTemplate is rendered after MsalProvider, child renders and login is not called", async () => {
+        const loginRedirectSpy = jest.spyOn(pca, "loginRedirect");
+        accounts = [testAccount];
+
+        const TestComponent = () => {
+            const {inProgress} = useMsal();
+
+            if (inProgress === "none") {
+                return (
+                    <MsalAuthenticationTemplate interactionType={InteractionType.Redirect}>
+                        <span> A user is authenticated!</span>
+                    </MsalAuthenticationTemplate>
+                );
+            } else {
+                return null;
+            }
+        };
+
+        render(
+            <MsalProvider instance={pca}>
+                <p>This text will always display.</p>
+                <TestComponent />
+            </MsalProvider>
+        );
+
+        expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
+        expect(await screen.findByText("A user is authenticated!")).toBeInTheDocument();
+        expect(loginRedirectSpy).not.toHaveBeenCalled();
     });
 
     test("Renders provided error component when an error occurs", async () => {

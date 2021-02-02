@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Adding account info equality check function (#2728)",
-  "packageName": "@azure/msal-common",
-  "email": "prkanher@microsoft.com",
-  "dependentChangeType": "patch"
-}

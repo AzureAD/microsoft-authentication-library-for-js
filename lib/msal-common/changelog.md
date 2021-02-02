@@ -1,8 +1,43 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 07 Dec 2020 22:19:03 GMT and should not be manually modified.
+This log was last generated on Tue, 02 Feb 2021 01:56:47 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 3.1.0
+
+Tue, 02 Feb 2021 01:56:47 GMT
+
+### Minor changes
+
+- Add wrapper SKU and version to current telemetry header (#2845) (thomas.norling@microsoft.com)
+
+### Patches
+
+- Fix token timestamp calculation (prkanher@microsoft.com)
+- Fix B2C policy switching (#2949) (thomas.norling@microsoft.com)
+- Get package version from version.json (#2915) (thomas.norling@microsoft.com)
+
+## 3.0.0
+
+Thu, 21 Jan 2021 21:48:01 GMT
+
+### Major changes
+
+- Authority metadata caching (#2758) (thomas.norling@microsoft.com)
+
+## 2.1.0
+
+Tue, 12 Jan 2021 00:51:26 GMT
+
+### Minor changes
+
+- Add interface stubs (#2792) (thomas.norling@microsoft.com)
+
+### Patches
+
+- Adding account info equality check function (#2728) (prkanher@microsoft.com)
+- Adding device code timeout to the device code request(#2656) (samuel.kamau@microsoft.com)
 
 ## 2.0.0
 

@@ -20,6 +20,7 @@ import { SilentFlowRequest } from "../request/SilentFlowRequest";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ClientAuthError, ClientAuthErrorMessage } from "../error/ClientAuthError";
 import { ServerError } from "../error/ServerError";
+import { TimeUtils } from "../utils/TimeUtils";
 
 /**
  * OAuth2.0 refresh token client
@@ -30,7 +31,8 @@ export class RefreshTokenClient extends BaseClient {
         super(configuration);
     }
 
-    public async acquireToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null>{
+    public async acquireToken(request: RefreshTokenRequest): Promise<AuthenticationResult> {
+        const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executeTokenRequest(request, this.authority);
 
         const responseHandler = new ResponseHandler(
@@ -46,6 +48,7 @@ export class RefreshTokenClient extends BaseClient {
         return responseHandler.handleServerTokenResponse(
             response.body,
             this.authority,
+            reqTimestamp,
             request.resourceRequestMethod,
             request.resourceRequestUri,
             undefined,
@@ -59,7 +62,7 @@ export class RefreshTokenClient extends BaseClient {
      * Gets cached refresh token and attaches to request, then calls acquireToken API
      * @param request
      */
-    public async acquireTokenByRefreshToken(request: SilentFlowRequest): Promise<AuthenticationResult | null> {
+    public async acquireTokenByRefreshToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
         // Cannot renew token if no request object is given.
         if (!request) {
             throw ClientConfigurationError.createEmptyTokenRequestError();
@@ -94,7 +97,6 @@ export class RefreshTokenClient extends BaseClient {
 
         // fall back to application refresh token acquisition
         return this.acquireTokenWithCachedRefreshToken(request, false);
-
     }
 
     /**

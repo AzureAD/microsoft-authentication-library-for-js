@@ -16,7 +16,6 @@ import { ClientAuthError, ClientAuthErrorMessage } from "../error/ClientAuthErro
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { CacheRecord } from "../cache/entities/CacheRecord";
-import { Authority } from "../authority/Authority";
 
 export class SilentFlowClient extends BaseClient {
 
@@ -29,7 +28,7 @@ export class SilentFlowClient extends BaseClient {
      * the given token and returns the renewed token
      * @param request
      */
-    async acquireToken(request: SilentFlowRequest): Promise<AuthenticationResult | null> {
+    async acquireToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
         try {
             return await this.acquireCachedToken(request);
         } catch (e) {
@@ -58,7 +57,7 @@ export class SilentFlowClient extends BaseClient {
         }
 
         const requestScopes = new ScopeSet(request.scopes || []);
-        const environment = request.authority || Authority.generateEnvironmentFromAuthority(this.authority);
+        const environment = request.authority || this.authority.getPreferredCache();
         const cacheRecord = this.cacheManager.readCacheRecord(request.account, this.config.authOptions.clientId, requestScopes, environment);
 
         if (this.isRefreshRequired(request, cacheRecord.accessToken)) {
