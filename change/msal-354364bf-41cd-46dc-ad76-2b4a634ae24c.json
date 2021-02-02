@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Add deprecation notice to Readme (#2956)",
-  "packageName": "msal",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none"
-}

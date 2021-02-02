@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Add version detection to msal guard for canLoad interface (#2948)",
-  "packageName": "@azure/msal-angular",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}
