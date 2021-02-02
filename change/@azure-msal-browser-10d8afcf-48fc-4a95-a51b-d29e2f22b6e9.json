@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add getInteractionStatusFromEvent to msal-browser (#2885)",
+  "packageName": "@azure/msal-browser",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "patch"
+}
