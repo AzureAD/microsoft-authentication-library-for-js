@@ -2,6 +2,35 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Tue, 02 Feb 2021 01:56:47 GMT",
+      "tag": "msal_v1.4.5",
+      "version": "1.4.5",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Get package version from version.json (#2915)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "a6f4702f9439e318a8cb6dc65d1def16351a84fd",
+            "package": "msal"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Typedocs Updates (#2926)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "3fd4a48143ed4fb62b9e3266338b1abda920d68a",
+            "package": "msal"
+          },
+          {
+            "comment": "Add deprecation notice to Readme (#2956)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "d2c3d3d742bb32411d6fb4846f775400b8c3a49e",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 12 Jan 2021 00:51:26 GMT",
       "tag": "msal_v1.4.4",
       "version": "1.4.4",

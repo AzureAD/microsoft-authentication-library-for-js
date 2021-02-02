@@ -5,7 +5,7 @@ import { AuthError } from "../../src/error/AuthError";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { LogLevel } from "../../src/logger/Logger";
 import { Constants } from "../../src";
-import { version } from "../../package.json";
+import { version } from "../../src/version.json";
 import {TEST_CONFIG, TEST_POP_VALUES} from "../utils/StringConstants";
 import { MockStorageClass } from "../client/ClientTestUtils";
 import { MockCache } from "../cache/entities/cacheConstants";
