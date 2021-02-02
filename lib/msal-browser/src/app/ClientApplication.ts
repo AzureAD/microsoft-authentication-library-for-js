@@ -69,7 +69,7 @@ export abstract class ClientApplication {
      * In Azure B2C, authority is of the form https://{instance}/tfp/{tenant}/{policyName}/
      * Full B2C functionality will be available in this library in future versions.
      *
-     * @param {@link (Configuration:type)} configuration object for the MSAL PublicClientApplication instance
+     * @param configuration Object for the MSAL PublicClientApplication instance
      */
     constructor(configuration: Configuration) {
         /*
@@ -112,7 +112,7 @@ export abstract class ClientApplication {
      * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
      * auth flows.
      * @param hash Hash to process. Defaults to the current value of window.location.hash. Only needs to be provided explicitly if the response to be handled is not contained in the current value.
-     * @returns {Promise.<AuthenticationResult | null>} token response or null. If the return value is null, then no auth redirect was detected.
+     * @returns Token response or null. If the return value is null, then no auth redirect was detected.
      */
     async handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null> {
         this.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
@@ -155,6 +155,7 @@ export abstract class ClientApplication {
      * Checks if navigateToLoginRequestUrl is set, and:
      * - if true, performs logic to cache and navigate
      * - if false, handles hash string and parses response
+     * @param hash 
      */
     private async handleRedirectResponse(hash?: string): Promise<AuthenticationResult | null> {
         if (!this.interactionInProgress()) {
@@ -227,7 +228,7 @@ export abstract class ClientApplication {
     /**
      * Gets the response hash for a redirect request
      * Returns null if interactionType in the state value is not "redirect" or the hash does not contain known properties
-     * @returns {string}
+     * @param hash 
      */
     private getRedirectResponseHash(hash: string): string | null {
         this.logger.verbose("getRedirectResponseHash called");
@@ -241,8 +242,8 @@ export abstract class ClientApplication {
 
     /**
      * 
-     * @param hash 
-     * @param interactionType 
+     * @param hash
+     * @param interactionType
      */
     private validateAndExtractStateFromHash(hash: string, interactionType: InteractionType): string {
         this.logger.verbose("validateAndExtractStateFromHash called");
@@ -266,8 +267,8 @@ export abstract class ClientApplication {
 
     /**
      * Checks if hash exists and handles in window.
-     * @param responseHash
-     * @param interactionHandler
+     * @param hash
+     * @param state
      */
     private async handleHash(hash: string, state: string): Promise<AuthenticationResult> {
         this.logger.verbose("handleHash called");
@@ -298,7 +299,7 @@ export abstract class ClientApplication {
      * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
      * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
      *
-     * @param {@link (RedirectRequest:type)}
+     * @param request
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         // Preflight request
@@ -357,9 +358,10 @@ export abstract class ClientApplication {
 
     /**
      * Use when you want to obtain an access_token for your API via opening a popup window in the user's browser
-     * @param {@link (PopupRequest:type)}
      *
-     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     * @param request
+     * 
+     * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         let validRequest: AuthorizationUrlRequest;
@@ -388,9 +390,11 @@ export abstract class ClientApplication {
 
     /**
      * Helper which obtains an access_token for your API via opening a popup window in the user's browser
-     * @param {@link (PopupRequest:type)}
+     * @param validRequest
+     * @param popupName
+     * @param popup
      *
-     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     private async acquireTokenPopupAsync(validRequest: AuthorizationUrlRequest, popupName: string, popup?: Window|null): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenPopupAsync called");
@@ -471,9 +475,9 @@ export abstract class ClientApplication {
      *
      * If your refresh token has expired, you can use this function to fetch a new set of tokens silently as long as
      * you session on the server still exists.
-     * @param {@link AuthorizationUrlRequest}
+     * @param request {@link SsoSilentRequest}
      *
-     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
@@ -492,8 +496,7 @@ export abstract class ClientApplication {
 
     /**
      * This function uses a hidden iframe to fetch an authorization code from the eSTS. To be used for silent refresh token acquisition and renewal.
-     * @param {@link AuthorizationUrlRequest}
-     * @param request
+     * @param request {@link SsoSilentRequest}
      */
     private async acquireTokenByIframe(request: SsoSilentRequest): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenByIframe called");
@@ -539,11 +542,10 @@ export abstract class ClientApplication {
      * MSAL return's a cached token when available
      * Or it send's a request to the STS to obtain a new token using a refresh token.
      *
-     * @param {@link (SilentRequest:type)}
+     * @param {@link SilentRequest}
      *
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
-     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
-     *
+     * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     protected async acquireTokenByRefreshToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenByRefreshToken called");
@@ -598,7 +600,7 @@ export abstract class ClientApplication {
     /**
      * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
      * Default behaviour is to redirect the user to `window.location.href`.
-     * @param {@link (EndSessionRequest:type)}
+     * @param logoutRequest
      */
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
@@ -646,7 +648,7 @@ export abstract class ClientApplication {
      * Returns all accounts that MSAL currently has data for.
      * (the account object is created at the time of successful login)
      * or empty array when no accounts are found
-     * @returns {@link AccountInfo[]} - Array of account objects in cache
+     * @returns Array of account objects in cache
      */
     getAllAccounts(): AccountInfo[] {
         this.logger.verbose("getAllAccounts called");
@@ -658,7 +660,8 @@ export abstract class ClientApplication {
      * (the account object is created at the time of successful login)
      * or null when no matching account is found.
      * This API is provided for convenience but getAccountById should be used for best reliability
-     * @returns {@link AccountInfo} - the account object stored in MSAL
+     * @param userName
+     * @returns The account object stored in MSAL
      */
     getAccountByUsername(userName: string): AccountInfo|null {
         this.logger.verbose("getAccountByUsername called");
@@ -676,7 +679,8 @@ export abstract class ClientApplication {
      * Returns the signed in account matching homeAccountId.
      * (the account object is created at the time of successful login)
      * or null when no matching account is found
-     * @returns {@link AccountInfo} - the account object stored in MSAL
+     * @param homeAccountId
+     * @returns The account object stored in MSAL
      */
     getAccountByHomeId(homeAccountId: string): AccountInfo|null {
         this.logger.verbose("getAccountByHomeId called");
@@ -694,7 +698,8 @@ export abstract class ClientApplication {
      * Returns the signed in account matching localAccountId.
      * (the account object is created at the time of successful login)
      * or null when no matching account is found
-     * @returns {@link AccountInfo} - the account object stored in MSAL
+     * @param localAccountId
+     * @returns The account object stored in MSAL
      */
     getAccountByLocalId(localAccountId: string): AccountInfo | null {
         this.logger.verbose("getAccountByLocalId called");
@@ -741,7 +746,8 @@ export abstract class ClientApplication {
     /**
      *
      * Use to get the redirect uri configured in MSAL or null.
-     * @returns {string} redirect URL
+     * @param requestRedirectUri
+     * @returns Redirect URL
      *
      */
     protected getRedirectUri(requestRedirectUri?: string): string {
@@ -752,8 +758,8 @@ export abstract class ClientApplication {
 
     /**
      * Use to get the post logout redirect uri configured in MSAL or null.
-     *
-     * @returns {string} post logout redirect URL
+     * @param requestPostLogoutRedirectUri
+     * @returns Post logout redirect URL
      */
     protected getPostLogoutRedirectUri(requestPostLogoutRedirectUri?: string): string {
         this.logger.verbose("getPostLogoutRedirectUri called");
@@ -773,6 +779,7 @@ export abstract class ClientApplication {
 
     /**
      * Used to get a discovered version of the default authority.
+     * @param requestAuthority
      */
     async getDiscoveredAuthority(requestAuthority?: string): Promise<Authority> {
         const authorityOptions: AuthorityOptions = {
@@ -799,6 +806,7 @@ export abstract class ClientApplication {
 
     /**
      * Creates an Authorization Code Client with the given authority, or the default authority.
+     * @param serverTelemetryManager
      * @param authorityUrl
      */
     protected async createAuthCodeClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<AuthorizationCodeClient> {
@@ -809,6 +817,7 @@ export abstract class ClientApplication {
 
     /**
      * Creates an Silent Flow Client with the given authority, or the default authority.
+     * @param serverTelemetryManager
      * @param authorityUrl
      */
     protected async createSilentFlowClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<SilentFlowClient> {
@@ -819,6 +828,7 @@ export abstract class ClientApplication {
 
     /**
      * Creates a Refresh Client with the given authority, or the default authority.
+     * @param serverTelemetryManager
      * @param authorityUrl
      */
     protected async createRefreshTokenClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<RefreshTokenClient> {
@@ -829,6 +839,7 @@ export abstract class ClientApplication {
 
     /**
      * Creates a Client Configuration object with the given request authority, or the default authority.
+     * @param serverTelemetryManager
      * @param requestAuthority
      */
     protected async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string): Promise<ClientConfiguration> {
@@ -862,6 +873,8 @@ export abstract class ClientApplication {
 
     /**
      * Helper to validate app environment before making a request.
+     * @param request
+     * @param interactionType
      */
     protected preflightInteractiveRequest(request: RedirectRequest|PopupRequest, interactionType: InteractionType): AuthorizationUrlRequest {
         // block the reload if it occurred inside a hidden iframe
@@ -877,7 +890,7 @@ export abstract class ClientApplication {
 
     /**
      * Helper to validate app environment before making an auth request
-     * * @param request
+     * * @param interactionType
      */
     protected preflightBrowserEnvironmentCheck(interactionType: InteractionType): void {
         // Block request if not in browser environment
@@ -917,6 +930,12 @@ export abstract class ClientApplication {
         return validatedRequest;
     }
 
+    /**
+     * 
+     * @param apiId 
+     * @param correlationId 
+     * @param forceRefresh 
+     */
     protected initializeServerTelemetryManager(apiId: number, correlationId: string, forceRefresh?: boolean): ServerTelemetryManager {
         const telemetryPayload: ServerTelemetryRequest = {
             clientId: this.config.auth.clientId,
@@ -931,6 +950,7 @@ export abstract class ClientApplication {
     /**
      * Helper to initialize required request parameters for interactive APIs and ssoSilent()
      * @param request
+     * @param interactionType
      */
     protected initializeAuthorizationRequest(request: RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
         const redirectUri = this.getRedirectUri(request.redirectUri);
@@ -1055,6 +1075,10 @@ export abstract class ClientApplication {
         return null;
     }
 
+    /**
+     * Removes callback with provided id from callback array
+     * @param callbackId 
+     */
     removeEventCallback(callbackId: string): void {
         this.eventCallbacks.delete(callbackId);
         this.logger.verbose(`Event callback ${callbackId} removed.`);

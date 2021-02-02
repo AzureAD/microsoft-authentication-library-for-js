@@ -8,7 +8,7 @@ import { Authority } from "../../src/authority/Authority";
 import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { ClientTestUtils } from "../client/ClientTestUtils";
-import { AccountEntity, ClientAuthError, ClientAuthErrorMessage, InteractionRequiredAuthError, ServerError, AuthToken, AuthError, TokenClaims, AuthenticationScheme, ProtocolMode, Logger, LogLevel, AuthorityOptions } from "../../src";
+import { AccountEntity, ClientAuthError, ClientAuthErrorMessage, InteractionRequiredAuthError, ServerError, AuthToken, AuthError, TokenClaims, AuthenticationScheme, ProtocolMode, Logger, LogLevel, AuthorityOptions, TimeUtils } from "../../src";
 import { ServerAuthorizationCodeResponse } from "../../src/response/ServerAuthorizationCodeResponse";
 import { MockStorageClass } from "../client/ClientTestUtils";
 
@@ -109,7 +109,8 @@ describe("ResponseHandler.ts", () => {
             const testResponse: ServerAuthorizationTokenResponse = {...AUTHENTICATION_RESULT.body};
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
             try {
-                const tokenResp = await responseHandler.handleServerTokenResponse(testResponse, testAuthority);
+                const timestamp = TimeUtils.nowSeconds();
+                const tokenResp = await responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp);
                 expect(tokenResp).to.be.undefined;
             } catch(e) {
                 if (e instanceof AuthError) {
@@ -136,8 +137,8 @@ describe("ResponseHandler.ts", () => {
                 done();
                 return null;
             });
-
-            responseHandler.handleServerTokenResponse(testResponse, testAuthority);
+            const timestamp = TimeUtils.nowSeconds();
+            responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp);
         });
 
         it("doesn't create RefreshTokenEntity if refresh_token not in response", (done) => {
@@ -155,7 +156,8 @@ describe("ResponseHandler.ts", () => {
                 return null;
             });
 
-            responseHandler.handleServerTokenResponse(testResponse, testAuthority);
+            const timestamp = TimeUtils.nowSeconds();
+            responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp);
         });
 
         it("create CacheRecord with all token entities", (done) => {
@@ -172,7 +174,8 @@ describe("ResponseHandler.ts", () => {
                 return null;
             });
 
-            responseHandler.handleServerTokenResponse(testResponse, testAuthority);
+            const timestamp = TimeUtils.nowSeconds();
+            responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp);
         });
     });
 
@@ -182,7 +185,8 @@ describe("ResponseHandler.ts", () => {
             testResponse.access_token = null;
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
-            const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority);
+            const timestamp = TimeUtils.nowSeconds();
+            const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp);
 
             expect(result.accessToken).to.be.eq("");
             expect(result.scopes).to.be.length(0);
@@ -195,7 +199,8 @@ describe("ResponseHandler.ts", () => {
             testResponse.refresh_token = null;
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
-            const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority);
+            const timestamp = TimeUtils.nowSeconds();
+            const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp);
 
             expect(result.familyId).to.be.eq("");
         });
@@ -218,7 +223,8 @@ describe("ResponseHandler.ts", () => {
             });
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
-            const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority, "POST", TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS);
+            const timestamp = TimeUtils.nowSeconds();
+            const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp, "POST", TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS);
 
             expect(result.tokenType).to.be.eq(AuthenticationScheme.POP);
             expect(result.accessToken).to.be.eq(signedJwt);

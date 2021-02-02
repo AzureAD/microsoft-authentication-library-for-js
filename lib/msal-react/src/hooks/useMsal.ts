@@ -6,4 +6,7 @@
 import { useContext } from "react";
 import { IMsalContext, MsalContext } from "../MsalContext";
 
+/**
+ * Returns Msal Context values
+ */
 export const useMsal = (): IMsalContext => useContext(MsalContext);

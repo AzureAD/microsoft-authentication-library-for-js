@@ -1,0 +1,25 @@
+{
+    "include": ["lib"],
+    "exclude": ["**/node_modules", "**/test", "**/stories", "**/*.spec.ts"],
+    "compilerOptions": {
+        "module": "esnext",
+        "target": "es5",
+        "lib": ["dom", "esnext"],
+        "importHelpers": true,
+        "declaration": true,
+        "sourceMap": true,
+        "rootDir": "./",
+        "moduleResolution": "node",
+        "baseUrl": "./",
+        "jsx": "react",
+        "esModuleInterop": true,
+        "resolveJsonModule": true,
+        "experimentalDecorators": true,
+        "paths": {
+            "@azure/*": [
+                "./lib/*/src"
+            ]
+        }
+    }
+  }
+  
