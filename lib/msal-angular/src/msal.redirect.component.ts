@@ -9,20 +9,19 @@
  * Import this component to use redirects in your app.
  */
 
-
 import { Component, OnInit } from "@angular/core";
 import { MsalService } from "./msal.service";
 
 @Component({
-  selector: 'app-redirect',
-  template: ''
+    selector: "app-redirect",
+    template: ""
 })
 export class MsalRedirectComponent implements OnInit {
 
-  constructor(private authService: MsalService) { }
+    constructor(private authService: MsalService) { }
 
-  ngOnInit(): void {    
-    this.authService.handleRedirectObservable().subscribe();
-  }
+    ngOnInit(): void {    
+        this.authService.handleRedirectObservable().subscribe();
+    }
 
 }
