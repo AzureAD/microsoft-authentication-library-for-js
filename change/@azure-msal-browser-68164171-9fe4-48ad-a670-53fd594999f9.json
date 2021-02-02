@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix temp cache cleanup when using localStorage (#2935)",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

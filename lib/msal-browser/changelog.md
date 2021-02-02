@@ -1,8 +1,22 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Thu, 21 Jan 2021 21:48:01 GMT and should not be manually modified.
+This log was last generated on Tue, 02 Feb 2021 01:56:47 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.11.0
+
+Tue, 02 Feb 2021 01:56:47 GMT
+
+### Minor changes
+
+- Add initializeWrapperLibrary API (#2845) (thomas.norling@microsoft.com)
+- Add getInteractionStatusFromEvent to msal-browser (#2885) (joarroyo@microsoft.com)
+
+### Patches
+
+- Fix temp cache cleanup when using localStorage (#2935) (thomas.norling@microsoft.com)
+- Get package version from version.json (#2915) (thomas.norling@microsoft.com)
 
 ## 2.10.0
 

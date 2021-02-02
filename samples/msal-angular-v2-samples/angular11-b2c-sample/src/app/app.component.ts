@@ -1,6 +1,6 @@
 import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
 import { MsalService, MsalBroadcastService, MSAL_GUARD_CONFIG, MsalGuardConfiguration } from '@azure/msal-angular';
-import { EventMessage, EventType, InteractionType, PopupRequest, RedirectRequest, AuthenticationResult, AuthError } from '@azure/msal-browser';
+import { EventMessage, EventType, InteractionType, InteractionStatus, PopupRequest, RedirectRequest, AuthenticationResult, AuthError } from '@azure/msal-browser';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { b2cPolicies } from './b2c-config';
@@ -19,7 +19,7 @@ interface IdTokenClaims extends AuthenticationResult {
 export class AppComponent implements OnInit, OnDestroy {
   title = 'MSAL Angular v2 B2C Sample';
   isIframe = false;
-  loggedIn = false;
+  loginDisplay = false;
   private readonly _destroying$ = new Subject<void>();
 
   constructor(
@@ -31,7 +31,14 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.isIframe = window !== window.parent && !window.opener;
 
-    this.checkAccount();
+    this.msalBroadcastService.inProgress$
+    .pipe(
+      filter((status: InteractionStatus) => status === InteractionStatus.None),
+      takeUntil(this._destroying$)
+    )
+    .subscribe(() => {
+      this.setLoginDisplay();
+    });
 
     this.msalBroadcastService.msalSubject$
       .pipe(
@@ -54,7 +61,6 @@ export class AppComponent implements OnInit, OnDestroy {
           return this.authService.logout();
         }
 
-        this.checkAccount();
         return result;
       });
 
@@ -73,7 +79,7 @@ export class AppComponent implements OnInit, OnDestroy {
             let resetPasswordFlowRequest = {
               scopes: ["openid"],
               authority: b2cPolicies.authorities.forgotPassword.authority,
-            }
+            };
 
             this.login(resetPasswordFlowRequest);
           }
@@ -81,24 +87,21 @@ export class AppComponent implements OnInit, OnDestroy {
       });
   }
 
-  checkAccount() {
-    this.loggedIn = this.authService.instance.getAllAccounts().length > 0;
+  setLoginDisplay() {
+    this.loginDisplay = this.authService.instance.getAllAccounts().length > 0;
   }
 
   login(userFlowRequest?: RedirectRequest | PopupRequest) {
-    this.msalGuardConfig
     if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
       if (this.msalGuardConfig.authRequest) {
         this.authService.loginPopup({...this.msalGuardConfig.authRequest, ...userFlowRequest} as PopupRequest)
           .subscribe((response: AuthenticationResult) => {
             this.authService.instance.setActiveAccount(response.account);
-            this.checkAccount();
           });
       } else {
         this.authService.loginPopup(userFlowRequest)
           .subscribe((response: AuthenticationResult) => {
             this.authService.instance.setActiveAccount(response.account);
-            this.checkAccount();
           });
       }
     } else {
@@ -118,7 +121,7 @@ export class AppComponent implements OnInit, OnDestroy {
     let editProfileFlowRequest = {
       scopes: ["openid"],
       authority: b2cPolicies.authorities.editProfile.authority,
-    }
+    };
 
     this.login(editProfileFlowRequest);
   }

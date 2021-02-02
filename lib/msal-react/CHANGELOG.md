@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-react
 
-This log was last generated on Thu, 21 Jan 2021 21:48:01 GMT and should not be manually modified.
+This log was last generated on Tue, 02 Feb 2021 01:56:47 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.4
+
+Tue, 02 Feb 2021 01:56:47 GMT
+
+### Changes
+
+- Get package version from version.json (#2915) (thomas.norling@microsoft.com)
+- Use interactionStatus and inProgress from msal-browser (#2885) (joarroyo@microsoft.com)
+- Pass SKU and version to msal-browser (#2845) (thomas.norling@microsoft.com)
 
 ## 1.0.0-alpha.3
 
