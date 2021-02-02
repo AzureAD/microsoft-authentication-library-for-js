@@ -12,6 +12,7 @@ export class AuthorityMetadataEntity {
     aliases: Array<string>;
     preferred_cache: string;
     preferred_network: string;
+    canonical_authority: string;
     authorization_endpoint: string;
     token_endpoint: string;
     end_session_endpoint: string;
@@ -50,6 +51,14 @@ export class AuthorityMetadataEntity {
     }
 
     /**
+     * Save the authority that was used to create this cache entry
+     * @param authority 
+     */
+    updateCanonicalAuthority(authority: string) {
+        this.canonical_authority = authority;
+    }
+
+    /**
      * Reset the exiresAt value
      */
     resetExpiresAt() {
@@ -78,6 +87,7 @@ export class AuthorityMetadataEntity {
             entity.hasOwnProperty("aliases") &&
             entity.hasOwnProperty("preferred_cache") &&
             entity.hasOwnProperty("preferred_network") &&
+            entity.hasOwnProperty("canonical_authority") &&
             entity.hasOwnProperty("authorization_endpoint") &&
             entity.hasOwnProperty("token_endpoint") &&
             entity.hasOwnProperty("end_session_endpoint") &&
