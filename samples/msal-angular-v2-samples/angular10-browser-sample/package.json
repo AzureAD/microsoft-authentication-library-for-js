@@ -21,7 +21,7 @@
     "@angular/platform-browser": "~10.0.9",
     "@angular/platform-browser-dynamic": "~10.0.9",
     "@angular/router": "~10.0.9",
-    "@azure/msal-browser": "^2.8.0",
+    "@azure/msal-browser": "^2.11.0",
     "minimatch": "^3.0.4",
     "path": "^0.12.7",
     "rxjs": "~6.5.5",
