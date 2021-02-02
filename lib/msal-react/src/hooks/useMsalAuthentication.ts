@@ -16,6 +16,14 @@ export type MsalAuthenticationResult = {
     error: AuthError|null;
 };
 
+/**
+ * Invokes a login call if a user is not currently signed-in. Failed logins can be retried using the login callback returned.
+ * Optionally provide a request object to be used in the login call.
+ * Optionally provide a specific user that should be logged in.
+ * @param interactionType 
+ * @param authenticationRequest 
+ * @param accountIdentifiers 
+ */
 export function useMsalAuthentication(
     interactionType: InteractionType, 
     authenticationRequest?: PopupRequest|RedirectRequest|SsoSilentRequest, 
