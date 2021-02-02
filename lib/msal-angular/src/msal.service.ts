@@ -69,13 +69,13 @@ export class MsalService implements IMsalService {
      */
     getLogger(): Logger {
         if (!this.logger) {
-            this.logger = this.instance.getLogger().clone(Constants.SKU, Constants.VERSION);
+            this.logger = this.instance.getLogger().clone(name, version);
         }
         return this.logger;
     }
     // Create a logger instance for msal-angular with the same options as msal-browser
     setLogger(logger: Logger): void {
-        this.logger = logger.clone(Constants.SKU, Constants.VERSION);
+        this.logger = logger.clone(name, version);
         this.instance.setLogger(logger);
     }
 
