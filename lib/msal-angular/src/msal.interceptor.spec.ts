@@ -131,6 +131,37 @@ describe('MsalInterceptor', () => {
     }, 200);
   });
 
+  it("attaches authorization header with access token via interaction if acquireTokenSilent returns null access token", done => {
+    spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
+      new Promise((resolve) => {
+        //@ts-ignore
+        resolve({
+          accessToken: null
+        });
+      })
+    ));
+
+    spyOn(PublicClientApplication.prototype, "acquireTokenPopup").and.returnValue((
+      new Promise((resolve) => {
+        //@ts-ignore
+        resolve({
+          accessToken: "access-token"
+        });
+      })
+    ));
+
+    spyOn(PublicClientApplication.prototype, "getActiveAccount").and.returnValue(sampleAccountInfo);
+
+    httpClient.get("https://graph.microsoft.com/v1.0/me").subscribe();
+    setTimeout(() => {
+      const request = httpMock.expectOne("https://graph.microsoft.com/v1.0/me");
+      request.flush({ data: "test" });
+      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+      httpMock.verify();
+      done();
+    }, 200);
+  });
+
   it("attaches authorization header with access token for protected resource with wildcard", done => {
     spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
       new Promise((resolve) => {

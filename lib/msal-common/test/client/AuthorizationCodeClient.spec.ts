@@ -42,10 +42,6 @@ import { AADServerParamKeys, PromptValue, ResponseMode, SSOTypes, Authentication
 import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils";
 
 describe("AuthorizationCodeClient unit tests", () => {
-    beforeEach(() => {
-        ClientTestUtils.setCloudDiscoveryMetadataStubs();
-    });
-
     afterEach(() => {
         sinon.restore();
     });
@@ -53,7 +49,7 @@ describe("AuthorizationCodeClient unit tests", () => {
     describe("Constructor", () => {
 
         it("creates a AuthorizationCodeClient that extends BaseClient", async () => {
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
             expect(client).to.be.not.null;
@@ -65,15 +61,19 @@ describe("AuthorizationCodeClient unit tests", () => {
     describe("Authorization url creation", () => {
 
         it("Creates an authorization url with default parameters", async () => {
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
             const authCodeUrlRequest: AuthorizationUrlRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                responseMode: ResponseMode.QUERY,
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl).to.contain(Constants.DEFAULT_AUTHORITY);
@@ -89,7 +89,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("Creates an authorization url passing in optional parameters", async () => {
             // Override with alternate authority openid_config
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(ALTERNATE_OPENID_CONFIG_RESPONSE);
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
 
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
@@ -97,7 +97,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const authCodeUrlRequest: AuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
-                authority: TEST_CONFIG.alternateValidAuthority,
+                authority: TEST_CONFIG.validAuthority,
                 responseMode: ResponseMode.FORM_POST,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
                 codeChallengeMethod: TEST_CONFIG.CODE_CHALLENGE_METHOD,
@@ -106,11 +106,13 @@ describe("AuthorizationCodeClient unit tests", () => {
                 loginHint: TEST_CONFIG.LOGIN_HINT,
                 domainHint: TEST_CONFIG.DOMAIN_HINT,
                 claims: TEST_CONFIG.CLAIMS,
-                nonce: TEST_CONFIG.NONCE
+                nonce: TEST_CONFIG.NONCE,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
-            expect(loginUrl).to.contain(TEST_CONFIG.alternateValidAuthority);
-            expect(loginUrl).to.contain(ALTERNATE_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
+            expect(loginUrl).to.contain(TEST_CONFIG.validAuthority);
+            expect(loginUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
             expect(loginUrl).to.contain(`${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
@@ -127,7 +129,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("Prefers sid over loginHint if both provided", async () => {
             // Override with alternate authority openid_config
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(ALTERNATE_OPENID_CONFIG_RESPONSE);
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
@@ -136,7 +138,11 @@ describe("AuthorizationCodeClient unit tests", () => {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 loginHint: TEST_CONFIG.LOGIN_HINT,
-                sid: TEST_CONFIG.SID
+                sid: TEST_CONFIG.SID,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER,
+                authority: TEST_CONFIG.validAuthority,
+                responseMode: ResponseMode.FRAGMENT
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl).to.not.contain(`${SSOTypes.LOGIN_HINT}=`);
@@ -145,7 +151,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("Prefers loginHint over Account if both provided", async () => {
             // Override with alternate authority openid_config
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(ALTERNATE_OPENID_CONFIG_RESPONSE);
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
@@ -154,7 +160,11 @@ describe("AuthorizationCodeClient unit tests", () => {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 loginHint: TEST_CONFIG.LOGIN_HINT,
-                account: TEST_ACCOUNT_INFO
+                account: TEST_ACCOUNT_INFO,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER,
+                authority: TEST_CONFIG.validAuthority,
+                responseMode: ResponseMode.FRAGMENT
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl).to.contain(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_CONFIG.LOGIN_HINT)}`);
@@ -163,7 +173,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("Sets login_hint to Account.username if login_hint and sid are not provided", async () => {
             // Override with alternate authority openid_config
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(ALTERNATE_OPENID_CONFIG_RESPONSE);
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
@@ -171,7 +181,11 @@ describe("AuthorizationCodeClient unit tests", () => {
             const authCodeUrlRequest: AuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
-                account: TEST_ACCOUNT_INFO
+                account: TEST_ACCOUNT_INFO,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER,
+                authority: TEST_CONFIG.validAuthority,
+                responseMode: ResponseMode.FRAGMENT
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl).to.contain(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_ACCOUNT_INFO.username)}`);
@@ -180,7 +194,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("Creates a login URL with scopes from given token request", async () => {
             // Override with alternate authority openid_config
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(ALTERNATE_OPENID_CONFIG_RESPONSE);
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
@@ -191,39 +205,22 @@ describe("AuthorizationCodeClient unit tests", () => {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: [testScope1, testScope2],
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER,
+                authority: TEST_CONFIG.validAuthority,
+                responseMode: ResponseMode.FRAGMENT
             };
 
             const loginUrl = await client.getAuthCodeUrl(loginRequest);
             expect(loginUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${testScope1} ${testScope2}`)}`);
-        });
-
-        it("Uses authority if given in request", async () => {
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(ALTERNATE_OPENID_CONFIG_RESPONSE);
-            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
-            const client = new AuthorizationCodeClient(config);
-
-            const loginRequest: AuthorizationUrlRequest = {
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
-                authority: `${TEST_URIS.ALTERNATE_INSTANCE}/common`,
-                codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
-            };
-            const loginUrl = await client.getAuthCodeUrl(loginRequest);
-            expect(loginUrl).to.contain(TEST_URIS.ALTERNATE_INSTANCE);
-            expect(loginUrl).to.contain(ALTERNATE_OPENID_CONFIG_RESPONSE.body.authorization_endpoint);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${Constants.OPENID_SCOPE} ${Constants.PROFILE_SCOPE} ${Constants.OFFLINE_ACCESS_SCOPE}`)}`);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIR_URI)}`);
         });
     });
 
     describe("handleFragmentResponse()", () => {
 
         it("returns valid server code response", async () => {
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const testSuccessHash = `#code=thisIsATestCode&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${encodeURIComponent(TEST_STATE_VALUES.ENCODED_LIB_STATE)}`;
             config.cryptoInterface.base64Decode = (input: string): string => {
@@ -255,7 +252,7 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("returns valid server code response when state is encoded twice", async () => {
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const testSuccessHash = `#code=thisIsATestCode&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${encodeURIComponent(encodeURIComponent(TEST_STATE_VALUES.ENCODED_LIB_STATE))}`;
             config.cryptoInterface.base64Decode = (input: string): string => {
@@ -288,45 +285,52 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("throws server error when error is in hash", async () => {
             const testErrorHash = `#error=error_code&error_description=msal+error+description&state=${encodeURIComponent(TEST_STATE_VALUES.ENCODED_LIB_STATE)}`;
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client: AuthorizationCodeClient = new AuthorizationCodeClient(config);
             const cacheStorageMock = config.storageInterface as MockStorageClass;
             expect(() => client.handleFragmentResponse(testErrorHash, TEST_STATE_VALUES.ENCODED_LIB_STATE)).to.throw("msal error description");
-            expect(cacheStorageMock.store).to.be.empty;
+            expect(cacheStorageMock.getKeys().length).to.be.eq(1);
+            expect(cacheStorageMock.getAuthorityMetadataKeys().length).to.be.eq(1)
 
             expect(() => client.handleFragmentResponse(testErrorHash, TEST_STATE_VALUES.ENCODED_LIB_STATE)).to.throw(ServerError);
-            expect(cacheStorageMock.store).to.be.empty;
+            expect(cacheStorageMock.getKeys().length).to.be.eq(1);
+            expect(cacheStorageMock.getAuthorityMetadataKeys().length).to.be.eq(1)
         });
     });
 
     describe("Acquire a token", () => {
 
         it("Throws error if null code request is passed", async () => {
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
             await expect(client.acquireToken(null, null)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
-            expect(config.storageInterface.getKeys()).to.be.empty;
+            expect(config.storageInterface.getKeys().length).to.be.eq(1);
+            expect(config.storageInterface.getAuthorityMetadataKeys().length).to.be.eq(1);
         });
 
         it("Throws error if code response does not contain authorization code", async () => {
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
             const codeRequest: AuthorizationCodeRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: ["scope"],
-                code: null
+                code: null,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER,
+                authority: TEST_CONFIG.validAuthority
             };
             await expect(client.acquireToken(codeRequest, null)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
-            expect(config.storageInterface.getKeys()).to.be.empty;
+            expect(config.storageInterface.getKeys().length).to.be.eq(1);
+            expect(config.storageInterface.getAuthorityMetadataKeys().length).to.be.eq(1);
         });
 
         it("Acquires a token successfully", async () => {
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = sinon.spy(AuthorizationCodeClient.prototype, <any>"createTokenRequestBody");
 
@@ -382,7 +386,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 code: TEST_TOKENS.AUTHORIZATION_CODE,
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                claims: TEST_CONFIG.CLAIMS
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
             };
 
             const authenticationResult = await client.acquireToken(authCodeRequest, {
@@ -404,7 +410,7 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("Sends the required parameters when a pop token is requested", async () => {
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").resolves(POP_AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = sinon.spy(AuthorizationCodeClient.prototype, <any>"createTokenRequestBody");
 
@@ -481,7 +487,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 resourceRequestMethod: "POST",
                 resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
-                claims: TEST_CONFIG.CLAIMS
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID
             };
 
             const authenticationResult = await client.acquireToken(authCodeRequest, {
@@ -509,7 +516,7 @@ describe("AuthorizationCodeClient unit tests", () => {
     describe("getLogoutUri()", () => {
 
         it("Returns a uri and clears the cache", async () => {
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
             const testAccount: AccountInfo = {
@@ -521,14 +528,14 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
 
             const removeAccountSpy = sinon.stub(MockStorageClass.prototype, "clear").returns();
-            const logoutUri = client.getLogoutUri({account: null});
+            const logoutUri = client.getLogoutUri({account: null, correlationId: RANDOM_TEST_GUID});
 
             expect(removeAccountSpy.calledOnce).to.be.true;
-            expect(logoutUri).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common"));
+            expect(logoutUri).to.be.eq(`${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common")}?${AADServerParamKeys.CLIENT_REQUEST_ID}=${RANDOM_TEST_GUID}`);
         });
 
         it("Returns a uri and clears the cache of relevant account info", async () => {
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
             const testAccount: AccountInfo = {
@@ -540,14 +547,14 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
 
             const removeAccountSpy = sinon.stub(CacheManager.prototype, "removeAccount").returns(true);
-            const logoutUri = client.getLogoutUri({account: testAccount});
+            const logoutUri = client.getLogoutUri({account: testAccount, correlationId: RANDOM_TEST_GUID});
 
             expect(removeAccountSpy.calledWith(AccountEntity.generateAccountCacheKey(testAccount))).to.be.true;
-            expect(logoutUri).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common"));
+            expect(logoutUri).to.be.eq(`${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common")}?${AADServerParamKeys.CLIENT_REQUEST_ID}=${RANDOM_TEST_GUID}`);
         });
 
         it("Returns a uri with given postLogoutUri and correlationId", async () => {
-            sinon.stub(Authority.prototype, <any>"discoverEndpoints").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
             const testAccount: AccountInfo = {

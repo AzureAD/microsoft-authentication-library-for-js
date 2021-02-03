@@ -8,4 +8,6 @@ export type ServerTelemetryRequest = {
     apiId: number;
     correlationId: string;
     forceRefresh?: boolean;
+    wrapperSKU?: string;
+    wrapperVer?: string;
 };

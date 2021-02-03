@@ -4,10 +4,10 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { Authority, TrustedAuthority, StringUtils, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationCodeClient, PromptValue, ServerError, InteractionRequiredAuthError, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, AuthenticationScheme, SilentFlowRequest, EndSessionRequest as CommonEndSessionRequest, AccountEntity, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION } from "@azure/msal-common";
+import { Authority, StringUtils, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationCodeClient, PromptValue, ServerError, InteractionRequiredAuthError, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, AuthenticationScheme, SilentFlowRequest, EndSessionRequest as CommonEndSessionRequest, AccountEntity, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthorityOptions } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
-import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, BrowserCacheLocation } from "../utils/BrowserConstants";
+import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, BrowserCacheLocation, WrapperSKU } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserStateObject, BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
@@ -18,7 +18,7 @@ import { PopupRequest } from "../request/PopupRequest";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { version, name } from "../../package.json";
+import { version, name } from "../version.json";
 import { EventError, EventMessage, EventPayload, EventCallbackFunction } from "../event/EventMessage";
 import { EventType } from "../event/EventType";
 import { EndSessionRequest } from "../request/EndSessionRequest";
@@ -38,9 +38,6 @@ export abstract class ClientApplication {
     // Input configuration by developer/user
     protected config: BrowserConfiguration;
 
-    // Default authority
-    protected defaultAuthority: Authority | null;
-
     // Logger
     protected logger: Logger;
 
@@ -49,6 +46,10 @@ export abstract class ClientApplication {
 
     // Sets the account to use if no account info is given
     private activeLocalAccountId: string | null;
+
+    // Set the SKU and Version for wrapper library if applicable
+    private wrapperSKU: string | undefined;
+    private wrapperVer: string | undefined;
 
     // Callback for subscribing to events
     private eventCallbacks: Map<string, EventCallbackFunction>;
@@ -72,7 +73,7 @@ export abstract class ClientApplication {
      * In Azure B2C, authority is of the form https://{instance}/tfp/{tenant}/{policyName}/
      * Full B2C functionality will be available in this library in future versions.
      *
-     * @param {@link (Configuration:type)} configuration object for the MSAL PublicClientApplication instance
+     * @param configuration Object for the MSAL PublicClientApplication instance
      */
     constructor(configuration: Configuration) {
         /*
@@ -84,7 +85,6 @@ export abstract class ClientApplication {
         // Set the configuration.
         this.config = buildConfiguration(configuration, this.isBrowserEnvironment);
 
-        this.defaultAuthority = null;
         this.activeLocalAccountId = null;
 
         // Array of events
@@ -107,9 +107,6 @@ export abstract class ClientApplication {
 
         // Initialize the browser storage class.
         this.browserStorage = new BrowserCacheManager(this.config.auth.clientId, this.config.cache, this.browserCrypto, this.logger);
-
-        // Initialize default authority instance
-        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.auth.knownAuthorities, this.config.auth.cloudDiscoveryMetadata);
     }
 
     // #region Redirect Flow
@@ -119,7 +116,7 @@ export abstract class ClientApplication {
      * has loaded during redirect flows. This should be invoked on all page loads involved in redirect
      * auth flows.
      * @param hash Hash to process. Defaults to the current value of window.location.hash. Only needs to be provided explicitly if the response to be handled is not contained in the current value.
-     * @returns {Promise.<AuthenticationResult | null>} token response or null. If the return value is null, then no auth redirect was detected.
+     * @returns Token response or null. If the return value is null, then no auth redirect was detected.
      */
     async handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null> {
         this.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
@@ -159,6 +156,7 @@ export abstract class ClientApplication {
      * Checks if navigateToLoginRequestUrl is set, and:
      * - if true, performs logic to cache and navigate
      * - if false, handles hash string and parses response
+     * @param hash 
      */
     private async handleRedirectResponse(hash?: string): Promise<AuthenticationResult | null> {
         if (!this.interactionInProgress()) {
@@ -169,6 +167,7 @@ export abstract class ClientApplication {
         const responseHash = this.getRedirectResponseHash(hash || window.location.hash);
         if (!responseHash) {
             // Not a recognized server response hash or hash not associated with a redirect request
+            this.logger.info("handleRedirectPromise did not detect a response hash as a result of a redirect. Cleaning temporary cache.");
             this.browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
             return null;
         }
@@ -225,7 +224,7 @@ export abstract class ClientApplication {
     /**
      * Gets the response hash for a redirect request
      * Returns null if interactionType in the state value is not "redirect" or the hash does not contain known properties
-     * @returns {string}
+     * @param hash 
      */
     private getRedirectResponseHash(hash: string): string | null {
         // Get current location hash from window or cache.
@@ -238,8 +237,8 @@ export abstract class ClientApplication {
 
     /**
      * 
-     * @param hash 
-     * @param interactionType 
+     * @param hash
+     * @param interactionType
      */
     private validateAndExtractStateFromHash(hash: string, interactionType: InteractionType): string {
         // Deserialize hash fragment response parameters.
@@ -262,8 +261,8 @@ export abstract class ClientApplication {
 
     /**
      * Checks if hash exists and handles in window.
-     * @param responseHash
-     * @param interactionHandler
+     * @param hash
+     * @param state
      */
     private async handleHash(hash: string, state: string): Promise<AuthenticationResult> {
         const cachedRequest = this.browserStorage.getCachedRequest(state, this.browserCrypto);
@@ -293,7 +292,7 @@ export abstract class ClientApplication {
      * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
      * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
      *
-     * @param {@link (RedirectRequest:type)}
+     * @param request
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         // Preflight request
@@ -351,9 +350,10 @@ export abstract class ClientApplication {
 
     /**
      * Use when you want to obtain an access_token for your API via opening a popup window in the user's browser
-     * @param {@link (PopupRequest:type)}
      *
-     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     * @param request
+     * 
+     * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         let validRequest: AuthorizationUrlRequest;
@@ -379,9 +379,11 @@ export abstract class ClientApplication {
 
     /**
      * Helper which obtains an access_token for your API via opening a popup window in the user's browser
-     * @param {@link (PopupRequest:type)}
+     * @param validRequest
+     * @param popupName
+     * @param popup
      *
-     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     private async acquireTokenPopupAsync(validRequest: AuthorizationUrlRequest, popupName: string, popup?: Window|null): Promise<AuthenticationResult> {
         // If logged in, emit acquire token events
@@ -461,9 +463,9 @@ export abstract class ClientApplication {
      *
      * If your refresh token has expired, you can use this function to fetch a new set of tokens silently as long as
      * you session on the server still exists.
-     * @param {@link AuthorizationUrlRequest}
+     * @param request {@link SsoSilentRequest}
      *
-     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
@@ -481,8 +483,7 @@ export abstract class ClientApplication {
 
     /**
      * This function uses a hidden iframe to fetch an authorization code from the eSTS. To be used for silent refresh token acquisition and renewal.
-     * @param {@link AuthorizationUrlRequest}
-     * @param request
+     * @param request {@link SsoSilentRequest}
      */
     private async acquireTokenByIframe(request: SsoSilentRequest): Promise<AuthenticationResult> {
         // Check that we have some SSO data
@@ -527,11 +528,10 @@ export abstract class ClientApplication {
      * MSAL return's a cached token when available
      * Or it send's a request to the STS to obtain a new token using a refresh token.
      *
-     * @param {@link (SilentRequest:type)}
+     * @param {@link SilentRequest}
      *
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
-     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
-     *
+     * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     protected async acquireTokenByRefreshToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
         this.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, request);
@@ -584,7 +584,7 @@ export abstract class ClientApplication {
     /**
      * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
      * Default behaviour is to redirect the user to `window.location.href`.
-     * @param {@link (EndSessionRequest:type)}
+     * @param logoutRequest
      */
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
@@ -630,7 +630,7 @@ export abstract class ClientApplication {
      * Returns all accounts that MSAL currently has data for.
      * (the account object is created at the time of successful login)
      * or empty array when no accounts are found
-     * @returns {@link AccountInfo[]} - Array of account objects in cache
+     * @returns Array of account objects in cache
      */
     getAllAccounts(): AccountInfo[] {
         return this.isBrowserEnvironment ? this.browserStorage.getAllAccounts() : [];
@@ -641,7 +641,8 @@ export abstract class ClientApplication {
      * (the account object is created at the time of successful login)
      * or null when no matching account is found.
      * This API is provided for convenience but getAccountById should be used for best reliability
-     * @returns {@link AccountInfo} - the account object stored in MSAL
+     * @param userName
+     * @returns The account object stored in MSAL
      */
     getAccountByUsername(userName: string): AccountInfo|null {
         const allAccounts = this.getAllAccounts();
@@ -656,7 +657,8 @@ export abstract class ClientApplication {
      * Returns the signed in account matching homeAccountId.
      * (the account object is created at the time of successful login)
      * or null when no matching account is found
-     * @returns {@link AccountInfo} - the account object stored in MSAL
+     * @param homeAccountId
+     * @returns The account object stored in MSAL
      */
     getAccountByHomeId(homeAccountId: string): AccountInfo|null {
         const allAccounts = this.getAllAccounts();
@@ -671,7 +673,8 @@ export abstract class ClientApplication {
      * Returns the signed in account matching localAccountId.
      * (the account object is created at the time of successful login)
      * or null when no matching account is found
-     * @returns {@link AccountInfo} - the account object stored in MSAL
+     * @param localAccountId
+     * @returns The account object stored in MSAL
      */
     getAccountByLocalId(localAccountId: string): AccountInfo | null {
         const allAccounts = this.getAllAccounts();
@@ -708,22 +711,13 @@ export abstract class ClientApplication {
     /**
      *
      * Use to get the redirect uri configured in MSAL or null.
-     * @returns {string} redirect URL
+     * @param requestRedirectUri
+     * @returns Redirect URL
      *
      */
     protected getRedirectUri(requestRedirectUri?: string): string {
         const redirectUri = requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
         return UrlString.getAbsoluteUrl(redirectUri, BrowserUtils.getCurrentUri());
-    }
-
-    /**
-     * Use to get the post logout redirect uri configured in MSAL or null.
-     *
-     * @returns {string} post logout redirect URL
-     */
-    protected getPostLogoutRedirectUri(requestPostLogoutRedirectUri?: string): string {
-        const postLogoutRedirectUri = requestPostLogoutRedirectUri || this.config.auth.postLogoutRedirectUri || BrowserUtils.getCurrentUri();
-        return UrlString.getAbsoluteUrl(postLogoutRedirectUri, BrowserUtils.getCurrentUri());
     }
 
     /**
@@ -737,12 +731,21 @@ export abstract class ClientApplication {
 
     /**
      * Used to get a discovered version of the default authority.
+     * @param requestAuthority
      */
-    async getDiscoveredDefaultAuthority(): Promise<Authority> {
-        if (!this.defaultAuthority) {
-            this.defaultAuthority = await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient, this.config.auth.protocolMode);
+    async getDiscoveredAuthority(requestAuthority?: string): Promise<Authority> {
+        const authorityOptions: AuthorityOptions = {
+            protocolMode: this.config.auth.protocolMode,
+            knownAuthorities: this.config.auth.knownAuthorities,
+            cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
+            authorityMetadata: this.config.auth.authorityMetadata
+        };
+
+        if (requestAuthority) {
+            return await AuthorityFactory.createDiscoveredInstance(requestAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions);
         }
-        return this.defaultAuthority;
+
+        return await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient, this.browserStorage, authorityOptions);
     }
 
     /**
@@ -755,6 +758,7 @@ export abstract class ClientApplication {
 
     /**
      * Creates an Authorization Code Client with the given authority, or the default authority.
+     * @param serverTelemetryManager
      * @param authorityUrl
      */
     protected async createAuthCodeClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<AuthorizationCodeClient> {
@@ -765,6 +769,7 @@ export abstract class ClientApplication {
 
     /**
      * Creates an Silent Flow Client with the given authority, or the default authority.
+     * @param serverTelemetryManager
      * @param authorityUrl
      */
     protected async createSilentFlowClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<SilentFlowClient> {
@@ -775,6 +780,7 @@ export abstract class ClientApplication {
 
     /**
      * Creates a Refresh Client with the given authority, or the default authority.
+     * @param serverTelemetryManager
      * @param authorityUrl
      */
     protected async createRefreshTokenClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<RefreshTokenClient> {
@@ -785,20 +791,17 @@ export abstract class ClientApplication {
 
     /**
      * Creates a Client Configuration object with the given request authority, or the default authority.
+     * @param serverTelemetryManager
      * @param requestAuthority
      */
     protected async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string): Promise<ClientConfiguration> {
-        // If the requestAuthority is passed and is not equivalent to the default configured authority, create new authority and discover endpoints. Return default authority otherwise.
-        const discoveredAuthority = (requestAuthority && requestAuthority !== this.config.auth.authority) ? await AuthorityFactory.createDiscoveredInstance(requestAuthority, this.config.system.networkClient, this.config.auth.protocolMode)
-            : await this.getDiscoveredDefaultAuthority();
+        const discoveredAuthority = await this.getDiscoveredAuthority(requestAuthority);
+
         return {
             authOptions: {
                 clientId: this.config.auth.clientId,
                 authority: discoveredAuthority,
-                knownAuthorities: this.config.auth.knownAuthorities,
-                cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
-                clientCapabilities: this.config.auth.clientCapabilities,
-                protocolMode: this.config.auth.protocolMode
+                clientCapabilities: this.config.auth.clientCapabilities
             },
             systemOptions: {
                 tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds
@@ -822,6 +825,8 @@ export abstract class ClientApplication {
 
     /**
      * Helper to validate app environment before making a request.
+     * @param request
+     * @param interactionType
      */
     protected preflightInteractiveRequest(request: RedirectRequest|PopupRequest, interactionType: InteractionType): AuthorizationUrlRequest {
         // block the reload if it occurred inside a hidden iframe
@@ -837,7 +842,7 @@ export abstract class ClientApplication {
 
     /**
      * Helper to validate app environment before making an auth request
-     * * @param request
+     * * @param interactionType
      */
     protected preflightBrowserEnvironmentCheck(interactionType: InteractionType): void {
         // Block request if not in browser environment
@@ -877,12 +882,20 @@ export abstract class ClientApplication {
         return validatedRequest;
     }
 
+    /**
+     * 
+     * @param apiId 
+     * @param correlationId 
+     * @param forceRefresh 
+     */
     protected initializeServerTelemetryManager(apiId: number, correlationId: string, forceRefresh?: boolean): ServerTelemetryManager {
         const telemetryPayload: ServerTelemetryRequest = {
             clientId: this.config.auth.clientId,
             correlationId: correlationId,
             apiId: apiId,
-            forceRefresh: forceRefresh || false
+            forceRefresh: forceRefresh || false,
+            wrapperSKU: this.wrapperSKU,
+            wrapperVer: this.wrapperVer
         };
 
         return new ServerTelemetryManager(telemetryPayload, this.browserStorage);
@@ -891,6 +904,7 @@ export abstract class ClientApplication {
     /**
      * Helper to initialize required request parameters for interactive APIs and ssoSilent()
      * @param request
+     * @param interactionType
      */
     protected initializeAuthorizationRequest(request: RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
         const redirectUri = this.getRedirectUri(request.redirectUri);
@@ -968,7 +982,26 @@ export abstract class ClientApplication {
             ...logoutRequest
         };
 
-        validLogoutRequest.postLogoutRedirectUri = this.getPostLogoutRedirectUri(logoutRequest ? logoutRequest.postLogoutRedirectUri : "");
+        /*
+         * Only set redirect uri if logout request isn't provided or the set uri isn't null.
+         * Otherwise, use passed uri, config, or current page.
+         */
+        if (!logoutRequest || logoutRequest.postLogoutRedirectUri !== null) {
+            if (logoutRequest && logoutRequest.postLogoutRedirectUri) {
+                this.logger.verbose("Setting postLogoutRedirectUri to uri set on logout request");
+                validLogoutRequest.postLogoutRedirectUri = UrlString.getAbsoluteUrl(logoutRequest.postLogoutRedirectUri, BrowserUtils.getCurrentUri());
+            } else if (this.config.auth.postLogoutRedirectUri === null) {
+                this.logger.verbose("postLogoutRedirectUri configured as null and no uri set on request, not passing post logout redirect");
+            } else if (this.config.auth.postLogoutRedirectUri) {
+                this.logger.verbose("Setting postLogoutRedirectUri to configured uri");
+                validLogoutRequest.postLogoutRedirectUri = UrlString.getAbsoluteUrl(this.config.auth.postLogoutRedirectUri, BrowserUtils.getCurrentUri());
+            } else {
+                this.logger.verbose("Setting postLogoutRedirectUri to current page");
+                validLogoutRequest.postLogoutRedirectUri = UrlString.getAbsoluteUrl(BrowserUtils.getCurrentUri(), BrowserUtils.getCurrentUri());
+            }
+        } else {
+            this.logger.verbose("postLogoutRedirectUri passed as null, not settibng post logout redirect uri");
+        }
 
         return validLogoutRequest;
     }
@@ -980,7 +1013,7 @@ export abstract class ClientApplication {
      * @param payload
      * @param error
      */
-    protected emitEvent(eventType: EventType, interactionType?: InteractionType, payload?: EventPayload, error?: EventError) {
+    protected emitEvent(eventType: EventType, interactionType?: InteractionType, payload?: EventPayload, error?: EventError): void {
         if (this.isBrowserEnvironment) {
             const message: EventMessage = {
                 eventType: eventType,
@@ -1015,6 +1048,10 @@ export abstract class ClientApplication {
         return null;
     }
 
+    /**
+     * Removes callback with provided id from callback array
+     * @param callbackId 
+     */
     removeEventCallback(callbackId: string): void {
         this.eventCallbacks.delete(callbackId);
         this.logger.verbose(`Event callback ${callbackId} removed.`);
@@ -1033,6 +1070,17 @@ export abstract class ClientApplication {
      */
     setLogger(logger: Logger): void {
         this.logger = logger;
+    }
+
+    /**
+     * Called by wrapper libraries (Angular & React) to set SKU and Version passed down to telemetry, logger, etc.
+     * @param sku 
+     * @param version 
+     */
+    initializeWrapperLibrary(sku: WrapperSKU, version: string): void {
+        // Validate the SKU passed in is one we expect
+        this.wrapperSKU = sku;
+        this.wrapperVer = version;
     }
     // #endregion
 }

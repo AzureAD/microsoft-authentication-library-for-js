@@ -7,9 +7,9 @@ import { expect } from "chai";
 import sinon from "sinon";
 import "mocha";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
-import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_URIS, TEST_STATE_VALUES } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_URIS, TEST_STATE_VALUES, DEFAULT_OPENID_CONFIG_RESPONSE } from "../utils/StringConstants";
 import { CacheOptions } from "../../src/config/Configuration";
-import { CacheManager, Constants, PersistentCacheKeys, AuthorizationCodeRequest, ProtocolUtils, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, Logger, LogLevel, AuthenticationScheme } from "@azure/msal-common";
+import { CacheManager, Constants, PersistentCacheKeys, AuthorizationCodeRequest, ProtocolUtils, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, Logger, LogLevel, AuthenticationScheme, AuthorityMetadataEntity, TimeUtils } from "@azure/msal-common";
 import { BrowserCacheLocation, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
@@ -246,7 +246,71 @@ describe("BrowserCacheManager tests", () => {
             expect(browserSessionStorage.getKeys()).to.be.empty;
             expect(browserLocalStorage.getKeys()).to.be.empty;
         });
+        describe("Getters and Setters", () => {
+            describe("AuthorityMetadata", () =>{
+                const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
+                const testObj: AuthorityMetadataEntity = new AuthorityMetadataEntity();
+                testObj.aliases = [Constants.DEFAULT_AUTHORITY_HOST];
+                testObj.preferred_cache = Constants.DEFAULT_AUTHORITY_HOST;
+                testObj.preferred_network = Constants.DEFAULT_AUTHORITY_HOST;
+                testObj.canonical_authority = Constants.DEFAULT_AUTHORITY;
+                testObj.authorization_endpoint = DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint;
+                testObj.token_endpoint = DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint;
+                testObj.end_session_endpoint = DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint;
+                testObj.issuer = DEFAULT_OPENID_CONFIG_RESPONSE.body.issuer;
+                testObj.aliasesFromNetwork = false;
+                testObj.endpointsFromNetwork = false;
+
+                it("getAuthorityMetadata() returns null if key is not in cache", () => {
+                    expect(browserSessionStorage.getAuthorityMetadata(key)).to.be.null;
+                    expect(browserLocalStorage.getAuthorityMetadata(key)).to.be.null;
+                });
+
+                it("getAuthorityMetadata() returns null if isAuthorityMetadataEntity returns false", () => {
+                    sinon.stub(AuthorityMetadataEntity, "isAuthorityMetadataEntity").returns(false);
+                    browserSessionStorage.setAuthorityMetadata(key, testObj);
+                    browserLocalStorage.setAuthorityMetadata(key, testObj);
+
+                    expect(browserSessionStorage.getAuthorityMetadata(key)).to.be.null;
+                    expect(browserLocalStorage.getAuthorityMetadata(key)).to.be.null;
+                    expect(browserSessionStorage.containsKey(key)).to.be.false;
+                    expect(browserLocalStorage.containsKey(key)).to.be.false;
+                    expect(browserLocalStorage.getAuthorityMetadataKeys()).to.contain(key);
+                    expect(browserSessionStorage.getAuthorityMetadataKeys()).to.contain(key);
+                });
+
+                it("setAuthorityMetadata() and getAuthorityMetadata() sets and returns AuthorityMetadataEntity in-memory", () => {
+                    browserSessionStorage.setAuthorityMetadata(key, testObj);
+                    browserLocalStorage.setAuthorityMetadata(key, testObj);
+
+                    expect(browserSessionStorage.getAuthorityMetadata(key)).to.deep.equal(testObj);
+                    expect(browserLocalStorage.getAuthorityMetadata(key)).to.deep.equal(testObj);
+                    expect(browserSessionStorage.containsKey(key)).to.be.false;
+                    expect(browserLocalStorage.containsKey(key)).to.be.false;
+                    expect(browserLocalStorage.getAuthorityMetadataKeys()).to.contain(key);
+                    expect(browserSessionStorage.getAuthorityMetadataKeys()).to.contain(key);
+                });
+
+                it("clear() removes AuthorityMetadataEntity from in-memory storage", () => {
+                    browserSessionStorage.setAuthorityMetadata(key, testObj);
+                    browserLocalStorage.setAuthorityMetadata(key, testObj);
+
+                    expect(browserSessionStorage.getAuthorityMetadata(key)).to.deep.equal(testObj);
+                    expect(browserLocalStorage.getAuthorityMetadata(key)).to.deep.equal(testObj);
+                    expect(browserLocalStorage.getAuthorityMetadataKeys()).to.contain(key);
+                    expect(browserSessionStorage.getAuthorityMetadataKeys()).to.contain(key);
+
+                    browserSessionStorage.clear();
+                    browserLocalStorage.clear();
+                    expect(browserSessionStorage.getAuthorityMetadata(key)).to.be.null;
+                    expect(browserLocalStorage.getAuthorityMetadata(key)).to.be.null;
+                    expect(browserLocalStorage.getAuthorityMetadataKeys().length).to.be.eq(0);
+                    expect(browserSessionStorage.getAuthorityMetadataKeys().length).to.be.eq(0);
+                });
+            });
+        });
     });
+
 
     describe("Interface functions with storeAuthStateInCookie=true", () => {
 

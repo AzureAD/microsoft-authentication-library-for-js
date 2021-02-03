@@ -3,6 +3,11 @@
  * Licensed under the MIT License.
  */
 
+/**
+ * @packageDocumentation
+ * @module @azure/msal-common
+ */
+
 export { AuthorizationCodeClient} from "./client/AuthorizationCodeClient";
 export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { RefreshTokenClient } from "./client/RefreshTokenClient";
@@ -20,8 +25,7 @@ export { TokenClaims } from "./account/TokenClaims";
 export { TokenClaims as IdTokenClaims } from "./account/TokenClaims";
 // Authority
 export { Authority } from "./authority/Authority";
-export { CloudDiscoveryMetadata } from "./authority/CloudDiscoveryMetadata";
-export { TrustedAuthority } from "./authority/TrustedAuthority";
+export { AuthorityOptions } from "./authority/AuthorityOptions";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
 export { ProtocolMode } from "./authority/ProtocolMode";
@@ -35,6 +39,7 @@ export { IdTokenEntity } from "./cache/entities/IdTokenEntity";
 export { AccessTokenEntity } from "./cache/entities/AccessTokenEntity";
 export { RefreshTokenEntity } from "./cache/entities/RefreshTokenEntity";
 export { ServerTelemetryEntity } from "./cache/entities/ServerTelemetryEntity";
+export { AuthorityMetadataEntity } from "./cache/entities/AuthorityMetadataEntity";
 export { ThrottlingEntity } from "./cache/entities/ThrottlingEntity";
 export { ICachePlugin } from "./cache/interface/ICachePlugin";
 export { TokenCacheContext } from "./cache/persistence/TokenCacheContext";

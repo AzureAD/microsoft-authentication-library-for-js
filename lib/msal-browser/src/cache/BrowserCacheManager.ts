@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, DEFAULT_CRYPTO_IMPLEMENTATION } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -345,6 +345,39 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
+     * 
+     */
+    getAuthorityMetadata(key: string) : AuthorityMetadataEntity | null {
+        const value = this.internalStorage.getItem(key);
+        if (!value) {
+            return null;
+        }
+        const parsedMetadata = this.validateAndParseJson(value);
+        if (parsedMetadata && AuthorityMetadataEntity.isAuthorityMetadataEntity(key, parsedMetadata)) {
+            return CacheManager.toObject(new AuthorityMetadataEntity(), parsedMetadata);
+        }
+        return null;
+    }
+
+    /**
+     * 
+     */
+    getAuthorityMetadataKeys(): Array<string> {
+        const allKeys = this.internalStorage.getKeys();
+        return allKeys.filter((key) => {
+            return this.isAuthorityMetadata(key);
+        });
+    }
+
+    /**
+     * 
+     * @param entity 
+     */
+    setAuthorityMetadata(key: string, entity: AuthorityMetadataEntity): void {
+        this.internalStorage.setItem(key, JSON.stringify(entity));
+    }
+
+    /**
      * fetch throttling entity from the platform cache
      * @param throttlingCacheKey
      */
@@ -456,6 +489,8 @@ export class BrowserCacheManager extends CacheManager {
                 this.removeItem(cacheKey);
             }
         });
+
+        this.internalStorage.clear();
     }
 
     /**
@@ -642,27 +677,38 @@ export class BrowserCacheManager extends CacheManager {
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY));
     }
 
+    /**
+     * Removes temporary cache for the provided state
+     * @param stateString 
+     */
     cleanRequestByState(stateString: string): void {
         // Interaction is completed - remove interaction status.
         if (stateString) {
             const stateKey = this.generateStateKey(stateString);
-            const cachedState = this.getItem(stateKey);
+            const cachedState = this.temporaryCacheStorage.getItem(stateKey);
+            this.logger.info(`BrowserCacheManager.cleanRequestByState: Removing temporary cache items for state: ${cachedState}`);
             this.resetRequestCache(cachedState || "");
         }
     }
 
+    /**
+     * Looks in temporary cache for any state values with the provided interactionType and removes all temporary cache items for that state
+     * Used in scenarios where temp cache needs to be cleaned but state is not known, such as clicking browser back button.
+     * @param interactionType 
+     */
     cleanRequestByInteractionType(interactionType: InteractionType): void {
         this.getKeys().forEach((key) => {
             if (key.indexOf(TemporaryCacheKeys.REQUEST_STATE) === -1) {
                 return;
             }
 
-            const value = this.browserStorage.getItem(key);
+            const value = this.temporaryCacheStorage.getItem(key);
             if (!value) {
                 return;
             }
             const parsedState = BrowserProtocolUtils.extractBrowserRequestState(this.cryptoImpl, value);
             if (parsedState && parsedState.interactionType === interactionType) {
+                this.logger.info(`BrowserCacheManager.cleanRequestByInteractionType: Removing temporary cache items for state: ${value}`);
                 this.resetRequestCache(value);
             }
         });

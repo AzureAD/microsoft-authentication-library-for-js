@@ -172,13 +172,21 @@ export const ADFS_AUTHORITY = "myadfs.com/adfs";
 
 export const DEFAULT_TENANT_DISCOVERY_RESPONSE = {
     body: {
-        "tenant_discovery_endpoint": "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration"
+        "tenant_discovery_endpoint": "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
+        "api-version": "1.1",
+        "metadata": [
+            {
+                "preferred_network": "login.windows.net",
+                "preferred_cache": "sts.windows.net",
+                "aliases": ["login.microsoftonline.com","login.windows.net","login.microsoft.com","sts.windows.net"]
+            }
+        ]
     }
 };
 
 export const TEST_TENANT_DISCOVERY_RESPONSE = {
     body: {
-        "tenant_discovery_endpoint": "https://login.contoso.com/tenant-id/v2.0/.well-known/openid-configuration"
+        "tenant_discovery_endpoint": "https://login.contoso.com/tenant-id/v2.0/.well-known/openid-configuration",
     }
 };
 
@@ -247,6 +255,57 @@ export const ALTERNATE_OPENID_CONFIG_RESPONSE = {
         "cloud_graph_host_name": "graph.windows.net",
         "msgraph_host": "graph.microsoft.com",
         "rbac_url": "https://pas.windows.net"
+    }
+};
+
+export const B2C_OPENID_CONFIG_RESPONSE = {
+    body: {
+        "issuer": "https://login.microsoftonline.com/c8f83f7c-a28f-4e0d-a956-6e0d2df3826b/",
+        "authorization_endpoint": "https://login.microsoftonline.com/te/msidlabb2c.onmicrosoft.com/b2c_1_sisopolicy/oauth2/authorize",
+        "token_endpoint": "https://login.microsoftonline.com/te/msidlabb2c.onmicrosoft.com/b2c_1_sisopolicy/oauth2/token",
+        "end_session_endpoint": "https://login.microsoftonline.com/te/msidlabb2c.onmicrosoft.com/b2c_1_sisopolicy/oauth2/logout",
+        "jwks_uri": "https://login.microsoftonline.com/te/msidlabb2c.onmicrosoft.com/b2c_1_sisopolicy/discovery/keys",
+        "response_modes_supported": [
+            "query",
+            "fragment",
+            "form_post"
+        ],
+        "response_types_supported": [
+            "code",
+            "code id_token",
+            "code token",
+            "code id_token token",
+            "id_token",
+            "id_token token",
+            "token",
+            "token id_token"
+        ],
+        "scopes_supported": [
+            "openid"
+        ],
+        "subject_types_supported": [
+            "pairwise"
+        ],
+        "id_token_signing_alg_values_supported": [
+            "RS256"
+        ],
+        "token_endpoint_auth_methods_supported": [],
+        "claims_supported": [
+            "oid",
+            "sub",
+            "newUser",
+            "name",
+            "emails",
+            "idp",
+            "tfp",
+            "iss",
+            "iat",
+            "exp",
+            "aud",
+            "acr",
+            "nonce",
+            "auth_time"
+        ]
     }
 };
 

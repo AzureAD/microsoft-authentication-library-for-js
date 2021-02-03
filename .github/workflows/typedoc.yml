@@ -27,44 +27,12 @@ jobs:
         run: npm run build
 
       - name: Generate
-        run: npx lerna run doc:generate
+        run: npm run doc:generate
 
-      - name: Deploy - msal-core
+      - name: Deploy
         uses: peaceiris/actions-gh-pages@v3
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./lib/msal-core/ref
-          destination_dir: ./ref/msal-core
-          keep_files: true
-
-      - name: Deploy - msal-angular
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./lib/msal-angular/ref
-          destination_dir: ./ref/msal-angular
-          keep_files: true
-
-      - name: Deploy - msal-browser
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./lib/msal-browser/ref
-          destination_dir: ./ref/msal-browser
-          keep_files: true
-
-      - name: Deploy - msal-common
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./lib/msal-common/ref
-          destination_dir: ./ref/msal-common
-          keep_files: true
-
-      - name: Deploy - msal-node
-        uses: peaceiris/actions-gh-pages@v3
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./lib/msal-node/ref
-          destination_dir: ./ref/msal-node
+          publish_dir: ./ref
+          destination_dir: ./ref
           keep_files: true

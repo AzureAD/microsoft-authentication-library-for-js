@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Fix handling of multiple popup windows (#2842)",
+  "comment": "Allow apps to not use the current page as default postLogoutRedirectUri in MSAL Browser (#2789)",
   "packageName": "@azure/msal-browser",
   "email": "janutter@microsoft.com",
   "dependentChangeType": "patch"
