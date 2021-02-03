@@ -28,10 +28,10 @@ const ProtectedContent = () => {
             });
         }
     }, [account, inProgress, instance]);
-  
+
     return (
         <Paper>
-            { atsResponse ? <ProtectedData responseData={atsResponse} /> : null }
+            { atsResponse ? <ProtectedData responseData={atsResponse} /> : null}
         </Paper>
     );
 };
@@ -42,13 +42,13 @@ export function Protected() {
     };
 
     return (
-        <MsalAuthenticationTemplate 
-            interactionType={InteractionType.Popup} 
-            authenticationRequest={authRequest} 
-            errorComponent={ErrorComponent} 
+        <MsalAuthenticationTemplate
+            interactionType={InteractionType.Popup}
+            authenticationRequest={authRequest}
+            errorComponent={ErrorComponent}
             loadingComponent={Loading}
         >
             <ProtectedContent />
         </MsalAuthenticationTemplate>
-      )
+    )
 };

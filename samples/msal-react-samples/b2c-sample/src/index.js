@@ -9,8 +9,8 @@ import { msalConfig } from "./authConfig";
 const msalInstance = new PublicClientApplication(msalConfig);
 
 ReactDOM.render(
-  <React.StrictMode>
-    <App pca={msalInstance} />
-  </React.StrictMode>,
-  document.getElementById('root')
+	<React.StrictMode>
+		<App pca={msalInstance} />
+	</React.StrictMode>,
+	document.getElementById('root')
 );

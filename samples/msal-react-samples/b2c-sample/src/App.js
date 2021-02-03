@@ -15,57 +15,57 @@ import { Home } from "./pages/Home";
 import { Protected } from "./pages/Protected";
 import { forgotPasswordRequest } from "./authConfig.js";
 
-function App({pca}) {
+function App({ pca }) {
 
-  return (
-    <Router>
-      <ThemeProvider theme={theme}>
-        <MsalProvider instance={pca}>
-            <PageLayout>
-              <Grid container justify="center">
-                <Pages />
-              </Grid>
-            </PageLayout>
-        </MsalProvider>
-      </ThemeProvider>
-    </Router>
-  );
+	return (
+		<Router>
+			<ThemeProvider theme={theme}>
+				<MsalProvider instance={pca}>
+					<PageLayout>
+						<Grid container justify="center">
+							<Pages />
+						</Grid>
+					</PageLayout>
+				</MsalProvider>
+			</ThemeProvider>
+		</Router>
+	);
 }
 
 function Pages() {
-  const { instance } = useMsal();
-  useEffect(()=> {
-    const callbackId = instance.addEventCallback((event)=> {
-      if (event.eventType === EventType.LOGIN_FAILURE) {
-        if (event.error && event.error.errorMessage.indexOf("AADB2C90118") > -1) {
-          if (event.interactionType === InteractionType.Redirect) {
-            instance.loginRedirect(forgotPasswordRequest);
-          } else if (event.interactionType === InteractionType.Popup) {
-            instance.loginPopup(forgotPasswordRequest).catch(e => {
-              return;
-            });
-          }
-        }
-      }
-    });
+	const { instance } = useMsal();
+	useEffect(() => {
+		const callbackId = instance.addEventCallback((event) => {
+			if (event.eventType === EventType.LOGIN_FAILURE) {
+				if (event.error && event.error.errorMessage.indexOf("AADB2C90118") > -1) {
+					if (event.interactionType === InteractionType.Redirect) {
+						instance.loginRedirect(forgotPasswordRequest);
+					} else if (event.interactionType === InteractionType.Popup) {
+						instance.loginPopup(forgotPasswordRequest).catch(e => {
+							return;
+						});
+					}
+				}
+			}
+		});
 
-    return () => {
-      if (callbackId) {
-        instance.removeEventCallback(callbackId);
-      }
-    };
-  }, []);
+		return () => {
+			if (callbackId) {
+				instance.removeEventCallback(callbackId);
+			}
+		};
+	}, []);
 
-  return (
-    <Switch>
-      <Route path="/protected">
-        <Protected />
-      </Route>
-      <Route path="/">
-        <Home />
-      </Route>
-    </Switch>
-  )
+	return (
+		<Switch>
+			<Route path="/protected">
+				<Protected />
+			</Route>
+			<Route path="/">
+				<Home />
+			</Route>
+		</Switch>
+	)
 }
 
 export default App;
