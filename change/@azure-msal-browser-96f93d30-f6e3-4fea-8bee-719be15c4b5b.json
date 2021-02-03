@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Add project references (#2930)",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none"
-}

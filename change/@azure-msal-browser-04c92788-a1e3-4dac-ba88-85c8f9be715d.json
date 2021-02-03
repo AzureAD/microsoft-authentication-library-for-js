@@ -1,7 +1,7 @@
 {
   "type": "patch",
-  "comment": "Fix B2C policy switching (#2949)",
-  "packageName": "@azure/msal-common",
+  "comment": "Fix PCA stub errors (#2963)",
+  "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
 }

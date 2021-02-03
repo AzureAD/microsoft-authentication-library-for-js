@@ -2,6 +2,53 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Tue, 02 Feb 2021 01:56:47 GMT",
+      "tag": "@azure/msal-react_v1.0.0-alpha.4",
+      "version": "1.0.0-alpha.4",
+      "comments": {
+        "none": [
+          {
+            "comment": "Docs update (#2902)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "80317ca933498e9c5ec8b2b9dc4c2874313e6fd0",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "Add typedocs scripts (#2926)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "a44ab8f5294f2ec2cc37b98be4f8654c4d3276fd",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "Add project references (#2930)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "a836e77e372f1b4da28195d4ad8c0c75d6794875",
+            "package": "@azure/msal-react"
+          }
+        ],
+        "prerelease": [
+          {
+            "comment": "Get package version from version.json (#2915)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "a6f4702f9439e318a8cb6dc65d1def16351a84fd",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "Use interactionStatus and inProgress from msal-browser (#2885)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "c263c12b7708dd61d8772e4fd147031e4eeb280d",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "Pass SKU and version to msal-browser (#2845)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "27597c148c718e3d001309349a4498a958688cbd",
+            "package": "@azure/msal-react"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 21 Jan 2021 21:48:01 GMT",
       "tag": "@azure/msal-react_v1.0.0-alpha.3",
       "version": "1.0.0-alpha.3",
