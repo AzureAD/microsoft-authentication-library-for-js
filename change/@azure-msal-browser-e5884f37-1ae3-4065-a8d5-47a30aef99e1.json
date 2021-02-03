@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Add instrumentation (#2863)",
+  "packageName": "@azure/msal-browser",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "none"
+}
