@@ -46,13 +46,13 @@ jobs:
 
     - name: Install Test Tools
       working-directory: samples/msal-react-samples
-      run: npm ci
+      run: npm install
 
     - name: Install ${{ matrix.sample }}
       working-directory: samples/msal-react-samples/${{ matrix.sample }}
       run: |
         npm run install:local
-        npm ci
+        npm install
 
     - name: Build ${{ matrix.sample }}
       working-directory: samples/msal-react-samples/${{ matrix.sample }}
