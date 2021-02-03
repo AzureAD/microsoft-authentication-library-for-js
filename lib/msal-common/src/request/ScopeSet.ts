@@ -159,7 +159,6 @@ export class ScopeSet {
         // Do not allow OIDC scopes to be the only intersecting scopes
         if (!otherScopes.containsOnlyOIDCScopes()) {
             otherScopes.removeOIDCScopes();
-            console.log(otherScopes.printScopes());
         }
         const unionScopes = this.unionScopeSets(otherScopes);
         const sizeOtherScopes = otherScopes.getScopeCount();
