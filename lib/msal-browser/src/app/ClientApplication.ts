@@ -721,16 +721,6 @@ export abstract class ClientApplication {
     }
 
     /**
-     * Use to get the post logout redirect uri configured in MSAL or null.
-     * @param requestPostLogoutRedirectUri
-     * @returns Post logout redirect URL
-     */
-    protected getPostLogoutRedirectUri(requestPostLogoutRedirectUri?: string): string {
-        const postLogoutRedirectUri = requestPostLogoutRedirectUri || this.config.auth.postLogoutRedirectUri || BrowserUtils.getCurrentUri();
-        return UrlString.getAbsoluteUrl(postLogoutRedirectUri, BrowserUtils.getCurrentUri());
-    }
-
-    /**
      * Use to get the redirectStartPage either from request or use current window
      * @param requestStartPage 
      */
@@ -992,7 +982,26 @@ export abstract class ClientApplication {
             ...logoutRequest
         };
 
-        validLogoutRequest.postLogoutRedirectUri = this.getPostLogoutRedirectUri(logoutRequest ? logoutRequest.postLogoutRedirectUri : "");
+        /*
+         * Only set redirect uri if logout request isn't provided or the set uri isn't null.
+         * Otherwise, use passed uri, config, or current page.
+         */
+        if (!logoutRequest || logoutRequest.postLogoutRedirectUri !== null) {
+            if (logoutRequest && logoutRequest.postLogoutRedirectUri) {
+                this.logger.verbose("Setting postLogoutRedirectUri to uri set on logout request");
+                validLogoutRequest.postLogoutRedirectUri = UrlString.getAbsoluteUrl(logoutRequest.postLogoutRedirectUri, BrowserUtils.getCurrentUri());
+            } else if (this.config.auth.postLogoutRedirectUri === null) {
+                this.logger.verbose("postLogoutRedirectUri configured as null and no uri set on request, not passing post logout redirect");
+            } else if (this.config.auth.postLogoutRedirectUri) {
+                this.logger.verbose("Setting postLogoutRedirectUri to configured uri");
+                validLogoutRequest.postLogoutRedirectUri = UrlString.getAbsoluteUrl(this.config.auth.postLogoutRedirectUri, BrowserUtils.getCurrentUri());
+            } else {
+                this.logger.verbose("Setting postLogoutRedirectUri to current page");
+                validLogoutRequest.postLogoutRedirectUri = UrlString.getAbsoluteUrl(BrowserUtils.getCurrentUri(), BrowserUtils.getCurrentUri());
+            }
+        } else {
+            this.logger.verbose("postLogoutRedirectUri passed as null, not settibng post logout redirect uri");
+        }
 
         return validLogoutRequest;
     }
@@ -1004,7 +1013,7 @@ export abstract class ClientApplication {
      * @param payload
      * @param error
      */
-    protected emitEvent(eventType: EventType, interactionType?: InteractionType, payload?: EventPayload, error?: EventError) {
+    protected emitEvent(eventType: EventType, interactionType?: InteractionType, payload?: EventPayload, error?: EventError): void {
         if (this.isBrowserEnvironment) {
             const message: EventMessage = {
                 eventType: eventType,
