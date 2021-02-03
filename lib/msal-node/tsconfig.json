@@ -1,5 +1,5 @@
 {
-  "include": ["src", "test"],
+  "include": ["src", "src/**/*.json", "test"],
   "exclude": ["node_modules"],
   "compilerOptions": {
     "target": "es5",

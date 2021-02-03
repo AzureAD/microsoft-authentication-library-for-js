@@ -15,6 +15,6 @@ import { AccountInfo } from "../account/AccountInfo";
 export type EndSessionRequest = {
     correlationId: string
     account?: AccountInfo,
-    postLogoutRedirectUri?: string,
+    postLogoutRedirectUri?: string | null,
     idTokenHint?: string
 };

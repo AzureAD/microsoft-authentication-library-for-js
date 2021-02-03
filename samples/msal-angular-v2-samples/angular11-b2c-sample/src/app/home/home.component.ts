@@ -1,6 +1,7 @@
 import { Component, OnInit } from '@angular/core';
-import { MsalService } from '@azure/msal-angular';
-import { AuthenticationResult } from '@azure/msal-browser';
+import { MsalBroadcastService, MsalService } from '@azure/msal-angular';
+import { EventMessage, EventType } from '@azure/msal-browser';
+import { filter } from 'rxjs/operators';
 
 @Component({
   selector: 'app-home',
@@ -9,18 +10,22 @@ import { AuthenticationResult } from '@azure/msal-browser';
 })
 export class HomeComponent implements OnInit {
 
-  constructor(private authService: MsalService) { }
+  constructor(private authService: MsalService, private msalBroadcastService: MsalBroadcastService) { }
 
   ngOnInit(): void {
-    this.authService.handleRedirectObservable().subscribe({
-      next: (result: AuthenticationResult) => {
-        if (result) {
-          this.authService.instance.setActiveAccount(result.account);
+    this.msalBroadcastService.msalSubject$
+      .pipe(
+        filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS),
+      )
+      .subscribe({
+        next: (result: EventMessage) => {
           console.log(result);
-        }
-      },
-      error: (error) => console.log(error)
-    });
+          if (result?.payload?.account) {
+            this.authService.instance.setActiveAccount(result.payload.account);
+          }
+        },
+        error: (error) => console.log(error)
+      });
   }
 
 }

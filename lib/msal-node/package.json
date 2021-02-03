@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-node",
-  "version": "1.0.0-beta.4",
+  "version": "1.0.0-beta.5",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -29,9 +29,6 @@
     "start": "tsdx watch --tsconfig ./tsconfig.build.json",
     "build": "tsdx build --tsconfig ./tsconfig.build.json",
     "build:modules:watch": "tsdx watch --verbose",
-    "doc": "npm run doc:generate && npm run doc:deploy",
-    "doc:generate": "typedoc --mode modules --excludePrivate --excludeProtected --excludeNotExported --out ./ref ./src/ --gitRevision dev",
-    "doc:deploy": "gh-pages -d ref -a -e ref/msal-node",
     "test": "tsdx test .*.spec.*",
     "test:watch": "tsdx test .*.spec.* --watch",
     "test:coverage": "tsdx test .*.spec.* --coverage",
@@ -62,15 +59,13 @@
     "@types/jsonwebtoken": "^8.5.0",
     "@types/node": "^13.13.4",
     "@types/uuid": "^7.0.0",
-    "gh-pages": "^3.1.0",
     "husky": "^4.2.3",
     "tsdx": "^0.14.1",
     "tslib": "^1.10.0",
-    "typedoc": "^0.19.2",
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@azure/msal-common": "^3.0.0",
+    "@azure/msal-common": "^3.1.0",
     "axios": "^0.21.1",
     "jsonwebtoken": "^8.5.1",
     "uuid": "^8.3.0"

@@ -113,6 +113,7 @@ export class ClientCredentialClient extends BaseClient {
             scopes: request.scopes
         };
 
+        const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
 
         const responseHandler = new ResponseHandler(
@@ -128,6 +129,7 @@ export class ClientCredentialClient extends BaseClient {
         const tokenResponse = await responseHandler.handleServerTokenResponse(
             response.body,
             this.authority,
+            reqTimestamp,
             request.resourceRequestMethod,
             request.resourceRequestUri,
             undefined,

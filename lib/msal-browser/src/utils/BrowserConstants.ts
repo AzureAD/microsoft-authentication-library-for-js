@@ -11,17 +11,29 @@ import { RedirectRequest } from "../request/RedirectRequest";
  * Constants
  */
 export const BrowserConstants = {
-    // Interaction in progress cache value
+    /**
+     * Interaction in progress cache value
+     */
     INTERACTION_IN_PROGRESS_VALUE: "interaction_in_progress",
-    // Invalid grant error code
+    /**
+     * Invalid grant error code
+     */
     INVALID_GRANT_ERROR: "invalid_grant",
-    // Default popup window width
+    /**
+     * Default popup window width
+     */
     POPUP_WIDTH: 483,
-    // Default popup window height
+    /**
+     * Default popup window height
+     */
     POPUP_HEIGHT: 600,
-    // Default popup monitor poll interval in milliseconds
+    /**
+     * Default popup monitor poll interval in milliseconds
+     */
     POLL_INTERVAL_MS: 50,
-    // msal-browser SKU
+    /**
+     * Msal-browser SKU
+     */
     MSAL_SKU: "msal.js.browser",
 };
 
@@ -81,9 +93,52 @@ export enum InteractionType {
     Silent = "silent"
 }
 
+/**
+ * Types of interaction currently in progress.
+ * Used in events in wrapper libraries to invoke functions when certain interaction is in progress or all interactions are complete.
+ */
+export enum InteractionStatus {
+    /**
+     * Initial status before interaction occurs
+     */
+    Startup = "startup",
+    /**
+     * Status set when all login calls occuring
+     */
+    Login = "login",
+    /**
+     * Status set when logout call occuring
+     */ 
+    Logout = "logout",
+    /**
+     * Status set for acquireToken calls
+     */
+    AcquireToken = "acquireToken",
+    /**
+     * Status set for ssoSilent calls
+     */
+    SsoSilent = "ssoSilent",
+    /**
+     * Status set when handleRedirect in progress
+     */
+    HandleRedirect = "handleRedirect",
+    /**
+     * Status set when interaction is complete
+     */
+    None = "none"
+}
+
 export const DEFAULT_REQUEST: RedirectRequest|PopupRequest = {
     scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
 };
 
-// JWK Key Format string (Type MUST be defined for window crypto APIs)
+/**
+ * JWK Key Format string (Type MUST be defined for window crypto APIs)
+ */
 export const KEY_FORMAT_JWK = "jwk";
+
+// Supported wrapper SKUs
+export enum WrapperSKU {
+    React = "@azure/msal-react",
+    Angular = "@azure/msal-angular"
+}
