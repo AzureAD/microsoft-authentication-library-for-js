@@ -1,70 +1,93 @@
-# Getting Started with Create React App
+# MSAL.js for React B2C Sample - Authorization Code Flow in Single-Page Applications
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+## About this sample
 
-## Available Scripts
+This developer sample is used to run basic B2C use cases for the MSAL library. You can also alter the configuration in `./src/authConfig.js` to execute other behaviors.
+This sample was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
-In the project directory, you can run:
+## Notable files and what they demonstrate
 
-### `npm start`
+1. `./src/App.js` - Shows implementation of `MsalProvider`, all children will have access to `msal-react` context, hooks and components. Also shows how to handle password reset.
+1. `./src/index.js` - Shows intialization of the `PublicClientApplication` that is passed to `App.js`
+1. `./src/pages/Home.jsx` - Homepage, shows how to conditionally render content using `AuthenticatedTemplate` and `UnauthenticatedTemplate` depending on whether or not a user is signed in.
+1. `./src/pages/Profile.jsx` - Example of a protected route using `MsalAuthenticationTemplate`. If a user is not yet signed in, signin will be invoked automatically. If a user is signed in it will acquire an access token and make a call to MS Graph to fetch user profile data.
+1. `./src/authConfig.js` - Configuration options for `PublicClientApplication` and token requests.
+1. `./src/ui-components/SignInSignOutButton.jsx` - Example of how to conditionally render a Sign In or Sign Out button using the `useIsAuthenticated` hook.
+1. `./src/ui-components/SignInButton.jsx` - Example of how to get the `PublicClientApplication` instance using the `useMsal` hook and invoking a login function.
+1. `./src/ui-components/SignOutButton.jsx` - Example of how to get the `PublicClientApplication` instance using the `useMsal` hook and invoking a logout function.
+1. `./src/utils/MsGraphApiCall.js` - Example of how to call the MS Graph API with an access token.
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+## How to run the sample
 
-The page will reload if you make edits.\
+### Pre-requisites
+
+- Ensure [all pre-requisites](../../../lib/msal-react/README.md#prerequisites) have been completed to run msal-react.
+- Install node.js if needed (<https://nodejs.org/en/>).
+
+### Configure the application
+
+- Open `./src/authConfig.js` in an editor.
+- Replace client id with the Application (client) ID from the portal registration, or use the currently configured lab registration.
+  - Optionally, you may replace any of the other parameters, or you can remove them and use the default values.
+
+#### Install npm dependencies for sample
+
+##### Installing @azure/msal-react and @azure/msal-browser from local builds
+
+```bash
+// Install dev dependencies for msal-react and msal-browser from root of repo
+npm install
+// Change directory to sample directory
+cd samples/msal-react-samples/react-router-sample
+// Build packages locally
+npm run build:package
+// Install sample dependencies
+npm run install:local
+// Install rest of dependencies
+npm install
+```
+
+Note: If you suspect you are not using the local builds check that the `package.json` file shows the following dependencies:
+
+```
+"@azure/msal-react": "file:../../../lib/msal-react",
+"@azure/msal-browser": "file:../../../lib/msal-browser",
+"react": "file:../../../lib/msal-react/node_modules/react",
+"react-dom": "file:../../../lib/msal-react/node_modules/react-dom",
+```
+
+##### Installing @azure/msal-react and @azure/msal-browser from released versions available on npm
+
+```bash
+// Change directory to sample directory
+cd samples/msal-react-samples/react-router-sample
+// Install packages from npm
+npm run install:published
+// Install rest of dependencies
+npm install
+```
+
+#### Running the sample development server
+
+1. In a command prompt, run `npm start`.
+1. Open [http://localhost:4200](http://localhost:4200) to view it in the browser.
+1. Open [http://localhost:4200/profile](http://localhost:4200/profile) to see an example of a protected route. If you are not yet signed in, signin will be invoked automatically.
+
+The page will reload if you make edits.
 You will also see any lint errors in the console.
 
-### `npm test`
+- In the web page, click on the "Login" button and select either `Sign in using Popup` or `Sign in using Redirect` to begin the auth flow.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+#### Running the sample production server
 
-### `npm run build`
+1. In a command prompt, run `npm run build`.
+1. Next run `serve -s build`
+1. Open [http://localhost:4200](http://localhost:4200) to view it in the browser.
+1. Open [http://localhost:4200/profile](http://localhost:4200/profile) to see an example of a protected route. If you are not yet signed in, signin will be invoked automatically.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+#### Learn more about the 3rd-party libraries used to create this sample
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
-
-### `npm run eject`
-
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
-
-### Code Splitting
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/code-splitting](https://facebook.github.io/create-react-app/docs/code-splitting)
-
-### Analyzing the Bundle Size
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size](https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size)
-
-### Making a Progressive Web App
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app](https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app)
-
-### Advanced Configuration
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/advanced-configuration](https://facebook.github.io/create-react-app/docs/advanced-configuration)
-
-### Deployment
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/deployment](https://facebook.github.io/create-react-app/docs/deployment)
-
-### `npm run build` fails to minify
-
-This section has moved here: [https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify](https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify)
+- [React documentation](https://reactjs.org/).
+- [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started)
+- [React Router documentation](https://reactrouter.com/web/guides/quick-start)
+- [Material-UI documentation](https://material-ui.com/getting-started/installation/)
