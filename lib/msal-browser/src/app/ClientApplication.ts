@@ -628,7 +628,7 @@ export abstract class ClientApplication {
             this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
 
             if (!validLogoutRequest.account || AccountEntity.accountInfoIsEqual(validLogoutRequest.account, this.getActiveAccount())) {
-                this.logger.verbose("Active account set to null");
+                this.logger.verbose("Account not valid on validLogoutRequest, setting active account to null");
                 this.setActiveAccount(null);
             }
 
@@ -678,10 +678,11 @@ export abstract class ClientApplication {
     getAccountByUsername(userName: string): AccountInfo|null {
         const allAccounts = this.getAllAccounts();
         if (!StringUtils.isEmpty(userName) && allAccounts && allAccounts.length) {
+            this.logger.verbose("Account matching username found, returning");
             this.logger.verbosePii(`Returning signed-in accounts matching username: ${userName}`);
             return allAccounts.filter(accountObj => accountObj.username.toLowerCase() === userName.toLowerCase())[0] || null;
         } else {
-            this.logger.verbose("No matching account found, returning null");
+            this.logger.verbose("getAccountByUsername: No matching account found, returning null");
             return null;
         }
     }
@@ -696,10 +697,11 @@ export abstract class ClientApplication {
     getAccountByHomeId(homeAccountId: string): AccountInfo|null {
         const allAccounts = this.getAllAccounts();
         if (!StringUtils.isEmpty(homeAccountId) && allAccounts && allAccounts.length) {
+            this.logger.verbose("Account matching homeAccountId found, returning");
             this.logger.verbosePii(`Returning signed-in accounts matching homeAccountId: ${homeAccountId}`);
             return allAccounts.filter(accountObj => accountObj.homeAccountId === homeAccountId)[0] || null;
         } else {
-            this.logger.verbose("No matching account found, returning null");
+            this.logger.verbose("getAccountByHomeId: No matching account found, returning null");
             return null;
         }
     }
@@ -714,10 +716,11 @@ export abstract class ClientApplication {
     getAccountByLocalId(localAccountId: string): AccountInfo | null {
         const allAccounts = this.getAllAccounts();
         if (!StringUtils.isEmpty(localAccountId) && allAccounts && allAccounts.length) {
+            this.logger.verbose("Account matching localAccountId found, returning");
             this.logger.verbosePii(`Returning signed-in accounts matching localAccountId: ${localAccountId}`);
             return allAccounts.filter(accountObj => accountObj.localAccountId === localAccountId)[0] || null;
         } else {
-            this.logger.verbose("No matching account found, returning null");
+            this.logger.verbose("getAccountByLocalId: No matching account found, returning null");
             return null;
         }
     }
@@ -728,10 +731,10 @@ export abstract class ClientApplication {
      */
     setActiveAccount(account: AccountInfo | null): void {
         if (account) {
-            this.logger.verbose("Active account set");
+            this.logger.verbose("setActiveAccount: Active account set");
             this.activeLocalAccountId = account.localAccountId;
         } else {
-            this.logger.verbose("No account passed, active account not set");
+            this.logger.verbose("setActiveAccount: No account passed, active account not set");
             this.activeLocalAccountId = null;
         }
     }
@@ -741,7 +744,7 @@ export abstract class ClientApplication {
      */
     getActiveAccount(): AccountInfo | null {
         if (!this.activeLocalAccountId) {
-            this.logger.verbose("No active account");
+            this.logger.verbose("getActiveAccount: No active account");
             return null;
         }
 
@@ -989,6 +992,7 @@ export abstract class ClientApplication {
 
         const account = request.account || this.getActiveAccount();
         if (account) {
+            this.logger.verbose("Setting validated request account");
             this.logger.verbosePii(`Setting validated request account: ${account}`);
             validatedRequest.account = account;
         }
