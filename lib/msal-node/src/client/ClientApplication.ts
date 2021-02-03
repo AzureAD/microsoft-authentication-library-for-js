@@ -277,7 +277,7 @@ export abstract class ClientApplication {
 
     /**
      * Generates a request with the default scopes & generates a correlationId.
-     * @param authRequest - BaseAuthrequest for initialization
+     * @param authRequest - BaseAuthRequest for initialization
      */
     protected initializeBaseRequest(authRequest: Partial<BaseAuthRequest>): BaseAuthRequest {
         this.logger.verbose("initializeRequestScopes called");
