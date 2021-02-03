@@ -3,6 +3,11 @@
  * Licensed under the MIT License.
  */
 
+/**
+ * @packageDocumentation
+ * @module @azure/msal-node
+ */
+
 // Interfaces
 export { IPublicClientApplication } from "./client/IPublicClientApplication";
 export { IConfidentialClientApplication } from "./client/IConfidentialClientApplication";

@@ -34,7 +34,7 @@ import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { SilentFlowRequest } from "../request/SilentFlowRequest";
-import { version, name } from "../../package.json";
+import { version, name } from "../version.json";
 
 export abstract class ClientApplication {
     private readonly cryptoProvider: CryptoProvider;

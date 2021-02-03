@@ -13,11 +13,13 @@ import {
     SilentRequest,
     PopupRequest,
     SsoSilentRequest,
-    Logger
+    Logger,
+    WrapperSKU
 } from "@azure/msal-browser";
-import { MSAL_INSTANCE, name, version } from "./constants";
+import { MSAL_INSTANCE } from "./constants";
 import { Observable, from } from "rxjs";
 import { IMsalService } from "./IMsalService";
+import { name, version } from "./version.json";
 
 @Injectable()
 export class MsalService implements IMsalService {
@@ -32,6 +34,7 @@ export class MsalService implements IMsalService {
         if (hash) {
             this.redirectHash = `#${hash}`;
         }
+        this.instance.initializeWrapperLibrary(WrapperSKU.Angular, version);
     }
 
     acquireTokenPopup(request: PopupRequest): Observable<AuthenticationResult> {
@@ -60,12 +63,17 @@ export class MsalService implements IMsalService {
     ssoSilent(request: SsoSilentRequest): Observable<AuthenticationResult> {
         return from(this.instance.ssoSilent(request));
     }
+    /**
+     * Gets logger for msal-angular.
+     * If no logger set, returns logger instance created with same options as msal-browser
+     */
     getLogger(): Logger {
         if (!this.logger) {
             this.logger = this.instance.getLogger().clone(name, version);
         }
         return this.logger;
     }
+    // Create a logger instance for msal-angular with the same options as msal-browser
     setLogger(logger: Logger): void {
         this.logger = logger.clone(name, version);
         this.instance.setLogger(logger);

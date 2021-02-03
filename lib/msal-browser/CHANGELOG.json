@@ -2,6 +2,85 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 02 Feb 2021 01:56:47 GMT",
+      "tag": "@azure/msal-browser_v2.11.0",
+      "version": "2.11.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Test changes",
+            "author": "prkanher@microsoft.com",
+            "commit": "12f9fa2b6a9530fac5f7570ee3c49dc39232284c",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Typedocs Updates (#2926)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "3fd4a48143ed4fb62b9e3266338b1abda920d68a",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update acquire-token.md",
+            "author": "hello@kubaprzetakiewi.cz",
+            "commit": "828086ab6df566b7711d430cc0b98338293f1365",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add project references (#2930)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "a836e77e372f1b4da28195d4ad8c0c75d6794875",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Test updates (#2949)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "cbdd4cd8ba23b5794aeb1f0788b828f1248f7236",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update login-user.md",
+            "author": "hello@kubaprzetakiewi.cz",
+            "commit": "5e00712d7e7097c607cc9925b507c4532f6ecab1",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "FAQ Update (#2928)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6ad6d4d95da5f5753c3d4dea7b07b9af428cf2d2",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Fix temp cache cleanup when using localStorage (#2935)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "21dc607120091d51da368b850f0c6f8347d974dd",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Get package version from version.json (#2915)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "a6f4702f9439e318a8cb6dc65d1def16351a84fd",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add initializeWrapperLibrary API (#2845)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "27597c148c718e3d001309349a4498a958688cbd",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add getInteractionStatusFromEvent to msal-browser (#2885)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "c263c12b7708dd61d8772e4fd147031e4eeb280d",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 21 Jan 2021 21:48:01 GMT",
       "tag": "@azure/msal-browser_v2.10.0",
       "version": "2.10.0",

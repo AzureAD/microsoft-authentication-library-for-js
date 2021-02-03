@@ -1,7 +1,7 @@
 {
   "type": "none",
-  "comment": "Update login-user.md",
+  "comment": "Add instrumentation (#2863)",
   "packageName": "@azure/msal-browser",
-  "email": "hello@kubaprzetakiewi.cz",
+  "email": "joarroyo@microsoft.com",
   "dependentChangeType": "none"
 }

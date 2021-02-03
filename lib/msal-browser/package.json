@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
-  "version": "2.10.0",
+  "version": "2.11.0",
   "description": "Microsoft Authentication Library for js",
   "keywords": [
     "implicit",
@@ -23,7 +23,7 @@
   ],
   "main": "./dist/index.js",
   "module": "./dist/index.es.js",
-  "types": "./dist/src/index.d.ts",
+  "types": "./dist/index.d.ts",
   "engines": {
     "node": ">=0.8.0"
   },
@@ -44,9 +44,6 @@
     "clean:coverage": "rimraf ../../.nyc_output/*",
     "lint": "cd ../../ && npm run lint:browser",
     "lint:fix": "npm run lint -- -- --fix",
-    "doc": "npm run doc:generate && npm run doc:deploy",
-    "doc:generate": "typedoc --mode modules --excludePrivate --excludeProtected --out ./ref ./src/ --gitRevision dev",
-    "doc:deploy": "gh-pages -d ref -a -e ref/msal-browser",
     "test": "mocha",
     "test:coverage": "nyc mocha",
     "test:coverage:only": "npm run clean:coverage && npm run test:coverage",
@@ -77,7 +74,6 @@
     "chai": "^4.2.0",
     "chai-as-promised": "^7.1.1",
     "dotenv": "^8.2.0",
-    "gh-pages": "^2.2.0",
     "husky": "^3.0.9",
     "jsdom": "^15.2.1",
     "jsdom-global": "^3.0.2",
@@ -94,10 +90,9 @@
     "ssri": "^8.0.0",
     "tslib": "^1.10.0",
     "tslint": "^5.20.0",
-    "typedoc": "^0.16.11",
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@azure/msal-common": "^3.0.0"
+    "@azure/msal-common": "^3.1.0"
   }
 }

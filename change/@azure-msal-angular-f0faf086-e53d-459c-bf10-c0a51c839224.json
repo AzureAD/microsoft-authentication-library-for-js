@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Invoke interaction if MSAL Interceptor resolves with null access token, mitigates B2C service not supporting RTs for multiple resources",
-  "packageName": "@azure/msal-angular",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "patch"
-}
