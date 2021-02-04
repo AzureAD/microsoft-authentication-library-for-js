@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Docs updates (#2965)",
+  "packageName": "@azure/msal-react",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "none"
+}
