@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix token timestamp calculation",
-  "packageName": "@azure/msal-common",
-  "email": "prkanher@microsoft.com",
-  "dependentChangeType": "patch"
-}
