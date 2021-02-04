@@ -1,6 +1,7 @@
 # Silent login with ssoSilent()
 
-If you already have a session that exists with the authentication server, you can use the ssoSilent() API to make request for tokens without interaction. You will need to pass a `loginHint` (which can be retrieved from the account object `username` property or the `upn` claim in the ID token) in the request object in order to successfully obtain a token silently.
+If you already have a session that exists with the authentication server, you can use the `ssoSilent()` API to make a request for tokens without interaction.
+You will need to pass a `loginHint` in the request object in order to successfully obtain a token silently. The `loginHint` can be retrieved from the account object `username` property or the `upn` claim in the ID token, and can also be retrieved from the `emails` claim for B2C use cases. Alternatively, `sid` can be passed instead of `loginHint` for AAD use cases.
 
 ```js
 const silentRequest: SsoSilentRequest = {
