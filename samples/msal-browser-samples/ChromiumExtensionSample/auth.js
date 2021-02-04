@@ -1,10 +1,10 @@
 // Set the redirect URI to the chromiumapp.com provided by Chromium
-let redirectUri = `${window.location.origin}/index.html`;
-if (typeof chrome !== "undefined" && chrome.identity) {
-    redirectUri = chrome.identity.getRedirectURL();
-    console.log("Chrome extension redirect URI set to ", redirectUri);
-    console.log("This url must be registered in the Azure portal as a single-page application redirect uri, and as the post logout url");
-}
+const redirectUri = typeof chrome !== "undefined" && chrome.identity ?
+    chrome.identity.getRedirectURL() : 
+    `${window.location.origin}/index.html`;
+
+console.log("Chrome extension redirect URI set to ", redirectUri);
+console.log("This url must be registered in the Azure portal as a single-page application redirect uri, and as the post logout url");
 
 const msalInstance = new msal.PublicClientApplication({
     auth: {
@@ -80,7 +80,7 @@ document.getElementById("call-graph").addEventListener("click", async () => {
 /**
  * Generates a login url
  */
-async function getLoginUrl(request) {
+async function getLoginUrl(request, reject) {
     return new Promise((resolve) => {
         msalInstance.loginRedirect({
             ...request,
@@ -88,7 +88,7 @@ async function getLoginUrl(request) {
                 resolve(url);
                 return false;
             }
-        })
+        }).catch(reject);
     });
 }
 
@@ -96,14 +96,14 @@ async function getLoginUrl(request) {
  * Generates a logout url
  */
 async function getLogoutUrl(request) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         msalInstance.logout({
             ...request,
             onRedirectNavigate: (url) => {
                 resolve(url);
                 return false;
             }
-        })
+        }).catch(reject);
     });
 }
 
@@ -157,14 +157,14 @@ async function acquireToken(request) {
  * Generates an acquire token url
  */
 async function getAcquireTokenUrl(request) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         msalInstance.acquireTokenRedirect({
             ...request,
             onRedirectNavigate: (url) => {
                 resolve(url);
                 return false;
             }
-        })
+        }).catch(reject);
     });
 }
 
