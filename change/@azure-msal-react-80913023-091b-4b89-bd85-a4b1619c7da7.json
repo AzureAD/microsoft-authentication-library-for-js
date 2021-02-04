@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Use interactionStatus and inProgress from msal-browser (#2885)",
-  "packageName": "@azure/msal-react",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}

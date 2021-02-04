@@ -36,13 +36,13 @@ export interface IPublicClientApplication {
 
 export const stubbedPublicClientApplication: IPublicClientApplication = {
     acquireTokenPopup: () => {
-        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());
     },
     acquireTokenRedirect: () => {	
-        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);	
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());	
     },	
     acquireTokenSilent: () => {	
-        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);	
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());	
     },	
     getAllAccounts: () => {
         return [];	
@@ -57,19 +57,19 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         return null;
     },
     handleRedirectPromise: () => {	
-        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);	
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());	
     },	
     loginPopup: () => {	
-        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);	
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());	
     },	
     loginRedirect: () => {	
-        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);	
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());	
     },	
     logout: () => {	
-        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);	
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());	
     },	
     ssoSilent: () => {	
-        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);	
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());	
     },
     addEventCallback: () => {
         return null;
