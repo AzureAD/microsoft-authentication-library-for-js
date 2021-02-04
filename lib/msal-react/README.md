@@ -106,6 +106,7 @@ Since `msal-react` is built on top of `@azure/msal-browser` a lot of the same do
 ### MSAL React Specific Concepts
 
 1. [Hooks](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/hooks.md)
+1. [Events](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/events.md)
 1. [Class Components](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/class-components.md)
 
 ## Samples
