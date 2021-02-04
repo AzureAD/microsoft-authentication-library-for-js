@@ -500,13 +500,13 @@ export class BrowserCacheManager extends CacheManager {
      * @param expires
      */
     setItemCookie(cookieName: string, cookieValue: string, expires?: number): void {
-        let cookieStr = `${encodeURIComponent(cookieName)}=${encodeURIComponent(cookieValue)};path=/;`;
+        let cookieStr = `${encodeURIComponent(cookieName)}=${encodeURIComponent(cookieValue)};Secure;path=/;`;
         if (expires) {
             const expireTime = this.getCookieExpirationTime(expires);
             cookieStr += `expires=${expireTime};`;
         }
-
         document.cookie = cookieStr;
+        console.log(document.cookie);
     }
 
     /**

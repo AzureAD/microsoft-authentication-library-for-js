@@ -948,7 +948,6 @@ export abstract class ClientApplication {
         }
 
         this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
-
         return validatedRequest;
     }
 
