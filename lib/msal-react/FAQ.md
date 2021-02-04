@@ -3,9 +3,9 @@
 ***
 **[Compatibility](#compatibility)**
 
-1. [What versions of React are supported](#What-versions-of-React-are-supported)
-1. [Does msal-react support Server Side Rendering (SSR) or static site generation](#Does-msal-react-support-Server-Side-Rendering-SSR-or-static-site-generation)
-1. [Does msal-react support class components](#Does-msal-react-support-class-components)
+1. [What versions of React are supported](#what-versions-of-React-are-supported)
+1. [Does msal-react support Server Side Rendering (SSR) or static site generation](#does-msal-react-support-Server-Side-Rendering-SSR-or-static-site-generation)
+1. [Does msal-react support class components](#does-msal-react-support-class-components)
 
 **[What if my question has not been answered?](#what-if-my-question-has-not-been-answered)**
 
@@ -29,6 +29,6 @@ Yes, `msal-react` supports both function and class components. Hooks, however, c
 
 First check the `msal-browser` [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md) to see if your question is answered there. Since `msal-react` is a wrapper around `msal-browser` many questions you may have are answered there.
 
-If you have questions about our roadmap you can find a high level overview of planned features and releases [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/roadmap.md)
+If you have questions about our roadmap you can find a high level overview of planned features and releases [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/roadmap.md).
 
 If your question is not answered in this document or in the `msal-browser` FAQ you can [open an issue](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/new/choose) and we will answer it as soon as we can.
