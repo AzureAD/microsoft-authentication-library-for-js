@@ -1,8 +1,0 @@
-{
-  "type": "none",
-  "comment": "Add logs to SilentFlowClient (#2684)",
-  "packageName": "msal",
-  "email": "samuel.kamau@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2021-01-12T15:58:41.837Z"
-}
