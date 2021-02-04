@@ -12,6 +12,13 @@ import { PageLayout } from "./ui-components/PageLayout";
 import { Home } from "./pages/Home";
 import { Profile } from "./pages/Profile";
 
+/**
+ * Comment the line above and uncomment the line below for a 
+ * Class-based equivalent of "Profile" component wrapped with "withMsal" HOC
+ */
+
+// import { ProfileWithMsal } from "./pages/ProfileClassComponent";
+
 function App({pca}) {
 
   return (
