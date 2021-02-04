@@ -32,7 +32,10 @@ async function startServer(jestConfig) {
         throw new Error ();
     }
 
-    console.log(`Starting Server for: ${sampleName}`);
+    // Optional __TIMEOUT__ parameter or default to 30 seconds
+    const timeoutMs = jestConfig.globals.__TIMEOUT__ || 30000;
+
+    console.log(`Starting Server for: ${sampleName} on port ${port}`);
     process.env.PORT = port;
     let serverOutput = "";
     const serverCallback = (error, stdout, stderr) => {
@@ -48,7 +51,7 @@ async function startServer(jestConfig) {
     };
     serverUtils.startServer(startCommand, jestConfig.rootDir, serverCallback);
 
-    const serverUp = await serverUtils.isServerUp(port, 30000);
+    const serverUp = await serverUtils.isServerUp(port, timeoutMs);
     if (serverUp) {
         console.log(`Server for ${sampleName} running on port ${port}`);
     } else {
@@ -59,6 +62,7 @@ async function startServer(jestConfig) {
 }
 
 module.exports = async (jestOptions) => {
+    console.log(""); // Create new line
     if(jestOptions.projects && jestOptions.projects.length > 0) {
         const servers = [];
         jestOptions.projects.forEach((project) => {
@@ -66,9 +70,15 @@ module.exports = async (jestOptions) => {
             servers.push(startServer(jestConfig));
         });
 
-        await Promise.all(servers).catch(() => process.exit(1));
+        await Promise.all(servers).catch(async () => {
+            await serverUtils.killServers(jestOptions);
+            process.exit(1);
+        });
     } else {
         const jestConfig = require(path.resolve(jestOptions.rootDir, "jest.config.js"));
-        await startServer(jestConfig).catch(() => process.exit(1));
+        await startServer(jestConfig).catch(async () => {
+            await serverUtils.killServers(jestOptions);
+            process.exit(1)
+        });
     } 
 }
