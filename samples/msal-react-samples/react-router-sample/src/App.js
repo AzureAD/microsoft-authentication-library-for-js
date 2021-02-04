@@ -12,12 +12,9 @@ import { PageLayout } from "./ui-components/PageLayout";
 import { Home } from "./pages/Home";
 import { Profile } from "./pages/Profile";
 
-/**
- * Comment the line above and uncomment the line below for a 
- * Class-based equivalent of "Profile" component wrapped with "withMsal" HOC
- */
-
-// import { ProfileWithMsal } from "./pages/ProfileClassComponent";
+// Class-based equivalents of "Profile" component
+import { ProfileWithMsal } from "./pages/ProfileWithMsal";
+import { ProfileRawContext } from "./pages/ProfileRawContext";
 
 function App({pca}) {
 
@@ -41,6 +38,12 @@ function Pages() {
     <Switch>
       <Route path="/profile">
         <Profile />
+      </Route>
+      <Route path="/profileWithMsal">
+        <ProfileWithMsal />
+      </Route>
+      <Route path="/profileRawContext">
+        <ProfileRawContext />
       </Route>
       <Route path="/">
         <Home />

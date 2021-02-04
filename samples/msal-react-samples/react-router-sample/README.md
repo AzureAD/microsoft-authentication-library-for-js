@@ -19,13 +19,13 @@ This sample was bootstrapped with [Create React App](https://github.com/facebook
 
 ### (Optional) MSAL React and class components
 
-For a demonstration of how to use MSAL React with class components, see: `./src/pages/ProfileClassComponent.jsx`.
+For a demonstration of how to use MSAL React with class components, see: `./src/pages/ProfileWithMsal.jsx` and `./src/pages/ProfileRawContext.jsx`.
 
 *After* you initialize `MsalProvider`, there are 3 approaches you can take to protect your class components with MSAL React:
 
-1. Wrap each component that you want to protect with `withMsal` higher-order component (HOC) (see [Profile](./src/pages/ProfileClassComponent.jsx#Profile))
-1. Pass down the `msalContext` as prop to a child component from a parent component that is wrapped with `withMsal` HOC. (see [ProfileContent](./src/pages/ProfileClassComponent.jsx#ProfileContent))
-1. Consume the raw context directly (see [ProfileContent](./src/pages/ProfileClassComponent.jsx#ProfileContent)).
+1. Wrap each component that you want to protect with `withMsal` higher-order component (HOC) (e.g. [Profile](./src/pages/ProfileWithMsal.jsx#Profile))
+1. Consume the raw context directly (e.g. [ProfileContent](./src/pages/ProfileRawContext.jsx#ProfileContent)).
+1. From a parent component that has access to the `msalContext` via one of the other means above (e.g. [ProfileContent](./src/pages/ProfileWithMsal.jsx#ProfileContent).
 
 For more information, visit:
 

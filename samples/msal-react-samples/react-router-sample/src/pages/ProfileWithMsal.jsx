@@ -1,7 +1,7 @@
 import { Component } from "react";
 
 // Msal imports
-import { MsalAuthenticationTemplate, withMsal, MsalContext } from "@azure/msal-react";
+import { MsalAuthenticationTemplate, withMsal } from "@azure/msal-react";
 import { InteractionType } from "@azure/msal-browser";
 import { loginRequest } from "../authConfig";
 
@@ -48,47 +48,9 @@ class ProfileContent extends Component {
     }
 }
 
-
 /**
- * Alternative: This class is using the raw context directly. The available
- * objects and methods are the same as in "withMsal" HOC usage.
- */
-// class ProfileContent extends Component {
-
-//     static contextType = MsalContext;
-
-//     constructor(props) {
-//         super(props)
-
-//         this.state = {
-//             graphData: null,
-//         }
-//     }
-
-//     componentDidMount() {
-//         if (this.context.accounts[0] && this.context.inProgress === "none") {
-//             this.context.instance.acquireTokenSilent({
-//                 ...loginRequest,
-//                 account: this.context.accounts[0]
-//             }).then((response) => {
-//                 callMsGraph(response.accessToken).then(response => this.setState({graphData: response}));
-//             });
-//         }
-//     }
-  
-//     render() {
-//         return (
-//             <Paper>
-//                 { this.state.graphData ? <ProfileData graphData={this.state.graphData} /> : null }
-//             </Paper>
-//         );
-//     }
-// }
-
-
-/**
- * This class is using "withMsal" HOC. It passes down the msalContext 
- * as a prop to its children.
+ * This class is using "withMsal" HOC and has access to authentication
+ * state. It passes down the msalContext as a prop to its children.
  */
 class Profile extends Component {
 
@@ -105,7 +67,7 @@ class Profile extends Component {
                 errorComponent={ErrorComponent} 
                 loadingComponent={Loading}
             >
-                <ProfileContent msalContext = {this.props.msalContext}/>
+                <ProfileContent msalContext={this.props.msalContext}/>
             </MsalAuthenticationTemplate>
         );
     }
