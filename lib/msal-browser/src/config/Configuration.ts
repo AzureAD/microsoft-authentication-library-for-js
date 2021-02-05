@@ -32,7 +32,7 @@ export type BrowserAuthOptions = {
     cloudDiscoveryMetadata?: string;
     authorityMetadata?: string;
     redirectUri?: string;
-    postLogoutRedirectUri?: string;
+    postLogoutRedirectUri?: string | null;
     navigateToLoginRequestUrl?: boolean;
     clientCapabilities?: Array<string>;
     protocolMode?: ProtocolMode;

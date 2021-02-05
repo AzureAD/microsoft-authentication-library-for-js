@@ -1,9 +1,11 @@
 const { exec } = require('child_process');
 const waitOn  = require('wait-on');
-const kill = require("tree-kill");
-const fs = require("fs");
+const find = require("find-process");
 const path = require("path");
 
+/**
+ * Returns boolean true/false if the given port is currently serving
+ */
 async function isServerUp(port, timeout) {
     try {
         await waitOn({ resources: [`http://localhost:${port}`], timeout: timeout});
@@ -14,41 +16,39 @@ async function isServerUp(port, timeout) {
     return true;
 }
 
+/**
+ * Spawns a child process to serve the sample
+ */
 function startServer(cmd, directory, callback) {
-    const child = exec(cmd, {cwd: directory}, callback);
-    
-    // store the child instance so we can teardown it later
-    fs.writeFileSync(path.join(directory, '.server.pid'), child.pid.toString());
+    exec(cmd, {cwd: directory}, callback);
 }
 
-function killServer(sampleDirectory) {
-    const filename = path.join(sampleDirectory, '.server.pid')
-    const pid = fs.readFileSync(filename);
-    kill(pid);
-    fs.unlinkSync(filename);
-}
-
-function getPortForProject(projects, sampleName) {
-    const matches = projects.filter(project => {
-        const sampleDir = project.rootDir.split("/").pop();
-        if (sampleName === sampleDir) {
-            return true;
-        }
-
-        return false;
+/**
+ * Kills all processes listening on a given port
+ */
+async function killServer(port) {
+    return find("port", port).then((list) => {
+        list.forEach(proc => {
+            console.log(`Killing server on port ${port}`);
+            process.kill(proc.pid);
+        });
     });
+}
 
-    if (matches.length > 1) {
-        throw Error(`${sampleName} is defined more than once in jest config!`);
-    } else if (matches.length <= 0) {
-        throw Error(`${sampleName} is not defined in jest config!`);
-    }
-
-    const project = matches[0];
-    if (project.globals.__PORT__) {
-        return project.globals.__PORT__;
+/**
+ * Finds all ports configured for this jest run and kills all open servers on those ports
+ */
+async function killServers(jestOptions) {
+    if(jestOptions.projects && jestOptions.projects.length > 0) {
+        for (let i = 0; i < jestOptions.projects.length; i++) {
+            const project = jestOptions.projects[i];
+            const jestConfig = require(path.resolve(project, "jest.config.js"));
+            const port = jestConfig.globals.__PORT__;
+            await killServer(port);
+        };
     } else {
-        throw Error(`Unable to get port for ${sampleName}!`);
+        const jestConfig = require(path.resolve(jestOptions.rootDir, "jest.config.js"));
+        await killServer(jestConfig.globals.__PORT__);
     }
 }
 
@@ -56,5 +56,5 @@ module.exports = {
     isServerUp, 
     startServer,
     killServer,
-    getPortForProject
+    killServers
 }

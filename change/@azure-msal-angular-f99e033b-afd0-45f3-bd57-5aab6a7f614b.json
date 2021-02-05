@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Msal-angular typedocs and instrumentation (#2863)",
+  "packageName": "@azure/msal-angular",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "patch"
+}

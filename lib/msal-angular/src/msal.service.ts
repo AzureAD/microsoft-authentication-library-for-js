@@ -63,12 +63,17 @@ export class MsalService implements IMsalService {
     ssoSilent(request: SsoSilentRequest): Observable<AuthenticationResult> {
         return from(this.instance.ssoSilent(request));
     }
+    /**
+     * Gets logger for msal-angular.
+     * If no logger set, returns logger instance created with same options as msal-browser
+     */
     getLogger(): Logger {
         if (!this.logger) {
             this.logger = this.instance.getLogger().clone(name, version);
         }
         return this.logger;
     }
+    // Create a logger instance for msal-angular with the same options as msal-browser
     setLogger(logger: Logger): void {
         this.logger = logger.clone(name, version);
         this.instance.setLogger(logger);
