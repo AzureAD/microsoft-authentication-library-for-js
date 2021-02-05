@@ -4,7 +4,7 @@
 **[Compatibility](#compatibility)**
 
 1. [What versions of Angular are supported?](#what-versions-of-angular-are-supported)
-1. [Does msal-react support Server Side Rendering (SSR) or static site generation?](#does-msal-angular-support-server-side-rendering)
+1. [Does msal-angular support Server Side Rendering?](#does-msal-angular-support-server-side-rendering)
 1. [Can msal-angular be used with Internet Explorer?](#can-msal-angular-be-used-with-internet-explorer)
 
 **[Configuration](#configuration)**
