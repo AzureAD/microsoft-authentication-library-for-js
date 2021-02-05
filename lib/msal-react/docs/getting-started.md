@@ -128,7 +128,7 @@ export function App() {
 
 ### Call login APIs provided by `msal-browser`
 
-Another way to trigger a sign-in is by using `msal-browser` APIs directly from the `PublicClientApplication` instance in context. There are 2 ways you can access the instance from context.
+Another way to trigger a sign-in is by using `msal-browser` APIs directly from the `PublicClientApplication` instance in context. There are 3 ways you can access the instance from context.
 
 #### `useMsal` hook
 
@@ -161,6 +161,7 @@ export function App() {
 #### Consuming the raw context
 
 If you are using a class component and can't use hooks you can consume the raw msal context through `MsalContext`.
+You can read more about using `msal-react` in class components [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/class-components.md).
 
 ```javascript
 import React from "react";
@@ -184,6 +185,29 @@ class App extends React.Component {
         }
     }
 }
+```
+
+#### Wrapping your component with the withMsal Higher-Order-Component
+
+Another way to consume the msal context in both class and function components is to wrap your component with the `withMsal` HOC which will inject the context into the props of your component.
+
+```javascript
+import React from "react";
+import { withMsal } from "@azure/msal-react";
+
+class LoginButton extends React.Component {
+    render() {
+        const isAuthenticated = this.props.msalContext.accounts.length > 0;
+        const msalInstance = this.props.msalContext.instance;
+        if (isAuthenticated) {
+            return <button onClick={() => msalInstance.logout()}>Logout</button>    
+        } else {
+            return <button onClick={() => msalInstance.loginPopup()}>Login</button>
+        }
+    }
+}
+
+export default YourWrappedComponent = withMsal(LoginButton);
 ```
 
 ## Acquiring an access token
