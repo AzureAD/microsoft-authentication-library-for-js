@@ -1,7 +1,7 @@
 {
-  "name": "msal-node-auth-code",
+  "name": "msal-node-on-behalf-of-web-app",
   "version": "1.0.0",
-  "description": "sample app for msal-node",
+  "description": "sample app for msal-node showing on-behalf-of flow",
   "main": "index.js",
   "private": true,
   "scripts": {
@@ -12,10 +12,10 @@
   "author": "Microsoft",
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-node": "file:../../../../lib/msal-node",
-    "express": "^4.17.1"
-  },
-  "devDependencies": {
-    "jest": "^26.6.3"
+    "@azure/msal-node": "file:../../../../../lib/msal-node",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "jwks-rsa": "^1.8.1",
+    "uuid": "^8.3.1"
   }
 }

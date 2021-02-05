@@ -1,0 +1,62 @@
+{
+  "name": "msal-node-client-credentials",
+  "entries": [
+    {
+      "date": "Wed, 30 Sep 2020 17:58:33 GMT",
+      "tag": "msal-node-client-credentials_v1.0.0",
+      "version": "1.0.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Bump msal-node versions to alpha.8 on msal-node samples",
+            "author": "hectormgdev@gmail.com",
+            "commit": "dc8641667c475b36937f597c97d99241427f68cd",
+            "package": "msal-node-client-credentials"
+          },
+          {
+            "comment": "Update msal-node version in the samples(#2342)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "bc3f324edd6cf83937c31f73d3aefc6dbaf5f748",
+            "package": "msal-node-client-credentials"
+          },
+          {
+            "comment": "Update changelog versions for msal-node and extensions (#2336)",
+            "author": "hemoral@microsoft.com",
+            "commit": "323875a725e0d5049ff6742a9ca5160c2d4b7d0d",
+            "package": "msal-node-client-credentials"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 17 Sep 2020 23:16:22 GMT",
+      "tag": "msal-node-client-credentials_v1.0.2",
+      "version": "1.0.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "update sample versions",
+            "author": "prkanher@microsoft.com",
+            "commit": "0b296f957303031552a8b768f56310488a9e63d2",
+            "package": "msal-node-client-credentials"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 25 Aug 2020 00:40:45 GMT",
+      "tag": "msal-node-client-credentials_v1.0.1",
+      "version": "1.0.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "Add client credential sample",
+            "author": "sagonzal@microsoft.com",
+            "commit": "98647b7a8a40e1a5f7855f0bcee4594e080a8398",
+            "package": "msal-node-client-credentials"
+          }
+        ]
+      }
+    }
+  ]
+}
