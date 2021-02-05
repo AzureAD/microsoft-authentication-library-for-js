@@ -12,6 +12,7 @@ on:
     paths-ignore:
       - '**.md'
       - '**/.vscode/*.json'
+      - 'samples/**'
 
 jobs:
 
