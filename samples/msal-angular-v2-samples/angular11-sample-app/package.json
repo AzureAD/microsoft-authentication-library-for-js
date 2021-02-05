@@ -7,7 +7,7 @@
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "ng e2e"
+    "e2e": "jest"
   },
   "private": true,
   "dependencies": {
@@ -21,8 +21,8 @@
     "@angular/platform-browser": "~11.0.4",
     "@angular/platform-browser-dynamic": "~11.0.4",
     "@angular/router": "~11.0.4",
-    "@azure/msal-angular": "^2.0.0-alpha.3",
-    "@azure/msal-browser": "^2.10.0",
+    "@azure/msal-angular": "^2.0.0-alpha.4",
+    "@azure/msal-browser": "^2.11.0",
     "core-js": "^3.8.0",
     "rxjs": "~6.6.0",
     "tslib": "^2.0.0",
@@ -37,6 +37,7 @@
     "codelyzer": "^6.0.0",
     "jasmine-core": "~3.6.0",
     "jasmine-spec-reporter": "~5.0.0",
+    "jest": "^26.6.3",
     "karma": "~5.1.0",
     "karma-chrome-launcher": "~3.1.0",
     "karma-coverage": "~2.0.3",
