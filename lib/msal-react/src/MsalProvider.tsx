@@ -11,7 +11,8 @@ import {
     EventMessageUtils,
     InteractionStatus,
     Logger,
-    WrapperSKU
+    WrapperSKU,
+    WrapperConfiguration
 } from "@azure/msal-browser";
 import { MsalContext, IMsalContext } from "./MsalContext";
 import { accountArraysAreEqual } from "./utils/utilities";
@@ -20,12 +21,13 @@ import { name as SKU, version } from "./version.json";
 
 export type MsalProviderProps = PropsWithChildren<{
     instance: IPublicClientApplication;
+    config?: WrapperConfiguration;
 }>;
 
-export function MsalProvider({instance, children}: MsalProviderProps): React.ReactElement {
+export function MsalProvider({instance, config, children}: MsalProviderProps): React.ReactElement {
     useEffect(() => {
-        instance.initializeWrapperLibrary(WrapperSKU.React, version);
-    }, [instance]);
+        instance.initializeWrapperLibrary(WrapperSKU.React, version, config);
+    }, [instance, config]);
     // Create a logger instance for msal-react with the same options as PublicClientApplication
     const logger: Logger = useMemo(() => {
         return instance.getLogger().clone(SKU, version);

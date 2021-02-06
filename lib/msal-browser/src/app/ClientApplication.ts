@@ -23,6 +23,7 @@ import { EventError, EventMessage, EventPayload, EventCallbackFunction } from ".
 import { EventType } from "../event/EventType";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
+import { buildWrapperConfiguration, WrapperConfiguration } from "../config/WrapperConfiguration";
 
 export abstract class ClientApplication {
 
@@ -37,6 +38,7 @@ export abstract class ClientApplication {
 
     // Input configuration by developer/user
     protected config: BrowserConfiguration;
+    protected wrapperConfig: Required<WrapperConfiguration> | undefined;
 
     // Logger
     protected logger: Logger;
@@ -207,6 +209,14 @@ export abstract class ClientApplication {
             this.logger.verbose("NavigateToLoginRequestUrl set to false, handling hash");
             return this.handleHash(responseHash, state);
         } else if (!BrowserUtils.isInIframe()) {
+            if (this.wrapperConfig) {
+                const urlParts = new UrlString(loginRequestUrl).getUrlComponents();
+                const navigated = await this.wrapperConfig.clientSideNavigate(urlParts.AbsolutePath, urlParts.QueryString, urlParts.Hash);
+                if (navigated) {
+                    this.logger.verbose("clientSideNavigate completed navigation, handling hash");
+                    return this.handleHash(responseHash, state);
+                }
+            }
             /*
              * Returned from authority using redirect - need to perform navigation before processing response
              * Cache the hash to be retrieved after the next redirect
@@ -1143,10 +1153,14 @@ export abstract class ClientApplication {
      * @param sku 
      * @param version 
      */
-    initializeWrapperLibrary(sku: WrapperSKU, version: string): void {
+    initializeWrapperLibrary(sku: WrapperSKU, version: string, config?: WrapperConfiguration): void {
         // Validate the SKU passed in is one we expect
         this.wrapperSKU = sku;
         this.wrapperVer = version;
+
+        if (config) {
+            this.wrapperConfig = buildWrapperConfiguration(config);
+        }
     }
     // #endregion
 }
