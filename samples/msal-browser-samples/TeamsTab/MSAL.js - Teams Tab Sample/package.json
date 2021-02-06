@@ -1,0 +1,37 @@
+{
+    "name": "microsoft-teams-ext",
+    "version": "0.1.0",
+    "msteams": {
+        "teamsAppId": "18698111-e5d4-4b8e-9f3d-62c5dcec17be"
+    },
+    "private": true,
+    "dependencies": {
+        "@azure/msal-browser": "^2.11.0",
+        "@azure/msal-react": "^1.0.0-alpha.4",
+        "@fluentui/react-northstar": "^0.49.0",
+        "@microsoft/teams-js": "^1.6.0",
+        "crypto": "^1.0.1",
+        "react": "^16.13.1",
+        "react-dom": "^16.13.1",
+        "react-router-dom": "^5.1.2",
+        "react-scripts": "3.4.1"
+    },
+    "scripts": {
+        "start": "react-scripts start",
+        "build": "react-scripts build",
+        "eject": "react-scripts eject"
+    },
+    "browserslist": {
+        "production": [
+            ">0.2%",
+            "not dead",
+            "not op_mini all"
+        ],
+        "development": [
+            "last 1 chrome version",
+            "last 1 firefox version",
+            "last 1 safari version"
+        ]
+    },
+    "proxy": "http://localhost:5000"
+}
