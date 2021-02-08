@@ -68,7 +68,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | `knownAuthorities` | An array of URIs that are known to be valid. Used in B2C scenarios. | Array of strings in URI format | Empty array `[]` |
 | `cloudDiscoveryMetadata` | A string containing the cloud discovery response. Used in AAD scenarios. See performance.md for more info | string | Empty string `""` |
 | `redirectUri` | URI where the authorization code response is sent back to. Whatever location is specified here must have the MSAL library available to handle the response. | String in absolute or relative URI format | Login request page (`window.location.href` of page which made auth request) |
-| `postLogoutRedirectUri` | URI that is redirected to after a logout() call is made. | String in absolute or relative URI format | Login request page (`window.location.href` of page which made auth request) |
+| `postLogoutRedirectUri` | URI that is redirected to after a logout() call is made. | String in absolute or relative URI format. Pass `null` to disable post logout redirect. | Login request page (`window.location.href` of page which made auth request) |
 | `navigateToLoginRequestUrl` | If `true`, will navigate back to the original request location before processing the authorization code response. If the `redirectUri` is the same as the original request location, this flag should be set to false. | boolean | `true` |
 | `clientCapabilities` | Array of capabilities to be added to all network requests as part of the `xms_cc` claims request | Array of strings | [] |
 | `protocolMode` | Enum representing the protocol mode to use. If `"AAD"`, will function on the OIDC-compliant AAD v2 endpoints; if `"OIDC"`, will function on other OIDC-compliant endpoints. | string | `"AAD"` |

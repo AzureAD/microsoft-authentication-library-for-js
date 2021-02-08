@@ -10,7 +10,7 @@
 
 export { PublicClientApplication } from "./app/PublicClientApplication";
 export { Configuration, BrowserAuthOptions, CacheOptions, BrowserSystemOptions } from "./config/Configuration";
-export { InteractionType, BrowserCacheLocation } from "./utils/BrowserConstants";
+export { InteractionType, InteractionStatus, BrowserCacheLocation, WrapperSKU } from "./utils/BrowserConstants";
 export { BrowserUtils } from "./utils/BrowserUtils";
 
 // Browser Errors
@@ -27,7 +27,7 @@ export { EndSessionRequest } from "./request/EndSessionRequest";
 export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
 
 // Events
-export { EventMessage, EventPayload, EventError, EventCallbackFunction } from "./event/EventMessage";
+export { EventMessage, EventPayload, EventError, EventCallbackFunction, EventMessageUtils } from "./event/EventMessage";
 export { EventType } from "./event/EventType";
 
 // Common Object Formats
@@ -42,7 +42,10 @@ export {
     InteractionRequiredAuthError,
     AuthError,
     AuthErrorMessage,
+    // Network
     INetworkModule,
+    NetworkResponse,
+    NetworkRequestOptions,
     // Logger Object
     ILoggerCallback,
     Logger,
