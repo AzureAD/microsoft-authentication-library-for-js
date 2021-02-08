@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Check InteractionStatus in Authenticated/UnauthenticatedTemplate (#2996)",
+  "packageName": "@azure/msal-react",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
