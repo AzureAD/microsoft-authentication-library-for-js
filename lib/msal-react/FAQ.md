@@ -13,7 +13,7 @@
 
 **[B2C](#B2C)**
 
-1. [How do I handle the forgot password flow?](#how-do-i-handle-the-forgot-password-flow)
+1. [How do I handle the forgot password flow in a react app?](#how-do-i-handle-the-forgot-password-flow-in-a-react-app)
 
 **[What if my question has not been answered?](#what-if-my-question-has-not-been-answered)**
 
