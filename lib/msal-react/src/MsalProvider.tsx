@@ -17,7 +17,7 @@ import {
 import { MsalContext, IMsalContext } from "./MsalContext";
 import { accountArraysAreEqual } from "./utils/utilities";
 import { AccountIdentifiers } from "./types/AccountIdentifiers";
-import { name as SKU, version } from "./version.json";
+import { name as SKU, version } from "./packageMetadata";
 
 export type MsalProviderProps = PropsWithChildren<{
     instance: IPublicClientApplication;
