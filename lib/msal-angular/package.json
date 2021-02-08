@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-angular",
-  "version": "2.0.0-alpha.3",
+  "version": "2.0.0-alpha.4",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -34,7 +34,7 @@
     "@angular/platform-browser": "~10.0.9",
     "@angular/platform-browser-dynamic": "~10.0.9",
     "@angular/router": "~10.0.9",
-    "@azure/msal-browser": "^2.10.0",
+    "@azure/msal-browser": "^2.11.0",
     "@types/jasmine": "~3.5.0",
     "@types/jasminewd2": "~2.0.3",
     "@types/node": "^12.11.1",
@@ -57,7 +57,7 @@
   "peerDependencies": {
     "@angular/common": "9 - 11",
     "@angular/core": "9 - 11",
-    "@azure/msal-browser": "^2.10.0",
+    "@azure/msal-browser": "^2.11.0",
     "rxjs": "^6.0.0"
   },
   "resolutions": {

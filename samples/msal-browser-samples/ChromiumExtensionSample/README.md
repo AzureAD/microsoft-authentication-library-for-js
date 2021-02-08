@@ -27,14 +27,14 @@ Chromium extensions are unable to perform certain types of navigation, so applic
  * Generates a login url
  */
 async function getLoginUrl(request) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         msalInstance.loginRedirect({
             ...request,
             onRedirectNavigate: (url) => {
                 resolve(url);
                 return false;
             }
-        })
+        }).catch(reject);
     });
 }
 
@@ -43,14 +43,14 @@ async function getLoginUrl(request) {
  * Generates an acquire token url
  */
 async function getAcquireTokenUrl(request) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         msalInstance.acquireTokenRedirect({
             ...request,
             onRedirectNavigate: (url) => {
                 resolve(url);
                 return false;
             }
-        })
+        }).catch(reject);
     });
 }
 
@@ -80,14 +80,14 @@ async function launchWebAuthFlow(url) {
  * Generates a logout url
  */
 async function getLogoutUrl(request) {
-    return new Promise((resolve) => {
+    return new Promise((resolve, reject) => {
         msalInstance.logout({
             ...request,
             onRedirectNavigate: (url) => {
                 resolve(url);
                 return false;
             }
-        })
+        }).catch(reject);
     });
 }
 
@@ -102,21 +102,6 @@ async function acquireToken(request) {
 
             return launchWebAuthFlow(acquireTokenUrl);
         })
-}
-
-/**
- * Generates a logout url
- */
-async function getLogoutUrl(request) {
-    return new Promise((resolve) => {
-        instance.logout({
-            ...request,
-            onRedirectNavigate: (url) => {
-                resolve(url);
-                return false;
-            }
-        })
-    });
 }
 
 // Login

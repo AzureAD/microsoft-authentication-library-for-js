@@ -55,6 +55,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @param request
      */
     async loginRedirect(request?: RedirectRequest): Promise<void> {
+        this.logger.verbose("loginRedirect called");
         return this.acquireTokenRedirect(request || DEFAULT_REQUEST);
     }
 
@@ -66,6 +67,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
+        this.logger.verbose("loginPopup called");
         return this.acquireTokenPopup(request || DEFAULT_REQUEST);
     }
 
@@ -77,6 +79,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
+        this.logger.verbose("acquireTokenSilent called");
         const account = request.account || this.getActiveAccount();
         if (!account) {
             throw BrowserAuthError.createNoAccountError();

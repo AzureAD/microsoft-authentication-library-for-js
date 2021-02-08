@@ -276,3 +276,4 @@ samples/**/dist/
 .env
 lib/msal-node/temp
 ref/
+.server.pid
