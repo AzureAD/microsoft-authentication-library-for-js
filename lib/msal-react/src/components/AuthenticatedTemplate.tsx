@@ -8,6 +8,7 @@ import { AccountIdentifiers } from "../types/AccountIdentifiers";
 import { getChildrenOrFunction } from "../utils/utilities";
 import { useMsal } from "../hooks/useMsal";
 import { useIsAuthenticated } from "../hooks/useIsAuthenticated";
+import { InteractionStatus } from "@azure/msal-browser";
 
 export type AuthenticatedTemplateProps = PropsWithChildren<AccountIdentifiers>;
 
@@ -26,7 +27,7 @@ export function AuthenticatedTemplate({ username, homeAccountId, localAccountId,
     }, [username, homeAccountId, localAccountId]);
     const isAuthenticated = useIsAuthenticated(accountIdentifier);
 
-    if (isAuthenticated) {
+    if (isAuthenticated && context.inProgress !== InteractionStatus.Startup) {
         return (
             <React.Fragment>
                 {getChildrenOrFunction(children, context)}
