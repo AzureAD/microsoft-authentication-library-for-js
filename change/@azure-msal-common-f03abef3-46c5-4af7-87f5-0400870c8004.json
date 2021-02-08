@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix typing for expiresOn field (#2994)",
+  "packageName": "@azure/msal-common",
+  "email": "prkanher@microsoft.com",
+  "dependentChangeType": "patch"
+}
