@@ -6,7 +6,7 @@
 import { AuthenticationResult, AuthError } from "@azure/msal-common";
 import { EventType } from "./EventType";
 import { InteractionStatus, InteractionType } from "../utils/BrowserConstants";
-import { PopupRequest, RedirectRequest, SilentRequest, SsoSilentRequest } from "..";
+import { PopupRequest, RedirectRequest, SilentRequest, SsoSilentRequest, EndSessionRequest } from "..";
 
 export type EventMessage = {
     eventType: EventType;
