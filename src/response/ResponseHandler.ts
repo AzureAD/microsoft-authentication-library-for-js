@@ -299,7 +299,7 @@ export class ResponseHandler {
         resourceRequestUri?: string): Promise<AuthenticationResult> {
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
-        let expiresOn: Date | null = null;
+        let expiresOn: Date;
         let extExpiresOn: Date | undefined;
         let familyId: string = Constants.EMPTY_STRING;
         if (cacheRecord.accessToken) {
@@ -316,6 +316,8 @@ export class ResponseHandler {
             responseScopes = ScopeSet.fromString(cacheRecord.accessToken.target).asArray();
             expiresOn = new Date(Number(cacheRecord.accessToken.expiresOn) * 1000);
             extExpiresOn = new Date(Number(cacheRecord.accessToken.extendedExpiresOn) * 1000);
+        } else {
+            throw ClientAuthError.createAccessTokenEntityNullError();
         }
 
         if (cacheRecord.appMetadata) {
