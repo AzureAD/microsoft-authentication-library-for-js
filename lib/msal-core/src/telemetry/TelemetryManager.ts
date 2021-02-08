@@ -18,7 +18,7 @@ import { Constants } from "../utils/Constants";
 import ApiEvent, { API_EVENT_IDENTIFIER } from "./ApiEvent";
 import { Logger } from "../Logger";
 import HttpEvent from "./HttpEvent";
-import { version as libraryVersion } from "../version.json";
+import { version as libraryVersion } from "../packageMetadata";
 
 export default class TelemetryManager {
 
