@@ -180,23 +180,18 @@ describe("ResponseHandler.ts", () => {
     });
 
     describe("generateAuthenticationResult", async () => {
-        it("sets default values if access_token not in cacheRecord", async () => {
+        it("throws error if access_token not in cacheRecord", async () => {
             const testResponse: ServerAuthorizationTokenResponse = {...AUTHENTICATION_RESULT.body};
-            testResponse.access_token = null;
+            testResponse.access_token = undefined;
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
             const timestamp = TimeUtils.nowSeconds();
-            const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp);
-
-            expect(result.accessToken).to.be.eq("");
-            expect(result.scopes).to.be.length(0);
-            expect(result.expiresOn).to.be.null;
-            expect(result.extExpiresOn).to.be.undefined;
+            await expect(responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp)).rejectedWith(ClientAuthErrorMessage.accessTokenEntityNullError.desc);
         });
 
         it("sets default values if refresh_token not in cacheRecord", async () => {
             const testResponse: ServerAuthorizationTokenResponse = {...AUTHENTICATION_RESULT.body};
-            testResponse.refresh_token = null;
+            testResponse.refresh_token = undefined;
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
             const timestamp = TimeUtils.nowSeconds();
