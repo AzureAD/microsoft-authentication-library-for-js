@@ -20,7 +20,7 @@
             "path": "../msal-common"
         }
     ],
-    "include": ["src", "src/**/*.json", "test"],
+    "include": ["src", "test"],
     "exclude": [
         "node_modules"
     ],

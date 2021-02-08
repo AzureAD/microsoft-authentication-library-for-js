@@ -18,25 +18,22 @@ const libFolders = fs.readdirSync(LIB_DIR, { withFileTypes: true }).filter(funct
 
 libFolders.forEach((lib) => {
     const packageJsonPath = path.resolve(LIB_DIR, lib, "package.json");
-    const outputFilepath = path.resolve(LIB_DIR, lib, "src", "version.json");
+    const outputFilepath = path.resolve(LIB_DIR, lib, "src", "packageMetadata.ts");
     const packageJson = require(packageJsonPath);
-    const versionJson = require(outputFilepath);
 
-    if (packageJson.version !== versionJson.version) {
-        console.log(`Updating ${packageJson.name} to version ${packageJson.version} from ${versionJson.version}`);
-        const data = {
-            name: packageJson.name,
-            version: packageJson.version
-        };
+    console.log(`Updating ${packageJson.name} to version ${packageJson.version}`);
+    const fileContents = [
+        "/* eslint-disable header/header */",
+        `export const name = "${packageJson.name}";`,
+        `export const version = "${packageJson.version}";`,
+        ""
+    ];
 
-        try {
-            fs.writeFileSync(outputFilepath, JSON.stringify(data));
-        } catch {
-            failures += 1;
-            console.error(`Failed to update version for ${packageJson.name}`);
-        }
-    } else {
-        console.log(`Update not needed for: ${packageJson.name}`);
+    try {
+        fs.writeFileSync(outputFilepath, fileContents.join("\n"));
+    } catch {
+        failures += 1;
+        console.error(`Failed to update version for ${packageJson.name}`);
     }
 });
 
