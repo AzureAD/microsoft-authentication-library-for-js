@@ -37,7 +37,7 @@ export class NodeStorage extends CacheManager {
     }
 
     /**
-     * queue up callbacks
+     * Queue up callbacks
      * @param func - a callback function for cache change indication
      */
     registerChangeEmitter(func: () => void): void {
