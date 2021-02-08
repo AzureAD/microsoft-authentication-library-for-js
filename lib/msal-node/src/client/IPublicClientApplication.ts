@@ -18,7 +18,7 @@ import { TokenCache } from "../cache/TokenCache";
  */
 export interface IPublicClientApplication {
 
-    /** creates the URL of the authorization request */
+    /** Creates the URL of the authorization request */
     getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string>;
 
     /** Acquires a token by exchanging the authorization code received from the first step of OAuth 2.0 Authorization Code Flow */
@@ -45,4 +45,3 @@ export interface IPublicClientApplication {
     /** Replaces the default logger set in configurations with new Logger with new configurations */
     setLogger(logger: Logger): void;
 }
-

@@ -242,7 +242,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     }
 
     /**
-     * helper to merge new cache with the old one
+     * Helper to merge new cache with the old one
      * @param oldState - cache before changes
      * @param newState - updated cache
      */
@@ -257,7 +257,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     }
 
     /**
-     * helper to overlay as a part of cache merge
+     * Helper to overlay as a part of cache merge
      * @param passedInCache - cache read from the blob
      */
     private overlayDefaults(passedInCache: JsonCache): JsonCache {

@@ -24,7 +24,7 @@ export class ClientAssertion {
     private publicCertificate: Array<string>;
 
     /**
-     * initialize the ClientAssertion class from the clientAssertion passed by the user
+     * Initialize the ClientAssertion class from the clientAssertion passed by the user
      * @param assertion - refer https://tools.ietf.org/html/rfc7521
      */
     public static fromAssertion(assertion: string): ClientAssertion {
@@ -34,7 +34,7 @@ export class ClientAssertion {
     }
 
     /**
-     * initialize the ClientAssertion class from the certificate passed by the user
+     * Initialize the ClientAssertion class from the certificate passed by the user
      * @param thumbprint - identifier of a certificate
      * @param privateKey - secret key
      * @param publicCertificate - electronic document provided to prove the ownership of the public key
@@ -112,7 +112,7 @@ export class ClientAssertion {
     }
 
     /**
-     * utility API to check expiration
+     * Utility API to check expiration
      */
     private isExpired(): boolean {
         return this.expirationTime < TimeUtils.nowSeconds();
