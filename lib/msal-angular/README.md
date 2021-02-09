@@ -94,6 +94,8 @@ All documentation for MSAL Angular v1 can be found [here](https://github.com/Azu
 * [Angular v11](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-sample-app)
 * [Angular v11 B2C Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-b2c-sample)
 
+See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/README.md) for specific features demonstrated by our 2.x samples.
+
 ## Build and running tests
 
 If you want to build the library and run all the unit tests, you can do the following.
