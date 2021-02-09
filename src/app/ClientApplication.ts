@@ -4,7 +4,7 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { Authority, StringUtils, UrlString, ServerAuthorizationCodeResponse, AuthorizationCodeRequest, AuthorizationCodeClient, PromptValue, ServerError, InteractionRequiredAuthError, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, AuthenticationScheme, SilentFlowRequest, EndSessionRequest as CommonEndSessionRequest, AccountEntity, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthorityOptions } from "@azure/msal-common";
+import { Authority, StringUtils, UrlString, ServerAuthorizationCodeResponse, CommonAuthorizationCodeRequest, AuthorizationCodeClient, PromptValue, ServerError, InteractionRequiredAuthError, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, AuthenticationScheme, CommonSilentFlowRequest, CommonEndSessionRequest, AccountEntity, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthorityOptions } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
 import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, BrowserCacheLocation, WrapperSKU } from "../utils/BrowserConstants";
@@ -160,7 +160,7 @@ export abstract class ClientApplication {
      * Checks if navigateToLoginRequestUrl is set, and:
      * - if true, performs logic to cache and navigate
      * - if false, handles hash string and parses response
-     * @param hash 
+     * @param hash
      */
     private async handleRedirectResponse(hash?: string): Promise<AuthenticationResult | null> {
         if (!this.interactionInProgress()) {
@@ -232,7 +232,7 @@ export abstract class ClientApplication {
     /**
      * Gets the response hash for a redirect request
      * Returns null if interactionType in the state value is not "redirect" or the hash does not contain known properties
-     * @param hash 
+     * @param hash
      */
     private getRedirectResponseHash(hash: string): string | null {
         this.logger.verbose("getRedirectResponseHash called");
@@ -251,7 +251,6 @@ export abstract class ClientApplication {
     }
 
     /**
-     * 
      * @param hash
      * @param interactionType
      */
@@ -330,7 +329,7 @@ export abstract class ClientApplication {
 
         try {
             // Create auth code request and generate PKCE params
-            const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
+            const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
 
             // Initialize the client
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority);
@@ -345,7 +344,7 @@ export abstract class ClientApplication {
 
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
             return interactionHandler.initiateAuthRequest(navigateUrl, {
-                redirectTimeout: this.config.system.redirectNavigationTimeout, 
+                redirectTimeout: this.config.system.redirectNavigationTimeout,
                 redirectStartPage: redirectStartPage,
                 onRedirectNavigate: request.onRedirectNavigate
             });
@@ -371,7 +370,7 @@ export abstract class ClientApplication {
      * Use when you want to obtain an access_token for your API via opening a popup window in the user's browser
      *
      * @param request
-     * 
+     *
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
@@ -421,7 +420,7 @@ export abstract class ClientApplication {
 
         try {
             // Create auth code request and generate PKCE params
-            const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
+            const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
 
             // Initialize the client
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority);
@@ -531,7 +530,7 @@ export abstract class ClientApplication {
 
         try {
             // Create auth code request and generate PKCE params
-            const authCodeRequest: AuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
+            const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
 
             // Initialize the client
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentRequest.authority);
@@ -558,12 +557,11 @@ export abstract class ClientApplication {
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
-    protected async acquireTokenByRefreshToken(request: SilentFlowRequest): Promise<AuthenticationResult> {
-        this.logger.verbose("acquireTokenByRefreshToken called");
+    protected async acquireTokenByRefreshToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
         this.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, request);
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
-        const silentRequest: SilentFlowRequest = {
+        const silentRequest: CommonSilentFlowRequest = {
             ...request,
             ...this.initializeBaseRequest(request)
         };
@@ -591,8 +589,7 @@ export abstract class ClientApplication {
      * @param navigateUrl
      * @param userRequestScopes
      */
-    private async silentTokenHelper(navigateUrl: string, authCodeRequest: AuthorizationCodeRequest, authClient: AuthorizationCodeClient): Promise<AuthenticationResult> {
-        this.logger.verbose("silentTokenHelper called");
+    private async silentTokenHelper(navigateUrl: string, authCodeRequest: CommonAuthorizationCodeRequest, authClient: AuthorizationCodeClient): Promise<AuthenticationResult> {
         // Create silent handler
         const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.config.system.navigateFrameWait);
         // Get the frame handle for the silent request
@@ -727,7 +724,7 @@ export abstract class ClientApplication {
 
     /**
      * Sets the account to use as the active account. If no account is passed to the acquireToken APIs, then MSAL will use this active account.
-     * @param account 
+     * @param account
      */
     setActiveAccount(account: AccountInfo | null): void {
         if (account) {
@@ -770,7 +767,7 @@ export abstract class ClientApplication {
 
     /**
      * Use to get the redirectStartPage either from request or use current window
-     * @param requestStartPage 
+     * @param requestStartPage
      */
     protected getRedirectStartPage(requestStartPage?: string): string {
         this.logger.verbose("getRedirectStartPage called");
@@ -942,10 +939,10 @@ export abstract class ClientApplication {
     }
 
     /**
-     * 
-     * @param apiId 
-     * @param correlationId 
-     * @param forceRefresh 
+     *
+     * @param apiId
+     * @param correlationId
+     * @param forceRefresh
      */
     protected initializeServerTelemetryManager(apiId: number, correlationId: string, forceRefresh?: boolean): ServerTelemetryManager {
         this.logger.verbose("initializeServerTelemetryManager called");
@@ -1020,11 +1017,10 @@ export abstract class ClientApplication {
      * Generates an auth code request tied to the url request.
      * @param request
      */
-    protected async initializeAuthorizationCodeRequest(request: AuthorizationUrlRequest): Promise<AuthorizationCodeRequest> {
-        this.logger.verbose("initializeAuthorizationCodeRequest called");
+    protected async initializeAuthorizationCodeRequest(request: AuthorizationUrlRequest): Promise<CommonAuthorizationCodeRequest> {
         const generatedPkceParams = await this.browserCrypto.generatePkceCodes();
 
-        const authCodeRequest: AuthorizationCodeRequest = {
+        const authCodeRequest: CommonAuthorizationCodeRequest = {
             ...request,
             redirectUri: request.redirectUri,
             code: "",
@@ -1116,7 +1112,7 @@ export abstract class ClientApplication {
 
     /**
      * Removes callback with provided id from callback array
-     * @param callbackId 
+     * @param callbackId
      */
     removeEventCallback(callbackId: string): void {
         this.eventCallbacks.delete(callbackId);
@@ -1140,8 +1136,8 @@ export abstract class ClientApplication {
 
     /**
      * Called by wrapper libraries (Angular & React) to set SKU and Version passed down to telemetry, logger, etc.
-     * @param sku 
-     * @param version 
+     * @param sku
+     * @param version
      */
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void {
         // Validate the SKU passed in is one we expect
