@@ -254,31 +254,32 @@ export function App() {
 ## Acquiring an access token outside of a React component
 
 If you require an access token outside of a React component you can directly call the `acquireTokenSilent` function on the `PublicClientApplication`.
-The `PublicClientApplication` can be reused but might as well be recreated for every API call. 
-We do not recommend calling functions that change the user's state outside of a component because those functions rely on the React Context API to work properly.
+We do not recommend calling functions that change the user's authenticated state (login, logout) outside the react context provided by `MsalProvider` as the components inside the context may not properly update.
 
-Keep in mind that the user has to be signed in before you can acquire a token outside of a React component.
+Keep in mind that the user has to be signed in before you can acquire a token.
 
 ```javascript
-import { Configuration, PublicClientApplication } from '@azure/msal-browser'
+import { PublicClientApplication } from "@azure/msal-browser";
 
-const acquireAccessToken = async (): Promise<string> => {
-  const configuration: Configuration = {
-    auth: {
-      clientId: "client-id"
-      redirectUri: "redirect uri",
-    },
-  }
+// This should be the same instance you pass to MsalProvider
+const msalInstance = new PublicClientApplication(config);
 
-  const pca = new PublicClientApplication(cfg)
-  const accounts = pca.getAllAccounts()
+const acquireAccessToken = async (msalInstance) => {
+    const accounts = msalInstance.getAllAccounts()
 
-  const authResult = await pca.acquireTokenSilent({
-    scopes: ["User.Read"],
-    accounts[0],
-  })
+    if (accounts.length === 0) {
+        /*
+        * User is not signed in. Throw error or wait for user to login.
+        * Do not attempt to log a user in outside of the context of MsalProvider
+        */   
+    }
+    const request = {
+        scopes: ["User.Read"]
+        accounts[0]
+    };
 
-  return authResult.accessToken
-}
+    const authResult = await msalInstance.acquireTokenSilent(request);
 
+    return authResult.accessToken
+};
 ```
