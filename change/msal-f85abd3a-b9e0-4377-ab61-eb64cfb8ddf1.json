@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix version.json import errors (#2993)",
-  "packageName": "msal",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add missing network types to browser exports (#2995)",
-  "packageName": "@azure/msal-browser",
-  "email": "prkanher@microsoft.com",
-  "dependentChangeType": "patch"
-}
