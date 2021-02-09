@@ -1,6 +1,6 @@
 {
   "type": "prerelease",
-  "comment": "Add FAQ.md (#2977)",
+  "comment": "Add FAQ.md and active accounts in sample (#2977)",
   "packageName": "@azure/msal-angular",
   "email": "joarroyo@microsoft.com",
   "dependentChangeType": "patch"
