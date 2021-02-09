@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Ignore OIDC scopes during cache lookup or replacement (#2969)",
+  "packageName": "@azure/msal-node",
+  "email": "prkanher@microsoft.com",
+  "dependentChangeType": "patch"
+}
