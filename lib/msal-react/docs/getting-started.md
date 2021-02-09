@@ -220,7 +220,7 @@ import { useMsal, useAccount } from "@azure/msal-react";
 
 export function App() {
     const { instance, accounts, inProgress } = useMsal();
-    const account = useAccount(accounts[0]);
+    const account = useAccount(accounts[0] || {});
     const [apiData, setApiData] = useState(null);
 
     useEffect(() => {
