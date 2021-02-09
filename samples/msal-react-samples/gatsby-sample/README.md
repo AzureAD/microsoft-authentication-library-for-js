@@ -7,7 +7,7 @@ This sample was bootstrapped with the [Gatsby Hello World Starter](https://githu
 
 ## Notable files and what they demonstrate
 
-1. `./src/components/Layout.jsx` - Shows implementation of `MsalProvider`, all children will have access to `msal-react` context, hooks and components.
+1. `./wrap-with-provider.js` - Shows implementation of `MsalProvider`, all children (pages) will have access to `msal-react` context, hooks and components.
 1. `./src/pages/index.js` - Homepage, shows how to conditionally render content using `AuthenticatedTemplate` and `UnauthenticatedTemplate` depending on whether or not a user is signed in.
 1. `./src/pages/profile.js` - Example of a protected route using `MsalAuthenticationTemplate`. If a user is not yet signed in, signin will be invoked automatically. If a user is signed in it will acquire an access token and make a call to MS Graph to fetch user profile data.
 1. `./src/authConfig.js` - Configuration options for `PublicClientApplication` and token requests.
