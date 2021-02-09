@@ -62,7 +62,7 @@ class Profile extends Component {
 
         return (
             <MsalAuthenticationTemplate 
-                interactionType={InteractionType.Popup} 
+                interactionType={InteractionType.Redirect} 
                 authenticationRequest={authRequest} 
                 errorComponent={ErrorComponent} 
                 loadingComponent={Loading}
