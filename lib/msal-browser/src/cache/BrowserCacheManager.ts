@@ -500,13 +500,17 @@ export class BrowserCacheManager extends CacheManager {
      * @param expires
      */
     setItemCookie(cookieName: string, cookieValue: string, expires?: number): void {
-        let cookieStr = `${encodeURIComponent(cookieName)}=${encodeURIComponent(cookieValue)};Secure;path=/;`;
+        let cookieStr = `${encodeURIComponent(cookieName)}=${encodeURIComponent(cookieValue)};path=/;`;
         if (expires) {
             const expireTime = this.getCookieExpirationTime(expires);
             cookieStr += `expires=${expireTime};`;
         }
+
+        if(this.cacheConfig.secureCookies) {
+            cookieStr += "Secure;";
+        }
+        
         document.cookie = cookieStr;
-        console.log(document.cookie);
     }
 
     /**
@@ -752,7 +756,8 @@ export class BrowserCacheManager extends CacheManager {
 export const DEFAULT_BROWSER_CACHE_MANAGER = (clientId: string, logger: Logger) => {
     const cacheOptions = {
         cacheLocation: BrowserCacheLocation.MemoryStorage,
-        storeAuthStateInCookie: false
+        storeAuthStateInCookie: false,
+        secureCookies: false
     };
     return new BrowserCacheManager(clientId, cacheOptions, DEFAULT_CRYPTO_IMPLEMENTATION, logger);
 };
