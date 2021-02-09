@@ -1,0 +1,8 @@
+{
+  "type": "prerelease",
+  "comment": "Update node version support in package.json(#2998)",
+  "packageName": "@azure/msal-node",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch",
+  "date": "2021-02-09T04:06:52.282Z"
+}
