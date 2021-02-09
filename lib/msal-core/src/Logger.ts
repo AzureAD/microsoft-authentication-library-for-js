@@ -4,7 +4,7 @@
  */
 
 import { StringUtils } from "./utils/StringUtils";
-import { version as libraryVersion } from "./version.json";
+import { version as libraryVersion } from "./packageMetadata";
 
 export interface ILoggerCallback {
     (level: LogLevel, message: string, containsPii: boolean): void;
