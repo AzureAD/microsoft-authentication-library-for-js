@@ -65,10 +65,10 @@ We recommend subscribing to the `inProgress$` subject and filtering for `none` b
 
 We recommend setting the active account:
 
-- After any action that may change the account, especially if your app uses multiple accounts. 
-- On initial page load. Wait until all interactions are complete (by subscribing to the `inProgress$` subject and filtering for `none`), check if there is an active account, and if there is none, set the active account. This could be the first account retrieved by `getAllAccounts()`, or other account selection logic required by your app.
+- After any action that may change the account, especially if your app uses multiple accounts. See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/home/home.component.ts#L23) for an example of setting the account after a successful login.
+- On initial page load. Wait until all interactions are complete (by subscribing to the `inProgress$` subject and filtering for `none`), check if there is an active account, and if there is none, set the active account. This could be the first account retrieved by `getAllAccounts()`, or other account selection logic required by your app. See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app) for an example of checking and setting the active account on page load.
 
-[Our sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/home/home.component.ts#L23) demonstrates basic usage. Your app may require more complicated logic to choose accounts.
+Our [Angular 11](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app) sample demonstrates basic usage. Your app may require more complicated logic to choose accounts.
 
 ## What if my question has not been answered?
 
