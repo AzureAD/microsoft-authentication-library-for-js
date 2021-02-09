@@ -11,6 +11,11 @@
 
 1. [How do I add tokens to API calls?](#how-do-i-add-tokens-to-api-calls)
 
+**[Usage](#usage)**
+
+1. [How do I get accounts?](#how-do-i-get-accounts)
+1. [How do I get and set active accounts?](#how-do-i-get-and-set-active-accounts)
+
 **[What if my question has not been answered?](#what-if-my-question-has-not-been-answered)**
 
 ***
@@ -43,6 +48,27 @@ Things to note about the `protectedResourceMap`:
 See our [initialization doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/initialization.md#get-tokens-for-web-api-calls) for more information on setting this up, our [upgrade guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/1.x-2.x-upgrade-guide.md#protected-resources) for differences to Msal Angular 1.x, and our [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/5cc21a95a389c31a0d5e74d37ff297931aeee479/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app.module.ts#L47) for examples of usage. 
 
 Please note that using the MsalInterceptor is optional and you can write your own interceptor if you choose to. Alternatively, you can also explicitly acquire tokens using the acquireToken APIs.
+
+## Usage
+
+### How do I get accounts?
+
+The `msal-browser` instance used by msal-angular exposes multiple methods for getting account information. We recommend using `getAllAccounts()` to get all accounts, and `getAccountByHomeId()` and `getAccountByLocalId()` to get specific accounts. Note that while `getAccountByUsername()` is available, it should be a secondary choice, as it may be less reliable and is for convenience only. See the [msal-browser docs](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_browser.publicclientapplication.html) for more details on account methods.
+
+We recommend subscribing to the `inProgress$` subject before retrieving account information. This ensures that all interactions have completed before getting account information. See [our sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular10-sample-app/src/app/app.component.ts#L27) for an example of this use.
+
+### How do I get and set active accounts?
+
+The `msal-browser` instance exposes `getActiveAccount()` and `setActiveAccount()` for active accounts. 
+
+We recommend subscribing to the `inProgress$` subject and filtering for `none` before retrieving account information with `getActiveAccount()`. This ensures that all interactions have completed before getting account information. 
+
+We recommend setting the active account:
+
+- After any action that may change the account, especially if your app uses multiple accounts. 
+- On initial page load. Wait until all interactions are complete (by subscribing to the `inProgress$` subject and filtering for `none`), check if there is an active account, and if there is none, set the active account. This could be the first account retrieved by `getAllAccounts()`, or other account selection logic required by your app.
+
+[Our sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/home/home.component.ts#L23) demonstrates basic usage. Your app may require more complicated logic to choose accounts.
 
 ## What if my question has not been answered?
 
