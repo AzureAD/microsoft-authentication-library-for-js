@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, SilentFlowRequest as CommonSilentFlowRequest } from "@azure/msal-common";
+import { AccountInfo, CommonSilentFlowRequest } from "@azure/msal-common";
 
 /**
  * SilentFlow parameters passed by the user to retrieve credentials silently
@@ -13,6 +13,7 @@ import { AccountInfo, SilentFlowRequest as CommonSilentFlowRequest } from "@azur
  * - correlationId          - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - account                - Account entity to lookup the credentials.
  * - forceRefresh           - Forces silent requests to make network calls if true.
+ * @public
  */
 export type SilentFlowRequest = Partial<Omit<CommonSilentFlowRequest, "account"|"scopes"|"resourceRequestMethod"|"resourceRequestUri">> & {
     account: AccountInfo;

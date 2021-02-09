@@ -803,8 +803,8 @@ export abstract class CacheManager implements ICacheManager {
         const entityScopeSet: ScopeSet = ScopeSet.fromString(entity.target);
         const requestTargetScopeSet: ScopeSet = ScopeSet.fromString(target);
 
-        if (!requestTargetScopeSet.containsOnlyDefaultScopes()) {
-            requestTargetScopeSet.removeDefaultScopes(); // ignore default scopes
+        if (!requestTargetScopeSet.containsOnlyOIDCScopes()) {
+            requestTargetScopeSet.removeOIDCScopes(); // ignore OIDC scopes
         }
         return entityScopeSet.containsScopeSet(requestTargetScopeSet);
     }

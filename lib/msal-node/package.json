@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-node",
-  "version": "1.0.0-beta.5",
+  "version": "1.0.0-beta.6",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -62,10 +62,11 @@
     "husky": "^4.2.3",
     "tsdx": "^0.14.1",
     "tslib": "^1.10.0",
-    "typescript": "^3.8.3"
+    "typescript": "^3.8.3",
+    "@microsoft/api-extractor": "^7.13.0"
   },
   "dependencies": {
-    "@azure/msal-common": "^3.1.0",
+    "@azure/msal-common": "^4.0.0",
     "axios": "^0.21.1",
     "jsonwebtoken": "^8.5.1",
     "uuid": "^8.3.0"

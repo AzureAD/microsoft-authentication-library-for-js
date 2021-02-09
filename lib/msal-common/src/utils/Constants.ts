@@ -27,6 +27,7 @@ export const Constants = {
     OPENID_SCOPE: "openid",
     PROFILE_SCOPE: "profile",
     OFFLINE_ACCESS_SCOPE: "offline_access",
+    EMAIL_SCOPE: "email",
     // Default response type for authorization code flow
     CODE_RESPONSE_TYPE: "code",
     CODE_GRANT_TYPE: "authorization_code",
@@ -37,8 +38,19 @@ export const Constants = {
     AUTHORIZATION_PENDING: "authorization_pending",
     NOT_DEFINED: "not_defined",
     EMPTY_STRING: "",
-    FORWARD_SLASH: "/" 
+    FORWARD_SLASH: "/"
 };
+
+export const OIDC_DEFAULT_SCOPES = [
+    Constants.OPENID_SCOPE,
+    Constants.PROFILE_SCOPE,
+    Constants.OFFLINE_ACCESS_SCOPE
+];
+
+export const OIDC_SCOPES = [
+    ...OIDC_DEFAULT_SCOPES,
+    Constants.EMAIL_SCOPE
+];
 
 /**
  * Request header names
