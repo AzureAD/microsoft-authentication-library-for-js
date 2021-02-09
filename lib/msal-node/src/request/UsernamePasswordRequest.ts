@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { UsernamePasswordRequest as CommonUsernamePasswordRequest } from "@azure/msal-common";
+import { CommonUsernamePasswordRequest } from "@azure/msal-common";
 
 /**
  * UsernamePassword parameters passed by the user to retrieve credentials
@@ -15,6 +15,7 @@ import { UsernamePasswordRequest as CommonUsernamePasswordRequest } from "@azure
  * - correlationId          - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - username               - username of the client
  * - password               - credentials
+ * @public
  */
 export type UsernamePasswordRequest = Partial<Omit<CommonUsernamePasswordRequest, "scopes"|"resourceRequestMethod"|"resourceRequestUri"|"username"|"password">> & {
     scopes: Array<string>

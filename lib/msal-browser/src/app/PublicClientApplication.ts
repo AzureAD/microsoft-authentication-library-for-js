@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, SilentFlowRequest } from "@azure/msal-common";
+import { AuthenticationResult, CommonSilentFlowRequest } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, ApiId, InteractionType } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -73,9 +73,9 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
     /**
      * Silently acquire an access token for a given set of scopes. Will use cached token if available, otherwise will attempt to acquire a new token from the network via refresh token.
-     * 
-     * @param request
-     * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
+     *
+     * @param {@link (SilentRequest:type)}
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
@@ -84,7 +84,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         if (!account) {
             throw BrowserAuthError.createNoAccountError();
         }
-        const silentRequest: SilentFlowRequest = {
+        const silentRequest: CommonSilentFlowRequest = {
             ...request,
             ...this.initializeBaseRequest(request),
             account: account,

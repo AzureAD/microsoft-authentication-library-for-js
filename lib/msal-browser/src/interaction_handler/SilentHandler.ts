@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { UrlString, StringUtils, AuthorizationCodeRequest, AuthorizationCodeClient, Constants } from "@azure/msal-common";
+import { UrlString, StringUtils, CommonAuthorizationCodeRequest, AuthorizationCodeClient, Constants } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
@@ -13,14 +13,14 @@ import { DEFAULT_IFRAME_TIMEOUT_MS } from "../config/Configuration";
 export class SilentHandler extends InteractionHandler {
 
     private navigateFrameWait: number;
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: AuthorizationCodeRequest, navigateFrameWait: number) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, navigateFrameWait: number) {
         super(authCodeModule, storageImpl, authCodeRequest);
         this.navigateFrameWait = navigateFrameWait;
     }
 
     /**
      * Creates a hidden iframe to given URL using user-requested scopes as an id.
-     * @param urlNavigate 
+     * @param urlNavigate
      * @param userRequestScopes
      */
     async initiateAuthRequest(requestUrl: string): Promise<HTMLIFrameElement> {
@@ -35,8 +35,8 @@ export class SilentHandler extends InteractionHandler {
 
     /**
      * Monitors an iframe content window until it loads a url with a known hash, or hits a specified timeout.
-     * @param iframe 
-     * @param timeout 
+     * @param iframe
+     * @param timeout
      */
     monitorIframeForHash(iframe: HTMLIFrameElement, timeout: number): Promise<string> {
         return new Promise((resolve, reject) => {
