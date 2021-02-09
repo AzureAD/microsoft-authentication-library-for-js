@@ -23,8 +23,9 @@ import { InMemoryCache, JsonCache, CacheKVStore } from "./serializer/SerializerT
 
 /**
  * This class implements Storage for node, reading cache from user specified storage location or an  extension library
+ * @public
  */
-export class Storage extends CacheManager {
+export class NodeStorage extends CacheManager {
     // Cache configuration, either set by user or default values.
     private logger: Logger;
     private cache: CacheKVStore = {};
@@ -35,17 +36,24 @@ export class Storage extends CacheManager {
         this.logger = logger;
     }
 
+    /**
+     * Queue up callbacks
+     * @param func - a callback function for cache change indication
+     */
     registerChangeEmitter(func: () => void): void {
         this.changeEmitters.push(func);
     }
 
+    /**
+     * Invoke the callback when cache changes
+     */
     emitChange(): void {
         this.changeEmitters.forEach(func => func.call(null));
     }
 
     /**
      * Converts cacheKVStore to InMemoryCache
-     * @param cache
+     * @param cache - key value store
      */
     cacheToInMemoryCache(cache: CacheKVStore): InMemoryCache {
 
@@ -78,7 +86,7 @@ export class Storage extends CacheManager {
 
     /**
      * converts inMemoryCache to CacheKVStore
-     * @param inMemoryCache
+     * @param inMemoryCache - kvstore map for inmemory
      */
     inMemoryCacheToCache(inMemoryCache: InMemoryCache): CacheKVStore {
         // convert in memory cache to a flat Key-Value map
@@ -107,7 +115,7 @@ export class Storage extends CacheManager {
 
     /**
      * sets the current in memory cache for the client
-     * @param inMemoryCache
+     * @param inMemoryCache - key value map in memory
      */
     setInMemoryCache(inMemoryCache: InMemoryCache): void{
         this.logger.verbose("Setting in-memory cache");
@@ -129,7 +137,7 @@ export class Storage extends CacheManager {
 
     /**
      * sets the current cache (key value store)
-     * @param cacheMap
+     * @param cacheMap - key value map
      */
     setCache(cache: CacheKVStore): void {
         this.logger.verbose("Setting cache key value store");
@@ -141,7 +149,7 @@ export class Storage extends CacheManager {
 
     /**
      * Gets cache item with given key.
-     * @param key
+     * @param key - lookup key for the cache entry
      */
     getItem(key: string): ValidCacheType {
         this.logger.verbosePii(`Item key: ${key}`);
@@ -152,9 +160,9 @@ export class Storage extends CacheManager {
     }
 
     /**
-     * Gets cache item with given <key, value>
-     * @param key
-     * @param value
+     * Gets cache item with given key-value
+     * @param key - lookup key for the cache entry
+     * @param value - value of the cache entry
      */
     setItem(key: string, value: ValidCacheType): void {
         this.logger.verbosePii(`Item key: ${key}`);
@@ -169,7 +177,7 @@ export class Storage extends CacheManager {
 
     /**
      * fetch the account entity
-     * @param accountKey
+     * @param accountKey - lookup key to fetch cache type AccountEntity
      */
     getAccount(accountKey: string): AccountEntity | null {
         const account = this.getItem(accountKey) as AccountEntity;
@@ -181,7 +189,7 @@ export class Storage extends CacheManager {
 
     /**
      * set account entity
-     * @param account
+     * @param account - cache value to be set of type AccountEntity
      */
     setAccount(account: AccountEntity): void {
         const accountKey = account.generateAccountKey();
@@ -190,7 +198,7 @@ export class Storage extends CacheManager {
 
     /**
      * fetch the idToken credential
-     * @param idTokenKey
+     * @param idTokenKey - lookup key to fetch cache type IdTokenEntity
      */
     getIdTokenCredential(idTokenKey: string): IdTokenEntity | null {
         const idToken = this.getItem(idTokenKey) as IdTokenEntity;
@@ -202,7 +210,7 @@ export class Storage extends CacheManager {
 
     /**
      * set idToken credential
-     * @param idToken
+     * @param idToken - cache value to be set of type IdTokenEntity
      */
     setIdTokenCredential(idToken: IdTokenEntity): void {
         const idTokenKey = idToken.generateCredentialKey();
@@ -211,7 +219,7 @@ export class Storage extends CacheManager {
 
     /**
      * fetch the accessToken credential
-     * @param accessTokenKey
+     * @param accessTokenKey - lookup key to fetch cache type AccessTokenEntity
      */
     getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity | null {
         const accessToken = this.getItem(accessTokenKey) as AccessTokenEntity;
@@ -223,7 +231,7 @@ export class Storage extends CacheManager {
 
     /**
      * set accessToken credential
-     * @param accessToken
+     * @param accessToken -  cache value to be set of type AccessTokenEntity
      */
     setAccessTokenCredential(accessToken: AccessTokenEntity): void {
         const accessTokenKey = accessToken.generateCredentialKey();
@@ -232,7 +240,7 @@ export class Storage extends CacheManager {
 
     /**
      * fetch the refreshToken credential
-     * @param refreshTokenKey
+     * @param refreshTokenKey - lookup key to fetch cache type RefreshTokenEntity
      */
     getRefreshTokenCredential(refreshTokenKey: string): RefreshTokenEntity | null {
         const refreshToken = this.getItem(refreshTokenKey) as RefreshTokenEntity;
@@ -244,7 +252,7 @@ export class Storage extends CacheManager {
 
     /**
      * set refreshToken credential
-     * @param refreshToken
+     * @param refreshToken - cache value to be set of type RefreshTokenEntity
      */
     setRefreshTokenCredential(refreshToken: RefreshTokenEntity): void {
         const refreshTokenKey = refreshToken.generateCredentialKey();
@@ -253,7 +261,7 @@ export class Storage extends CacheManager {
 
     /**
      * fetch appMetadata entity from the platform cache
-     * @param appMetadataKey
+     * @param appMetadataKey - lookup key to fetch cache type AppMetadataEntity
      */
     getAppMetadata(appMetadataKey: string): AppMetadataEntity | null {
         const appMetadata: AppMetadataEntity = this.getItem(appMetadataKey) as AppMetadataEntity;
@@ -265,7 +273,7 @@ export class Storage extends CacheManager {
 
     /**
      * set appMetadata entity to the platform cache
-     * @param appMetadata
+     * @param appMetadata - cache value to be set of type AppMetadataEntity
      */
     setAppMetadata(appMetadata: AppMetadataEntity): void {
         const appMetadataKey = appMetadata.generateAppMetadataKey();
@@ -274,7 +282,7 @@ export class Storage extends CacheManager {
 
     /**
      * fetch server telemetry entity from the platform cache
-     * @param serverTelemetrykey
+     * @param serverTelemetrykey - lookup key to fetch cache type ServerTelemetryEntity
      */
     getServerTelemetry(serverTelemetrykey: string): ServerTelemetryEntity | null {
         const serverTelemetryEntity: ServerTelemetryEntity = this.getItem(serverTelemetrykey) as ServerTelemetryEntity;
@@ -286,8 +294,8 @@ export class Storage extends CacheManager {
 
     /**
      * set server telemetry entity to the platform cache
-     * @param serverTelemetryKey
-     * @param serverTelemetry
+     * @param serverTelemetryKey - lookup key to fetch cache type ServerTelemetryEntity
+     * @param serverTelemetry - cache value to be set of type ServerTelemetryEntity
      */
     setServerTelemetry(serverTelemetryKey: string, serverTelemetry: ServerTelemetryEntity): void {
         this.setItem(serverTelemetryKey, serverTelemetry);
@@ -295,7 +303,7 @@ export class Storage extends CacheManager {
 
     /**
      * fetch authority metadata entity from the platform cache
-     * @param key
+     * @param key - lookup key to fetch cache type AuthorityMetadataEntity
      */
     getAuthorityMetadata(key: string): AuthorityMetadataEntity | null {
         const authorityMetadataEntity: AuthorityMetadataEntity = this.getItem(key) as AuthorityMetadataEntity;
@@ -316,8 +324,8 @@ export class Storage extends CacheManager {
 
     /**
      * set authority metadata entity to the platform cache
-     * @param key
-     * @param metadata
+     * @param key - lookup key to fetch cache type AuthorityMetadataEntity
+     * @param metadata - cache value to be set of type AuthorityMetadataEntity
      */
     setAuthorityMetadata(key: string, metadata: AuthorityMetadataEntity): void {
         this.setItem(key, metadata);
@@ -325,7 +333,7 @@ export class Storage extends CacheManager {
 
     /**
      * fetch throttling entity from the platform cache
-     * @param throttlingCacheKey
+     * @param throttlingCacheKey - lookup key to fetch cache type ThrottlingEntity
      */
     getThrottlingCache(throttlingCacheKey: string): ThrottlingEntity | null {
         const throttlingCache: ThrottlingEntity = this.getItem(throttlingCacheKey) as ThrottlingEntity;
@@ -337,8 +345,8 @@ export class Storage extends CacheManager {
 
     /**
      * set throttling entity to the platform cache
-     * @param throttlingCacheKey
-     * @param throttlingCache
+     * @param throttlingCacheKey - lookup key to fetch cache type ThrottlingEntity
+     * @param throttlingCache - cache value to be set of type ThrottlingEntity
      */
     setThrottlingCache(throttlingCacheKey: string, throttlingCache: ThrottlingEntity): void {
         this.setItem(throttlingCacheKey, throttlingCache);
@@ -346,8 +354,8 @@ export class Storage extends CacheManager {
 
     /**
      * Removes the cache item from memory with the given key.
-     * @param key
-     * @param inMemory
+     * @param key - lookup key to remove a cache entity
+     * @param inMemory - key value map of the cache
      */
     removeItem(key: string): boolean {
         this.logger.verbosePii(`Item key: ${key}`);
@@ -371,7 +379,7 @@ export class Storage extends CacheManager {
 
     /**
      * Checks whether key is in cache.
-     * @param key
+     * @param key - look up key for a cache entity
      */
     containsKey(key: string): boolean {
         return this.getKeys().includes(key);
@@ -406,7 +414,7 @@ export class Storage extends CacheManager {
 
     /**
      * Initialize in memory cache from an exisiting cache vault
-     * @param cache
+     * @param cache - blob formatted cache (JSON)
      */
     static generateInMemoryCache(cache: string): InMemoryCache {
         return Deserializer.deserializeAllCache(
@@ -416,7 +424,7 @@ export class Storage extends CacheManager {
 
     /**
      * retrieves the final JSON
-     * @param inMemoryCache
+     * @param inMemoryCache - itemised cache read from the JSON
      */
     static generateJsonCache(inMemoryCache: InMemoryCache): JsonCache {
         return Serializer.serializeAllCache(inMemoryCache);

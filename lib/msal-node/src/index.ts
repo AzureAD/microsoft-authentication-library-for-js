@@ -11,20 +11,21 @@
 // Interfaces
 export { IPublicClientApplication } from "./client/IPublicClientApplication";
 export { IConfidentialClientApplication } from "./client/IConfidentialClientApplication";
+export { ITokenCache } from "./cache/ITokenCache";
 
 // Clients and Configuration
 export { PublicClientApplication } from "./client/PublicClientApplication";
 export { ConfidentialClientApplication } from "./client/ConfidentialClientApplication";
-export { Configuration, buildAppConfiguration } from "./config/Configuration";
+export { ClientApplication } from "./client/ClientApplication";
+export { Configuration, buildAppConfiguration, NodeAuthOptions, NodeSystemOptions, CacheOptions } from "./config/Configuration";
+export { ClientAssertion } from "./client/ClientAssertion";
 
-// Cache and Scetorage
-export { Storage } from "./cache/Storage";
-export { Serializer } from "./cache/serializer/Serializer";
-export { Deserializer } from "./cache/serializer/Deserializer";
+// Cache and Storage
 export { TokenCache } from "./cache/TokenCache";
-export { CacheKVStore } from "./cache/serializer/SerializerTypes";
+export { NodeStorage } from "./cache/NodeStorage";
+export { CacheKVStore, JsonCache, InMemoryCache, SerializedAccountEntity, SerializedIdTokenEntity, SerializedAccessTokenEntity, SerializedAppMetadataEntity, SerializedRefreshTokenEntity } from "./cache/serializer/SerializerTypes";
 
-// crypto
+// Crypto
 export { CryptoProvider } from "./crypto/CryptoProvider";
 
 // Request objects
@@ -33,6 +34,7 @@ export type { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest"
 export type { ClientCredentialRequest } from "./request/ClientCredentialRequest";
 export type { DeviceCodeRequest } from "./request/DeviceCodeRequest";
 export type { OnBehalfOfRequest } from "./request/OnBehalfOfRequest";
+export type { UsernamePasswordRequest } from "./request/UsernamePasswordRequest";
 export type { RefreshTokenRequest } from "./request/RefreshTokenRequest";
 export type { SilentFlowRequest } from "./request/SilentFlowRequest";
 
@@ -45,6 +47,7 @@ export {
     AuthenticationResult,
     // Cache
     AccountInfo,
+    ValidCacheType,
     // Error
     AuthError,
     AuthErrorMessage,

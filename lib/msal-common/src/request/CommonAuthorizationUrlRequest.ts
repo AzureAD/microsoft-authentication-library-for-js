@@ -10,7 +10,7 @@ import { AccountInfo } from "../account/AccountInfo";
 
 /**
  * Request object passed by user to retrieve a Code from the server (first leg of authorization code grant flow)
- * 
+ *
  * - authenticationScheme       - The type of token retrieved. Defaults to "Bearer". Can also be type "pop".
  * - scopes                     - Array of scopes the application is requesting access to.
  * - claims                     - A stringified claims request which will be added to all /authorize and /token calls
@@ -36,7 +36,7 @@ import { AccountInfo } from "../account/AccountInfo";
  * - resourceRequestMethod      - HTTP Request type used to request data from the resource (i.e. "GET", "POST", etc.).  Used for proof-of-possession flows.
  * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
  */
-export type AuthorizationUrlRequest = BaseAuthRequest & {
+export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
     authenticationScheme: AuthenticationScheme;
     redirectUri: string;
     responseMode: ResponseMode;
