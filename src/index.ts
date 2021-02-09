@@ -43,7 +43,10 @@ export {
     InteractionRequiredAuthError,
     AuthError,
     AuthErrorMessage,
+    // Network
     INetworkModule,
+    NetworkResponse,
+    NetworkRequestOptions,
     // Logger Object
     ILoggerCallback,
     Logger,
