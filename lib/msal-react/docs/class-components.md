@@ -2,6 +2,8 @@
 
 `msal-react` does support both function components and class components. However, you will not be able to use `msal-react` hooks inside your class components so if you need access to authentication state inside your class component you will need to use `msal-browser` directly to obtain similar functionality.
 
+For a working example, see [react-router-sample](../../../samples/msal-react-samples/react-router-sample/readme.md#(optional)-msal-react-and-class-components).
+
 ## Initialization
 
 Just like when using function components you will need an `MsalProvider` component at the top level of the component tree that requires access to authentication state.
@@ -89,6 +91,8 @@ class YourClassComponent extends React.Component {
 }
 ```
 
+For a working example, see [ProfileRawContext.jsx](../../../samples/msal-react-samples/react-router-sample) in [react-router-sample](../../../samples/msal-react-samples/react-router-sample/src/pages/ProfileRawContext.jsx).
+
 ### Accessing via withMsal HOC
 
 ```javascript
@@ -119,6 +123,8 @@ class App extends React.Component {
     }
 }
 ```
+
+For a working example, see [ProfileWithMsal.jsx](../../../samples/msal-react-samples/react-router-sample) in [react-router-sample](../../../samples/msal-react-samples/react-router-sample/src/pages/ProfileWithMsal.jsx).
 
 ## Logging in using a class component
 
