@@ -168,4 +168,25 @@ describe("AuthenticatedTemplate tests", () => {
         expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
         expect(screen.queryByText("A user is authenticated!")).not.toBeInTheDocument();
     });
+
+    test("Does not show child component if inProgress value is startup", async () => {        
+        const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
+            // Prevent handleRedirectPromise from raising an event and updating inProgress
+            return Promise.resolve(null);
+        });
+        const getAllAccountsSpy = jest.spyOn(pca, "getAllAccounts");
+        getAllAccountsSpy.mockImplementation(() => [testAccount]);
+        render(
+            <MsalProvider instance={pca}>
+                <p>This text will always display.</p>
+                <AuthenticatedTemplate>
+                    <span> A user is authenticated!</span>
+                </AuthenticatedTemplate>
+            </MsalProvider>
+        );
+
+        await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+        expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
+        expect(screen.queryByText("A user is authenticated!")).not.toBeInTheDocument();
+    });
 });
