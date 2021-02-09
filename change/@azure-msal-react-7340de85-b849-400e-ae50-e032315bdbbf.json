@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "review changes, add reference to class-components doc",
+  "packageName": "@azure/msal-react",
+  "email": "dogan.erisen@gmail.com",
+  "dependentChangeType": "none"
+}
