@@ -20,10 +20,19 @@ export const AuthErrorMessage = {
  */
 export class AuthError extends Error {
 
-    // Short string denoting error
+    /**
+     * Short string denoting error
+     */
     errorCode: string;
-    // Detailed description of error
+
+    /**
+     * Detailed description of error
+     */
     errorMessage: string;
+
+    /**
+     * Describes the subclass of an error
+     */
     subError: string;
 
     constructor(errorCode?: string, errorMessage?: string, suberror?: string) {

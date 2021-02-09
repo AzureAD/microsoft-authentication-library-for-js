@@ -14,7 +14,7 @@ import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizatio
 import { CacheManager } from "../cache/CacheManager";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 import { RequestThumbprint } from "../network/RequestThumbprint";
-import { version, name } from "../../package.json";
+import { version, name } from "../packageMetadata";
 import { ClientAuthError } from "../error/ClientAuthError";
 
 /**

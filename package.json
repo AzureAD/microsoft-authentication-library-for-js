@@ -22,11 +22,13 @@
     "eslint-plugin-react": "^7.21.4",
     "eslint-plugin-react-hooks": "^4.1.2",
     "eslint-plugin-security": "^1.4.0",
+    "gh-pages": "^3.1.0",
     "lerna": "^3.22.1",
     "nyc": "^14.1.1",
     "rimraf": "^3.0.0",
     "ts-node": "^8.10.2",
     "tslint": "^6.1.3",
+    "typedoc": "^0.20.19",
     "typescript": "^3.9.7"
   },
   "scripts": {
@@ -39,6 +41,9 @@
     "test:coverage": "npm run clean:coverage && lerna run test:coverage",
     "test:report": "nyc report",
     "test:e2e": "lerna run --concurrency 1 test:e2e",
+    "doc": "npm run doc:generate && npm run doc:deploy",
+    "doc:generate": "rimraf ./ref/* && typedoc",
+    "doc:deploy": "gh-pages -d ref -a -e ref",
     "lint": "run-s lint:*",
     "lint:angular": "eslint lib/msal-angular/src --ext .ts",
     "lint:angularjs": "eslint lib/msal-angularjs/lib --ext .js",
@@ -52,7 +57,7 @@
     "clean:coverage": "rimraf ./.nyc_output/*",
     "beachball:check": "beachball check --branch origin/dev",
     "beachball:change": "beachball change --branch origin/dev",
-    "beachball:bump": "beachball bump --branch origin/master --bumpDeps false",
+    "beachball:bump": "beachball bump --branch origin/master --bumpDeps false && node release-scripts/updateVersion.js",
     "beachball:bumpDeps": "beachball bump",
     "beachball:publish": "beachball publish -n $NODE_AUTH_TOKEN",
     "beachball:release": "node ./.github/create-releases.js"

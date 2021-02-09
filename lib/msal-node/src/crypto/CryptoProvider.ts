@@ -11,6 +11,7 @@ import { PkceGenerator } from "./PkceGenerator";
 /**
  * This class implements MSAL node's crypto interface, which allows it to perform base64 encoding and decoding, generating cryptographically random GUIDs and
  * implementing Proof Key for Code Exchange specs for the OAuth Authorization Code Flow using PKCE (rfc here: https://tools.ietf.org/html/rfc7636).
+ * @public
  */
 export class CryptoProvider implements ICrypto {
     private pkceGenerator: PkceGenerator;
@@ -30,7 +31,7 @@ export class CryptoProvider implements ICrypto {
 
     /**
      * Encodes input string to base64.
-     * @param input
+     * @param input - string to be encoded
      */
     base64Encode(input: string): string {
         return EncodingUtils.base64Encode(input);
@@ -38,7 +39,7 @@ export class CryptoProvider implements ICrypto {
 
     /**
      * Decodes input string from base64.
-     * @param input
+     * @param input - string to be decoded
      */
     base64Decode(input: string): string {
         return EncodingUtils.base64Decode(input);
@@ -51,10 +52,16 @@ export class CryptoProvider implements ICrypto {
         return this.pkceGenerator.generatePkceCodes();
     }
 
+    /**
+     * Generates a keypair, stores it and returns a thumbprint - not yet implemented for node
+     */
     getPublicKeyThumbprint(): Promise<string> {
         throw new Error("Method not implemented.");
     }
 
+    /**
+     * Signs the given object as a jwt payload with private key retrieved by given kid - currently not implemented for node
+     */
     signJwt(): Promise<string> {
         throw new Error("Method not implemented.");
     }

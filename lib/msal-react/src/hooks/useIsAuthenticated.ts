@@ -7,8 +7,7 @@ import { useState, useEffect } from "react";
 import { useMsal } from "./useMsal";
 import { AccountIdentifiers } from "../types/AccountIdentifiers";
 import { useAccount } from "./useAccount";
-import { AccountInfo } from "@azure/msal-browser";
-import { InteractionStatus } from "../utils/Constants";
+import { AccountInfo, InteractionStatus } from "@azure/msal-browser";
 
 function isAuthenticated(allAccounts: AccountIdentifiers[], account: AccountInfo | null, matchAccount?: AccountIdentifiers): boolean {
     if(matchAccount && (matchAccount.username || matchAccount.homeAccountId || matchAccount.localAccountId)) {
@@ -18,6 +17,10 @@ function isAuthenticated(allAccounts: AccountIdentifiers[], account: AccountInfo
     return allAccounts.length > 0;
 }
 
+/**
+ * Returns whether or not a user is currently signed-in. Optionally provide 1 or more accountIdentifiers to determine if a specific user is signed-in
+ * @param matchAccount 
+ */
 export function useIsAuthenticated(matchAccount?: AccountIdentifiers): boolean {
     const { accounts: allAccounts, inProgress } = useMsal();
     const account = useAccount(matchAccount || {});

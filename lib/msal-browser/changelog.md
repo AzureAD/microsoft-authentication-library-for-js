@@ -1,8 +1,34 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Thu, 21 Jan 2021 21:48:01 GMT and should not be manually modified.
+This log was last generated on Tue, 09 Feb 2021 01:48:22 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.11.1
+
+Tue, 09 Feb 2021 01:48:22 GMT
+
+### Patches
+
+- Fix version.json import errors (#2993) (thomas.norling@microsoft.com)
+- Add missing network types to browser exports (#2995) (prkanher@microsoft.com)
+- Ignore OIDC scopes during cache lookup or replacement (#2969) (prkanher@microsoft.com)
+- Allow apps to not use the current page as default postLogoutRedirectUri in MSAL Browser (#2789) (janutter@microsoft.com)
+- Fix PCA stub errors (#2963) (thomas.norling@microsoft.com)
+
+## 2.11.0
+
+Tue, 02 Feb 2021 01:56:47 GMT
+
+### Minor changes
+
+- Add initializeWrapperLibrary API (#2845) (thomas.norling@microsoft.com)
+- Add getInteractionStatusFromEvent to msal-browser (#2885) (joarroyo@microsoft.com)
+
+### Patches
+
+- Fix temp cache cleanup when using localStorage (#2935) (thomas.norling@microsoft.com)
+- Get package version from version.json (#2915) (thomas.norling@microsoft.com)
 
 ## 2.10.0
 

@@ -1,8 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Add interfaces to public APIs in msal-node (#2623)",
-  "packageName": "@azure/msal-node",
-  "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2020-11-19T19:11:51.449Z"
-}

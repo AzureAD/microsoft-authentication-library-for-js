@@ -11,6 +11,7 @@ import { JwtConstants } from "../utils/Constants";
 
 /**
  * Client assertion of type jwt-bearer used in confidential client flows
+ * @public
  */
 export class ClientAssertion {
 
@@ -22,12 +23,22 @@ export class ClientAssertion {
     private jwtAudience: string;
     private publicCertificate: Array<string>;
 
+    /**
+     * Initialize the ClientAssertion class from the clientAssertion passed by the user
+     * @param assertion - refer https://tools.ietf.org/html/rfc7521
+     */
     public static fromAssertion(assertion: string): ClientAssertion {
         const clientAssertion = new ClientAssertion();
         clientAssertion.jwt = assertion;
         return clientAssertion;
     }
 
+    /**
+     * Initialize the ClientAssertion class from the certificate passed by the user
+     * @param thumbprint - identifier of a certificate
+     * @param privateKey - secret key
+     * @param publicCertificate - electronic document provided to prove the ownership of the public key
+     */
     public static fromCertificate(thumbprint: string, privateKey: string, publicCertificate?: string): ClientAssertion {
         const clientAssertion = new ClientAssertion();
         clientAssertion.privateKey = privateKey;
@@ -38,6 +49,12 @@ export class ClientAssertion {
         return clientAssertion;
     }
 
+    /**
+     * Update JWT for certificate based clientAssertion, if passed by the user, uses it as is
+     * @param cryptoProvider - library's crypto helper
+     * @param issuer - iss claim
+     * @param jwtAudience - aud claim
+     */
     public getJwt(cryptoProvider: CryptoProvider, issuer: string, jwtAudience: string) {
         // if assertion was created from certificate, check if jwt is expired and create new one.
         if (this.privateKey && this.thumbprint) {
@@ -60,7 +77,9 @@ export class ClientAssertion {
         throw ClientAuthError.createInvalidAssertionError();
     }
 
-    // JWT format and required claims specified: https://tools.ietf.org/html/rfc7523#section-3
+    /**
+     * JWT format and required claims specified: https://tools.ietf.org/html/rfc7523#section-3
+     */
     private createJwt(cryptoProvider: CryptoProvider, issuer: string, jwtAudience: string): string {
 
         this.issuer = issuer;
@@ -74,8 +93,8 @@ export class ClientAssertion {
         };
 
         if (this.publicCertificate) {
-            Object.assign(header, { 
-                [JwtConstants.X5C]: this.publicCertificate 
+            Object.assign(header, {
+                [JwtConstants.X5C]: this.publicCertificate
             });
         }
 
@@ -92,13 +111,16 @@ export class ClientAssertion {
         return this.jwt;
     }
 
+    /**
+     * Utility API to check expiration
+     */
     private isExpired(): boolean {
         return this.expirationTime < TimeUtils.nowSeconds();
     }
 
     /**
      * Extracts the raw certs from a given certificate string and returns them in an array.
-     * @param publicCertificate
+     * @param publicCertificate - electronic document provided to prove the ownership of the public key
      */
     public static parseCertificate(publicCertificate: string): Array<string> {
         /**
@@ -116,7 +138,7 @@ export class ClientAssertion {
             // matches[1] represents the first parens capture group in the regex.
             certs.push(matches[1].replace(/\n/, ""));
         }
-        
+
         return certs;
     }
 }

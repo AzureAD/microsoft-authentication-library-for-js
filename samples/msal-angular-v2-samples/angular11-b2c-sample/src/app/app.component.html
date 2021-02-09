@@ -4,9 +4,9 @@
   <div class="toolbar-spacer"></div>
 
   <a mat-button [routerLink]="['profile']">Web API</a>
-  <button mat-button *ngIf="loggedIn" (click)="editProfile()">Edit Profile</button>
-  <button mat-raised-button *ngIf="!loggedIn" (click)="login()">Login</button>
-  <button mat-raised-button *ngIf="loggedIn" (click)="logout()">Logout</button>
+  <button mat-button *ngIf="loginDisplay" (click)="editProfile()">Edit Profile</button>
+  <button mat-raised-button *ngIf="!loginDisplay" (click)="login()">Login</button>
+  <button mat-raised-button *ngIf="loginDisplay" (click)="logout()">Logout</button>
 </mat-toolbar>
 <div class="container">
   <!--This is to avoid reload during acquireTokenSilent() because of hidden iframe -->

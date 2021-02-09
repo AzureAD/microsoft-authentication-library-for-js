@@ -3,6 +3,11 @@
  * Licensed under the MIT License.
  */
 
+/**
+ * @packageDocumentation
+ * @module @azure/msal-react
+ */
+
 export type { IMsalContext } from "./MsalContext";
 export type { MsalProviderProps } from "./MsalProvider";
 export type { MsalAuthenticationResult } from "./hooks/useMsalAuthentication";
@@ -26,4 +31,4 @@ export { useAccount } from "./hooks/useAccount";
 export { useIsAuthenticated } from "./hooks/useIsAuthenticated";
 export { useMsalAuthentication } from "./hooks/useMsalAuthentication";
 
-export { InteractionStatus } from "./utils/Constants";
+export { InteractionStatus } from "@azure/msal-browser";
