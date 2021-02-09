@@ -15,9 +15,6 @@ import axios, { AxiosRequestConfig } from "axios";
  * This class implements the API for network requests.
  */
 export class HttpClient implements INetworkModule {
-    constructor() {
-        axios.defaults.validateStatus = () => true;
-    }
 
     /**
      * Http Get request
@@ -32,6 +29,7 @@ export class HttpClient implements INetworkModule {
             method: HttpMethod.GET,
             url: url,
             headers: options && options.headers,
+            validateStatus: () => true
         };
 
         const response = await axios(request);
@@ -56,6 +54,7 @@ export class HttpClient implements INetworkModule {
             url: url,
             data: (options && options.body) || "",
             headers: options && options.headers,
+            validateStatus: () => true
         };
 
         const response = await axios(request);

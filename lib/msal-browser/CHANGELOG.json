@@ -2,6 +2,59 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 09 Feb 2021 01:48:22 GMT",
+      "tag": "@azure/msal-browser_v2.11.1",
+      "version": "2.11.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix version.json import errors (#2993)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6dc3bc9e2148bc53b181d9f079f6e11e0159620b",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add missing network types to browser exports (#2995)",
+            "author": "prkanher@microsoft.com",
+            "commit": "46d7dd34752dbcad595eef1298b8c277106ef57b",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Ignore OIDC scopes during cache lookup or replacement (#2969)",
+            "author": "prkanher@microsoft.com",
+            "commit": "554f47e8ff576c3230c36df74cd73b6101d333ab",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Allow apps to not use the current page as default postLogoutRedirectUri in MSAL Browser (#2789)",
+            "author": "janutter@microsoft.com",
+            "commit": "3d8d372276d2c42d359bbf05cfcdd1d7c890c7d8",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Fix PCA stub errors (#2963)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6a0c28447f198eaa3f02cd450d8f181c02536bcf",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Add instrumentation (#2863)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "838f95742432a4d19a9784b784d978834e5e19f4",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add API Extractor for msal-node",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "01747296efdf08eefe585930097d9bbbf6b00789",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 02 Feb 2021 01:56:47 GMT",
       "tag": "@azure/msal-browser_v2.11.0",
       "version": "2.11.0",
