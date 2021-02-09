@@ -2,6 +2,39 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 09 Feb 2021 01:48:22 GMT",
+      "tag": "@azure/msal-node_v1.0.0-beta.6",
+      "version": "1.0.0-beta.6",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Fix version.json import errors (#2993)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6dc3bc9e2148bc53b181d9f079f6e11e0159620b",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Ignore OIDC scopes during cache lookup or replacement (#2969)",
+            "author": "prkanher@microsoft.com",
+            "commit": "b113b562ffc33ad44b8d98417753db397256aadf",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Set the validateStatus locally than globally for `axios` (#2959)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "55617cb8bc5289c29fd4357a16605b6720195cbc",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Add API Extractor for msal-node",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "01747296efdf08eefe585930097d9bbbf6b00789",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 02 Feb 2021 01:56:47 GMT",
       "tag": "@azure/msal-node_v1.0.0-beta.5",
       "version": "1.0.0-beta.5",

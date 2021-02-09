@@ -25,8 +25,8 @@ export function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
     auth: {
       clientId: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
-      redirectUri: 'http://localhost:4200',
-      postLogoutRedirectUri: 'http://localhost:4200'
+      redirectUri: '/',
+      postLogoutRedirectUri: '/'
     },
     cache: {
       cacheLocation: BrowserCacheLocation.LocalStorage,

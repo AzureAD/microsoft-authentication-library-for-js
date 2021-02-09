@@ -168,4 +168,23 @@ describe("UnauthenticatedTemplate tests", () => {
         expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
         expect(screen.queryByText("This user is not authenticated!")).toBeInTheDocument();
     });
+
+    test("Does not show child component if inProgress value is startup", async () => {        
+        const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
+            // Prevent handleRedirectPromise from raising an event and updating inProgress
+            return Promise.resolve(null);
+        });
+        render(
+            <MsalProvider instance={pca}>
+                <p>This text will always display.</p>
+                <UnauthenticatedTemplate>
+                    <span>No user is authenticated!</span>
+                </UnauthenticatedTemplate>
+            </MsalProvider>
+        );
+
+        await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+        expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
+        expect(screen.queryByText("No user is authenticated!")).not.toBeInTheDocument();
+    });
 });

@@ -5,8 +5,7 @@
     "declaration": true,
     "experimentalDecorators": true,
     "importHelpers": true,
-    "noImplicitAny": true,
-    "resolveJsonModule": true
+    "noImplicitAny": true
   },
   "compileOnSave": false,
   "buildOnSave": false

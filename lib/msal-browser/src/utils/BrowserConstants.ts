@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants } from "@azure/msal-common";
+import { OIDC_DEFAULT_SCOPES } from "@azure/msal-common";
 import { PopupRequest } from "../request/PopupRequest";
 import { RedirectRequest } from "../request/RedirectRequest";
 
@@ -129,7 +129,7 @@ export enum InteractionStatus {
 }
 
 export const DEFAULT_REQUEST: RedirectRequest|PopupRequest = {
-    scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
+    scopes: OIDC_DEFAULT_SCOPES
 };
 
 /**
