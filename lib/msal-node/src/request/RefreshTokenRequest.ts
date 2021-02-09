@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { RefreshTokenRequest as CommonRefreshTokenRequest } from "@azure/msal-common";
+import { CommonRefreshTokenRequest } from "@azure/msal-common";
 
 /**
  * CommonRefreshTokenRequest
@@ -12,6 +12,7 @@ import { RefreshTokenRequest as CommonRefreshTokenRequest } from "@azure/msal-co
  * - authority               - URL of the authority, the security token service (STS) from which MSAL will acquire tokens.
  * - correlationId           - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - refreshToken            - A refresh token returned from a previous request to the Identity provider.
+ * @public
  */
 export type RefreshTokenRequest = Partial<Omit<CommonRefreshTokenRequest, "scopes"|"refreshToken"|"authenticationScheme"|"resourceRequestMethod"|"resourceRequestUri">> & {
     scopes: Array<string>;
