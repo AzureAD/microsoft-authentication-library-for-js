@@ -10,7 +10,7 @@
 **[Authentication](#authentication)**
 
 1. [How do I handle the redirect flow in a react app?](#how-do-i-handle-the-redirect-flow-in-a-react-app)
-1. [What can I do outside of msal-react context?](#what-can-i-do-outside-of-react-context)
+1. [What can I do outside of msal-react context?](#what-can-i-do-outside-of-msal-react-context)
 
 **[B2C](#B2C)**
 
