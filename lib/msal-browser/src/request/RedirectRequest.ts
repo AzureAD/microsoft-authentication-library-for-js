@@ -3,12 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationUrlRequest } from "@azure/msal-common";
+import { CommonAuthorizationUrlRequest } from "@azure/msal-common";
 
 /**
  * RedirectRequest: Request object passed by user to retrieve a Code from the
  * server (first leg of authorization code grant flow) with a full page redirect.
- * 
+ *
  * - scopes                     - Array of scopes the application is requesting access to.
  * - authority                  - Url of the authority which the application acquires tokens from.
  * - correlationId              - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
@@ -29,7 +29,7 @@ import { AuthorizationUrlRequest } from "@azure/msal-common";
  * - redirectStartPage          - The page that should be returned to after loginRedirect or acquireTokenRedirect. This should only be used if this is different from the redirectUri and will default to the page that initiates the request. When the navigateToLoginRequestUrl config option is set to false this parameter will be ignored.
  * - onRedirectNavigate         - Callback that will be passed the url that MSAL will navigate to. Returning false in the callback will stop navigation.
  */
-export type RedirectRequest = Partial<Omit<AuthorizationUrlRequest, "responseMode"|"scopes"|"codeChallenge"|"codeChallengeMethod">> & {
+export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode"|"scopes"|"codeChallenge"|"codeChallengeMethod">> & {
     scopes: Array<string>;
     redirectStartPage?: string;
     onRedirectNavigate?: (url: string) => boolean | void
