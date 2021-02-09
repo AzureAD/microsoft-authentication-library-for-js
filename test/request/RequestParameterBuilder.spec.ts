@@ -85,22 +85,22 @@ describe("RequestParameterBuilder unit tests", () => {
         let requestParameterBuilder = new RequestParameterBuilder();
         requestParameterBuilder.addScopes(["testScope"]);
         let requestQueryString = requestParameterBuilder.createQueryString();
-        expect(requestQueryString).to.contain(`${AADServerParamKeys.SCOPE}=testScope%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}`);
+        expect(requestQueryString).to.contain(`${AADServerParamKeys.SCOPE}=testScope%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
 
         requestParameterBuilder = new RequestParameterBuilder();
         requestParameterBuilder.addScopes([]);
         requestQueryString = requestParameterBuilder.createQueryString();
-        expect(requestQueryString).to.contain(`${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}`);
+        expect(requestQueryString).to.contain(`${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
 
         requestParameterBuilder = new RequestParameterBuilder();
         requestParameterBuilder.addScopes(null);
         requestQueryString = requestParameterBuilder.createQueryString();
-        expect(requestQueryString).to.contain(`${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}`);
+        expect(requestQueryString).to.contain(`${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
 
         requestParameterBuilder = new RequestParameterBuilder();
         requestParameterBuilder.addScopes(undefined);
         requestQueryString = requestParameterBuilder.createQueryString();
-        expect(requestQueryString).to.contain(`${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}`);
+        expect(requestQueryString).to.contain(`${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
     });
 
     it("addScopes does not append oidc scopes if flag set to false", () => {

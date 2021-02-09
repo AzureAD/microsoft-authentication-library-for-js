@@ -3,6 +3,7 @@ import { ScopeSet } from "../../src/request/ScopeSet";
 import { TEST_CONFIG } from "../utils/StringConstants";
 import { ClientConfigurationError, ClientConfigurationErrorMessage, Constants, ClientAuthError, ClientAuthErrorMessage } from "../../src";
 import sinon from "sinon";
+import { OIDC_DEFAULT_SCOPES, OIDC_SCOPES } from "../../src/utils/Constants";
 
 describe("ScopeSet.ts", () => {
 
@@ -242,6 +243,24 @@ describe("ScopeSet.ts", () => {
             newScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
 
             expect(newScopeSet.intersectingScopeSets(scopes)).to.be.false;
+        });
+
+        it("intersectingScopeSets() does not ignore OIDC scopes if they are only present", () => {
+            const scopeset1 = new ScopeSet([...OIDC_SCOPES]);
+            const scopeset2 = new ScopeSet([...OIDC_SCOPES]);
+            expect(scopeset1.intersectingScopeSets(scopeset2)).to.be.true;
+        });
+
+        it("intersectingScopeSets() ignores OIDC scopes if other scopes are present", () => {
+            const testScope = "testScope";
+            const testScope2 = "testScope2";
+            const scopeset1 = new ScopeSet([...OIDC_SCOPES, testScope]);
+            const scopeset2 = new ScopeSet([...OIDC_SCOPES, testScope2]);
+            expect(scopeset1.intersectingScopeSets(scopeset2)).to.be.false;
+
+            const scopeset3 = new ScopeSet([Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.EMAIL_SCOPE, testScope]);
+            const scopeset4 = new ScopeSet([...OIDC_DEFAULT_SCOPES, testScope]);
+            expect(scopeset3.intersectingScopeSets(scopeset4)).to.be.true;
         });
 
         it("getScopeCount() correctly returns the size of the ScopeSet", () => {
