@@ -24,7 +24,7 @@ import { EventType } from "../../src/event/EventType";
 import { SilentRequest } from "../../src/request/SilentRequest";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { RedirectRequest } from "../../src/request/RedirectRequest";
-import pkg from "../../src/version.json";
+import { version } from "../../src/packageMetadata";
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
@@ -713,11 +713,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             it("Uses default request if no request provided", (done) => {
-                sinon.stub(pca, "acquireTokenRedirect").callsFake((request) => {
+                sinon.stub(pca, "acquireTokenRedirect").callsFake(async (request): Promise<void> => {
                     expect(request.scopes).to.contain("openid");
                     expect(request.scopes).to.contain("profile");
                     done();
-                    return null;
+                    return;
                 });
 
                 pca.loginRedirect();
