@@ -6,15 +6,62 @@
 const express = require("express");
 const msal = require('@azure/msal-node');
 const config = require("./authConfig.json");
-config.cachePlugin = require("../cachePlugin");
+
+const argv = require('yargs')
+    .usage('Usage: $0 -p [PORT]')
+    .alias('p', 'port')
+    .alias('c', 'cache location')
+    .describe('port', '(Optional) Port Number - default is 3000')
+    .describe('cache location', '(Optional) Cache location - default is data/cache.json')
+    .strict()
+    .argv;
+
+const cachePlugin = await require('./cachePlugin')(cacheLocation);
+
+
+const loggerOptions = {
+    loggerCallback(loglevel, message, containsPii) {
+        console.log(message);
+    },
+        piiLoggingEnabled: false,
+    logLevel: msal.LogLevel.Verbose,
+}
+
+const clientConfig = {
+    auth: scenarioConfiguration.authOptions,
+    cache: {
+        cachePlugin
+    },
+    // Uncomment the code below to enable the MSAL logger
+    /*
+     *   system: {
+     *    loggerOptions: loggerOptions
+     *   } 
+     */
+};
+    
+
+// Build full MSAL Client configuration object
+const clientConfig = {
+    auth: scenarioConfiguration.authOptions,
+    cache: {
+        cachePlugin
+    },
+    // Uncomment the code below to enable the MSAL logger
+  /*   system: {
+        loggerOptions: loggerOptions
+    } */
+}
 
 // Create msal application object
-const clientApplication = new msal.ConfidentialClientApplication(config);
+const clientApplication = new msal.PublicClientApplication(config.authOptions);
 
 // Create Express App and Routes
 const app = express();
 
-const requestConfig = config.requestConfig;
+const requestConfig = config.request;
+
+const SERVER_PORT = argv.p || 3000;
 
 app.get("/", (req, res) => {
     const { authCodeUrlParameters } = requestConfig;
@@ -48,4 +95,4 @@ app.get("/redirect", (req, res) => {
     });
 });
 
-app.listen(SERVER_PORT, () => console.log(`Msal Node Auth Code Sample app listening on port ${SERVER_PORT}!`))
+app.listen(SERVER_PORT, () => console.log(`Msal Node Auth Code Sample app listening on port ${SERVER_PORT}!`));

@@ -14,7 +14,7 @@ import {
     enterCredentials, 
     SCREENSHOT_BASE_FOLDER_NAME,
     enterCredentialsWithConsent,
-} from "../../testUtils";
+ } from "../../testUtils";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
 const HOME_ROUTE="http://localhost:3000";
@@ -52,7 +52,7 @@ describe("Auth Code AAD PPE Tests", () => {
     describe("Acquire Token", () => {
         let testName: string;
         let screenshot: Screenshot;
-        let environment = "aad";
+        let environment = 'aad';
 
         beforeAll(async () => {
             testName = "authCodeAcquireToken";
@@ -63,7 +63,7 @@ describe("Auth Code AAD PPE Tests", () => {
         beforeEach(async () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
-            page.on("dialog", async dialog => {
+            page.on('dialog', async dialog => {
                 console.log(dialog.message());
                 await dialog.dismiss();
             });
@@ -84,7 +84,7 @@ describe("Auth Code AAD PPE Tests", () => {
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
             expect(cachedTokens.refreshTokens.length).toBe(1);
-        });
+         });
 
         it("Performs acquire token with prompt = 'login'", async () => {
             await page.goto(`${HOME_ROUTE}/?prompt=login`);
