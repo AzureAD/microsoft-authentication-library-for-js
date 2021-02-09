@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Allow wrapper libraries to provide their own navigate method (#2985)",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
