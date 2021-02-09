@@ -138,7 +138,8 @@ describe("UrlString.ts Class Unit Tests", () => {
             HostNameAndPort: "login.microsoftonline.com",
             AbsolutePath: "/common/oauth2/v2.0/authorize",
             PathSegments: ["common", "oauth2", "v2.0", "authorize"],
-            QueryString: "param1=value1&param2=value2"
+            QueryString: "param1=value1&param2=value2",
+            Hash: "testHash"
         } as IUri);
     });
 
