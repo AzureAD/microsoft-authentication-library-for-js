@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationUrlRequest as CommonAuthorizationUrlRequest } from "@azure/msal-common";
+import { CommonAuthorizationUrlRequest } from "@azure/msal-common";
 
 /**
  * Request object passed by user to retrieve a Code from the server (first leg of authorization code grant flow)
- * 
+ *
  * - scopes                     - Array of scopes the application is requesting access to.
  * - claims                     - A stringified claims request which will be added to all /authorize and /token calls
  * - authority                  - Url of the authority which the application acquires tokens from.
@@ -29,6 +29,7 @@ import { AuthorizationUrlRequest as CommonAuthorizationUrlRequest } from "@azure
  * - domainHint                 - Provides a hint about the tenant or domain that the user should use to sign in. The value of the domain hint is a registered domain for the tenant.
  * - extraQueryParameters       - String to string map of custom query parameters.
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
+ * @public
  */
 export type AuthorizationUrlRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes"|"redirectUri"|"resourceRequestMethod"|"resourceRequestUri"|"authenticationScheme">> & {
     scopes: Array<string>;

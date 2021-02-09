@@ -2,6 +2,21 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Tue, 09 Feb 2021 01:48:22 GMT",
+      "tag": "msal_v1.4.6",
+      "version": "1.4.6",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix version.json import errors (#2993)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6dc3bc9e2148bc53b181d9f079f6e11e0159620b",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 02 Feb 2021 01:56:47 GMT",
       "tag": "msal_v1.4.5",
       "version": "1.4.5",
