@@ -5,7 +5,7 @@
 `msal-react` is under development. **We do not recommend using this in a production environment yet**.
 
 | <a href="https://aka.ms/aaddevv2" target="_blank">AAD Docs</a> | <a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_react.html" target="_blank">Library Reference</a> | <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples" target="blank">Samples</a>
-| --- | --- | --- | --- |
+| --- | --- | --- |
 
 1. [About](#about)
 1. [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/FAQ.md)
@@ -106,6 +106,7 @@ Since `msal-react` is built on top of `@azure/msal-browser` a lot of the same do
 ### MSAL React Specific Concepts
 
 1. [Hooks](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/hooks.md)
+1. [Events](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/events.md)
 1. [Class Components](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/class-components.md)
 
 ## Samples

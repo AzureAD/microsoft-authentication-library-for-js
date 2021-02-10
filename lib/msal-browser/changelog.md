@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 02 Feb 2021 01:56:47 GMT and should not be manually modified.
+This log was last generated on Tue, 09 Feb 2021 01:48:22 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.11.1
+
+Tue, 09 Feb 2021 01:48:22 GMT
+
+### Patches
+
+- Fix version.json import errors (#2993) (thomas.norling@microsoft.com)
+- Add missing network types to browser exports (#2995) (prkanher@microsoft.com)
+- Ignore OIDC scopes during cache lookup or replacement (#2969) (prkanher@microsoft.com)
+- Allow apps to not use the current page as default postLogoutRedirectUri in MSAL Browser (#2789) (janutter@microsoft.com)
+- Fix PCA stub errors (#2963) (thomas.norling@microsoft.com)
 
 ## 2.11.0
 

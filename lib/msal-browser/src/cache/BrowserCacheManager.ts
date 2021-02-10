@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, StringUtils, AuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -25,7 +25,7 @@ export class BrowserCacheManager extends CacheManager {
     private browserStorage: IWindowStorage;
     // Internal in-memory storage object used for data used by msal that does not need to persist across page loads
     private internalStorage: MemoryStorage;
-    // Temporary cache 
+    // Temporary cache
     private temporaryCacheStorage: IWindowStorage;
     // Client id of application. Used in cache keys to partition cache correctly in the case of multiple instances of MSAL.
     private logger: Logger;
@@ -49,7 +49,7 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Returns a window storage class implementing the IWindowStorage interface that corresponds to the configured cacheLocation.
-     * @param cacheLocation 
+     * @param cacheLocation
      */
     private setupBrowserStorage(cacheLocation: BrowserCacheLocation | string): IWindowStorage {
         switch (cacheLocation) {
@@ -71,8 +71,8 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
-     * 
-     * @param cacheLocation 
+     *
+     * @param cacheLocation
      */
     private setupTemporaryCacheStorage(cacheLocation: BrowserCacheLocation | string): IWindowStorage {
         switch (cacheLocation) {
@@ -132,7 +132,7 @@ export class BrowserCacheManager extends CacheManager {
         try {
             const parsedJson = JSON.parse(jsonValue);
             /**
-             * There are edge cases in which JSON.parse will successfully parse a non-valid JSON object 
+             * There are edge cases in which JSON.parse will successfully parse a non-valid JSON object
              * (e.g. JSON.parse will parse an escaped string into an unescaped string), so adding a type check
              * of the parsed value is necessary in order to be certain that the string represents a valid JSON object.
              *
@@ -355,7 +355,7 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
-     * 
+     *
      */
     getAuthorityMetadata(key: string) : AuthorityMetadataEntity | null {
         this.logger.verbose("BrowserCacheManager.getAuthorityMetadata called");
@@ -371,7 +371,7 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
-     * 
+     *
      */
     getAuthorityMetadataKeys(): Array<string> {
         const allKeys = this.internalStorage.getKeys();
@@ -381,8 +381,8 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
-     * 
-     * @param entity 
+     *
+     * @param entity
      */
     setAuthorityMetadata(key: string, entity: AuthorityMetadataEntity): void {
         this.logger.verbose("BrowserCacheManager.setAuthorityMetadata called");
@@ -399,7 +399,7 @@ export class BrowserCacheManager extends CacheManager {
         if (!value) {
             return null;
         }
-        
+
         const parsedThrottlingCache = this.validateAndParseJson(value);
         if (!parsedThrottlingCache) {
             return null;
@@ -742,7 +742,7 @@ export class BrowserCacheManager extends CacheManager {
         });
     }
 
-    cacheCodeRequest(authCodeRequest: AuthorizationCodeRequest, browserCrypto: ICrypto): void {
+    cacheCodeRequest(authCodeRequest: CommonAuthorizationCodeRequest, browserCrypto: ICrypto): void {
         const encodedValue = browserCrypto.base64Encode(JSON.stringify(authCodeRequest));
         this.setTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, encodedValue, true);
     }
@@ -750,7 +750,7 @@ export class BrowserCacheManager extends CacheManager {
     /**
      * Gets the token exchange parameters from the cache. Throws an error if nothing is found.
      */
-    getCachedRequest(state: string, browserCrypto: ICrypto): AuthorizationCodeRequest {
+    getCachedRequest(state: string, browserCrypto: ICrypto): CommonAuthorizationCodeRequest {
         this.logger.verbose("BrowserCacheManager.getCachedRequest called");
         // Get token request from cache and parse as TokenExchangeParameters.
         const encodedTokenRequest = this.getTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, true);
@@ -758,7 +758,7 @@ export class BrowserCacheManager extends CacheManager {
             throw BrowserAuthError.createNoTokenRequestCacheError();
         }
 
-        const parsedRequest = this.validateAndParseJson(browserCrypto.base64Decode(encodedTokenRequest)) as AuthorizationCodeRequest;
+        const parsedRequest = this.validateAndParseJson(browserCrypto.base64Decode(encodedTokenRequest)) as CommonAuthorizationCodeRequest;
         if (!parsedRequest) {
             throw BrowserAuthError.createUnableToParseTokenRequestCacheError();
         }
@@ -773,7 +773,7 @@ export class BrowserCacheManager extends CacheManager {
             }
             parsedRequest.authority = cachedAuthority;
         }
-        
+
         return parsedRequest;
     }
 }

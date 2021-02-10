@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, AuthError, EndSessionRequest } from "@azure/msal-common";
+import { AuthenticationResult, AuthError } from "@azure/msal-common";
 import { EventType } from "./EventType";
 import { InteractionStatus, InteractionType } from "../utils/BrowserConstants";
-import { PopupRequest, RedirectRequest, SilentRequest, SsoSilentRequest } from "..";
+import { PopupRequest, RedirectRequest, SilentRequest, SsoSilentRequest, EndSessionRequest } from "..";
 
 export type EventMessage = {
     eventType: EventType;
@@ -26,7 +26,7 @@ export class EventMessageUtils {
 
     /**
      * Gets interaction status from event message
-     * @param message 
+     * @param message
      */
     static getInteractionStatusFromEvent(message: EventMessage): InteractionStatus|null {
         switch (message.eventType) {

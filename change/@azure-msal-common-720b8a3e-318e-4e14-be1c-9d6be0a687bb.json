@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Setting postLogoutRedirectUri as null will disable post logout redirect",
-  "packageName": "@azure/msal-common",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "patch"
-}
