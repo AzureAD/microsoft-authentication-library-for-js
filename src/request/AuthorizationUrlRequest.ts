@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationUrlRequest as CommonAuthorizationUrlRequest } from "@azure/msal-common";
+import { CommonAuthorizationUrlRequest } from "@azure/msal-common";
 
 /**
  * This type is deprecated and will be removed on the next major version update
