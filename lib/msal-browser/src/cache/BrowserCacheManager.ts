@@ -506,7 +506,7 @@ export class BrowserCacheManager extends CacheManager {
             cookieStr += `expires=${expireTime};`;
         }
 
-        if(this.cacheConfig.secureCookies) {
+        if (this.cacheConfig.secureCookies) {
             cookieStr += "Secure;";
         }
         
