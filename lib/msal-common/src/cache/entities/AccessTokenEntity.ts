@@ -82,7 +82,7 @@ export class AccessTokenEntity extends CredentialEntity {
         atEntity.expiresOn = expiresOn.toString();
         atEntity.extendedExpiresOn = extExpiresOn.toString();
         if (refreshOn) {
-            atEntity.refreshOn = refreshOn?.toString();
+            atEntity.refreshOn = refreshOn.toString();
         }
 
         atEntity.environment = environment;
