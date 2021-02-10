@@ -21,7 +21,6 @@ function App({ pca }) {
   const config = {
     clientSideNavigate: async (path, search, hash) => {
       history.push(path);
-      return true;
     }
   }
 

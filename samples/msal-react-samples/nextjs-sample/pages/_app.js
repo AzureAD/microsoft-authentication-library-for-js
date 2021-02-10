@@ -23,7 +23,6 @@ export default function MyApp(props) {
   const config = {
     clientSideNavigate: async (path, search, hash) => {
       router.push(path);
-      return true;
     }
   }
 

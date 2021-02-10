@@ -23,7 +23,6 @@ import { EventError, EventMessage, EventPayload, EventCallbackFunction } from ".
 import { EventType } from "../event/EventType";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
-import { buildWrapperConfiguration, WrapperConfiguration } from "../config/WrapperConfiguration";
 
 export abstract class ClientApplication {
 
@@ -38,7 +37,6 @@ export abstract class ClientApplication {
 
     // Input configuration by developer/user
     protected config: BrowserConfiguration;
-    protected wrapperConfig: Required<WrapperConfiguration> | undefined;
 
     // Logger
     protected logger: Logger;
@@ -55,6 +53,9 @@ export abstract class ClientApplication {
 
     // Callback for subscribing to events
     private eventCallbacks: Map<string, EventCallbackFunction>;
+
+    // Client-side Navigation method
+    protected clientSideNavigateCallback: undefined | ((path: string, search?: string, hash?: string) => Promise<void>);
 
     /**
      * @constructor
@@ -209,13 +210,11 @@ export abstract class ClientApplication {
             this.logger.verbose("NavigateToLoginRequestUrl set to false, handling hash");
             return this.handleHash(responseHash, state);
         } else if (!BrowserUtils.isInIframe()) {
-            if (this.wrapperConfig) {
+            if (typeof this.clientSideNavigateCallback === "function") {
                 const urlParts = new UrlString(loginRequestUrl).getUrlComponents();
-                const navigated = await this.wrapperConfig.clientSideNavigate(urlParts.AbsolutePath, urlParts.QueryString, urlParts.Hash);
-                if (navigated) {
-                    this.logger.verbose("clientSideNavigate completed navigation, handling hash");
-                    return this.handleHash(responseHash, state);
-                }
+                await this.clientSideNavigateCallback(urlParts.AbsolutePath, urlParts.QueryString, urlParts.Hash);
+                this.logger.verbose("clientSideNavigate completed navigation, handling hash");
+                return this.handleHash(responseHash, state);
             }
             /*
              * Returned from authority using redirect - need to perform navigation before processing response
@@ -1149,14 +1148,19 @@ export abstract class ClientApplication {
      * @param sku
      * @param version
      */
-    initializeWrapperLibrary(sku: WrapperSKU, version: string, config?: WrapperConfiguration): void {
+    initializeWrapperLibrary(sku: WrapperSKU, version: string): void {
         // Validate the SKU passed in is one we expect
         this.wrapperSKU = sku;
         this.wrapperVer = version;
+    }
 
-        if (config) {
-            this.wrapperConfig = buildWrapperConfiguration(config);
-        }
+    /**
+     * Register a function to handle navigation when MSAL navigates to other pages in your app.
+     * This should only be used for client-side routing as the flow will break if the page reloads or MSAL is reinitialized.
+     * @param clientSideNavigate 
+     */
+    setClientSideNavigateCallback(clientSideNavigate: (path: string, search?: string, hash?: string) => Promise<void>) {
+        this.clientSideNavigateCallback = clientSideNavigate;
     }
     // #endregion
 }

@@ -11,22 +11,28 @@ import {
     EventMessageUtils,
     InteractionStatus,
     Logger,
-    WrapperSKU,
-    WrapperConfiguration
+    WrapperSKU
 } from "@azure/msal-browser";
 import { MsalContext, IMsalContext } from "./MsalContext";
 import { accountArraysAreEqual } from "./utils/utilities";
 import { AccountIdentifiers } from "./types/AccountIdentifiers";
+import { Configuration } from "./types/Configuration";
 import { name as SKU, version } from "./packageMetadata";
 
 export type MsalProviderProps = PropsWithChildren<{
     instance: IPublicClientApplication;
-    config?: WrapperConfiguration;
+    config?: Configuration;
 }>;
 
 export function MsalProvider({instance, config, children}: MsalProviderProps): React.ReactElement {
     useEffect(() => {
-        instance.initializeWrapperLibrary(WrapperSKU.React, version, config);
+        instance.initializeWrapperLibrary(WrapperSKU.React, version);
+    }, [instance]);
+    // Set client-side navigation method
+    useEffect(() => {
+        if (config && typeof config.clientSideNavigate === "function") {
+            instance.setClientSideNavigateCallback(config.clientSideNavigate);
+        }
     }, [instance, config]);
     // Create a logger instance for msal-react with the same options as PublicClientApplication
     const logger: Logger = useMemo(() => {

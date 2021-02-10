@@ -10,7 +10,7 @@ Currently there is one scenario where msal.js will navigate from one page in you
 - `PublicClientApplication` is configured with `auth.navigateToLoginRequestUrl: true` (default)
 - Your application has pages that may call `loginRedirect`/`acquireTokenRedirect` with a shared `redirectUri` i.e. You call `loginRedirect` from `http://localhost/protected` with a redirectUri of `http://localhost`
 
-If your application is doing all of the things above you can provide your router's `navigate` method to `MsalProvider`. You'll need to provide `MsalProvider` with a separate `config` object with a `clientSideNavigate` callback which will be invoked when msal.js needs to navigate to a different page in your application. The callback is async and will be called with the relative path, query string and hash that needs to be navigated to. You should handle navigation and return `true` when the navigation is complete. If you do not return `true` your tokens may not be cached and your application may behave as though a user is not signed-in.
+If your application is doing all of the things above you can provide your router's `navigate` method to `MsalProvider`. You'll need to provide `MsalProvider` with a separate `config` object with a `clientSideNavigate` callback which will be invoked when msal.js needs to navigate to a different page in your application. The callback is async and will be called with the relative path, query string and hash that needs to be navigated to. You should handle navigation and return when the navigation is complete.
 
 **Note:** After your callback returns, msal will process your tokens from the response. If `MsalProvider` is re-rendered as a result of navigation, you may not get the behavior you are expecting. To prevent this, make sure `MsalProvider` is above your `Route` components and your `clientSideNavigate` function does not reload the page.
 
@@ -37,7 +37,6 @@ function Example({ msalInstance }) {
     const config = {
         clientSideNavigate: async (path, search, hash) => {
             history.push(path);
-            return true;
         }
     }
 
