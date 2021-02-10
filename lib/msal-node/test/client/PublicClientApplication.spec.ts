@@ -18,7 +18,7 @@ import {
 import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest";
 import { DeviceCodeRequest } from "../../src/request/DeviceCodeRequest";
 import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
-import { Storage } from "../../src/cache/Storage";
+import { NodeStorage } from "../../src/cache/NodeStorage";
 import { HttpClient } from "../../src/network/HttpClient";
 
 jest.mock('@azure/msal-common');
@@ -150,7 +150,7 @@ describe('PublicClientApplication', () => {
         await authApp.acquireTokenByRefreshToken(request);
         expect(authorityMock.mock.calls[0][0]).toBe(TEST_CONSTANTS.DEFAULT_AUTHORITY);
         expect(authorityMock.mock.calls[0][1]).toBeInstanceOf(HttpClient);
-        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(Storage);
+        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(NodeStorage);
         expect(authorityMock.mock.calls[0][3]).toStrictEqual({
             protocolMode: ProtocolMode.AAD,
             knownAuthorities: [],
@@ -176,7 +176,7 @@ describe('PublicClientApplication', () => {
         await authApp.acquireTokenByRefreshToken(request);
         expect(authorityMock.mock.calls[0][0]).toBe(TEST_CONSTANTS.ALTERNATE_AUTHORITY);
         expect(authorityMock.mock.calls[0][1]).toBeInstanceOf(HttpClient);
-        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(Storage);
+        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(NodeStorage);
         expect(authorityMock.mock.calls[0][3]).toStrictEqual({
             protocolMode: ProtocolMode.AAD,
             knownAuthorities: [],

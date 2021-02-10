@@ -1,8 +1,22 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Tue, 02 Feb 2021 01:56:47 GMT and should not be manually modified.
+This log was last generated on Tue, 09 Feb 2021 01:48:22 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 4.0.0
+
+Tue, 09 Feb 2021 01:48:22 GMT
+
+### Major changes
+
+- Add API Extractor for msal-node (sameera.gajjarapu@microsoft.com)
+
+### Patches
+
+- Fix version.json import errors (#2993) (thomas.norling@microsoft.com)
+- Setting postLogoutRedirectUri as null will disable post logout redirect (janutter@microsoft.com)
+- Ignore OIDC scopes during cache lookup or replacement (#2969) (prkanher@microsoft.com)
 
 ## 3.1.0
 

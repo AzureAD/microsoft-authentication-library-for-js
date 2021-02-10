@@ -2,6 +2,33 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Tue, 09 Feb 2021 01:48:22 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-alpha.5",
+      "version": "2.0.0-alpha.5",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Msal-angular typedocs and instrumentation (#2863)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "b5815fe4b20a701cd0210bdfb0b16441f1e8dcfb",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Fix version.json import errors (#2993)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6dc3bc9e2148bc53b181d9f079f6e11e0159620b",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update ssoSilent and cors-api documentation (#2971)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "a41c9f8a2035ed0965a21b2d6036199c955297e7",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 02 Feb 2021 01:56:47 GMT",
       "tag": "@azure/msal-angular_v2.0.0-alpha.4",
       "version": "2.0.0-alpha.4",
