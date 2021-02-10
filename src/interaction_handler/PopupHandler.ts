@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { UrlString, StringUtils, AuthorizationCodeRequest, AuthorizationCodeClient, Constants } from "@azure/msal-common";
+import { UrlString, StringUtils, CommonAuthorizationCodeRequest, AuthorizationCodeClient, Constants } from "@azure/msal-common";
 import { InteractionHandler, InteractionParams } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -24,7 +24,7 @@ export class PopupHandler extends InteractionHandler {
 
     private currentWindow: Window|undefined;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: AuthorizationCodeRequest) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest) {
         super(authCodeModule, storageImpl, authCodeRequest);
 
         // Properly sets this reference for the unload event.
@@ -200,8 +200,8 @@ export class PopupHandler extends InteractionHandler {
 
     /**
      * Generates the name for the popup based on the client id and request
-     * @param clientId 
-     * @param request 
+     * @param clientId
+     * @param request
      */
     static generatePopupName(clientId: string, request: AuthorizationUrlRequest): string {
         return `msal.${clientId}.${request.scopes.join("-")}.${request.authority}.${request.correlationId}`;
