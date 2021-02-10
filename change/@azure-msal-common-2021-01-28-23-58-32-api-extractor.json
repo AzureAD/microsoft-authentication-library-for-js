@@ -1,8 +1,0 @@
-{
-  "type": "major",
-  "comment": "Add API Extractor for msal-node",
-  "packageName": "@azure/msal-common",
-  "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "none",
-  "date": "2021-01-29T07:58:00.088Z"
-}

@@ -10,7 +10,6 @@ import {
     AuthenticationResult,
     Authority,
     AuthorityFactory,
-    Constants,
     BaseAuthRequest,
     SilentFlowClient,
     Logger,
@@ -22,7 +21,8 @@ import {
     CommonAuthorizationUrlRequest,
     AuthenticationScheme,
     ResponseMode,
-    AuthorityOptions
+    AuthorityOptions,
+    OIDC_DEFAULT_SCOPES
 } from "@azure/msal-common";
 import { Configuration, buildAppConfiguration } from "../config/Configuration";
 import { CryptoProvider } from "../crypto/CryptoProvider";
@@ -284,7 +284,7 @@ export abstract class ClientApplication {
 
         return {
             ...authRequest,
-            scopes: [...((authRequest && authRequest.scopes) || []), Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE],
+            scopes: [...((authRequest && authRequest.scopes) || []), ...OIDC_DEFAULT_SCOPES],
             correlationId: authRequest && authRequest.correlationId || this.cryptoProvider.createNewGuid(),
             authority: authRequest.authority || this.config.auth.authority!
         };

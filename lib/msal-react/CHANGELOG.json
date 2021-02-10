@@ -2,6 +2,47 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Tue, 09 Feb 2021 01:48:22 GMT",
+      "tag": "@azure/msal-react_v1.0.0-alpha.5",
+      "version": "1.0.0-alpha.5",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Check InteractionStatus in Authenticated/UnauthenticatedTemplate (#2996)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "4a232f44599e0c88fe68899127992f2d58425e08",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "Fix version.json import errors (#2993)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6dc3bc9e2148bc53b181d9f079f6e11e0159620b",
+            "package": "@azure/msal-react"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Events Documentation (#2976)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "9b3ef650ba0107a470de30876f783311f7324de5",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "package-lock updates (#2841)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "aba0c69c558d0fe7a8edfc94aa64022a57fb0c41",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "Docs updates (#2965)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "5d4e67e2e70cf362f58830aaa111a046684c3af8",
+            "package": "@azure/msal-react"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 02 Feb 2021 01:56:47 GMT",
       "tag": "@azure/msal-react_v1.0.0-alpha.4",
       "version": "1.0.0-alpha.4",

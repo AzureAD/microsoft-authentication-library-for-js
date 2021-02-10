@@ -17,6 +17,21 @@ This sample was bootstrapped with [Create React App](https://github.com/facebook
 1. `./src/ui-components/SignOutButton.jsx` - Example of how to get the `PublicClientApplication` instance using the `useMsal` hook and invoking a logout function.
 1. `./src/utils/MsGraphApiCall.js` - Example of how to call the MS Graph API with an access token.
 
+### (Optional) MSAL React and class components
+
+For a demonstration of how to use MSAL React with class components, see: `./src/pages/ProfileWithMsal.jsx` and `./src/pages/ProfileRawContext.jsx`.
+
+*After* you initialize `MsalProvider`, there are 3 approaches you can take to protect your class components with MSAL React:
+
+1. Wrap each component that you want to protect with `withMsal` higher-order component (HOC) (e.g. [Profile](./src/pages/ProfileWithMsal.jsx#Profile)).
+1. Consume the raw context directly (e.g. [ProfileContent](./src/pages/ProfileRawContext.jsx#ProfileContent)).
+1. Pass context down from a parent component that has access to the `msalContext` via one of the other means above (e.g. [ProfileContent](./src/pages/ProfileWithMsal.jsx#ProfileContent)).
+
+For more information, visit:
+
+- [Docs: Class Components](../../../lib/msal-react/docs/class-components.md)
+- [MSAL React FAQ](../../../lib/msal-react/FAQ.md)
+
 ## How to run the sample
 
 ### Pre-requisites
