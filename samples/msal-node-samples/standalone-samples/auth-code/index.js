@@ -16,7 +16,14 @@ const argv = require('yargs')
     .strict()
     .argv;
 
-const cachePlugin = await require('./cachePlugin')(cacheLocation);
+let cacheLocation;
+if (argv.c) {
+    cacheLocation = argv.c;
+} else {
+    cacheLocation = "./data/cache.json";
+}
+
+const cachePlugin = require('../cachePlugin')(cacheLocation);
 
 
 const loggerOptions = {
@@ -28,7 +35,7 @@ const loggerOptions = {
 }
 
 const clientConfig = {
-    auth: scenarioConfiguration.authOptions,
+    auth: config.authOptions,
     cache: {
         cachePlugin
     },
@@ -39,22 +46,9 @@ const clientConfig = {
      *   } 
      */
 };
-    
-
-// Build full MSAL Client configuration object
-const clientConfig = {
-    auth: scenarioConfiguration.authOptions,
-    cache: {
-        cachePlugin
-    },
-    // Uncomment the code below to enable the MSAL logger
-  /*   system: {
-        loggerOptions: loggerOptions
-    } */
-}
 
 // Create msal application object
-const clientApplication = new msal.PublicClientApplication(config.authOptions);
+const clientApplication = new msal.PublicClientApplication(clientConfig);
 
 // Create Express App and Routes
 const app = express();

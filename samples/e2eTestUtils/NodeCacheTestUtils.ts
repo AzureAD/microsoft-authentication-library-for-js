@@ -47,7 +47,6 @@ export class NodeCacheTestUtils {
 
     static async waitForTokens(cacheLocation: string, interval: number): Promise<tokenMap> {
         let tokenCache = await this.getTokens(cacheLocation);
-
         if (tokenCache.idTokens.length) {
             return tokenCache;
         }
