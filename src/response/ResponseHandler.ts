@@ -213,6 +213,7 @@ export class ResponseHandler {
             // Use timestamp calculated before request
             const tokenExpirationSeconds = reqTimestamp + (serverTokenResponse.expires_in || 0);
             const extendedTokenExpirationSeconds = tokenExpirationSeconds + (serverTokenResponse.ext_expires_in || 0);
+            const refreshOnSeconds = serverTokenResponse.refresh_in ? reqTimestamp + serverTokenResponse.refresh_in : undefined;
 
             // non AAD scenarios can have empty realm
             cachedAccessToken = AccessTokenEntity.createAccessTokenEntity(
@@ -224,6 +225,7 @@ export class ResponseHandler {
                 responseScopes.printScopes(),
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
+                refreshOnSeconds,
                 serverTokenResponse.token_type,
                 oboAssertion
             );
