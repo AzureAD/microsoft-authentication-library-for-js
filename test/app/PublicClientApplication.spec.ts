@@ -692,14 +692,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
 
                 let callbackCalled = false;
-                const wrapperConfig = {
-                    clientSideNavigate: async (path: string) => {
+                const clientSideNavigate = async (path: string) => {
                         callbackCalled = true;
                         expect(path).to.be.eq("/index2.html/");
-                        return Promise.resolve(true);
-                    }
-                }
-                pca.initializeWrapperLibrary(WrapperSKU.React, "1.0.0", wrapperConfig);
+                };
+                pca.setClientSideNavigateCallback(clientSideNavigate);
 
                 const tokenResponse = await pca.handleRedirectPromise();
                 if (!tokenResponse) {
