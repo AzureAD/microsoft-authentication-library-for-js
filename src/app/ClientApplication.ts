@@ -211,10 +211,12 @@ export abstract class ClientApplication {
             return this.handleHash(responseHash, state);
         } else if (!BrowserUtils.isInIframe()) {
             if (typeof this.clientSideNavigateCallback === "function") {
+                this.logger.verbose("clientSideNavigate function provided, handling hash");
+                const response = await this.handleHash(responseHash, state);
                 const urlParts = new UrlString(loginRequestUrl).getUrlComponents();
                 await this.clientSideNavigateCallback(urlParts.AbsolutePath, urlParts.QueryString, urlParts.Hash);
-                this.logger.verbose("clientSideNavigate completed navigation, handling hash");
-                return this.handleHash(responseHash, state);
+                this.logger.verbose("clientSideNavigate completed navigation");
+                return response;
             }
             /*
              * Returned from authority using redirect - need to perform navigation before processing response
@@ -1156,7 +1158,6 @@ export abstract class ClientApplication {
 
     /**
      * Register a function to handle navigation when MSAL navigates to other pages in your app.
-     * This should only be used for client-side routing as the flow will break if the page reloads or MSAL is reinitialized.
      * @param clientSideNavigate 
      */
     setClientSideNavigateCallback(clientSideNavigate: (path: string, search?: string, hash?: string) => Promise<void>) {
