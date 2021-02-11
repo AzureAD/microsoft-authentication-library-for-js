@@ -1,7 +1,7 @@
 import { LogLevel, Logger, AccountEntity, CacheManager, AccessTokenEntity, AuthorityMetadataEntity } from '@azure/msal-common';
 import { JsonCache, InMemoryCache } from './../../src/cache/serializer/SerializerTypes';
 import { Deserializer } from './../../src/cache/serializer/Deserializer';
-import { Storage } from './../../src/cache/Storage';
+import { NodeStorage } from '../../src/cache/NodeStorage';
 import { version, name } from '../../package.json';
 import { DEFAULT_CRYPTO_IMPLEMENTATION, DEFAULT_OPENID_CONFIG_RESPONSE, TEST_CONSTANTS } from '../utils/TestConstants';
 
@@ -40,8 +40,8 @@ describe("Storage tests for msal-node: ", () => {
     });
 
     it("Constructor tests: ", () => {
-        const nodeStorage = new Storage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
-        expect(nodeStorage).toBeInstanceOf(Storage);
+        const nodeStorage = new NodeStorage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
+        expect(nodeStorage).toBeInstanceOf(NodeStorage);
 
         const cache = nodeStorage.getCache();
         expect(Object.keys(cache).length).toBe(0);
@@ -51,7 +51,7 @@ describe("Storage tests for msal-node: ", () => {
     });
 
     it('setInMemoryCache() and getInMemoryCache() tests - tests for an account', () => {
-        const nodeStorage = new Storage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
+        const nodeStorage = new NodeStorage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
         nodeStorage.setInMemoryCache(inMemoryCache);
 
         const cache = nodeStorage.getCache();
@@ -67,7 +67,7 @@ describe("Storage tests for msal-node: ", () => {
     });
 
     it('setItem() and getItem() tests - tests for an account', () => {
-        const nodeStorage = new Storage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
+        const nodeStorage = new NodeStorage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
         nodeStorage.setInMemoryCache(inMemoryCache);
 
         const accountKey = 'uid1.utid1-login.windows.net-samplerealm';
@@ -93,7 +93,7 @@ describe("Storage tests for msal-node: ", () => {
     });
 
     it('setAccount() and getAccount() tests', () => {
-        const nodeStorage = new Storage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
+        const nodeStorage = new NodeStorage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
         nodeStorage.setInMemoryCache(inMemoryCache);
         const accountKey = 'uid.utid-login.microsoftonline.com-microsoft';
         const fetchedAccount = nodeStorage.getAccount(accountKey);
@@ -118,7 +118,7 @@ describe("Storage tests for msal-node: ", () => {
     });
 
     it('setCache() and getCache() tests - tests for an accessToken', () => {
-        const nodeStorage = new Storage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
+        const nodeStorage = new NodeStorage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
 
         const accessTokenKey = 'uid1.utid1-login.windows.net-accesstoken-mock_client_id-samplerealm-scoperead scopewrite';
         const newMockAT = {
@@ -148,7 +148,7 @@ describe("Storage tests for msal-node: ", () => {
     });
 
     it('setAccessTokenCredential() and getAccessTokenCredential() tests', () => {
-        const nodeStorage = new Storage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
+        const nodeStorage = new NodeStorage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
 
         const accessTokenKey = 'uid1.utid1-login.windows.net-accesstoken-mock_client_id-samplerealm-scoperead scopewrite';
         const newMockATData = {
@@ -173,7 +173,7 @@ describe("Storage tests for msal-node: ", () => {
     });
 
     it('containsKey() tests - tests for an accountKey', () => {
-        const nodeStorage = new Storage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
+        const nodeStorage = new NodeStorage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
         nodeStorage.setInMemoryCache(inMemoryCache);
 
         const accountKey = 'uid.utid-login.microsoftonline.com-microsoft';
@@ -181,7 +181,7 @@ describe("Storage tests for msal-node: ", () => {
     });
 
     it('getKeys() tests - tests for an accountKey', () => {
-        const nodeStorage = new Storage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
+        const nodeStorage = new NodeStorage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
         nodeStorage.setInMemoryCache(inMemoryCache);
 
         const accountKey = 'uid.utid-login.microsoftonline.com-microsoft';
@@ -189,7 +189,7 @@ describe("Storage tests for msal-node: ", () => {
     });
 
     it('removeItem() tests - removes an account', () => {
-        const nodeStorage = new Storage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
+        const nodeStorage = new NodeStorage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
         nodeStorage.setInMemoryCache(inMemoryCache);
 
         const accountKey = 'uid.utid-login.microsoftonline.com-microsoft';
@@ -217,14 +217,14 @@ describe("Storage tests for msal-node: ", () => {
             testObj.endpointsFromNetwork = false;
 
             it("getAuthorityMetadata() returns null if key is not in cache", () => {
-                const nodeStorage = new Storage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
+                const nodeStorage = new NodeStorage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
                 expect(nodeStorage.containsKey(key)).toBe(false);
                 expect(nodeStorage.getAuthorityMetadataKeys()).not.toContain(key);
                 expect(nodeStorage.getAuthorityMetadata(key)).toBeNull;
             });
 
             it("getAuthorityMetadata() returns null if isAuthorityMetadataEntity returns false", () => {
-                const nodeStorage = new Storage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
+                const nodeStorage = new NodeStorage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
                 // @ts-ignore
                 nodeStorage.setAuthorityMetadata(key, {});
 
@@ -234,7 +234,7 @@ describe("Storage tests for msal-node: ", () => {
             });
 
             it("setAuthorityMetadata() and getAuthorityMetadata() sets and returns AuthorityMetadataEntity in-memory", () => {
-                const nodeStorage = new Storage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
+                const nodeStorage = new NodeStorage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
                 nodeStorage.setAuthorityMetadata(key, testObj);
 
                 expect(nodeStorage.getAuthorityMetadata(key)).toStrictEqual(testObj);

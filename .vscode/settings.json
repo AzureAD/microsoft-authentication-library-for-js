@@ -12,7 +12,8 @@
         "source.fixAll.eslint": true
     },
     "files.associations": {
-        "**/build/*.yml": "azure-pipelines"
+        "**/build/*.yml": "azure-pipelines",
+        "*.json": "jsonc"
     },
     "java.configuration.updateBuildConfiguration": "interactive"
 }

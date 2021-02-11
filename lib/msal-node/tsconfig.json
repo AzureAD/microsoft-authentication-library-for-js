@@ -1,9 +1,11 @@
 {
-  "include": ["src", "src/**/*.json", "test"],
+  "include": ["src", "test"],
   "exclude": ["node_modules"],
   "compilerOptions": {
     "target": "es5",
     "module": "esnext",
+    "declaration": true,
+    "declarationMap": true,
     "lib": ["dom", "esnext"],
     "importHelpers": true,
     "declaration": true,
