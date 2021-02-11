@@ -5,7 +5,7 @@
 
 const express = require("express");
 const msal = require('@azure/msal-node');
-const config = require("./authConfig.json");
+const authConfig = require("./authConfig.json");
 
 const argv = require('yargs')
     .usage('Usage: $0 -p [PORT]')
@@ -16,15 +16,11 @@ const argv = require('yargs')
     .strict()
     .argv;
 
-let cacheLocation;
-if (argv.c) {
-    cacheLocation = argv.c;
-} else {
-    cacheLocation = "./data/cache.json";
-}
+    
 
+const SERVER_PORT = argv.p || 3000;
+const cacheLocation = argv.c || "./data/cache.json";
 const cachePlugin = require('../cachePlugin')(cacheLocation);
-
 
 const loggerOptions = {
     loggerCallback(loglevel, message, containsPii) {
@@ -34,8 +30,9 @@ const loggerOptions = {
     logLevel: msal.LogLevel.Verbose,
 }
 
+// Build MSAL ClientApplication Configuration object
 const clientConfig = {
-    auth: config.authOptions,
+    auth: authConfig.authOptions,
     cache: {
         cachePlugin
     },
@@ -53,9 +50,7 @@ const clientApplication = new msal.PublicClientApplication(clientConfig);
 // Create Express App and Routes
 const app = express();
 
-const requestConfig = config.request;
-
-const SERVER_PORT = argv.p || 3000;
+const requestConfig = authConfig.request;
 
 app.get("/", (req, res) => {
     const { authCodeUrlParameters } = requestConfig;
@@ -82,6 +77,7 @@ app.get("/redirect", (req, res) => {
     const tokenRequest = { ...requestConfig.tokenRequest, code: req.query.code };
     
     clientApplication.acquireTokenByCode(tokenRequest).then((response) => {
+        console.log("Successfully acquired token using Authorization Code.");
         res.sendStatus(200);
     }).catch((error) => {
         console.log(error);
