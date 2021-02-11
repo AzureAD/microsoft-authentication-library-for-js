@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Ensure scrollbars are enabled for popups in browser",
+  "packageName": "@azure/msal-browser",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "patch"
+}
