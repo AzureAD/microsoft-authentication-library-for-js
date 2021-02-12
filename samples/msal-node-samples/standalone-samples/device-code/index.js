@@ -12,20 +12,16 @@ const argv = require('yargs')
     .usage('Usage: $0 -p [PORT]')
     .alias('p', 'port')
     .alias('c', 'cache location')
+    .alias('ro', 'runtime-options')
     .describe('port', '(Optional) Port Number - default is 3000')
     .describe('cache location', '(Optional) Cache location - default is data/cache.json')
+    .describe('runtime-options', '(Optional) Runtime options to inject into the application - default is null')
     .strict()
     .argv;
 
-let cacheLocation;
-if (argv.c) {
-    cacheLocation = argv.c;
-} else {
-    cacheLocation = "./data/cache.json";
-}
-
+const cacheLocation = argv.c || "./data/cache.json";
+const runtimeOptions = argv.ro || null;
 const cachePlugin = require('../cachePlugin')(cacheLocation);
-
 
 const loggerOptions = {
     loggerCallback(loglevel, message, containsPii) {
@@ -47,19 +43,21 @@ const clientConfig = {
      *   } 
      */
 };
-console.log(clientConfig);
 
 const pca = new msal.PublicClientApplication(clientConfig);
 
-getDeviceCode(config, pca, runtimeOptions);
-
 const getDeviceCode = function(scenarioConfig, clientApplication, runtimeOptions) {
     const requestConfig = scenarioConfig.request;
-    const defaultCallback = (response) => console.log(response.message);
+
+    if (!runtimeOptions) {
+        runtimeOptions = {
+            deviceCodeCallback:  (response) => console.log(response.message)
+        }
+    }
 
     const deviceCodeRequest = { 
         ...requestConfig.deviceCodeUrlParameters,
-        deviceCodeCallback: runtimeOptions.deviceCodeCallback || defaultCallback
+        deviceCodeCallback: runtimeOptions.deviceCodeCallback
     };
 
     // Check if a timeout was provided at runtime.
@@ -72,6 +70,14 @@ const getDeviceCode = function(scenarioConfig, clientApplication, runtimeOptions
     }).catch((error) => {
         return error;
     });
+ }
+
+ // Check if the script is being executed manually and execute app, otherwise just export getDeviceCode
+ if(argv.$0 === "index.js") {
+    getDeviceCode(config, pca, runtimeOptions).then(response => {
+        console.log(response);
+    });
+
  }
 
  module.exports = getDeviceCode;

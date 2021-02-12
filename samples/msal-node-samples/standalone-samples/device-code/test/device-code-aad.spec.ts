@@ -22,6 +22,8 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 let username: string;
 let accountPwd: string;
 
+const config = require("../authConfig.json");
+
 
 describe('Device Code AAD PPE Tests', () => {
     jest.setTimeout(20000);
@@ -60,7 +62,7 @@ describe('Device Code AAD PPE Tests', () => {
         let screenshot: Screenshot;
 
         beforeAll(async () => {
-            clientConfig = { auth: scenarioConfig.authOptions, cache: { cachePlugin } };
+            clientConfig = { auth: config.authOptions, cache: { cachePlugin } };
             publicClientApplication = new PublicClientApplication(clientConfig);
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
@@ -88,7 +90,7 @@ describe('Device Code AAD PPE Tests', () => {
                 await screenshot.takeScreenshot(page, "SuccessfulDeviceCodeMessage");
             };
             
-            await getDeviceCode(scenarioConfig, publicClientApplication, { deviceCodeCallback: deviceCodeCallback });
+            await getDeviceCode(config, publicClientApplication, { deviceCodeCallback: deviceCodeCallback });
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
