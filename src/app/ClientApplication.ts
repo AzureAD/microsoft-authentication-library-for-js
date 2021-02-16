@@ -23,6 +23,7 @@ import { EventError, EventMessage, EventPayload, EventCallbackFunction } from ".
 import { EventType } from "../event/EventType";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
+import { NavigationClient } from "../navigation/NavigationClient";
 
 export abstract class ClientApplication {
 
@@ -53,9 +54,6 @@ export abstract class ClientApplication {
 
     // Callback for subscribing to events
     private eventCallbacks: Map<string, EventCallbackFunction>;
-
-    // Client-side Navigation method
-    protected clientSideNavigateCallback: undefined | ((path: string, search?: string, hash?: string) => Promise<void>);
 
     /**
      * @constructor
@@ -210,14 +208,6 @@ export abstract class ClientApplication {
             this.logger.verbose("NavigateToLoginRequestUrl set to false, handling hash");
             return this.handleHash(responseHash, state);
         } else if (!BrowserUtils.isInIframe()) {
-            if (typeof this.clientSideNavigateCallback === "function") {
-                this.logger.verbose("clientSideNavigate function provided, handling hash");
-                const response = await this.handleHash(responseHash, state);
-                const urlParts = new UrlString(loginRequestUrl).getUrlComponents();
-                await this.clientSideNavigateCallback(urlParts.AbsolutePath, urlParts.QueryString, urlParts.Hash);
-                this.logger.verbose("clientSideNavigate completed navigation");
-                return response;
-            }
             /*
              * Returned from authority using redirect - need to perform navigation before processing response
              * Cache the hash to be retrieved after the next redirect
@@ -229,11 +219,11 @@ export abstract class ClientApplication {
                 // Cache the homepage under ORIGIN_URI to ensure cached hash is processed on homepage
                 this.browserStorage.setTemporaryCache(TemporaryCacheKeys.ORIGIN_URI, homepage, true);
                 this.logger.warning("Unable to get valid login request url from cache, redirecting to home page");
-                await BrowserUtils.navigateWindow(homepage, this.config.system.redirectNavigationTimeout, this.logger, true);
+                await new NavigationClient().navigateInternal(homepage, {timeout: this.config.system.redirectNavigationTimeout, noHistory: true});
             } else {
                 // Navigate to page that initiated the redirect request
                 this.logger.verbose(`Navigating to loginRequestUrl: ${loginRequestUrl}`);
-                await BrowserUtils.navigateWindow(loginRequestUrl, this.config.system.redirectNavigationTimeout, this.logger, true);
+                await new NavigationClient().navigateInternal(loginRequestUrl, {timeout: this.config.system.redirectNavigationTimeout, noHistory: true});
             }
         }
 
@@ -646,12 +636,12 @@ export abstract class ClientApplication {
 
                 if (navigate !== false) {
                     this.logger.verbose("Logout onRedirectNavigate did not return false, navigating");
-                    return BrowserUtils.navigateWindow(logoutUri, this.config.system.redirectNavigationTimeout, this.logger);
+                    return new NavigationClient().navigateExternal(logoutUri, {timeout: this.config.system.redirectNavigationTimeout});
                 } else {
                     this.logger.verbose("Logout onRedirectNavigate returned false, stopping navigation");
                 }
             } else {
-                return BrowserUtils.navigateWindow(logoutUri, this.config.system.redirectNavigationTimeout, this.logger);
+                return new NavigationClient().navigateExternal(logoutUri, {timeout: this.config.system.redirectNavigationTimeout});
             }
         } catch(e) {
             serverTelemetryManager.cacheFailedRequest(e);
@@ -1157,11 +1147,17 @@ export abstract class ClientApplication {
     }
 
     /**
-     * Register a function to handle navigation when MSAL navigates to other pages in your app.
-     * @param clientSideNavigate 
+     * Update the config object after initialization
+     * @param newConfig
      */
-    setClientSideNavigateCallback(clientSideNavigate: (path: string, search?: string, hash?: string) => Promise<void>) {
-        this.clientSideNavigateCallback = clientSideNavigate;
+    updateConfiguration(newConfig: Configuration): void {
+        const overlayedConfig: BrowserConfiguration = {
+            auth: { ...this.config.auth, ...newConfig.auth },
+            cache: { ...this.config.cache, ...newConfig.cache },
+            system: { ...this.config.system, ...newConfig.system }
+        };
+        
+        this.config = overlayedConfig;
     }
     // #endregion
 }
