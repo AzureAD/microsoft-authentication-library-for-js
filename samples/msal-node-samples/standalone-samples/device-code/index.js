@@ -77,7 +77,6 @@ const getDeviceCode = function(scenarioConfig, clientApplication, runtimeOptions
     getDeviceCode(config, pca, runtimeOptions).then(response => {
         console.log(response);
     });
-
  }
 
  module.exports = getDeviceCode;
