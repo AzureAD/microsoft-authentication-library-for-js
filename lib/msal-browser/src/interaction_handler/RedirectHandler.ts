@@ -6,9 +6,9 @@
 import { AuthorizationCodeClient, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AuthenticationResult, ThrottlingUtils, Authority, INetworkModule, ClientAuthError } from "@azure/msal-common";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
-import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { InteractionHandler, InteractionParams } from "./InteractionHandler";
+import { NavigationClient } from "../navigation/NavigationClient";
 
 export type RedirectParams = InteractionParams & {
     redirectTimeout: number;
@@ -49,7 +49,7 @@ export class RedirectHandler extends InteractionHandler {
                 // Returning false from onRedirectNavigate will stop navigation
                 if (navigate !== false) {
                     this.authModule.logger.verbose("onRedirectNavigate did not return false, navigating");
-                    return BrowserUtils.navigateWindow(requestUrl, params.redirectTimeout, this.authModule.logger);
+                    return new NavigationClient().navigateExternal(requestUrl, {timeout: params.redirectTimeout});
                 } else {
                     this.authModule.logger.verbose("onRedirectNavigate returned false, stopping navigation");
                     return Promise.resolve();
@@ -57,7 +57,7 @@ export class RedirectHandler extends InteractionHandler {
             } else {
                 // Navigate window to request URL
                 this.authModule.logger.verbose("Navigating window to navigate url");
-                return BrowserUtils.navigateWindow(requestUrl, params.redirectTimeout, this.authModule.logger);
+                return new NavigationClient().navigateExternal(requestUrl, {timeout: params.redirectTimeout});
             }
         } else {
             // Throw error if request URL is empty.
