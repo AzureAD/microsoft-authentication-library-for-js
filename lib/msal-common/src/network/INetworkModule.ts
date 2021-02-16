@@ -16,7 +16,7 @@ export type NetworkRequestOptions = {
 
 /**
  * Client network interface to send backend requests.
- * @hidden
+ * @interface
  */
 export interface INetworkModule {
 

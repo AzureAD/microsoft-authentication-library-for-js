@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { DeviceCodeRequest as CommonDeviceCodeRequest , DeviceCodeResponse } from "@azure/msal-common";
+import { CommonDeviceCodeRequest , DeviceCodeResponse } from "@azure/msal-common";
 
 /**
  * Parameters for Oauth2 device code flow.
@@ -12,6 +12,7 @@ import { DeviceCodeRequest as CommonDeviceCodeRequest , DeviceCodeResponse } fro
  * - correlationId              - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - deviceCodeCallback         - Callback containing device code response. Message should be shown to end user. End user can then navigate to the verification_uri, input the user_code, and input credentials.
  * - cancel                     - Boolean to cancel polling of device code endpoint. While the user authenticates on a separate device, MSAL polls the the token endpoint of security token service for the interval specified in the device code response (usually 15 minutes). To stop polling and cancel the request, set cancel=true.
+ * @public
  */
 export type DeviceCodeRequest = Partial<Omit<CommonDeviceCodeRequest, "scopes"|"deviceCodeCallback"|"resourceRequestMethod"|"resourceRequestUri">> & {
     scopes: Array<string>;

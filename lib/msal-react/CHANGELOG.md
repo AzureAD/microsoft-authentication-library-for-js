@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-react
 
-This log was last generated on Tue, 02 Feb 2021 01:56:47 GMT and should not be manually modified.
+This log was last generated on Tue, 09 Feb 2021 01:48:22 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.5
+
+Tue, 09 Feb 2021 01:48:22 GMT
+
+### Changes
+
+- Check InteractionStatus in Authenticated/UnauthenticatedTemplate (#2996) (thomas.norling@microsoft.com)
+- Fix version.json import errors (#2993) (thomas.norling@microsoft.com)
 
 ## 1.0.0-alpha.4
 

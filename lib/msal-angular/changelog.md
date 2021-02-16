@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Tue, 02 Feb 2021 01:56:47 GMT and should not be manually modified.
+This log was last generated on Tue, 09 Feb 2021 01:48:22 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.0.0-alpha.5
+
+Tue, 09 Feb 2021 01:48:22 GMT
+
+### Changes
+
+- Msal-angular typedocs and instrumentation (#2863) (joarroyo@microsoft.com)
+- Fix version.json import errors (#2993) (thomas.norling@microsoft.com)
+- Update ssoSilent and cors-api documentation (#2971) (joarroyo@microsoft.com)
 
 ## 2.0.0-alpha.4
 

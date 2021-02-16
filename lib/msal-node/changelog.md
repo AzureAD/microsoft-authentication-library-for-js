@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Tue, 02 Feb 2021 01:56:47 GMT and should not be manually modified.
+This log was last generated on Tue, 09 Feb 2021 01:48:22 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-beta.6
+
+Tue, 09 Feb 2021 01:48:22 GMT
+
+### Changes
+
+- Fix version.json import errors (#2993) (thomas.norling@microsoft.com)
+- Ignore OIDC scopes during cache lookup or replacement (#2969) (prkanher@microsoft.com)
+- Set the validateStatus locally than globally for `axios` (#2959) (sameera.gajjarapu@microsoft.com)
+- Add API Extractor for msal-node (sameera.gajjarapu@microsoft.com)
 
 ## 1.0.0-beta.5
 
