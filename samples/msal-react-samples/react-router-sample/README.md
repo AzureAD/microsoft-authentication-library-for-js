@@ -106,6 +106,10 @@ You will also see any lint errors in the console.
 1. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 1. Open [http://localhost:3000/profile](http://localhost:3000/profile) to see an example of a protected route. If you are not yet signed in, signin will be invoked automatically.
 
+#### Running the sample in IE11
+
+`msal-react` and `msal-browser` support IE11 but the `react-scripts` package requires a few polyfills to work properly. In order to run this sample in IE11 go to `src/index.js` and uncomment the first 2 imports. We recommend using the redirect flow and setting the `storeAuthStateInCookie` config parameter to `true` in IE11 as there are known issues with popups. You can read more about the known issues with IE11 [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Known-issues-on-IE-and-Edge-Browser)
+
 #### Learn more about the 3rd-party libraries used to create this sample
 
 - [React documentation](https://reactjs.org/).
