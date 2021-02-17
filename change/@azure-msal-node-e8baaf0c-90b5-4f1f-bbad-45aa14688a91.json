@@ -1,5 +1,5 @@
 {
-  "type": "none",
+  "type": "patch",
   "comment": "update msal-node landing page & samples page",
   "packageName": "@azure/msal-node",
   "email": "dogan.erisen@gmail.com",
