@@ -171,7 +171,7 @@ describe('MsalGuard', () => {
 
     guard.canActivate(routeMock, routeStateMock)
         .subscribe(result => {
-            expect(result).toBeFalse;
+            expect(result).toBeFalse();
             done();
         });
   });
