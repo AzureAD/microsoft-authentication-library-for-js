@@ -169,10 +169,11 @@ describe('MsalGuard', () => {
       })
     ));
 
-    const listener = jasmine.createSpy();
-    guard.canActivate(routeMock, routeStateMock).subscribe(listener);
-    expect(listener).toHaveBeenCalledWith(false);
-    done();
+    guard.canActivate(routeMock, routeStateMock)
+        .subscribe(result => {
+            expect(result).toBeFalse();
+            done();
+        });
   });
 
   it("canActivateChild returns true with logged in user", (done) => {
