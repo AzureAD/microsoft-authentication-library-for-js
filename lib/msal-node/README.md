@@ -78,7 +78,7 @@ npm install @azure/msal-node
 MSAL Node will follow the [Long Term Support (LTS) schedule of the Node.js project](https://nodejs.org/about/releases/). Our support plan is as follows.
 
 Any major MSAL Node release:
-- Will support Maintenance LTS, Active LTS, and Current versions of Node
+- Will support stable (even-numbered) Maintenance LTS, Active LTS, and Current versions of Node
 - Will drop support for any previously supported Node versions that have reached end of life
 - Will not support prerelease/preview/pending versions until they are stable
 
