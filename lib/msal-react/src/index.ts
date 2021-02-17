@@ -16,7 +16,6 @@ export type { AuthenticatedTemplateProps } from "./components/AuthenticatedTempl
 export type { UnauthenticatedTemplateProps } from "./components/UnauthenticatedTemplate";
 export type { WithMsalProps } from "./components/withMsal";
 export type { AccountIdentifiers } from "./types/AccountIdentifiers";
-export type { Configuration } from "./types/Configuration";
 
 export { MsalContext, MsalConsumer } from "./MsalContext";
 export { MsalProvider } from "./MsalProvider";

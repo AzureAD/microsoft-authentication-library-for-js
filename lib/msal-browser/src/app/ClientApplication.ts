@@ -23,7 +23,8 @@ import { EventError, EventMessage, EventPayload, EventCallbackFunction } from ".
 import { EventType } from "../event/EventType";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
-import { NavigationClient } from "../navigation/NavigationClient";
+import { INavigationClient } from "../navigation/INavigationClient";
+import { NavigationOptions } from "../navigation/NavigationOptions";
 
 export abstract class ClientApplication {
 
@@ -35,6 +36,9 @@ export abstract class ClientApplication {
 
     // Network interface implementation
     protected readonly networkClient: INetworkModule;
+
+    // Navigation interface implementation
+    protected navigationClient: INavigationClient;
 
     // Input configuration by developer/user
     protected config: BrowserConfiguration;
@@ -96,6 +100,9 @@ export abstract class ClientApplication {
 
         // Initialize the network module class.
         this.networkClient = this.config.system.networkClient;
+
+        // Initialize the navigation client class.
+        this.navigationClient = this.config.system.navigationClient;
 
         if (!this.isBrowserEnvironment) {
             this.browserStorage = DEFAULT_BROWSER_CACHE_MANAGER(this.config.auth.clientId, this.logger);
@@ -213,17 +220,33 @@ export abstract class ClientApplication {
              * Cache the hash to be retrieved after the next redirect
              */
             this.browserStorage.setTemporaryCache(TemporaryCacheKeys.URL_HASH, responseHash, true);
+            const navigationOptions: NavigationOptions = {
+                apiId: ApiId.handleRedirectPromise,
+                timeout: this.config.system.redirectNavigationTimeout,
+                noHistory: true
+            };
+
+            /**
+             * Default behavior is to redirect to the start page and not process the hash now. 
+             * The start page is expected to also call handleRedirectPromise which will process the hash in one of the checks above.
+             */  
+            let processHashOnRedirect: boolean = true;
             if (!loginRequestUrl || loginRequestUrl === "null") {
                 // Redirect to home page if login request url is null (real null or the string null)
                 const homepage = BrowserUtils.getHomepage();
                 // Cache the homepage under ORIGIN_URI to ensure cached hash is processed on homepage
                 this.browserStorage.setTemporaryCache(TemporaryCacheKeys.ORIGIN_URI, homepage, true);
                 this.logger.warning("Unable to get valid login request url from cache, redirecting to home page");
-                await new NavigationClient().navigateInternal(homepage, {timeout: this.config.system.redirectNavigationTimeout, noHistory: true});
+                processHashOnRedirect = await this.navigationClient.navigateInternal(homepage, navigationOptions);
             } else {
                 // Navigate to page that initiated the redirect request
                 this.logger.verbose(`Navigating to loginRequestUrl: ${loginRequestUrl}`);
-                await new NavigationClient().navigateInternal(loginRequestUrl, {timeout: this.config.system.redirectNavigationTimeout, noHistory: true});
+                processHashOnRedirect = await this.navigationClient.navigateInternal(loginRequestUrl, navigationOptions);
+            }
+
+            // If navigateInternal implementation returns false, handle the hash now
+            if (!processHashOnRedirect) {
+                return this.handleHash(responseHash, state);
             }
         }
 
@@ -345,6 +368,7 @@ export abstract class ClientApplication {
 
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
             return interactionHandler.initiateAuthRequest(navigateUrl, {
+                navigationClient: this.navigationClient,
                 redirectTimeout: this.config.system.redirectNavigationTimeout,
                 redirectStartPage: redirectStartPage,
                 onRedirectNavigate: request.onRedirectNavigate
@@ -630,18 +654,24 @@ export abstract class ClientApplication {
                 this.setActiveAccount(null);
             }
 
+            const navigationOptions: NavigationOptions = {
+                apiId: ApiId.logout,
+                timeout: this.config.system.redirectNavigationTimeout,
+                noHistory: false
+            };
+            
             // Check if onRedirectNavigate is implemented, and invoke it if so
             if (logoutRequest && typeof logoutRequest.onRedirectNavigate === "function") {
                 const navigate = logoutRequest.onRedirectNavigate(logoutUri);
 
                 if (navigate !== false) {
                     this.logger.verbose("Logout onRedirectNavigate did not return false, navigating");
-                    return new NavigationClient().navigateExternal(logoutUri, {timeout: this.config.system.redirectNavigationTimeout});
+                    return this.navigationClient.navigateExternal(logoutUri, navigationOptions);
                 } else {
                     this.logger.verbose("Logout onRedirectNavigate returned false, stopping navigation");
                 }
             } else {
-                return new NavigationClient().navigateExternal(logoutUri, {timeout: this.config.system.redirectNavigationTimeout});
+                return this.navigationClient.navigateExternal(logoutUri, navigationOptions);
             }
         } catch(e) {
             serverTelemetryManager.cacheFailedRequest(e);
@@ -1147,17 +1177,11 @@ export abstract class ClientApplication {
     }
 
     /**
-     * Update the config object after initialization
-     * @param newConfig
+     * Sets navigation client
+     * @param navigationClient
      */
-    updateConfiguration(newConfig: Configuration): void {
-        const overlayedConfig: BrowserConfiguration = {
-            auth: { ...this.config.auth, ...newConfig.auth },
-            cache: { ...this.config.cache, ...newConfig.cache },
-            system: { ...this.config.system, ...newConfig.system }
-        };
-        
-        this.config = overlayedConfig;
+    setNavigationClient(navigationClient: INavigationClient): void {
+        this.navigationClient = navigationClient;
     }
     // #endregion
 }

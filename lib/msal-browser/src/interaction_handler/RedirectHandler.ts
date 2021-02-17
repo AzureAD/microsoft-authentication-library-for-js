@@ -5,12 +5,14 @@
 
 import { AuthorizationCodeClient, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AuthenticationResult, ThrottlingUtils, Authority, INetworkModule, ClientAuthError } from "@azure/msal-common";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
+import { ApiId, BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { InteractionHandler, InteractionParams } from "./InteractionHandler";
-import { NavigationClient } from "../navigation/NavigationClient";
+import { INavigationClient } from "../navigation/INavigationClient";
+import { NavigationOptions } from "../navigation/NavigationOptions";
 
 export type RedirectParams = InteractionParams & {
+    navigationClient: INavigationClient;
     redirectTimeout: number;
     redirectStartPage: string;
     onRedirectNavigate?: (url: string) => void | boolean;
@@ -41,6 +43,12 @@ export class RedirectHandler extends InteractionHandler {
             this.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
             this.browserStorage.cacheCodeRequest(this.authCodeRequest, this.browserCrypto);
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
+            const navigationOptions: NavigationOptions = {
+                apiId: ApiId.acquireTokenRedirect,
+                timeout: params.redirectTimeout,
+                noHistory: false
+            };
+            
             // If onRedirectNavigate is implemented, invoke it and provide requestUrl
             if (typeof params.onRedirectNavigate === "function") {
                 this.authModule.logger.verbose("Invoking onRedirectNavigate callback");
@@ -49,7 +57,7 @@ export class RedirectHandler extends InteractionHandler {
                 // Returning false from onRedirectNavigate will stop navigation
                 if (navigate !== false) {
                     this.authModule.logger.verbose("onRedirectNavigate did not return false, navigating");
-                    return new NavigationClient().navigateExternal(requestUrl, {timeout: params.redirectTimeout});
+                    return params.navigationClient.navigateExternal(requestUrl, navigationOptions);
                 } else {
                     this.authModule.logger.verbose("onRedirectNavigate returned false, stopping navigation");
                     return Promise.resolve();
@@ -57,7 +65,7 @@ export class RedirectHandler extends InteractionHandler {
             } else {
                 // Navigate window to request URL
                 this.authModule.logger.verbose("Navigating window to navigate url");
-                return new NavigationClient().navigateExternal(requestUrl, {timeout: params.redirectTimeout});
+                return params.navigationClient.navigateExternal(requestUrl, navigationOptions);
             }
         } else {
             // Throw error if request URL is empty.

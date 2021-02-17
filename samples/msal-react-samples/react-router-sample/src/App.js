@@ -1,9 +1,11 @@
+import { useEffect } from "react";
 import { Switch, Route, useHistory } from "react-router-dom";
 // Material-UI imports
 import Grid from "@material-ui/core/Grid";
 
 // MSAL imports
 import { MsalProvider } from "@azure/msal-react";
+import { CustomNavigationClient } from "./NavigationClient";
 
 // Sample app imports
 import { PageLayout } from "./ui-components/PageLayout";
@@ -15,17 +17,13 @@ import { ProfileWithMsal } from "./pages/ProfileWithMsal";
 import { ProfileRawContext } from "./pages/ProfileRawContext";
 
 function App({ pca }) {
+  // The next 3 lines are optional. This is how you configure MSAL to take advantage of the router's navigate functions when msal redirects between pages in your app
   const history = useHistory();
-
-  // This config is optional. Use it if you want to take advantage of the router's client side navigation when msal redirects between pages in your app
-  const config = {
-    clientSideNavigate: async (path, search, hash) => {
-      history.push(path);
-    }
-  }
+  const navigationClient = new CustomNavigationClient(history);
+  pca.setNavigationClient(navigationClient);
 
   return (
-    <MsalProvider instance={pca} config={config}>
+    <MsalProvider instance={pca}>
       <PageLayout>
         <Grid container justify="center">
           <Pages />
