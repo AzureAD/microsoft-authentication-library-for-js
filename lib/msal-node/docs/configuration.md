@@ -1,8 +1,8 @@
 # Configuration Options
 
-Before you start here, make sure you understand how to [initialize an app object](./Initialize-PublicClientApplication.md).
+Before you start here, make sure you understand how to [initialize an app object](./initialize-public-client-application.md).
 
-The MSAL library has a set of configuration options that can be used to customize the behavior of your authentication flows. These options can be set either in the constructor of the [PublicClientApplication](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.publicclientapplication.html) object or as part of the [request APIs](./Request.md). Here we describe the configuration object that can be passed into the [PublicClientApplication](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.publicclientapplication.html) constructor.
+The MSAL library has a set of configuration options that can be used to customize the behavior of your authentication flows. These options can be set either in the constructor of the [PublicClientApplication](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.publicclientapplication.html) object or as part of the [request APIs](../../msal-common/docs/request.md). Here we describe the configuration object that can be passed into the [PublicClientApplication](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.publicclientapplication.html) constructor.
 
 In this document:
 - [Usage](#usage)
@@ -62,7 +62,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 ### Auth Config Options
 | Option | Description | Format | Default Value |
 | ------ | ----------- | ------ | ------------- |
-| `clientId` | App ID of your application. Can be found in your [portal registration](../README#prerequisites). | UUID/GUID | None. This parameter is required in order for MSAL to perform any actions. |
+| `clientId` | App ID of your application. Can be found in your [portal registration](../README.md#prerequisites). | UUID/GUID | None. This parameter is required in order for MSAL to perform any actions. |
 | `authority` | URI of the tenant to authenticate and authorize with. Usually takes the form of `https://{uri}/{tenantid}`. | String in URI format with tenant - `https://{uri}/{tenantid}` | `https://login.microsoftonline.com/common` |
 | `knownAuthorities` | An array of URIs that are known to be valid. Used in B2C scenarios. | Array of strings in URI format | Empty array `[]` |
 | `cloudDiscoveryMetadata` | A string containing the cloud discovery response. Used in AAD scenarios. See performance.md for more info | string | Empty string `""` |
@@ -71,7 +71,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 ### Cache Config Options
 | Option | Description | Format | Default Value |
 | ------ | ----------- | ------ | ------------- |
-| `cachePlugin` | Cache plugin with call backs to reading and writing into the cache file| [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/interfaces/_src_cache_icacheplugin_.icacheplugin.html) | null
+| `cachePlugin` | Cache plugin with call backs to reading and writing into the cache file| [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#icacheplugin) | null
 
 ### System Config Options
 | Option | Description | Format | Default Value |
