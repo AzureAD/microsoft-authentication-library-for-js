@@ -21,7 +21,7 @@ Currently `msal-node` is under development, please track the project progress [h
 
 ## About
 
-MSAL Node enables applications to authenticate users using [Azure AD](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/en-us/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
+MSAL Node enables applications to authenticate users using [Azure AD](https://docs.microsoft.com/azure/active-directory/develop/v2-overview) work and school accounts (AAD), Microsoft personal accounts (MSA) and social identity providers like Facebook, Google, LinkedIn, Microsoft accounts, etc. through [Azure AD B2C](https://docs.microsoft.com/azure/active-directory-b2c/active-directory-b2c-overview#identity-providers) service. It also enables your app to get tokens to access [Microsoft Cloud](https://www.microsoft.com/enterprise) services such as [Microsoft Graph](https://graph.microsoft.io).
 
 
 ### OAuth2.0 grant types supported:
@@ -32,20 +32,20 @@ The current alpha version supports the following ways of acquiring tokens:
 - [Authorization Code Grant](https://oauth.net/2/grant-types/authorization-code/) with [PKCE](https://oauth.net/2/pkce/)
 - [Device Code Grant](https://oauth.net/2/grant-types/device-code/)
 - [Refresh Token Grant](https://oauth.net/2/grant-types/refresh-token/)
-- [Silent Flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-acquire-cache-tokens#acquiring-tokens-silently-from-the-cache)
+- [Silent Flow](https://docs.microsoft.com/azure/active-directory/develop/msal-acquire-cache-tokens#acquiring-tokens-silently-from-the-cache)
 
 #### Confidential Client:
 - [Authorization Code Grant](https://oauth.net/2/grant-types/authorization-code/) with a client credential
 - [Refresh Token Grant](https://oauth.net/2/grant-types/refresh-token/)
-- [Silent Flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-acquire-cache-tokens#acquiring-tokens-silently-from-the-cache)
+- [Silent Flow](https://docs.microsoft.com/azure/active-directory/develop/msal-acquire-cache-tokens#acquiring-tokens-silently-from-the-cache)
 - [Client Credential Grant](https://oauth.net/2/grant-types/client-credentials/)
-- [On-behalf-of flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow)
+- [On-behalf-of flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow)
 
 **[Coming Soon]** In the future we plan to add support for:
-- [Integrated Windows Authentication flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-authentication-flows#integrated-windows-authentication)
-- [Username and Password flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-authentication-flows#usernamepassword)
+- [Integrated Windows Authentication flow](https://docs.microsoft.com/azure/active-directory/develop/msal-authentication-flows#integrated-windows-authentication)
+- [Username and Password flow](https://docs.microsoft.com/azure/active-directory/develop/msal-authentication-flows#usernamepassword)
 
-More details on different grant types supported by Microsoft authentication libraries in general can be found [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-authentication-flows).
+More details on different grant types supported by Microsoft authentication libraries in general can be found [here](https://docs.microsoft.com/azure/active-directory/develop/msal-authentication-flows).
 
 ### Scenarios supported:
 
@@ -55,7 +55,7 @@ The scenarios supported with this library are:
 - Web APIs that call web APIs
 - Daemon apps
 
-More details on scenarios and the authentication flows that map to each of them can be found [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/authentication-flows-app-scenarios).
+More details on scenarios and the authentication flows that map to each of them can be found [here](https://docs.microsoft.com/azure/active-directory/develop/authentication-flows-app-scenarios).
 
 ## FAQ
 
@@ -65,7 +65,7 @@ See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/bl
 
 Before using `@azure/msal-node` you will need to register your app in the azure portal:
 
-- [App registration](https://docs.microsoft.com/en-us/graph/auth-register-app-v2)
+- [App registration](https://docs.microsoft.com/graph/auth-register-app-v2)
 
 ## Installation
 
@@ -76,7 +76,7 @@ npm install @azure/msal-node
 ##  Usage
 
 ### MSAL basics
-- [Understand difference in between Public Client and Confidential Clients](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-client-applications)
+- [Understand difference in between Public Client and Confidential Clients](https://docs.microsoft.com/azure/active-directory/develop/msal-client-applications)
 - [Initialize a Public Client Application](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/initialize-public-client-application.md)
 - [Initialize a Confidential Client Application](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/initialize-confidential-client-application.md)
 - [Configuration](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/configuration.md)
