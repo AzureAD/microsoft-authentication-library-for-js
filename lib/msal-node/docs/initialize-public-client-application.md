@@ -12,12 +12,11 @@ In this document:
 
 ## Initializing the PublicClientApplication object
 
-In order to use MSAL Node, you need to instantiate a [PublicClientApplication](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/classes/_src_client_publicclientapplication_.publicclientapplication.html) object. We support and strongly recommend the use of [PKCE](https://tools.ietf.org/html/rfc7636#section-6.2) (Proof Key for Code Exchange) for any PublicClientApplication. The usage pattern is demonstrated in the [PKCE Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/standalone-samples/auth-code-pkce).
+In order to use MSAL Node, you need to instantiate a [PublicClientApplication](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.publicclientapplication.html) object. We support and strongly recommend the use of [PKCE](https://tools.ietf.org/html/rfc7636#section-6.2) (Proof Key for Code Exchange) for any PublicClientApplication. The usage pattern is demonstrated in the [PKCE Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/standalone-samples/auth-code-pkce).
 
 ```javascript
 import * as msal from "@azure/msal-node";
 
-//
 const clientConfig = {
     auth: {
         clientId: "your_client_id",
@@ -29,7 +28,7 @@ const pca = new msal.PublicClientApplication(clientConfig);
 
 ## Configuration Basics
 
-[Configuration](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/modules/_src_config_configuration_.html#configuration) options for node have `common` parameters and `specific` paremeters per authentication flow.
+[Configuration](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#configuration) options for node have `common` parameters and `specific` paremeters per authentication flow.
 
 - `client_id` is mandatory to initialize a public client application
 - `authority` defaults to `https://login.microsoftonline.com/common/` if the user does not set it during configuration
@@ -69,7 +68,7 @@ const msalConfig = {
 ```
 
 ## Advanced Configuration
-[Configuration](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/modules/_src_config_configuration_.html#configuration) has more options which are documented [here](./configuration.md).
+[Configuration](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#configuration) has more options which are documented [here](./configuration.md).
 
 ## Next Steps
 Proceed to understand the public APIs provided by `msal-node` for acquiring tokens [here](../../msal-common/docs/request.md)
