@@ -75,7 +75,12 @@ Before using `@azure/msal-node` you will need to register your app in the azure 
 npm install @azure/msal-node
 ```
 ## Node Version Support
-MSAL Node will follow the [Long Term Support (LTS) schedule of the Node.js project](https://nodejs.org/en/about/releases/). We may continue to support certain versions of Node.js that are no under Active or LTS support from the main Node project on a version-by-version basis, as defined below.
+MSAL Node will follow the [Long Term Support (LTS) schedule of the Node.js project](https://nodejs.org/en/about/releases/). Our support plan is as follows.
+
+Any major MSAL Node release:
+- Will support active LTS versions
+- Will drop support for any previously supported Node versions that have reached end of life
+- Will not support prerelease/preview/pending versions until they are stable
 
 | MSAL Node version | MSAL support status     | Supported Angular versions |
 |-------------------|-------------------------|----------------------------|
