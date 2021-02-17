@@ -12,12 +12,13 @@ Currently `msal-node` is under development, please track the project progress [h
 3. [Releases](#releases)
 4. [Prerequisites](#prerequisites)
 5. [Installation](#installation)
-6. [Usage](#usage)
-7. [Samples](#samples)
-8. [Build Library](#build-and-test)
-9. [Security Reporting](#security-reporting)
-10. [License](#license)
-11. [Code of Conduct](#we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct)
+6. [Node Version Support](#node-version-support)
+7. [Usage](#usage)
+8. [Samples](#samples)
+9. [Build Library](#build-and-test)
+10. [Security Reporting](#security-reporting)
+11. [License](#license)
+12. [Code of Conduct](#we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct)
 
 ## About
 
@@ -73,6 +74,14 @@ Before using `@azure/msal-node` you will need to register your app in the azure 
 ```javascript
 npm install @azure/msal-node
 ```
+## Node Version Support
+MSAL Node will follow the [Long Term Support (LTS) schedule of the Node.js project](https://nodejs.org/en/about/releases/). We may continue to support certain versions of Node.js that are no under Active or LTS support from the main Node project on a version-by-version basis, as defined below.
+
+| MSAL Node version | MSAL support status     | Supported Angular versions |
+|-------------------|-------------------------|----------------------------|
+| 1.x.x             | Active development      | 10(maintanence), 12, 14    |
+
+
 ##  Usage
 
 ### MSAL basics
