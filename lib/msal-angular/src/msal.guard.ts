@@ -78,11 +78,13 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
 
         this.authService.getLogger().verbose("Guard - logging in by redirect");
         const redirectStartPage = this.getDestinationUrl(url);
-        this.authService.loginRedirect({
+        return this.authService.loginRedirect({
             redirectStartPage,
             ...this.msalGuardConfig.authRequest
-        } as RedirectRequest);
-        return of(false);
+        } as RedirectRequest)
+            .pipe(
+                map(() => false)
+            );
     }
 
     /**
