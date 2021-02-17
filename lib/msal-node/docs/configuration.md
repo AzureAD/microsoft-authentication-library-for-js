@@ -2,7 +2,7 @@
 
 Before you start here, make sure you understand how to [initialize an app object](./Initialize-PublicClientApplication.md).
 
-The MSAL library has a set of configuration options that can be used to customize the behavior of your authentication flows. These options can be set either in the constructor of the `PublicClientApplication` object or as part of the [request APIs](./Request.md). Here we describe the configuration object that can be passed into the `PublicClientApplication` constructor.
+The MSAL library has a set of configuration options that can be used to customize the behavior of your authentication flows. These options can be set either in the constructor of the [PublicClientApplication](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.publicclientapplication.html) object or as part of the [request APIs](./Request.md). Here we describe the configuration object that can be passed into the [PublicClientApplication](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.publicclientapplication.html) constructor.
 
 In this document:
 - [Usage](#usage)
@@ -10,9 +10,9 @@ In this document:
 
 ## Usage
 
-The configuration object can be passed into the `PublicClientApplication` constructor. The only required config parameter is the `client_id` of the application. Everything else is optional, but may be required depending on your authentication flow, tenant and application model.
+The configuration object can be passed into the [PublicClientApplication](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.publicclientapplication.html) constructor. The only required config parameter is the `client_id` of the application. Everything else is optional, but may be required depending on your authentication flow, tenant and application model.
 
-[Configuration](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/modules/_src_config_configuration_.html#configuration) object with all supported parameters is as below:
+[Configuration](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#configuration) object with all supported parameters is as below:
 
 ```javascript
 
