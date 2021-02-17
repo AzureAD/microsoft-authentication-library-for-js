@@ -83,8 +83,8 @@ Any major MSAL Node release:
 - Will not support prerelease/preview/pending versions until they are stable
 
 | MSAL Node version | MSAL support status     | Supported Node versions |
-|-------------------|-------------------------|----------------------------|
-| 1.x.x             | Active development      | 10(maintanence), 12, 14    |
+|-------------------|-------------------------|-------------------------|
+| 1.x.x             | Active development      | 10, 12, 14              |
 
 
 ##  Usage
