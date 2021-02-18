@@ -12,19 +12,15 @@ import { PublicClientApplication } from "@azure/msal-browser";
 import { msalConfig } from "../src/authConfig";
 import { PageLayout } from "../src/ui";
 import Grid from "@material-ui/core/Grid";
+import { CustomNavigationClient } from "../src/NavigationClient";
 
 const msalInstance = new PublicClientApplication(msalConfig);
 
-export default function MyApp(props) {
-  const { Component, pageProps } = props;
+export default function MyApp({ Component, pageProps }) {
+  // The next 3 lines are optional. This is how you configure MSAL to take advantage of the router's navigate functions when msal redirects between pages in your app
   const router = useRouter();
-
-  // This config is optional. Use it if you want to take advantage of the router's client side navigation when msal redirects between pages in your app
-  const config = {
-    clientSideNavigate: async (path, search, hash) => {
-      router.push(path);
-    }
-  }
+  const navigationClient = new CustomNavigationClient(router);
+  msalInstance.setNavigationClient(navigationClient);
 
   useEffect(() => {
     // Remove the server-side injected CSS.
@@ -43,7 +39,7 @@ export default function MyApp(props) {
       <ThemeProvider theme={theme}>
         {/* CssBaseline kickstart an elegant, consistent, and simple baseline to build upon. */}
         <CssBaseline />
-        <MsalProvider instance={msalInstance} config={config}>
+        <MsalProvider instance={msalInstance}>
             <PageLayout>
               <Grid container justify="center">
                 <Component {...pageProps} />

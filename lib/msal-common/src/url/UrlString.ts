@@ -139,8 +139,7 @@ export class UrlString {
             Protocol: match[1],
             HostNameAndPort: match[4],
             AbsolutePath: match[5],
-            QueryString: match[7],
-            Hash: match[9]
+            QueryString: match[7]
         } as IUri;
 
         let pathSegments = urlComponents.AbsolutePath.split("/");

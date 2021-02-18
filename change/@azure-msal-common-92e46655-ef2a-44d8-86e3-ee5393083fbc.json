@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add hash to getUrlComponents result (#2985)",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

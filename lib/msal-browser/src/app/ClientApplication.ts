@@ -666,12 +666,14 @@ export abstract class ClientApplication {
 
                 if (navigate !== false) {
                     this.logger.verbose("Logout onRedirectNavigate did not return false, navigating");
-                    return this.navigationClient.navigateExternal(logoutUri, navigationOptions);
+                    await this.navigationClient.navigateExternal(logoutUri, navigationOptions);
+                    return;
                 } else {
                     this.logger.verbose("Logout onRedirectNavigate returned false, stopping navigation");
                 }
             } else {
-                return this.navigationClient.navigateExternal(logoutUri, navigationOptions);
+                await this.navigationClient.navigateExternal(logoutUri, navigationOptions);
+                return;
             }
         } catch(e) {
             serverTelemetryManager.cacheFailedRequest(e);

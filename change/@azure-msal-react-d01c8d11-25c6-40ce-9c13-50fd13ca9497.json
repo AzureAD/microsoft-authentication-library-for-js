@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Allow developers to provide their own navigate method (#2985)",
-  "packageName": "@azure/msal-react",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -1,11 +1,10 @@
-import { useEffect } from "react";
 import { Switch, Route, useHistory } from "react-router-dom";
 // Material-UI imports
 import Grid from "@material-ui/core/Grid";
 
 // MSAL imports
 import { MsalProvider } from "@azure/msal-react";
-import { CustomNavigationClient } from "./NavigationClient";
+import { CustomNavigationClient } from "./utils/NavigationClient";
 
 // Sample app imports
 import { PageLayout } from "./ui-components/PageLayout";
