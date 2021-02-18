@@ -147,28 +147,20 @@ describe("RedirectHandler.ts Unit Tests", () => {
 
     describe("initiateAuthRequest()", () => {
 
-        it("throws error if requestUrl is empty", () => {
+        it("throws error if requestUrl is empty", (done) => {
             const navigationClient = new NavigationClient();
             const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserCrypto);
-            expect(() => redirectHandler.initiateAuthRequest("", {
-                redirectTimeout: 3000,
-                redirectStartPage: "",
-                navigationClient
-            })).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => redirectHandler.initiateAuthRequest("", {
-                redirectTimeout: 3000,
-                redirectStartPage: "",
-                navigationClient
-            })).to.throw(BrowserAuthError);
 
-            expect(() => redirectHandler.initiateAuthRequest(null, {
+            redirectHandler.initiateAuthRequest("", {
                 redirectTimeout: 3000,
-                redirectStartPage: ""
-            })).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => redirectHandler.initiateAuthRequest(null, {
-                redirectTimeout: 3000,
-                redirectStartPage: ""
-            })).to.throw(BrowserAuthError);
+                redirectStartPage: "",
+                navigationClient
+            }).catch(e => {
+                expect(e).to.be.instanceOf(BrowserAuthError);
+                expect(e.errorCode).to.eq(BrowserAuthErrorMessage.emptyNavigateUriError.code);
+                expect(e.errorMessage).to.eq(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+                done();
+            });
         });
 
         it("navigates browser window to given window location", (done) => {

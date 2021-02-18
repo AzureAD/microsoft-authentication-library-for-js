@@ -31,7 +31,7 @@ export class RedirectHandler extends InteractionHandler {
      * Redirects window to given URL.
      * @param urlNavigate
      */
-    initiateAuthRequest(requestUrl: string, params: RedirectParams): Promise<void> {
+    async initiateAuthRequest(requestUrl: string, params: RedirectParams): Promise<void> {
         // Navigate if valid URL
         if (!StringUtils.isEmpty(requestUrl)) {
             // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true
@@ -57,15 +57,17 @@ export class RedirectHandler extends InteractionHandler {
                 // Returning false from onRedirectNavigate will stop navigation
                 if (navigate !== false) {
                     this.authModule.logger.verbose("onRedirectNavigate did not return false, navigating");
-                    return params.navigationClient.navigateExternal(requestUrl, navigationOptions);
+                    await params.navigationClient.navigateExternal(requestUrl, navigationOptions);
+                    return;
                 } else {
                     this.authModule.logger.verbose("onRedirectNavigate returned false, stopping navigation");
-                    return Promise.resolve();
+                    return;
                 }
             } else {
                 // Navigate window to request URL
                 this.authModule.logger.verbose("Navigating window to navigate url");
-                return params.navigationClient.navigateExternal(requestUrl, navigationOptions);
+                await params.navigationClient.navigateExternal(requestUrl, navigationOptions);
+                return;
             }
         } else {
             // Throw error if request URL is empty.
