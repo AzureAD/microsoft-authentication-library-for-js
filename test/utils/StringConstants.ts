@@ -92,7 +92,7 @@ export const TEST_URIS = {
     TEST_AUTH_ENDPT_ORGS: "https://login.microsoftonline.com/organizations/oauth2/v2.0/authorize",
     TEST_AUTH_ENDPT_TENANT_ID: "https://login.microsoftonline.com/sample-tenantID/oauth2/v2.0/authorize",
     TEST_AUTH_ENDPT_WITH_PARAMS1: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?param1=value1",
-    TEST_AUTH_ENDPT_WITH_PARAMS2: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?param1=value1&param2=value2#testHash",
+    TEST_AUTH_ENDPT_WITH_PARAMS2: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?param1=value1&param2=value2",
     TEST_RESOURCE_ENDPT_WITH_PARAMS: "https://localhost:8081/endpoint?param1=value1&param2=value2",
     TEST_REDIRECT_URI_LOCALHOST: "https://localhost:3000"
 };
