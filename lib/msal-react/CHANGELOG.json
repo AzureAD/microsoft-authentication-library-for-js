@@ -2,6 +2,21 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Thu, 18 Feb 2021 00:34:32 GMT",
+      "tag": "@azure/msal-react_v1.0.0-alpha.6",
+      "version": "1.0.0-alpha.6",
+      "comments": {
+        "none": [
+          {
+            "comment": "review changes, add reference to class-components doc",
+            "author": "dogan.erisen@gmail.com",
+            "commit": "92cbfdbc4680084a9ca45684cf0732f3fc305f1e",
+            "package": "@azure/msal-react"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 09 Feb 2021 01:48:22 GMT",
       "tag": "@azure/msal-react_v1.0.0-alpha.5",
       "version": "1.0.0-alpha.5",
