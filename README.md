@@ -8,11 +8,11 @@ The Microsoft Authentication Library for JavaScript enables client-side JavaScri
 
 The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib) folder contains the source code for all of our libraries. You will also find all the details about **installing the libraries** in their respective README.md.
 
-- [Microsoft Authentication Library for Node.js v1.x (Beta)](lib/msal-node/): A [Node.js](https://nodejs.org/en/) library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the following OAuth 2.0 protocols and is [OpenID-compliant](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc):
+- [Microsoft Authentication Library for Node.js v1.x](lib/msal-node/): A [Node.js](https://nodejs.org/en/) library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the following OAuth 2.0 protocols and is [OpenID-compliant](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc):
   - [Authorization Code Grant](https://oauth.net/2/grant-types/authorization-code/) with [PKCE](https://oauth.net/2/pkce/)
   - [Device Code Grant](https://oauth.net/2/grant-types/device-code/)
   - [Refresh Token Grant](https://oauth.net/2/grant-types/refresh-token/)
-  - [Client Credential Grant](https://oauth.net/2/grant-types/client-credentials/) (Coming soon)
+  - [Client Credential Grant](https://oauth.net/2/grant-types/client-credentials/)
 
 - [Microsoft Authentication Library for JavaScript v2.x](lib/msal-browser/): A browser-based, framework-agnostic browser library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the OAuth 2.0 [Authorization Code Flow with PKCE](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow), and is [OpenID-compliant](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc).
 
