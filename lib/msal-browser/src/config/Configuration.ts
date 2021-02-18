@@ -42,11 +42,13 @@ export type BrowserAuthOptions = {
  * Use this to configure the below cache configuration options:
  *
  * - cacheLocation            - Used to specify the cacheLocation user wants to set. Valid values are "localStorage" and "sessionStorage"
- * - storeAuthStateInCookie   - If set, MSAL store's the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
+ * - storeAuthStateInCookie   - If set, MSAL stores the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
+ * - secureCookies            - If set, MSAL sets the "Secure" flag on cookies so they can only be sent over HTTPS. By default this flag is set to false.
  */
 export type CacheOptions = {
     cacheLocation?: BrowserCacheLocation | string;
     storeAuthStateInCookie?: boolean;
+    secureCookies?: boolean;
 };
 
 /**
@@ -123,7 +125,8 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     // Default cache options for browser
     const DEFAULT_CACHE_OPTIONS: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.SessionStorage,
-        storeAuthStateInCookie: false
+        storeAuthStateInCookie: false,
+        secureCookies: false
     };
 
     // Default logger options for browser
