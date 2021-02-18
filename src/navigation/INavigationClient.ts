@@ -19,5 +19,5 @@ export interface INavigationClient {
      * @param url 
      * @param options 
      */
-    navigateExternal(url: string, options: NavigationOptions): Promise<void>;
+    navigateExternal(url: string, options: NavigationOptions): Promise<boolean>;
 }

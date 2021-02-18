@@ -31,7 +31,7 @@ export class NavigationClient implements INavigationClient {
      * @param url 
      * @param options 
      */
-    navigateExternal(url: string, options: NavigationOptions): Promise<void> {
+    navigateExternal(url: string, options: NavigationOptions): Promise<boolean> {
         if (options.noHistory) {
             window.location.replace(url);
         } else {
@@ -40,7 +40,7 @@ export class NavigationClient implements INavigationClient {
 
         return new Promise((resolve) => {
             setTimeout(() => {
-                resolve();
+                resolve(true);
             }, options.timeout);
         });
     }

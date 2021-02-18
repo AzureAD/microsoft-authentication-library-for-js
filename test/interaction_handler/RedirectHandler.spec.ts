@@ -17,6 +17,8 @@ import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserCon
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
+import { NavigationClient } from "../../src/navigation/NavigationClient";
+import { NavigationOptions } from "../../src/navigation/NavigationOptions";
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
@@ -146,14 +148,17 @@ describe("RedirectHandler.ts Unit Tests", () => {
     describe("initiateAuthRequest()", () => {
 
         it("throws error if requestUrl is empty", () => {
+            const navigationClient = new NavigationClient();
             const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserCrypto);
             expect(() => redirectHandler.initiateAuthRequest("", {
                 redirectTimeout: 3000,
-                redirectStartPage: ""
+                redirectStartPage: "",
+                navigationClient
             })).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
             expect(() => redirectHandler.initiateAuthRequest("", {
                 redirectTimeout: 3000,
-                redirectStartPage: ""
+                redirectStartPage: "",
+                navigationClient
             })).to.throw(BrowserAuthError);
 
             expect(() => redirectHandler.initiateAuthRequest(null, {
@@ -171,17 +176,19 @@ describe("RedirectHandler.ts Unit Tests", () => {
             sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
                 dbStorage = {};
             });
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((requestUrl, timeout, logger) => {
+            const navigationClient = new NavigationClient();
+            navigationClient.navigateExternal = (requestUrl: string, options: NavigationOptions): Promise<boolean> => {
                 expect(requestUrl).to.be.eq(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
-                expect(timeout).to.be.eq(3000);
-                expect(logger).to.be.instanceOf(Logger);
+                expect(options.timeout).to.be.eq(3000);
                 expect(browserStorage.getTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, true)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
-                return Promise.resolve(done());
-            });
+                done();
+                return Promise.resolve(true);
+            };
             const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserCrypto);
             redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, {
                 redirectStartPage: "",
-                redirectTimeout: 3000
+                redirectTimeout: 3000,
+                navigationClient
             });
         });
 
@@ -190,10 +197,11 @@ describe("RedirectHandler.ts Unit Tests", () => {
             sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
                 dbStorage = {};
             });
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((requestUrl, timeout, logger) => {
+            const navigationClient = new NavigationClient();
+            navigationClient.navigateExternal = (urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 done("Navigatation should not happen if onRedirectNavigate returns false");
                 return Promise.reject();
-            });
+            };
 
             const onRedirectNavigate = url => {
                 expect(url).to.equal(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
@@ -205,6 +213,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 redirectTimeout: 300,
                 redirectStartPage: "",
                 onRedirectNavigate,
+                navigationClient
             });
         });
 
@@ -213,11 +222,13 @@ describe("RedirectHandler.ts Unit Tests", () => {
             sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
                 dbStorage = {};
             });
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((requestUrl, timeout, logger) => {
+            
+            const navigationClient = new NavigationClient();
+            navigationClient.navigateExternal = (requestUrl, options): Promise<boolean> => {
                 expect(requestUrl).to.equal(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
                 done();
-                return Promise.resolve();
-            });
+                return Promise.resolve(true);
+            };
 
             const onRedirectNavigate = url => {
                 expect(url).to.equal(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
@@ -226,7 +237,8 @@ describe("RedirectHandler.ts Unit Tests", () => {
             redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, {
                 redirectTimeout: 3000,
                 redirectStartPage: "",
-                onRedirectNavigate
+                onRedirectNavigate,
+                navigationClient
             });
         });
     });
