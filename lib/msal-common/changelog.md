@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Tue, 09 Feb 2021 01:48:22 GMT and should not be manually modified.
+This log was last generated on Thu, 18 Feb 2021 00:34:32 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 4.0.1
+
+Thu, 18 Feb 2021 00:34:32 GMT
+
+### Patches
+
+- Clarify Device Code Timeout units (#3031) (hemoral@microsoft.com)
 
 ## 4.0.0
 

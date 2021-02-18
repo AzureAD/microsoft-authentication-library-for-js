@@ -12,7 +12,7 @@ In this document:
 
 ## Initializing the ConfidentialClientApplication object
 
-In order to use MSAL Node, you need to instantiate a [ConfidentialClient](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/modules/_src_client_confidentialclientapplication_.html) object. 
+In order to use MSAL Node, you need to instantiate a [ConfidentialClient](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_node.confidentialclientapplication.html) object.
 
 ```javascript
 import * as msal from "@azure/msal-node";
@@ -34,14 +34,14 @@ const pca = new msal.ConfidentialClient(clientConfig);
 
 ## Configuration Basics
 
-[Configuration](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/modules/_src_config_configuration_.html#configuration) options for node have `common` parameters and `specific` paremeters per authentication flow.
+[Configuration](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#configuration) options for node have `common` parameters and `specific` paremeters per authentication flow.
 
 - `clientId` is mandatory to initializae a public client application
 - `authority` defaults to `https://login.microsoftonline.com/common/` if the user does not set it during configuration
 - A Client credential is mandatory for confidential clients. Client credential can be a:
-    - `clientSecret` is secret string generated set on the app registration. 
+    - `clientSecret` is secret string generated set on the app registration.
     - `clientCertificate` is a certificate set on the app registration. The `thumbprint` is a X.509 SHA-1 thumbprint of the certificate, and the `privateKey` is the PEM encoded private key. `x5c` is the optional X.509 certificate chain used in [subject name/issuer auth scenarios](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/sni.md).
-    - `clientAssertion` is string that the application uses when requesting a token. The certificate used to sign the assertion should be set on the app registration. Assertion should be of type urn:ietf:params:oauth:client-assertion-type:jwt-bearer. 
+    - `clientAssertion` is string that the application uses when requesting a token. The certificate used to sign the assertion should be set on the app registration. Assertion should be of type urn:ietf:params:oauth:client-assertion-type:jwt-bearer.
 
 
 ## Configure Authority
@@ -57,7 +57,7 @@ If your application audience is a single tenant, you must provide an authority w
 ```
 
 ## Advanced Configuration
-[Configuration](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-node/modules/_src_config_configuration_.html#configuration) has more options which are documented [here](./configuration.md).
+[Configuration](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_node.html#configuration) has more options which are documented [here](./configuration.md).
 
 ## Next Steps
 Proceed to understand the public APIs provided by `msal-node` for acquiring tokens [here](../../msal-common/docs/request.md)

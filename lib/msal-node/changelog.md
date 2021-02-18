@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Tue, 09 Feb 2021 01:48:22 GMT and should not be manually modified.
+This log was last generated on Thu, 18 Feb 2021 00:34:32 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0
+
+Thu, 18 Feb 2021 00:34:32 GMT
+
+### Patches
+
+- update msal-node landing page & samples page (dogan.erisen@gmail.com)
+
+### Changes
+
+- ADD FAQs (#3038) (sameera.gajjarapu@microsoft.com)
+- Update node version support in package.json(#2998) (sameera.gajjarapu@microsoft.com)
 
 ## 1.0.0-beta.6
 
