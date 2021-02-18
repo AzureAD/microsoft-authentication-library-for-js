@@ -525,6 +525,10 @@ export class BrowserCacheManager extends CacheManager {
             cookieStr += `expires=${expireTime};`;
         }
 
+        if (this.cacheConfig.secureCookies) {
+            cookieStr += "Secure;";
+        }
+        
         document.cookie = cookieStr;
     }
 
@@ -778,7 +782,8 @@ export class BrowserCacheManager extends CacheManager {
 export const DEFAULT_BROWSER_CACHE_MANAGER = (clientId: string, logger: Logger) => {
     const cacheOptions = {
         cacheLocation: BrowserCacheLocation.MemoryStorage,
-        storeAuthStateInCookie: false
+        storeAuthStateInCookie: false,
+        secureCookies: false
     };
     return new BrowserCacheManager(clientId, cacheOptions, DEFAULT_CRYPTO_IMPLEMENTATION, logger);
 };

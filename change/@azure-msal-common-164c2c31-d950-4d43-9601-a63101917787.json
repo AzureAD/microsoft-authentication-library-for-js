@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Clarify Device Code Timeout units (#3031)",
-  "packageName": "@azure/msal-common",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
