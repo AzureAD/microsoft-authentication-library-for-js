@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 09 Feb 2021 01:48:22 GMT and should not be manually modified.
+This log was last generated on Thu, 18 Feb 2021 00:34:32 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.11.2
+
+Thu, 18 Feb 2021 00:34:32 GMT
+
+### Patches
+
+- Ensure scrollbars are enabled for popups in browser (janutter@microsoft.com)
 
 ## 2.11.1
 

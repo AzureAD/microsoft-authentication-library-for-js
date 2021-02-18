@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Await loginRedirect in MSAL Guard to prevent race conditions",
-  "packageName": "@azure/msal-angular",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "patch"
-}
