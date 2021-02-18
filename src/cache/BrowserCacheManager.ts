@@ -188,6 +188,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param value
      */
     setAccount(account: AccountEntity): void {
+        this.logger.verbose("BrowserCacheManager.setAccount called");
         const key = account.generateAccountKey();
         this.setItem(key, JSON.stringify(account));
     }
@@ -453,7 +454,6 @@ export class BrowserCacheManager extends CacheManager {
      * @param value
      */
     setTemporaryCache(cacheKey: string, value: string, generateKey?: boolean): void {
-        this.logger.verbose("BrowserCacheManager.setTemporaryCache called");
         const key = generateKey ? this.generateCacheKey(cacheKey) : cacheKey;
 
         this.temporaryCacheStorage.setItem(key, value);
@@ -469,7 +469,6 @@ export class BrowserCacheManager extends CacheManager {
      * @param key
      */
     removeItem(key: string): boolean {
-        this.logger.verbose("BrowserCacheManager.removeItem called");
         this.browserStorage.removeItem(key);
         this.temporaryCacheStorage.removeItem(key);
         if (this.cacheConfig.storeAuthStateInCookie) {
@@ -586,7 +585,6 @@ export class BrowserCacheManager extends CacheManager {
      * @param addInstanceId
      */
     generateCacheKey(key: string): string {
-        this.logger.verbose("BrowserCacheManager.generateCacheKey called");
         const generatedKey = this.validateAndParseJson(key);
         if (!generatedKey) {
             if (StringUtils.startsWith(key, Constants.CACHE_PREFIX) || StringUtils.startsWith(key, PersistentCacheKeys.ADAL_ID_TOKEN)) {
@@ -603,7 +601,6 @@ export class BrowserCacheManager extends CacheManager {
      * @param state
      */
     generateAuthorityKey(stateString: string): string {
-        this.logger.verbose("BrowserCacheManager.generateAuthorityKey called");
         const {
             libraryState: {
                 id: stateId
@@ -618,7 +615,6 @@ export class BrowserCacheManager extends CacheManager {
      * @param state
      */
     generateNonceKey(stateString: string): string {
-        this.logger.verbose("BrowserCacheManager.generateNonceKey called");
         const {
             libraryState: {
                 id: stateId
@@ -633,7 +629,6 @@ export class BrowserCacheManager extends CacheManager {
      * @param stateString State string for the request
      */
     generateStateKey(stateString: string): string {
-        this.logger.verbose("BrowserCacheManager.generateStateKey called");
         // Use the library state id to key temp storage for uniqueness for multiple concurrent requests
         const {
             libraryState: {
@@ -743,6 +738,8 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     cacheCodeRequest(authCodeRequest: CommonAuthorizationCodeRequest, browserCrypto: ICrypto): void {
+        this.logger.verbose("BrowserCacheManager.cacheCodeRequest called");
+
         const encodedValue = browserCrypto.base64Encode(JSON.stringify(authCodeRequest));
         this.setTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, encodedValue, true);
     }
