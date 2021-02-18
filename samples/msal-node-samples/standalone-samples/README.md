@@ -27,7 +27,7 @@ $ git clone https://github.com/AzureAD/microsoft-authentication-library-for-js.g
 You can also download the repository as a zip file by selecting "Download ZIP" from the root repository's dropdown "Code" menu. Once you've downloaded the ZIP file, you can decompress it locally and explore the code.
 
 ### Pre-requisites
-- By using MSAL Node, you are working with the Microsoft Identity ecosystem.  Read about [App Registration](https://docs.microsoft.com/en-us/graph/auth-register-app-v2) and register one for use with this code.
+- By using MSAL Node, you are working with the Microsoft identity platform.  Read about [App Registration](https://docs.microsoft.com/graph/auth-register-app-v2) and register one for use with this code.
 - Install [Node.js](https://nodejs.org/en/) if needed
 - Install the MSAL Node package:  
 ```bash
@@ -38,7 +38,7 @@ npm install @azure/msal-node
 npm run build:package
 ```
 
-The next step is to navigate to the sample application directories under `standalone-samples` and either execute each sample as-is, or customize it to use your own [App Registration](https://docs.microsoft.com/en-us/graph/auth-register-app-v2).
+The next step is to navigate to the sample application directories under `standalone-samples` and either execute each sample as-is, or customize it to use your own [App Registration](https://docs.microsoft.com/graph/auth-register-app-v2).
 
 From the repository's root directory, navigate to a sample application:
 
@@ -48,15 +48,23 @@ $ cd samples/msal-node-samples/standalone-samples/auth-code
 
 ### Which sample should I review?
 
-Review our [scenario docs](https://docs.microsoft.com/en-us/azure/active-directory/develop/authentication-flows-app-scenarios) to pick a sample. 
+Review our [scenario docs](https://docs.microsoft.com/azure/active-directory/develop/authentication-flows-app-scenarios) to pick a sample.
 
 Continue to the appropriate sample to learn how it works, or to build it in to your existing app.
 
-- [Auth Code](auth-code/readme.md)  [web app]
+- [Auth Code](auth-code/readme.md) [web app]
 - [Client Credentials](client-credentials/readme.md) [console app]
-- [Device Code](device-code/readme.md)
+- [Device Code](device-code/readme.md) [headless app]
 - [On Behalf Of](on-behalf-of/web-app/readme.md) [calling MS Graph]
-- [Silent Flow](silent-flow/readme.md)
+- [Silent Flow](silent-flow/readme.md) [web app showing cache usage]
+- [B2C Auth Code](b2c-auth-code/readme.md) [web app on Azure AD B2C]
+- [Auth Code w/ PKCE](ElectronTestApp/readme.md) [desktop app]
+
+For in-depth tutorials, see:
+
+- [Securing a web app](https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-nodejs-webapp-msal)
+- [Securing a console app](https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-nodejs-console)
+- [Securing a desktop app](https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-nodejs-desktop)
 
 ### Configure the application
 
@@ -69,7 +77,7 @@ const config = {
     auth: {
         clientId: "YOUR_CLIENT_ID",
         authority: "YOUR_AUTHORITY_URL",
-        knownAuthorities: ["YOUR_KNOWN_AUTHORITY"],
+        knownAuthorities: ["YOUR_KNOWN_AUTHORITY"], // typically applies to apps on Azure AD B2C
         clientSecret: "YOUR_CLIENT_SECRET" // only applies to Confidential Client applications, such as desktop and backend web applications
     },
     system: {
@@ -84,7 +92,6 @@ const config = {
     }
 };
 ```
-
 
 ### Executing the application
 
@@ -102,6 +109,6 @@ Each sample also includes a `package.json` file that defines a `start` script, m
 $ npm start
 ```
 
-2. If you're executing a web application scenario, navigate to http://localhost:3000.
+2. If you're executing a web application scenario, navigate to `http://localhost:3000`.
 
 3. For command line apps, follow the displayed instructions to use the sample application.
