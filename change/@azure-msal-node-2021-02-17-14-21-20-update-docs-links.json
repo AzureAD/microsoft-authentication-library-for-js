@@ -1,8 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "ADD FAQs (#3038)",
-  "packageName": "@azure/msal-node",
-  "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "patch",
-  "date": "2021-02-17T22:21:20.795Z"
-}
