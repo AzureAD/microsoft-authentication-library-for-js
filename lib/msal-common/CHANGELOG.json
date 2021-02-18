@@ -2,6 +2,21 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Thu, 18 Feb 2021 00:34:32 GMT",
+      "tag": "@azure/msal-common_v4.0.1",
+      "version": "4.0.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Clarify Device Code Timeout units (#3031)",
+            "author": "hemoral@microsoft.com",
+            "commit": "af97180664ec257f2fdb6f04ab0921affeb9a8f3",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 09 Feb 2021 01:48:22 GMT",
       "tag": "@azure/msal-common_v4.0.0",
       "version": "4.0.0",

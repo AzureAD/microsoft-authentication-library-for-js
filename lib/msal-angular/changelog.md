@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Tue, 09 Feb 2021 01:48:22 GMT and should not be manually modified.
+This log was last generated on Thu, 18 Feb 2021 00:34:32 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.0.0-alpha.6
+
+Thu, 18 Feb 2021 00:34:32 GMT
+
+### Changes
+
+- Await loginRedirect in MSAL Guard to prevent race conditions (janutter@microsoft.com)
 
 ## 2.0.0-alpha.5
 
