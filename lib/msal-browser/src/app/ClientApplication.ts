@@ -23,6 +23,7 @@ import { EventError, EventMessage, EventPayload, EventCallbackFunction } from ".
 import { EventType } from "../event/EventType";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
+import { PopupUtils } from "../utils/PopupUtils";
 
 export abstract class ClientApplication {
 
@@ -384,7 +385,7 @@ export abstract class ClientApplication {
             return Promise.reject(e);
         }
 
-        const popupName = PopupHandler.generatePopupName(this.config.auth.clientId, validRequest);
+        const popupName = PopupUtils.generatePopupName(this.config.auth.clientId, validRequest);
 
         // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
         if (this.config.system.asyncPopups) {
@@ -393,7 +394,7 @@ export abstract class ClientApplication {
         } else {
             // asyncPopups flag is set to false. Opens popup before acquiring token.
             this.logger.verbose("asyncPopup set to false, opening popup before acquiring token");
-            const popup = PopupHandler.openSizedPopup("about:blank", popupName);
+            const popup = PopupUtils.openSizedPopup("about:blank", popupName);
             return this.acquireTokenPopupAsync(validRequest, popupName, popup);
         }
     }
@@ -607,13 +608,23 @@ export abstract class ClientApplication {
     // #region Logout
 
     /**
+     * Deprecated logout function. Use logoutRedirect or logoutPopup instead
+     * @param logoutRequest 
+     * @deprecated
+     */
+    async logout(logoutRequest?: EndSessionRequest): Promise<void> {
+        this.logger.warning("logout API is deprecated and will be removed in msal-browser v3.0.0. Use logoutRedirect instead.");
+        return this.logoutRedirect(logoutRequest);
+    }
+
+    /**
      * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
      * Default behaviour is to redirect the user to `window.location.href`.
      * @param logoutRequest
      */
-    async logout(logoutRequest?: EndSessionRequest): Promise<void> {
+    async logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
-        this.logger.verbose("logout called");
+        this.logger.verbose("logoutRedirect called");
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.logout, validLogoutRequest.correlationId);
 
@@ -625,7 +636,7 @@ export abstract class ClientApplication {
             this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
 
             if (!validLogoutRequest.account || AccountEntity.accountInfoIsEqual(validLogoutRequest.account, this.getActiveAccount())) {
-                this.logger.verbose("Account not valid on validLogoutRequest, setting active account to null");
+                this.logger.verbose("Setting active account to null");
                 this.setActiveAccount(null);
             }
 
@@ -645,6 +656,81 @@ export abstract class ClientApplication {
         } catch(e) {
             serverTelemetryManager.cacheFailedRequest(e);
             this.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Redirect, null, e);
+            throw e;
+        }
+    }
+
+    /**
+     * Clears local cache for the current user then opens a popup window prompting the user to sign-out of the server
+     * @param logoutRequest 
+     */
+    async logoutPopup(logoutRequest: EndSessionRequest): Promise<void> {
+        let validLogoutRequest: CommonEndSessionRequest;
+        try {
+            this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
+            this.logger.verbose("logoutPopup called");
+            validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
+        } catch (e) {
+            // Since this function is syncronous we need to reject
+            return Promise.reject(e);
+        }
+
+        const popupName = PopupUtils.generateLogoutPopupName(this.config.auth.clientId, validLogoutRequest);
+
+        // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
+        if (this.config.system.asyncPopups) {
+            this.logger.verbose("asyncPopups set to true");
+            return this.logoutPopupAsync(validLogoutRequest, popupName, logoutRequest.authority);
+        } else {
+            // asyncPopups flag is set to false. Opens popup before logging out.
+            this.logger.verbose("asyncPopup set to false, opening popup");
+            const popup = PopupUtils.openSizedPopup("about:blank", popupName);
+            return this.logoutPopupAsync(validLogoutRequest, popupName, logoutRequest.authority, popup);
+        }
+    }
+
+    /**
+     * 
+     * @param request 
+     * @param popupName 
+     * @param requestAuthority
+     * @param popup 
+     */
+    private async logoutPopupAsync(validRequest: CommonEndSessionRequest, popupName: string, requestAuthority?: string, popup?: Window|null): Promise<void> {
+        this.logger.verbose("logoutPopupAsync called");
+        this.emitEvent(EventType.LOGOUT_START, InteractionType.Popup, validRequest);
+
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.logoutPopup, validRequest.correlationId);
+
+        try {
+            // Initialize the client
+            const authClient = await this.createAuthCodeClient(serverTelemetryManager, requestAuthority);
+
+            // create logout string and navigate user window to logout. Auth module will clear cache.
+            const logoutUri: string = authClient.getLogoutUri(validRequest);
+            if (!validRequest.account || AccountEntity.accountInfoIsEqual(validRequest.account, this.getActiveAccount())) {
+                this.logger.verbose("Setting active account to null");
+                this.setActiveAccount(null);
+            }
+
+            const popupUtils = new PopupUtils(this.browserStorage, this.logger);
+            // Set interaction status in the library.
+            this.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
+            this.logger.infoPii("Navigate to:" + logoutUri);
+            // Open the popup window to requestUrl.
+            const popupWindow = popupUtils.openPopup(logoutUri, popupName, popup);
+
+            try {
+                // Don't care if this throws an error (User Cancelled)
+                await popupUtils.monitorPopupForSameOrigin(popupWindow);
+            } catch {}
+
+            popupUtils.cleanPopup(popupWindow);
+            this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Popup, validRequest);
+        } catch (e) {
+            this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY));
+            this.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Popup, null, e);
+            serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }
     }
