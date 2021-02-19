@@ -52,7 +52,7 @@ Return `true` if:
 Return `false` if:
 
 - The function will not cause the page to redirect or reload, for example when extracting the url and navigating to it in a different window
-- The function will invoke client-side navigation to rerender a part of the page that does not reinialize `PublicClientApplication` or call `handleRedirectPromise` again
+- The function will invoke client-side navigation to re-render a part of the page that does not reinitialize `PublicClientApplication` or call `handleRedirectPromise` again
 
 ## Providing your custom implementation to `PublicClientApplication`
 
