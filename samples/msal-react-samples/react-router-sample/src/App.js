@@ -16,7 +16,7 @@ import { ProfileWithMsal } from "./pages/ProfileWithMsal";
 import { ProfileRawContext } from "./pages/ProfileRawContext";
 
 function App({ pca }) {
-  // The next 3 lines are optional. This is how you configure MSAL to take advantage of the router's navigate functions when msal redirects between pages in your app
+  // The next 3 lines are optional. This is how you configure MSAL to take advantage of the router's navigate functions when MSAL redirects between pages in your app
   const history = useHistory();
   const navigationClient = new CustomNavigationClient(history);
   pca.setNavigationClient(navigationClient);
