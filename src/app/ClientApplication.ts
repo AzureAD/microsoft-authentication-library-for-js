@@ -699,10 +699,11 @@ export abstract class ClientApplication {
     private async logoutPopupAsync(validRequest: CommonEndSessionRequest, popupName: string, requestAuthority?: string, popup?: Window|null): Promise<void> {
         this.logger.verbose("logoutPopupAsync called");
         this.emitEvent(EventType.LOGOUT_START, InteractionType.Popup, validRequest);
-
+        
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.logoutPopup, validRequest.correlationId);
-
+        
         try {
+            this.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
             // Initialize the client
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, requestAuthority);
 
@@ -715,7 +716,6 @@ export abstract class ClientApplication {
 
             const popupUtils = new PopupUtils(this.browserStorage, this.logger);
             // Set interaction status in the library.
-            this.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
             this.logger.infoPii("Navigate to:" + logoutUri);
             // Open the popup window to requestUrl.
             const popupWindow = popupUtils.openPopup(logoutUri, popupName, popup);
