@@ -4,7 +4,7 @@
 
 By default, when msal.js needs to navigate from one page in your application to another it will reassign `window.location`, causing a full frame redirect to the other page and causing your application to re-render. If you're using a router this may be undesireable since many routers provide a method you can use to do "client-side" navigation and re-render only the parts of the page that need to be re-rendered.
 
-Currently there is one scenario where msal.js will navigate from one page in your application to another. If your application is **not** doing one or more of the following things you do not need to continue reading:
+Currently there is one scenario where msal.js will navigate from one page in your application to another. If your application is doing **all** of the following things, continue reading:
 
 - Your application is using the redirect flow, instead of the popup flow, to login
 - `PublicClientApplication` is configured with `auth.navigateToLoginRequestUrl: true` (default)
