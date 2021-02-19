@@ -111,6 +111,7 @@ export class ResponseHandler {
         reqTimestamp: number,
         resourceRequestMethod?: string,
         resourceRequestUri?: string,
+        clientClaims?: string,
         authCodePayload?: AuthorizationCodePayload,
         requestScopes?: string[],
         oboAssertion?: string,
@@ -138,7 +139,7 @@ export class ResponseHandler {
             requestStateObj = ProtocolUtils.parseRequestState(this.cryptoObj, authCodePayload.state);
         }
 
-        const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, reqTimestamp, idTokenObj, requestScopes, oboAssertion, authCodePayload);
+        const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, reqTimestamp, idTokenObj, requestScopes, oboAssertion, clientClaims, authCodePayload);
         let cacheContext;
         try {
             if (this.persistencePlugin && this.serializableCache) {
@@ -156,7 +157,7 @@ export class ResponseHandler {
                 const account = this.cacheStorage.getAccount(key);
                 if (!account) {
                     this.logger.warning("Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache");
-                    return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, idTokenObj, requestStateObj, resourceRequestMethod, resourceRequestUri);
+                    return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, idTokenObj, requestStateObj, resourceRequestMethod, resourceRequestUri, clientClaims);
                 }
             }
             this.cacheStorage.saveCacheRecord(cacheRecord);
@@ -166,7 +167,7 @@ export class ResponseHandler {
                 await this.persistencePlugin.afterCacheAccess(cacheContext);
             }
         }
-        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, idTokenObj, requestStateObj, resourceRequestMethod, resourceRequestUri);
+        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, idTokenObj, requestStateObj, resourceRequestMethod, resourceRequestUri, clientClaims);
     }
 
     /**
@@ -175,7 +176,7 @@ export class ResponseHandler {
      * @param idTokenObj
      * @param authority
      */
-    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, idTokenObj?: AuthToken, requestScopes?: string[], oboAssertion?: string, authCodePayload?: AuthorizationCodePayload): CacheRecord {
+    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, idTokenObj?: AuthToken, requestScopes?: string[], oboAssertion?: string, clientClaims?: string, authCodePayload?: AuthorizationCodePayload): CacheRecord {
         const env = authority.getPreferredCache();
         if (StringUtils.isEmpty(env)) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
@@ -296,7 +297,8 @@ export class ResponseHandler {
         idTokenObj?: AuthToken,
         requestState?: RequestStateObject,
         resourceRequestMethod?: string, 
-        resourceRequestUri?: string): Promise<AuthenticationResult> {
+        resourceRequestUri?: string,
+        clientClaims?: string): Promise<AuthenticationResult> {
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
         let expiresOn: Date | null = null;
@@ -309,7 +311,7 @@ export class ResponseHandler {
                 if (!resourceRequestMethod || !resourceRequestUri) {
                     throw ClientConfigurationError.createResourceRequestParametersRequiredError();
                 }
-                accessToken = await popTokenGenerator.signPopToken(cacheRecord.accessToken.secret, resourceRequestMethod, resourceRequestUri);
+                accessToken = await popTokenGenerator.signPopToken(cacheRecord.accessToken.secret, resourceRequestMethod, resourceRequestUri, clientClaims);
             } else {
                 accessToken = cacheRecord.accessToken.secret;
             }
