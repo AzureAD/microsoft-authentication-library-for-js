@@ -54,7 +54,7 @@ export class PopupHandler extends InteractionHandler {
      * @param popupWindow - window that is being monitored
      * @param timeout - milliseconds until timeout
      */
-    async monitorPopupForHash(popupWindow: Window, timeout: number): Promise<string> {
+    monitorPopupForHash(popupWindow: Window, timeout: number): Promise<string> {
         return new Promise((resolve, reject) => {
             if (timeout < DEFAULT_POPUP_TIMEOUT_MS) {
                 this.authModule.logger.warning(`system.loadFrameTimeout or system.windowHashTimeout set to lower (${timeout}ms) than the default (${DEFAULT_POPUP_TIMEOUT_MS}ms). This may result in timeouts.`);
