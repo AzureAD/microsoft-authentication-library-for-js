@@ -12,11 +12,18 @@ import { LabApiQueryParams } from "../../../../e2eTestUtils/LabApiQueryParams";
 import { AppTypes, AzureEnvironments } from "../../../../e2eTestUtils/Constants";
 import { 
     enterCredentials, 
+    enterCredentialsWithConsent, 
     SCREENSHOT_BASE_FOLDER_NAME,
-    enterCredentialsWithConsent,
-} from "../../testUtils";
+ } from "../../testUtils";
+import { PublicClientApplication } from "../../../../../lib/msal-node/";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
+
+const getTokenAuthCode = require("../index");
+
+const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
+
+const config = require("../config/AAD.json");
 
 let username: string;
 let accountPwd: string;
@@ -33,7 +40,7 @@ describe("Auth Code AAD PPE Tests", () => {
         // @ts-ignore
         browser = await global.__BROWSER__;
         // @ts-ignore
-        port = global.__PORT__;
+        port = 3000;
         homeRoute = `http://localhost:${port}`;
 
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
@@ -56,12 +63,22 @@ describe("Auth Code AAD PPE Tests", () => {
         let testName: string;
         let screenshot: Screenshot;
         let environment = "aad";
+        let publicClientApplication: PublicClientApplication;
+        let server: any;
 
         beforeAll(async () => {
             testName = "authCodeAcquireToken";
             screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}/${environment}`);
+            publicClientApplication = new PublicClientApplication({ auth: config.authOptions, cache: { cachePlugin }});
+            server = getTokenAuthCode(config, publicClientApplication, port);
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
+
+        afterAll(async () => {
+            if (server) {
+                server.close();
+            }
+        })
 
         beforeEach(async () => {
             context = await browser.createIncognitoBrowserContext();
@@ -82,7 +99,6 @@ describe("Auth Code AAD PPE Tests", () => {
         it("Performs acquire token", async () => {
             await page.goto(homeRoute);
             await enterCredentials(page, screenshot, username, accountPwd);
-
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);
@@ -142,7 +158,7 @@ describe("Auth Code AAD PPE Tests", () => {
             const USERNAME = "test@domain.abc";
             await page.goto(`${homeRoute}/?prompt=login&loginHint=${USERNAME}`);
             await page.waitForSelector("#i0116");
-            const emailInput = await page.$("#i0116")
+            const emailInput = await page.$("#i0116");
             const email = await page.evaluate(element => element.value, emailInput);
             expect(email).toBe(USERNAME);
         });

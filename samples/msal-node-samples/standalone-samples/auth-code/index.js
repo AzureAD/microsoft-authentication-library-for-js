@@ -28,11 +28,10 @@ const scenario = argv.s || "AAD";
 
 const config = require(`./config/${scenario}.json`);
 
-const getTokenAuthCode = async function (scenarioConfig, clientApplication) {
+const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
+    const serverPort = port || SERVER_PORT;
     // Create Express App and Routes
     const app = express();
-
-    let server;
 
     const requestConfig = scenarioConfig.request;
 
@@ -69,7 +68,7 @@ const getTokenAuthCode = async function (scenarioConfig, clientApplication) {
         });
     });
 
-    server = app.listen(SERVER_PORT, () => console.log(`Msal Node Auth Code Sample app listening on port ${SERVER_PORT}!`));
+    return app.listen(serverPort, () => console.log(`Msal Node Auth Code Sample app listening on port ${serverPort}!`));
 }
 
 
@@ -100,8 +99,8 @@ const getTokenAuthCode = async function (scenarioConfig, clientApplication) {
     
     // Create msal application object
     const clientApplication = new msal.PublicClientApplication(clientConfig);
-    getTokenAuthCode(config, clientApplication).then(server => {
-        server.close();
-    })
+    return getTokenAuthCode(config, clientApplication, null);
 
  }
+
+ module.exports = getTokenAuthCode;

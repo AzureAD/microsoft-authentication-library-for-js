@@ -10,7 +10,7 @@ import {
     enterCredentialsADFSWithConsent, 
     SCREENSHOT_BASE_FOLDER_NAME,
  } from "../../testUtils";
-import { Configuration, PublicClientApplication } from "../../../../../lib/msal-node/";
+import { PublicClientApplication } from "../../../../../lib/msal-node/";
 
 const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
 const HOME_ROUTE="http://localhost:3000";
@@ -36,7 +36,7 @@ describe('Auth Code ADFS PPE Tests', () => {
         // @ts-ignore
         browser = await global.__BROWSER__;
         // @ts-ignore
-        port = global.__PORT__;
+        port = 3001;
         homeRoute = `http://localhost:${port}`;
         createFolder(SCREENSHOT_BASE_FOLDER_NAME);
 
@@ -61,15 +61,21 @@ describe('Auth Code ADFS PPE Tests', () => {
         let screenshot: Screenshot;
         let environment = 'adfs';
         let publicClientApplication: PublicClientApplication;
-        let clientConfig: Configuration;
+        let server: any;
 
         beforeAll(async () => {
             testName = "authCodeAcquireToken";
             screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}/${environment}`);
-            publicClientApplication = new PublicClientApplication(clientConfig);
-            getTokenAuthCode(config, publicClientApplication);
+            publicClientApplication = new PublicClientApplication({ auth: config.authOptions, cache: { cachePlugin }});
+            server = getTokenAuthCode(config, publicClientApplication, port);
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
+
+        afterAll(async () => {
+            if (server) {
+                server.close();
+            }
+        })
 
         beforeEach(async () => {
             context = await browser.createIncognitoBrowserContext();

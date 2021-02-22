@@ -4,10 +4,6 @@
  */
 
 module.exports = {
-    displayName: "Authorization Code AAD",
-    globals: {
-        __PORT__: 3000,
-        __STARTCMD__: "npm start -- -p 3000 -c test/data/testCache.json"
-    },
-    preset: "../../../e2eTestUtils/jest-puppeteer-utils/jest-preset.js"
+    displayName: "Authorization Code",
+    preset: "../../../e2eTestUtils/jest-puppeteer-utils/jest-preset-no-setup.js"
 };

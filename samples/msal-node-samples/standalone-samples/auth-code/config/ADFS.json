@@ -8,10 +8,10 @@
     {
         "authCodeUrlParameters": {
             "scopes": ["user.read"],
-            "redirectUri": "http://localhost:3000/redirect"
+            "redirectUri": "http://localhost:3001/redirect"
         },
         "tokenRequest": {
-            "redirectUri": "http://localhost:3000/redirect",
+            "redirectUri": "http://localhost:3001/redirect",
             "scopes": ["user.read"]
         }
     },

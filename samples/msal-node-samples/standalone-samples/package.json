@@ -8,5 +8,8 @@
     "devDependencies": {
         "jest": "^26.6.3",
         "yargs": "^16.2.0"
+    },
+    "dependencies": {
+        "@types/express": "^4.17.11"
     }
 }
