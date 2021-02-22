@@ -59,11 +59,12 @@ export class BrowserCrypto {
         }
     }
 
-    async decryptSessionKey(sessionKey: string, decryptionKey: CryptoKey) {
+    async decryptSessionKey(sessionKey: string, iv: string, decryptionKey: CryptoKey) {
         console.log("DCSK: ", sessionKey);
-        const buffer = BrowserStringUtils.stringToArrayBuffer(sessionKey);
-        console.log("Buffer: ", buffer);
-        return window.crypto.subtle.decrypt({name: "RSA-OAEP"}, decryptionKey, buffer);
+        const bufferCt = BrowserStringUtils.stringToArrayBuffer(sessionKey);
+        const bufferIv = BrowserStringUtils.stringToArrayBuffer(iv);
+        console.log("Buffer: ", bufferCt);
+        return window.crypto.subtle.unwrapKey("jwk", bufferCt, decryptionKey, {name: "RSA-OAEP"}, {name: "AES-GCM"}, false, ["decrypt"]);
     }
 
     /**

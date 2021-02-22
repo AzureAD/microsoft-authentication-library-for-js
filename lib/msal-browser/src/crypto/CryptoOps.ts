@@ -199,9 +199,11 @@ export class CryptoOps implements ICrypto {
         const cachedKeyPair: CachedKeyPair = await this.cache.get(stkJwkThumbprint);
         // const sessionKey = this.browserCrypto.unwrapSessionKey(sessionKeyJwe, cachedKeyPair.privateKey);
 
-        const decodedSk = sessionKeyJwe.split(".").map(part => part);
+        const decodedSk = sessionKeyJwe.split(".").map(part => this.base64Decode(part));
         console.log("SK: ", sessionKeyJwe.split(".")[1]);
-        const decKey = this.browserCrypto.decryptSessionKey(decodedSk[1], cachedKeyPair.privateKey);
+        
+        console.log("header:", decodedSk[0]);
+        const decKey = this.browserCrypto.decryptSessionKey(decodedSk[1], decodedSk[2], cachedKeyPair.privateKey);
         console.log("DK: ", decKey);
 
         /*
