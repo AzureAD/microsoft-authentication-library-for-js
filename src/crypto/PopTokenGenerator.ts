@@ -37,31 +37,41 @@ export class PopTokenGenerator {
     }
 
     async generateCnf(resourceRequestMethod: string, resourceRequestUri: string): Promise<string> {
+        const reqCnf = await this.generateKid(resourceRequestMethod, resourceRequestUri);
+        return this.cryptoUtils.base64Encode(JSON.stringify(reqCnf));
+    }
+
+    async generateKid(resourceRequestMethod: string, resourceRequestUri: string): Promise<ReqCnf> {
         const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint(resourceRequestMethod, resourceRequestUri);
-        const reqCnf: ReqCnf = {
+
+        return {
             kid: kidThumbprint,
             xms_ksl: KeyLocation.SW
         };
-        return this.cryptoUtils.base64Encode(JSON.stringify(reqCnf));
     }
 
     async signPopToken(accessToken: string, resourceRequestMethod: string, resourceRequestUri: string): Promise<string> {
         const tokenClaims: TokenClaims | null = AuthToken.extractTokenClaims(accessToken, this.cryptoUtils);
-        const resourceUrlString: UrlString = new UrlString(resourceRequestUri);
-        const resourceUrlComponents: IUri = resourceUrlString.getUrlComponents();
-
+        
         if (!tokenClaims?.cnf?.kid) {
             throw ClientAuthError.createTokenClaimsRequiredError();
         }
 
+        return this.signPayload(accessToken, tokenClaims.cnf.kid, resourceRequestMethod, resourceRequestUri);
+    }
+
+    async signPayload(payload: string, kid: string, resourceRequestMethod: string, resourceRequestUri: string): Promise<string> {
+        const resourceUrlString: UrlString = new UrlString(resourceRequestUri);
+        const resourceUrlComponents: IUri = resourceUrlString.getUrlComponents();
+
         return await this.cryptoUtils.signJwt({
-            at: accessToken,
+            at: payload,
             ts: `${TimeUtils.nowSeconds()}`,
             m: resourceRequestMethod.toUpperCase(),
             u: resourceUrlComponents.HostNameAndPort || "",
             nonce: this.cryptoUtils.createNewGuid(),
             p: resourceUrlComponents.AbsolutePath,
             q: [[], resourceUrlComponents.QueryString],
-        }, tokenClaims.cnf.kid);
+        }, kid);
     }
 }
