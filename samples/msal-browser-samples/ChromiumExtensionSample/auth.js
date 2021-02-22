@@ -34,7 +34,8 @@ getSignedInUser()
             signInHintButton.innerHTML = `Sign In (w/ ${user.email})`;
             signInHintButton.addEventListener("click", async () => {
                 const url = await getLoginUrl({
-                    loginHint: user.email
+                    loginHint: user.email,
+                    redirectUri: redirectUri
                 });
 
                 const result = await launchWebAuthFlow(url);
