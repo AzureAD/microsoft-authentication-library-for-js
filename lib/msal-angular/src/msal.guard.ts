@@ -5,7 +5,7 @@
 
 import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, CanActivateChild, CanLoad, UrlTree, Router } from "@angular/router";
 import { MsalService } from "./msal.service";
-import { Injectable, Inject } from "@angular/core";
+import { Injectable, Inject, VERSION } from "@angular/core";
 import { Location } from "@angular/common";
 import { InteractionType, BrowserConfigurationAuthError, BrowserUtils, UrlString, PopupRequest, RedirectRequest, AuthenticationResult } from "@azure/msal-browser";
 import { MsalGuardConfiguration } from "./msal.guard.config";
@@ -59,6 +59,10 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
         return `${baseUrl}${path}`;
     }
 
+    /**
+     * Interactively prompt the user to login
+     * @param url Path of the requested page
+     */
     private loginInteractively(url: string): Observable<boolean> {
         if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
             this.authService.getLogger().verbose("Guard - logging in by popup");
@@ -74,13 +78,19 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
 
         this.authService.getLogger().verbose("Guard - logging in by redirect");
         const redirectStartPage = this.getDestinationUrl(url);
-        this.authService.loginRedirect({
+        return this.authService.loginRedirect({
             redirectStartPage,
             ...this.msalGuardConfig.authRequest
-        } as RedirectRequest);
-        return of(false);
+        } as RedirectRequest)
+            .pipe(
+                map(() => false)
+            );
     }
 
+    /**
+     * Helper which checks for the correct interaction type, prevents page with Guard to be set as reidrect, and calls handleRedirectObservable
+     * @param state 
+     */
     private activateHelper(state?: RouterStateSnapshot): Observable<boolean|UrlTree> {
         if (this.msalGuardConfig.interactionType !== InteractionType.Popup && this.msalGuardConfig.interactionType !== InteractionType.Redirect) {
             throw new BrowserConfigurationAuthError("invalid_interaction_type", "Invalid interaction type provided to MSAL Guard. InteractionType.Popup or InteractionType.Redirect must be provided in the MsalGuardConfiguration");
@@ -120,7 +130,11 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
                 }),
                 catchError(() => {
                     this.authService.getLogger().verbose("Guard - error while logging in, unable to activate");
-                    if (this.loginFailedRoute) {
+                    /**
+                     * If a loginFailedRoute is set, checks to see if Angular 10+ is used and state is passed in before returning route
+                     * Apps using Angular 9 will receive of(false) in canLoad interface, as it does not support UrlTree return types
+                     */
+                    if (this.loginFailedRoute && parseInt(VERSION.major, 10) > 9 && state) {
                         this.authService.getLogger().verbose("Guard - loginFailedRoute set, redirecting");
                         return of(this.loginFailedRoute);
                     }
@@ -139,8 +153,9 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
         return this.activateHelper(state);
     }
 
-    canLoad(): Observable<boolean|UrlTree> {
+    canLoad(): Observable<boolean> {
         this.authService.getLogger().verbose("Guard - canLoad");
+        // @ts-ignore
         return this.activateHelper();
     }
 

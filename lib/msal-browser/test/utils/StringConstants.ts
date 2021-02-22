@@ -45,7 +45,6 @@ export const TEST_CONFIG = {
     OID: "test-oid",
     SUB: "test-sub",
     RESPONSE_MODE: "fragment",
-
 };
 
 // Test Tokens
@@ -93,11 +92,11 @@ export const TEST_POP_VALUES = {
 export const TEST_STATE_VALUES = {
     USER_STATE: "userState",
     TEST_TIMESTAMP: 1592846482,
-    DECODED_LIB_STATE: `{"id":"${RANDOM_TEST_GUID}","ts":1592846482}`,
-    ENCODED_LIB_STATE: "eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ==",
-    TEST_STATE_REDIRECT: `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyLCJtZXRhIjp7ImludGVyYWN0aW9uVHlwZSI6InJlZGlyZWN0In19${Constants.RESOURCE_DELIM}userState`,
-    TEST_STATE_POPUP: `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyLCJtZXRhIjp7ImludGVyYWN0aW9uVHlwZSI6InBvcHVwIn19${Constants.RESOURCE_DELIM}userState`,
-    TEST_STATE_SILENT: `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyLCJtZXRhIjp7ImludGVyYWN0aW9uVHlwZSI6InNpbGVudCJ9fQ==${Constants.RESOURCE_DELIM}userState`
+    DECODED_LIB_STATE: `{"id":"${RANDOM_TEST_GUID}"}`,
+    ENCODED_LIB_STATE: "eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSJ9",
+    TEST_STATE_REDIRECT: `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsIm1ldGEiOnsiaW50ZXJhY3Rpb25UeXBlIjoicmVkaXJlY3QifX0=${Constants.RESOURCE_DELIM}userState`,
+    TEST_STATE_POPUP: `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsIm1ldGEiOnsiaW50ZXJhY3Rpb25UeXBlIjoicG9wdXAifX0=${Constants.RESOURCE_DELIM}userState`,
+    TEST_STATE_SILENT: `eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsIm1ldGEiOnsiaW50ZXJhY3Rpb25UeXBlIjoic2lsZW50In19${Constants.RESOURCE_DELIM}userState`
 };
 
 // Test Hashes
@@ -188,8 +187,8 @@ export const ALTERNATE_OPENID_CONFIG_RESPONSE = {
     }
 };
 
-export const testNavUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${encodeURIComponent(`${TEST_CONFIG.MSAL_CLIENT_ID}`)}&scope=user.read%20openid%20profile&redirect_uri=https%3A%2F%2Flocalhost%3A8081%2Findex.html&client-request-id=${encodeURIComponent(`${RANDOM_TEST_GUID}`)}&response_mode=fragment&response_type=code&x-client-SKU=msal.js.browser&x-client-VER=${version}&x-client-OS=&x-client-CPU=&client_info=1&code_challenge=JsjesZmxJwehdhNY9kvyr0QOeSMEvryY_EHZo3BKrqg&code_challenge_method=S256&nonce=${encodeURIComponent(`${RANDOM_TEST_GUID}`)}&state=${encodeURIComponent(`${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`)}`;
+export const testNavUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${encodeURIComponent(`${TEST_CONFIG.MSAL_CLIENT_ID}`)}&scope=user.read%20openid%20profile%20offline_access&redirect_uri=https%3A%2F%2Flocalhost%3A8081%2Findex.html&client-request-id=${encodeURIComponent(`${RANDOM_TEST_GUID}`)}&response_mode=fragment&response_type=code&x-client-SKU=msal.js.browser&x-client-VER=${version}&x-client-OS=&x-client-CPU=&client_info=1&code_challenge=JsjesZmxJwehdhNY9kvyr0QOeSMEvryY_EHZo3BKrqg&code_challenge_method=S256&nonce=${encodeURIComponent(`${RANDOM_TEST_GUID}`)}&state=${encodeURIComponent(`${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`)}`;
 
-export const testNavUrlNoRequest = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${encodeURIComponent(`${TEST_CONFIG.MSAL_CLIENT_ID}`)}&scope=openid%20profile&redirect_uri=https%3A%2F%2Flocalhost%3A8081%2Findex.html&client-request-id=${encodeURIComponent(`${RANDOM_TEST_GUID}`)}&response_mode=fragment&response_type=code&x-client-SKU=msal.js.browser&x-client-VER=${version}&x-client-OS=&x-client-CPU=&client_info=1&code_challenge=JsjesZmxJwehdhNY9kvyr0QOeSMEvryY_EHZo3BKrqg&code_challenge_method=S256&nonce=${encodeURIComponent(`${RANDOM_TEST_GUID}`)}&state=`;
+export const testNavUrlNoRequest = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${encodeURIComponent(`${TEST_CONFIG.MSAL_CLIENT_ID}`)}&scope=openid%20profile%20offline_access&redirect_uri=https%3A%2F%2Flocalhost%3A8081%2Findex.html&client-request-id=${encodeURIComponent(`${RANDOM_TEST_GUID}`)}&response_mode=fragment&response_type=code&x-client-SKU=msal.js.browser&x-client-VER=${version}&x-client-OS=&x-client-CPU=&client_info=1&code_challenge=JsjesZmxJwehdhNY9kvyr0QOeSMEvryY_EHZo3BKrqg&code_challenge_method=S256&nonce=${encodeURIComponent(`${RANDOM_TEST_GUID}`)}&state=`;
 
 export const testLogoutUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/logout?post_logout_redirect_uri=${encodeURIComponent(`${TEST_URIS.TEST_REDIR_URI}`)}`;

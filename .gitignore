@@ -274,3 +274,6 @@ samples/**/data/cache.json
 samples/**/data/testCache.json
 samples/**/dist/
 .env
+lib/msal-node/temp
+ref/
+.server.pid

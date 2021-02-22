@@ -17,5 +17,5 @@
     "web_accessible_resources": [
         "index.html"
     ],
-    "incognito": "split"
+    "incognito": "not_allowed"
   }

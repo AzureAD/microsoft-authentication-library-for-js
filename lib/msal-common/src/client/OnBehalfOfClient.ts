@@ -11,7 +11,7 @@ import { ScopeSet } from "../request/ScopeSet";
 import { GrantType, AADServerParamKeys , CredentialType, Constants } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
+import { CommonOnBehalfOfRequest } from "../request/CommonOnBehalfOfRequest";
 import { TimeUtils } from "../utils/TimeUtils";
 import { CredentialFilter, CredentialCache } from "../cache/utils/CacheTypes";
 import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
@@ -37,7 +37,7 @@ export class OnBehalfOfClient extends BaseClient {
      * Public API to acquire tokens with on behalf of flow
      * @param request
      */
-    public async acquireToken(request: OnBehalfOfRequest): Promise<AuthenticationResult | null> {
+    public async acquireToken(request: CommonOnBehalfOfRequest): Promise<AuthenticationResult | null> {
         this.scopeSet = new ScopeSet(request.scopes || []);
 
         if (request.skipCache) {
@@ -56,7 +56,7 @@ export class OnBehalfOfClient extends BaseClient {
      * look up cache for tokens
      * @param request
      */
-    private async getCachedAuthenticationResult(request: OnBehalfOfRequest): Promise<AuthenticationResult | null> {
+    private async getCachedAuthenticationResult(request: CommonOnBehalfOfRequest): Promise<AuthenticationResult | null> {
         const cachedAccessToken = this.readAccessTokenFromCache(request);
         if (!cachedAccessToken ||
             TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
@@ -96,7 +96,7 @@ export class OnBehalfOfClient extends BaseClient {
      * read access token from cache TODO: CacheManager API should be used here
      * @param request
      */
-    private readAccessTokenFromCache(request: OnBehalfOfRequest): AccessTokenEntity | null {
+    private readAccessTokenFromCache(request: CommonOnBehalfOfRequest): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
             environment: this.authority.canonicalAuthorityUrlComponents.HostNameAndPort,
             credentialType: CredentialType.ACCESS_TOKEN,
@@ -122,7 +122,7 @@ export class OnBehalfOfClient extends BaseClient {
      * read idtoken from cache TODO: CacheManager API should be used here instead
      * @param request
      */
-    private readIdTokenFromCache(request: OnBehalfOfRequest): IdTokenEntity | null {
+    private readIdTokenFromCache(request: CommonOnBehalfOfRequest): IdTokenEntity | null {
         const idTokenFilter: CredentialFilter = {
             environment: this.authority.canonicalAuthorityUrlComponents.HostNameAndPort,
             credentialType: CredentialType.ID_TOKEN,
@@ -153,7 +153,7 @@ export class OnBehalfOfClient extends BaseClient {
      * @param request
      * @param authority
      */
-    private async executeTokenRequest(request: OnBehalfOfRequest, authority: Authority)
+    private async executeTokenRequest(request: CommonOnBehalfOfRequest, authority: Authority)
         : Promise<AuthenticationResult | null> {
 
         const requestBody = this.createTokenRequestBody(request);
@@ -164,6 +164,7 @@ export class OnBehalfOfClient extends BaseClient {
             scopes: request.scopes
         };
 
+        const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
 
         const responseHandler = new ResponseHandler(
@@ -179,6 +180,7 @@ export class OnBehalfOfClient extends BaseClient {
         const tokenResponse = await responseHandler.handleServerTokenResponse(
             response.body,
             this.authority,
+            reqTimestamp,
             request.resourceRequestMethod,
             request.resourceRequestUri,
             undefined,
@@ -193,7 +195,7 @@ export class OnBehalfOfClient extends BaseClient {
      * generate a server request in accepable format
      * @param request
      */
-    private createTokenRequestBody(request: OnBehalfOfRequest): string {
+    private createTokenRequestBody(request: CommonOnBehalfOfRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);

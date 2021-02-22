@@ -10,6 +10,11 @@
 
 Note: Angular Universal is also supported. Please see the [our Angular Universal doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/angular-universal.md) for notes on using Angular Universal with MSAL Angular, and our [Angular 11 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-sample-app) for where adjustments need to made.
 
+### Advanced Samples using `@azure/msal-angular@2`:
+* [Angular SPA with ASP.NET Core web API](https://github.com/Azure-Samples/ms-identity-javascript-angular-spa-aspnetcore-webapi)
+* [Angular SPA with APS.NET Core web API using App Roles and RBAC](https://github.com/Azure-Samples/ms-identity-javascript-angular-spa-dotnetcore-webapi-roles-groups)
+* [Multi-tenant tutorial  using MSAL Angular v2](https://github.com/Azure-Samples/ms-identity-javascript-angular-spa-aspnet-webapi-multitenant)
+
 ### Pre-Angular v2 sample
 
 * [Angular 10 Browser Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular10-browser-sample)

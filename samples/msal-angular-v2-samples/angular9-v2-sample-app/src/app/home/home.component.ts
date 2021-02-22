@@ -8,6 +8,7 @@ import { AuthenticationResult } from '@azure/msal-browser';
   styleUrls: ['./home.component.css']
 })
 export class HomeComponent implements OnInit {
+  loginDisplay = false;
 
   constructor(private authService: MsalService) { }
 
@@ -21,6 +22,12 @@ export class HomeComponent implements OnInit {
       },
       error: (error) => console.log(error)
     });
+
+    this.setLoginDisplay();
+  }
+
+  setLoginDisplay() {
+    this.loginDisplay = this.authService.instance.getAllAccounts().length > 0;
   }
 
 }

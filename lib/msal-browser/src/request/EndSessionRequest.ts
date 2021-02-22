@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { EndSessionRequest as CommonEndSessionRequest } from "@azure/msal-common";
+import { CommonEndSessionRequest } from "@azure/msal-common";
 
 /**
  * EndSessionRequest
