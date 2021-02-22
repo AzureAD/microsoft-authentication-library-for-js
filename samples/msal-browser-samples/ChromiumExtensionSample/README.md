@@ -105,7 +105,7 @@ async function acquireToken(request) {
 }
 
 // Login
-const loginUrl = await getLoginUrl();
+const loginUrl = await getLoginUrl({redirectUri: redirectUri});
 const loginResult = await launchWebAuthFlow(loginUrl);
 
 // Acquire token
