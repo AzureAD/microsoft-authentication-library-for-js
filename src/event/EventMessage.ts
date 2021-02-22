@@ -16,7 +16,7 @@ export type EventMessage = {
     timestamp: number;
 };
 
-export type EventPayload = PopupRequest | RedirectRequest | SilentRequest | SsoSilentRequest | EndSessionRequest | AuthenticationResult | null;
+export type EventPayload = PopupRequest | RedirectRequest | SilentRequest | SsoSilentRequest | EndSessionRequest | AuthenticationResult | Window | null;
 
 export type EventError = AuthError | Error | null;
 
