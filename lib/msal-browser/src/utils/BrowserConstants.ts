@@ -87,3 +87,12 @@ export const DEFAULT_REQUEST: RedirectRequest|PopupRequest = {
 
 // JWK Key Format string (Type MUST be defined for window crypto APIs)
 export const KEY_FORMAT_JWK = "jwk";
+
+export const BROWSER_CRYPTO = {
+    PKCS1_V15_KEYGEN_ALG: "RSASSA-PKCS1-v1_5",
+    OAEP: "RSA-OAEP",
+    S256_HASH_ALG: "SHA-256",
+    MODULUS_LENGTH: 2048,
+    AT_POP_KEY_USAGES: ["sign", "verify"],
+    RT_POP_KEY_USAGES: ["encrypt", "decrypt"]
+};

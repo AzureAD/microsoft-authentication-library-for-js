@@ -86,7 +86,6 @@ export class RedirectHandler extends InteractionHandler {
             throw ClientAuthError.createStateNotFoundError("Cached State");
         }
         const authCodeResponse = this.authModule.handleFragmentResponse(locationHash, requestState);
-        console.log("ACR: ", authCodeResponse);
         // Get cached items
         const nonceKey = this.browserStorage.generateNonceKey(requestState);
         const cachedNonce = this.browserStorage.getTemporaryCache(nonceKey);

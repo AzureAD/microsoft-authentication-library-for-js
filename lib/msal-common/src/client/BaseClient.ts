@@ -114,7 +114,6 @@ export abstract class BaseClient {
      * @param thumbprint
      */
     protected async executePostToTokenEndpoint(tokenEndpoint: string, queryString: string, headers: Record<string, string>, thumbprint: RequestThumbprint): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        console.log(tokenEndpoint);
         const response = await this.networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
             thumbprint,
             tokenEndpoint,

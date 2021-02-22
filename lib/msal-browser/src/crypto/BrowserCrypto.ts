@@ -5,47 +5,22 @@
 
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
-/**
- * See here for more info on RsaHashedKeyGenParams: https://developer.mozilla.org/en-US/docs/Web/API/RsaHashedKeyGenParams
- */
-// RSA KeyGen Algorithm
-const PKCS1_V15_KEYGEN_ALG = "RSASSA-PKCS1-v1_5";
-const OAEP = "RSA-OAEP";
-// SHA-256 hashing algorithm
-const S256_HASH_ALG = "SHA-256";
-// MOD length for PoP tokens
-const MODULUS_LENGTH = 2048;
-// Public Exponent
-const PUBLIC_EXPONENT: Uint8Array = new Uint8Array([0x01, 0x00, 0x01]);
+import { KEY_FORMAT_JWK, BROWSER_CRYPTO } from "../utils/BrowserConstants";
+import { PopKeyOptions } from "./CryptoOps";
 
 /**
  * This class implements functions used by the browser library to perform cryptography operations such as
  * hashing and encoding. It also has helper functions to validate the availability of specific APIs.
  */
 export class BrowserCrypto {
-
-    private _atPopKeygenAlgorithmOptions: RsaHashedKeyGenParams;
-    private _rtPopKeygenAlgorithmOptions: RsaHashedKeyGenParams;
+    private utf8Encoder: TextEncoder;
 
     constructor() {
         if (!(this.hasCryptoAPI())) {
             throw BrowserAuthError.createCryptoNotAvailableError("Browser crypto or msCrypto object not available.");
         }
 
-        this._atPopKeygenAlgorithmOptions = {
-            name: PKCS1_V15_KEYGEN_ALG,
-            hash: S256_HASH_ALG,
-            modulusLength: MODULUS_LENGTH,
-            publicExponent: PUBLIC_EXPONENT
-        };
-
-        this._rtPopKeygenAlgorithmOptions = {
-            name: OAEP,
-            hash: S256_HASH_ALG,
-            modulusLength: MODULUS_LENGTH,
-            publicExponent: PUBLIC_EXPONENT
-        };
+        this.utf8Encoder = new TextEncoder();
     }
 
     /**
@@ -55,7 +30,7 @@ export class BrowserCrypto {
     async sha256Digest(dataString: string): Promise<ArrayBuffer> {
         const data = BrowserStringUtils.stringToUtf8Arr(dataString);
 
-        return this.hasIECrypto() ? this.getMSCryptoDigest(S256_HASH_ALG, data) : this.getSubtleCryptoDigest(S256_HASH_ALG, data);
+        return this.hasIECrypto() ? this.getMSCryptoDigest(BROWSER_CRYPTO.S256_HASH_ALG, data) : this.getSubtleCryptoDigest(BROWSER_CRYPTO.S256_HASH_ALG, data);
     }
 
     /**
@@ -75,13 +50,20 @@ export class BrowserCrypto {
      * @param extractable 
      * @param usages 
      */
-    async generateKeyPair(scheme: string, extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKeyPair> {
-        const keygenAlgorithmOptions = (scheme === "at_pop") ? this._atPopKeygenAlgorithmOptions : this._rtPopKeygenAlgorithmOptions;
+    async generateKeyPair(popKeyOptions: PopKeyOptions, extractable: boolean): Promise<CryptoKeyPair> {
+        const keygenAlgorithmOptions = popKeyOptions;
         if (this.hasIECrypto()) {
-            return this.msCryptoGenerateKey(extractable, usages) as Promise<CryptoKeyPair>;
+            return this.msCryptoGenerateKey(popKeyOptions, extractable) as Promise<CryptoKeyPair>;
         } else {
-            return window.crypto.subtle.generateKey(keygenAlgorithmOptions, extractable, ["wrapKey"]) as Promise<CryptoKeyPair>;
+            return window.crypto.subtle.generateKey(keygenAlgorithmOptions.popKeyGenAlgorithmOptions, extractable, keygenAlgorithmOptions.keyUsages) as Promise<CryptoKeyPair>;
         }
+    }
+
+    async decryptSessionKey(sessionKey: string, decryptionKey: CryptoKey) {
+        console.log("DCSK: ", sessionKey);
+        const buffer = BrowserStringUtils.stringToArrayBuffer(sessionKey);
+        console.log("Buffer: ", buffer);
+        return window.crypto.subtle.decrypt({name: "RSA-OAEP"}, decryptionKey, buffer);
     }
 
     /**
@@ -100,13 +82,12 @@ export class BrowserCrypto {
      * @param extractable 
      * @param usages 
      */
-    async importJwk(key: JsonWebKey, extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKey> {
+    async importJwk(popKeyOptions: PopKeyOptions, key: JsonWebKey, extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKey> {
         const keyString = BrowserCrypto.getJwkString(key);
         const keyBuffer = BrowserStringUtils.stringToArrayBuffer(keyString);
-
         return this.hasIECrypto() ? 
-            this.msCryptoImportKey(keyBuffer, extractable, usages) 
-            : window.crypto.subtle.importKey(KEY_FORMAT_JWK, key, this._keygenAlgorithmOptions, extractable, usages);
+            this.msCryptoImportKey(popKeyOptions, keyBuffer, extractable, usages) 
+            : window.crypto.subtle.importKey(KEY_FORMAT_JWK, key, popKeyOptions.popKeyGenAlgorithmOptions, extractable, usages);
     }
 
     /**
@@ -114,20 +95,18 @@ export class BrowserCrypto {
      * @param key 
      * @param data 
      */
-    async sign(key: CryptoKey, data: ArrayBuffer): Promise<ArrayBuffer> {
+    async sign(popKeyOptions: PopKeyOptions, key: CryptoKey, data: ArrayBuffer): Promise<ArrayBuffer> {
         return this.hasIECrypto() ?
-            this.msCryptoSign(key, data)
-            : window.crypto.subtle.sign(this._keygenAlgorithmOptions, key, data);
+            this.msCryptoSign(popKeyOptions, key, data)
+            : window.crypto.subtle.sign(popKeyOptions.popKeyGenAlgorithmOptions, key, data);
     }
 
     /**
      * Extracts session key from Session Key JWE using provided key
      */
     async unwrapSessionKey(sessionKeyJwe: string, key: CryptoKey): Promise<CryptoKey> {
-        console.log(sessionKeyJwe);
         const parts = sessionKeyJwe.split(".");
         parts.forEach((part, index) => { console.log(index, ". ", part);});
-        console.log(key);
         return key;
     }
 
@@ -183,9 +162,9 @@ export class BrowserCrypto {
      * @param extractable 
      * @param usages 
      */
-    private async msCryptoGenerateKey(extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKeyPair> {
+    private async msCryptoGenerateKey(popKeyOptions: PopKeyOptions, extractable: boolean): Promise<CryptoKeyPair> {
         return new Promise((resolve: any, reject: any) => {
-            const msGenerateKey = window["msCrypto"].subtle.generateKey(this._keygenAlgorithmOptions, extractable, usages);
+            const msGenerateKey = window["msCrypto"].subtle.generateKey(popKeyOptions.popKeyGenAlgorithmOptions, extractable, popKeyOptions.keyUsages);
             msGenerateKey.addEventListener("complete", (e: { target: { result: CryptoKeyPair | PromiseLike<CryptoKeyPair>; }; }) => {
                 resolve(e.target.result);
             });
@@ -234,9 +213,9 @@ export class BrowserCrypto {
      * @param extractable 
      * @param usages 
      */
-    private async msCryptoImportKey(keyBuffer: ArrayBuffer, extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKey> {
+    private async msCryptoImportKey(popKeyOptions: PopKeyOptions, keyBuffer: ArrayBuffer, extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKey> {
         return new Promise((resolve: any, reject: any) => {
-            const msImportKey = window["msCrypto"].subtle.importKey(KEY_FORMAT_JWK, keyBuffer, this._keygenAlgorithmOptions, extractable, usages);
+            const msImportKey = window["msCrypto"].subtle.importKey(KEY_FORMAT_JWK, keyBuffer, popKeyOptions.popKeyGenAlgorithmOptions, extractable, usages);
             msImportKey.addEventListener("complete", (e: { target: { result: CryptoKey | PromiseLike<CryptoKey>; }; }) => {
                 resolve(e.target.result);
             });
@@ -252,9 +231,9 @@ export class BrowserCrypto {
      * @param key 
      * @param data 
      */
-    private async msCryptoSign(key: CryptoKey, data: ArrayBuffer): Promise<ArrayBuffer> {
+    private async msCryptoSign(popKeyOptions: PopKeyOptions, key: CryptoKey, data: ArrayBuffer): Promise<ArrayBuffer> {
         return new Promise((resolve: any, reject: any) => {
-            const msSign = window["msCrypto"].subtle.sign(this._keygenAlgorithmOptions, key, data);
+            const msSign = window["msCrypto"].subtle.sign(popKeyOptions, key, data);
             msSign.addEventListener("complete", (e: { target: { result: ArrayBuffer | PromiseLike<ArrayBuffer>; }; }) => {
                 resolve(e.target.result);
             });
