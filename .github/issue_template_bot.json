@@ -3,45 +3,25 @@
         "Library": {
             "labels": {
                 "msal@1.x": {
-                    "searchStrings": ["msal@1.x"],
-                    "project": {
-                        "name": "MSAL Core",
-                        "column": "To do"
-                    }
+                    "searchStrings": ["msal@1.x"]
                 },
                 "msal-angular": {
-                    "searchStrings": ["msal-angular@0.x", "msal-angular@1.x", "msal-angular@2.x"],
-                    "project": {
-                        "name": "MSAL Angular",
-                        "column": "To do"
-                    }
+                    "searchStrings": ["msal-angular@0.x", "msal-angular@1.x", "msal-angular@2.x"]
                 },
                 "msal-angularjs": {
                     "searchStrings": ["msal-angularjs@1.x"]
                 },
                 "msal-browser": {
-                    "searchStrings": ["msal-browser"],
-                    "project": {
-                        "name": "MSAL Browser",
-                        "column": "To do"
-                    }
+                    "searchStrings": ["msal-browser"]
                 },
                 "msal-common": {
                     "searchStrings": ["msal-common"]
                 },
                 "msal-react": {
-                    "searchStrings": ["msal-react"],
-                    "project": {
-                        "name": "MSAL React",
-                        "column": "To do"
-                    }
+                    "searchStrings": ["msal-react"]
                 },
                 "msal-node": {
-                    "searchStrings": ["msal-node"],
-                    "project": {
-                        "name": "MSAL Node",
-                        "column": "To do"
-                    }
+                    "searchStrings": ["msal-node"]
                 }
             },
             "enforceSelection": false
