@@ -24,6 +24,7 @@ myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
 });
 
 function handleResponse(resp) {
+    console.log(resp);
     if (resp !== null) {
         username = resp.account.username;
         showWelcomeMessage(resp.account);
