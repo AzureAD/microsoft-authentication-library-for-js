@@ -7,10 +7,19 @@ var msal = require('@azure/msal-node');
 
 const config = {
     auth: {
-        clientId: "12d77c73-d09d-406a-ae0d-3d4e576f7d9b",
-        authority: "https://login.microsoftonline.com/90b8faa8-cc95-460e-a618-ee770bee1759",
-        clientSecret: ""
-   } 
+        clientId: "6cae280d-dab5-4a63-87f7-38bc383dd8a3",
+        authority: "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47",
+        clientSecret: "HX8_2DBRk1.cbV_XS5L0UraJe-2Q14jCrI"
+    },
+    system: {
+        loggerOptions: {
+            loggerCallback(loglevel, message, containsPii) {
+                console.log(message);
+            },
+            piiLoggingEnabled: false,
+            logLevel: msal.LogLevel.Verbose,
+        }
+    }
 };
 
 // Create msal application object
@@ -20,6 +29,11 @@ const cca = new msal.ConfidentialClientApplication(config);
 // The scope is always in the format "<resource>/.default"
 const clientCredentialRequest = {
     scopes: ["https://graph.microsoft.com/.default"],
+    prefferedAzureRegionOptions: {
+        useAzureRegion: true,
+        regionUsedIfAutoDetectionFails: "westus2",
+        fallbackToGlobal: true,
+    } 
 };
 
 cca.acquireTokenByClientCredential(clientCredentialRequest).then((response) => {

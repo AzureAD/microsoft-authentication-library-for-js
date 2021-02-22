@@ -48,10 +48,15 @@ export class Authority {
     // See above for AuthorityType
     public get authorityType(): AuthorityType {
         const pathSegments = this.canonicalAuthorityUrlComponents.PathSegments;
+        const hostNameAndPort = this.canonicalAuthorityUrlComponents.HostNameAndPort;
 
         if (pathSegments.length && pathSegments[0].toLowerCase() === Constants.ADFS) {
             return AuthorityType.Adfs;
         }
+
+        if (hostNameAndPort.split(".").length === 4) {
+            return AuthorityType.Regional;
+        } 
 
         return AuthorityType.Default;
     }
@@ -434,5 +439,22 @@ export class Authority {
      */
     isAlias(host: string): boolean {
         return this.metadata.aliases.indexOf(host) > -1;
+    }
+
+    /**
+     * Rebuild the authority string with the region
+     * 
+     * @param host string
+     * @param region string 
+     */
+    static buildAuthorityString(host: string, region: string): string {
+        // Create and validate a Url string object with the initial authority string
+        const globalUrl = new UrlString(host);
+        globalUrl.validateAsUri();
+
+        const urlComponents = globalUrl.getUrlComponents();
+
+        // Include the query string portion of the url
+        return `${urlComponents.Protocol}//${region}.${urlComponents.HostNameAndPort}${urlComponents.AbsolutePath}`;
     }
 }

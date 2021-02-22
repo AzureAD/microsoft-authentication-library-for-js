@@ -14,7 +14,8 @@ import {
     CommonOnBehalfOfRequest,
     AuthenticationResult,
     StringUtils,
-    ClientAuthError } from "@azure/msal-common";
+    ClientAuthError, 
+    Authority} from "@azure/msal-common";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
@@ -61,8 +62,18 @@ export class ConfidentialClientApplication extends ClientApplication implements 
         };
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByClientCredential, validRequest.correlationId, validRequest.skipCache);
         try {
+
+            let authorityString: string = validRequest.authority;
+
+            if (validRequest.prefferedAzureRegionOptions?.useAzureRegion) {
+                const azureRegion = "westus2"; // Implement the correct azure region detection logic here
+                // TODO: Handle the scenario where the azure region was not detected
+                authorityString = Authority.buildAuthorityString(validRequest.authority, azureRegion);
+                this.logger.verbose(`Build the authority string with regional information: ${authorityString}`);
+            }
+
             const clientCredentialConfig = await this.buildOauthClientConfiguration(
-                validRequest.authority,
+                authorityString,
                 serverTelemetryManager
             );
             this.logger.verbose("Auth client config generated");

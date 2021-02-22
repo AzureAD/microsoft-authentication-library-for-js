@@ -98,6 +98,7 @@ export abstract class ClientApplication {
             responseMode: request.responseMode || ResponseMode.QUERY,
             authenticationScheme: AuthenticationScheme.BEARER
         };
+        
         const authClientConfig = await this.buildOauthClientConfiguration(
             validRequest.authority
         );
