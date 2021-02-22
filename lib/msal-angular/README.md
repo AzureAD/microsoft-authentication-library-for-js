@@ -93,6 +93,11 @@ All documentation for MSAL Angular v1 can be found [here](https://github.com/Azu
 * [Angular v11](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-sample-app)
 * [Angular v11 B2C Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-b2c-sample)
 
+### Advanced MSAL Angular 2.x Samples
+* [Angular SPA with ASP.NET Core web API](https://github.com/Azure-Samples/ms-identity-javascript-angular-spa-aspnetcore-webapi)
+* [Angular SPA with APS.NET Core web API using App Roles and RBAC](https://github.com/Azure-Samples/ms-identity-javascript-angular-spa-dotnetcore-webapi-roles-groups)
+* [Multi-tenant tutorial  using MSAL Angular v2](https://github.com/Azure-Samples/ms-identity-javascript-angular-spa-aspnet-webapi-multitenant)
+
 ## Build and running tests
 
 If you want to build the library and run all the unit tests, you can do the following.
