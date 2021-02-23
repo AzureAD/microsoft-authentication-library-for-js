@@ -66,9 +66,9 @@ For overall differences between ADAL.js and MSAL.you might want to read [Differe
 ### Migrating from the AuthenticationContext to PublicClientApplication or ConfidentialClientApplication
 
 #### Constructing PublicClientApplication or ConfidentialClientAppliation
-When you use MSAL, you instantiate either a `PublicClientApplication` or a `ConfidentialClientApplication`. This object models your app identity and is used to make your requests through whichever flow you want. With this object you will configure your client idenitity, redirect URI, default authority, the log level and more.
+When you use MSAL, you instantiate either a [PublicClientApplication](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/initialize-public-client-application.md) or a [ConfidentialClientApplication](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/initialize-confidential-client-application.md). This object models your app identity and is used to make your requests through whichever flow you want. With this object you will configure your client idenitity, redirect URI, default authority, the log level and more.
 
-You can declaratively configure this object with JSON.
+You can [declaratively configure](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/configuration.md) this object with JSON.
 
 #### Migrate from authority validation to known authorities
 ADAL has a flag to enable or disable authority validation. Authority validation is a feature in ADAL, that prevents your code from requesting tokens from a potentially malicious authority, ADAL retrieves a list of authorities known to Microsoft and validates the user provided authority against the retrieved set of authorities. Use of the flag is shown in the code snippet below.
