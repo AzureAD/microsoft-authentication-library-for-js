@@ -39,7 +39,7 @@ export class Base64Decode {
      * @param base64String 
      * @param nBlockSize 
      */
-    private base64DecToArr(base64String: string, nBlockSize?: number): Uint8Array {
+    base64DecToArr(base64String: string, nBlockSize?: number): Uint8Array {
         const sB64Enc = base64String.replace(/[^A-Za-z0-9\+\/]/g, "");
         const nInLen = sB64Enc.length;
         const nOutLen = nBlockSize ? Math.ceil((nInLen * 3 + 1 >>> 2) / nBlockSize) * nBlockSize : nInLen * 3 + 1 >>> 2;

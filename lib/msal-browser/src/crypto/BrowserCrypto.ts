@@ -7,6 +7,7 @@ import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { KEY_FORMAT_JWK, BROWSER_CRYPTO } from "../utils/BrowserConstants";
 import { PopKeyOptions } from "./CryptoOps";
+import { JsonWebEncryption } from "../utils/JsonWebEncryption";
 
 /**
  * This class implements functions used by the browser library to perform cryptography operations such as
@@ -57,14 +58,6 @@ export class BrowserCrypto {
         } else {
             return window.crypto.subtle.generateKey(keygenAlgorithmOptions.popKeyGenAlgorithmOptions, extractable, keygenAlgorithmOptions.keyUsages) as Promise<CryptoKeyPair>;
         }
-    }
-
-    async decryptSessionKey(sessionKey: string, iv: string, decryptionKey: CryptoKey) {
-        console.log("DCSK: ", sessionKey);
-        const bufferCt = BrowserStringUtils.stringToArrayBuffer(sessionKey);
-        const bufferIv = BrowserStringUtils.stringToArrayBuffer(iv);
-        console.log("Buffer: ", bufferCt);
-        return window.crypto.subtle.unwrapKey("jwk", bufferCt, decryptionKey, {name: "RSA-OAEP"}, {name: "AES-GCM"}, false, ["decrypt"]);
     }
 
     /**

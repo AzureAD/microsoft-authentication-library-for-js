@@ -94,5 +94,5 @@ export const BROWSER_CRYPTO = {
     S256_HASH_ALG: "SHA-256",
     MODULUS_LENGTH: 2048,
     AT_POP_KEY_USAGES: ["sign", "verify"],
-    RT_POP_KEY_USAGES: ["wrap", "unwrap"]
+    RT_POP_KEY_USAGES: ["encrypt", "decrypt"]
 };

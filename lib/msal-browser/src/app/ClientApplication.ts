@@ -956,7 +956,7 @@ export abstract class ClientApplication {
 
         request.codeChallenge = generatedPkceParams.challenge;
         request.codeChallengeMethod = Constants.S256_CODE_CHALLENGE_METHOD;
-
+        console.log(authCodeRequest);
         return authCodeRequest;
     }
 
