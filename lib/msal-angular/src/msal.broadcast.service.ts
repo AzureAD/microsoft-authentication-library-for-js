@@ -7,6 +7,7 @@ import { Inject, Injectable } from "@angular/core";
 import { Observable, Subject } from "rxjs";
 import { MSAL_INSTANCE } from "./constants";
 import { EventMessage, EventMessageUtils, IPublicClientApplication, InteractionStatus } from "@azure/msal-browser";
+import { MsalService } from "./msal.service";
 
 @Injectable()
 export class MsalBroadcastService {
@@ -16,7 +17,8 @@ export class MsalBroadcastService {
     public inProgress$: Observable<InteractionStatus>;
 
     constructor(
-        @Inject(MSAL_INSTANCE) private msalInstance: IPublicClientApplication
+        @Inject(MSAL_INSTANCE) private msalInstance: IPublicClientApplication,
+        private authService: MsalService
     ) {
         this._msalSubject = new Subject<EventMessage>();
         this.msalSubject$  = this._msalSubject.asObservable();
@@ -26,7 +28,7 @@ export class MsalBroadcastService {
             this._msalSubject.next(message);
             const status = EventMessageUtils.getInteractionStatusFromEvent(message);
             if (status !== null) {
-                this.msalInstance.getLogger().verbose(`BroadcastService - ${message.eventType} results in setting inProgress to ${status}`);
+                this.authService.getLogger().verbose(`BroadcastService - ${message.eventType} results in setting inProgress to ${status}`);
                 this._inProgress.next(status);
             }
         });

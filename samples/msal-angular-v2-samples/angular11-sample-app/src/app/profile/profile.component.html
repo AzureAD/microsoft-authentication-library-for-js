@@ -1,5 +1,8 @@
-<p>
-    Welcome {{profile?.displayName}}
-</p>
+<div>
+    <p><strong>First Name: </strong> {{profile?.givenName}}</p>
+    <p><strong>Last Name: </strong> {{profile?.surname}}</p>
+    <p><strong>Email: </strong> {{profile?.userPrincipalName}}</p>
+    <p><strong>Id: </strong> {{profile?.id}}</p>
+</div>
 
-<a mat-button [routerLink]="['detail']">Click for profile details</a>
+<a mat-button [routerLink]="['detail']">Click for more details</a>
