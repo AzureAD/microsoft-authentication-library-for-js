@@ -71,7 +71,41 @@ When you use MSAL, you instantiate either a `PublicClientApplication` or a `Conf
 You can declaratively configure this object with JSON.
 
 #### Migrate from authority validation to known authorities
-MSAL does not have a flag to enable or disable authority validation. Authority validation is a feature in ADAL, that prevents your code from requesting tokens from a potentially malicious authority. MSAL now retrieves a list of authorities known to Microsoft and merges that list with the authorities that you've specified in your configuration.
+ADAL has a flag to enable or disable authority validation. Authority validation is a feature in ADAL, that prevents your code from requesting tokens from a potentially malicious authority, ADAL retrieves a list of authorities known to Microsoft and validates the user provided authority against the retrieved set of authorities. Use of the flag is shown in the code snippet below.
+
+```js
+// With this flag you can turn on and off the authority validation
+// NOTE: The flag defaults to true
+var validateAuthority = true;
+
+var context = new AuthenticationContext(authorityUrl, validateAuthority);
+
+context.acquireTokenWithClientCredentials(resource, clientId, clientSecret, function(err, tokenResponse) {
+  if (err) {
+    console.log('well that didn\'t work: ' + err.stack);
+  } else {
+    console.log(tokenResponse);
+  }
+});
+```
+
+MSAL does not have this validation flag, instead MSAL now retrieves a list of authorities known to Microsoft and merges that list with the authorities that you've specified in your configuration. It's against this combined list of authorities known to Microsoft and user known authorities, that the provided authority is validated against. Like illustrated in the code snippet below.
+
+```js
+// A user can include a list of know authorities to the config object to be used
+// during authority validation, as shown below.
+const msalConfig = {
+    auth: {
+        clientId: 'your_client_id',
+        authority: 'https://login.live.com',
+        knownAuthorities: ["login.live.com"],
+        protocolMode: "OIDC"
+    }
+};
+
+// Create msal application object
+const cca = new msal.ConfidentialClientApplication(msalConfig)
+```
 
 #### Logging
 You can now declaratively configure logging as part of your configuration, like this
