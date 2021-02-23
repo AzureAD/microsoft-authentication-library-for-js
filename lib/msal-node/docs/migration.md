@@ -59,15 +59,15 @@ This section describes outlines the differnces between the Microsoft Authenticat
 
 - The use of a certificate as a credential to acquire a token has been moved from the `acquireTokenWithClientCertificate` and has been included in as one of the modes of authentication in the `ConfidentialApplication` user agent client application.
 
--The method to acquire and renew tokens silently without prompting users is named `acquireToken` in ADAL.js. In MSAL.js, this method is named `acquireTokenSilent` to be more descriptive of this functionality.
+- The method to acquire and renew tokens silently without prompting users is named `acquireToken` in ADAL.js. In MSAL.js, this method is named `acquireTokenSilent` to be more descriptive of this functionality.
 
 Below is a table of other renamed libraries and how they match up to their equivalent MSAL methods:
 
 | ADAL | MSAL |
 | ---- | ---- |
-|  acquireTokenByClientCredentials |  acquireTokenWithClientCredentials |
-| acquireTokenByRefreshToken| acquireTokenWithRefreshToken|
-| acquireTokenByUsernamePassword| acquireTokenByUsernamePassword|
+|  acquireTokenWithClientCredentials |  acquireTokenByClientCredentials |
+| acquireTokenWithRefreshToken| acquireTokenByRefreshToken|
+| acquireTokenWithUsernamePassword| acquireTokenByUsernamePassword|
 
 ### Authority value `common`
 In v1.0, using the https://login.microsoftonline.com/common authority will allow users to sign in with any Azure AD account (for any organization).
