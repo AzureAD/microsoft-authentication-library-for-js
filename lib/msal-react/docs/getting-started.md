@@ -265,9 +265,10 @@ import { PublicClientApplication } from "@azure/msal-browser";
 const msalInstance = new PublicClientApplication(config);
 
 const acquireAccessToken = async (msalInstance) => {
-    const accounts = msalInstance.getAllAccounts()
+    const activeAccount = msalInstance.getActiveAccount(); // This will only return a non-null value if you have logic somewhere else that calls the setActiveAccount API
+    const accounts = msalInstance.getAllAccounts();
 
-    if (accounts.length === 0) {
+    if (!activeAccount && accounts.length === 0) {
         /*
         * User is not signed in. Throw error or wait for user to login.
         * Do not attempt to log a user in outside of the context of MsalProvider
@@ -275,7 +276,7 @@ const acquireAccessToken = async (msalInstance) => {
     }
     const request = {
         scopes: ["User.Read"]
-        accounts[0]
+        account: activeAccount || accounts[0]
     };
 
     const authResult = await msalInstance.acquireTokenSilent(request);
@@ -283,3 +284,5 @@ const acquireAccessToken = async (msalInstance) => {
     return authResult.accessToken
 };
 ```
+
+For a working end-to-end example, please see our [react router sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/react-router-sample).
