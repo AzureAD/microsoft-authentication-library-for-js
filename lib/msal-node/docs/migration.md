@@ -148,7 +148,7 @@ context.acquireTokenWithClientCredentials(resource, clientId, clientSecret, func
 });
 ```
 
-MSAL does not have this validation flag, instead MSAL now retrieves a list of authorities known to Microsoft and merges that list with the authorities that you've specified in your configuration. It's against this combined list of authorities known to Microsoft and user known authorities, that the provided authority is validated against. Like illustrated in the code snippet below.
+MSAL removes this flag and instead MSAL now allows a user to specify their own list of `knownAuthorities` which is combined with the list of authorities known to Microsoft. It's against this combined list of authorities, that the provided authority is validated against. Like illustrated in the code snippet below.
 
 ```js
 // A user can include a list of know authorities to the config object to be used
