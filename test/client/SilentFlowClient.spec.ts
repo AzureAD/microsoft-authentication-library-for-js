@@ -12,9 +12,10 @@ import {
     TEST_CONFIG,
     TEST_DATA_CLIENT_INFO,
     ID_TOKEN_CLAIMS,
+    TEST_URIS,
 } from "../utils/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
-import { AuthenticationScheme, CredentialType } from "../../src/utils/Constants";
+import { AuthenticationScheme, Constants, CredentialType } from "../../src/utils/Constants";
 import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils";
 import { Authority } from "../../src/authority/Authority";
 import { SilentFlowClient } from "../../src/client/SilentFlowClient";
@@ -25,7 +26,7 @@ import { CommonSilentFlowRequest, AccountEntity, IdTokenEntity, AccessTokenEntit
 import { AuthToken } from "../../src/account/AuthToken";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
-testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
+testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID}`;
 testAccountEntity.localAccountId = ID_TOKEN_CLAIMS.oid;
 testAccountEntity.environment = "login.windows.net";
 testAccountEntity.realm = ID_TOKEN_CLAIMS.tid;
@@ -59,6 +60,16 @@ testRefreshTokenEntity.secret = AUTHENTICATION_RESULT.body.refresh_token;
 testRefreshTokenEntity.credentialType = CredentialType.REFRESH_TOKEN;
 
 describe("SilentFlowClient unit tests", () => {
+    const testAccount: AccountInfo = {
+        homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+        environment: "login.windows.net",
+        tenantId: ID_TOKEN_CLAIMS.tid,
+        username: ID_TOKEN_CLAIMS.preferred_username,
+        localAccountId: ID_TOKEN_CLAIMS.oid,
+        idTokenClaims: ID_TOKEN_CLAIMS,
+        name: ID_TOKEN_CLAIMS.name
+    };
+
     afterEach(() => {
         sinon.restore();
     });
@@ -74,14 +85,46 @@ describe("SilentFlowClient unit tests", () => {
         });
     });
 
+    describe("Success cases", () => {
+
+        it("acquireCachedToken() returns correct token even if offline_access is not present in access token entity", async () => {
+
+            const testScopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE];
+            testAccessTokenEntity.target = testScopes.join(" ");
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
+            sinon.stub(CacheManager.prototype, "readAccountFromCache").returns(testAccountEntity);
+            sinon.stub(CacheManager.prototype, "readIdTokenFromCache").returns(testIdToken);
+            sinon.stub(CacheManager.prototype, "readAccessTokenFromCache").returns(testAccessTokenEntity);
+            sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
+
+            const config = await ClientTestUtils.createTestClientConfiguration();
+            const client = new SilentFlowClient(config);
+            sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
+
+            const silentFlowRequest: CommonSilentFlowRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false
+            };
+
+            const response = await client.acquireCachedToken(silentFlowRequest);
+            expect(response.authority).to.be.eq(`${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}/`);
+            expect(response.uniqueId).to.deep.eq(ID_TOKEN_CLAIMS.oid);
+            expect(response.tenantId).to.deep.eq(ID_TOKEN_CLAIMS.tid);
+            expect(response.scopes).to.deep.eq(testScopes);
+            expect(response.account).to.deep.eq(testAccount);
+            expect(response.idToken).to.deep.eq(testIdToken.secret);
+            expect(response.idTokenClaims).to.deep.eq(ID_TOKEN_CLAIMS);
+            expect(response.accessToken).to.deep.eq(testAccessTokenEntity.secret);
+            expect(response.state).to.be.empty;
+            console.log();
+        });
+    });
+
     describe("Error cases", () => {
-        const testAccount: AccountInfo = {
-            homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-            environment: "login.windows.net",
-            tenantId: "testTenantId",
-            username: "testname@contoso.com",
-            localAccountId: ID_TOKEN_CLAIMS.oid
-        };
 
         it("Throws error if account is not included in request object", async () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
@@ -258,7 +301,7 @@ describe("SilentFlowClient unit tests", () => {
         let config: ClientConfiguration;
         let client: SilentFlowClient;
         const testAccount: AccountInfo = {
-            homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
+            homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID}`,
             tenantId: ID_TOKEN_CLAIMS.tid,
             environment: "login.windows.net",
             username: ID_TOKEN_CLAIMS.preferred_username,
@@ -299,7 +342,7 @@ describe("SilentFlowClient unit tests", () => {
 
             const authResult = await client.acquireToken(silentFlowRequest);
             expect(refreshTokenSpy.called).to.be.false;
-            const expectedScopes = [TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
+            const expectedScopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
             expect(authResult.uniqueId).to.deep.eq(ID_TOKEN_CLAIMS.oid);
             expect(authResult.tenantId).to.deep.eq(ID_TOKEN_CLAIMS.tid);
             expect(authResult.scopes).to.deep.eq(expectedScopes);
@@ -352,7 +395,7 @@ describe("SilentFlowClient unit tests", () => {
             };
             
             const authResult: AuthenticationResult = await client.acquireCachedToken(silentFlowRequest);
-            const expectedScopes = [TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
+            const expectedScopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
             expect(telemetryCacheHitSpy.calledOnce).to.be.true;
             expect(authResult.uniqueId).to.deep.eq(ID_TOKEN_CLAIMS.oid);
             expect(authResult.tenantId).to.deep.eq(ID_TOKEN_CLAIMS.tid);
