@@ -108,19 +108,4 @@ const cca = new msal.ConfidentialClientApplication(msalConfig)
 ```
 
 #### Logging
-You can now declaratively configure logging as part of your configuration, like this
-
-```json
-{
-    auth: {...},
-    system: {
-        loggerOptions: {
-            loggerCallback(loglevel, message, containsPii) {
-                console.log(message);
-            },
-            piiLoggingEnabled: false,
-            logLevel: msal.LogLevel.Verbose
-        }
-    }
-}
-```
+To configure how MSAL logs it's activity you can specify the log level, callback and more in the configuration object passed during application instantiation as explained [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/configuration.md)
