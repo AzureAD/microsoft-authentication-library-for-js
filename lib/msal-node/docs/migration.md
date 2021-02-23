@@ -50,19 +50,78 @@ A: MSAL for Node.js supports certain scenarios to authenticate against AD FS 201
 A: See the Migration guidance section of this article. If, after reading the guide for your app's platform, you have additional questions, you can post on Microsoft Q&A with the tag [azure-ad-adal-deprecation] or open an issue in library's GitHub repository. See the Languages and frameworks section of the MSAL overview article for links to each library's repo.
 
 ## Differences between MSAL and ADAL for node.js
-For overall differences between ADAL.js and MSAL.you might want to read [Differences between MSAL.js and ADAL.js](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-compare-msal-js-and-adal-js)
+Both the Microsoft Authentication Library for Node.js (MSAL for Node.js) and Azure AD Authentication Library for Node.js (ADAL for Node.js) are used to authenticate Azure AD entities and request tokens from Azure AD. Up until now, most developers have worked with Azure AD for developers (v1.0) to authenticate Azure AD identities (work and school accounts) by requesting tokens using ADAL. Now, using MSAL for Node.js, you can authenticate a broader set of Microsoft identities (Azure AD identities and Microsoft accounts, and social and local accounts through Azure AD B2C) through the Microsoft identity platform.
+
+This section describes outlines the differnces between the Microsoft Authentication Library for Node.js (MSAL for Node.js) and Azure AD Authentication Library for Node.js (ADAL for Node.js).
 
 ### Difference in the Core API
-- The method to acquire tokens using client credentials is has been renamed in MSAL to `acquireTokenByClientCredentials` from `acquireTokenWithClientCredentials`
-
 - The methods to acquire tokens using the device code flow have been merged into `acquireTokenByDeviceCode` from the `acquireUserCode`, `acquireTokenWithDeviceCode` and `acquireToken` used to acquire a token via device code in MSAL.
-
-- The method to acquire tokens using a refresh token has been renamed to `acquireTokenByRefreshToken` in MSAL from `acquireTokenWithRefreshToken` in ADAL
-
-- The method to acquire tokens using a username and password pais has been renamed to `acquireTokenByUsernamePassword` in MSAL from `acquireTokenByUsernamePassword` in ADAL
 
 - The use of a certificate as a credential to acquire a token has been moved from the `acquireTokenWithClientCertificate` and has been included in as one of the modes of authentication in the `ConfidentialApplication` user agent client application.
 
+-The method to acquire and renew tokens silently without prompting users is named `acquireToken` in ADAL.js. In MSAL.js, this method is named `acquireTokenSilent` to be more descriptive of this functionality.
+
+Below is a table of other renamed libraries and how they match up to their equivalent MSAL methods:
+
+| ADAL | MSAL |
+| ---- | ---- |
+|  acquireTokenByClientCredentials |  acquireTokenWithClientCredentials |
+| acquireTokenByRefreshToken| acquireTokenWithRefreshToken|
+| acquireTokenByUsernamePassword| acquireTokenByUsernamePassword|
+
+### Authority value `common`
+In v1.0, using the https://login.microsoftonline.com/common authority will allow users to sign in with any Azure AD account (for any organization).
+
+In v2.0, using the https://login.microsoftonline.com/common authority, will allow users to sign in with any Azure AD organization account or a Microsoft personal account (MSA). To restrict the sign in to only Azure AD accounts (same behavior as with ADAL), use https://login.microsoftonline.com/organizations. For details, see the configure authority option in [Initialization of MSAL](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/initialize-public-client-application.md#initialization-of-msal).
+
+### Scopes of acquiring tokens
+- Scope instead of resource parameter in authentication requests to acquire tokens
+
+  v2.0 protocol uses scopes instead of resource in the requests. In other words, when your application needs to request tokens with permissions for a resource such as MS Graph, the difference in values passed to the library methods is as follows:
+
+  v1.0: resource = https://graph.microsoft.com
+
+  v2.0: scope = https://graph.microsoft.com/User.Read
+
+  You can request scopes for any resource API using the URI of the API in this format: appidURI/scope For example: https://mytenant.onmicrosoft.com/myapi/api.read
+
+  Only for the MS Graph API, a scope value user.read maps to https://graph.microsoft.com/User.Read and can be used interchangeably.
+
+  ```js
+  const cca = new msal.ConfidentialClientApplication(config);
+
+  const request = {
+    scopes: ["User.Read"];
+  };
+
+  cca.acquireTokenByClientCredential(request)
+  ```
+- Dynamic scopes for incremental consent.
+
+  When building applications using v1.0, you needed to register the full set of permissions(static scopes) required by the application for the user to consent to at the time of login. In v2.0, you can use the scope parameter to request the permissions at the time you want them. These are called dynamic scopes. This allows the user to provide incremental consent to scopes. So if at the beginning you just want the user to sign in to your application and you don’t need any kind of access, you can do so. If later you need the ability to read the calendar of the user, you can then request the calendar scope in the acquireToken methods and get the user's consent. For example: 
+
+  ```js
+  const cca = new msal.ConfidentialClientApplication(config);
+
+  const request = {
+    scopes: ["https://graph.microsoft.com/User.Read", "https://graph.microsoft.com/Calendar.Read"];
+  };
+
+  cca.acquireTokenByClientCredential(request)
+  ```
+- Scopes for V1.0 APIs
+
+  When getting tokens for V1.0 APIs using MSAL.js, you can request all the static scopes registered on the API by appending .default to the App ID URI of the API as scope. For example:
+
+  ```js
+  const cca = new msal.ConfidentialClientApplication(config);
+
+  const request = {
+    scopes: [apidURI + "/.default"];
+  };
+
+  cca.acquireTokenByClientCredential(request)
+  ```
 ### Migrating from the AuthenticationContext to PublicClientApplication or ConfidentialClientApplication
 
 #### Constructing PublicClientApplication or ConfidentialClientAppliation
