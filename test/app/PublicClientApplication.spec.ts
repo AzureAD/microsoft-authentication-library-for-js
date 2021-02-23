@@ -484,7 +484,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(window.sessionStorage.length).to.be.eq(4);
             });
 
-            it.only("Multiple concurrent calls to handleRedirectPromise return the same promise", async () => {
+            it("Multiple concurrent calls to handleRedirectPromise return the same promise", async () => {
                 const b64Encode = new Base64Encode();
                 const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
                 const browserCrypto = new CryptoOps();
