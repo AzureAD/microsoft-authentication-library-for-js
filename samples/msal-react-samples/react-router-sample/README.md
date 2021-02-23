@@ -17,6 +17,21 @@ This sample was bootstrapped with [Create React App](https://github.com/facebook
 1. `./src/ui-components/SignOutButton.jsx` - Example of how to get the `PublicClientApplication` instance using the `useMsal` hook and invoking a logout function.
 1. `./src/utils/MsGraphApiCall.js` - Example of how to call the MS Graph API with an access token.
 
+### (Optional) MSAL React and class components
+
+For a demonstration of how to use MSAL React with class components, see: `./src/pages/ProfileWithMsal.jsx` and `./src/pages/ProfileRawContext.jsx`.
+
+*After* you initialize `MsalProvider`, there are 3 approaches you can take to protect your class components with MSAL React:
+
+1. Wrap each component that you want to protect with `withMsal` higher-order component (HOC) (e.g. [Profile](./src/pages/ProfileWithMsal.jsx#Profile)).
+1. Consume the raw context directly (e.g. [ProfileContent](./src/pages/ProfileRawContext.jsx#ProfileContent)).
+1. Pass context down from a parent component that has access to the `msalContext` via one of the other means above (e.g. [ProfileContent](./src/pages/ProfileWithMsal.jsx#ProfileContent)).
+
+For more information, visit:
+
+- [Docs: Class Components](../../../lib/msal-react/docs/class-components.md)
+- [MSAL React FAQ](../../../lib/msal-react/FAQ.md)
+
 ## How to run the sample
 
 ### Pre-requisites
@@ -90,6 +105,10 @@ You will also see any lint errors in the console.
 1. Next run `serve -s build`
 1. Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
 1. Open [http://localhost:3000/profile](http://localhost:3000/profile) to see an example of a protected route. If you are not yet signed in, signin will be invoked automatically.
+
+#### Running the sample in IE11
+
+`msal-react` and `msal-browser` support IE11 but the `react-scripts` package requires a few polyfills to work properly. In order to run this sample in IE11 go to `src/index.js` and uncomment the first 2 imports. We recommend using the redirect flow and setting the `storeAuthStateInCookie` config parameter to `true` in IE11 as there are known issues with popups. You can read more about the known issues with IE11 [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Known-issues-on-IE-and-Edge-Browser)
 
 #### Learn more about the 3rd-party libraries used to create this sample
 
