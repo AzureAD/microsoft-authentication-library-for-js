@@ -54,6 +54,9 @@ export abstract class ClientApplication {
     // Callback for subscribing to events
     private eventCallbacks: Map<string, EventCallbackFunction>;
 
+    // Redirect Response Object
+    private redirectResponse: Promise<AuthenticationResult | null> | undefined;
+
     /**
      * @constructor
      * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
@@ -123,34 +126,38 @@ export abstract class ClientApplication {
         this.logger.verbose("handleRedirectPromise called");
         const loggedInAccounts = this.getAllAccounts();
         if (this.isBrowserEnvironment) {
-            return this.handleRedirectResponse(hash)
-                .then((result: AuthenticationResult | null) => {
-                    if (result) {
-                        // Emit login event if number of accounts change
-                        const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
-                        if (isLoggingIn) {
-                            this.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect, result);
-                            this.logger.verbose("handleRedirectResponse returned result, login success");
-                        } else {
-                            this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Redirect, result);
-                            this.logger.verbose("handleRedirectResponse returned result, acquire token success");
+            if (typeof this.redirectResponse === "undefined") {
+                this.redirectResponse = this.handleRedirectResponse(hash)
+                    .then((result: AuthenticationResult | null) => {
+                        if (result) {
+                            // Emit login event if number of accounts change
+                            const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
+                            if (isLoggingIn) {
+                                this.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect, result);
+                                this.logger.verbose("handleRedirectResponse returned result, login success");
+                            } else {
+                                this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Redirect, result);
+                                this.logger.verbose("handleRedirectResponse returned result, acquire token success");
+                            }
                         }
-                    }
-                    this.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
+                        this.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
 
-                    return result;
-                })
-                .catch((e) => {
-                    // Emit login event if there is an account
-                    if (loggedInAccounts.length > 0) {
-                        this.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Redirect, null, e);
-                    } else {
-                        this.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
-                    }
-                    this.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
+                        return result;
+                    })
+                    .catch((e) => {
+                        // Emit login event if there is an account
+                        if (loggedInAccounts.length > 0) {
+                            this.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Redirect, null, e);
+                        } else {
+                            this.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
+                        }
+                        this.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
 
-                    throw e;
-                });
+                        throw e;
+                    });
+            } 
+            
+            return this.redirectResponse;
         }
         this.logger.verbose("handleRedirectPromise returns null, not browser environment");
         return null;
