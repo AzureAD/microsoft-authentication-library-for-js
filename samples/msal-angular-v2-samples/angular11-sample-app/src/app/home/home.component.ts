@@ -1,6 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { MsalBroadcastService, MsalService } from '@azure/msal-angular';
-import { AuthenticationResult, EventMessage, EventType } from '@azure/msal-browser';
+import { EventMessage, EventType } from '@azure/msal-browser';
 import { filter } from 'rxjs/operators';
 
 @Component({
