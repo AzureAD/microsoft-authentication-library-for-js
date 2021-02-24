@@ -257,7 +257,7 @@ import { useMsal, useAccount } from "@azure/msal-react";
 
 export function App() {
     const { instance, accounts, inProgress } = useMsal();
-    const account = useAccount(accounts[0]);
+    const account = useAccount(accounts[0] || {});
     const [apiData, setApiData] = useState(null);
 
     useEffect(() => {
@@ -287,3 +287,39 @@ export function App() {
     }
 }
 ```
+
+## Acquiring an access token outside of a React component
+
+If you require an access token outside of a React component you can directly call the `acquireTokenSilent` function on the `PublicClientApplication`.
+We do not recommend calling functions that change the user's authenticated state (login, logout) outside the react context provided by `MsalProvider` as the components inside the context may not properly update.
+
+Keep in mind that the user has to be signed in before you can acquire a token.
+
+```javascript
+import { PublicClientApplication } from "@azure/msal-browser";
+
+// This should be the same instance you pass to MsalProvider
+const msalInstance = new PublicClientApplication(config);
+
+const acquireAccessToken = async (msalInstance) => {
+    const activeAccount = msalInstance.getActiveAccount(); // This will only return a non-null value if you have logic somewhere else that calls the setActiveAccount API
+    const accounts = msalInstance.getAllAccounts();
+
+    if (!activeAccount && accounts.length === 0) {
+        /*
+        * User is not signed in. Throw error or wait for user to login.
+        * Do not attempt to log a user in outside of the context of MsalProvider
+        */   
+    }
+    const request = {
+        scopes: ["User.Read"]
+        account: activeAccount || accounts[0]
+    };
+
+    const authResult = await msalInstance.acquireTokenSilent(request);
+
+    return authResult.accessToken
+};
+```
+
+For a working end-to-end example, please see our [react router sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/react-router-sample).
