@@ -507,7 +507,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 };
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`, b64Encode.encode(JSON.stringify(testTokenReq)));
                 const testServerTokenResponse = {
-                    headers: null,
+                    headers: {},
                     status: 200,
                     body: {
                         token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
@@ -562,6 +562,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const promise2 = pca.handleRedirectPromise();
                 const tokenResponse1 = await promise1;
                 const tokenResponse2 = await promise2;
+                const tokenResponse3 = await pca.handleRedirectPromise("testHash");
+                expect(tokenResponse3).to.be.null;
+                const tokenResponse4 = await pca.handleRedirectPromise();
 
                 if (!tokenResponse1 || !tokenResponse2) {
                     throw "This should not throw. Both responses should be non-null."
@@ -586,6 +589,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse2.expiresOn.getMilliseconds()).to.be.true;
 
                 expect(tokenResponse1).to.deep.eq(tokenResponse2);
+                expect(tokenResponse4).to.deep.eq(tokenResponse1);
                 expect(window.sessionStorage.length).to.be.eq(4);
             });
 

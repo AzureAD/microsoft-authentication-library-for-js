@@ -55,7 +55,7 @@ export abstract class ClientApplication {
     private eventCallbacks: Map<string, EventCallbackFunction>;
 
     // Redirect Response Object
-    private redirectResponse: Promise<AuthenticationResult | null> | undefined;
+    private redirectResponse: Map<string, Promise<AuthenticationResult | null>>;
 
     /**
      * @constructor
@@ -99,6 +99,9 @@ export abstract class ClientApplication {
         // Initialize the network module class.
         this.networkClient = this.config.system.networkClient;
 
+        // Initialize redirectResponse Map
+        this.redirectResponse = new Map();
+
         if (!this.isBrowserEnvironment) {
             this.browserStorage = DEFAULT_BROWSER_CACHE_MANAGER(this.config.auth.clientId, this.logger);
             this.browserCrypto = DEFAULT_CRYPTO_IMPLEMENTATION;
@@ -131,12 +134,14 @@ export abstract class ClientApplication {
              * otherwise return the promise from the first invocation. Prevents race conditions when handleRedirectPromise is called
              * several times concurrently.
              */
-            if (typeof this.redirectResponse === "undefined") {
+            const redirectResponseKey = hash || Constants.EMPTY_STRING;
+            let response = this.redirectResponse.get(redirectResponseKey);
+            if (typeof response === "undefined") {
                 this.logger.verbose("handleRedirectPromise has been called for the first time, storing the promise");
-                this.redirectResponse = this.handleRedirectResponse(hash)
+                response = this.handleRedirectResponse(hash)
                     .then((result: AuthenticationResult | null) => {
                         if (result) {
-                            // Emit login event if number of accounts change
+                        // Emit login event if number of accounts change
                             const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
                             if (isLoggingIn) {
                                 this.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect, result);
@@ -151,7 +156,7 @@ export abstract class ClientApplication {
                         return result;
                     })
                     .catch((e) => {
-                        // Emit login event if there is an account
+                    // Emit login event if there is an account
                         if (loggedInAccounts.length > 0) {
                             this.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Redirect, null, e);
                         } else {
@@ -161,11 +166,12 @@ export abstract class ClientApplication {
 
                         throw e;
                     });
+                this.redirectResponse.set(redirectResponseKey, response);
             } else {
                 this.logger.verbose("handleRedirectPromise has been called previously, returning the result from the first call");
             }
             
-            return this.redirectResponse;
+            return response;
         }
         this.logger.verbose("handleRedirectPromise returns null, not browser environment");
         return null;
