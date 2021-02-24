@@ -28,7 +28,10 @@ export { EventType } from "./event/EventType";
 
 // Common Object Formats
 export {
+    // Auth Scheme
     AuthenticationScheme,
+    // Cache
+    CacheRecord,
     // Account
     AccountInfo,
     AccountEntity,
