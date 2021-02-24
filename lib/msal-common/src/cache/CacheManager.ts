@@ -805,6 +805,8 @@ export abstract class CacheManager implements ICacheManager {
 
         if (!requestTargetScopeSet.containsOnlyOIDCScopes()) {
             requestTargetScopeSet.removeOIDCScopes(); // ignore OIDC scopes
+        } else {
+            requestTargetScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
         }
         return entityScopeSet.containsScopeSet(requestTargetScopeSet);
     }
