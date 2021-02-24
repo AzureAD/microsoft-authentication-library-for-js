@@ -9,19 +9,20 @@ Note: `msal-angular@2` is under development. **We do not recommend using this ve
 | --- | --- | --- | --- | --- |
 
 1. [About](#about)
-2. [Guides](#guides)
-3. [Version Support](#version-support)
-4. [Prerequisites](#prerequisites)
-5. [Installation](#installation)
-6. [Usage](#usage)
-7. [Samples](#samples)
-8. [Build and running tests](#build-and-running-tests)
-9. [Versioning](#versioning)
-10. [Community Help and Support](#community-help-and-support)
-11. [Contribute](#contribute)
-12. [Security Reporting](#security-reporting)
-13. [License](#license)
-14. [Code of Conduct](#we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct)
+1. [Guides](#guides)
+1. [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/FAQ.md)
+1. [Version Support](#version-support)
+1. [Prerequisites](#prerequisites)
+1. [Installation](#installation)
+1. [Usage](#usage)
+1. [Samples](#samples)
+1. [Build and running tests](#build-and-running-tests)
+1. [Versioning](#versioning)
+1. [Community Help and Support](#community-help-and-support)
+1. [Contribute](#contribute)
+1. [Security Reporting](#security-reporting)
+1. [License](#license)
+1. [Code of Conduct](#we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct)
 
 ## About
 
@@ -93,10 +94,13 @@ All documentation for MSAL Angular v1 can be found [here](https://github.com/Azu
 * [Angular v11](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-sample-app)
 * [Angular v11 B2C Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-b2c-sample)
 
+See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/README.md) for specific features demonstrated by our 2.x samples.
+
 ### Advanced MSAL Angular 2.x Samples
 * [Angular SPA with ASP.NET Core web API](https://github.com/Azure-Samples/ms-identity-javascript-angular-spa-aspnetcore-webapi)
 * [Angular SPA with APS.NET Core web API using App Roles and RBAC](https://github.com/Azure-Samples/ms-identity-javascript-angular-spa-dotnetcore-webapi-roles-groups)
 * [Multi-tenant tutorial  using MSAL Angular v2](https://github.com/Azure-Samples/ms-identity-javascript-angular-spa-aspnet-webapi-multitenant)
+
 
 ## Build and running tests
 
