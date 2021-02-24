@@ -2,7 +2,8 @@
 
 1. [Initialization](#initialization)
 1. [Determining whether a user is authenticated](#determining-whether-a-user-is-authenticated)
-1. [Signing a user in](#signing-a-user-in)
+1. [Protecting Components](#protecting-components)
+1. [Sign a user in using the login APIs provided by msal-browser](#sign-a-user-in-using-the-login-apis-provided-by-msal-browser)
 1. [Acquiring an access token](#acquiring-an-access-token)
 
 ## Initialization
@@ -92,16 +93,52 @@ export function App() {
 }
 ```
 
-## Signing a user in
+## Protecting Components
 
-When you are ready to sign a user in there are 2 hooks you may find useful.
+If you have components you only want to show to authenticated users you can use any of the methods above. But what if you want to automatically invoke a login if a user is not yet authenticated? `msal-react` provides 2 ways of doing this with the `MsalAuthenticationTemplate` or the `useMsalAuthentication` hook.
+
+### `MsalAuthenticationTemplate` Component
+
+The `MsalAuthenticationTemplate` component will render its children if a user is authenticated or attempt to sign a user in. Just provide it with the interaction type you would like to use (redirect or popup) and optionally a [request object](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/request-response-object.md) to be passed to the login API, a component to display while authentication is in progress or a component to display if an error occurs.
+
+You can find a working example of this in any of our [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples) on the `/profile` page.
+
+```javascript
+import React from "react";
+import { MsalAuthenticationTemplate } from "@azure/msal-react";
+import { InteractionType } from "@azure/msal-browser";
+
+function ErrorComponent({error}) {
+    return <p>An Error Occurred: {error}</p>;
+}
+
+function LoadingComponent() {
+    return <p>Authentication in progress...</p>;
+}
+
+export function Example() {
+    const authRequest = {
+        scopes: ["openid", "profile"]
+    };
+
+    return (
+        // authenticationRequest, errorComponent and loadingComponent props are optional
+        <MsalAuthenticationTemplate 
+            interactionType={InteractionType.Popup} 
+            authenticationRequest={authRequest} 
+            errorComponent={ErrorComponent} 
+            loadingComponent={LoadingComponent}
+        >
+            <p>At least one account is signed in!</p>
+        </MsalAuthenticationTemplate>
+      )
+};
+```
 
 ### `useMsalAuthentication` hook
 
 The `useMsalAuthentication` hook will first check if a user is signed in, then attempt to sign a user in if there are no users signed in. You will need to provide the interaction type you would like to use (redirect or popup).
-It will return the result of the login operation, any error that occurred and the login function you can use if you need to retry. This hook is particularly useful if you would like to trigger a sign-in attempt automatically when the component renders.
-
-Note: If you choose to use the redirect interaction type, this hook will only return if an error occurs. After the user signs in, the IDP will redirect the user back to your app at which point msal will reflect that the user has been signed in.
+It will return the result of the login operation, any error that occurred and the login function you can use if you need to retry.
 
 You can read more about this hook in the [hooks doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/hooks.md#usemsalauthentication-hook).
 
@@ -126,11 +163,11 @@ export function App() {
 }
 ```
 
-### Call login APIs provided by `msal-browser`
+## Sign a user in using the login APIs provided by `msal-browser`
 
-Another way to trigger a sign-in is by using `msal-browser` APIs directly from the `PublicClientApplication` instance in context. There are 3 ways you can access the instance from context.
+Another way to invoke a sign-in is by using `msal-browser` APIs directly from the `PublicClientApplication` instance in context. There are 3 ways you can access the instance from context.
 
-#### `useMsal` hook
+### `useMsal` hook
 
 A hook that returns the `PublicClientApplication` instance, an array of all accounts currently signed in and an `inProgress` value that tells you what msal is currently doing.
 
@@ -158,7 +195,7 @@ export function App() {
 }
 ```
 
-#### Consuming the raw context
+### Consuming the raw context
 
 If you are using a class component and can't use hooks you can consume the raw msal context through `MsalContext`.
 You can read more about using `msal-react` in class components [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/class-components.md).
@@ -187,7 +224,7 @@ class App extends React.Component {
 }
 ```
 
-#### Wrapping your component with the withMsal Higher-Order-Component
+### Wrapping your component with the withMsal Higher-Order-Component
 
 Another way to consume the msal context in both class and function components is to wrap your component with the `withMsal` HOC which will inject the context into the props of your component.
 
