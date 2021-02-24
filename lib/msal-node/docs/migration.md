@@ -130,7 +130,8 @@ When you use MSAL, you instantiate either a [PublicClientApplication](https://gi
 You can [declaratively configure](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/configuration.md) this object with JSON.
 
 #### Migrate from authority validation to known authorities
-ADAL has a flag to enable or disable authority validation. Authority validation is a feature in ADAL, that prevents your code from requesting tokens from a potentially malicious authority, ADAL retrieves a list of authorities known to Microsoft and validates the user provided authority against the retrieved set of authorities. Use of the flag is shown in the code snippet below.
+
+ADAL has a flag to enable or disable authority validation.  Authority validation is a feature in ADAL/MSAL, that prevents your code from requesting tokens from a potentially malicious authority. ADAL retrieves a list of authorities known to Microsoft and validates the user provided authority against the retrieved set of authorities. Use of the flag is shown in the code snippet below.
 
 ```js
 // With this flag you can turn on and off the authority validation
@@ -148,7 +149,7 @@ context.acquireTokenWithClientCredentials(resource, clientId, clientSecret, func
 });
 ```
 
-MSAL removes this flag and instead MSAL now allows a user to specify their own list of `knownAuthorities` which is combined with the list of authorities known to Microsoft. It's against this combined list of authorities, that the provided authority is validated against. Like illustrated in the code snippet below.
+MSAL does not have a flag to disable authority validation, authorities are always validated. MSAL now compares your requested authority against a list of authorities known to Microsoft or a list of authorities you've specified in your configuration. Like illustrated in the code snippet below.
 
 ```js
 // A user can include a list of know authorities to the config object to be used
