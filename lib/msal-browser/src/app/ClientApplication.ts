@@ -126,7 +126,13 @@ export abstract class ClientApplication {
         this.logger.verbose("handleRedirectPromise called");
         const loggedInAccounts = this.getAllAccounts();
         if (this.isBrowserEnvironment) {
+            /**
+             * Store the promise on the PublicClientApplication instance if this is the first invocation of handleRedirectPromise,
+             * otherwise return the promise from the first invocation. Prevents race conditions when handleRedirectPromise is called
+             * several times concurrently.
+             */
             if (typeof this.redirectResponse === "undefined") {
+                this.logger.verbose("handleRedirectPromise has been called for the first time, storing the promise");
                 this.redirectResponse = this.handleRedirectResponse(hash)
                     .then((result: AuthenticationResult | null) => {
                         if (result) {
@@ -155,7 +161,9 @@ export abstract class ClientApplication {
 
                         throw e;
                     });
-            } 
+            } else {
+                this.logger.verbose("handleRedirectPromise has been called previously, returning the result from the first call");
+            }
             
             return this.redirectResponse;
         }
