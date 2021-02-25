@@ -20,11 +20,12 @@ export class JsonWebEncryption {
     public authenticationTag: string;
 
     constructor(rawJwe: string) {
+        console.log("Raw: ", rawJwe);
         this.base64Decode = new Base64Decode();
         const jweAttributes = rawJwe.split(".");
-
+        // TODO: Link to RFC
         this.header = this.parseJweProtectedHeader(jweAttributes[0]);
-        this.encryptedKey = jweAttributes[1];
+        this.encryptedKey = this.base64Decode.decode(jweAttributes[1]);
         this.initializationVector = this.base64Decode.decode(jweAttributes[2]);
         this.ciphertext = this.base64Decode.decode(jweAttributes[3]);
         this.authenticationTag = this.base64Decode.decode(jweAttributes[4]);
@@ -32,9 +33,9 @@ export class JsonWebEncryption {
     }
 
     async unwrapContentEncryptionKey(unwrappingKey: CryptoKey): Promise<CryptoKey> {
-        const key = BrowserStringUtils.stringToArrayBuffer(this.encryptedKey);
-        debugger;
-        const cek = window.crypto.subtle.decrypt("RSA-OAEP", unwrappingKey, key); 
+        const encryptedKeyBuffer = BrowserStringUtils.stringToArrayBuffer(this.encryptedKey);
+        const cek = window.crypto.subtle.decrypt("RSA-OAEP", unwrappingKey, encryptedKeyBuffer);
+        console.log(cek);
         const sk = window.crypto.subtle.importKey("jwk", await cek, "AES-GCM", false, ["decrypt"]);
         return Promise.all([cek, sk]).then(result => {
             console.log(result);
