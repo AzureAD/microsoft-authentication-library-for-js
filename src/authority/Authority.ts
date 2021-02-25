@@ -17,6 +17,7 @@ import { AuthorityMetadataEntity } from "../cache/entities/AuthorityMetadataEnti
 import { AuthorityOptions } from "./AuthorityOptions";
 import { CloudInstanceDiscoveryResponse, isCloudInstanceDiscoveryResponse } from "./CloudInstanceDiscoveryResponse";
 import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
+import { PrefferedAzureRegionOptions } from "../request/CommonClientCredentialRequest";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
@@ -36,13 +37,16 @@ export class Authority {
     private authorityOptions: AuthorityOptions;
     // Authority metadata
     private metadata: AuthorityMetadataEntity;
+    // Authority preffered azure region options
+    private prefferedAzureRegionOptions: PrefferedAzureRegionOptions | null;
 
-    constructor(authority: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions) {
+    constructor(authority: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, prefferedAzureRegionOptions?: PrefferedAzureRegionOptions) {
         this.canonicalAuthority = authority;
         this._canonicalAuthority.validateAsUri();
         this.networkInterface = networkInterface;
         this.cacheManager = cacheManager;
         this.authorityOptions = authorityOptions;
+        this.prefferedAzureRegionOptions = prefferedAzureRegionOptions || null;
     }
 
     // See above for AuthorityType
@@ -262,6 +266,13 @@ export class Authority {
 
         metadata = await this.getEndpointMetadataFromNetwork();
         if (metadata) {
+            // If the user prefers to use an azure region replace the global endpoints with regional information.
+            if (this.prefferedAzureRegionOptions?.useAzureRegion) {
+                const azureRegion = this.prefferedAzureRegionOptions.regionUsedIfAutoDetectionFails;
+                metadata.authorization_endpoint = Authority.buildAuthorityString(metadata.authorization_endpoint, azureRegion);
+                metadata.token_endpoint = Authority.buildAuthorityString(metadata.token_endpoint, azureRegion);
+            }
+
             metadataEntity.updateEndpointMetadata(metadata, true);
             return AuthorityMetadataSource.NETWORK;
         } else {
@@ -455,6 +466,6 @@ export class Authority {
         const urlComponents = globalUrl.getUrlComponents();
 
         // Include the query string portion of the url
-        return `${urlComponents.Protocol}//${region}.${urlComponents.HostNameAndPort}${urlComponents.AbsolutePath}`;
+        return `${urlComponents.Protocol}//${region}.login.microsoft.com${urlComponents.AbsolutePath}`;
     }
 }
