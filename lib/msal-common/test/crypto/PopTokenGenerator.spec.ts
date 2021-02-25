@@ -8,7 +8,7 @@ import { ICrypto, PkceCodes, UrlString, SignedHttpRequest, TimeUtils, IUri } fro
 import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS, TEST_TOKENS } from "../utils/StringConstants";
 import { PopTokenGenerator } from "../../src/crypto/PopTokenGenerator";
 
-describe.only("PopTokenGenerator Unit Tests", () => {
+describe("PopTokenGenerator Unit Tests", () => {
 
     afterEach(() => {
         sinon.restore();
