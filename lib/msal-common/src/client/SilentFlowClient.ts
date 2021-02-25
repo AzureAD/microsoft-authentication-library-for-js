@@ -65,7 +65,7 @@ export class SilentFlowClient extends BaseClient {
             if (this.config.serverTelemetryManager) {
                 this.config.serverTelemetryManager.incrementCacheHits();
             }
-            return await this.generateResultFromCacheRecord(cacheRecord, request.resourceRequestMethod, request.resourceRequestUri);
+            return await this.generateResultFromCacheRecord(cacheRecord, request.resourceRequestMethod, request.resourceRequestUri, request.clientClaims);
         }
     }
 
@@ -73,7 +73,7 @@ export class SilentFlowClient extends BaseClient {
      * Helper function to build response object from the CacheRecord
      * @param cacheRecord
      */
-    private async generateResultFromCacheRecord(cacheRecord: CacheRecord, resourceRequestMethod?: string, resourceRequestUri?: string): Promise<AuthenticationResult> {
+    private async generateResultFromCacheRecord(cacheRecord: CacheRecord, resourceRequestMethod?: string, resourceRequestUri?: string, clientClaims?: string): Promise<AuthenticationResult> {
         let idTokenObj: AuthToken | undefined;
         if (cacheRecord.idToken) {
             idTokenObj = new AuthToken(cacheRecord.idToken.secret, this.config.cryptoInterface);
@@ -86,7 +86,8 @@ export class SilentFlowClient extends BaseClient {
             idTokenObj,
             undefined,
             resourceRequestMethod,
-            resourceRequestUri
+            resourceRequestUri,
+            clientClaims
         );
     }
 
