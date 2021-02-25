@@ -4,7 +4,7 @@ By default `msal-browser` uses `window.location.assign` and `window.location.rep
 
 ## Writing your own implemenation
 
-The interface contains 2 methods: 
+The interface contains 2 methods:
 
 - `navigateInternal` - Called when redirecting between pages in your app e.g. redirecting from the `redirectUri` back to the page that initiated the login
 - `navigateExternal` - Called when redirecting to urls external to your app e.g. AAD Sign-in prompt
@@ -34,6 +34,8 @@ class CustomNavigationClient extends NavigationClient {
     // navigateExternal will use the default
 }
 ```
+
+**Note:** When providing your own implementation of `navigateInternal` you should not navigate to a different domain as this can break your authentication flow. It is intended only to be used for navigation to pages on the same domain.
 
 ### Function Parameters
 
