@@ -21,6 +21,7 @@ myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
 });
 
 function handleResponse(resp) {
+    console.log(resp);
     if (resp !== null) {
         accountId = resp.account.homeAccountId;
         myMSALObj.setActiveAccount(resp.account);

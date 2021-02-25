@@ -126,7 +126,7 @@ export class ResponseHandler {
         } else {
             decryptedTokenResponse = serverTokenResponse;
         }
-
+        debugger;
         return this.handleTokenResponse(decryptedTokenResponse, authority, resourceRequestMethod, resourceRequestUri, authCodePayload, requestScopes, oboAssertion, handlingRefreshTokenResponse);
     }
 

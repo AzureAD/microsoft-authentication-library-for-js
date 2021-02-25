@@ -233,15 +233,14 @@ export class CryptoOps implements ICrypto {
         // Get keypair from cache
         const cachedKeyPair: CachedKeyPair = await this.cache.get(stkJwkThumbprint);
         const sessionKeyJwe = new JsonWebEncryption(rawSessionKeyJwe);
-        console.log(sessionKeyJwe);
-        const cek = await sessionKeyJwe.unwrapContentEncryptionKey(cachedKeyPair.privateKey);
-        console.log("CEK Promise: ", cek);
-
+        const sessionKey = await sessionKeyJwe.unwrapContentEncryptionKey(cachedKeyPair.privateKey);
+        console.log("SK: ", sessionKey);
+        
         const response: ServerAuthorizationTokenResponse = {
             token_type: "pop",
             access_token: "lakjsdlkf"
         };
 
-        return response;
+        return Promise.resolve(response);
     }
 }
