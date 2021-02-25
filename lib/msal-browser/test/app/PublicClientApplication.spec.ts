@@ -485,6 +485,115 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(window.sessionStorage.length).to.be.eq(4);
             });
 
+            it("Multiple concurrent calls to handleRedirectPromise return the same promise", async () => {
+                const b64Encode = new Base64Encode();
+                const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
+                const browserCrypto = new CryptoOps();
+                const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
+
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`, TEST_CONFIG.validAuthority);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`, TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`, "123523");
+                const testTokenReq: AuthorizationCodeRequest = {
+                    redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+                    code: "thisIsATestCode",
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                    authority: `${Constants.DEFAULT_AUTHORITY}`,
+                    correlationId: RANDOM_TEST_GUID,
+                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+                };
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`, b64Encode.encode(JSON.stringify(testTokenReq)));
+                const testServerTokenResponse = {
+                    headers: {},
+                    status: 200,
+                    body: {
+                        token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                        scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                        expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                        ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                        access_token: TEST_TOKENS.ACCESS_TOKEN,
+                        refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                        id_token: TEST_TOKENS.IDTOKEN_V2,
+                        client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO
+                    }
+                };
+                const testIdTokenClaims: TokenClaims = {
+                    "ver": "2.0",
+                    "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                    "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                    "name": "Abe Lincoln",
+                    "preferred_username": "AbeLi@microsoft.com",
+                    "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                    "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    "nonce": "123523",
+                };
+                const testAccount: AccountInfo = {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                    environment: "login.windows.net",
+                    tenantId: testIdTokenClaims.tid,
+                    username: testIdTokenClaims.preferred_username
+                };
+                const testTokenResponse: AuthenticationResult = {
+                    authority: TEST_CONFIG.validAuthority,
+                    uniqueId: testIdTokenClaims.oid,
+                    tenantId: testIdTokenClaims.tid,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    idToken: testServerTokenResponse.body.id_token,
+                    idTokenClaims: testIdTokenClaims,
+                    accessToken: testServerTokenResponse.body.access_token,
+                    fromCache: false,
+                    expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
+                    account: testAccount,
+                    tokenType: AuthenticationScheme.BEARER
+                };
+                sinon.stub(XhrClient.prototype, "sendGetRequestAsync").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+                sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
+                pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                    }
+                });
+
+                const promise1 = pca.handleRedirectPromise();
+                const promise2 = pca.handleRedirectPromise();
+                const tokenResponse1 = await promise1;
+                const tokenResponse2 = await promise2;
+                const tokenResponse3 = await pca.handleRedirectPromise("testHash");
+                expect(tokenResponse3).to.be.null;
+                const tokenResponse4 = await pca.handleRedirectPromise();
+
+                if (!tokenResponse1 || !tokenResponse2) {
+                    throw "This should not throw. Both responses should be non-null."
+                }
+
+                // Response from first promise
+                expect(tokenResponse1.uniqueId).to.be.eq(testTokenResponse.uniqueId);
+                expect(tokenResponse1.tenantId).to.be.eq(testTokenResponse.tenantId);
+                expect(tokenResponse1.scopes).to.be.deep.eq(testTokenResponse.scopes);
+                expect(tokenResponse1.idToken).to.be.eq(testTokenResponse.idToken);
+                expect(tokenResponse1.idTokenClaims).to.be.contain(testTokenResponse.idTokenClaims);
+                expect(tokenResponse1.accessToken).to.be.eq(testTokenResponse.accessToken);
+                expect(testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse1.expiresOn.getMilliseconds()).to.be.true;
+                
+                // Response from second promise
+                expect(tokenResponse2.uniqueId).to.be.eq(testTokenResponse.uniqueId);
+                expect(tokenResponse2.tenantId).to.be.eq(testTokenResponse.tenantId);
+                expect(tokenResponse2.scopes).to.be.deep.eq(testTokenResponse.scopes);
+                expect(tokenResponse2.idToken).to.be.eq(testTokenResponse.idToken);
+                expect(tokenResponse2.idTokenClaims).to.be.contain(testTokenResponse.idTokenClaims);
+                expect(tokenResponse2.accessToken).to.be.eq(testTokenResponse.accessToken);
+                expect(testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse2.expiresOn.getMilliseconds()).to.be.true;
+
+                expect(tokenResponse1).to.deep.eq(tokenResponse2);
+                expect(tokenResponse4).to.deep.eq(tokenResponse1);
+                expect(window.sessionStorage.length).to.be.eq(4);
+            });
+
             it("gets hash from cache and processes error", (done) => {
                 const testAuthCodeRequest: AuthorizationCodeRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
