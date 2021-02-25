@@ -59,6 +59,9 @@ export abstract class ClientApplication {
     // Callback for subscribing to events
     private eventCallbacks: Map<string, EventCallbackFunction>;
 
+    // Redirect Response Object
+    private redirectResponse: Map<string, Promise<AuthenticationResult | null>>;
+
     /**
      * @constructor
      * Constructor for the PublicClientApplication used to instantiate the PublicClientApplication object
@@ -103,6 +106,9 @@ export abstract class ClientApplication {
 
         // Initialize the navigation client class.
         this.navigationClient = this.config.system.navigationClient;
+        
+        // Initialize redirectResponse Map
+        this.redirectResponse = new Map();
 
         if (!this.isBrowserEnvironment) {
             this.browserStorage = DEFAULT_BROWSER_CACHE_MANAGER(this.config.auth.clientId, this.logger);
@@ -131,34 +137,49 @@ export abstract class ClientApplication {
         this.logger.verbose("handleRedirectPromise called");
         const loggedInAccounts = this.getAllAccounts();
         if (this.isBrowserEnvironment) {
-            return this.handleRedirectResponse(hash)
-                .then((result: AuthenticationResult | null) => {
-                    if (result) {
+            /**
+             * Store the promise on the PublicClientApplication instance if this is the first invocation of handleRedirectPromise,
+             * otherwise return the promise from the first invocation. Prevents race conditions when handleRedirectPromise is called
+             * several times concurrently.
+             */
+            const redirectResponseKey = hash || Constants.EMPTY_STRING;
+            let response = this.redirectResponse.get(redirectResponseKey);
+            if (typeof response === "undefined") {
+                this.logger.verbose("handleRedirectPromise has been called for the first time, storing the promise");
+                response = this.handleRedirectResponse(hash)
+                    .then((result: AuthenticationResult | null) => {
+                        if (result) {
                         // Emit login event if number of accounts change
-                        const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
-                        if (isLoggingIn) {
-                            this.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect, result);
-                            this.logger.verbose("handleRedirectResponse returned result, login success");
-                        } else {
-                            this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Redirect, result);
-                            this.logger.verbose("handleRedirectResponse returned result, acquire token success");
+                            const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
+                            if (isLoggingIn) {
+                                this.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect, result);
+                                this.logger.verbose("handleRedirectResponse returned result, login success");
+                            } else {
+                                this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Redirect, result);
+                                this.logger.verbose("handleRedirectResponse returned result, acquire token success");
+                            }
                         }
-                    }
-                    this.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
+                        this.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
 
-                    return result;
-                })
-                .catch((e) => {
+                        return result;
+                    })
+                    .catch((e) => {
                     // Emit login event if there is an account
-                    if (loggedInAccounts.length > 0) {
-                        this.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Redirect, null, e);
-                    } else {
-                        this.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
-                    }
-                    this.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
+                        if (loggedInAccounts.length > 0) {
+                            this.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Redirect, null, e);
+                        } else {
+                            this.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
+                        }
+                        this.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
 
-                    throw e;
-                });
+                        throw e;
+                    });
+                this.redirectResponse.set(redirectResponseKey, response);
+            } else {
+                this.logger.verbose("handleRedirectPromise has been called previously, returning the result from the first call");
+            }
+            
+            return response;
         }
         this.logger.verbose("handleRedirectPromise returns null, not browser environment");
         return null;
@@ -520,7 +541,7 @@ export abstract class ClientApplication {
         this.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
         try {
-            const silentTokenResult = await this.acquireTokenByIframe(request);
+            const silentTokenResult = await this.acquireTokenByIframe(request, ApiId.ssoSilent);
             this.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
             return silentTokenResult;
         } catch (e) {
@@ -531,9 +552,10 @@ export abstract class ClientApplication {
 
     /**
      * This function uses a hidden iframe to fetch an authorization code from the eSTS. To be used for silent refresh token acquisition and renewal.
-     * @param request {@link SsoSilentRequest}
+     * @param request
+     * @param apiId - ApiId of the calling function. Used for telemetry.
      */
-    private async acquireTokenByIframe(request: SsoSilentRequest): Promise<AuthenticationResult> {
+    private async acquireTokenByIframe(request: SsoSilentRequest, apiId: ApiId): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenByIframe called");
         // Check that we have some SSO data
         if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
@@ -551,7 +573,7 @@ export abstract class ClientApplication {
             prompt: PromptValue.NONE
         }, InteractionType.Silent);
 
-        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.ssoSilent, silentRequest.correlationId);
+        const serverTelemetryManager = this.initializeServerTelemetryManager(apiId, silentRequest.correlationId);
 
         try {
             // Create auth code request and generate PKCE params
@@ -602,7 +624,7 @@ export abstract class ClientApplication {
             const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
                 this.logger.verbose("Refresh token expired or invalid, attempting acquire token by iframe");
-                return await this.acquireTokenByIframe(request);
+                return await this.acquireTokenByIframe(request, ApiId.acquireTokenSilent_authCode);
             }
             throw e;
         }
