@@ -13,17 +13,7 @@ export class NavigationClient implements INavigationClient {
      * @param options 
      */
     navigateInternal(url: string, options: NavigationOptions): Promise<boolean>{
-        if (options.noHistory) {
-            window.location.replace(url);
-        } else {
-            window.location.assign(url);
-        }
-
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve(true);
-            }, options.timeout);
-        });
+        return NavigationClient.defaultNavigateWindow(url, options);
     }
 
     /**
@@ -32,6 +22,15 @@ export class NavigationClient implements INavigationClient {
      * @param options 
      */
     navigateExternal(url: string, options: NavigationOptions): Promise<boolean> {
+        return NavigationClient.defaultNavigateWindow(url, options);
+    }
+
+    /**
+     * Default navigation implementation invoked by the internal and external functions
+     * @param url 
+     * @param options 
+     */
+    private static defaultNavigateWindow(url: string, options: NavigationOptions): Promise<boolean> {
         if (options.noHistory) {
             window.location.replace(url);
         } else {
