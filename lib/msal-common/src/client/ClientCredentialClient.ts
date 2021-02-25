@@ -132,6 +132,7 @@ export class ClientCredentialClient extends BaseClient {
             reqTimestamp,
             request.resourceRequestMethod,
             request.resourceRequestUri,
+            request.clientClaims,
             undefined,
             request.scopes
         );
