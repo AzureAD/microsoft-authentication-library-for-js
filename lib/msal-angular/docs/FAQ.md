@@ -16,6 +16,12 @@
 1. [How do I get accounts?](#how-do-i-get-accounts)
 1. [How do I get and set active accounts?](#how-do-i-get-and-set-active-accounts)
 
+**[Errors](#errors)**
+
+1. [interaction_in_progress](#interaction_in_progress)
+1. [Why is my app looping when logging in with redirect?](#why-is-my-app-looping-when-logging-in-with-redirect)
+
+
 **[What if my question has not been answered?](#what-if-my-question-has-not-been-answered)**
 
 ***
@@ -45,7 +51,9 @@ Things to note about the `protectedResourceMap`:
 - Passing a `null` scope ensures that no tokens are obtained for the particular endpoint. You can pass null to make sure an endpoint is unprotected.
 - Relative paths may need to be used if relative paths are used in your application. This also applies to issues that may arise with `ngx-translate`. Relative paths should not have a leading slash.
 
-See our [initialization doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/initialization.md#get-tokens-for-web-api-calls) for more information on setting this up, our [upgrade guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/1.x-2.x-upgrade-guide.md#protected-resources) for differences to Msal Angular 1.x, and our [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/5cc21a95a389c31a0d5e74d37ff297931aeee479/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app.module.ts#L47) for examples of usage. 
+See our [initialization doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/initialization.md#get-tokens-for-web-api-calls) for more information on setting this up, our [upgrade guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/1.x-2.x-upgrade-guide.md#protected-resources) for differences to Msal Angular 1.x, and our [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/5cc21a95a389c31a0d5e74d37ff297931aeee479/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app.module.ts#L47) for examples of usage.
+
+**Note:** Currently, active accounts are for each page load and does not persist. While this is an enhancement we are looking to make, we recommend that you set the active account for each page load.
 
 Please note that using the MsalInterceptor is optional and you can write your own interceptor if you choose to. Alternatively, you can also explicitly acquire tokens using the acquireToken APIs.
 
@@ -69,6 +77,22 @@ We recommend setting the active account:
 - On initial page load. Wait until all interactions are complete (by subscribing to the `inProgress$` subject and filtering for `none`), check if there is an active account, and if there is none, set the active account. This could be the first account retrieved by `getAllAccounts()`, or other account selection logic required by your app. See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app) for an example of checking and setting the active account on page load.
 
 Our [Angular 11](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app) sample demonstrates basic usage. Your app may require more complicated logic to choose accounts.
+
+## Errors
+
+### interaction_in_progress
+
+One of the common reasons for getting this error is that redirects are not being handled and resolved before another interactive API is being called. 
+
+We recommend that you bootstrap the the `MsalRedirectComponent` if you want to use redirects (see docs [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/redirects.md)), as this will handle all redirects for you. We also recommend that any interaction should be done after subscribing to the `inProgress$` subject and filtering for none. Please see our [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/30b5ff95e2ff2cc827d98118004d92968bb67b3f/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app.component.ts#L27) for an example. 
+
+Please see the [`msal-browser` error doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/errors.md) for more information on this error.
+
+### Why is my app looping when logging in with redirect?
+
+One of the common reasons your app may be looping while logging in with redirects is due to improper usage of the `loginRedirect()` API. We recommend that you do not call `loginRedirect()` in the `ngOnInit` in the `app.component.ts`, as this will attempt to log in with every page load, often before any redirect has finished processing. 
+
+We recommend that all redirects are handled with the `MsalRedirectComponent` (see docs [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/redirects.md)), and that any interaction or account validation should be done after  subscribing to the `inProgress$` subject and filtering for none. Please see our [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/30b5ff95e2ff2cc827d98118004d92968bb67b3f/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app.component.ts#L27) for an example. 
 
 ## What if my question has not been answered?
 
