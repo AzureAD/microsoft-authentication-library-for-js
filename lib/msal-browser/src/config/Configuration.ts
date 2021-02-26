@@ -6,6 +6,8 @@
 import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode, LogLevel, StubbedNetworkModule } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserCacheLocation } from "../utils/BrowserConstants";
+import { INavigationClient } from "../navigation/INavigationClient";
+import { NavigationClient } from "../navigation/NavigationClient";
 
 // Default timeout for popup windows and iframes in milliseconds
 export const DEFAULT_POPUP_TIMEOUT_MS = 60000;
@@ -42,11 +44,13 @@ export type BrowserAuthOptions = {
  * Use this to configure the below cache configuration options:
  *
  * - cacheLocation            - Used to specify the cacheLocation user wants to set. Valid values are "localStorage" and "sessionStorage"
- * - storeAuthStateInCookie   - If set, MSAL store's the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
+ * - storeAuthStateInCookie   - If set, MSAL stores the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
+ * - secureCookies            - If set, MSAL sets the "Secure" flag on cookies so they can only be sent over HTTPS. By default this flag is set to false.
  */
 export type CacheOptions = {
     cacheLocation?: BrowserCacheLocation | string;
     storeAuthStateInCookie?: boolean;
+    secureCookies?: boolean;
 };
 
 /**
@@ -66,6 +70,7 @@ export type CacheOptions = {
 export type BrowserSystemOptions = SystemOptions & {
     loggerOptions?: LoggerOptions;
     networkClient?: INetworkModule;
+    navigationClient?: INavigationClient;
     windowHashTimeout?: number;
     iframeHashTimeout?: number;
     loadFrameTimeout?: number;
@@ -123,7 +128,8 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
     // Default cache options for browser
     const DEFAULT_CACHE_OPTIONS: Required<CacheOptions> = {
         cacheLocation: BrowserCacheLocation.SessionStorage,
-        storeAuthStateInCookie: false
+        storeAuthStateInCookie: false,
+        secureCookies: false
     };
 
     // Default logger options for browser
@@ -138,6 +144,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         ...DEFAULT_SYSTEM_OPTIONS,
         loggerOptions: DEFAULT_LOGGER_OPTIONS,
         networkClient: isBrowserEnvironment ? BrowserUtils.getBrowserNetworkClient() : StubbedNetworkModule,
+        navigationClient: new NavigationClient(),
         loadFrameTimeout: 0,
         // If loadFrameTimeout is provided, use that as default.
         windowHashTimeout: (userInputSystem && userInputSystem.loadFrameTimeout) || DEFAULT_POPUP_TIMEOUT_MS,
