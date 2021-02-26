@@ -65,6 +65,13 @@ export class ServerTelemetryManager {
      */
     cacheFailedRequest(error: AuthError): void {
         const lastRequests = this.getLastRequests();
+        if (lastRequests.errors.length >= SERVER_TELEM_CONSTANTS.MAX_CACHED_ERRORS) {
+            // Remove a cached error to make room, first in first out
+            lastRequests.failedRequests.shift(); // apiId
+            lastRequests.failedRequests.shift(); // correlationId
+            lastRequests.errors.shift();
+        }
+        
         lastRequests.failedRequests.push(this.apiId, this.correlationId);
 
         if (!StringUtils.isEmpty(error.subError)) {
@@ -141,7 +148,7 @@ export class ServerTelemetryManager {
             // Count number of characters that would be added to header, each character is 1 byte. Add 3 at the end to account for separators
             dataSize += apiId.toString().length + correlationId.toString().length + errorCode.length + 3;
 
-            if (dataSize < SERVER_TELEM_CONSTANTS.MAX_HEADER_BYTES) {
+            if (dataSize < SERVER_TELEM_CONSTANTS.MAX_LAST_HEADER_BYTES) {
                 // Adding this entry to the header would still keep header size below the limit
                 maxErrors += 1;
             } else {
