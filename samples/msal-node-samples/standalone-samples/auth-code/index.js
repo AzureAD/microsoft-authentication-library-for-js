@@ -22,10 +22,7 @@ const argv = require('yargs')
 const SERVER_PORT = argv.p || 3000;
 const cacheLocation = argv.c || "./data/cache.json";
 const cachePlugin = require('../cachePlugin')(cacheLocation);
-
 const scenario = argv.s || "AAD";
-
-
 const config = require(`./config/${scenario}.json`);
 
 const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
@@ -100,7 +97,6 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
     // Create msal application object
     const clientApplication = new msal.PublicClientApplication(clientConfig);
     return getTokenAuthCode(config, clientApplication, null);
-
  }
 
  module.exports = getTokenAuthCode;

@@ -25,9 +25,23 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
     await page.type("#i0118", accountPwd);
     await screenshot.takeScreenshot(page, "loginPagePasswordFilled")
     await page.click("#idSIButton9");
+
     try {
         await page.waitForSelector('#KmsiCheckboxField', {timeout: 1000});
         await screenshot.takeScreenshot(page, "kmsiPage");
+        await Promise.all([
+            page.click("#idSIButton9"),
+            page.waitForNavigation({ waitUntil: "networkidle0"})
+        ]);
+    } catch (e) {
+        return;
+    }
+}
+
+export async function approveRemoteConnect(page: Page, screenshot: Screenshot): Promise<void> {
+    try {
+        await page.waitFor("#remoteConnectDescription");
+        await screenshot.takeScreenshot(page, "remoteConnectPage");
         await Promise.all([
             page.click("#idSIButton9"),
             page.waitForNavigation({ waitUntil: "networkidle0"})

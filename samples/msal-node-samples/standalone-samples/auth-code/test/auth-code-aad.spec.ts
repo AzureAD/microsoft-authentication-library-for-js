@@ -14,19 +14,22 @@ import {
     enterCredentials, 
     enterCredentialsWithConsent, 
     SCREENSHOT_BASE_FOLDER_NAME,
+    validateCacheLocation
  } from "../../testUtils";
+
 import { PublicClientApplication } from "../../../../../lib/msal-node/dist";
 
+// Set test cache name/location
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad.cache.json`;
 
+// Get flow-specific routes from sample application
 const getTokenAuthCode = require("../index");
 
+// Build cachePlugin
 const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 
+// Load scenario configuration
 const config = require("../config/AAD.json");
-
-let username: string;
-let accountPwd: string;
 
 describe("Auth Code AAD PPE Tests", () => {
     jest.setTimeout(15000);
@@ -35,8 +38,12 @@ describe("Auth Code AAD PPE Tests", () => {
     let page: puppeteer.Page;
     let port: string;
     let homeRoute: string;
+    
+    let username: string;
+    let accountPwd: string;
 
     beforeAll(async() => {
+        await validateCacheLocation(TEST_CACHE_LOCATION);
         // @ts-ignore
         browser = await global.__BROWSER__;
         // @ts-ignore

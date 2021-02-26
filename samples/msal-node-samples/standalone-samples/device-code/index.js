@@ -3,17 +3,15 @@
  * Licensed under the MIT License.
  */
 
-
 const express = require("express");
 const msal = require('@azure/msal-node');
-const config = require("./authConfig.json");
 
 const argv = require('yargs')
     .usage('Usage: $0 -p [PORT]')
-    .alias('p', 'port')
+    .alias('s', 'scenario')
     .alias('c', 'cache location')
     .alias('ro', 'runtime-options')
-    .describe('port', '(Optional) Port Number - default is 3000')
+    .describe('scenario', '(Optional) Scenario name - default is AAD')
     .describe('cache location', '(Optional) Cache location - default is data/cache.json')
     .describe('runtime-options', '(Optional) Runtime options to inject into the application - default is null')
     .strict()
@@ -22,6 +20,8 @@ const argv = require('yargs')
 const cacheLocation = argv.c || "./data/cache.json";
 const runtimeOptions = argv.ro || null;
 const cachePlugin = require('../cachePlugin')(cacheLocation);
+const scenario = argv.s || "AAD";
+const config = require(`./config/${scenario}.json`);
 
 const loggerOptions = {
     loggerCallback(loglevel, message, containsPii) {
@@ -46,7 +46,7 @@ const clientConfig = {
 
 const pca = new msal.PublicClientApplication(clientConfig);
 
-const getDeviceCode = function(scenarioConfig, clientApplication, runtimeOptions) {
+const getDeviceCode = function (scenarioConfig, clientApplication, runtimeOptions) {
     const requestConfig = scenarioConfig.request;
 
     if (!runtimeOptions) {
