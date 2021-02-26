@@ -289,7 +289,9 @@ export enum AuthorityMetadataSource {
 
 export const SERVER_TELEM_CONSTANTS = {
     SCHEMA_VERSION: 2,
-    MAX_HEADER_BYTES: 4000, // Max is 4KB, 4000 Bytes provides 96 Byte buffer for separators, schema version, etc. 
+    MAX_CUR_HEADER_BYTES: 80, // ESTS limit is 100B, set to 80 to provide a 20B buffer
+    MAX_LAST_HEADER_BYTES: 330, // ESTS limit is 350B, set to 330 to provide a 20B buffer,
+    MAX_CACHED_ERRORS: 50, // Limit the number of errors that can be stored to prevent uncontrolled size gains
     CACHE_KEY: "server-telemetry",
     CATEGORY_SEPARATOR: "|",
     VALUE_SEPARATOR: ",",
