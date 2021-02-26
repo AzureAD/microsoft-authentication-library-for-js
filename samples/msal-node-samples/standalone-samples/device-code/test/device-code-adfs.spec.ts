@@ -9,10 +9,9 @@ import { Screenshot, createFolder, setupCredentials } from "../../../../e2eTestU
 import { NodeCacheTestUtils } from "../../../../e2eTestUtils/NodeCacheTestUtils";
 import { LabClient } from "../../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../../e2eTestUtils/LabApiQueryParams";
-import { AppTypes, AzureEnvironments } from "../../../../e2eTestUtils/Constants";
+import { AppTypes, AzureEnvironments, FederationProviders, UserTypes } from "../../../../e2eTestUtils/Constants";
 import { 
-    approveRemoteConnect,
-    enterCredentials,
+    enterCredentialsADFS,
     enterDeviceCode,
     SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation
@@ -21,7 +20,7 @@ import {
 import { Configuration, PublicClientApplication } from "../../../../../lib/msal-node";
 
 // Set test cache name/location
-const TEST_CACHE_LOCATION = `${__dirname}/data/aad.cache.json`;
+const TEST_CACHE_LOCATION = `${__dirname}/data/adfs.cache.json`;
 
 // Get flow-specific routes from sample application
 const getDeviceCode = require("../index");
@@ -30,9 +29,9 @@ const getDeviceCode = require("../index");
 const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 
 // Load scenario configuration
-const config = require("../config/AAD.json");
+const config = require("../config/ADFS.json");
 
-describe('Device Code AAD PPE Tests', () => {
+describe('Device Code ADFS PPE Tests', () => {
     jest.setTimeout(20000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
@@ -43,7 +42,7 @@ describe('Device Code AAD PPE Tests', () => {
     let username: string;
     let accountPwd: string;
     
-    beforeAll(async () => {
+    beforeAll(async() => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
         // @ts-ignore
         browser = await global.__BROWSER__;
@@ -51,8 +50,10 @@ describe('Device Code AAD PPE Tests', () => {
 
         // Configure Lab API Query Parameters
         const labApiParms: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.PPE,
+            azureEnvironment: AzureEnvironments.CLOUD,
             appType: AppTypes.CLOUD,
+            federationProvider: FederationProviders.ADFS2019,
+            userType: UserTypes.FEDERATED
         };
 
         const labClient = new LabClient();
@@ -68,7 +69,7 @@ describe('Device Code AAD PPE Tests', () => {
         let testName: string;
         let screenshot: Screenshot;
 
-        beforeAll(async () => {
+        beforeAll(async() => {
             clientConfig = { auth: config.authOptions, cache: { cachePlugin } };
             publicClientApplication = new PublicClientApplication(clientConfig);
             await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
@@ -86,14 +87,13 @@ describe('Device Code AAD PPE Tests', () => {
         });
 
         it("Performs acquire token with Device Code flow", async () => {
-            testName = "AADAcquireTokenWithDeviceCode";
+            testName = "ADFSAcquireTokenWithDeviceCode";
             screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
 
             const deviceCodeCallback = async (deviceCodeResponse: any) => {
                 const { userCode, verificationUri} = deviceCodeResponse;
                 await enterDeviceCode(page, screenshot, userCode, verificationUri);
-                await approveRemoteConnect(page, screenshot);
-                await enterCredentials(page, screenshot, username, accountPwd);
+                await enterCredentialsADFS(page, screenshot, username, accountPwd);
                 await page.waitForSelector("#message");
                 await screenshot.takeScreenshot(page, "SuccessfulDeviceCodeMessage");
             };
