@@ -168,6 +168,15 @@ export class AuthorizationCodeClient extends BaseClient {
         // add code: user set, not validated
         parameterBuilder.addAuthorizationCode(request.code);
 
+        // Add library metadata
+        parameterBuilder.addLibraryInfo(this.config.libraryInfo);
+
+        parameterBuilder.addThrottling();
+        
+        if (this.serverTelemetryManager) {
+            parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
+        }
+
         // add code_verifier if passed
         if (request.codeVerifier) {
             parameterBuilder.addCodeVerifier(request.codeVerifier);
