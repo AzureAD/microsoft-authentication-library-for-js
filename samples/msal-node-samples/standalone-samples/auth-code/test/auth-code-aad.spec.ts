@@ -15,9 +15,9 @@ import {
     enterCredentialsWithConsent, 
     SCREENSHOT_BASE_FOLDER_NAME,
  } from "../../testUtils";
-import { PublicClientApplication } from "../../../../../lib/msal-node/";
+import { PublicClientApplication } from "../../../../../lib/msal-node/dist";
 
-const TEST_CACHE_LOCATION = `${__dirname}/data/testCache.json`;
+const TEST_CACHE_LOCATION = `${__dirname}/data/aad.cache.json`;
 
 const getTokenAuthCode = require("../index");
 
