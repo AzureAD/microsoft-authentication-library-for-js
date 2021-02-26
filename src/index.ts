@@ -10,7 +10,7 @@
 
 export { PublicClientApplication } from "./app/PublicClientApplication";
 export { Configuration, BrowserAuthOptions, CacheOptions, BrowserSystemOptions } from "./config/Configuration";
-export { InteractionType, InteractionStatus, BrowserCacheLocation, WrapperSKU } from "./utils/BrowserConstants";
+export { InteractionType, InteractionStatus, BrowserCacheLocation, WrapperSKU, ApiId } from "./utils/BrowserConstants";
 export { BrowserUtils } from "./utils/BrowserUtils";
 
 // Browser Errors
@@ -19,6 +19,9 @@ export { BrowserConfigurationAuthError, BrowserConfigurationAuthErrorMessage } f
 
 // Interfaces
 export { IPublicClientApplication, stubbedPublicClientApplication } from "./app/IPublicClientApplication";
+export { INavigationClient } from "./navigation/INavigationClient";
+export { NavigationClient } from "./navigation/NavigationClient";
+export { NavigationOptions } from "./navigation/NavigationOptions";
 export { PopupRequest } from "./request/PopupRequest";
 export { RedirectRequest } from "./request/RedirectRequest";
 export { SilentRequest } from "./request/SilentRequest";

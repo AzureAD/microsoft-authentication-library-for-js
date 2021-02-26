@@ -2,6 +2,21 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Thu, 18 Feb 2021 00:34:32 GMT",
+      "tag": "@azure/msal-browser_v2.11.2",
+      "version": "2.11.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Ensure scrollbars are enabled for popups in browser",
+            "author": "janutter@microsoft.com",
+            "commit": "fbdccb8be4f089493b2a4130bdbf95596f0e88a4",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 09 Feb 2021 01:48:22 GMT",
       "tag": "@azure/msal-browser_v2.11.1",
       "version": "2.11.1",
