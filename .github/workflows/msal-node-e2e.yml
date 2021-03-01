@@ -23,6 +23,10 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        sample:
+          - 'auth-code'
+          - 'device-code'
+          - 'silent-flow'
         node: [ 12, 14 ]
 
     name: Node ${{ matrix.node }}
@@ -47,6 +51,12 @@ jobs:
     - name: Install Test Tools
       working-directory: samples/msal-node-samples
       run: npm install
+
+    - name: Install ${{ matrix.sample }}
+      working-directory: samples/msal-node-samples/${{ matrix.sample }}
+      run: |
+        npm run install:local
+        npm install
 
     - name: E2E Tests
       working-directory: samples/msal-node-samples

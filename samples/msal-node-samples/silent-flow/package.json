@@ -5,7 +5,8 @@
   "main": "index.js",
   "private": true,
   "scripts": {
-    "start": "node index.js"
+    "start": "node index.js",
+    "install:local": "npm install ../../../lib/msal-node"
   },
   "author": "Microsoft",
   "license": "MIT",
