@@ -53,7 +53,12 @@ export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
 }
 
 export function MSALGuardConfigFactory(): MsalGuardConfiguration {
-  return { interactionType: InteractionType.Redirect };
+  return { 
+    interactionType: InteractionType.Redirect,
+    authRequest: {
+      scopes: ['user.read']
+    }
+  };
 }
 
 @NgModule({
