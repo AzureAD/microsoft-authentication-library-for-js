@@ -4,6 +4,9 @@ import { AccessTokenEntity } from "../../lib/msal-common/src/cache/entities/Acce
 import { RefreshTokenEntity } from "../../lib/msal-common/src/cache/entities/RefreshTokenEntity";
 import { InMemoryCache } from '../../lib/msal-node/dist/cache/serializer/SerializerTypes';
 
+import { Serializer } from "../../lib/msal-node/src/cache/serializer/Serializer";
+import { Deserializer } from "../../lib/msal-node/src/cache/serializer/Deserializer";
+
 export type tokenMap = {
     idTokens: IdTokenEntity[],
     accessTokens: AccessTokenEntity[],
@@ -19,17 +22,13 @@ export class NodeCacheTestUtils {
             refreshTokens: []
         };
 
-        Object.keys(deserializedCache["IdToken"]).forEach(key => {
-            tokenCache.idTokens.push(deserializedCache["IdToken"][key]);
+        Object.keys(tokenCache).forEach((cacheSectionKey: string) => {
+            Object.keys(deserializedCache[cacheSectionKey]).map((cacheKey) => {
+                const cacheSection = deserializedCache[cacheSectionKey];
+                tokenCache[cacheSectionKey].push(cacheSection[cacheKey]);
+            })
         });
 
-        Object.keys(deserializedCache["AccessToken"]).forEach(key => {
-            tokenCache.accessTokens.push(deserializedCache["AccessToken"][key]);
-        });
-
-        Object.keys(deserializedCache["RefreshToken"]).forEach(key => {
-            tokenCache.refreshTokens.push(deserializedCache["RefreshToken"][key]);
-        });
 
         return Promise.resolve(tokenCache);
     }
@@ -42,7 +41,7 @@ export class NodeCacheTestUtils {
                     reject(err);
                 }
                 const cache = (data) ? data : this.getCacheTemplate();
-                const deserializedCache =JSON.parse(cache);
+                const deserializedCache = Deserializer.deserializeAllCache(JSON.parse(cache));
                 resolve(deserializedCache);
             });
         });
@@ -87,7 +86,7 @@ export class NodeCacheTestUtils {
             deserializedCache.accessTokens[atKey].extendedExpiresOn = "0";
         });
 
-        const serializedCache = JSON.stringify(deserializedCache);
+        const serializedCache = Serializer.serializeAllCache(deserializedCache);
 
         return new Promise((resolve, reject) => {
             fs.writeFile(cacheLocation, JSON.stringify(serializedCache, null, 1), (error) => {
