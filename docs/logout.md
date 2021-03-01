@@ -56,7 +56,7 @@ const currentAccount = msalInstance.getAccountByHomeId(homeAccountId);
 msalInstance.logout({
     account: currentAccount,
     postLogoutRedirectUri: "https://contoso.com/loggedOut",
-    authority: "https://loginmicrosoftonline.com/common",
+    authority: "https://login.microsoftonline.com/common",
     correlationId: "insert-id-here"
 });
 ```
