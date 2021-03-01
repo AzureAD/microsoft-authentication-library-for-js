@@ -24,6 +24,10 @@ jobs:
       fail-fast: false
       matrix:
         node: [ 12, 14 ]
+        sample:
+          - 'auth-code'
+          - 'device-code'
+          - 'silent-flow'
 
     name: Node ${{ matrix.node }}
 
@@ -43,6 +47,10 @@ jobs:
     - name: Build Package
       working-directory: samples/msal-node-samples
       run: npm run build:package
+
+    - name: Install ${{ matrix.sample }}
+      working-directory: samples/msal-node-samples/${{ matrix.sample }}
+      run: npm install
       
     - name: Install Test Tools
       working-directory: samples/msal-node-samples
