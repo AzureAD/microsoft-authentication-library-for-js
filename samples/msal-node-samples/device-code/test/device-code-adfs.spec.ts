@@ -72,7 +72,6 @@ describe('Device Code ADFS PPE Tests', () => {
         beforeAll(async() => {
             clientConfig = { auth: config.authOptions, cache: { cachePlugin } };
             publicClientApplication = new PublicClientApplication(clientConfig);
-            await NodeCacheTestUtils.resetCache(TEST_CACHE_LOCATION);
         });
 
         beforeEach(async () => {

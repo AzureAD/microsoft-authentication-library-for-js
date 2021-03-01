@@ -94,7 +94,6 @@ describe("Auth Code AAD PPE Tests", () => {
                 console.log(dialog.message());
                 await dialog.dismiss();
             });
-            page.setDefaultNavigationTimeout(0);
         });
 
         afterEach(async () => {
