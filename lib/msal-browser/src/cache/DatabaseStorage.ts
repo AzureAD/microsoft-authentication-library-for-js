@@ -110,4 +110,28 @@ export class DatabaseStorage<T>{
             dbPut.addEventListener("error", e => reject(e));
         });
     }
+
+    /**
+     * Remove all records from the database
+     */
+    async clear(): Promise<void> {
+        if (!this.dbOpen) {
+            await this.open();
+        }
+
+        return new Promise<void>((resolve: any, reject: any) => {
+            if (!this.db) {
+                return reject(BrowserAuthError.createDatabaseNotOpenError());
+            }
+
+            const transaction = this.db.transaction([this.tableName], "readwrite");
+            const objectStore = transaction.objectStore(this.tableName);
+
+            const dbClear = objectStore.clear();
+            dbClear.addEventListener("success", () => {
+                resolve();
+            });
+            dbClear.addEventListener("error", e => reject(e));
+        });
+    }
 }

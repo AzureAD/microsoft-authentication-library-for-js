@@ -159,7 +159,7 @@ export abstract class CacheManager implements ICacheManager {
     /**
      * Function which clears cache.
      */
-    abstract clear(): void;
+    abstract clear(): Promise<void>;
 
     /**
      * Returns all accounts in cache
@@ -949,7 +949,7 @@ export class DefaultStorageClass extends CacheManager {
         const notImplErr = "Storage interface - getKeys() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
-    clear(): void {
+    clear(): Promise<void> {
         const notImplErr = "Storage interface - clear() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }

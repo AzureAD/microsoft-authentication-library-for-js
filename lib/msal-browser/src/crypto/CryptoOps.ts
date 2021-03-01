@@ -153,4 +153,11 @@ export class CryptoOps implements ICrypto {
 
         return `${tokenString}.${encodedSignature}`;
     }
+
+    /**
+     * Clears crypto cache storage (IndexedDB)
+     */
+    async clearCache() {
+        return this.cache.clear();
+    }
 }

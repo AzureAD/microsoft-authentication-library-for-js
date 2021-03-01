@@ -23,8 +23,8 @@ export class MockCache {
     }
 
     // clear the cache
-    clearCache(): void {
-        this.cacheManager.clear();
+    async clearCache(): Promise<void> {
+        await this.cacheManager.clear();
     }
 
     // create account entries in the cache

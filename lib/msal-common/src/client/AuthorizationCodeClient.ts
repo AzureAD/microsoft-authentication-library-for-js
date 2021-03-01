@@ -18,7 +18,6 @@ import { StringUtils } from "../utils/StringUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { UrlString } from "../url/UrlString";
 import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorizationCodeResponse";
-import { AccountEntity } from "../cache/entities/AccountEntity";
 import { CommonEndSessionRequest } from "../request/CommonEndSessionRequest";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
@@ -116,14 +115,6 @@ export class AuthorizationCodeClient extends BaseClient {
         // Throw error if logoutRequest is null/undefined
         if (!logoutRequest) {
             throw ClientConfigurationError.createEmptyLogoutRequestError();
-        }
-
-        if (logoutRequest.account) {
-            // Clear given account.
-            this.cacheManager.removeAccount(AccountEntity.generateAccountCacheKey(logoutRequest.account));
-        } else {
-            // Clear all accounts and tokens
-            this.cacheManager.clear();
         }
 
         const queryString = this.createLogoutUrlQueryString(logoutRequest);

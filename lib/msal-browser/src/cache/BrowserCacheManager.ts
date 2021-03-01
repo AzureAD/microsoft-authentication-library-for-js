@@ -11,6 +11,7 @@ import { BrowserStorage } from "./BrowserStorage";
 import { MemoryStorage } from "./MemoryStorage";
 import { IWindowStorage } from "./IWindowStorage";
 import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
+import { CryptoOps } from "../crypto/CryptoOps";
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
@@ -480,7 +481,7 @@ export class BrowserCacheManager extends CacheManager {
     /**
      * Clears all cache entries created by MSAL (except tokens).
      */
-    clear(): void {
+    async clear(): Promise<void> {
         this.removeAllAccounts();
         this.removeAppMetadata();
         this.getKeys().forEach((cacheKey: string) => {
@@ -490,7 +491,9 @@ export class BrowserCacheManager extends CacheManager {
             }
         });
 
+        debugger;
         this.internalStorage.clear();
+        await (this.cryptoImpl as CryptoOps).clearCache();
     }
 
     /**

@@ -666,9 +666,20 @@ export abstract class ClientApplication {
 
         try {
             this.emitEvent(EventType.LOGOUT_START, InteractionType.Redirect, logoutRequest);
+            
+            // create logout string and navigate user window to logout.
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, logoutRequest && logoutRequest.authority);
-            // create logout string and navigate user window to logout. Auth module will clear cache.
             const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
+
+            // Clear caches
+            if (validLogoutRequest.account) {
+                // Clear given account.
+                this.browserStorage.removeAccount(AccountEntity.generateAccountCacheKey(validLogoutRequest.account));
+            } else {
+                // Clear all accounts and tokens
+                await this.browserStorage.clear();
+            }
+
             this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
 
             if (!validLogoutRequest.account || AccountEntity.accountInfoIsEqual(validLogoutRequest.account, this.getActiveAccount())) {
