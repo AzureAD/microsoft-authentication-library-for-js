@@ -42,9 +42,11 @@ jobs:
     
     - name: Build Package
       working-directory: samples/msal-node-samples
-      run: |
-        npm run build:package
-        npm install
+      run: npm run build:package
+      
+    - name: Install Test Tools
+      working-directory: samples/msal-node-samples
+      run: npm install
 
     - name: E2E Tests
       working-directory: samples/msal-node-samples
@@ -53,7 +55,7 @@ jobs:
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
         AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
-      run: npm run test
+      run: npm test
 
     - name: Upload E2E Test Screenshots
       uses: actions/upload-artifact@v2
