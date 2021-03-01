@@ -12,6 +12,7 @@
         "yargs": "^16.2.0"
     },
     "dependencies": {
-        "@types/express": "^4.17.11"
+        "@types/express": "^4.17.11",
+        "express": "^4.17.1"
     }
 }
