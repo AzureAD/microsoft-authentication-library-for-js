@@ -4,7 +4,7 @@
     "description": "End-to-end test suite for msal-node",
     "scripts": {
         "test": "jest",
-        "build:package":  "cd ../../lib/msal-browser && npm run build:all"
+        "build:package":  "cd ../../lib/msal-node && npm run build:all"
     },
     "devDependencies": {
         "jest": "^26.6.3",
