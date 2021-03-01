@@ -60,11 +60,13 @@ Continue to the appropriate sample to learn how it works, or to build it in to y
 
 ### Configure the application
 
-Each application has an `index.js` file, which is considered the entry point of the application. This file contains both the MSAL configuration and the application code demonstrating how to use each authorization flow. You can customize the sample to use your own AzureAD app registration by changing the configuration values to match your app registration. Below you'll find an example of what the main MSAL configuration object looks like. This is the object you'll want to customize to match your app registration.
+Each application has an `index.js` file, which is considered the entry point of the application. This file contains the application code demonstrating how to use each authorization flow. You can customize the sample to use your own AzureAD app registration by changing the configuration values to match your app registration. Below you'll find an example of what the main MSAL configuration object looks like. This is the object you'll want to customize to match your app registration.
+
+Some of the samples, like the `auth-code` sample, have a `config/` directory in which configuration files for different scenarios are included. You can also create your own configuration `.json` file based on the examples in the `config/` directory and just update the `scenario` variable in these sample applications to customize the configuration to match your AzureAD app registration.
 
 ```javascript
 // Before running the sample, you will need to replace the values in the config, 
-// including the clientSecret
+// including the clientSecret when using a ConfidentialClientApplication
 const config = {
     auth: {
         clientId: "YOUR_CLIENT_ID",
@@ -94,7 +96,7 @@ Once you are in the sample application directory and you've configured the sampl
 $ npm install
 ```
 
-Each sample also includes a `package.json` file that defines a `start` script, meaning you can execute each sample by running `npm start` from it's root folder (i.e. any of the subdirectories contained under `standalone-samples`). The `npm start` command will either start a web application or a command line app. Either way, the console will instruct you on how to interact with the sample next.
+Each sample also includes a `package.json` file that defines a `start` script, meaning you can execute each sample by running `npm start` from it's root folder (i.e. any of the subdirectories contained under `msal-node-samples`). The `npm start` command will either start a web application or a command line app. Either way, the console will instruct you on how to interact with the sample next.
 
 1. Once the dependencies are installed, you can run the sample application by using the following command:
 
@@ -102,6 +104,6 @@ Each sample also includes a `package.json` file that defines a `start` script, m
 $ npm start
 ```
 
-2. If you're executing a web application scenario, navigate to http://localhost:3000.
+2. If you're executing a web application scenario, navigate to http://localhost:3000 (3000 is the default port. This configuration can be changed in a sample's `index.js` file.).
 
 3. For command line apps, follow the displayed instructions to use the sample application.

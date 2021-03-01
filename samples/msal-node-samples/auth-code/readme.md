@@ -1,24 +1,27 @@
-# MSAL Node Standalone Sample:  Auth Code
+# MSAL Node Sample:  Auth Code
 
-The sample applications contained in this directory are independent samples of MSAL Node usage, covering each of the authorization flows that MSAL Node currently supports. To get started with this sample, first follow the general instructions [here](../readme.me).
+This sample application demonstrates how to use the Authorization Code Grant APIs provided by MSAL Node.js in a Node application.
 
 Once MSAL Node is installed, and you have the right files, come here to learn about this scenario.
 
 ### How is this scenario used?
 The Auth Code flow is most commonly used for a web app that signs in users.  General information about this scenario is available [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-web-app-sign-user-overview?tabs=aspnetcore).
 
+>**Note: Although this sample application has a web server component that allows the user to input their credentials in the browser, it is important to remember that MSAL Node does not support browser-based Single Page Applications. If you are looking to use the authorization code grant to acquire tokens in a Single-Page Application, please use [MSAL Browser](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser).**
+
 ## Test the Sample
 
 ### Configure the application
-Open the `index.js` file.
+Open the `config/AAD.json` file.
 
-Find the `config` object.  We will change this to add details about our app registration and deployment.
+We will change this to add details about our app registration and deployment.
 
 By default, this configuration is set to support all Microsoft accounts. This includes Azure AD accounts used by organizations, and MSA accounts typically used by consumers. 
 
 Before proceeding, go to the Azure portal, and open the app registration for this app.
 
 #### **Client ID**
+
 Within the "Overview" you will see a GUID labeled **Application (client) ID**.  Copy this GUID to the clientId field in the config.
 
 Click the **Authentication** link in the left nav.
@@ -26,17 +29,58 @@ Click the **Authentication** link in the left nav.
 #### **Authority**
 Check that supported account types are: **Accounts in any organizational directory (Any Azure AD directory - Multitenant) and personal Microsoft accounts (e.g. Skype, Xbox)**
 
-If so, then leave the default setting for authority as `https://login.microsoftonline.com/common`
+If so, then set the authority attribute in the JSON configuraiton file to `https://login.microsoftonline.com/common`
 
-For other supported account types, review the other [Authority options](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-client-application-configuration).  Unless there is a specific need to restrict users of your app to an organization, we strongly suggest that everyone use the default authority.  User restrictions can be placed later in the application flow if needed.
+For other supported account types, review the other [Authority options](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-client-application-configuration).  Unless there is a specific need to restrict users of your app to an organization, we strongly suggest that everyone use the default authority. User restrictions can be placed later in the application flow if needed.
 
 #### **Client Secret**
+
+If your AzureAD app registration is configured as a Confidential Client Application, you'll have to add a `clientSecret` attribute to the configuration and change the `PublicClientApplication` object in the sample's `index.js` file into a `ConfidentialClientApplication` object.
 
 This secret helps prevent third parties from using your app registration.
 Click on `Certificates and Secrets` in the left nav.
 Click `New Client Secret` and pick an expiry.
-Click the `Copy to Clipboard` icon, and add the secret to the config object in index.js.
+Click the `Copy to Clipboard` icon, and add the secret to the config object in `./config/AAD,json`.
 
+**auth-code/config/AAD.json**
+```json
+{
+    "authOptions":
+        {
+            "clientId": "YOUR_CLIENT_ID",
+            "authority": "YOUR_AUTHORITY",
+            "clientSecret": "YOUR_CLIENT_SECRET" // Add client secret here
+            
+        },
+    "request":
+    {
+        "authCodeUrlParameters": {
+            "scopes": ["user.read"],
+            "redirectUri": "http://localhost:3000/redirect"
+        },
+        "tokenRequest": {
+            "redirectUri": "http://localhost:3000/redirect",
+            "scopes": ["user.read"]
+        }
+    },
+    "resourceApi":
+    {
+        "endpoint": "https://graph.microsoft.com/v1.0/me"
+    }
+}
+```
+
+**auth-code/index.js**
+
+```javascript
+    // Change this
+    const publicClientApplication = new msal.PublicClientApplication(clientConfig);
+    return getTokenAuthCode(config, publicClientApplication, null);
+
+    // To this
+    const confidentialClientApplication = new msa.ConfidentialClientApplication(clientConfig);
+    return getTokenAuthCode(config, confidentialClientApplication, null);
+```
 🎉You have finished the basic configuration!🎉
 
 ### Executing the application
@@ -68,9 +112,9 @@ If you set up the sample with your app registration, you may be able to copy thi
 ```js
 const config = {
     auth: {
-        clientId: "12d77c73-d09d-406a-ae0d-3d4e576f7d9b",
-        authority: "https://login.microsoftonline.com/common",
-        clientSecret: ""
+        clientId: "YOUR_CLIENT_ID",
+        authority: "YOUR_AUTHORITY",
+        clientSecret: "YOUR_CLIENT_SECRET" // Only for Confidential Client Applications
     },
     system: {
         loggerOptions: {
@@ -97,6 +141,14 @@ const msal = require('@azure/msal-node');
 
 Initialize the app object within your web app.
 
+If you've configured a Public Client Application:
+
+```js
+const pca = new msal.PublicClientApplication(config);
+```
+
+If you've configured a Confidential Client Application:
+
 ```js
 const cca = new msal.ConfidentialClientApplication(config);
 ```
@@ -112,35 +164,46 @@ We add our sign in code to the default route.
 app.get('/', (req, res) => {
 ```
 
-Next, we have to pick the `scopes` related to the user.  If we are logging in a user, then we must at least request access to basic user information.  The default scope of `user.read` grants that basic access.  To learn more see the [Microsoft Graph permissions reference](https://docs.microsoft.com/en-us/graph/permissions-reference).
+Next, we have to pick the `scopes` related to the user.  If we are logging in a user, then we must at least request access to basic user information.  The default scope of `user.read` grants that basic access. To learn more see the [Microsoft Graph permissions reference](https://docs.microsoft.com/en-us/graph/permissions-reference).
 
-```js
-    const authCodeUrlParameters = {
-        scopes: ["user.read"],
-        redirectUri: "http://localhost:3000/redirect",
-    };
+**auth-code/config/AAD.json:**
+```json
+{
+    ...,
+    "request":
+        {
+            "authCodeUrlParameters": {
+                "scopes": ["user.read"],
+                "redirectUri": "http://localhost:3000/redirect"
+            },
+            ...
+        },
+    ...
 ```
 
 The ```redirectUri``` is the return route.  After logging in a user, they will hit this route.  Your application logic will take over here.  You will want to customize the redirectUri for your application.
 
 Next we direct the user to authenticate.  The following code block directs the user based on the Authority we set in the config, and directs the user as needed.
 
-```js
-    pca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
+**auth-code/index.js:**
+
+```javascript
+    clientApplication.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
         res.redirect(response);
     }).catch((error) => console.log(JSON.stringify(error)));
 ```
 
 Putting together the routing and all the logic for starting the sign in yields the following code:
 
-```js
+```javascript
 app.get('/', (req, res) => {
+    // You can also build the authCodeUrlParameters object directly in the JavaScript file like this
     const authCodeUrlParameters = {
         scopes: ["user.read"],
         redirectUri: "http://localhost:3000/redirect",
     };
 
-    cca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
+    clientApplication.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
         res.redirect(response);
     }).catch((error) => console.log(JSON.stringify(error)));
 });
@@ -152,23 +215,35 @@ Your application must first *complete* the sign in flow by processing the code a
 
 First, configure the route where you will receive the response.  This must match your application configuration on the Azure portal.
 
-```js
+**auth-code/index.js:**
+```javascript
 app.get('/redirect', (req, res) => {
 ```
 
 Next,  your app logic will validate the scopes and route.  These settings must match the request.  Make sure the `scopes` match the request. Make sure the `redirectUri` matches the app registration, and the route.
 
-```js
-    const tokenRequest = {
-        code: req.query.code,
-        scopes: ["user.read"],
-        redirectUri: "http://localhost:3000/redirect",
-    };
+**auth-code/config/AAD.json:**
+```json
+{
+    ...,
+    "request":
+        {
+            ...,
+            "tokenRequest": {
+                "scopes": ["user.read"],
+                "redirectUri": "http://localhost:3000/redirect"
+            }
+        },
+    ...
 ```
-The above code is the *configuration* for validating the response.  The following code validates the response and completes the sign in.
 
-```js
-    pca.acquireTokenByCode(tokenRequest).then((response) => {
+The above JSON is the *configuration* for the access token request. The following code validates and executes the token request to complete Sign In.
+
+**auth-code/index.js**
+```javascript
+    tokenRequest.code = "AUTH_CODE_FROM_RESPONSE";
+
+    clientApplication.acquireTokenByCode(tokenRequest).then((response) => {
         console.log("\nResponse: \n:", response);
         res.sendStatus(200);
     }).catch((error) => {
@@ -180,13 +255,16 @@ Putting together the routing and all the logic for completing the sign in yields
 
 ```js
 app.get('/redirect', (req, res) => {
+    // You can also build the tokenRequest object directly in the JavaScript file like this
     const tokenRequest = {
+        // The URL from the redirect will contain the Auth Code in the query parameters
         code: req.query.code,
         scopes: ["user.read"],
         redirectUri: "http://localhost:3000/redirect",
     };
 
-    cca.acquireTokenByCode(tokenRequest).then((response) => {
+    // Pass the tokenRequest object with the Auth Code, scopes and redirectUri to acquireTokenByCode API
+    clientApplication.acquireTokenByCode(tokenRequest).then((response) => {
         console.log("\nResponse: \n:", response);
         res.sendStatus(200);
     }).catch((error) => {
