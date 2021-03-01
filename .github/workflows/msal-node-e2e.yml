@@ -12,7 +12,7 @@ on:
     paths: 
       - 'lib/msal-node/**/*' 
       - 'lib/msal-common/**/*'
-      - 'samples/msal-node-samples/EndToEndTestApp/**/*'
+      - 'samples/msal-node-samples/**/*'
       - '!**.md'
       - '.github/workflows/msal-node-e2e.yml'
 
@@ -41,13 +41,13 @@ jobs:
       run: npm ci
     
     - name: Build Package
-      working-directory: samples/msal-node-samples/EndToEndTestApp
+      working-directory: samples/msal-node-samples
       run: |
         npm run build:package
         npm install
 
     - name: E2E Tests
-      working-directory: samples/msal-node-samples/EndToEndTestApp
+      working-directory: samples/msal-node-samples
       timeout-minutes: 5
       env:
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
