@@ -1,6 +1,6 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { Router } from '@angular/router';
+import { Router, UrlTree } from '@angular/router';
 import { BrowserUtils, InteractionType, IPublicClientApplication, PublicClientApplication, UrlString } from '@azure/msal-browser';
 import { of } from 'rxjs';
 import { MsalGuardConfiguration } from './msal.guard.config';
@@ -12,6 +12,7 @@ let routeMock: any = { snapshot: {} };
 let routeStateMock: any = { snapshot: {}, url: '/' };
 let routerMock = { navigate: jasmine.createSpy('navigate') };
 let testInteractionType: InteractionType;
+let testLoginFailedRoute: string;
 
 function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
@@ -25,7 +26,8 @@ function MSALInstanceFactory(): IPublicClientApplication {
 function MSALGuardConfigFactory(): MsalGuardConfiguration {
   return {
     //@ts-ignore
-    interactionType: testInteractionType
+    interactionType: testInteractionType,
+    loginFailedRoute: testLoginFailedRoute
   }
 }
 
@@ -54,6 +56,7 @@ function initializeMsal() {
 describe('MsalGuard', () => {
   beforeEach(() => {
     testInteractionType = InteractionType.Popup;
+    testLoginFailedRoute = undefined;
     initializeMsal();
   });
 
@@ -65,10 +68,11 @@ describe('MsalGuard', () => {
     spyOn(UrlString, "hashContainsKnownProperties").and.returnValue(true);
     spyOn(BrowserUtils, "isInIframe").and.returnValue(true);
 
-    const listener = jasmine.createSpy();
-    guard.canActivate(routeMock, routeStateMock).subscribe(listener);
-    expect(listener).toHaveBeenCalledWith(false);
-    done();
+    guard.canActivate(routeMock, routeStateMock)
+      .subscribe(result => {
+        expect(result).toBeFalse();
+        done();
+      });
   });
 
   it("returns true for a logged in user", (done) => {
@@ -85,10 +89,11 @@ describe('MsalGuard', () => {
       username: "test"
     }]);
 
-    const listener = jasmine.createSpy();
-    guard.canActivate(routeMock, routeStateMock).subscribe(listener);
-    expect(listener).toHaveBeenCalledWith(true);
-    done();
+    guard.canActivate(routeMock, routeStateMock)
+      .subscribe(result => {
+        expect(result).toBeTrue();
+        done();
+      });
   });
 
   it("should return true after logging in with popup", (done) => {
@@ -104,13 +109,14 @@ describe('MsalGuard', () => {
       of(true)
     );
 
-    const listener = jasmine.createSpy();
-    guard.canActivate(routeMock, routeStateMock).subscribe(listener);
-    expect(listener).toHaveBeenCalledWith(true);
-    done();
+    guard.canActivate(routeMock, routeStateMock)
+      .subscribe(result => {
+        expect(result).toBeTrue();
+        done();
+      });
   });
 
-  it("should return false after login with popup fails", (done) => {
+  it("should return false after login with popup fails and no loginFailedRoute set", (done) => {
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
       of("test")
@@ -120,10 +126,35 @@ describe('MsalGuard', () => {
 
     spyOn(MsalService.prototype, "loginPopup").and.throwError("login error");
 
-    const listener = jasmine.createSpy();
-    guard.canActivate(routeMock, routeStateMock).subscribe(listener);
-    expect(listener).toHaveBeenCalledWith(false);
-    done();
+    guard.canActivate(routeMock, routeStateMock)
+      .subscribe(result => {
+        expect(result).toBeFalse();
+        done();
+      });
+  });
+
+  it("should return loginFailedRoute after login with popup fails and loginFailedRoute set", (done) => {
+    testLoginFailedRoute = "failed";
+    initializeMsal();
+
+    spyOn(guard, "parseUrl").and.returnValue(
+      testLoginFailedRoute as unknown as UrlTree
+    )
+
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
+      //@ts-ignore
+      of("test")
+    );
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([]);
+
+    spyOn(MsalService.prototype, "loginPopup").and.throwError("login error");
+
+    guard.canActivate(routeMock, routeStateMock)
+      .subscribe(result => {
+        expect(result).toBe("failed" as unknown as UrlTree);
+        done();
+      });
   });
 
   it("should return false after logging in with redirect", (done) => {
@@ -143,12 +174,69 @@ describe('MsalGuard', () => {
       })
     ));
 
-    const listener = jasmine.createSpy();
-    guard.canActivate(routeMock, routeStateMock).subscribe(listener);
-    expect(listener).toHaveBeenCalledWith(false);
-    done();
+    guard.canActivate(routeMock, routeStateMock)
+        .subscribe(result => {
+            expect(result).toBeFalse();
+            done();
+        });
   });
 
+  it("canActivateChild returns true with logged in user", (done) => {
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
+      //@ts-ignore
+      of("test")
+    );
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
+      homeAccountId: "test",
+      localAccountId: "test",
+      environment: "test",
+      tenantId: "test",
+      username: "test"
+    }]);
+
+    guard.canActivateChild(routeMock, routeStateMock)
+      .subscribe(result => {
+        expect(result).toBeTrue();
+        done();
+      });
+  });
+
+  it("canLoad returns true with logged in user", (done) => {
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
+      //@ts-ignore
+      of("test")
+    );
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
+      homeAccountId: "test",
+      localAccountId: "test",
+      environment: "test",
+      tenantId: "test",
+      username: "test"
+    }]);
+
+    guard.canLoad()
+      .subscribe(result => {
+        expect(result).toBeTrue();
+        done();
+      });
+  });
+
+  it("canLoad returns false with no users logged in", (done) => {
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
+      //@ts-ignore
+      of("test")
+    );
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([]);
+
+    guard.canLoad()
+      .subscribe(result => {
+        expect(result).toBeFalse();
+        done();
+      });
+  });
 
 });
 

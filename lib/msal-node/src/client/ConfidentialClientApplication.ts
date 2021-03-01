@@ -10,19 +10,23 @@ import { ApiId } from "../utils/Constants";
 import {
     ClientCredentialClient,
     OnBehalfOfClient,
+    CommonClientCredentialRequest,
+    CommonOnBehalfOfRequest,
     AuthenticationResult,
     StringUtils,
-    ClientAuthError,
-    ClientCredentialRequest as CommonClientCredentialRequest,
-    OnBehalfOfRequest as CommonOnBehalfOfRequest
-} from "@azure/msal-common";
+    ClientAuthError } from "@azure/msal-common";
+import { IConfidentialClientApplication } from "./IConfidentialClientApplication";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
 
-export class ConfidentialClientApplication extends ClientApplication {
+/**
+ *  This class is to be used to acquire tokens for confidential client applications (webApp, webAPI). Confidential client applications
+ *  will configure application secrets, client certificates/assertions as applicable
+ * @public
+ */
+export class ConfidentialClientApplication extends ClientApplication implements IConfidentialClientApplication{
 
     /**
-     * @constructor
      * Constructor for the ConfidentialClientApplication
      *
      * Required attributes in the Configuration object are:
@@ -30,16 +34,16 @@ export class ConfidentialClientApplication extends ClientApplication {
      * - authority: the authority URL for your application.
      * - client credential: Must set either client secret, certificate, or assertion for confidential clients. You can obtain a client secret from the application registration portal.
      *
-     * In Azure AD, authority is a URL indicating of the form https://login.microsoftonline.com/{Enter_the_Tenant_Info_Here}.
+     * In Azure AD, authority is a URL indicating of the form https://login.microsoftonline.com/\{Enter_the_Tenant_Info_Here\}.
      * If your application supports Accounts in one organizational directory, replace "Enter_the_Tenant_Info_Here" value with the Tenant Id or Tenant name (for example, contoso.microsoft.com).
      * If your application supports Accounts in any organizational directory, replace "Enter_the_Tenant_Info_Here" value with organizations.
      * If your application supports Accounts in any organizational directory and personal Microsoft accounts, replace "Enter_the_Tenant_Info_Here" value with common.
      * To restrict support to Personal Microsoft accounts only, replace "Enter_the_Tenant_Info_Here" value with consumers.
      *
-     * In Azure B2C, authority is of the form https://{instance}/tfp/{tenant}/{policyName}/
+     * In Azure B2C, authority is of the form https://\{instance\}/tfp/\{tenant\}/\{policyName\}/
      * Full B2C functionality will be available in this library in future versions.
      *
-     * @param {@link (Configuration:type)} configuration object for the MSAL ConfidentialClientApplication instance
+     * @param Configuration - configuration object for the MSAL ConfidentialClientApplication instance
      */
     constructor(configuration: Configuration) {
         super(configuration);

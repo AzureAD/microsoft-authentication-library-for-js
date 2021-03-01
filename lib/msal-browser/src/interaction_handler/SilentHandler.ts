@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { UrlString, StringUtils, AuthorizationCodeRequest, AuthorizationCodeClient } from "@azure/msal-common";
+import { UrlString, StringUtils, CommonAuthorizationCodeRequest, AuthorizationCodeClient, Constants } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
@@ -13,32 +13,30 @@ import { DEFAULT_IFRAME_TIMEOUT_MS } from "../config/Configuration";
 export class SilentHandler extends InteractionHandler {
 
     private navigateFrameWait: number;
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, navigateFrameWait: number) {
-        super(authCodeModule, storageImpl);
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, navigateFrameWait: number) {
+        super(authCodeModule, storageImpl, authCodeRequest);
         this.navigateFrameWait = navigateFrameWait;
     }
 
     /**
      * Creates a hidden iframe to given URL using user-requested scopes as an id.
-     * @param urlNavigate 
+     * @param urlNavigate
      * @param userRequestScopes
      */
-    async initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest): Promise<HTMLIFrameElement> {
+    async initiateAuthRequest(requestUrl: string): Promise<HTMLIFrameElement> {
         if (StringUtils.isEmpty(requestUrl)) {
             // Throw error if request URL is empty.
             this.authModule.logger.info("Navigate url is empty");
             throw BrowserAuthError.createEmptyNavigationUriError();
         }
-        // Save auth code request
-        this.authCodeRequest = authCodeRequest;
 
         return this.navigateFrameWait ? await this.loadFrame(requestUrl) : this.loadFrameSync(requestUrl);
     }
 
     /**
      * Monitors an iframe content window until it loads a url with a known hash, or hits a specified timeout.
-     * @param iframe 
-     * @param timeout 
+     * @param iframe
+     * @param timeout
      */
     monitorIframeForHash(iframe: HTMLIFrameElement, timeout: number): Promise<string> {
         return new Promise((resolve, reject) => {
@@ -61,21 +59,22 @@ export class SilentHandler extends InteractionHandler {
                     return;
                 }
 
-                let href: string;
+                let href: string = Constants.EMPTY_STRING;
+                const contentWindow = iframe.contentWindow;
                 try {
                     /*
                      * Will throw if cross origin,
                      * which should be caught and ignored
                      * since we need the interval to keep running while on STS UI.
                      */
-                    href = iframe.contentWindow.location.href;
+                    href = contentWindow ? contentWindow.location.href : Constants.EMPTY_STRING;
                 } catch (e) {}
 
                 if (StringUtils.isEmpty(href)) {
                     return;
                 }
 
-                const contentHash = iframe.contentWindow.location.hash;
+                const contentHash = contentWindow ? contentWindow.location.hash: Constants.EMPTY_STRING;
                 if (UrlString.hashContainsKnownProperties(contentHash)) {
                     // Success case
                     this.removeHiddenIframe(iframe);

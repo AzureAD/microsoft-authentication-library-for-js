@@ -1,4 +1,5 @@
 import { MsalAuthenticationTemplate, useMsal, useAccount } from "@azure/msal-react";
+import { InteractionStatus, InteractionType } from "@azure/msal-browser";
 import { loginRequest } from "../src/authConfig";
 import React, { useEffect, useState } from "react";
 import { ProfileData } from "../src/ProfileData";
@@ -7,7 +8,7 @@ import Paper from "@material-ui/core/Paper";
 import { Typography } from "@material-ui/core";
 
 const ProfileContent = () => {
-    const { instance, accounts } = useMsal();
+    const { instance, accounts, inProgress } = useMsal();
     const account = useAccount(accounts[0] || {});
     const [graphData, setGraphData] = useState(null);
   
@@ -21,8 +22,10 @@ const ProfileContent = () => {
     }
 
     useEffect(() => {
-        requestProfileData();
-    }, []);
+        if (!graphData && account && inProgress !== InteractionStatus.Startup) {
+            requestProfileData();
+        }
+    }, [account, graphData, inProgress]);
   
     return (
         <Paper>
@@ -46,7 +49,7 @@ export default function Profile() {
 
     return (
         <MsalAuthenticationTemplate 
-            interactionType={InteractionType.Popup} 
+            interactionType={InteractionType.Redirect} 
             authenticationRequest={authRequest} 
             errorComponent={ErrorComponent} 
             loadingComponent={Loading}

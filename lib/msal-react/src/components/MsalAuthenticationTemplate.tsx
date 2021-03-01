@@ -9,8 +9,7 @@ import { getChildrenOrFunction } from "../utils/utilities";
 import { useMsal } from "../hooks/useMsal";
 import { MsalAuthenticationResult, useMsalAuthentication } from "../hooks/useMsalAuthentication";
 import { useIsAuthenticated } from "../hooks/useIsAuthenticated";
-import { InteractionType, PopupRequest, RedirectRequest, SsoSilentRequest } from "@azure/msal-browser";
-import { InteractionStatus } from "../utils/Constants";
+import { InteractionType, PopupRequest, RedirectRequest, SsoSilentRequest, InteractionStatus } from "@azure/msal-browser";
 import { IMsalContext } from "../MsalContext";
 
 export type MsalAuthenticationProps = PropsWithChildren<AccountIdentifiers & {

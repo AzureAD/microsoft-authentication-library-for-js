@@ -2,6 +2,179 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Thu, 18 Feb 2021 00:34:32 GMT",
+      "tag": "@azure/msal-node_v1.0.0",
+      "version": "1.0.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update msal-node landing page & samples page",
+            "author": "dogan.erisen@gmail.com",
+            "commit": "c6de840d684291617012cfe444bc5759645076ea",
+            "package": "@azure/msal-node"
+          }
+        ],
+        "prerelease": [
+          {
+            "comment": "ADD FAQs (#3038)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "20f94c3970fb14c7508aa7b61ba80e1639c50605",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Update node version support in package.json(#2998)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "09f9a00784c40b3d2ca8a60ceef7fcefe47dd215",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 09 Feb 2021 01:48:22 GMT",
+      "tag": "@azure/msal-node_v1.0.0-beta.6",
+      "version": "1.0.0-beta.6",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Fix version.json import errors (#2993)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6dc3bc9e2148bc53b181d9f079f6e11e0159620b",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Ignore OIDC scopes during cache lookup or replacement (#2969)",
+            "author": "prkanher@microsoft.com",
+            "commit": "b113b562ffc33ad44b8d98417753db397256aadf",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Set the validateStatus locally than globally for `axios` (#2959)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "55617cb8bc5289c29fd4357a16605b6720195cbc",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Add API Extractor for msal-node",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "01747296efdf08eefe585930097d9bbbf6b00789",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 02 Feb 2021 01:56:47 GMT",
+      "tag": "@azure/msal-node_v1.0.0-beta.5",
+      "version": "1.0.0-beta.5",
+      "comments": {
+        "none": [
+          {
+            "comment": "Typedocs Updates (#2926)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "3fd4a48143ed4fb62b9e3266338b1abda920d68a",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Add project references (#2930)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "a836e77e372f1b4da28195d4ad8c0c75d6794875",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Test updates (#2949)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "cbdd4cd8ba23b5794aeb1f0788b828f1248f7236",
+            "package": "@azure/msal-node"
+          }
+        ],
+        "prerelease": [
+          {
+            "comment": "Get package version from version.json (#2915)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "a6f4702f9439e318a8cb6dc65d1def16351a84fd",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Add interfaces to public APIs in msal-node (#2623)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "baa4aa037f90209006eb3fb1ba1263fd09690343",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 21 Jan 2021 21:48:01 GMT",
+      "tag": "@azure/msal-node_v1.0.0-beta.4",
+      "version": "1.0.0-beta.4",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Authority metadata caching (#2758)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "28b3268b1385e99249c0b7a95b0b14299011ca46",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 12 Jan 2021 00:51:26 GMT",
+      "tag": "@azure/msal-node_v1.0.0-beta.3",
+      "version": "1.0.0-beta.3",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "ClientAssertion.parseCertificate - allow newlines in cert (#2721).",
+            "author": "email not defined",
+            "commit": "199c99ef23aeb013f8dcec94e3210332fbc42ed0",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "feat: bump up the axios version on msal-node",
+            "author": "samuel.kamau@microsoft.com",
+            "commit": "0d8e60f38340cb7b9a49dc3e0be28503105b5857",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Add getKVStore to tokenCache (#2771)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "bb8ef90bcd20f111b903214c10429c1d507eafcf",
+            "package": "@azure/msal-node"
+          }
+        ],
+        "none": [
+          {
+            "comment": "package-lock changes",
+            "author": "prkanher@microsoft.com",
+            "commit": "c092667cd997935625eafbc491ede54417d4b657",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "package.lock change",
+            "author": "samuel.kamau@microsoft.com",
+            "commit": "4e50ca592f5a17578072be9e4ac28e05b3e6d594",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Fix npm audit warnings",
+            "author": "janutter@microsoft.com",
+            "commit": "751026cdaa24dd370c50ad714bf0b1d54c71fbde",
+            "package": "@azure/msal-node"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "change the code challenge encoding to uniform base64",
+            "author": "samuel.kamau@microsoft.com",
+            "commit": "c0cce3b6f6199bf0db5d77a07c557c8cdb4e383c",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 07 Dec 2020 22:19:03 GMT",
       "tag": "@azure/msal-node_v1.0.0-beta.2",
       "version": "1.0.0-beta.2",

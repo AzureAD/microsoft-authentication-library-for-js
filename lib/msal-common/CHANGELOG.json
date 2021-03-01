@@ -2,6 +2,171 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Thu, 18 Feb 2021 00:34:32 GMT",
+      "tag": "@azure/msal-common_v4.0.1",
+      "version": "4.0.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Clarify Device Code Timeout units (#3031)",
+            "author": "hemoral@microsoft.com",
+            "commit": "af97180664ec257f2fdb6f04ab0921affeb9a8f3",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 09 Feb 2021 01:48:22 GMT",
+      "tag": "@azure/msal-common_v4.0.0",
+      "version": "4.0.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix version.json import errors (#2993)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6dc3bc9e2148bc53b181d9f079f6e11e0159620b",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Setting postLogoutRedirectUri as null will disable post logout redirect",
+            "author": "janutter@microsoft.com",
+            "commit": "cae9fa7bdd1575067d2e823402e0725f7bf8b11e",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Ignore OIDC scopes during cache lookup or replacement (#2969)",
+            "author": "prkanher@microsoft.com",
+            "commit": "554f47e8ff576c3230c36df74cd73b6101d333ab",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "major": [
+          {
+            "comment": "Add API Extractor for msal-node",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "01747296efdf08eefe585930097d9bbbf6b00789",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 02 Feb 2021 01:56:47 GMT",
+      "tag": "@azure/msal-common_v3.1.0",
+      "version": "3.1.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix token timestamp calculation",
+            "author": "prkanher@microsoft.com",
+            "commit": "12f9fa2b6a9530fac5f7570ee3c49dc39232284c",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Fix B2C policy switching (#2949)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "05eb650487a800d4bb3f94ec9dacca2efa98cc82",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Get package version from version.json (#2915)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "a6f4702f9439e318a8cb6dc65d1def16351a84fd",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add wrapper SKU and version to current telemetry header (#2845)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "27597c148c718e3d001309349a4498a958688cbd",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Add project references (#2930)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "a836e77e372f1b4da28195d4ad8c0c75d6794875",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Typedocs Updates (#2926)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "3fd4a48143ed4fb62b9e3266338b1abda920d68a",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 21 Jan 2021 21:48:01 GMT",
+      "tag": "@azure/msal-common_v3.0.0",
+      "version": "3.0.0",
+      "comments": {
+        "major": [
+          {
+            "comment": "Authority metadata caching (#2758)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "28b3268b1385e99249c0b7a95b0b14299011ca46",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Add missing license files",
+            "author": "janutter@microsoft.com",
+            "commit": "bee8cbd1f3a22efccb83ba045231eb611e2a7f7d",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 12 Jan 2021 00:51:26 GMT",
+      "tag": "@azure/msal-common_v2.1.0",
+      "version": "2.1.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Adding account info equality check function (#2728)",
+            "author": "prkanher@microsoft.com",
+            "commit": "ca8c0d55d2abc4eefaa52c833510e313610eb424",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Adding device code timeout to the device code request(#2656)",
+            "author": "samuel.kamau@microsoft.com",
+            "commit": "4e50ca592f5a17578072be9e4ac28e05b3e6d594",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Merge angular-v2 to dev (#2709)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "76a88f98fbab73fd6c0ad6d04b294814c169fc10",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Fix npm audit warnings",
+            "author": "janutter@microsoft.com",
+            "commit": "751026cdaa24dd370c50ad714bf0b1d54c71fbde",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add interface stubs (#2792)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "a6fae46d307d0a6101e926cb28298fd9f60d4a49",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 07 Dec 2020 22:19:03 GMT",
       "tag": "@azure/msal-common_v2.0.0",
       "version": "2.0.0",

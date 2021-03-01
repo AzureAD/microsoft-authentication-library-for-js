@@ -5,7 +5,7 @@
 
 import { AccountCache, AccountFilter, CredentialFilter, CredentialCache, ValidCredentialType, AppMetadataFilter, AppMetadataCache } from "./utils/CacheTypes";
 import { CacheRecord } from "./entities/CacheRecord";
-import { CacheSchemaType, CredentialType, Constants, APP_METADATA, THE_FAMILY_ID } from "../utils/Constants";
+import { CacheSchemaType, CredentialType, Constants, APP_METADATA, THE_FAMILY_ID, AUTHORITY_METADATA_CONSTANTS } from "../utils/Constants";
 import { CredentialEntity } from "./entities/CredentialEntity";
 import { ScopeSet } from "../request/ScopeSet";
 import { AccountEntity } from "./entities/AccountEntity";
@@ -16,12 +16,12 @@ import { AuthError } from "../error/AuthError";
 import { ICacheManager } from "./interface/ICacheManager";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { AccountInfo } from "../account/AccountInfo";
-import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { AppMetadataEntity } from "./entities/AppMetadataEntity";
 import { ServerTelemetryEntity } from "./entities/ServerTelemetryEntity";
 import { ThrottlingEntity } from "./entities/ThrottlingEntity";
 import { AuthToken } from "../account/AuthToken";
 import { ICrypto } from "../crypto/ICrypto";
+import { AuthorityMetadataEntity } from "./entities/AuthorityMetadataEntity";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -107,6 +107,24 @@ export abstract class CacheManager implements ICacheManager {
      * @param serverTelemetry
      */
     abstract setServerTelemetry(serverTelemetryKey: string, serverTelemetry: ServerTelemetryEntity): void;
+
+    /**
+     * fetch cloud discovery metadata entity from the platform cache
+     * @param key
+     */
+    abstract getAuthorityMetadata(key: string): AuthorityMetadataEntity | null;
+
+    /**
+     * 
+     */
+    abstract getAuthorityMetadataKeys(): Array<string>;
+
+    /**
+     * set cloud discovery metadata entity to the platform cache
+     * @param key
+     * @param value
+     */
+    abstract setAuthorityMetadata(key: string, value: AuthorityMetadataEntity): void;
 
     /**
      * fetch throttling entity from the platform cache
@@ -444,6 +462,38 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
+     * retrieve authorityMetadata that contains a matching alias
+     * @param filter
+     */
+    getAuthorityMetadataByAlias(host: string): AuthorityMetadataEntity | null {
+        const allCacheKeys = this.getAuthorityMetadataKeys();
+        let matchedEntity = null;
+
+        allCacheKeys.forEach((cacheKey) => {
+            // don't parse any non-authorityMetadata type cache entities
+            if (!this.isAuthorityMetadata(cacheKey) || cacheKey.indexOf(this.clientId) === -1) {
+                return;
+            }
+
+            // Attempt retrieval
+            const entity = this.getAuthorityMetadata(cacheKey);
+
+            if (!entity) {
+                return;
+            }
+
+            if (entity.aliases.indexOf(host) === -1) {
+                return;
+            }
+
+            matchedEntity = entity;
+
+        });
+        
+        return matchedEntity;
+    }
+
+    /**
      * Removes all accounts and related tokens from cache.
      */
     removeAllAccounts(): boolean {
@@ -696,7 +746,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param environment
      */
     private matchEnvironment(entity: AccountEntity | CredentialEntity | AppMetadataEntity, environment: string): boolean {
-        const cloudMetadata = TrustedAuthority.getCloudDiscoveryMetadata(environment);
+        const cloudMetadata = this.getAuthorityMetadataByAlias(environment);
         if (cloudMetadata && cloudMetadata.aliases.indexOf(entity.environment) > -1) {
             return true;
         }
@@ -753,8 +803,10 @@ export abstract class CacheManager implements ICacheManager {
         const entityScopeSet: ScopeSet = ScopeSet.fromString(entity.target);
         const requestTargetScopeSet: ScopeSet = ScopeSet.fromString(target);
 
-        if (!requestTargetScopeSet.containsOnlyDefaultScopes()) {
-            requestTargetScopeSet.removeDefaultScopes(); // ignore default scopes
+        if (!requestTargetScopeSet.containsOnlyOIDCScopes()) {
+            requestTargetScopeSet.removeOIDCScopes(); // ignore OIDC scopes
+        } else {
+            requestTargetScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
         }
         return entityScopeSet.containsScopeSet(requestTargetScopeSet);
     }
@@ -765,6 +817,21 @@ export abstract class CacheManager implements ICacheManager {
      */
     private isAppMetadata(key: string): boolean {
         return key.indexOf(APP_METADATA) !== -1;
+    }
+
+    /**
+     * returns if a given cache entity is of the type authoritymetadata
+     * @param key
+     */
+    protected isAuthorityMetadata(key: string): boolean {
+        return key.indexOf(AUTHORITY_METADATA_CONSTANTS.CACHE_KEY) !== -1;
+    }
+
+    /**
+     * returns cache key used for cloud instance metadata
+     */
+    generateAuthorityMetadataCacheKey(authority: string): string {
+        return `${AUTHORITY_METADATA_CONSTANTS.CACHE_KEY}-${this.clientId}-${authority}`;
     }
 
     /**
@@ -848,6 +915,18 @@ export class DefaultStorageClass extends CacheManager {
     }
     getServerTelemetry(): ServerTelemetryEntity {
         const notImplErr = "Storage interface - getServerTelemetry() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    setAuthorityMetadata(): void {
+        const notImplErr = "Storage interface - setAuthorityMetadata() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    getAuthorityMetadata(): AuthorityMetadataEntity | null {
+        const notImplErr = "Storage interface - getAuthorityMetadata() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    getAuthorityMetadataKeys(): Array<string> {
+        const notImplErr = "Storage interface - getAuthorityMetadataKeys() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
     setThrottlingCache(): void {

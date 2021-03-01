@@ -1,8 +1,45 @@
 # Change Log - @azure/msal-react
 
-This log was last generated on Mon, 07 Dec 2020 22:19:03 GMT and should not be manually modified.
+This log was last generated on Tue, 09 Feb 2021 01:48:22 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.5
+
+Tue, 09 Feb 2021 01:48:22 GMT
+
+### Changes
+
+- Check InteractionStatus in Authenticated/UnauthenticatedTemplate (#2996) (thomas.norling@microsoft.com)
+- Fix version.json import errors (#2993) (thomas.norling@microsoft.com)
+
+## 1.0.0-alpha.4
+
+Tue, 02 Feb 2021 01:56:47 GMT
+
+### Changes
+
+- Get package version from version.json (#2915) (thomas.norling@microsoft.com)
+- Use interactionStatus and inProgress from msal-browser (#2885) (joarroyo@microsoft.com)
+- Pass SKU and version to msal-browser (#2845) (thomas.norling@microsoft.com)
+
+## 1.0.0-alpha.3
+
+Thu, 21 Jan 2021 21:48:01 GMT
+
+### Changes
+
+- Fix initial state values (#2865) (thomas.norling@microsoft.com)
+- Add missing license files (janutter@microsoft.com)
+
+## 1.0.0-alpha.2
+
+Tue, 12 Jan 2021 00:51:26 GMT
+
+### Changes
+
+- Add logger (#2727) (thomas.norling@microsoft.com)
+- Fix redirect loop when service returns error (#2762) (thomas.norling@microsoft.com)
 
 ## 1.0.0-alpha.1
 

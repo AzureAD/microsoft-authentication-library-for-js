@@ -20,6 +20,7 @@ import { NetworkUtils } from "../utils/NetworkUtils";
  * - clientAssertion        - Assertion string that the application uses when requesting a token. Only used in confidential client applications. Assertion should be of type urn:ietf:params:oauth:client-assertion-type:jwt-bearer.
  * - clientCertificate      - Certificate that the application uses when requesting a token. Only used in confidential client applications. Requires hex encoded X.509 SHA-1 thumbprint of the certificiate, and the PEM encoded private key (string should contain -----BEGIN PRIVATE KEY----- ... -----END PRIVATE KEY----- )
  * - protocolMode           - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
+ * @public
  */
 export type NodeAuthOptions = {
     clientId: string;
@@ -33,6 +34,7 @@ export type NodeAuthOptions = {
     };
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;
+    authorityMetadata?: string,
     clientCapabilities?: [];
     protocolMode?: ProtocolMode;
 };
@@ -41,6 +43,7 @@ export type NodeAuthOptions = {
  * Use this to configure the below cache configuration options:
  *
  * - cachePlugin   - Plugin for reading and writing token cache to disk.
+ * @public
  */
 export type CacheOptions = {
     cachePlugin?: ICachePlugin;
@@ -51,6 +54,7 @@ export type CacheOptions = {
  *
  * - logger                       - Used to initialize the Logger object; TODO: Expand on logger details or link to the documentation on logger
  * - networkClient                - Http client used for all http get and post calls. Defaults to using MSAL's default http client.
+ * @public
  */
 export type NodeSystemOptions = {
     loggerOptions?: LoggerOptions;
@@ -63,6 +67,7 @@ export type NodeSystemOptions = {
  * - auth: this is where you configure auth elements like clientID, authority used for authenticating against the Microsoft Identity Platform
  * - cache: this is where you configure cache location
  * - system: this is where you can configure the network client, logger
+ * @public
  */
 export type Configuration = {
     auth: NodeAuthOptions;
@@ -82,6 +87,7 @@ const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
     },
     knownAuthorities: [],
     cloudDiscoveryMetadata: "",
+    authorityMetadata: "",
     clientCapabilities: [],
     protocolMode: ProtocolMode.AAD
 };
@@ -104,11 +110,12 @@ const DEFAULT_SYSTEM_OPTIONS: NodeSystemOptions = {
 /**
  * Sets the default options when not explicitly configured from app developer
  *
- * @param auth
- * @param cache
- * @param system
+ * @param auth - Authentication options
+ * @param cache - Cache options
+ * @param system - System options
  *
  * @returns Configuration
+ * @public
  */
 export function buildAppConfiguration({
     auth,

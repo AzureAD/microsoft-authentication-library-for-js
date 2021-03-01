@@ -3,23 +3,34 @@
  * Licensed under the MIT License.
  */
 
-import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot } from "@angular/router";
+import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, CanActivateChild, CanLoad, UrlTree, Router } from "@angular/router";
 import { MsalService } from "./msal.service";
-import { Injectable, Inject } from "@angular/core";
+import { Injectable, Inject, VERSION } from "@angular/core";
 import { Location } from "@angular/common";
-import { InteractionType, BrowserConfigurationAuthError, BrowserUtils, UrlString } from "@azure/msal-browser";
+import { InteractionType, BrowserConfigurationAuthError, BrowserUtils, UrlString, PopupRequest, RedirectRequest, AuthenticationResult } from "@azure/msal-browser";
 import { MsalGuardConfiguration } from "./msal.guard.config";
 import { MSAL_GUARD_CONFIG } from "./constants";
 import { concatMap, catchError, map } from "rxjs/operators";
 import { Observable, of } from "rxjs";
 
 @Injectable()
-export class MsalGuard implements CanActivate {
+export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
+    private loginFailedRoute?: UrlTree;
+
     constructor(
         @Inject(MSAL_GUARD_CONFIG) private msalGuardConfig: MsalGuardConfiguration,
         private authService: MsalService,
         private location: Location,
+        private router: Router
     ) { }
+
+    /**
+     * Parses url string to UrlTree
+     * @param url 
+     */
+    parseUrl(url: string): UrlTree {
+        return this.router.parseUrl(url);
+    }
 
     /**
      * Builds the absolute url for the destination page
@@ -48,29 +59,39 @@ export class MsalGuard implements CanActivate {
         return `${baseUrl}${path}`;
     }
 
+    /**
+     * Interactively prompt the user to login
+     * @param url Path of the requested page
+     */
     private loginInteractively(url: string): Observable<boolean> {
         if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
             this.authService.getLogger().verbose("Guard - logging in by popup");
-            return this.authService.loginPopup({ ...this.msalGuardConfig.authRequest })
+            return this.authService.loginPopup({ ...this.msalGuardConfig.authRequest } as PopupRequest)
                 .pipe(
-                    map(() => {
-                        this.authService.getLogger().verbose("Guard - login by popup successful, can activate");
+                    map((response: AuthenticationResult) => {
+                        this.authService.getLogger().verbose("Guard - login by popup successful, can activate, setting active account");
+                        this.authService.instance.setActiveAccount(response.account);
                         return true;
-                    }),
-                    catchError(() => of(false))
+                    })
                 );
         }
 
         this.authService.getLogger().verbose("Guard - logging in by redirect");
         const redirectStartPage = this.getDestinationUrl(url);
-        this.authService.loginRedirect({
+        return this.authService.loginRedirect({
             redirectStartPage,
             ...this.msalGuardConfig.authRequest
-        });
-        return of(false);
+        } as RedirectRequest)
+            .pipe(
+                map(() => false)
+            );
     }
 
-    canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean> {
+    /**
+     * Helper which checks for the correct interaction type, prevents page with Guard to be set as reidrect, and calls handleRedirectObservable
+     * @param state 
+     */
+    private activateHelper(state?: RouterStateSnapshot): Observable<boolean|UrlTree> {
         if (this.msalGuardConfig.interactionType !== InteractionType.Popup && this.msalGuardConfig.interactionType !== InteractionType.Redirect) {
             throw new BrowserConfigurationAuthError("invalid_interaction_type", "Invalid interaction type provided to MSAL Guard. InteractionType.Popup or InteractionType.Redirect must be provided in the MsalGuardConfiguration");
         }
@@ -86,21 +107,56 @@ export class MsalGuard implements CanActivate {
             return of(false);
         }
 
+        /**
+         * If a loginFailedRoute is set in the config, set this as the loginFailedRoute
+         */
+        if (this.msalGuardConfig.loginFailedRoute) {
+            this.loginFailedRoute = this.parseUrl(this.msalGuardConfig.loginFailedRoute);
+        }
+
         return this.authService.handleRedirectObservable()
             .pipe(
                 concatMap(() => {
                     if (!this.authService.instance.getAllAccounts().length) {
-                        this.authService.getLogger().verbose("Guard - no accounts retrieved, log in required to activate");
-                        return this.loginInteractively(state.url);
+                        if (state) {
+                            this.authService.getLogger().verbose("Guard - no accounts retrieved, log in required to activate");
+                            return this.loginInteractively(state.url);
+                        } 
+                        this.authService.getLogger().verbose("Guard - no accounts retrieved, no state, cannot load");
+                        return of(false);
                     }
-                    this.authService.getLogger().verbose("Guard - account retrieved, can activate");
+                    this.authService.getLogger().verbose("Guard - account retrieved, can activate or load");
                     return of(true);
                 }),
                 catchError(() => {
                     this.authService.getLogger().verbose("Guard - error while logging in, unable to activate");
+                    /**
+                     * If a loginFailedRoute is set, checks to see if Angular 10+ is used and state is passed in before returning route
+                     * Apps using Angular 9 will receive of(false) in canLoad interface, as it does not support UrlTree return types
+                     */
+                    if (this.loginFailedRoute && parseInt(VERSION.major, 10) > 9 && state) {
+                        this.authService.getLogger().verbose("Guard - loginFailedRoute set, redirecting");
+                        return of(this.loginFailedRoute);
+                    }
                     return of(false);
                 })
             );
+    }
+
+    canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean|UrlTree> {
+        this.authService.getLogger().verbose("Guard - canActivate");
+        return this.activateHelper(state);
+    }
+
+    canActivateChild(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean|UrlTree> {
+        this.authService.getLogger().verbose("Guard - canActivateChild");
+        return this.activateHelper(state);
+    }
+
+    canLoad(): Observable<boolean> {
+        this.authService.getLogger().verbose("Guard - canLoad");
+        // @ts-ignore
+        return this.activateHelper();
     }
 
 }

@@ -10,6 +10,7 @@ import { RefreshTokenEntity } from "../entities/RefreshTokenEntity";
 import { AppMetadataEntity } from "../entities/AppMetadataEntity";
 import { ServerTelemetryEntity } from "../entities/ServerTelemetryEntity";
 import { ThrottlingEntity } from "../entities/ThrottlingEntity";
+import { AuthorityMetadataEntity } from "../entities/AuthorityMetadataEntity";
 
 export type AccountCache = Record<string, AccountEntity>;
 export type IdTokenCache = Record<string, IdTokenEntity>;
@@ -22,7 +23,14 @@ export type CredentialCache = {
     refreshTokens: RefreshTokenCache;
 };
 
-export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity | RefreshTokenEntity | AppMetadataEntity | ServerTelemetryEntity | ThrottlingEntity | string;
+/**
+ * Object type of all accepted cache types
+ */
+export type ValidCacheType = AccountEntity | IdTokenEntity | AccessTokenEntity | RefreshTokenEntity | AppMetadataEntity | AuthorityMetadataEntity | ServerTelemetryEntity | ThrottlingEntity | string;
+
+/**
+ * Object type of all credential types
+ */
 export type ValidCredentialType = IdTokenEntity | AccessTokenEntity | RefreshTokenEntity;
 
 /**

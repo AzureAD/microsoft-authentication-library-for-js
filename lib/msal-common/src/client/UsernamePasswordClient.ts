@@ -5,7 +5,7 @@
 
 import { BaseClient } from "./BaseClient";
 import { ClientConfiguration } from "../config/ClientConfiguration";
-import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
+import { CommonUsernamePasswordRequest } from "../request/CommonUsernamePasswordRequest";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { Authority } from "../authority/Authority";
@@ -15,6 +15,7 @@ import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { GrantType } from "../utils/Constants";
 import { StringUtils } from "../utils/StringUtils";
 import { RequestThumbprint } from "../network/RequestThumbprint";
+import { TimeUtils } from "../utils/TimeUtils";
 
 /**
  * Oauth2.0 Password grant client
@@ -31,9 +32,10 @@ export class UsernamePasswordClient extends BaseClient {
      * password_grant
      * @param request
      */
-    async acquireToken(request: UsernamePasswordRequest): Promise<AuthenticationResult | null> {
+    async acquireToken(request: CommonUsernamePasswordRequest): Promise<AuthenticationResult | null> {
         this.logger.info("in acquireToken call");
 
+        const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executeTokenRequest(this.authority, request);
 
         const responseHandler = new ResponseHandler(
@@ -47,7 +49,7 @@ export class UsernamePasswordClient extends BaseClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        const tokenResponse = responseHandler.handleServerTokenResponse(response.body, this.authority);
+        const tokenResponse = responseHandler.handleServerTokenResponse(response.body, this.authority, reqTimestamp);
 
         return tokenResponse;
     }
@@ -57,7 +59,7 @@ export class UsernamePasswordClient extends BaseClient {
      * @param authority
      * @param request
      */
-    private async executeTokenRequest(authority: Authority, request: UsernamePasswordRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+    private async executeTokenRequest(authority: Authority, request: CommonUsernamePasswordRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
@@ -73,7 +75,7 @@ export class UsernamePasswordClient extends BaseClient {
      * Generates a map for all the params to be sent to the service
      * @param request
      */
-    private createTokenRequestBody(request: UsernamePasswordRequest): string {
+    private createTokenRequestBody(request: CommonUsernamePasswordRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);

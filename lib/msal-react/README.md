@@ -4,11 +4,11 @@
 
 `msal-react` is under development. **We do not recommend using this in a production environment yet**.
 
-| [AAD Docs](https://aka.ms/aaddevv2) | [Support](README.md#community-help-and-support) | [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples)
+| <a href="https://aka.ms/aaddevv2" target="_blank">AAD Docs</a> | <a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_react.html" target="_blank">Library Reference</a> | <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples" target="blank">Samples</a>
 | --- | --- | --- |
 
 1. [About](#about)
-1. [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md)
+1. [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/FAQ.md)
 1. [Prerequisites](#prerequisites)
 1. [Installation](#installation)
 1. [Build and Test](#build-and-test)
@@ -17,7 +17,7 @@
     - [Msal Basics](#msal-basics)
     - [Advanced Topics](#advanced-topics)
     - [MSAL React Specific Concepts](#msal-react-specific-concepts)
-1. [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples)
+1. [Samples](#samples)
 1. [Security Reporting](#security-reporting)
 1. [License](#license)
 1. [Code of Conduct](#we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct)
@@ -106,6 +106,18 @@ Since `msal-react` is built on top of `@azure/msal-browser` a lot of the same do
 ### MSAL React Specific Concepts
 
 1. [Hooks](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/hooks.md)
+1. [Events](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/events.md)
+1. [Class Components](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/class-components.md)
+1. [Performance](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/performance.md)
+
+## Samples
+
+Our [samples directory](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples) contains several example apps you can spin up to see how this library can be used in different contexts.
+
+- [Create React App (JS) Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/react-router-sample)
+- [Create React App (TS) Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/typescript-sample)
+- [Next.js Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/nextjs-sample)
+- [Gatsby Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/gatsby-sample)
 
 ## Security Reporting
 

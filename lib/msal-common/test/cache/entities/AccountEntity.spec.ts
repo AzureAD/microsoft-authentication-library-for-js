@@ -8,8 +8,9 @@ import { NetworkRequestOptions, INetworkModule } from "../../../src/network/INet
 import { ICrypto, PkceCodes } from "../../../src/crypto/ICrypto";
 import { RANDOM_TEST_GUID, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES, PREFERRED_CACHE_ALIAS } from "../../utils/StringConstants";
 import sinon from "sinon";
-import { AuthorityType, ClientAuthError, ClientAuthErrorMessage, Logger, LogLevel, ProtocolMode } from "../../../src";
-import { ClientTestUtils } from "../../client/ClientTestUtils";
+import { Authority, AuthorityOptions, AuthorityType, ClientAuthError, ClientAuthErrorMessage, Logger, LogLevel, ProtocolMode } from "../../../src";
+import { ClientTestUtils, mockStorage } from "../../client/ClientTestUtils";
+import { AccountInfo } from "../../../dist/src";
 
 const cryptoInterface: ICrypto = {
     createNewGuid(): string {
@@ -68,10 +69,17 @@ const networkInterface: INetworkModule = {
     }
 };
 
+const authorityOptions: AuthorityOptions = {
+    protocolMode: ProtocolMode.AAD,
+    knownAuthorities: [Constants.DEFAULT_AUTHORITY],
+    cloudDiscoveryMetadata: "",
+    authorityMetadata: ""
+}
 const authority =  AuthorityFactory.createInstance(
     Constants.DEFAULT_AUTHORITY,
     networkInterface,
-    ProtocolMode.AAD
+    mockStorage,
+    authorityOptions
 );
 
 const loggerOptions = {
@@ -84,7 +92,7 @@ const loggerOptions = {
 
 describe("AccountEntity.ts Unit Tests", () => {
     beforeEach(() => {
-        ClientTestUtils.setCloudDiscoveryMetadataStubs();
+        sinon.stub(Authority.prototype, "getPreferredCache").returns("login.windows.net");
     });
 
     afterEach(() => {
@@ -326,11 +334,91 @@ describe("AccountEntity.ts Unit Tests", () => {
     it("verify if an object is not an account entity", () => {
         expect(AccountEntity.isAccountEntity(mockIdTokenEntity)).to.eql(false);
     });
+
+    describe("accountInfoIsEqual()", () => {
+        let acc: AccountEntity;
+        beforeEach(() => {
+            // Set up stubs
+            const idTokenClaims = {
+                "ver": "2.0",
+                "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "exp": 1536361411,
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+            };
+            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            const idToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, cryptoInterface);
+
+            const logger = new Logger(loggerOptions);
+            const homeAccountId = AccountEntity.generateHomeAccountId(
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+                AuthorityType.Default,
+                logger,
+                cryptoInterface,
+                idToken);
+
+            acc = AccountEntity.createAccount(
+                TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
+                homeAccountId,
+                authority,
+                idToken
+            );
+        })
+
+        it("returns true if two account info objects have the same values", () => {
+            const acc1: AccountInfo = acc.getAccountInfo();
+            const acc2: AccountInfo = {...acc1};
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc2)).to.be.true;            
+        });
+    
+        it("returns false if required AccountInfo parameters are not equal", () => {
+            const acc1: AccountInfo = acc.getAccountInfo();
+            const acc2: AccountInfo = {...acc1};
+            const acc3: AccountInfo = {...acc1};
+            const acc4: AccountInfo = {...acc1};
+            const acc5: AccountInfo = {...acc1};
+            const acc6: AccountInfo = {...acc1};
+            const acc7: AccountInfo = {...acc1};
+            const acc8: AccountInfo = {...acc1};
+            acc2.homeAccountId = "mockHomeAccountId2";
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc2)).to.be.false;
+            acc3.localAccountId = "mockLocalAccountId2";
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc3)).to.be.false;
+            acc4.environment = "mockEnv2";
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc4)).to.be.false;
+            acc5.tenantId = "mockTenant2";
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc5)).to.be.false;
+            acc6.username = "mockUsername2";
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc6)).to.be.false;
+            acc7.name = "mockName2";
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc7)).to.be.true;
+            acc8.idTokenClaims = {};
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc8)).to.be.true;
+        });
+
+        it("returns false if an account info object is invalid", () => {
+            const acc1: AccountInfo = null;
+            const acc2: AccountInfo = acc.getAccountInfo();
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc2)).to.be.false;
+
+            const acc3: AccountInfo = acc.getAccountInfo();
+            const acc4: AccountInfo = null;
+            expect(AccountEntity.accountInfoIsEqual(acc3, acc4)).to.be.false; 
+            
+            const acc5: AccountInfo = null;
+            const acc6: AccountInfo = null;
+            expect(AccountEntity.accountInfoIsEqual(acc5, acc6)).to.be.false; 
+        });
+    });
 });
 
 describe("AccountEntity.ts Unit Tests for ADFS", () => {
     beforeEach(() => {
-        ClientTestUtils.setCloudDiscoveryMetadataStubsForADFS();
+        sinon.stub(Authority.prototype, "getPreferredCache").returns("myadfs.com");
     });
 
     afterEach(() => {
@@ -338,10 +426,17 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
     });
 
     it("creates a generic ADFS account", () => {
+        const authorityOptions: AuthorityOptions = {
+            protocolMode: ProtocolMode.OIDC,
+            knownAuthorities: ["myadfs.com"],
+            cloudDiscoveryMetadata: "",
+            authorityMetadata: ""
+        }
         const authority = AuthorityFactory.createInstance(
             "https://myadfs.com/adfs",
             networkInterface,
-            ProtocolMode.OIDC
+            mockStorage, 
+            authorityOptions
         );
 
         // Set up stubs
@@ -366,9 +461,9 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             idToken
         );
 
-        expect(acc.generateAccountKey()).to.eql(`${idTokenClaims.sub.toLowerCase()}-myadfs.com/adfs-`);
+        expect(acc.generateAccountKey()).to.eql(`${idTokenClaims.sub.toLowerCase()}-myadfs.com-`);
         expect(acc.homeAccountId).to.eq(homeAccountId);
-        expect(acc.environment).to.eq("myadfs.com/adfs");
+        expect(acc.environment).to.eq("myadfs.com");
         expect(acc.realm).to.eq("");
         expect(acc.username).to.eq("testupn");
         expect(acc.localAccountId).to.eq(idTokenClaims.oid);
@@ -378,10 +473,17 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
     });
 
     it("creates a generic ADFS account without OID", () => {
+        const authorityOptions: AuthorityOptions = {
+            protocolMode: ProtocolMode.OIDC,
+            knownAuthorities: ["myadfs.com"],
+            cloudDiscoveryMetadata: "",
+            authorityMetadata: ""
+        }
         const authority = AuthorityFactory.createInstance(
-            "https://adfs.com/adfs",
+            "https://myadfs.com/adfs",
             networkInterface,
-            ProtocolMode.OIDC
+            mockStorage, 
+            authorityOptions
         );
 
         // Set up stubs
@@ -405,9 +507,9 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
             idToken
         );
 
-        expect(acc.generateAccountKey()).to.eql(`${idTokenClaims.sub.toLowerCase()}-myadfs.com/adfs-`);
+        expect(acc.generateAccountKey()).to.eql(`${idTokenClaims.sub.toLowerCase()}-myadfs.com-`);
         expect(acc.homeAccountId).to.eq(homeAccountId);
-        expect(acc.environment).to.eq("myadfs.com/adfs");
+        expect(acc.environment).to.eq("myadfs.com");
         expect(acc.realm).to.eq("");
         expect(acc.username).to.eq("testupn");
         expect(acc.authorityType).to.eq(CacheAccountType.ADFS_ACCOUNT_TYPE);

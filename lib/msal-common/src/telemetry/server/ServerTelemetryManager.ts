@@ -16,12 +16,16 @@ export class ServerTelemetryManager {
     private correlationId: string;
     private forceRefresh: boolean;
     private telemetryCacheKey: string;
+    private wrapperSKU: String;
+    private wrapperVer: String;
 
     constructor(telemetryRequest: ServerTelemetryRequest, cacheManager: CacheManager) {
         this.cacheManager = cacheManager;
         this.apiId = telemetryRequest.apiId;
         this.correlationId = telemetryRequest.correlationId;
         this.forceRefresh = telemetryRequest.forceRefresh || false;
+        this.wrapperSKU = telemetryRequest.wrapperSKU || Constants.EMPTY_STRING;
+        this.wrapperVer = telemetryRequest.wrapperVer || Constants.EMPTY_STRING;
 
         this.telemetryCacheKey = SERVER_TELEM_CONSTANTS.CACHE_KEY + Separators.CACHE_KEY_SEPARATOR + telemetryRequest.clientId;
     }
@@ -32,7 +36,7 @@ export class ServerTelemetryManager {
     generateCurrentRequestHeaderValue(): string {
         const forceRefreshInt = this.forceRefresh ? 1 : 0;
         const request = `${this.apiId}${SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR}${forceRefreshInt}`;
-        const platformFields = ""; // TODO: Determine what we want to include
+        const platformFields = [this.wrapperSKU, this.wrapperVer].join(SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR);
 
         return [SERVER_TELEM_CONSTANTS.SCHEMA_VERSION, request, platformFields].join(SERVER_TELEM_CONSTANTS.CATEGORY_SEPARATOR);
     }

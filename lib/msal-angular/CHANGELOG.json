@@ -2,6 +2,193 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Thu, 18 Feb 2021 00:34:32 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-alpha.6",
+      "version": "2.0.0-alpha.6",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Await loginRedirect in MSAL Guard to prevent race conditions",
+            "author": "janutter@microsoft.com",
+            "commit": "d33571952cfaf696b5151e46149b2f27cf1dfcdc",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 09 Feb 2021 01:48:22 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-alpha.5",
+      "version": "2.0.0-alpha.5",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Msal-angular typedocs and instrumentation (#2863)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "b5815fe4b20a701cd0210bdfb0b16441f1e8dcfb",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Fix version.json import errors (#2993)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6dc3bc9e2148bc53b181d9f079f6e11e0159620b",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update ssoSilent and cors-api documentation (#2971)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "a41c9f8a2035ed0965a21b2d6036199c955297e7",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 02 Feb 2021 01:56:47 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-alpha.4",
+      "version": "2.0.0-alpha.4",
+      "comments": {
+        "none": [
+          {
+            "comment": "Typedocs Updates (#2926)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "3fd4a48143ed4fb62b9e3266338b1abda920d68a",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Add project references (#2930)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "a836e77e372f1b4da28195d4ad8c0c75d6794875",
+            "package": "@azure/msal-angular"
+          }
+        ],
+        "prerelease": [
+          {
+            "comment": "Invoke interaction if MSAL Interceptor resolves with null access token, mitigates B2C service not supporting RTs for multiple resources",
+            "author": "janutter@microsoft.com",
+            "commit": "c701a75f041263aa2c7ce29c6d73f0b1ccc2a379",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Pass SKU and version to msal-browser (#2845)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "aaa262bad9a65a6bc391b7a7585504f6ad6ff833",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Add redirect component, get interactionStatus from msal-browser, add inProgress$, and sample updates (#2885)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "ebd726a6eea98ef097d6f9ee1dc45a206d184065",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Get package version from version.json (#2915)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "a6f4702f9439e318a8cb6dc65d1def16351a84fd",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Add version detection to msal guard for canLoad interface (#2948)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "f0dba5aeb3e0e88ca8816ada5323972e362f9d75",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 21 Jan 2021 21:48:01 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-alpha.3",
+      "version": "2.0.0-alpha.3",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update configuration.md with platformBrowserDynamic (#2879)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "04fbd99cab9807919584d065b34e3a342ff88f3e",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 12 Jan 2021 00:51:26 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-alpha.3",
+      "version": "2.0.0-alpha.3",
+      "comments": {
+        "none": [
+          {
+            "comment": "Temporarily use npm-force-resolutions to get update transitive deps for MSAL Angular",
+            "author": "janutter@microsoft.com",
+            "commit": "088541486482acf904b8b8d2461fad9f9bddd645",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update docs and samples (#2764)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "0fce9aa83fe0f215a73fda80831c5bbd871d59fc",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Merge angular-v2 to dev (#2709)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "76a88f98fbab73fd6c0ad6d04b294814c169fc10",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "package-lock update",
+            "author": "prkanher@microsoft.com",
+            "commit": "c092667cd997935625eafbc491ede54417d4b657",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Add docs for Angular Universal SSR (#2746)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "4a90d46733b197b578955d6d54a7fad606bc4f05",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "package.lock changes",
+            "author": "samuel.kamau@microsoft.com",
+            "commit": "0d8e60f38340cb7b9a49dc3e0be28503105b5857",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "package.lock change",
+            "author": "samuel.kamau@microsoft.com",
+            "commit": "4e50ca592f5a17578072be9e4ac28e05b3e6d594",
+            "package": "@azure/msal-angular"
+          }
+        ],
+        "prerelease": [
+          {
+            "comment": "Make scopes optional for msal-guard config (#2829)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "b2f0bf9b492fa691b373612a7ac20b7763acd65a",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Interceptor, guard, and samples to use active account (#2784)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "7d2b1014e36bb3234b8a48618a5805a44d7a5dc8",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Msal guard supports angular routes for login failure (#2803)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "984098e18ac9af4fcdda46d87d7f5503d135f580",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Add additional interfaces to msal-guard (#2759)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "70888a7b0dde9d2d7fa9e344ad21ad9de6bae39a",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 07 Dec 2020 23:02:52 GMT",
       "tag": "@azure/msal-angular_v2.0.0-alpha.1",
       "version": "2.0.0-alpha.1",

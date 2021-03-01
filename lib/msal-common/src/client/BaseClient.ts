@@ -11,11 +11,10 @@ import { Authority } from "../authority/Authority";
 import { Logger } from "../logger/Logger";
 import { AADServerParamKeys, Constants, HeaderNames } from "../utils/Constants";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
-import { TrustedAuthority } from "../authority/TrustedAuthority";
 import { CacheManager } from "../cache/CacheManager";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 import { RequestThumbprint } from "../network/RequestThumbprint";
-import { version, name } from "../../package.json";
+import { version, name } from "../packageMetadata";
 import { ClientAuthError } from "../error/ClientAuthError";
 
 /**
@@ -67,9 +66,6 @@ export abstract class BaseClient {
 
         // Set TelemetryManager
         this.serverTelemetryManager = this.config.serverTelemetryManager;
-
-        // Set TrustedAuthorities from config
-        TrustedAuthority.setTrustedAuthoritiesFromConfig(this.config.authOptions.knownAuthorities, this.config.authOptions.cloudDiscoveryMetadata);
 
         // set Authority
         this.authority = this.config.authOptions.authority;

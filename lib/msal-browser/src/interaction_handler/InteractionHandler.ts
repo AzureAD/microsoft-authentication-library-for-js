@@ -3,10 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { StringUtils, AuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient, AuthorityFactory, Authority, INetworkModule } from "@azure/msal-common";
+import { StringUtils, CommonAuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient, AuthorityFactory, Authority, INetworkModule, ClientAuthError } from "@azure/msal-common";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 
 export type InteractionParams = {};
 
@@ -17,35 +16,36 @@ export abstract class InteractionHandler {
 
     protected authModule: AuthorizationCodeClient;
     protected browserStorage: BrowserCacheManager;
-    protected authCodeRequest: AuthorizationCodeRequest;
+    protected authCodeRequest: CommonAuthorizationCodeRequest;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager) {
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest) {
         this.authModule = authCodeModule;
         this.browserStorage = storageImpl;
+        this.authCodeRequest = authCodeRequest;
     }
 
     /**
      * Function to enable user interaction.
      * @param requestUrl
      */
-    abstract initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, params: InteractionParams): Window | Promise<HTMLIFrameElement> | Promise<void>;
+    abstract initiateAuthRequest(requestUrl: string, params: InteractionParams): Window | Promise<HTMLIFrameElement> | Promise<void>;
 
     /**
      * Function to handle response parameters from hash.
      * @param locationHash
      */
-    async handleCodeResponse(locationHash: string, authority: Authority, networkModule: INetworkModule): Promise<AuthenticationResult> {
+    async handleCodeResponse(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule): Promise<AuthenticationResult> {
         // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {
             throw BrowserAuthError.createEmptyHashError(locationHash);
         }
 
-        // Deserialize hash fragment response parameters.
-        const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(locationHash);
-
         // Handle code response.
-        const stateKey = this.browserStorage.generateStateKey(serverParams.state);
+        const stateKey = this.browserStorage.generateStateKey(state);
         const requestState = this.browserStorage.getTemporaryCache(stateKey);
+        if (!requestState) {
+            throw ClientAuthError.createStateNotFoundError("Cached State");
+        }
         const authCodeResponse = this.authModule.handleFragmentResponse(locationHash, requestState);
 
         // Get cached items
@@ -60,20 +60,18 @@ export abstract class InteractionHandler {
             await this.updateTokenEndpointAuthority(authCodeResponse.cloud_instance_host_name, authority, networkModule);
         }
 
-        authCodeResponse.nonce = cachedNonce;
+        authCodeResponse.nonce = cachedNonce || undefined;
         authCodeResponse.state = requestState;
 
         // Acquire token with retrieved code.
         const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, authCodeResponse);
-        this.browserStorage.cleanRequestByState(serverParams.state);
+        this.browserStorage.cleanRequestByState(state);
         return tokenResponse;
     }
 
     protected async updateTokenEndpointAuthority(cloudInstanceHostname: string, authority: Authority, networkModule: INetworkModule): Promise<void> {
-        if (!authority.isAuthorityAlias(cloudInstanceHostname)) {
-            const cloudInstanceAuthorityUri = `https://${cloudInstanceHostname}/${authority.tenant}/`;
-            const cloudInstanceAuthority = await AuthorityFactory.createDiscoveredInstance(cloudInstanceAuthorityUri, networkModule, authority.protocolMode);
-            this.authModule.updateAuthority(cloudInstanceAuthority);
-        }
+        const cloudInstanceAuthorityUri = `https://${cloudInstanceHostname}/${authority.tenant}/`;
+        const cloudInstanceAuthority = await AuthorityFactory.createDiscoveredInstance(cloudInstanceAuthorityUri, networkModule, this.browserStorage, authority.options);
+        this.authModule.updateAuthority(cloudInstanceAuthority);
     }
 }

@@ -1,9 +1,11 @@
 {
-  "include": ["src/**/*"],
+  "include": ["src", "test"],
   "exclude": ["node_modules"],
   "compilerOptions": {
     "target": "es5",
     "module": "esnext",
+    "declaration": true,
+    "declarationMap": true,
     "lib": ["dom", "esnext"],
     "importHelpers": true,
     "declaration": true,
@@ -24,6 +26,15 @@
     "resolveJsonModule": true,
     "moduleResolution": "node",
     "jsx": "react",
-    "esModuleInterop": true
-  }
+    "esModuleInterop": true,
+    "suppressImplicitAnyIndexErrors": true,
+    "experimentalDecorators": true
+  },
+  "compileOnSave": false,
+  "buildOnSave": false,
+  "references": [
+    {
+      "path": "../msal-common"
+    }
+  ]
 }

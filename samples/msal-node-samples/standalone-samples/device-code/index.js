@@ -8,7 +8,7 @@ var msal = require('@azure/msal-node');
 const msalConfig = {
     auth: {
         clientId: "6c04f413-f6e7-4690-b372-dbdd083e7e5a",
-        authority: "https://login.microsoftonline.com/sgonz.onmicrosoft.com",
+        authority: "https://login.microsoftonline.com/sgonz.onmicrosoft.com", 
     }
 };
 
@@ -17,6 +17,7 @@ const pca = new msal.PublicClientApplication(msalConfig);
 const deviceCodeRequest = {
     deviceCodeCallback: (response) => (console.log(response.message)),
     scopes: ["user.read"],
+    timeout: 20,
 };
 
 pca.acquireTokenByDeviceCode(deviceCodeRequest).then((response) => {

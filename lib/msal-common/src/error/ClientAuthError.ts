@@ -30,6 +30,10 @@ export const ClientAuthErrorMessage = {
         code: "endpoints_resolution_error",
         desc: "Error: could not resolve endpoints. Please check network and try again."
     },
+    unableToGetOpenidConfigError: {
+        code: "openid_config_error",
+        desc: "Could not retrieve endpoints. Check your authority and verify the .well-known/openid-configuration endpoint returns the required endpoints."
+    },
     hashNotDeserialized: {
         code: "hash_not_deserialized",
         desc: "The hash parameters could not be deserialized. Please review the trace to determine the root cause."
@@ -151,6 +155,10 @@ export const ClientAuthErrorMessage = {
         code: "token_refresh_required",
         desc: "Cannot return token from cache because it must be refreshed. This may be due to one of the following reasons: forceRefresh parameter is set to true, claims have been requested, there is no cached access token or it is expired."
     },
+    userTimeoutReached: {
+        code: "user_timeout_reached",
+        desc: "User defined timeout for device code polling reached",
+    },
     tokenClaimsRequired: {
         code: "token_claims_cnf_required_for_signedjwt",
         desc: "Cannot generate a POP jwt if the token_claims are not populated"
@@ -215,6 +223,14 @@ export class ClientAuthError extends AuthError {
     static createEndpointDiscoveryIncompleteError(errDetail: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.endpointResolutionError.code,
             `${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${errDetail}`);
+    }
+
+    /**
+     * Creates an error thrown when the openid-configuration endpoint cannot be reached or does not contain the required data
+     */
+    static createUnableToGetOpenidConfigError(errDetail: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.unableToGetOpenidConfigError.code,
+            `${ClientAuthErrorMessage.unableToGetOpenidConfigError.desc} Attempted to retrieve endpoints from: ${errDetail}`);
     }
 
     /**
@@ -439,6 +455,13 @@ export class ClientAuthError extends AuthError {
     }
 
     /**
+     * Throws error if the user defined timeout is reached.
+     */
+    static createUserTimeoutReachedError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.userTimeoutReached.code, ClientAuthErrorMessage.userTimeoutReached.desc);
+    }
+
+    /*
      * Throws error if token claims are not populated for a signed jwt generation
      */
     static createTokenClaimsRequiredError(): ClientAuthError {

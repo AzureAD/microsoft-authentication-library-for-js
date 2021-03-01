@@ -1,7 +1,6 @@
 import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
 import { MsalService, MsalBroadcastService, MSAL_GUARD_CONFIG, MsalGuardConfiguration } from '@azure/msal-angular';
-import { EventMessage, EventPayload, EventType, InteractionType } from '@azure/msal-browser';
-import { AuthenticationResult, BaseAuthRequest } from '@azure/msal-common'
+import { EventMessage, EventType, InteractionType, InteractionStatus, PopupRequest, RedirectRequest, AuthenticationResult, AuthError } from '@azure/msal-browser';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
 import { b2cPolicies } from './b2c-config';
@@ -20,7 +19,7 @@ interface IdTokenClaims extends AuthenticationResult {
 export class AppComponent implements OnInit, OnDestroy {
   title = 'MSAL Angular v2 B2C Sample';
   isIframe = false;
-  loggedIn = false;
+  loginDisplay = false;
   private readonly _destroying$ = new Subject<void>();
 
   constructor(
@@ -32,14 +31,21 @@ export class AppComponent implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.isIframe = window !== window.parent && !window.opener;
 
-    this.checkAccount();
+    this.msalBroadcastService.inProgress$
+    .pipe(
+      filter((status: InteractionStatus) => status === InteractionStatus.None),
+      takeUntil(this._destroying$)
+    )
+    .subscribe(() => {
+      this.setLoginDisplay();
+    });
 
     this.msalBroadcastService.msalSubject$
       .pipe(
         filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS || msg.eventType === EventType.ACQUIRE_TOKEN_SUCCESS),
         takeUntil(this._destroying$)
       )
-      .subscribe((result) => {
+      .subscribe((result: EventMessage) => {
       
         let payload: IdTokenClaims = <AuthenticationResult>result.payload;
 
@@ -55,7 +61,6 @@ export class AppComponent implements OnInit, OnDestroy {
           return this.authService.logout();
         }
 
-        this.checkAccount();
         return result;
       });
 
@@ -64,17 +69,17 @@ export class AppComponent implements OnInit, OnDestroy {
         filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_FAILURE || msg.eventType === EventType.ACQUIRE_TOKEN_FAILURE),
         takeUntil(this._destroying$)
       )
-      .subscribe((result) => {
-        if (result.error) {
+      .subscribe((result: EventMessage) => {
+        if (result.error instanceof AuthError) {
           // Check for forgot password error
           // Learn more about AAD error codes at https://docs.microsoft.com/azure/active-directory/develop/reference-aadsts-error-codes
           if (result.error.message.includes('AADB2C90118')) {
             
             // login request with reset authority
-            let resetPasswordFlowRequest: BaseAuthRequest = {
+            let resetPasswordFlowRequest = {
               scopes: ["openid"],
               authority: b2cPolicies.authorities.forgotPassword.authority,
-            }
+            };
 
             this.login(resetPasswordFlowRequest);
           }
@@ -82,23 +87,26 @@ export class AppComponent implements OnInit, OnDestroy {
       });
   }
 
-  checkAccount() {
-    this.loggedIn = this.authService.instance.getAllAccounts().length > 0;
+  setLoginDisplay() {
+    this.loginDisplay = this.authService.instance.getAllAccounts().length > 0;
   }
 
-  login(userFlowRequest?: BaseAuthRequest) {
-    this.msalGuardConfig
+  login(userFlowRequest?: RedirectRequest | PopupRequest) {
     if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
       if (this.msalGuardConfig.authRequest) {
-        this.authService.loginPopup({...this.msalGuardConfig.authRequest, ...userFlowRequest})
-          .subscribe(() => this.checkAccount());
+        this.authService.loginPopup({...this.msalGuardConfig.authRequest, ...userFlowRequest} as PopupRequest)
+          .subscribe((response: AuthenticationResult) => {
+            this.authService.instance.setActiveAccount(response.account);
+          });
       } else {
         this.authService.loginPopup(userFlowRequest)
-          .subscribe(() => this.checkAccount());
+          .subscribe((response: AuthenticationResult) => {
+            this.authService.instance.setActiveAccount(response.account);
+          });
       }
     } else {
       if (this.msalGuardConfig.authRequest){
-        this.authService.loginRedirect({...this.msalGuardConfig.authRequest, ...userFlowRequest});
+        this.authService.loginRedirect({...this.msalGuardConfig.authRequest, ...userFlowRequest} as RedirectRequest);
       } else {
         this.authService.loginRedirect(userFlowRequest);
       }
@@ -110,10 +118,10 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   editProfile() {
-    let editProfileFlowRequest: BaseAuthRequest = {
+    let editProfileFlowRequest = {
       scopes: ["openid"],
       authority: b2cPolicies.authorities.editProfile.authority,
-    }
+    };
 
     this.login(editProfileFlowRequest);
   }

@@ -150,7 +150,7 @@ export class AccountEntity {
         account.clientInfo = clientInfo;
         account.homeAccountId = homeAccountId;
 
-        const env = Authority.generateEnvironmentFromAuthority(authority);
+        const env = authority.getPreferredCache();
         if (StringUtils.isEmpty(env)) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
         }
@@ -201,7 +201,7 @@ export class AccountEntity {
         account.realm = "";
         account.oboAssertion = oboAssertion;
 
-        const env = Authority.generateEnvironmentFromAuthority(authority);
+        const env = authority.getPreferredCache();
 
         if (StringUtils.isEmpty(env)) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
@@ -274,5 +274,22 @@ export class AccountEntity {
             entity.hasOwnProperty("username") &&
             entity.hasOwnProperty("authorityType")
         );
+    }
+
+    /**
+     * Helper function to determine whether 2 accounts are equal
+     * Used to avoid unnecessary state updates
+     * @param arrayA 
+     * @param arrayB 
+     */
+    static accountInfoIsEqual(accountA: AccountInfo | null, accountB: AccountInfo | null): boolean {
+        if (!accountA || !accountB) {
+            return false;
+        }
+        return (accountA.homeAccountId === accountB.homeAccountId) && 
+            (accountA.localAccountId === accountB.localAccountId) &&
+            (accountA.username === accountB.username) &&
+            (accountA.tenantId === accountB.tenantId) &&
+            (accountA.environment === accountB.environment);
     }
 }

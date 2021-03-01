@@ -3,15 +3,16 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationCodeClient, StringUtils, AuthorizationCodeRequest, ICrypto, AuthenticationResult, ThrottlingUtils, Authority, INetworkModule } from "@azure/msal-common";
+import { AuthorizationCodeClient, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AuthenticationResult, ThrottlingUtils, Authority, INetworkModule, ClientAuthError } from "@azure/msal-common";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
-import { BrowserUtils } from "../utils/BrowserUtils";
-import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
+import { ApiId, BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { InteractionHandler, InteractionParams } from "./InteractionHandler";
+import { INavigationClient } from "../navigation/INavigationClient";
+import { NavigationOptions } from "../navigation/NavigationOptions";
 
 export type RedirectParams = InteractionParams & {
+    navigationClient: INavigationClient;
     redirectTimeout: number;
     redirectStartPage: string;
     onRedirectNavigate?: (url: string) => void | boolean;
@@ -21,8 +22,8 @@ export class RedirectHandler extends InteractionHandler {
 
     private browserCrypto: ICrypto;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, browserCrypto: ICrypto) {
-        super(authCodeModule, storageImpl);
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, browserCrypto: ICrypto) {
+        super(authCodeModule, storageImpl, authCodeRequest);
         this.browserCrypto = browserCrypto;
     }
 
@@ -30,7 +31,7 @@ export class RedirectHandler extends InteractionHandler {
      * Redirects window to given URL.
      * @param urlNavigate
      */
-    initiateAuthRequest(requestUrl: string, authCodeRequest: AuthorizationCodeRequest, params: RedirectParams): Promise<void> {
+    async initiateAuthRequest(requestUrl: string, params: RedirectParams): Promise<void> {
         // Navigate if valid URL
         if (!StringUtils.isEmpty(requestUrl)) {
             // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true
@@ -40,8 +41,14 @@ export class RedirectHandler extends InteractionHandler {
 
             // Set interaction status in the library.
             this.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
-            this.browserStorage.cacheCodeRequest(authCodeRequest, this.browserCrypto);
+            this.browserStorage.cacheCodeRequest(this.authCodeRequest, this.browserCrypto);
             this.authModule.logger.infoPii("Navigate to:" + requestUrl);
+            const navigationOptions: NavigationOptions = {
+                apiId: ApiId.acquireTokenRedirect,
+                timeout: params.redirectTimeout,
+                noHistory: false
+            };
+            
             // If onRedirectNavigate is implemented, invoke it and provide requestUrl
             if (typeof params.onRedirectNavigate === "function") {
                 this.authModule.logger.verbose("Invoking onRedirectNavigate callback");
@@ -50,15 +57,17 @@ export class RedirectHandler extends InteractionHandler {
                 // Returning false from onRedirectNavigate will stop navigation
                 if (navigate !== false) {
                     this.authModule.logger.verbose("onRedirectNavigate did not return false, navigating");
-                    return BrowserUtils.navigateWindow(requestUrl, params.redirectTimeout, this.authModule.logger);
+                    await params.navigationClient.navigateExternal(requestUrl, navigationOptions);
+                    return;
                 } else {
                     this.authModule.logger.verbose("onRedirectNavigate returned false, stopping navigation");
-                    return Promise.resolve();
+                    return;
                 }
             } else {
                 // Navigate window to request URL
                 this.authModule.logger.verbose("Navigating window to navigate url");
-                return BrowserUtils.navigateWindow(requestUrl, params.redirectTimeout, this.authModule.logger);
+                await params.navigationClient.navigateExternal(requestUrl, navigationOptions);
+                return;
             }
         } else {
             // Throw error if request URL is empty.
@@ -71,7 +80,7 @@ export class RedirectHandler extends InteractionHandler {
      * Handle authorization code response in the window.
      * @param hash
      */
-    async handleCodeResponse(locationHash: string, authority: Authority, networkModule: INetworkModule, clientId?: string): Promise<AuthenticationResult> {
+    async handleCodeResponse(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule, clientId?: string): Promise<AuthenticationResult> {
         // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {
             throw BrowserAuthError.createEmptyHashError(locationHash);
@@ -80,19 +89,18 @@ export class RedirectHandler extends InteractionHandler {
         // Interaction is completed - remove interaction status.
         this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY));
 
-        // Deserialize hash fragment response parameters.
-        const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(locationHash);
-
         // Handle code response.
-        const stateKey = this.browserStorage.generateStateKey(serverParams.state);
+        const stateKey = this.browserStorage.generateStateKey(state);
         const requestState = this.browserStorage.getTemporaryCache(stateKey);
+        if (!requestState) {
+            throw ClientAuthError.createStateNotFoundError("Cached State");
+        }
         const authCodeResponse = this.authModule.handleFragmentResponse(locationHash, requestState);
 
         // Get cached items
         const nonceKey = this.browserStorage.generateNonceKey(requestState);
         const cachedNonce = this.browserStorage.getTemporaryCache(nonceKey);
-        this.authCodeRequest = this.browserStorage.getCachedRequest(requestState, this.browserCrypto);
-        
+
         // Assign code to request
         this.authCodeRequest.code = authCodeResponse.code;
 
@@ -101,18 +109,18 @@ export class RedirectHandler extends InteractionHandler {
             await this.updateTokenEndpointAuthority(authCodeResponse.cloud_instance_host_name, authority, networkModule);
         }
 
-        authCodeResponse.nonce = cachedNonce;
+        authCodeResponse.nonce = cachedNonce || undefined;
         authCodeResponse.state = requestState;
 
         // Remove throttle if it exists
         if (clientId) {
             ThrottlingUtils.removeThrottle(this.browserStorage, clientId, this.authCodeRequest.authority, this.authCodeRequest.scopes);
         }
-        
+
         // Acquire token with retrieved code.
         const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, authCodeResponse);
 
-        this.browserStorage.cleanRequestByState(serverParams.state);
+        this.browserStorage.cleanRequestByState(state);
         return tokenResponse;
     }
 }
