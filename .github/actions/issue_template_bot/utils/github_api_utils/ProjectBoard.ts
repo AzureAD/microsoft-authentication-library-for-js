@@ -26,7 +26,7 @@ export class ProjectBoard {
     }
 
     /**
-     * Get the columnId for a column on a project board
+     * Get the columnId for a column on a project board i.e. "Todo"
      * @param projectId 
      * @param columnName 
      */
@@ -44,7 +44,7 @@ export class ProjectBoard {
     }
 
     /**
-     * Get the unique issue id (internal) from an issue number (external)
+     * Get the unique issue id (internal to github) from an issue number (external, shown on the issue page)
      */
     async getIssueId(): Promise<number|null> {
         const request = this.issueBotUtils.addRepoParams({

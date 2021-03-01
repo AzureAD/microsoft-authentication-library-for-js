@@ -6,6 +6,9 @@ import { RepoFiles } from "../utils/github_api_utils/RepoFiles";
 import { IssueComments } from "../utils/github_api_utils/IssueComments";
 import { StringUtils } from "../utils/StringUtils";
 
+/**
+ * Checks that a template was used and completely filled out (except optional sections)
+ */
 export class TemplateEnforcer {
     private action: string;
     private allTemplates: Array<Map<string, string>>;
@@ -24,7 +27,8 @@ export class TemplateEnforcer {
     }
 
     /**
-     * 
+     * Attempts to determine what issue template was used based on the current labels and content in the issue
+     * Based on configuration leaves a comment or closes the issue if the issue did not use a template at all or did not fill it out
      * @param issueBody 
      * @param config 
      */
@@ -48,7 +52,8 @@ export class TemplateEnforcer {
     }
 
     /**
-     * 
+     * Matches the content of the issue to the best template match. If the issue was just opened, attempt to match based on the labels + headers.
+     * If the issue was edited, match only based on headers. Returns the matching template content.
      * @param issueBody 
      * @param templateMap 
      * @param currentLabels 
@@ -76,7 +81,7 @@ export class TemplateEnforcer {
     }
 
     /**
-     * 
+     * Leaves a comment on the issue if information is missing or removes a previous warning if the issue was edited to fill in missing information
      * @param config 
      * @param isTemplateUsed 
      * @param isIssueFilled 
@@ -119,7 +124,8 @@ export class TemplateEnforcer {
     }
 
     /**
-     * 
+     * Given the issue content and the matching template determine if all required sections have been filled out.
+     * Returns boolean denoting whether or not the issue completed the template.
      * @param issueBody 
      * @param template 
      * @param optionalSections 
@@ -160,7 +166,7 @@ export class TemplateEnforcer {
     }
 
     /**
-     * 
+     * Finds the best template match based on the labels applied to the issue during creation
      * @param templateMap 
      * @param currentLabels 
      */
@@ -186,7 +192,9 @@ export class TemplateEnforcer {
     }
 
     /**
-     * 
+     * Determines the best template match based on the headers included in the issue content.
+     * If all headers in a template are present in an issue, it is a full match, otherwise if one or more are present it is a partial.
+     * The full match with the highest number of matching headers is considered the best match. If no full matches exist, the partial match with the highest number of matching headers is considered the best match.
      * @param templateMap 
      * @param issueBody 
      */

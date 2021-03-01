@@ -8,6 +8,10 @@ export class IssueAssignees {
         this.issueBotUtils = issueBotUtils;
     }
 
+    /**
+     * Assigns the provided users to the issue
+     * @param assignees 
+     */
     async assignUsersToIssue(assignees: Set<string>) {
         const usernames = Array.from(assignees);
         if (usernames.length <= 0) {

@@ -8,6 +8,9 @@ import { IssueLabels } from "../utils/github_api_utils/IssueLabels";
 import { IssueComments } from "../utils/github_api_utils/IssueComments";
 import { IssueAssignees } from "../utils/github_api_utils/IssueAssignees";
 
+/**
+ * Adds labels, assignees and comments and adds issue to a project board based on the content in the issue body.
+ */
 export class IssueManager {
     private issueLabelConfig: IssueLabelerConfig;
     private noSelectionMadeHeaders: Array<string>
@@ -38,6 +41,10 @@ export class IssueManager {
         this.issueAssignees = new IssueAssignees(this.issueBotUtils);
     }
 
+    /**
+     * Main entry function. Calls all the helper functions to perform specific tasks on the issue
+     * @param issueBody 
+     */
     async updateIssue(issueBody: string): Promise<boolean> {
         await this.parseIssue(issueBody);
         await this.updateIssueLabels();
@@ -66,10 +73,12 @@ export class IssueManager {
             core.info(`${header} Content: ${headerContent}`);
             const labels = value.labels;
             let labelFoundForHeader = false;
+            // Iterate through the label config to determine what labels should be added/removed
             Object.entries(labels).forEach(([label, labelConfig]) => {
                 core.info(`Checking label: ${label}`);
                 let labelMatched = false;
                 labelConfig.searchStrings.every(searchString => {
+                    // For each search string in the config determine if a selection was made on the issue with [x]
                     core.info(`Searching string: ${searchString}`);
                     const libraryRegEx = RegExp("-\\s*\\[\\s*[xX]\\s*\\]\\s*(.*)", "g");
                     let match: RegExpExecArray | null;
@@ -83,6 +92,7 @@ export class IssueManager {
                     return !labelMatched;
                 });
 
+                // If a search string was found and selected, add the relevant label to the issue
                 if (labelMatched) {
                     core.info("Found!");
                     labelFoundForHeader = true;
@@ -97,15 +107,18 @@ export class IssueManager {
                         this.projectsToAdd.add(labelConfig.project);
                     }
                 } else {
+                    // If for a given label, none of it's search strings were found or selected, remove the label from the issue (if present)
                     core.info(`Not Found!`);
                     this.labelsToRemove.add(label);
                 }
 
                 if (labelConfig.project) {
+                    // If a project is configured for this label, add it to the set of all projects
                     this.allProjects.add(labelConfig.project);
                 }
             });
 
+            // If no selection was made under this header, add the header to an array denoting no selection was made. Will be compared later to the required sections
             if (!labelFoundForHeader && value.enforceSelection) {
                 this.noSelectionMadeHeaders.push(header);
             }
@@ -113,14 +126,15 @@ export class IssueManager {
     }
 
     /**
-     * Update the issue labels
+     * Update the issue labels. Ensure labelsToAdd are present and labelsToRemove are not
      */
     private async updateIssueLabels() {
         await this.issueLabels.updateLabels(this.labelsToAdd, this.labelsToRemove);
     }
 
     /**
-     * Update bot comment on issue
+     * Add a comment to the issue if no selection was made in a required section (e.g. no library was selected)
+     * Remove or update a previous comment if the status has changed (user edited their issue to make a selection)
      */
     private async commentOnIssue() {
         const baseComment = "Invalid Selections Detected:"
@@ -153,14 +167,14 @@ export class IssueManager {
     }
 
     /**
-     * Assign users to issue
+     * Assign users to issue based on configuration and selections
      */
     private async assignUsersToIssue() {
         await this.issueAssignees.assignUsersToIssue(this.assignees);
     }
 
     /**
-     * Add issue to project board
+     * Add issue to project board based on configuration and selections
      */
     private async updateIssueProjects(): Promise<void> {
         const projects = Array.from(this.allProjects);

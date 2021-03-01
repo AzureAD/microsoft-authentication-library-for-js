@@ -9,6 +9,10 @@ export class IssueComments {
         this.issueBotUtils = issueBotUtils;
     }
 
+    /**
+     * Retrieve the id for the last comment on the issue
+     * @param baseComment 
+     */
     async getLastCommentId(baseComment?: string): Promise<number|null> {
         const request = this.issueBotUtils.addRepoParams({
             issue_number: this.issueBotUtils.issueNo
@@ -26,6 +30,10 @@ export class IssueComments {
         return null;
     }
 
+    /**
+     * Post the provided comment to the issue
+     * @param comment 
+     */
     async addComment(comment: string) {
         const request = this.issueBotUtils.addRepoParams({
             issue_number: this.issueBotUtils.issueNo,
@@ -34,6 +42,11 @@ export class IssueComments {
         await this.issueBotUtils.octokit.issues.createComment(request);
     }
 
+    /**
+     * Update the given comment with a new comment
+     * @param commentId 
+     * @param comment 
+     */
     async updateComment(commentId: number, comment: string) {
         const request = this.issueBotUtils.addRepoParams({
             comment_id: commentId,
@@ -42,6 +55,10 @@ export class IssueComments {
         await this.issueBotUtils.octokit.issues.updateComment(request);
     }
 
+    /**
+     * Delete the given comment
+     * @param commentId 
+     */
     async removeComment(commentId: number) {
         const request = this.issueBotUtils.addRepoParams({
             comment_id: commentId

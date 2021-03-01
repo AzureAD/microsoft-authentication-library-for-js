@@ -11,6 +11,10 @@ export class RepoFiles {
         this.issueBotUtils = issueBotUtils;
     }
 
+    /**
+     * Get the contents of a file in the repo
+     * @param filepath 
+     */
     async getFileContents(filepath: string) {
         const request = this.issueBotUtils.addRepoParams({
             path: filepath,
@@ -22,6 +26,9 @@ export class RepoFiles {
         return Buffer.from(response.data.content, response.data.encoding).toString();
     }
 
+    /**
+     * Get the bot configuration
+     */
     async getConfig(): Promise<IssueBotConfig|null> {
         const configPath = core.getInput(ConfigParams.PATH);
         const fileContents = await this.getFileContents(configPath);
@@ -33,6 +40,9 @@ export class RepoFiles {
         }
     };
 
+    /**
+     * Get all the issue templates from the repo. Return a map where the key is the template filename and the value is the contents of the template md file.
+     */
     async getIssueTemplates(): Promise<Map<string, string>> {
         
         const request = this.issueBotUtils.addRepoParams({

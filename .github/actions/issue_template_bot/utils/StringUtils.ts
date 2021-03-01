@@ -35,6 +35,7 @@ export class StringUtils {
             return "";
         }
 
+        // Replace newlines and multiple whitespace characters with a single whitespace character
         return rawString.replace(/\s*[\n\r]+\s*/g, " ").trim();
     }
 }

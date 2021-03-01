@@ -18,6 +18,9 @@ export class IssueBotUtils {
         this.octokit = github.getOctokit(token);
     }
 
+    /**
+     * Closes the issue
+     */
     async closeIssue(): Promise<void> {
         const request = this.addRepoParams({
             issue_number: this.issueNo,
@@ -26,6 +29,10 @@ export class IssueBotUtils {
         await this.octokit.issues.update(request);
     };
 
+    /**
+     * Appends the owner and repo to request object
+     * @param request 
+     */
     addRepoParams<T>(request: T): T & RepoParams {
         return {
             ...this.repoParams,
