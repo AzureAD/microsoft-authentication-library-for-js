@@ -109,7 +109,7 @@ To customize the start script, review the `package.json` file.
 If you set up the sample with your app registration, you may be able to copy this object directly into your application.  
 
 
-```js
+```javascript
 const config = {
     auth: {
         clientId: "YOUR_CLIENT_ID",
