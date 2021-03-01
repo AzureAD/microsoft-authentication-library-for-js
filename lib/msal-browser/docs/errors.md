@@ -22,49 +22,7 @@
 
 **Error Message**: Stub instance of Public Client Application was called. If using msal-react, please ensure context is not used without a provider.
 
-When using `msal-react` this error is thrown when you try to use an msal component or hook without an `MsalProvider` higher up in the component tree. All `msal-react` hooks and components make use of the [React Context API](https://reactjs.org/docs/context.html) and require a provider.
-
-❌ The following example will throw this error because the `useMsal` hook is used outside the context of `MsalProvider`:
-
-```javascript
-import { useMsal, MsalProvider } from "@azure/msal-react";
-import { PublicClientApplication } from "@azure/msal-browser";
-
-const pca = new PublicClientApplication(config);
-
-function App() {
-    const { accounts } = useMsal();
-
-    return (
-        <MsalProvider instance={pca}>
-            <YourAppComponent>
-        </ MsalProvider>
-    )
-}
-```
-
-✔️ To resolve the error you should refactor the code above so that the `useMsal` hook is called in a component underneath `MsalProvider`:
-
-```javascript
-import { useMsal, MsalProvider } from "@azure/msal-react";
-import { PublicClientApplication } from "@azure/msal-browser";
-
-const pca = new PublicClientApplication(config);
-
-function ExampleComponent () {
-    const { accounts } = useMsal();
-
-    return <YourAppComponent />;
-};
-
-function App() {
-    return (
-        <MsalProvider instance={pca}>
-            <ExampleComponent />
-        </ MsalProvider>
-    )
-}
-```
+See [msal-react errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-react/docs/errors.md)
 
 ## BrowserAuthErrors
 
@@ -72,20 +30,69 @@ function App() {
 
 **Error Message**: Interaction is currently in progress. Please ensure that this interaction has been completed before calling an interactive API.
 
-This error is thrown when using redirects because `handleRedirectPromise()` has not had a chance to resolve before an interaction API, such as `loginRedirect()` or `acquireTokenRedirect()`, is called. 
+This error is thrown when an interactive API (`loginPopup`, `loginRedirect`, `acquireTokenPopup`, `acquireTokenRedirect`) is invoked while another interactive API is still in progress. The login and acquireToken APIs are async so you will need to ensure that the resulting promises have resolved before invoking another one.
 
-✔️ You should wait for `handleRedirectPromise()` to resolve before calling any interactive API:
+#### Using `loginPopup` or `acquireTokenPopup`
+
+Ensure that the promise returned from these APIs has resolved before invoking another one.
+
+❌ The following example will throw this error because `loginPopup` will still be in progress when `acquireTokenPopup` is called:
+
+```javascript
+const request = {scopes: ["openid", "profile"]}
+loginPopup();
+acquireTokenPopup(request);
+```
+
+✔️ To resolve this you should ensure all interactive APIs have resolved before invoking another one:
+
+```javascript
+const request = {scopes: ["openid", "profile"]}
+await msalInstance.loginPopup();
+await msalInstance.acquireTokenPopup(request);
+```
+
+#### Using `loginRedirect` or `acquireTokenRedirect`
+
+When using redirect APIs, `handleRedirectPromise` must be invoked when returning from the redirect. This ensures that the token response from the server is properly handled and temporary cache entries are cleaned up. This error is thrown when `handleRedirectPromise` has not had a chance to complete before the application invokes `loginRedirect` or `acquireTokenRedirect`.
+
+❌ The following example will throw this error because `handleRedirectPromise` will still be processing the response from a previous `loginRedirect` call when `loginRedirect` is called a 2nd time:
+
+```javascript
+msalInstance.handleRedirectPromise();
+
+const accounts = msalInstance.getAllAccounts();
+if (accounts.length === 0) {
+    // No user signed in
+    msalInstance.loginRedirect();
+}
+```
+
+✔️ To resolve, you should wait for `handleRedirectPromise` to resolve before calling any interactive API:
+
+```javascript
+await msalInstance.handleRedirectPromise();
+
+const accounts = msalInstance.getAllAccounts();
+if (accounts.length === 0) {
+    // No user signed in
+    msalInstance.loginRedirect();
+}
+```
+
+Or alternatively:
 
 ```javascript
 msalInstance.handleRedirectPromise()
     .then((tokenResponse) => {
-        if (resp !== null) {
-            // Successful authentication redirect
-            msalInstance.acquireTokenRedirect(request);
+        if (!tokenResponse) {
+            const accounts = msalInstance.getAllAccounts();
+            if (accounts.length === 0) {
+                // No user signed in
+                msalInstance.loginRedirect();
+            }
         } else {
-            // Not coming back from an auth redirect
-            msalInstance.loginRedirect(loginRequest); // To login on page load
-        }
+            // Do something with the tokenResponse
     })
     .catch(err => {
         // Handle error
@@ -93,11 +100,25 @@ msalInstance.handleRedirectPromise()
     });
 ```
 
-Please see our wrapper library FAQs for additional reasons you may be having this error: [`msal-react` FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/FAQ.md), [`msal-angular` FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/FAQ.md).
+**Note:** If you are calling `loginRedirect` or `acquireTokenRedirect` from a page that is not your `redirectUri` you will need to ensure `handleRedirectPromise` is called and awaited on both the `redirectUri` page as well as the page that you initiated the redirect from. This is because the `redirectUri` page will initiate a redirect back to the page that originally invoked `loginRedirect` and that page will process the token response.
 
-**Troubleshooting**: 
-- Refresh the page: if refreshing the browser clears the message, this indicates that MSAL may not be clearing the message at the right time.
-- Check if interaction is being called on a page which the app is redirecting to. Ensure that you are allowing `handleRedirectPromise()` to resolve. 
+#### Wrapper Libraries
+
+If you are using one of our wrapper libraries (React or Angular), please see the error docs in those specific libraries for additional reasons you may be receiving this error:
+
+- [msal-react errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-react/docs/errors.md)
+- [msal-angular FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/FAQ.md)
+
+#### Troubleshooting Steps
+
+- [Enable verbose logging](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md#using-the-config-object) and trace the order of events. Verify that `handleRedirectPromise` is called and returns before any `login` or `acquireToken` API is called.
+
+If you are unable to figure out why this error is being thrown please [open an issue](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/new/choose) and be prepared to share the following information:
+
+- Verbose logs
+- A sample app and/or code snippets that we can use to reproduce the issue
+- Refresh the page. Does the error go away?
+- Open your application in a new tab. Does the error go away?
 
 ## Other
 
