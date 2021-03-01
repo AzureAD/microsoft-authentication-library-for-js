@@ -10,6 +10,7 @@
 **[Authentication](#authentication)**
 
 1. [How do I handle the redirect flow in a react app?](#how-do-i-handle-the-redirect-flow-in-a-react-app)
+1. [What can I do outside of msal-react context?](#what-can-i-do-outside-of-msal-react-context)
 
 **[B2C](#B2C)**
 
@@ -38,6 +39,22 @@ Yes, `msal-react` supports both function and class components. Hooks, however, c
 ### How do I handle the redirect flow in a react app?
 
 If you've used `msal-browser` or `msal` v1 in the past, you may be used to calling `handleRedirectCallback` or `handleRedirectPromise` on page load to handle the response of a redirect. In `msal-react` this is done under the hood and you should not call `handleRedirectPromise`on your own. For the most part, redirects should just work. However, if you need direct access to the response object you can use the [event API](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/events.md) to register a callback that will be invoked with the response when you return to your app. If you're using the `useMsalAuthentication` hook, it does this under the hood and should return the result/error.
+
+### What can I do outside of msal-react context?
+
+The short answer is that all components in your app that need access to msal APIs should be rendered underneath an `MsalProvider` component ensuring your components have access to the msal context. However, there may be scenarios where it makes more sense to have a utility function outside your component tree to handle acquiring access tokens or determine whether or not a user is signed in. This is fine to do as long as you are not calling APIs that may **change** the user's logged in state or trigger interaction.
+
+This means the following APIs are off-limits outside the context of `MsalProvider`:
+
+- `loginPopup`
+- `loginRedirect`
+- `handleRedirectPromise`
+- `ssoSilent`
+- `logout`
+- `acquireTokenPopup`
+- `acquireTokenRedirect`
+
+**Note:** If you do choose to use any other `msal-browser` API outside of the react context you should still use the same `PublicClientApplication` instance you pass into `MsalProvider`.
 
 ## B2C
 

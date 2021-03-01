@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Memoize multiple calls to handleRedirectPromise (#3072)",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

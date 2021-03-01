@@ -8,7 +8,8 @@ You can read more about ID tokens on our [Azure Docs pages](https://docs.microso
 
 ## Public APIs
 
-MSAL Angular exposes the following, along with their configurations 
+MSAL Angular exposes the following, along with their configurations. See the [library references](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_angular.html) for properties and methods.  
+
 1. [`MsalService`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/msal.service.ts/)
 2. [`MsalGuard`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/msal.guard.ts/)
     * [`MsalGuardConfiguration`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/msal.guard.config.ts/)
