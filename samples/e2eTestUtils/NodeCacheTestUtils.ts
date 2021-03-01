@@ -1,9 +1,11 @@
 import fs from "fs";
-import { Deserializer, Serializer } from "../../lib/msal-node";
 import { IdTokenEntity } from "../../lib/msal-common/src/cache/entities/IdTokenEntity";
 import { AccessTokenEntity } from "../../lib/msal-common/src/cache/entities/AccessTokenEntity";
 import { RefreshTokenEntity } from "../../lib/msal-common/src/cache/entities/RefreshTokenEntity";
 import { InMemoryCache } from '../../lib/msal-node/dist/cache/serializer/SerializerTypes';
+
+import { Serializer } from "../../lib/msal-node/src/cache/serializer/Serializer";
+import { Deserializer } from "../../lib/msal-node/src/cache/serializer/Deserializer";
 
 export type tokenMap = {
     idTokens: IdTokenEntity[],
@@ -31,7 +33,7 @@ export class NodeCacheTestUtils {
         return Promise.resolve(tokenCache);
     }
 
-    static async readCacheFile(cacheLocation: string): Promise<InMemoryCache> {
+    static async readCacheFile(cacheLocation: string): Promise<any> {
         return new Promise((resolve, reject) => {
             fs.readFile(cacheLocation, "utf-8", (err, data) => {
                 if (err) {
@@ -47,7 +49,6 @@ export class NodeCacheTestUtils {
 
     static async waitForTokens(cacheLocation: string, interval: number): Promise<tokenMap> {
         let tokenCache = await this.getTokens(cacheLocation);
-
         if (tokenCache.idTokens.length) {
             return tokenCache;
         }
