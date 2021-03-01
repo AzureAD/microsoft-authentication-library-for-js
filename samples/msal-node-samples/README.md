@@ -38,12 +38,12 @@ npm install @azure/msal-node
 npm run build:package
 ```
 
-The next step is to navigate to the sample application directories under `standalone-samples` and either execute each sample as-is, or customize it to use your own [App Registration](https://docs.microsoft.com/en-us/graph/auth-register-app-v2).
+The next step is to navigate to the sample application directories under `msal-node-samples` and either execute each sample as-is, or customize it to use your own [App Registration](https://docs.microsoft.com/en-us/graph/auth-register-app-v2).
 
 From the repository's root directory, navigate to a sample application:
 
 ```bash
-$ cd samples/msal-node-samples/standalone-samples/auth-code
+$ cd samples/msal-node-samples/auth-code
 ```
 
 ### Which sample should I review?

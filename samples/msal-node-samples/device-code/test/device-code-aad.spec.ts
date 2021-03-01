@@ -24,7 +24,7 @@ import { Configuration, PublicClientApplication } from "../../../../lib/msal-nod
 const TEST_CACHE_LOCATION = `${__dirname}/data/aad.cache.json`;
 
 // Get flow-specific routes from sample application
-const getDeviceCode = require("../index");
+const getTokenDeviceCode = require("../index");
 
 // Build cachePlugin
 const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
@@ -98,7 +98,7 @@ describe('Device Code AAD PPE Tests', () => {
                 await screenshot.takeScreenshot(page, "SuccessfulDeviceCodeMessage");
             };
             
-            await getDeviceCode(config, publicClientApplication, { deviceCodeCallback: deviceCodeCallback });
+            await getTokenDeviceCode(config, publicClientApplication, { deviceCodeCallback: deviceCodeCallback });
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             expect(cachedTokens.accessTokens.length).toBe(1);
             expect(cachedTokens.idTokens.length).toBe(1);

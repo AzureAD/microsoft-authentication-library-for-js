@@ -3,50 +3,34 @@
  * Licensed under the MIT License.
  */
 
-const express = require("express");
 const msal = require('@azure/msal-node');
 
-const argv = require('yargs')
-    .usage('Usage: $0 -p [PORT]')
-    .alias('s', 'scenario')
-    .alias('c', 'cache location')
-    .alias('ro', 'runtime-options')
-    .describe('scenario', '(Optional) Scenario name - default is AAD')
-    .describe('cache location', '(Optional) Cache location - default is data/cache.json')
-    .describe('runtime-options', '(Optional) Runtime options to inject into the application - default is null')
-    .strict()
-    .argv;
+/**
+ * Command line arguments can be used to configure:
+ * - The port the application runs on
+ * - The cache file location
+ * - The authentication scenario/configuration file name
+ */
+const argv = require("../cliArgs");
+
 
 const cacheLocation = argv.c || "./data/cache.json";
 const runtimeOptions = argv.ro || null;
 const cachePlugin = require('../cachePlugin')(cacheLocation);
+
+/**
+ * The scenario string is the name of a .json file which contains the MSAL client configuration
+ * For an example of what a configuration file should look like, check out the AAD.json file in the
+ * /config directory.
+ * 
+ * You can create your own configuration file and replace the path inside the "config" require statement below
+ * with the path to your custom configuraiton.
+ */
 const scenario = argv.s || "AAD";
 const config = require(`./config/${scenario}.json`);
 
-const loggerOptions = {
-    loggerCallback(loglevel, message, containsPii) {
-        console.log(message);
-    },
-        piiLoggingEnabled: false,
-    logLevel: msal.LogLevel.Verbose,
-}
-
-const clientConfig = {
-    auth: config.authOptions,
-    cache: {
-        cachePlugin
-    },
-    // Uncomment the code below to enable the MSAL logger
-    /*
-     *   system: {
-     *    loggerOptions: loggerOptions
-     *   } 
-     */
-};
-
-const pca = new msal.PublicClientApplication(clientConfig);
-
-const getDeviceCode = function (scenarioConfig, clientApplication, runtimeOptions) {
+// Sample Application Code
+const getTokenDeviceCode = function (scenarioConfig, clientApplication, runtimeOptions) {
     const requestConfig = scenarioConfig.request;
 
     if (!runtimeOptions) {
@@ -64,7 +48,21 @@ const getDeviceCode = function (scenarioConfig, clientApplication, runtimeOption
     if (runtimeOptions.timeout) {
         deviceCodeRequest.timeout = runtimeOptions.timeout;
     }
-    
+            
+    /**
+     * MSAL Usage
+     * The code below demonstrates the correct usage pattern of the ClientApplicaiton.acquireTokenByDeviceCode API.
+     * 
+     * Device Code Grant
+     * 
+     * In this code block, the application uses MSAL to obtain an Access Token through the Device Code grant.
+     * Once the device code request is executed, the user will be prompted by the console application to visit a URL,
+     * where they will input the device code shown in the console. Once the code is entered, the promise below should resolve
+     * with an AuthenticationResult object.
+     * 
+     * The AuthenticationResult contains an `accessToken` property. Said property contains a string representing an encoded Json Web Token
+     * which can be added to the `Authorization` header in a protected resource request to demonstrate authorization.
+     */
     return clientApplication.acquireTokenByDeviceCode(deviceCodeRequest).then((response) => {
         return response;
     }).catch((error) => {
@@ -72,11 +70,40 @@ const getDeviceCode = function (scenarioConfig, clientApplication, runtimeOption
     });
  }
 
- // Check if the script is being executed manually and execute app, otherwise just export getDeviceCode
+
+/**
+ * The code below checks if the script is being executed manually or in automation.
+ * If the script was executed manually, it will initialize a PublicClientApplication object
+ * and execute the sample application.
+ */
  if(argv.$0 === "index.js") {
-    getDeviceCode(config, pca, runtimeOptions).then(response => {
+    const loggerOptions = {
+        loggerCallback(loglevel, message, containsPii) {
+            console.log(message);
+        },
+            piiLoggingEnabled: false,
+        logLevel: msal.LogLevel.Verbose,
+    }
+    
+    // Build MSAL Client Configuration from scenario configuration file
+    const clientConfig = {
+        auth: config.authOptions,
+        cache: {
+            cachePlugin
+        },
+        // Uncomment the code below to enable the MSAL logger
+        /*
+         *   system: {
+         *    loggerOptions: loggerOptions
+         *   } 
+         */
+    };
+    
+    // Create an MSAL PublicClientApplication object 
+    const pca = new msal.PublicClientApplication(clientConfig);
+    getTokenDeviceCode(config, pca, runtimeOptions).then(response => {
         console.log(response);
     });
  }
 
- module.exports = getDeviceCode;
+ module.exports = getTokenDeviceCode;
