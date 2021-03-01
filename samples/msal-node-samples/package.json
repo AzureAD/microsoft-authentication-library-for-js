@@ -4,6 +4,7 @@
     "description": "End-to-end test suite for msal-node",
     "scripts": {
         "test": "jest",
+        "preinstall": "cd .. && npm install",
         "build:package": "cd ../../lib/msal-node && npm run build:all"
     },
     "devDependencies": {
@@ -11,7 +12,6 @@
         "yargs": "^16.2.0"
     },
     "dependencies": {
-        "@types/express": "^4.17.11",
-        "ts-jest": "^26.5.2"
+        "@types/express": "^4.17.11"
     }
 }
