@@ -17,7 +17,7 @@ const pca = new msal.PublicClientApplication(msalConfig);
 const deviceCodeRequest = {
     deviceCodeCallback: (response) => (console.log(response.message)),
     scopes: ["user.read"],
-    timeout: 5,
+    timeout: 20,
 };
 
 pca.acquireTokenByDeviceCode(deviceCodeRequest).then((response) => {
