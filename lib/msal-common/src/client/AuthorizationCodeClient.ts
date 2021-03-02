@@ -25,6 +25,7 @@ import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload";
 import { TimeUtils } from "../utils/TimeUtils";
+import { TokenClaims } from "../account/TokenClaims";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -250,8 +251,15 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addSid(request.sid);
         } else if (request.loginHint) {
             parameterBuilder.addLoginHint(request.loginHint);
-        } else if (request.account && request.account.username) {
-            parameterBuilder.addLoginHint(request.account.username);
+        } else if (request.account) {
+            if (request.account.idTokenClaims) {
+                const tokenClaims = request.account.idTokenClaims as TokenClaims;
+                if (tokenClaims.sid) {
+                    parameterBuilder.addSid(tokenClaims.sid);
+                }
+            } else if (request.account.username) {
+                parameterBuilder.addLoginHint(request.account.username);
+            }
         }
 
         if (request.nonce) {
