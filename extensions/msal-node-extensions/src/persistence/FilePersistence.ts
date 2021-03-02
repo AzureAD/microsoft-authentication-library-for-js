@@ -46,7 +46,7 @@ export class FilePersistence implements IPersistence {
         }
     }
 
-    public async load(): Promise<string> {
+    public async load(): Promise<string | null> {
         try {
             return await fs.readFile(this.getFilePath(), "utf-8");
         } catch (err) {
