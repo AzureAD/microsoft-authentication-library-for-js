@@ -8,7 +8,7 @@ export default function Home() {
   return (
     <Layout>
       <AuthenticatedTemplate>
-          <Button variant="contained" color="primary" href="/profile">Request Profile Information</Button>
+          <Button variant="contained" color="primary" to="/profile">Request Profile Information</Button>
       </AuthenticatedTemplate>
 
       <UnauthenticatedTemplate>

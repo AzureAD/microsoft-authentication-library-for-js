@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 // Msal imports
 import { MsalAuthenticationTemplate, useMsal } from "@azure/msal-react";
-import { InteractionType } from "@azure/msal-browser";
+import { InteractionStatus, InteractionType } from "@azure/msal-browser";
 import { loginRequest } from "../authConfig";
 
 // Sample app imports
@@ -19,7 +19,7 @@ const ProfileContent = () => {
     const [graphData, setGraphData] = useState(null);
 
     useEffect(() => {
-        if (inProgress === "none") {
+        if (inProgress === InteractionStatus.None) {
             callMsGraph().then(response => setGraphData(response));
         }
     }, [inProgress]);
