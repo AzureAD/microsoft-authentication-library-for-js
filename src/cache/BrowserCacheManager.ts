@@ -188,6 +188,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param value
      */
     setAccount(account: AccountEntity): void {
+        this.logger.verbose("BrowserCacheManager.setAccount called");
         const key = account.generateAccountKey();
         this.setItem(key, JSON.stringify(account));
     }
@@ -197,6 +198,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param idTokenKey
      */
     getIdTokenCredential(idTokenKey: string): IdTokenEntity | null {
+        this.logger.verbose("BrowserCacheManager.getIdTokenCredential called");
         const value = this.getItem(idTokenKey);
         if (!value) {
             return null;
@@ -209,6 +211,7 @@ export class BrowserCacheManager extends CacheManager {
 
         const idToken: IdTokenEntity = CacheManager.toObject(new IdTokenEntity(), parsedIdToken);
         if (IdTokenEntity.isIdTokenEntity(idToken)) {
+            this.logger.verbose("BrowserCacheManager.getIdTokenCredential: cache hit");
             return idToken;
         }
         return null;
@@ -219,6 +222,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param idToken
      */
     setIdTokenCredential(idToken: IdTokenEntity): void {
+        this.logger.verbose("BrowserCacheManager.setIdTokenCredential called");
         const idTokenKey = idToken.generateCredentialKey();
         this.setItem(idTokenKey, JSON.stringify(idToken));
     }
@@ -228,6 +232,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param key
      */
     getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity | null {
+        this.logger.verbose("BrowserCacheManager.getAccessTokenCredential called");
         const value = this.getItem(accessTokenKey);
         if (!value) {
             return null;
@@ -239,6 +244,7 @@ export class BrowserCacheManager extends CacheManager {
 
         const accessToken: AccessTokenEntity = CacheManager.toObject(new AccessTokenEntity(), parsedAccessToken);
         if (AccessTokenEntity.isAccessTokenEntity(accessToken)) {
+            this.logger.verbose("BrowserCacheManager.getAccessTokenCredential: cache hit");
             return accessToken;
         }
         return null;
@@ -249,6 +255,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param accessToken
      */
     setAccessTokenCredential(accessToken: AccessTokenEntity): void {
+        this.logger.verbose("BrowserCacheManager.setAccessTokenCredential called");
         const accessTokenKey = accessToken.generateCredentialKey();
         this.setItem(accessTokenKey, JSON.stringify(accessToken));
     }
@@ -258,6 +265,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param refreshTokenKey
      */
     getRefreshTokenCredential(refreshTokenKey: string): RefreshTokenEntity | null {
+        this.logger.verbose("BrowserCacheManager.getRefreshTokenCredential called");
         const value = this.getItem(refreshTokenKey);
         if (!value) {
             return null;
@@ -269,6 +277,7 @@ export class BrowserCacheManager extends CacheManager {
 
         const refreshToken: RefreshTokenEntity = CacheManager.toObject(new RefreshTokenEntity(), parsedRefreshToken);
         if (RefreshTokenEntity.isRefreshTokenEntity(refreshToken)) {
+            this.logger.verbose("BrowserCacheManager.getRefreshTokenCredential: cache hit");
             return refreshToken;
         }
         return null;
@@ -279,6 +288,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param refreshToken
      */
     setRefreshTokenCredential(refreshToken: RefreshTokenEntity): void {
+        this.logger.verbose("BrowserCacheManager.setRefreshTokenCredential called");
         const refreshTokenKey = refreshToken.generateCredentialKey();
         this.setItem(refreshTokenKey, JSON.stringify(refreshToken));
     }
@@ -288,6 +298,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param appMetadataKey
      */
     getAppMetadata(appMetadataKey: string): AppMetadataEntity | null {
+        this.logger.verbose("BrowserCacheManager.getAppMetadata called");
         const value = this.getItem(appMetadataKey);
         if (!value) {
             return null;
@@ -300,6 +311,7 @@ export class BrowserCacheManager extends CacheManager {
 
         const appMetadata: AppMetadataEntity = CacheManager.toObject(new AppMetadataEntity(), parsedMetadata);
         if (AppMetadataEntity.isAppMetadataEntity(appMetadataKey, appMetadata)) {
+            this.logger.verbose("BrowserCacheManager.getAppMetadata: cache hit");
             return appMetadata;
         }
         return null;
@@ -310,6 +322,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param appMetadata
      */
     setAppMetadata(appMetadata: AppMetadataEntity): void {
+        this.logger.verbose("BrowserCacheManager.setAppMetadata called");
         const appMetadataKey = appMetadata.generateAppMetadataKey();
         this.setItem(appMetadataKey, JSON.stringify(appMetadata));
     }
@@ -319,6 +332,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param serverTelemetryKey
      */
     getServerTelemetry(serverTelemetryKey: string): ServerTelemetryEntity | null {
+        this.logger.verbose("BrowserCacheManager.getServerTelemetry called");
         const value = this.getItem(serverTelemetryKey);
         if (!value) {
             return null;
@@ -330,6 +344,7 @@ export class BrowserCacheManager extends CacheManager {
 
         const serverTelemetryEntity = CacheManager.toObject(new ServerTelemetryEntity(), parsedMetadata);
         if (ServerTelemetryEntity.isServerTelemetryEntity(serverTelemetryKey, serverTelemetryEntity)) {
+            this.logger.verbose("BrowserCacheManager.getServerTelemetry: cache hit");
             return serverTelemetryEntity;
         }
         return null;
@@ -341,6 +356,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param serverTelemetry
      */
     setServerTelemetry(serverTelemetryKey: string, serverTelemetry: ServerTelemetryEntity): void {
+        this.logger.verbose("BrowserCacheManager.setServerTelemetry called");
         this.setItem(serverTelemetryKey, JSON.stringify(serverTelemetry));
     }
 
@@ -348,12 +364,14 @@ export class BrowserCacheManager extends CacheManager {
      *
      */
     getAuthorityMetadata(key: string) : AuthorityMetadataEntity | null {
+        this.logger.verbose("BrowserCacheManager.getAuthorityMetadata called");
         const value = this.internalStorage.getItem(key);
         if (!value) {
             return null;
         }
         const parsedMetadata = this.validateAndParseJson(value);
         if (parsedMetadata && AuthorityMetadataEntity.isAuthorityMetadataEntity(key, parsedMetadata)) {
+            this.logger.verbose("BrowserCacheManager.getAuthorityMetadata: cache hit");
             return CacheManager.toObject(new AuthorityMetadataEntity(), parsedMetadata);
         }
         return null;
@@ -374,6 +392,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param entity
      */
     setAuthorityMetadata(key: string, entity: AuthorityMetadataEntity): void {
+        this.logger.verbose("BrowserCacheManager.setAuthorityMetadata called");
         this.internalStorage.setItem(key, JSON.stringify(entity));
     }
 
@@ -382,6 +401,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param throttlingCacheKey
      */
     getThrottlingCache(throttlingCacheKey: string): ThrottlingEntity | null {
+        this.logger.verbose("BrowserCacheManager.getThrottlingCache called");
         const value = this.getItem(throttlingCacheKey);
         if (!value) {
             return null;
@@ -394,6 +414,7 @@ export class BrowserCacheManager extends CacheManager {
 
         const throttlingCache = CacheManager.toObject(new ThrottlingEntity(), parsedThrottlingCache);
         if (ThrottlingEntity.isThrottlingEntity(throttlingCacheKey, throttlingCache)) {
+            this.logger.verbose("BrowserCacheManager.getThrottlingCache: cache hit");
             return throttlingCache;
         }
         return null;
@@ -405,6 +426,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param throttlingCache
      */
     setThrottlingCache(throttlingCacheKey: string, throttlingCache: ThrottlingEntity): void {
+        this.logger.verbose("BrowserCacheManager.setThrottlingCache called");
         this.setItem(throttlingCacheKey, JSON.stringify(throttlingCache));
     }
 
@@ -414,8 +436,10 @@ export class BrowserCacheManager extends CacheManager {
      * @param key
      */
     getTemporaryCache(cacheKey: string, generateKey?: boolean): string | null {
+        this.logger.verbose("BrowserCacheManager.getTemporaryCache called");
         const key = generateKey ? this.generateCacheKey(cacheKey) : cacheKey;
         if (this.cacheConfig.storeAuthStateInCookie) {
+            this.logger.verbose("BrowserCacheManager.getTemporaryCache: storeAuthStateInCookies set to true, retrieving from cookies");
             const itemCookie = this.getItemCookie(key);
             if (itemCookie) {
                 return itemCookie;
@@ -441,6 +465,7 @@ export class BrowserCacheManager extends CacheManager {
 
         this.temporaryCacheStorage.setItem(key, value);
         if (this.cacheConfig.storeAuthStateInCookie) {
+            this.logger.verbose("BrowserCacheManager.setTemporaryCache: storeAuthStateInCookie set to true, setting item cookie");
             this.setItemCookie(key, value);
         }
     }
@@ -454,6 +479,7 @@ export class BrowserCacheManager extends CacheManager {
         this.browserStorage.removeItem(key);
         this.temporaryCacheStorage.removeItem(key);
         if (this.cacheConfig.storeAuthStateInCookie) {
+            this.logger.verbose("BrowserCacheManager.removeItem: storeAuthStateInCookie is true, clearing item cookie");
             this.clearItemCookie(key);
         }
         return true;
@@ -644,6 +670,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param account
      */
     updateCacheEntries(state: string, nonce: string, authorityInstance: string): void {
+        this.logger.verbose("BrowserCacheManager.updateCacheEntries called");
         // Cache the request state
         const stateCacheKey = this.generateStateKey(state);
         this.setTemporaryCache(stateCacheKey, state, false);
@@ -662,6 +689,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param state
      */
     resetRequestCache(state: string): void {
+        this.logger.verbose("BrowserCacheManager.resetRequestCache called");
         // check state and remove associated cache items
         this.getKeys().forEach(key => {
             if (!StringUtils.isEmpty(state) && key.indexOf(state) !== -1) {
@@ -686,6 +714,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param stateString 
      */
     cleanRequestByState(stateString: string): void {
+        this.logger.verbose("BrowserCacheManager.cleanRequestByState called");
         // Interaction is completed - remove interaction status.
         if (stateString) {
             const stateKey = this.generateStateKey(stateString);
@@ -701,6 +730,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param interactionType 
      */
     cleanRequestByInteractionType(interactionType: InteractionType): void {
+        this.logger.verbose("BrowserCacheManager.cleanRequestByInteractionType called");
         this.getKeys().forEach((key) => {
             if (key.indexOf(TemporaryCacheKeys.REQUEST_STATE) === -1) {
                 return;
@@ -719,6 +749,8 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     cacheCodeRequest(authCodeRequest: CommonAuthorizationCodeRequest, browserCrypto: ICrypto): void {
+        this.logger.verbose("BrowserCacheManager.cacheCodeRequest called");
+
         const encodedValue = browserCrypto.base64Encode(JSON.stringify(authCodeRequest));
         this.setTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, encodedValue, true);
     }
@@ -727,6 +759,7 @@ export class BrowserCacheManager extends CacheManager {
      * Gets the token exchange parameters from the cache. Throws an error if nothing is found.
      */
     getCachedRequest(state: string, browserCrypto: ICrypto): CommonAuthorizationCodeRequest {
+        this.logger.verbose("BrowserCacheManager.getCachedRequest called");
         // Get token request from cache and parse as TokenExchangeParameters.
         const encodedTokenRequest = this.getTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, true);
         if (!encodedTokenRequest) {

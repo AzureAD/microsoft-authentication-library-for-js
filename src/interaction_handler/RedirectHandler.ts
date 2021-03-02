@@ -32,17 +32,19 @@ export class RedirectHandler extends InteractionHandler {
      * @param urlNavigate
      */
     async initiateAuthRequest(requestUrl: string, params: RedirectParams): Promise<void> {
+        this.authModule.logger.verbose("RedirectHandler.initiateAuthRequest called");
         // Navigate if valid URL
         if (!StringUtils.isEmpty(requestUrl)) {
             // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true
             if (params.redirectStartPage) {
+                this.authModule.logger.verbose("RedirectHandler.initiateAuthRequest: redirectStartPage set to true, caching start page");
                 this.browserStorage.setTemporaryCache(TemporaryCacheKeys.ORIGIN_URI, params.redirectStartPage, true);
             }
 
             // Set interaction status in the library.
             this.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
             this.browserStorage.cacheCodeRequest(this.authCodeRequest, this.browserCrypto);
-            this.authModule.logger.infoPii("Navigate to:" + requestUrl);
+            this.authModule.logger.infoPii("RedirectHandler.initiateAuthRequest: Navigate to:" + requestUrl);
             const navigationOptions: NavigationOptions = {
                 apiId: ApiId.acquireTokenRedirect,
                 timeout: params.redirectTimeout,
@@ -51,27 +53,27 @@ export class RedirectHandler extends InteractionHandler {
             
             // If onRedirectNavigate is implemented, invoke it and provide requestUrl
             if (typeof params.onRedirectNavigate === "function") {
-                this.authModule.logger.verbose("Invoking onRedirectNavigate callback");
+                this.authModule.logger.verbose("RedirectHandler.initiateAuthRequest: Invoking onRedirectNavigate callback");
                 const navigate = params.onRedirectNavigate(requestUrl);
 
                 // Returning false from onRedirectNavigate will stop navigation
                 if (navigate !== false) {
-                    this.authModule.logger.verbose("onRedirectNavigate did not return false, navigating");
+                    this.authModule.logger.verbose("RedirectHandler.initiateAuthRequest: onRedirectNavigate did not return false, navigating");
                     await params.navigationClient.navigateExternal(requestUrl, navigationOptions);
                     return;
                 } else {
-                    this.authModule.logger.verbose("onRedirectNavigate returned false, stopping navigation");
+                    this.authModule.logger.verbose("RedirectHandler.initiateAuthRequest: onRedirectNavigate returned false, stopping navigation");
                     return;
                 }
             } else {
                 // Navigate window to request URL
-                this.authModule.logger.verbose("Navigating window to navigate url");
+                this.authModule.logger.verbose("RedirectHandler.initiateAuthRequest: Navigating window to navigate url");
                 await params.navigationClient.navigateExternal(requestUrl, navigationOptions);
                 return;
             }
         } else {
             // Throw error if request URL is empty.
-            this.authModule.logger.info("Navigate url is empty");
+            this.authModule.logger.info("RedirectHandler.initiateAuthRequest: Navigate url is empty");
             throw BrowserAuthError.createEmptyNavigationUriError();
         }
     }
@@ -81,6 +83,8 @@ export class RedirectHandler extends InteractionHandler {
      * @param hash
      */
     async handleCodeResponse(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule, clientId?: string): Promise<AuthenticationResult> {
+        this.authModule.logger.verbose("RedirectHandler.handleCodeResponse called");
+
         // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {
             throw BrowserAuthError.createEmptyHashError(locationHash);
