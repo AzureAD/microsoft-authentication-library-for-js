@@ -558,6 +558,21 @@ export class BrowserCacheManager extends CacheManager {
         return "";
     }
 
+    clearMsalCookies(): void {
+        const cookiePrefix = `${Constants.CACHE_PREFIX}.${this.clientId}`;
+        const cookieList = document.cookie.split(";");
+        for (let i = 0; i < cookieList.length; i++) {
+            let cookie = cookieList[i];
+            while (cookie.charAt(0) === " ") {
+                cookie = cookie.substring(1);
+            }
+            if (cookie.indexOf(cookiePrefix) === 0) {
+                const cookieKey = cookie.split("=")[0];
+                this.clearItemCookie(cookieKey);
+            }
+        }
+    }
+
     /**
      * Clear an item in the cookies by key
      * @param cookieName
@@ -746,6 +761,7 @@ export class BrowserCacheManager extends CacheManager {
                 this.resetRequestCache(value);
             }
         });
+        this.clearMsalCookies();
     }
 
     cacheCodeRequest(authCodeRequest: CommonAuthorizationCodeRequest, browserCrypto: ICrypto): void {
