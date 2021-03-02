@@ -1,6 +1,6 @@
 {
   "type": "none",
-  "comment": "Add errors to angular FAQ (#3093)",
+  "comment": "Add errors doc to msal-angular, update FAQ and redirect docs (#3093)",
   "packageName": "@azure/msal-angular",
   "email": "joarroyo@microsoft.com",
   "dependentChangeType": "none"
