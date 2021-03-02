@@ -211,6 +211,7 @@ export class BrowserCacheManager extends CacheManager {
 
         const idToken: IdTokenEntity = CacheManager.toObject(new IdTokenEntity(), parsedIdToken);
         if (IdTokenEntity.isIdTokenEntity(idToken)) {
+            this.logger.verbose("BrowserCacheManager.getIdTokenCredential: cache hit");
             return idToken;
         }
         return null;
@@ -243,6 +244,7 @@ export class BrowserCacheManager extends CacheManager {
 
         const accessToken: AccessTokenEntity = CacheManager.toObject(new AccessTokenEntity(), parsedAccessToken);
         if (AccessTokenEntity.isAccessTokenEntity(accessToken)) {
+            this.logger.verbose("BrowserCacheManager.getAccessTokenCredential: cache hit");
             return accessToken;
         }
         return null;
@@ -275,6 +277,7 @@ export class BrowserCacheManager extends CacheManager {
 
         const refreshToken: RefreshTokenEntity = CacheManager.toObject(new RefreshTokenEntity(), parsedRefreshToken);
         if (RefreshTokenEntity.isRefreshTokenEntity(refreshToken)) {
+            this.logger.verbose("BrowserCacheManager.getRefreshTokenCredential: cache hit");
             return refreshToken;
         }
         return null;
@@ -308,6 +311,7 @@ export class BrowserCacheManager extends CacheManager {
 
         const appMetadata: AppMetadataEntity = CacheManager.toObject(new AppMetadataEntity(), parsedMetadata);
         if (AppMetadataEntity.isAppMetadataEntity(appMetadataKey, appMetadata)) {
+            this.logger.verbose("BrowserCacheManager.getAppMetadata: cache hit");
             return appMetadata;
         }
         return null;
@@ -340,6 +344,7 @@ export class BrowserCacheManager extends CacheManager {
 
         const serverTelemetryEntity = CacheManager.toObject(new ServerTelemetryEntity(), parsedMetadata);
         if (ServerTelemetryEntity.isServerTelemetryEntity(serverTelemetryKey, serverTelemetryEntity)) {
+            this.logger.verbose("BrowserCacheManager.getServerTelemetry: cache hit");
             return serverTelemetryEntity;
         }
         return null;
@@ -366,6 +371,7 @@ export class BrowserCacheManager extends CacheManager {
         }
         const parsedMetadata = this.validateAndParseJson(value);
         if (parsedMetadata && AuthorityMetadataEntity.isAuthorityMetadataEntity(key, parsedMetadata)) {
+            this.logger.verbose("BrowserCacheManager.getAuthorityMetadata: cache hit");
             return CacheManager.toObject(new AuthorityMetadataEntity(), parsedMetadata);
         }
         return null;
@@ -408,6 +414,7 @@ export class BrowserCacheManager extends CacheManager {
 
         const throttlingCache = CacheManager.toObject(new ThrottlingEntity(), parsedThrottlingCache);
         if (ThrottlingEntity.isThrottlingEntity(throttlingCacheKey, throttlingCache)) {
+            this.logger.verbose("BrowserCacheManager.getThrottlingCache: cache hit");
             return throttlingCache;
         }
         return null;
