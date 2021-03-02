@@ -53,7 +53,7 @@ Things to note about the `protectedResourceMap`:
 
 See our [initialization doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/initialization.md#get-tokens-for-web-api-calls) for more information on setting this up, our [upgrade guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/1.x-2.x-upgrade-guide.md#protected-resources) for differences to Msal Angular 1.x, and our [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/5cc21a95a389c31a0d5e74d37ff297931aeee479/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app.module.ts#L47) for examples of usage.
 
-**Note:** Currently, active accounts are for each page load and does not persist. While this is an enhancement we are looking to make, we recommend that you set the active account for each page load.
+**Note:** Currently, active accounts are for each page load and do not persist. While this is an enhancement we are looking to make, we recommend that you set the active account for each page load.
 
 Please note that using the MsalInterceptor is optional and you can write your own interceptor if you choose to. Alternatively, you can also explicitly acquire tokens using the acquireToken APIs.
 
