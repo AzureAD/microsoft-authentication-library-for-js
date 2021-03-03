@@ -1,6 +1,6 @@
 # Using Certificate Credentials with MSAL Node
 
-> :warning: Before you start here, make sure you understand [Initialize confidential client applications](./initialize-confidential-client-application).
+> :warning: Before you start here, make sure you understand [Initialize confidential client applications](./initialize-confidential-client-application.md).
 
 You can build confidential client applications with MSAL Node (web apps, daemon apps etc). A **client credential** is mandatory for confidential clients. Client credential can be a:
 
@@ -10,7 +10,7 @@ You can build confidential client applications with MSAL Node (web apps, daemon 
 
 ## Using Certificates
 
-This section covers creating a self-signed certificate and initializing a confidential client. For an implementation, eee the code sample: [auth-code-with-certs](../../../samples/msal-node-samples/standalone-samples/auth-code-with-certs);
+This section covers creating a self-signed certificate and initializing a confidential client. For an implementation, eee the code sample: [auth-code-with-certs](../../../samples/msal-node-samples/standalone-samples/auth-code-with-certs)
 
 ### Generating self-signed certificates
 

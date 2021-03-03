@@ -2,7 +2,7 @@
 
 This sample demonstrates an MSAL Node [confidential client](../../../../lib/msal-node/docs/initialize-confidential-client-application.md) (web) application that lets users authenticate against **Azure AD**.
 
-This sample requires a certificate. Certificates and related topics are discussed in [Using Certificates with MSAL Node](../../../../lib/msal-node/docs/certificate-credentials.md).
+This sample requires an [Azure Key Vault](https://docs.microsoft.com/azure/key-vault/general/basic-concepts). Key Vault and related topics are discussed in [Securing MSAL Node with Azure Key Vault and Azure Managed Identity](../../../../lib/msal-node/docs/key-vault-managed-identity.md).
 
 ## Setup
 
