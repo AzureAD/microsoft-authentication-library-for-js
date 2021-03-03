@@ -19,8 +19,7 @@
     "lib": [
       "es2018",
       "dom"
-    ],
-    "esModuleInterop": true
+    ]
   },
   "angularCompilerOptions": {
     "strictInjectionParameters": true,
