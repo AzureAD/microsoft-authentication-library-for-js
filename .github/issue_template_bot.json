@@ -1,0 +1,53 @@
+{
+    "selectors": {
+        "Library": {
+            "labels": {
+                "msal@1.x": {
+                    "searchStrings": ["msal@1.x"]
+                },
+                "msal-angular": {
+                    "searchStrings": ["msal-angular@0.x", "msal-angular@1.x", "msal-angular@2.x"]
+                },
+                "msal-angularjs": {
+                    "searchStrings": ["msal-angularjs@1.x"]
+                },
+                "msal-browser": {
+                    "searchStrings": ["msal-browser"]
+                },
+                "msal-common": {
+                    "searchStrings": ["msal-common"]
+                },
+                "msal-react": {
+                    "searchStrings": ["msal-react"]
+                },
+                "msal-node": {
+                    "searchStrings": ["msal-node"]
+                }
+            },
+            "enforceSelection": false
+        },
+        "Identity Provider": {
+            "labels": {
+                "b2c": {
+                    "searchStrings": ["B2C"]
+                },
+                "adfs": {
+                    "searchStrings": ["ADFS"]
+                }
+            }
+        }
+    },
+    "enforceTemplate": true,
+    "optionalSections": [
+        "Framework",
+        "Error Message",
+        "Security",
+        "Regression",
+        "Browsers/Environment",
+        "Source"
+    ],
+    "templateEnforcementLabel": "more-information-needed",
+    "incompleteTemplateMessage": "Please update the original issue and make sure to fill out the entire issue template so we can better assist you.",
+    "noTemplateMessage": "Please open a new issue and use one of the provided issue templates. Thanks!",
+    "noTemplateClose": true
+}
