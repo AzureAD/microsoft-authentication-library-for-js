@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update angular docs and samples with incremental vs. upfront consent of scopes (#3051)",
-  "packageName": "@azure/msal-angular",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "none"
-}
