@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-node-extensions
 
-This log was last generated on Wed, 14 Oct 2020 23:45:07 GMT and should not be manually modified.
+This log was last generated on Wed, 03 Mar 2021 22:13:23 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.5
+
+Wed, 03 Mar 2021 22:13:23 GMT
+
+### Changes
+
+- Fix npm audit warnings (janutter@microsoft.com)
 
 ## 1.0.0-alpha.4
 

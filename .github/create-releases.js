@@ -12,6 +12,14 @@ const octokit = new Octokit({
     auth: process.env.GITHUB_AUTH
 });
 
+const { graphql } = require("@octokit/graphql");
+const graphqlWithAuth = graphql.defaults({
+    headers: {
+        authorization: `token ${process.env.GITHUB_AUTH}`,
+        'GraphQL-Features': 'discussions_api'
+    },
+});
+
 const repoMeta = {
     owner: "AzureAD",
     repo: "microsoft-authentication-library-for-js"
@@ -97,6 +105,30 @@ async function createReleaseForFolder(folderName) {
 
     if (!releaseForTag) {
         console.log(`Release started: ${tag_name}`);
+
+        const {
+            createDiscussion: {
+                discussion: {
+                    url: discussionUrl
+                }
+            }
+        } = await graphqlWithAuth(
+            `mutation {
+                createDiscussion(input: {
+                    body: "${release.body}", 
+                    title: "${release.name}", 
+                    repositoryId: "MDEwOlJlcG9zaXRvcnk4MzA4NTU3OQ==", 
+                    categoryId: "MDE4OkRpc2N1c3Npb25DYXRlZ29yeTMyMDEyMzMy"
+                }) {
+                    discussion {
+                        url
+                    }
+                }
+            }`
+        );
+
+        release.body = `${release.body}\nDiscussion: ${discussionUrl}`;
+
         const newRelease = await octokit.repos.createRelease(release);
         console.log(`Release created: ${tag_name}`);
     } else {

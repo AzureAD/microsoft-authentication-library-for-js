@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Remove InteractionStatus export (#3048)",
-  "packageName": "@azure/msal-react",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

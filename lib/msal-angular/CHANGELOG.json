@@ -2,6 +2,59 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Wed, 03 Mar 2021 21:47:05 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-beta.0",
+      "version": "2.0.0-beta.0",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Fix BroadcastService logging to use msal-angular version, update samples versions, profile, and links (#3015)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "e7f09b6ada9dd8812c5c29263338a4afd41f2006",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Add FAQ.md and active accounts in sample (#2977)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "c8561df04cb8d72328803429da37e45399238b53",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update msal-angular preinstall script to force npm-force-resolutions version (#3074)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "65c6b630d97ef5acbfa00e621e2177c7d514009f",
+            "package": "@azure/msal-angular"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Add errors doc to msal-angular, update FAQ and redirect docs (#3093)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "c26265e6f337cead73979c8da396d09929d963e8",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update angular docs and samples with incremental vs. upfront consent of scopes (#3051)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "ec7b363ce639e15dd4f34049ad9e95e93e26c183",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Correct spelling mistake for 0.x-1.x-upgrade-guide.md",
+            "author": "30316250+wmundev@users.noreply.github.com",
+            "commit": "1ffad19b63fc55b899eca850fb165241ad66e589",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Add docs and sample for angular client-side navigation (#3073)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "bcf87e1077a1bd75b77d7b700d4197d64c8799a2",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 18 Feb 2021 00:34:32 GMT",
       "tag": "@azure/msal-angular_v2.0.0-alpha.6",
       "version": "2.0.0-alpha.6",
