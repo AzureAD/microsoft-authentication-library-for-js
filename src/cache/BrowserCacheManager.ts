@@ -109,7 +109,7 @@ export class BrowserCacheManager extends CacheManager {
         const values = [idTokenValue, clientInfoValue, errorValue, errorDescValue];
         const keysToMigrate = [PersistentCacheKeys.ID_TOKEN, PersistentCacheKeys.CLIENT_INFO, PersistentCacheKeys.ERROR, PersistentCacheKeys.ERROR_DESC];
 
-        keysToMigrate.forEach((cacheKey, index) => this.migrateCacheEntry(cacheKey, values[index]));
+        keysToMigrate.forEach((cacheKey:string, index: number) => this.migrateCacheEntry(cacheKey, values[index]));
     }
 
     /**
@@ -546,7 +546,7 @@ export class BrowserCacheManager extends CacheManager {
     getItemCookie(cookieName: string): string {
         const name = `${encodeURIComponent(cookieName)}=`;
         const cookieList = document.cookie.split(";");
-        for (let i = 0; i < cookieList.length; i++) {
+        for (let i: number = 0; i < cookieList.length; i++) {
             let cookie = cookieList[i];
             while (cookie.charAt(0) === " ") {
                 cookie = cookie.substring(1);
@@ -558,11 +558,13 @@ export class BrowserCacheManager extends CacheManager {
         return "";
     }
 
+    /**
+     * Clear all msal-related cookies currently set in the browser. Should only be used to clear temporary cache items.
+     */
     clearMsalCookies(): void {
         const cookiePrefix = `${Constants.CACHE_PREFIX}.${this.clientId}`;
         const cookieList = document.cookie.split(";");
-        for (let i = 0; i < cookieList.length; i++) {
-            let cookie = cookieList[i];
+        cookieList.forEach((cookie: string): void => {
             while (cookie.charAt(0) === " ") {
                 cookie = cookie.substring(1);
             }
@@ -570,7 +572,7 @@ export class BrowserCacheManager extends CacheManager {
                 const cookieKey = cookie.split("=")[0];
                 this.clearItemCookie(cookieKey);
             }
-        }
+        });
     }
 
     /**
@@ -802,7 +804,7 @@ export class BrowserCacheManager extends CacheManager {
     }
 }
 
-export const DEFAULT_BROWSER_CACHE_MANAGER = (clientId: string, logger: Logger) => {
+export const DEFAULT_BROWSER_CACHE_MANAGER = (clientId: string, logger: Logger): BrowserCacheManager => {
     const cacheOptions = {
         cacheLocation: BrowserCacheLocation.MemoryStorage,
         storeAuthStateInCookie: false,
