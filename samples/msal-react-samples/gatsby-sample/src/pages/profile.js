@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 
 // Msal imports
 import { MsalAuthenticationTemplate, useMsal, useAccount } from "@azure/msal-react";
-import { InteractionType } from "@azure/msal-browser";
+import { InteractionStatus, InteractionType } from "@azure/msal-browser";
 import { loginRequest } from "../authConfig";
 
 // Sample app imports
@@ -21,7 +21,7 @@ const ProfileContent = () => {
     const [graphData, setGraphData] = useState(null);
 
     useEffect(() => {
-        if (account && inProgress === "none") {
+        if (account && !graphData && inProgress === InteractionStatus.None) {
             instance.acquireTokenSilent({
                 ...loginRequest,
                 account: account
@@ -29,7 +29,7 @@ const ProfileContent = () => {
                 callMsGraph(response.accessToken).then(response => setGraphData(response));
             });
         }
-    }, [account, inProgress, instance]);
+    }, [account, inProgress, instance, graphData]);
   
     return (
         <Paper>
@@ -46,7 +46,7 @@ const Profile = () => {
     return (
         <Layout>
             <MsalAuthenticationTemplate 
-                interactionType={InteractionType.Popup} 
+                interactionType={InteractionType.Redirect} 
                 authenticationRequest={authRequest} 
                 errorComponent={ErrorComponent} 
                 loadingComponent={Loading}

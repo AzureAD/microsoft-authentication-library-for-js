@@ -43,7 +43,7 @@ export const BrowserAuthErrorMessage = {
     },
     interactionInProgress: {
         code: "interaction_in_progress",
-        desc: "Interaction is currently in progress. Please ensure that this interaction has been completed before calling an interactive API."
+        desc: "Interaction is currently in progress. Please ensure that this interaction has been completed before calling an interactive API.  For more visit: aka.ms/msaljs/browser-errors."
     },
     popUpWindowError: {
         code: "popup_window_error",
