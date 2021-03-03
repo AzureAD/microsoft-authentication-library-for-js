@@ -2,6 +2,21 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 03 Mar 2021 21:47:05 GMT",
+      "tag": "@azure/msal-common_v4.0.2",
+      "version": "4.0.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix OIDC Scopes Caching Issue (#3065)",
+            "author": "prkanher@microsoft.com",
+            "commit": "03fb6e837d8b0b919118f34096dbe9e333ec733e",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 18 Feb 2021 00:34:32 GMT",
       "tag": "@azure/msal-common_v4.0.1",
       "version": "4.0.1",
