@@ -12,6 +12,7 @@ This sample was bootstrapped with [Learn Next.js](https://nextjs.org/learn).
 1. `./pages/profile.js` - Example of a protected route using `MsalAuthenticationTemplate`. If a user is not yet signed in, signin will be invoked automatically. If a user is signed in it will acquire an access token and make a call to MS Graph to fetch user profile data.
 1. `./src/authConfig.js` - Configuration options for `PublicClientApplication` and token requests
 1. `./src/ui.js` - Example of how to invoke login/logout as a result of user interaction (clicking a button) and conditionally rendering a Sign In or Sign Out button using the `useIsAuthenticated` hook.
+1. `./src/NavigationClient.js` - Example implementation of `INavigationClient` which can be used to override the default navigation functions MSAL.js uses
 
 ## How to run the sample
 
