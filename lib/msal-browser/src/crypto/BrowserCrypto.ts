@@ -7,7 +7,6 @@ import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { KEY_FORMAT_JWK, BROWSER_CRYPTO } from "../utils/BrowserConstants";
 import { PopKeyOptions } from "./CryptoOps";
-import { JsonWebEncryption } from "../utils/JsonWebEncryption";
 
 /**
  * This class implements functions used by the browser library to perform cryptography operations such as
@@ -56,7 +55,7 @@ export class BrowserCrypto {
         if (this.hasIECrypto()) {
             return this.msCryptoGenerateKey(popKeyOptions, extractable) as Promise<CryptoKeyPair>;
         } else {
-            return window.crypto.subtle.generateKey(keygenAlgorithmOptions.popKeyGenAlgorithmOptions, extractable, keygenAlgorithmOptions.keyUsages) as Promise<CryptoKeyPair>;
+            return window.crypto.subtle.generateKey(keygenAlgorithmOptions.popKeyGenAlgorithmOptions, extractable, keygenAlgorithmOptions.keypairUsages) as Promise<CryptoKeyPair>;
         }
     }
 
@@ -94,16 +93,7 @@ export class BrowserCrypto {
             this.msCryptoSign(popKeyOptions, key, data)
             : window.crypto.subtle.sign(popKeyOptions.popKeyGenAlgorithmOptions, key, data);
     }
-
-    /**
-     * Extracts session key from Session Key JWE using provided key
-     */
-    async unwrapSessionKey(sessionKeyJwe: string, key: CryptoKey): Promise<CryptoKey> {
-        const parts = sessionKeyJwe.split(".");
-        parts.forEach((part, index) => { console.log(index, ". ", part);});
-        return key;
-    }
-
+    
     /**
      * Check whether IE crypto or other browser cryptography is available.
      */
@@ -158,7 +148,7 @@ export class BrowserCrypto {
      */
     private async msCryptoGenerateKey(popKeyOptions: PopKeyOptions, extractable: boolean): Promise<CryptoKeyPair> {
         return new Promise((resolve: any, reject: any) => {
-            const msGenerateKey = window["msCrypto"].subtle.generateKey(popKeyOptions.popKeyGenAlgorithmOptions, extractable, popKeyOptions.keyUsages);
+            const msGenerateKey = window["msCrypto"].subtle.generateKey(popKeyOptions.popKeyGenAlgorithmOptions, extractable, popKeyOptions.keypairUsages);
             msGenerateKey.addEventListener("complete", (e: { target: { result: CryptoKeyPair | PromiseLike<CryptoKeyPair>; }; }) => {
                 resolve(e.target.result);
             });

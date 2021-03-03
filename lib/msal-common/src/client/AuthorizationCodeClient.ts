@@ -61,7 +61,7 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         const response = await this.executeTokenRequest(this.authority, request);
-        // console.log("R: ", response);
+
         const responseHandler = new ResponseHandler(
             this.config.authOptions.clientId,
             this.cacheManager,

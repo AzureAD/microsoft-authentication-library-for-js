@@ -119,14 +119,12 @@ export class ResponseHandler {
         
         let decryptedTokenResponse: ServerAuthorizationTokenResponse;
 
-        console.log("Response: ", serverTokenResponse);
-
         if (serverTokenResponse.session_key_jwe && serverTokenResponse.response_jwe && stkJwkThumbprint) {
             decryptedTokenResponse = await this.handleBoundServerTokenResponse(serverTokenResponse, stkJwkThumbprint);
         } else {
             decryptedTokenResponse = serverTokenResponse;
         }
-        debugger;
+
         return this.handleTokenResponse(decryptedTokenResponse, authority, resourceRequestMethod, resourceRequestUri, authCodePayload, requestScopes, oboAssertion, handlingRefreshTokenResponse);
     }
 

@@ -944,7 +944,7 @@ export abstract class ClientApplication {
      */
     protected async initializeAuthorizationCodeRequest(request: AuthorizationUrlRequest): Promise<AuthorizationCodeRequest> {
         const generatedPkceParams = await this.browserCrypto.generatePkceCodes();
-        const kid = await this.browserCrypto.getPublicKeyThumbprint(undefined, undefined, "stk");
+        const kid = await this.browserCrypto.getPublicKeyThumbprint(undefined, undefined, "stk_jwk");
         request.stkJwk = kid;
 
         const authCodeRequest: AuthorizationCodeRequest = {
@@ -956,7 +956,7 @@ export abstract class ClientApplication {
 
         request.codeChallenge = generatedPkceParams.challenge;
         request.codeChallengeMethod = Constants.S256_CODE_CHALLENGE_METHOD;
-        console.log(authCodeRequest);
+
         return authCodeRequest;
     }
 

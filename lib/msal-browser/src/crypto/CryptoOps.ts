@@ -11,10 +11,10 @@ import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
 import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { BrowserConstants, BROWSER_CRYPTO, KEY_FORMAT_JWK } from "../utils/BrowserConstants";
+import { BROWSER_CRYPTO, KEY_FORMAT_JWK, KEY_USAGES, POP_REQUEST_PARAMETERS } from "../utils/BrowserConstants";
 import { ServerAuthorizationTokenResponse } from "@azure/msal-common/dist/src/response/ServerAuthorizationTokenResponse";
 
-import { JsonWebEncryption } from "../utils/JsonWebEncryption";
+import { JsonWebEncryption } from "./JsonWebEncryption";
 
 /**
  * See here for more info on RsaHashedKeyGenParams: https://developer.mozilla.org/en-US/docs/Web/API/RsaHashedKeyGenParams
@@ -32,7 +32,8 @@ export type CachedKeyPair = {
 
 export type PopKeyOptions = {
     popKeyGenAlgorithmOptions: RsaHashedKeyGenParams,
-    keyUsages: KeyUsage[]
+    keypairUsages: KeyUsage[],
+    privateKeyUsage: KeyUsage[]
 };
 
 /**
@@ -71,17 +72,19 @@ export class CryptoOps implements ICrypto {
                 modulusLength: BROWSER_CRYPTO.MODULUS_LENGTH,
                 publicExponent: PUBLIC_EXPONENT
             },
-            keyUsages: BROWSER_CRYPTO.AT_POP_KEY_USAGES as KeyUsage[]
+            keypairUsages: KEY_USAGES.AT_POP.KEYPAIR as KeyUsage[],
+            privateKeyUsage: KEY_USAGES.AT_POP.PRIVATE_KEY as KeyUsage[]
         };
 
         this._rtPopKeyOptions = {
             popKeyGenAlgorithmOptions: {     
-                name: BROWSER_CRYPTO.OAEP,
+                name: BROWSER_CRYPTO.RSA_OAEP,
                 hash: BROWSER_CRYPTO.S256_HASH_ALG,
                 modulusLength: BROWSER_CRYPTO.MODULUS_LENGTH,
                 publicExponent: PUBLIC_EXPONENT
             },
-            keyUsages: BROWSER_CRYPTO.RT_POP_KEY_USAGES as KeyUsage[]
+            keypairUsages: KEY_USAGES.RT_POP.KEYPAIR as KeyUsage[],
+            privateKeyUsage: KEY_USAGES.RT_POP.PRIVATE_KEY as KeyUsage[]
         };
     }
 
@@ -123,64 +126,39 @@ export class CryptoOps implements ICrypto {
      */
     async getPublicKeyThumbprint(resourceRequestMethod: string, resourceRequestUri: string, keyType: string): Promise<string> {
         let popKeyOptions: PopKeyOptions;
-        let publicJwkHash: string;
 
-        if (keyType === "req_cnf") {
-            popKeyOptions = this._atPopKeyOptions;
-
-            // Generate Keypair
-            const keyPair = await this.browserCrypto.generateKeyPair(popKeyOptions, CryptoOps.EXTRACTABLE);
-            // Generate Thumbprint for Public Key
-            const publicKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.publicKey);
-            const pubKeyThumprintObj: JsonWebKey = {
-                e: publicKeyJwk.e,
-                kty: publicKeyJwk.kty,
-                n: publicKeyJwk.n
-            };
-            const publicJwkString: string = BrowserCrypto.getJwkString(pubKeyThumprintObj);
-            const publicJwkBuffer: ArrayBuffer = await this.browserCrypto.sha256Digest(publicJwkString);
-            publicJwkHash = this.b64Encode.urlEncodeArr(new Uint8Array(publicJwkBuffer));
-
-            // Generate Thumbprint for Private Key
-            const privateKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.privateKey);
-            // Re-import private key to make it unextractable
-            const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importJwk(popKeyOptions, privateKeyJwk, false, ["sign"]);
-            // Store Keypair data in keystore
-            this.cache.put(publicJwkHash, {
-                privateKey: unextractablePrivateKey,
-                publicKey: keyPair.publicKey,
-                requestMethod: resourceRequestMethod,
-                requestUri: resourceRequestUri
-            });
-        } else {
-            // RT PoP
-            popKeyOptions = this._rtPopKeyOptions;
-
-            // Generate Keypair
-            const keyPair = await this.browserCrypto.generateKeyPair(popKeyOptions, CryptoOps.EXTRACTABLE);
-            // Generate Thumbprint for Public Key
-            const publicKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.publicKey);
-            const pubKeyThumprintObj: JsonWebKey = {
-                e: publicKeyJwk.e,
-                kty: publicKeyJwk.kty,
-                n: publicKeyJwk.n
-            };
-            const publicJwkString: string = BrowserCrypto.getJwkString(pubKeyThumprintObj);
-            const publicJwkBuffer: ArrayBuffer = await this.browserCrypto.sha256Digest(publicJwkString);
-            publicJwkHash = this.b64Encode.urlEncodeArr(new Uint8Array(publicJwkBuffer));
-
-            // Generate Thumbprint for Private Key
-            const privateKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.privateKey);
-            // Re-import private key to make it unextractable
-            const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importJwk(popKeyOptions, privateKeyJwk, false, ["decrypt"]);
-            // Store Keypair data in keystore
-            this.cache.put(publicJwkHash, {
-                privateKey: unextractablePrivateKey,
-                publicKey: keyPair.publicKey,
-                requestMethod: resourceRequestMethod,
-                requestUri: resourceRequestUri
-            });
+        switch (keyType) {
+            case POP_REQUEST_PARAMETERS.STK_JWK:
+                popKeyOptions = this._rtPopKeyOptions;
+                break;
+            default:
+                popKeyOptions = this._atPopKeyOptions;
         }
+
+        // Generate Keypair
+        const keyPair = await this.browserCrypto.generateKeyPair(popKeyOptions, CryptoOps.EXTRACTABLE);
+        // Generate Thumbprint for Public Key
+        const publicKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.publicKey);
+        const pubKeyThumprintObj: JsonWebKey = {
+            e: publicKeyJwk.e,
+            kty: publicKeyJwk.kty,
+            n: publicKeyJwk.n
+        };
+        const publicJwkString: string = BrowserCrypto.getJwkString(pubKeyThumprintObj);
+        const publicJwkBuffer: ArrayBuffer = await this.browserCrypto.sha256Digest(publicJwkString);
+        const publicJwkHash = this.b64Encode.urlEncodeArr(new Uint8Array(publicJwkBuffer));
+
+        // Generate Thumbprint for Private Key
+        const privateKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.privateKey);
+        // Re-import private key to make it unextractable
+        const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importJwk(popKeyOptions, privateKeyJwk, false, popKeyOptions.privateKeyUsage);
+        // Store Keypair data in keystore
+        this.cache.put(publicJwkHash, {
+            privateKey: unextractablePrivateKey,
+            publicKey: keyPair.publicKey,
+            requestMethod: resourceRequestMethod,
+            requestUri: resourceRequestUri
+        });
 
         return publicJwkHash;
     }
@@ -229,18 +207,15 @@ export class CryptoOps implements ICrypto {
         return BrowserCrypto.getJwkString(publicKeyJwk);
     }
 
-    async decryptBoundTokenResponse(rawSessionKeyJwe: string, responseJwe: string, stkJwkThumbprint: string): Promise<ServerAuthorizationTokenResponse> {
+    async decryptBoundTokenResponse(rawSessionKeyJwe: string, rawResponseJwe: string, stkJwkThumbprint: string): Promise<ServerAuthorizationTokenResponse | null> {
         // Get keypair from cache
         const cachedKeyPair: CachedKeyPair = await this.cache.get(stkJwkThumbprint);
+        // Deserialize session_key_jwe
         const sessionKeyJwe = new JsonWebEncryption(rawSessionKeyJwe);
-        const sessionKey = await sessionKeyJwe.unwrapContentEncryptionKey(cachedKeyPair.privateKey);
-        console.log("SK: ", sessionKey);
-        
-        const response: ServerAuthorizationTokenResponse = {
-            token_type: "pop",
-            access_token: "lakjsdlkf"
-        };
-
-        return Promise.resolve(response);
+        // Deserialize response_jwe
+        const responseJwe = new JsonWebEncryption(rawResponseJwe);
+        const sessionKeyUsages: KeyUsage[] = KEY_USAGES.RT_POP.PRIVATE_KEY as KeyUsage[];
+        const sessionKey = await sessionKeyJwe.unwrap(cachedKeyPair.privateKey, sessionKeyUsages);
+        return null;
     }
 }

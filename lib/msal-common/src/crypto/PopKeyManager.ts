@@ -59,7 +59,7 @@ export class PopKeyManager {
         const responseJwe = boundServerTokenResponse.response_jwe;
 
         if (sessionKeyJwe && responseJwe) {
-            return await this.cryptoUtils.decryptBoundTokenResponse(sessionKeyJwe, responseJwe, stkJwkThumbprint);
+            return this.cryptoUtils.decryptBoundTokenResponse(sessionKeyJwe, responseJwe, stkJwkThumbprint).then();
         }
 
         return boundServerTokenResponse;

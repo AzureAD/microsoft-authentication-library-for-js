@@ -61,7 +61,7 @@ export interface ICrypto {
      * @param responseJwe
      * @param stkJwkThumbprint
      */
-    decryptBoundTokenResponse(sessionKeyJwe: string, responseJwe: string, stkJwkThumbprint: string): Promise<ServerAuthorizationTokenResponse>;
+    decryptBoundTokenResponse(sessionKeyJwe: string, responseJwe: string, stkJwkThumbprint: string): Promise<ServerAuthorizationTokenResponse | null>;
 }
 
 export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
@@ -93,7 +93,7 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
         const notImplErr = "Crypto interface - getStkJwk() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
     },
-    async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
+    async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse | null> {
         const notImplErr = "Crypto interface - decryptBoundTokenResponse() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
     }
