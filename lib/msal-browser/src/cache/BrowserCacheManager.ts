@@ -663,9 +663,8 @@ export class BrowserCacheManager extends CacheManager {
                 id: stateId
             }
         } = ProtocolUtils.parseRequestState(this.cryptoImpl, stateString);
-
         return this.generateCacheKey(`${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`);
-    }
+    } 
 
     /**
      * Gets the cached authority based on the cached state. Returns empty if no cached state found.
@@ -708,11 +707,13 @@ export class BrowserCacheManager extends CacheManager {
     resetRequestCache(state: string): void {
         this.logger.verbose("BrowserCacheManager.resetRequestCache called");
         // check state and remove associated cache items
-        this.getKeys().forEach(key => {
-            if (!StringUtils.isEmpty(state) && key.indexOf(state) !== -1) {
-                this.removeItem(key);
-            }
-        });
+        if (!StringUtils.isEmpty(state)) {
+            this.getKeys().forEach(key => {
+                if (key.indexOf(state) !== -1) {
+                    this.removeItem(key);
+                }
+            });
+        }
 
         // delete generic interactive request parameters
         if (state) {
@@ -748,19 +749,23 @@ export class BrowserCacheManager extends CacheManager {
      */
     cleanRequestByInteractionType(interactionType: InteractionType): void {
         this.logger.verbose("BrowserCacheManager.cleanRequestByInteractionType called");
+        // Loop through all keys to find state key
         this.getKeys().forEach((key) => {
+            // If this key is not the state key, move on
             if (key.indexOf(TemporaryCacheKeys.REQUEST_STATE) === -1) {
                 return;
             }
-
-            const value = this.temporaryCacheStorage.getItem(key);
-            if (!value) {
+            
+            // Retrieve state value, return if not a valid value
+            const stateValue = this.temporaryCacheStorage.getItem(key);
+            if (!stateValue) {
                 return;
             }
-            const parsedState = BrowserProtocolUtils.extractBrowserRequestState(this.cryptoImpl, value);
+            // Extract state and ensure it matches given InteractionType, then clean request cache
+            const parsedState = BrowserProtocolUtils.extractBrowserRequestState(this.cryptoImpl, stateValue);
             if (parsedState && parsedState.interactionType === interactionType) {
-                this.logger.info(`BrowserCacheManager.cleanRequestByInteractionType: Removing temporary cache items for state: ${value}`);
-                this.resetRequestCache(value);
+                this.logger.info(`BrowserCacheManager.cleanRequestByInteractionType: Removing temporary cache items for state: ${stateValue}`);
+                this.resetRequestCache(stateValue);
             }
         });
         this.clearMsalCookies();
