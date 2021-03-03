@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Thu, 18 Feb 2021 00:34:32 GMT and should not be manually modified.
+This log was last generated on Wed, 03 Mar 2021 21:47:05 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 4.0.2
+
+Wed, 03 Mar 2021 21:47:05 GMT
+
+### Patches
+
+- Fix OIDC Scopes Caching Issue (#3065) (prkanher@microsoft.com)
 
 ## 4.0.1
 
