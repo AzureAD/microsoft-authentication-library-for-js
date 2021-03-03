@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Add docs and sample for angular client-side navigation (#3073)",
-  "packageName": "@azure/msal-angular",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "none"
-}

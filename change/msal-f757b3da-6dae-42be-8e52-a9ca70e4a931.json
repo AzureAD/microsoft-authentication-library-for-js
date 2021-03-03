@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix lib version on request (#3080) ",
-  "packageName": "msal",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

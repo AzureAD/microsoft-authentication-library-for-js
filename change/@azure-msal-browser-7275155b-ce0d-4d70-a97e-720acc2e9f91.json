@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add option to make MSAL browser cookies secure (#3001)",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
