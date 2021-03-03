@@ -24,7 +24,7 @@
     "@angular/router": "~11.0.0",
     "@azure/msal-angular": "^2.0.0-alpha.6",
     "@azure/msal-browser": "^2.11.2",
-    "rxjs": "~6.5.5",
+    "rxjs": "~6.6.0",
     "tslib": "^2.0.0",
     "zone.js": "~0.10.2"
   },
