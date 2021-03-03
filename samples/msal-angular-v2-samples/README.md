@@ -11,6 +11,7 @@
 * [Angular v10](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular10-sample-app)
     * `MsalRedirectComponent`: This sample uses the `MsalRedirectComponent` to handle redirects. See our doc on [redirects](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/redirects.md) for more information.
     * Consenting to scopes: This sample consents to scopes upfront. See our [configuration doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/configuration.md) for more information.
+    * Client-side navigation: This sample demonstrates how to setting up a custom navigation client for client-side navigation. See our [performance doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/performance.md) for more information.
 
 * [Angular v11](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-sample-app)
     * Angular Universal: Angular universal SSR is supported, and notes have been added to this sample for where adjustments need to be made. Please see the [our Angular Universal doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/angular-universal.md).

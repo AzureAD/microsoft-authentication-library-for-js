@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Update msal-angular preinstall script to force npm-force-resolutions version (#3074)",
-  "packageName": "@azure/msal-angular",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}

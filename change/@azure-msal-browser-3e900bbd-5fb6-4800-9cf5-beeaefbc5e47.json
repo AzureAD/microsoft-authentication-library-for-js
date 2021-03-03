@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add instrumentation to msal-browser (#3004)",
-  "packageName": "@azure/msal-browser",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}
