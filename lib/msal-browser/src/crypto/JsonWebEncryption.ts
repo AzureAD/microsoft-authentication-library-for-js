@@ -44,13 +44,13 @@ export class JsonWebEncryption {
 
     constructor(rawJwe: string) {
         this.base64Decode = new Base64Decode();
-        const jweAttributes = rawJwe.split(".");
-        this.header = this.parseJweProtectedHeader(jweAttributes[0]);
+        const jweComponents = rawJwe.split(".");
+        this.header = this.parseJweProtectedHeader(jweComponents[0]);
         this.unwrappingAlgorithms = this.setUnwrappingAlgorithms();
-        this.encryptedKey = this.base64Decode.base64URLdecode(jweAttributes[1]);
-        this.initializationVector = this.base64Decode.base64URLdecode(jweAttributes[2]);
-        this.ciphertext = this.base64Decode.base64URLdecode(jweAttributes[3]);
-        this.authenticationTag = this.base64Decode.base64URLdecode(jweAttributes[4]);
+        this.encryptedKey = this.base64Decode.base64URLdecode(jweComponents[1]);
+        this.initializationVector = this.base64Decode.base64URLdecode(jweComponents[2]);
+        this.ciphertext = this.base64Decode.base64URLdecode(jweComponents[3]);
+        this.authenticationTag = this.base64Decode.base64URLdecode(jweComponents[4]);
     }
 
     /**

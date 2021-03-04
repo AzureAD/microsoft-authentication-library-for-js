@@ -13,14 +13,10 @@ import { PopKeyOptions } from "./CryptoOps";
  * hashing and encoding. It also has helper functions to validate the availability of specific APIs.
  */
 export class BrowserCrypto {
-    private utf8Encoder: TextEncoder;
-
     constructor() {
         if (!(this.hasCryptoAPI())) {
             throw BrowserAuthError.createCryptoNotAvailableError("Browser crypto or msCrypto object not available.");
         }
-
-        this.utf8Encoder = new TextEncoder();
     }
 
     /**

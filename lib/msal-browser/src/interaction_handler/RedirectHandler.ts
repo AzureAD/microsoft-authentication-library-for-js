@@ -86,6 +86,7 @@ export class RedirectHandler extends InteractionHandler {
             throw ClientAuthError.createStateNotFoundError("Cached State");
         }
         const authCodeResponse = this.authModule.handleFragmentResponse(locationHash, requestState);
+        
         // Get cached items
         const nonceKey = this.browserStorage.generateNonceKey(requestState);
         const cachedNonce = this.browserStorage.getTemporaryCache(nonceKey);
@@ -105,7 +106,6 @@ export class RedirectHandler extends InteractionHandler {
         if (clientId) {
             ThrottlingUtils.removeThrottle(this.browserStorage, clientId, this.authCodeRequest.authority, this.authCodeRequest.scopes);
         }
-
         // Acquire token with retrieved code.
         const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, authCodeResponse);
 

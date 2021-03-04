@@ -5,7 +5,6 @@
 
 import { BaseAuthRequest } from "./BaseAuthRequest";
 import { AuthenticationScheme } from "../utils/Constants";
-import { StringDict } from "../utils/MsalTypes";
 
 /**
  * Request object passed by user to acquire a token from the server exchanging a valid authorization code (second leg of OAuth2.0 Authorization Code flow)

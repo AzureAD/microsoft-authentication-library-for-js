@@ -49,6 +49,9 @@ describe("PopKeyManager Unit Tests", () => {
         async getPublicKeyThumbprint(): Promise<string> {
             return TEST_POP_VALUES.KID;
         },
+        async getStkJwkPublicKey(): Promise<string> {
+            return TEST_POP_VALUES.KID;
+        },
         async signJwt(): Promise<string> {
             return "";
         }
@@ -58,12 +61,6 @@ describe("PopKeyManager Unit Tests", () => {
         const popKeyManager = new PopKeyManager(cryptoInterface);
         const req_cnf = await popKeyManager.generateCnf("POST", TEST_URIS.TEST_REDIR_URI);
         expect(req_cnf).to.be.eq(TEST_POP_VALUES.ENCODED_REQ_CNF);
-    });
-
-    it("Generates stkJwkThumbprint correctly", async () => {
-        const popKeyManager = new PopKeyManager(cryptoInterface);
-        const stkJwkThumbprint = await popKeyManager.generateSessionTransportKey();
-        expect(stkJwkThumbprint).to.be.eq(TEST_POP_VALUES.ENCODED_STK_JWK_THUMBPRINT);
     });
 
     it("Signs the proof-of-possession JWT token", (done) => {

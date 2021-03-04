@@ -144,8 +144,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         const requestBody = await this.createTokenRequestBody(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
-        const endpoint = `${authority.tokenEndpoint}?slice=TestSlice&dc=ESTS-PUB-WUS2-AZ1-TEST1`;
-        return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
+        return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
     }
 
     /**
