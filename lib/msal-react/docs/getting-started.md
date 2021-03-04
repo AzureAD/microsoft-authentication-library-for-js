@@ -3,7 +3,7 @@
 1. [Initialization](#initialization)
 1. [Determining whether a user is authenticated](#determining-whether-a-user-is-authenticated)
 1. [Protecting Components](#protecting-components)
-1. [Sign a user in using the login APIs provided by @azure/msal-browser](#sign-a-user-in-using-the-login-apis-provided-by-@azure/msal-browser)
+1. [Sign a user in using the login APIs provided by @azure/msal-browser](#sign-a-user-in-using-the-login-apis-provided-by-azure-msal-browser)
 1. [Acquiring an access token](#acquiring-an-access-token)
 
 ## Initialization
