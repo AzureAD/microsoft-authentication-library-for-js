@@ -30,6 +30,10 @@ export const ClientAuthErrorMessage = {
         code: "endpoints_resolution_error",
         desc: "Error: could not resolve endpoints. Please check network and try again."
     },
+    networkError: {
+        code: "network_error",
+        desc: "Network request failed. Please check network trace to determine root cause."
+    },
     unableToGetOpenidConfigError: {
         code: "openid_config_error",
         desc: "Could not retrieve endpoints. Check your authority and verify the .well-known/openid-configuration endpoint returns the required endpoints."
@@ -223,6 +227,14 @@ export class ClientAuthError extends AuthError {
     static createEndpointDiscoveryIncompleteError(errDetail: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.endpointResolutionError.code,
             `${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${errDetail}`);
+    }
+
+    /**
+     * Creates an error thrown when the fetch client throws
+     */
+    static createNetworkError(endpoint: string, errDetail: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.networkError.code,
+            `${ClientAuthErrorMessage.networkError.desc} Detail: ${errDetail} Attempted to reach: ${endpoint}`);
     }
 
     /**
