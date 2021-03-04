@@ -740,6 +740,7 @@ export class BrowserCacheManager extends CacheManager {
             this.logger.info(`BrowserCacheManager.cleanRequestByState: Removing temporary cache items for state: ${cachedState}`);
             this.resetRequestCache(cachedState || "");
         }
+        this.clearMsalCookies();
     }
 
     /**
