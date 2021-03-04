@@ -3,8 +3,8 @@
   "version": "0.1.0",
   "private": true,
   "dependencies": {
-    "@azure/msal-browser": "^2.11.0",
-    "@azure/msal-react": "^1.0.0-alpha.4",
+    "@azure/msal-browser": "^2.12.0",
+    "@azure/msal-react": "^1.0.0-beta.0",
     "@material-ui/core": "^4.11.3",
     "@material-ui/icons": "^4.11.2",
     "react": "^17.0.1",
