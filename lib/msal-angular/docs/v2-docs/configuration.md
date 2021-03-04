@@ -1,4 +1,4 @@
-# MSAL Angular 2.x Configuration
+# MSAL Angular v2 Configuration
 
 MSAL for Angular can be configured in multiple ways:
 - `MsalModule.forRoot`
@@ -9,7 +9,7 @@ This guide will detail how to leverage each method for your application.
 
 ## Configuration Options
 
-MSAL for Angular accepts three configuration objects:
+`@azure/msal-angular` accepts three configuration objects:
 
 1. [Configuration](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_config_configuration_.html): This is the same configuration object that is used for the core `@azure/msal-browser` library. All configuration options can be found [here](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_config_configuration_.html).
 2. [`MsalGuardConfiguration`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/msal.guard.config.ts): A set of options specifically for the Angular guard.
@@ -164,7 +164,7 @@ export class AppModule { }
 
 If you need to dynamically configure MSAL Angular (e.g. based on values returned from an API), you can use `platformBrowserDynamic`. `platformBrowserDyamic` is a platform factory, used to bootstrap the application, and is able to take in configuration options. `platformBrowserDynamic` should already be present when the Angular application is set up.
 
-The following is an example of how to dynamically configure MSAL Angular with `platformBrowserDynamic` and a json file:
+The following is an example of how to dynamically configure `@azure/msal-angular` with `platformBrowserDynamic` and a json file:
 
 `app.module.ts`
 ```typescript

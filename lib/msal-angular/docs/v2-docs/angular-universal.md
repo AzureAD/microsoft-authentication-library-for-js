@@ -1,6 +1,6 @@
 # Angular Universal SSR with MSAL Angular v2
 
-Angular Universal is supported in MSAL Angular v2. Please see instructions from the [Angular docs](https://angular.io/guide/universal) on how to install Angular Universal with an existing application.
+Angular Universal is supported in `@azure/msal-angular`. Please see instructions from the [Angular docs](https://angular.io/guide/universal) on how to install Angular Universal with an existing application.
 
 As Angular Universal executes on the server, browser-only global objects such as `window` or `location` cannot be used. The [Angular docs](https://angular.io/guide/universal#working-around-the-browser-apis) provide more details. As our Angular sample apps do use `window`, two adjustments could be made to use our apps with Angular Universal.
 
