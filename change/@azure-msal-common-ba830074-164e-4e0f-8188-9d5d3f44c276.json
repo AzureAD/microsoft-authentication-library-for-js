@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix OIDC Scopes Caching Issue (#3065)",
-  "packageName": "@azure/msal-common",
-  "email": "prkanher@microsoft.com",
-  "dependentChangeType": "patch"
-}

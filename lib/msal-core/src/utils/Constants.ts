@@ -169,10 +169,3 @@ export const FramePrefix = {
     ID_TOKEN_FRAME: "msalIdTokenFrame",
     TOKEN_FRAME: "msalRenewFrame"
 };
-
-/**
- * MSAL JS Library Version
- */
-export function libraryVersion(): string {
-    return "1.4.4";
-}

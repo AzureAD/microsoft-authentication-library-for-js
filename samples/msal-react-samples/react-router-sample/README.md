@@ -16,6 +16,7 @@ This sample was bootstrapped with [Create React App](https://github.com/facebook
 1. `./src/ui-components/SignInButton.jsx` - Example of how to get the `PublicClientApplication` instance using the `useMsal` hook and invoking a login function.
 1. `./src/ui-components/SignOutButton.jsx` - Example of how to get the `PublicClientApplication` instance using the `useMsal` hook and invoking a logout function.
 1. `./src/utils/MsGraphApiCall.js` - Example of how to call the MS Graph API with an access token.
+1. `./src/utils/NavigationClient.js` - Example implementation of `INavigationClient` which can be used to override the default navigation functions MSAL.js uses
 
 ### (Optional) MSAL React and class components
 

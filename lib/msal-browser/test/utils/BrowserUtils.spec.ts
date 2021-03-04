@@ -9,83 +9,16 @@ import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { TEST_URIS } from "./StringConstants";
 import { XhrClient } from "../../src/network/XhrClient";
 import { FetchClient } from "../../src/network/FetchClient";
-import { Logger, LogLevel } from "@azure/msal-common";
 import { BrowserAuthErrorMessage, InteractionType } from "../../src";
-
-const loggerOptions = {
-    loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
-        return;
-    },
-    piiLoggingEnabled: true,
-    logLevel: LogLevel.Verbose
-};
 
 describe("BrowserUtils.ts Function Unit Tests", () => {
 
-    let oldWindow: Window & typeof globalThis;
-    afterEach(() => {
-        sinon.restore();
-        oldWindow = window;
-        window.Headers = undefined;
-        window.fetch = undefined;
-    });
-
+    const oldWindow: Window & typeof globalThis = window;
     afterEach(() => {
         window = oldWindow;
-    });
-
-    it("navigateWindow() with noHistory false or not set will call location.assign", (done) => {
-        sinon.useFakeTimers();
-        const oldWindowLocation = window.location;
-        delete window.location;
-        window.location = {
-            ...oldWindowLocation,
-            assign: function (url) {
-                expect(url).to.include(TEST_URIS.TEST_LOGOUT_URI);
-                done();
-            }
-        };
-        const windowAssignSpy = sinon.spy(window.location, "assign");
-        BrowserUtils.navigateWindow(TEST_URIS.TEST_LOGOUT_URI, 30000, new Logger(loggerOptions));
-        expect(windowAssignSpy.calledOnce).to.be.true;
-    });
-
-    it("navigateWindow() with noHistory true will call location.replace", (done) => {
-        sinon.useFakeTimers();
-        const oldWindowLocation = window.location;
-        delete window.location;
-        window.location = {
-            ...oldWindowLocation,
-            replace: function (url) {
-                expect(url).to.include(TEST_URIS.TEST_REDIR_URI);
-                done();
-            }
-        };
-        const windowReplaceSpy = sinon.spy(window.location, "replace");
-        BrowserUtils.navigateWindow(TEST_URIS.TEST_REDIR_URI, 30000, new Logger(loggerOptions), true);
-        expect(windowReplaceSpy.calledOnce).to.be.true;
-    });
-
-    it("navigateWindow() logs if navigation does not take place within 30 seconds", (done) => {
-        const clock = sinon.useFakeTimers();
-        const oldWindowLocation = window.location;
-        delete window.location;
-        window.location = {
-            ...oldWindowLocation,
-            replace: function (url) {
-                expect(url).to.include(TEST_URIS.TEST_REDIR_URI);
-            }
-        };
-        
-        sinon.stub(Logger.prototype, "warning").callsFake((message) => {
-            expect(message).to.be.string;
-            expect(message.length).to.be.greaterThan(0);
-            done();
-        });
-        const windowReplaceSpy = sinon.spy(window.location, "replace");
-        BrowserUtils.navigateWindow(TEST_URIS.TEST_REDIR_URI, 30000, new Logger(loggerOptions), true);
-        expect(windowReplaceSpy.calledOnce).to.be.true;
-        clock.next();
+        window.Headers = undefined;
+        window.fetch = undefined;
+        sinon.restore();
     });
 
     it("clearHash() clears the window hash", () => {

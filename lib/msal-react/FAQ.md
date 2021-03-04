@@ -16,6 +16,8 @@
 
 1. [How do I handle the forgot password flow in a react app?](#how-do-i-handle-the-forgot-password-flow-in-a-react-app)
 
+**[Errors](#errors)**
+
 **[What if my question has not been answered?](#what-if-my-question-has-not-been-answered)**
 
 ***
@@ -108,6 +110,13 @@ function Example() {
     }, []);
 }
 ```
+
+## Errors
+
+If you have questions about specific errors you are receiving please see the following documents detailing some of the common errors:
+
+- [msal-browser error doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/errors.md)
+- [msal-react error doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-react/docs/errors.md)
 
 ## What if my question has not been answered?
 
