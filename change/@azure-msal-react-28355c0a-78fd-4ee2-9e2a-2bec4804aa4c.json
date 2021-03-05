@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Added section about how to acquire an access token outside of a React component.",
-  "packageName": "@azure/msal-react",
-  "email": "richardrobberse@outlook.com",
-  "dependentChangeType": "none"
-}
