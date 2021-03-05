@@ -4,6 +4,7 @@
  */
 
 import { INetworkModule, NetworkRequestOptions, NetworkResponse } from "@azure/msal-common";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants";
 
 /**
@@ -37,11 +38,21 @@ export class FetchClient implements INetworkModule {
      */
     async sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
         const reqBody = (options && options.body) || "";
-        const response = await fetch(url, {
-            method: HTTP_REQUEST_TYPE.POST,
-            headers: this.getFetchHeaders(options),
-            body: reqBody
-        });
+
+        let response;
+        try {
+            response = await fetch(url, {
+                method: HTTP_REQUEST_TYPE.POST,
+                headers: this.getFetchHeaders(options),
+                body: reqBody
+            });
+        } catch (e) {
+            if (window.navigator.onLine) {
+                throw BrowserAuthError.createFetchError(e, url);
+            } else {
+                throw BrowserAuthError.createNoNetworkConnectivityError();
+            }
+        }
         return {
             headers: this.getHeaderDict(response.headers),
             body: await response.json() as T,
