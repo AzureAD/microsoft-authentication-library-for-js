@@ -11,6 +11,7 @@ import { RequestUtils } from "../src/utils/RequestUtils";
 import sinon from "sinon";
 import { IdToken } from "../src/IdToken";
 import { ClientInfo } from "../src/ClientInfo";
+import { version } from "../src/packageMetadata";
 
 describe("ServerRequestParameters.ts Class", function () {
 
@@ -48,6 +49,20 @@ describe("ServerRequestParameters.ts Class", function () {
             );
             expect(req.scopes).to.be.eql(Constants.oidcScopes);
             expect(req.scopes.length).to.be.eql(2);
+        });
+
+        it("SKU and Version are set", function () {
+            const req = new ServerRequestParameters(
+                null,
+                TEST_CONFIG.MSAL_CLIENT_ID,
+                TEST_RESPONSE_TYPE.token,
+                TEST_URIS.TEST_REDIR_URI,
+                null,
+                TEST_CONFIG.STATE,
+                TEST_CONFIG.CorrelationId
+            );
+            expect(req.xClientSku).to.eq("MSAL.JS");
+            expect(req.xClientVer).to.eq(version);
         });
 
     });

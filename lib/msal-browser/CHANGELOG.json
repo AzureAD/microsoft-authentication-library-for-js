@@ -2,6 +2,61 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 03 Mar 2021 21:47:05 GMT",
+      "tag": "@azure/msal-browser_v2.12.0",
+      "version": "2.12.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update browser error doc (#3093)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "c26265e6f337cead73979c8da396d09929d963e8",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "docs: fix",
+            "author": "johnjosephmendez2016@gmail.com",
+            "commit": "0d2ad7b0170f9c7bd658dd7fa70a66d62578d76a",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Separate telemetry for ssoSilent and ATS iframe renewal (#3064)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "8fb91651b0f3e0fbfdfceaf92ca6048148a28643",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add instrumentation to msal-browser (#3004)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "e512a95d65964ccf304a9adb37aa758d25e59f58",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Memoize multiple calls to handleRedirectPromise (#3072)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6f1537582e6f254463ee091e13747c352cb3b540",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add option to make MSAL browser cookies secure (#3001)",
+            "author": "hemoral@microsoft.com",
+            "commit": "04db417301936b0f2ad9d36f535d9c3e6b8dc75c",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add setNavigationClient API and expose INavigationClient interface (#2985)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "0ef9a0af4aba8a63ae84690ee62ac2ab0baaa85b",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 18 Feb 2021 00:34:32 GMT",
       "tag": "@azure/msal-browser_v2.11.2",
       "version": "2.11.2",
