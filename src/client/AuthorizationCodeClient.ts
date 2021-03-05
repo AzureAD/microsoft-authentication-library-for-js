@@ -252,11 +252,13 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addSid(request.sid);
         } else if (request.account) {
             const accountSid = this.extractAccountSid(request.account);
+            // If account and loginHint are provided, we will check account first for sid before adding loginHint
             if (accountSid) {
                 parameterBuilder.addSid(accountSid);
             } else if (request.loginHint) {
                 parameterBuilder.addLoginHint(request.loginHint);
             } else if (request.account.username) {
+                // Fallback to account username if provided
                 parameterBuilder.addLoginHint(request.account.username);
             }
         } else if (request.loginHint) {
