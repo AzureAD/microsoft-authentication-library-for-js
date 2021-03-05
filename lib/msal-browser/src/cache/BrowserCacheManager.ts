@@ -109,7 +109,7 @@ export class BrowserCacheManager extends CacheManager {
         const values = [idTokenValue, clientInfoValue, errorValue, errorDescValue];
         const keysToMigrate = [PersistentCacheKeys.ID_TOKEN, PersistentCacheKeys.CLIENT_INFO, PersistentCacheKeys.ERROR, PersistentCacheKeys.ERROR_DESC];
 
-        keysToMigrate.forEach((cacheKey, index) => this.migrateCacheEntry(cacheKey, values[index]));
+        keysToMigrate.forEach((cacheKey:string, index: number) => this.migrateCacheEntry(cacheKey, values[index]));
     }
 
     /**
@@ -546,7 +546,7 @@ export class BrowserCacheManager extends CacheManager {
     getItemCookie(cookieName: string): string {
         const name = `${encodeURIComponent(cookieName)}=`;
         const cookieList = document.cookie.split(";");
-        for (let i = 0; i < cookieList.length; i++) {
+        for (let i: number = 0; i < cookieList.length; i++) {
             let cookie = cookieList[i];
             while (cookie.charAt(0) === " ") {
                 cookie = cookie.substring(1);
@@ -556,6 +556,23 @@ export class BrowserCacheManager extends CacheManager {
             }
         }
         return "";
+    }
+
+    /**
+     * Clear all msal-related cookies currently set in the browser. Should only be used to clear temporary cache items.
+     */
+    clearMsalCookies(): void {
+        const cookiePrefix = `${Constants.CACHE_PREFIX}.${this.clientId}`;
+        const cookieList = document.cookie.split(";");
+        cookieList.forEach((cookie: string): void => {
+            while (cookie.charAt(0) === " ") {
+                cookie = cookie.substring(1);
+            }
+            if (cookie.indexOf(cookiePrefix) === 0) {
+                const cookieKey = cookie.split("=")[0];
+                this.clearItemCookie(cookieKey);
+            }
+        });
     }
 
     /**
@@ -646,9 +663,8 @@ export class BrowserCacheManager extends CacheManager {
                 id: stateId
             }
         } = ProtocolUtils.parseRequestState(this.cryptoImpl, stateString);
-
         return this.generateCacheKey(`${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`);
-    }
+    } 
 
     /**
      * Gets the cached authority based on the cached state. Returns empty if no cached state found.
@@ -691,11 +707,13 @@ export class BrowserCacheManager extends CacheManager {
     resetRequestCache(state: string): void {
         this.logger.verbose("BrowserCacheManager.resetRequestCache called");
         // check state and remove associated cache items
-        this.getKeys().forEach(key => {
-            if (!StringUtils.isEmpty(state) && key.indexOf(state) !== -1) {
-                this.removeItem(key);
-            }
-        });
+        if (!StringUtils.isEmpty(state)) {
+            this.getKeys().forEach(key => {
+                if (key.indexOf(state) !== -1) {
+                    this.removeItem(key);
+                }
+            });
+        }
 
         // delete generic interactive request parameters
         if (state) {
@@ -722,6 +740,7 @@ export class BrowserCacheManager extends CacheManager {
             this.logger.info(`BrowserCacheManager.cleanRequestByState: Removing temporary cache items for state: ${cachedState}`);
             this.resetRequestCache(cachedState || "");
         }
+        this.clearMsalCookies();
     }
 
     /**
@@ -731,21 +750,26 @@ export class BrowserCacheManager extends CacheManager {
      */
     cleanRequestByInteractionType(interactionType: InteractionType): void {
         this.logger.verbose("BrowserCacheManager.cleanRequestByInteractionType called");
+        // Loop through all keys to find state key
         this.getKeys().forEach((key) => {
+            // If this key is not the state key, move on
             if (key.indexOf(TemporaryCacheKeys.REQUEST_STATE) === -1) {
                 return;
             }
-
-            const value = this.temporaryCacheStorage.getItem(key);
-            if (!value) {
+            
+            // Retrieve state value, return if not a valid value
+            const stateValue = this.temporaryCacheStorage.getItem(key);
+            if (!stateValue) {
                 return;
             }
-            const parsedState = BrowserProtocolUtils.extractBrowserRequestState(this.cryptoImpl, value);
+            // Extract state and ensure it matches given InteractionType, then clean request cache
+            const parsedState = BrowserProtocolUtils.extractBrowserRequestState(this.cryptoImpl, stateValue);
             if (parsedState && parsedState.interactionType === interactionType) {
-                this.logger.info(`BrowserCacheManager.cleanRequestByInteractionType: Removing temporary cache items for state: ${value}`);
-                this.resetRequestCache(value);
+                this.logger.info(`BrowserCacheManager.cleanRequestByInteractionType: Removing temporary cache items for state: ${stateValue}`);
+                this.resetRequestCache(stateValue);
             }
         });
+        this.clearMsalCookies();
     }
 
     cacheCodeRequest(authCodeRequest: CommonAuthorizationCodeRequest, browserCrypto: ICrypto): void {
@@ -786,7 +810,7 @@ export class BrowserCacheManager extends CacheManager {
     }
 }
 
-export const DEFAULT_BROWSER_CACHE_MANAGER = (clientId: string, logger: Logger) => {
+export const DEFAULT_BROWSER_CACHE_MANAGER = (clientId: string, logger: Logger): BrowserCacheManager => {
     const cacheOptions = {
         cacheLocation: BrowserCacheLocation.MemoryStorage,
         storeAuthStateInCookie: false,
