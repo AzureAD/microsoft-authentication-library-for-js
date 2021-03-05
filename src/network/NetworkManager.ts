@@ -8,6 +8,7 @@ import { RequestThumbprint } from "./RequestThumbprint";
 import { ThrottlingUtils } from "./ThrottlingUtils";
 import { CacheManager } from "../cache/CacheManager";
 import { ClientAuthError } from "../error/ClientAuthError";
+import { AuthError } from "../error/AuthError";
 
 export type NetworkResponse<T> = {
     headers: Record<string, string>;
@@ -32,12 +33,19 @@ export class NetworkManager {
      */
     async sendPostRequest<T>(thumbprint: RequestThumbprint, tokenEndpoint: string, options: NetworkRequestOptions): Promise<NetworkResponse<T>> {
         ThrottlingUtils.preProcess(this.cacheManager, thumbprint);
-        const response = await this.networkClient.sendPostRequestAsync<T>(tokenEndpoint, options).catch(e => {
-            throw ClientAuthError.createNetworkError(tokenEndpoint, e);
-        });
-        ThrottlingUtils.postProcess(this.cacheManager, thumbprint, response);
 
-        // Placeholder for Telemetry hook
+        let response;
+        try {
+            response = await this.networkClient.sendPostRequestAsync<T>(tokenEndpoint, options);
+        } catch (e) {
+            if (e instanceof AuthError) {
+                throw e;
+            } else {
+                throw ClientAuthError.createNetworkError(tokenEndpoint, e);
+            }
+        }
+
+        ThrottlingUtils.postProcess(this.cacheManager, thumbprint, response);
 
         return response;
     }
