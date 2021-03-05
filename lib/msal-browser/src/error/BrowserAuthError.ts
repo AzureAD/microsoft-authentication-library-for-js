@@ -116,6 +116,14 @@ export const BrowserAuthErrorMessage = {
     databaseNotOpen: {
         code: "database_not_open",
         desc: "Database is not open!"
+    },
+    noNetworkConnectivity: {
+        code: "no_network_connectivity",
+        desc: "No network connectivity. Check your internet connection."
+    },
+    fetchError: {
+        code: "fetchError",
+        desc: "Network request failed: If the browser threw a CORS error, check that the redirectUri is registered in the Azure App Portal as type 'SPA'"
     }
 };
 
@@ -339,5 +347,19 @@ export class BrowserAuthError extends AuthError {
      */
     static createDatabaseNotOpenError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.databaseNotOpen.code, BrowserAuthErrorMessage.databaseNotOpen.desc);
+    }
+
+    /**
+     * Create an error thrown when token fetch fails due to no internet
+     */
+    static createNoNetworkConnectivityError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.noNetworkConnectivity.code, BrowserAuthErrorMessage.noNetworkConnectivity.desc);
+    }
+
+    /**
+     * Create an error thrown when token fetch fails due to reasons other than internet connectivity
+     */
+    static createFetchError(errorDesc: string, endpoint: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.fetchError.code, `${BrowserAuthErrorMessage.fetchError.desc} | Fetch client threw: ${errorDesc} | Attempted to reach: ${endpoint.split("?")[0]}`);
     }
 }

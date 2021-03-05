@@ -234,7 +234,7 @@ export class ClientAuthError extends AuthError {
      */
     static createNetworkError(endpoint: string, errDetail: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.networkError.code,
-            `${ClientAuthErrorMessage.networkError.desc} Detail: ${errDetail} Attempted to reach: ${endpoint}`);
+            `${ClientAuthErrorMessage.networkError.desc} | Fetch client threw: ${errDetail} | Attempted to reach: ${endpoint.split("?")[0]}`);
     }
 
     /**
