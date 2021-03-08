@@ -13,7 +13,7 @@ It can be used for devices with a small display, or connected devices over SSH.
 ## Test the Sample
 
 ### Configure the application
-Open the `config/AAD.json` file.
+Open the `config/customConfig.json` file.
 
 We will change this to add details about our app registration and deployment.
 
@@ -60,10 +60,6 @@ To customize the start script, review the `package.json` file.
 
 If you set up the sample with your app registration, you may be able to copy this object directly into your application.  
 
-
-If you set up the sample with your app registration, you may be able to copy this object directly into your application.  
-
-
 ```javascript
 const config = {
     auth: {
@@ -95,7 +91,7 @@ The device code sample immediately initiates the authentication.  If you want to
 
 Next we have to pick the `scopes` related to the user.  If we are logging in a user, then we must at least request access to basic user information.  The default scope of `user.read` grants that basic access.  To learn more see the [Microsoft Graph permissions reference](https://docs.microsoft.com/en-us/graph/permissions-reference).
 
-**device-code/config/AAD.json:**
+**device-code/config/customConfig.json:**
 ```json
 {
     ...,

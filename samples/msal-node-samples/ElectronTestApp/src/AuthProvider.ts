@@ -106,7 +106,8 @@ export default class AuthProvider {
             request.account = account;
             authResponse = await this.getTokenSilent(authWindow, request);
         } else {
-            authResponse = await this.getTokenInteractive(authWindow, request);
+            const authCodeRequest = {...this.authCodeUrlParams, ...request };
+            authResponse = await this.getTokenInteractive(authWindow, authCodeRequest);
         }
 
         return authResponse.accessToken || null;
@@ -117,7 +118,8 @@ export default class AuthProvider {
             return await this.clientApplication.acquireTokenSilent(tokenRequest);
         } catch (error) {
             console.log("Silent token acquisition failed, acquiring token using redirect");
-            return await this.getTokenInteractive(authWindow, tokenRequest);
+            const authCodeRequest = {...this.authCodeUrlParams, ...tokenRequest };
+            return await this.getTokenInteractive(authWindow, authCodeRequest);
         }
     }
 

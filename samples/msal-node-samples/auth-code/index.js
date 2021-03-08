@@ -20,13 +20,13 @@ const cachePlugin = require('../cachePlugin')(cacheLocation);
 
 /**
  * The scenario string is the name of a .json file which contains the MSAL client configuration
- * For an example of what a configuration file should look like, check out the AAD.json file in the
+ * For an example of what a configuration file should look like, check out the customConfig.json file in the
  * /config directory.
  * 
  * You can create your own configuration file and replace the path inside the "config" require statement below
  * with the path to your custom configuraiton.
  */
-const scenario = argv.s || "AAD";
+const scenario = argv.s || "customConfig";
 const config = require(`./config/${scenario}.json`);
 
 // Sample Application Code

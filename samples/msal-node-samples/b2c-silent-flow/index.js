@@ -15,44 +15,8 @@ const SERVER_PORT = process.env.PORT || 3000;
 /**
  * Cache Plugin configuration
  */
-const cachePath = "./data/example.cache.json"; // replace this string with the path to your valid cache file.
-
-const beforeCacheAccess = async (cacheContext) => {
-    return new Promise(async (resolve, reject) => {
-        if (fs.existsSync(cachePath)) {
-            fs.readFile(cachePath, "utf-8", (err, data) => {
-                if (err) {
-                    reject();
-                } else {
-                    console.log(data);
-                    cacheContext.tokenCache.deserialize(data);
-                    resolve();
-                }
-            });
-        } else {
-           fs.writeFile(cachePath, cacheContext.tokenCache.serialize(), (err) => {
-                if (err) {
-                    reject();
-                }
-            });
-        }
-    });
-};
-
-const afterCacheAccess = async (cacheContext) => {
-    if(cacheContext.cacheHasChanged){
-        await fs.writeFile(cachePath, cacheContext.tokenCache.serialize(), (err) => {
-            if (err) {
-                console.log(err);
-            }
-        });
-    }
-};
-
-const cachePlugin = {
-    beforeCacheAccess,
-    afterCacheAccess
-};
+const cacheLocation = "./data/cache.json";// replace this string with the path to your valid cache file.
+const cachePlugin = require('../cachePlugin')(cacheLocation);
 
 /**
  * Public Client Application Configuration
@@ -76,27 +40,6 @@ const publicClientConfig = {
             logLevel: msal.LogLevel.Verbose,
         }
     }
-};
-
-/**
- * PKCE Setup
- * 
- * MSAL enables PKCE in the Authorization Code Grant Flow by including the codeChallenge and codeChallengeMethod parameters
- * in the request passed into getAuthCodeUrl() API, as well as the codeVerifier parameter in the
- * second leg (acquireTokenByCode() API).
- * 
- * Generating the codeVerifier and the codeChallenge is the client application's responsiblity.
- * For this sample, you can either implement your own PKCE code generation logic or use an existing tool
- * to manually generate a Code Verifier and Code Challenge, plugging them into the pkceCodes object below.
- * 
- * For details on implementing your own PKCE code generation logic, consult the 
- * PKCE specification https://tools.ietf.org/html/rfc7636#section-4
- */
-
-const PKCE_CODES = {
-    CHALLENGE_METHOD: "S256", // Use SHA256 Algorithm
-    VERIFIER: "", // Generate a code verifier for the Auth Code Request first
-    CHALLENGE: "" // Generate a code challenge from the previously generated code verifier
 };
 
 // Current web API coordinates were pre-registered in a B2C tenant.
@@ -130,14 +73,11 @@ const APP_STATES = {
  * to acquire a token with the appropriate claims.
  */
 const authCodeRequest = {
-    redirectUri: publicClientConfig.auth.redirectUri,
-    codeChallenge: PKCE_CODES.CHALLENGE, // PKCE Code Challenge
-    codeChallengeMethod: PKCE_CODES.CHALLENGE_METHOD // PKCE Code Challenge Method
+    redirectUri: publicClientConfig.auth.redirectUri
 };
 
 const tokenRequest = {
-    redirectUri: publicClientConfig.auth.redirectUri,
-    codeVerifier: PKCE_CODES.VERIFIER // PKCE Code Verifier
+    redirectUri: publicClientConfig.auth.redirectUri
 };
 
 // Initialize MSAL Node
@@ -150,6 +90,28 @@ const app = express();
 app.locals.accessToken = null;
 // Store homeAccountId in memory
 app.locals.homeAccountId = null;
+
+/**
+ * Proof Key for Code Exchange (PKCE) Setup
+ * 
+ * MSAL enables PKCE in the Authorization Code Grant Flow by including the codeChallenge and codeChallengeMethod parameters
+ * in the request passed into getAuthCodeUrl() API, as well as the codeVerifier parameter in the
+ * second leg (acquireTokenByCode() API).
+ * 
+ * MSAL Node provides PKCE Generation tools through the CryptoProvider class, which exposes
+ * the generatePkceCodes() asynchronous API. As illustrated in the example below, the verifier
+ * and challenge values should be generated previous to the authorization flow initiation.
+ * 
+ * For details on PKCE code generation logic, consult the 
+ * PKCE specification https://tools.ietf.org/html/rfc7636#section-4
+ */
+
+// Set up PKCE Code object in app's local memory so it's shared between routes
+app.locals.pkceCodes = {
+    challengeMethod: "S256", // Use SHA256 Algorithm
+    verifier: "", // Generate a code verifier for the Auth Code Request first
+    challenge: "" // Generate a code challenge from the previously generated code verifier
+};
 
 // Set handlebars view engine
 app.engine(".hbs", exphbs({ extname: ".hbs" }));
@@ -171,14 +133,26 @@ const getAuthCode = (authority, scopes, state, res) => {
 
     tokenRequest.authority = authority;
 
-    // request an authorization code to exchange for a token
-    return pca.getAuthCodeUrl(authCodeRequest)
-        .then((response) => {
+    // Initialize CryptoProvider instance
+    const cryptoProvider = new msal.CryptoProvider();
+    // Generate PKCE Codes before starting the authorization flow
+    cryptoProvider.generatePkceCodes().then(({ verifier, challenge }) => {
+        // Set generated PKCE Codes as app variables
+        app.locals.pkceCodes.verifier = verifier;
+        app.locals.pkceCodes.challenge = challenge;
+
+        // Add PKCE code challenge and challenge method to authCodeUrl request objectgit st
+        authCodeRequest.codeChallenge = app.locals.pkceCodes.challenge, // PKCE Code Challenge
+        authCodeRequest.codeChallengeMethod = app.locals.pkceCodes.challengeMethod // PKCE Code Challenge Method
+        
+        // Get url to sign user in and consent to scopes needed for application
+        return pca.getAuthCodeUrl(authCodeRequest).then((response) => {
             res.redirect(response);
         })
         .catch((error) => {
             res.status(500).send(error);
         });
+    });
 }
 
 /**
@@ -220,7 +194,6 @@ app.get("/api", async (req, res) => {
     pca.acquireTokenSilent(silentRequest)
         .then((response) => {
             const username = response.account.username;
-
             // call web API after successfully acquiring token
             api.callWebApi(apiConfig.webApiUri, response.accessToken, (response) => {
                 const templateParams = { showLoginButton: false, username: username, profile: JSON.stringify(response, null, 4) };
@@ -241,9 +214,10 @@ app.get("/redirect", (req, res) => {
     if (req.query.state === APP_STATES.login) {
 
         // prepare the request for authentication
-        tokenRequest.scopes = SCOPES.oidc;
+        tokenRequest.scopes = [...SCOPES.oidc, ...SCOPES.resource1];
         tokenRequest.code = req.query.code;
-
+        tokenRequest.codeVerifier = app.locals.pkceCodes.verifier // PKCE Code Verifier
+        
         pca.acquireTokenByCode(tokenRequest)
             .then((response) => {
                 app.locals.homeAccountId = response.account.homeAccountId;
@@ -272,10 +246,11 @@ app.get("/redirect", (req, res) => {
         tokenRequest.authority = policies.authorities.signUpSignIn.authority;
         tokenRequest.scopes = SCOPES.resource1;
         tokenRequest.code = req.query.code;
+        tokenRequest.codeVerifier = app.locals.pkceCodes.verifier // PKCE Code Verifier
 
         pca.acquireTokenByCode(tokenRequest)
             .then((response) => {
-
+                console.log(response);
                 // store access token somewhere
                 app.locals.accessToken = response.accessToken;
 

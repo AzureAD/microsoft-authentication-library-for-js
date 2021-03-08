@@ -32,27 +32,6 @@ const publicClientConfig = {
     }
 };
 
-/**
- * PKCE Setup
- * 
- * MSAL enables PKCE in the Authorization Code Grant Flow by including the codeChallenge and codeChallengeMethod parameters
- * in the request passed into getAuthCodeUrl() API, as well as the codeVerifier parameter in the
- * second leg (acquireTokenByCode() API).
- * 
- * Generating the codeVerifier and the codeChallenge is the client application's responsiblity.
- * For this sample, you can either implement your own PKCE code generation logic or use an existing tool
- * to manually generate a Code Verifier and Code Challenge, plugging them into the pkceCodes object below.
- * 
- * For details on implementing your own PKCE code generation logic, consult the 
- * PKCE specification https://tools.ietf.org/html/rfc7636#section-4
- */
-
-const PKCE_CODES = {
-    CHALLENGE_METHOD: "S256", // Use SHA256 Algorithm
-    VERIFIER: "", // Generate a code verifier for the Auth Code Request first
-    CHALLENGE: "" // Generate a code challenge from the previously generated code verifier
-};
-
 // Current web API coordinates were pre-registered in a B2C tenant.
 const apiConfig = {
     webApiScopes: ["https://fabrikamb2c.onmicrosoft.com/helloapi/demo.read"],
@@ -84,14 +63,11 @@ const APP_STATES = {
  * to acquire a token with the appropriate claims.
  */
 const authCodeRequest = {
-    redirectUri: publicClientConfig.auth.redirectUri,
-    codeChallenge: PKCE_CODES.CHALLENGE, // PKCE Code Challenge
-    codeChallengeMethod: PKCE_CODES.CHALLENGE_METHOD // PKCE Code Challenge Method
+    redirectUri: publicClientConfig.auth.redirectUri
 };
 
 const tokenRequest = {
-    redirectUri: publicClientConfig.auth.redirectUri,
-    codeVerifier: PKCE_CODES.VERIFIER // PKCE Code Verifier
+    redirectUri: publicClientConfig.auth.redirectUri
 };
 
 // Initialize MSAL Node
@@ -99,6 +75,29 @@ const pca = new msal.PublicClientApplication(publicClientConfig);
 
 // Create an express instance
 const app = express();
+
+/**
+ * Proof Key for Code Exchange (PKCE) Setup
+ * 
+ * MSAL enables PKCE in the Authorization Code Grant Flow by including the codeChallenge and codeChallengeMethod parameters
+ * in the request passed into getAuthCodeUrl() API, as well as the codeVerifier parameter in the
+ * second leg (acquireTokenByCode() API).
+ * 
+ * MSAL Node provides PKCE Generation tools through the CryptoProvider class, which exposes
+ * the generatePkceCodes() asynchronous API. As illustrated in the example below, the verifier
+ * and challenge values should be generated previous to the authorization flow initiation.
+ * 
+ * For details on PKCE code generation logic, consult the 
+ * PKCE specification https://tools.ietf.org/html/rfc7636#section-4
+ */
+
+// Set up PKCE Code object in app's local memory so it's shared between routes
+app.locals.pkceCodes = {
+    challengeMethod: "S256", // Use SHA256 Algorithm
+    verifier: "", // Generate a code verifier for the Auth Code Request first
+    challenge: "" // Generate a code challenge from the previously generated code verifier
+};
+
 
 // Store accessToken in memory
 app.locals.accessToken = null;
@@ -121,16 +120,23 @@ const getAuthCode = (authority, scopes, state, res) => {
     authCodeRequest.scopes = scopes;
     authCodeRequest.state = state;
 
-    tokenRequest.authority = authority;
+    authCodeRequest.authority = authority;
+    // Initialize CryptoProvider instance
+    const cryptoProvider = new msal.CryptoProvider();
+    // Generate PKCE Codes before starting the authorization flow
+    cryptoProvider.generatePkceCodes().then(({ verifier, challenge }) => {
+        // Set generated PKCE Codes as app variables
+        app.locals.pkceCodes.verifier = verifier;
+        app.locals.pkceCodes.challenge = challenge;
 
-    // request an authorization code to exchange for a token
-    return pca.getAuthCodeUrl(authCodeRequest)
-        .then((response) => {
+        // Add PKCE code challenge and challenge method to authCodeUrl request objectgit st
+        authCodeRequest.codeChallenge = app.locals.pkceCodes.challenge;
+        authCodeRequest.codeChallengeMethod = app.locals.pkceCodes.challengeMethod;
+        // Get url to sign user in and consent to scopes needed for applicatio
+        pca.getAuthCodeUrl(authCodeRequest).then((response) => {
             res.redirect(response);
-        })
-        .catch((error) => {
-            res.status(500).send(error);
-        });
+        }).catch((error) => console.log(JSON.stringify(error)));
+    });
 }
 
 /**
@@ -179,6 +185,7 @@ app.get("/redirect", (req, res) => {
         // prepare the request for authentication
         tokenRequest.scopes = SCOPES.oidc;
         tokenRequest.code = req.query.code;
+        tokenRequest.codeVerifier = app.locals.pkceCodes.verifier;
 
         pca.acquireTokenByCode(tokenRequest)
             .then((response) => {
@@ -207,6 +214,7 @@ app.get("/redirect", (req, res) => {
         tokenRequest.authority = policies.authorities.signUpSignIn.authority;
         tokenRequest.scopes = SCOPES.resource1;
         tokenRequest.code = req.query.code;
+        tokenRequest.codeVerifier = app.locals.pkceCodes.verifier;
 
         pca.acquireTokenByCode(tokenRequest)
             .then((response) => {

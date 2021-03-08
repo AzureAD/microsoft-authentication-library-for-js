@@ -12,7 +12,7 @@ The Auth Code flow is most commonly used for a web app that signs in users.  Gen
 ## Test the Sample
 
 ### Configure the application
-Open the `config/AAD.json` file.
+Open the `config/customConfig.json` file.
 
 We will change this to add details about our app registration and deployment.
 
@@ -40,9 +40,9 @@ If your AzureAD app registration is configured as a Confidential Client Applicat
 This secret helps prevent third parties from using your app registration.
 Click on `Certificates and Secrets` in the left nav.
 Click `New Client Secret` and pick an expiry.
-Click the `Copy to Clipboard` icon, and add the secret to the config object in `./config/AAD,json`.
+Click the `Copy to Clipboard` icon, and add the secret to the config object in `./config/customConfig.json`.
 
-**auth-code/config/AAD.json**
+**auth-code/config/customConfig.json**
 ```json
 {
     "authOptions":
@@ -166,7 +166,7 @@ app.get('/', (req, res) => {
 
 Next, we have to pick the `scopes` related to the user.  If we are logging in a user, then we must at least request access to basic user information.  The default scope of `user.read` grants that basic access. To learn more see the [Microsoft Graph permissions reference](https://docs.microsoft.com/en-us/graph/permissions-reference).
 
-**auth-code/config/AAD.json:**
+**auth-code/config/customConfig.json:**
 ```json
 {
     ...,
@@ -222,7 +222,7 @@ app.get('/redirect', (req, res) => {
 
 Next,  your app logic will validate the scopes and route.  These settings must match the request.  Make sure the `scopes` match the request. Make sure the `redirectUri` matches the app registration, and the route.
 
-**auth-code/config/AAD.json:**
+**auth-code/config/customConfig.json:**
 ```json
 {
     ...,

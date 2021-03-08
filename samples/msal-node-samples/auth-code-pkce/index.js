@@ -70,8 +70,6 @@ app.get('/', (req, res) => {
             codeChallenge: app.locals.pkceCodes.challenge, // PKCE Code Challenge
             codeChallengeMethod: app.locals.pkceCodes.challengeMethod // PKCE Code Challenge Method
         };
-
-        console.log(authCodeUrlParameters);
     
         // Get url to sign user in and consent to scopes needed for applicatio
         pca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
