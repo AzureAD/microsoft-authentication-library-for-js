@@ -48,7 +48,7 @@ export class FetchClient implements INetworkModule {
             });
         } catch (e) {
             if (window.navigator.onLine) {
-                throw BrowserAuthError.createFetchError(e, url);
+                throw BrowserAuthError.createNetworkRequestFailedError(e, url);
             } else {
                 throw BrowserAuthError.createNoNetworkConnectivityError();
             }

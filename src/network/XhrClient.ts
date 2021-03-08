@@ -39,13 +39,13 @@ export class XhrClient implements INetworkModule {
      * @param options 
      */
     private sendRequestAsync<T>(url: string, method: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
-        return new Promise<NetworkResponse<T>>((resolve, reject) => {
+        return new Promise<NetworkResponse<T>>((resolve) => {
             const xhr = new XMLHttpRequest();
             xhr.open(method, url, /* async: */ true);
             this.setXhrHeaders(xhr, options);
             xhr.onload = (): void => {
                 if (xhr.status < 200 || xhr.status >= 300) {
-                    reject(xhr.responseText);
+                    throw BrowserAuthError.createNetworkRequestFailedError(`Failed with status ${xhr.status}`, url);
                 }
                 try {
                     const jsonResponse = JSON.parse(xhr.responseText) as T;
@@ -56,12 +56,16 @@ export class XhrClient implements INetworkModule {
                     };
                     resolve(networkResponse);
                 } catch (e) {
-                    reject(xhr.responseText);
+                    throw BrowserAuthError.createXhrFailedToParseError(url);
                 }
             };
 
             xhr.onerror = (): void => {
-                reject(xhr.status);
+                if (window.navigator.onLine) {
+                    throw BrowserAuthError.createNetworkRequestFailedError(`Failed with status ${xhr.status}`, url);
+                } else {
+                    throw BrowserAuthError.createNoNetworkConnectivityError();
+                }
             };
 
             if (method === "POST" && options && options.body) {
