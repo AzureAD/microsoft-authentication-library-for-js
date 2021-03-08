@@ -68,7 +68,7 @@ const response = await myMSALObj.acquireTokenRedirect(popTokenRequest);
 
 // Once a Pop Token has been acquired, it can be added on the authorization header of a resource request
 const headers = new Headers();
-const authHeader = `PoP ${accessToken}`;
+const authHeader = `${response.tokenType} ${response.accessToken}`;
 
 headers.append("Authorization", authHeader);
 
