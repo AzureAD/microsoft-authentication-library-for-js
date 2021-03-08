@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Use sid from account when available #3147",
+  "packageName": "@azure/msal-common",
+  "email": "prkanher@microsoft.com",
+  "dependentChangeType": "patch"
+}
