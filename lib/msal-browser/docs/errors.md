@@ -126,4 +126,9 @@ Errors not thrown by msal, such as server errors
 
 ### Access to fetch at [url] has been blocked by CORS policy
 
-This error occurs with MSAL.js v2.x and is due to improper configuration during **App Registration** on **Azure Portal**. In particular, you should not have both `Web` and `Single-page application` added as a platform under the **Authentication** blade in your App Registration.
+This error occurs with MSAL.js v2.x and is due to improper configuration during **App Registration** on **Azure Portal**. In particular, you should ensure your `redirectUri` is registered as type: `Single-page application` under the **Authentication** blade in your App Registration. If done successfully, you will see a green checkmark that says: 
+
+> Your Redirect URI is eligible for the Authorization Code Flow with PKCE.
+
+![image](https://user-images.githubusercontent.com/5307810/110390912-922fa380-801b-11eb-9e2b-d7aa88ca0687.png)
+
