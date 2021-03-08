@@ -59,7 +59,7 @@ In the same folder, type:
     npm start
 ```
 
-The server should start at port **3000**.
+The server should start at port **3000** (e.g. `https://localhost:3000`).
 
 ## More information
 

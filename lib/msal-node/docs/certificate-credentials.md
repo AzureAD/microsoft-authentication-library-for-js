@@ -1,4 +1,4 @@
-# Using Certificate Credentials with MSAL Node
+# Using certificate credentials with MSAL Node
 
 > :warning: Before you start here, make sure you understand [Initialize confidential client applications](./initialize-confidential-client-application.md).
 
@@ -8,9 +8,9 @@ You can build confidential client applications with MSAL Node (web apps, daemon 
 * `clientCertificate`: a certificate set on the app registration. The `thumbprint` is a *X.509 SHA-1* thumbprint of the certificate, and the `privateKey` is the PEM encoded private key. `x5c` is the optional *X.509* certificate chain used in [subject name/issuer auth scenarios](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/sni.md).
 * `clientAssertion`: a string that the application uses when requesting a token. The certificate used to sign the assertion should be set on the app registration. Assertion should be of type `urn:ietf:params:oauth:client-assertion-type:jwt-bearer`.
 
-## Using Certificates
+## Using certificates
 
-This section covers creating a self-signed certificate and initializing a confidential client. For an implementation, eee the code sample: [auth-code-with-certs](../../../samples/msal-node-samples/standalone-samples/auth-code-with-certs)
+This section covers creating a self-signed certificate and initializing a confidential client. For an implementation, see the code sample: [auth-code-with-certs](../../../samples/msal-node-samples/standalone-samples/auth-code-with-certs)
 
 ### Generating self-signed certificates
 
@@ -18,48 +18,58 @@ Build and install **OpenSSL** for your **OS** following the guide at [github.com
 
 Afterwards, add the path to `OpenSSL` to your **environment variables** so that you can call it from anywhere.
 
-Type the following in a terminal. You will be prompted to enter some identifying information and a *passphrase*:
+Type the following in a terminal. You will be prompted to enter a *pass phrase* (this is optional, but recommended):
 
 ```console
-    openssl req -x509 -newkey rsa:4096 -sha256 -days 365 -keyout example.key -out example.crt -subj "/CN=example.com" -addext "subjectAltName=DNS:example.com"
+    openssl req -x509 -newkey rsa:4096 -sha256 -days 365 -keyout example.key -out example.crt -subj "/CN=example.com"
+```
 
+In your terminal, you should see:
+
+```console
     Generating a RSA private key
-    ...........................................................................................................................................................................................................................................................++++
+    ..............................................
+    ..............................................
     writing new private key to 'example.key'
     Enter PEM pass phrase:
     Verifying - Enter PEM pass phrase:
     ----- 
 ```
 
-After that, the following files should be generated: `example.key`, `example.crt`.
+After that, the following files should be generated:
+
+* `example.crt`: your public key. This is the actual certificate file that you'll mainly work with.
+* `example.key`: your private key, encrypted with a *pass phrase*.
 
 > Powershell users can run the [New-SelfSignedCertificate](https://docs.microsoft.com/powershell/module/pkiclient/new-selfsignedcertificate?view=win10-ps) command:
 >
 > ```powershell
->$cert=New-SelfSignedCertificate -Subject "CN=DaemonConsoleCert" -CertStoreLocation "Cert:\CurrentUser\My"  -KeyExportPolicy Exportable -KeySpec Signature
+>$cert=New-SelfSignedCertificate -Subject "CN=example" -CertStoreLocation "Cert:\CurrentUser\My"  -KeyExportPolicy Exportable -KeySpec Signature
 >```
 >
-> Extensions: Certificate files come in various file extensions, such as *.crt*, *.csr*, *.cer*, *.pem*, *.pfx*, *.key*. For file type conversions, see [SSL/TLS Certificate File Types/Extensions](https://docs.microsoft.com/archive/blogs/kaushal/various-ssltls-certificate-file-typesextensions).
+> This command will generate two files: *example.cer* (public key) and *example.pfx* (public key + encrypted private key).
+
+> :information_source: Certificate files come in various file extensions, such as *.crt*, *.csr*, *.cer*, *.pem*, *.pfx*, *.key*. For file type conversions, you can use *OpenSSL*. For more information, see [SSL/TLS Certificate File Types/Extensions](https://docs.microsoft.com/archive/blogs/kaushal/various-ssltls-certificate-file-typesextensions).
 
 ### Trusting self-signed certificates
 
-You'll need to add your self-signed certificates to the key chain of your **OS**. You will still see a warning in your browser afterwards.
+You'll need to add your self-signed certificates to the *credential manager* / *key chain* of your **OS**. You may still see a warning in your browser afterwards (e.g. Chrome).
 
 * For Windows users, follow the guide here: [Installing the trusted root certificate](https://docs.microsoft.com/skype-sdk/sdn/articles/installing-the-trusted-root-certificate).
 
 > Alternatively, see: [How to: View certificates with the MMC snap-in](https://docs.microsoft.com/dotnet/framework/wcf/feature-details/how-to-view-certificates-with-the-mmc-snap-in)
 
-* For MacOS users, follow the guide here: [ENTER_NAME_HERE](ENTER_LINK_HERE).
+* For Linux and MacOS users, use community guides -with judgment- to learn about how to install certificates.
 
 > :warning: You might need **administrator** privileges for running the commands above.
 
 ### Registering self-signed certificates
 
-You need to upload your certificate to **Azure AD**. In the Azure AD app registration:
+You need to upload your certificate to **Azure AD**.
 
 1. Navigate to [Azure portal](https://portal.azure.com) and select your Azure AD app registration.
 2. Select **Certificates & secrets** blade on the left.
-3. Click on **Upload** certificate and select the certificate file to upload.
+3. Click on **Upload** certificate and select the certificate file to upload (e.g. *example.crt*).
 4. Click **Add**. Once the certificate is uploaded, the *thumbprint*, *start date*, and *expiration* values are displayed.
 
 For more information, see: [Register your certificate with Microsoft identity platform](https://docs.microsoft.com/azure/active-directory/develop/active-directory-certificate-credentials#register-your-certificate-with-microsoft-identity-platform)
@@ -93,13 +103,23 @@ const config = {
 const cca = new msal.ConfidentialClientApplication(config);
 ```
 
-You may need to extract private key from a **PEM** file. This can be done using Express crypto module:
+Both `thumbprint` and `privateKey` are expected to be strings. `privateKey` is further expected to be in the following form:
+
+```text
+-----BEGIN PRIVATE KEY-----
+MIIJQwIBADANBgkqhkiG9w0BAQEFAASCCS0wggkpAgEAAoICAQDkpKPrsfpIijS3
+z2HCpDsa7dxOsKIrm7F1AtGBjyB0yVDjlh/FA7jT5sd2ypBh3FVsZGJudQsLRKfE
+// more lines...
+-----END PRIVATE KEY-----
+```
+
+If you have encrypted your private key with a *pass phrase* as recommended, you'll need to decrypt it before passing to **MSAL Node**. This can be done using [Node crypto module](https://nodejs.org/docs/latest-v12.x/api/crypto.html):
 
 ```javascript
 const fs = require('fs');
 const crypto = require('crypto');
 
-const privateKeySource = fs.readFileSync('./NodeWebCert.pem')
+const privateKeySource = fs.readFileSync('./example.key')
 
 const privateKeyObject = crypto.createPrivateKey({
     key: privateKeySource,
@@ -113,7 +133,7 @@ const privateKey = privateKeyObject.export({
 });
 ```
 
-### Creating an HTTPS server in Node.js
+### Creating an HTTPS server
 
 Setup a **HTTPS** server by importing the generated **certificate** and **public key** files and passing them as `options` to `https.createServer()` method. This is shown below:
 
@@ -122,7 +142,7 @@ Setup a **HTTPS** server by importing the generated **certificate** and **public
     const https = require('https');
     const fs = require('fs');
 
-    const DEFAULT_PORT = process.env.PORT || 5000;
+    const DEFAULT_PORT = process.env.PORT || 3000;
     
     // initialize express.
     const app = express();

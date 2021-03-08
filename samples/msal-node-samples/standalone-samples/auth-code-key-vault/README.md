@@ -17,7 +17,7 @@ Locate the folder where `package.json` resides in your terminal. Then type:
 1. Navigate to the [Azure portal](https://portal.azure.com) and select the **Azure AD** service.
 1. Select the **App Registrations** blade on the left, then select **New registration**.
 1. In the **Register an application page** that appears, enter your application's registration information:
-   - In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `ms-identity-nodejs-webapp`.
+   - In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `msal-node-webapp`.
    - Under **Supported account types**, select **Accounts in this organizational directory only**.
    - In the **Redirect URI (optional)** section, select **Web** in the combo-box and enter the following redirect URI: `http://localhost:3000/redirect`.
 1. Select **Register** to create the application.
@@ -27,7 +27,7 @@ Locate the folder where `package.json` resides in your terminal. Then type:
    - Click on **Upload** certificate and select the certificate file to upload.
    - Click **Add**. Once the certificate is uploaded, the *thumbprint*, *start date*, and *expiration* values are displayed.
 
-Before running the sample, you will need to replace the values in the config
+Before running the sample, you will need to replace the values in the config:
 
 ```javascript
 const config = {

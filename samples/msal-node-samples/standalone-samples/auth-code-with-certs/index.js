@@ -11,7 +11,10 @@ const express = require('express');
 
 const msal = require('@azure/msal-node');
 
-// Extracting private key
+/**
+ * If you have encrypted your private key with a *pass phrase* as recommended,
+ * you'll need to decrypt it before passing it to msal-node for initialization.
+ */
 const privateKeySource = fs.readFileSync('./certs/example.key');
 
 const privateKeyObject = crypto.createPrivateKey({
@@ -83,7 +86,7 @@ app.get('/redirect', (req, res) => {
 
 const SERVER_PORT = process.env.PORT || 3000;
 
-// Initialize an HTTPS server
+// Initialize an HTTPS server with certificates
 const options = {
     key: fs.readFileSync(path.join(__dirname + "/certs/example.key")),
     cert: fs.readFileSync(path.join(__dirname + "/certs/example.crt")),
