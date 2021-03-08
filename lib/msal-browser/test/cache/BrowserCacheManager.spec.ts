@@ -9,13 +9,23 @@ import "mocha";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_URIS, TEST_STATE_VALUES, DEFAULT_OPENID_CONFIG_RESPONSE } from "../utils/StringConstants";
 import { CacheOptions } from "../../src/config/Configuration";
-import { CacheManager, Constants, PersistentCacheKeys, AuthorizationCodeRequest, ProtocolUtils, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, Logger, LogLevel, AuthenticationScheme, AuthorityMetadataEntity, TimeUtils } from "@azure/msal-common";
-import { BrowserCacheLocation, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
+import { CacheManager, Constants, PersistentCacheKeys, CommonAuthorizationCodeRequest as AuthorizationCodeRequest, ProtocolUtils, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, Logger, LogLevel, AuthenticationScheme, AuthorityMetadataEntity, TimeUtils } from "@azure/msal-common";
+import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
+import { BrowserStateObject } from "../../src/utils/BrowserProtocolUtils";
 
 class TestCacheStorage extends CacheManager {
+    getAuthorityMetadata(): AuthorityMetadataEntity | null {
+        throw new Error("Storage interface - getAuthorityMetadata() has not been implemented for the cacheStorage interface.");
+    }
+    getAuthorityMetadataKeys(): string[] {
+        throw new Error("Storage interface - getAuthorityMetadataKeys() has not been implemented for the cacheStorage interface.");
+    }
+    setAuthorityMetadata(): void {
+        throw new Error("Storage interface - setAuthorityMetadata() has not been implemented for the cacheStorage interface.");
+    }
     setAccount(): void {
         const notImplErr = "Storage interface - setAccount() has not been implemented for the cacheStorage interface.";
         throw new Error(notImplErr);
@@ -99,7 +109,8 @@ describe("BrowserCacheManager tests", () => {
     beforeEach(() => {
         cacheConfig = {
             cacheLocation: BrowserCacheLocation.SessionStorage,
-            storeAuthStateInCookie: false
+            storeAuthStateInCookie: false,
+            secureCookies: false
         };
         logger = new Logger({
             loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
@@ -246,7 +257,9 @@ describe("BrowserCacheManager tests", () => {
             expect(browserSessionStorage.getKeys()).to.be.empty;
             expect(browserLocalStorage.getKeys()).to.be.empty;
         });
+
         describe("Getters and Setters", () => {
+
             describe("AuthorityMetadata", () =>{
                 const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
                 const testObj: AuthorityMetadataEntity = new AuthorityMetadataEntity();
@@ -310,7 +323,6 @@ describe("BrowserCacheManager tests", () => {
             });
         });
     });
-
 
     describe("Interface functions with storeAuthStateInCookie=true", () => {
 
@@ -526,6 +538,23 @@ describe("BrowserCacheManager tests", () => {
             expect(browserLocalStorage.getItemCookie(msalCacheKey)).to.be.eq(cacheVal);
         });
 
+        it("clearMsalCookie()", () => {
+            browserSessionStorage.setItemCookie(msalCacheKey, cacheVal);
+            expect(document.cookie).to.be.not.empty;
+            browserSessionStorage.clearMsalCookies();
+            expect(document.cookie).to.be.empty;
+            
+            const testCookieKey = "cookie"
+            const testCookie = `${testCookieKey}=thisIsACookie`;
+            const testCookieWithPath = "cookie=thisIsACookie;path=/;";
+            browserSessionStorage.setItemCookie(msalCacheKey, cacheVal);
+            expect(document.cookie).to.be.not.empty;
+            document.cookie = testCookieWithPath;
+            browserSessionStorage.clearMsalCookies();
+            expect(document.cookie).to.be.eq(testCookie);
+            browserSessionStorage.clearItemCookie(testCookieKey);
+        });
+
         it("clearItemCookie()", () => {
             browserSessionStorage.setItemCookie(msalCacheKey, cacheVal);
             browserSessionStorage.clearItemCookie(msalCacheKey);
@@ -668,6 +697,46 @@ describe("BrowserCacheManager tests", () => {
             // Perform test
             const tokenRequest = browserStorage.getCachedRequest(TEST_STATE_VALUES.TEST_STATE_REDIRECT, browserCrypto);
             expect(tokenRequest.authority).to.be.eq(alternateAuthority);
+        });
+
+        it("cleanRequestByInteractionType() returns early if state is not present", () => {
+            let dbStorage = {};
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+                dbStorage = {};
+            });
+            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
+
+            const cacheKey = "cacheKey";
+            const cacheValue = "cacheValue";
+            browserStorage.setTemporaryCache(cacheKey, cacheValue, true);
+            browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
+            expect(browserStorage.getTemporaryCache(cacheKey, true)).to.be.eq(cacheValue);
+            browserStorage.clear();
+        });
+
+        it("cleanRequestByInteractionType() cleans cache", () => {
+            let dbStorage = {};
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+                dbStorage = {};
+            });
+            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
+
+            const browserState: BrowserStateObject = {
+                interactionType: InteractionType.Redirect
+            };
+            
+            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+            const state = ProtocolUtils.setRequestState(
+                browserCrypto,
+                undefined,
+                browserState
+            );
+            const cacheKey = `cacheKey.${state}`;
+            const cacheValue = "cacheValue";
+            browserStorage.setTemporaryCache(cacheKey, cacheValue, true);
+            browserStorage.setTemporaryCache(`${TemporaryCacheKeys.REQUEST_STATE}.${RANDOM_TEST_GUID}`, state, true);
+            browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
+            expect(browserStorage.getKeys()).to.be.empty;
         });
     });
 });
