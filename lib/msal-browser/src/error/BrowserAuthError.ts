@@ -121,9 +121,13 @@ export const BrowserAuthErrorMessage = {
         code: "no_network_connectivity",
         desc: "No network connectivity. Check your internet connection."
     },
-    fetchError: {
-        code: "fetchError",
+    networkRequestFailed: {
+        code: "network_request_failed",
         desc: "Network request failed: If the browser threw a CORS error, check that the redirectUri is registered in the Azure App Portal as type 'SPA'"
+    },
+    xhrFailedToParse: {
+        code: "xhr_failed_to_parse_response",
+        desc: "Failed to parse network response. Check network trace."
     }
 };
 
@@ -359,7 +363,14 @@ export class BrowserAuthError extends AuthError {
     /**
      * Create an error thrown when token fetch fails due to reasons other than internet connectivity
      */
-    static createFetchError(errorDesc: string, endpoint: string): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.fetchError.code, `${BrowserAuthErrorMessage.fetchError.desc} | Fetch client threw: ${errorDesc} | Attempted to reach: ${endpoint.split("?")[0]}`);
+    static createNetworkRequestFailedError(errorDesc: string, endpoint: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.networkRequestFailed.code, `${BrowserAuthErrorMessage.networkRequestFailed.desc} | Network client threw: ${errorDesc} | Attempted to reach: ${endpoint.split("?")[0]}`);
+    }
+
+    /**
+     * Create an error thrown when xhr client fails to parse network response
+     */
+    static createXhrFailedToParseError(endpoint: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.xhrFailedToParse.code, `${BrowserAuthErrorMessage.xhrFailedToParse.desc} | Attempted to reach: ${endpoint.split("?")[0]}`);
     }
 }
