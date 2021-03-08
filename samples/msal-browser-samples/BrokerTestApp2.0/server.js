@@ -17,10 +17,12 @@ const argv = require('yargs')
 
 const DEFAULT_BROKERED_PORT = 30662;
 const DEFAULT_BROKER_PORT = 30663;
+const DEFAULT_BROKER_FRAME_PORT = 30664;
 
 //initialize express.
 const brokeredApp = express();
 const brokerApp = express();
+const brokerFrame = express();
 
 // Initialize variables.
 let port1 = DEFAULT_BROKERED_PORT; // -p1 {PORT} || 30662;
@@ -35,13 +37,16 @@ if (argv.p2) {
 // Configure morgan module to log all requests.
 brokeredApp.use(morgan('dev'));
 brokerApp.use(morgan('dev'));
+brokerFrame.use(morgan('dev'));
 
 // Set the front-end folder to serve public assets.
 brokeredApp.use("/lib", express.static(path.join(__dirname, "../../../lib/msal-browser/lib")));
 brokerApp.use("/lib", express.static(path.join(__dirname, "../../../lib/msal-browser/lib")));
+brokerFrame.use("/lib", express.static(path.join(__dirname, "../../../lib/msal-browser/lib")));
 
 brokeredApp.use(express.static('app/brokeredWidget'));
 brokerApp.use(express.static('app/brokerApp'));
+brokerFrame.use(express.static('app/brokerFrame'));
 
 // Set up a route for index.html.
 brokeredApp.get('*', function (req, res) {
@@ -50,9 +55,14 @@ brokeredApp.get('*', function (req, res) {
 brokerApp.get('*', function (req, res) {
     res.sendFile(path.join(__dirname + '/index.html'));
 });
+brokerFrame.get('*', function (req, res) {
+    res.sendFile(path.join(__dirname + '/index.html'));
+});
 
 // Start the server.
 brokeredApp.listen(port1);
 brokerApp.listen(port2);
+brokerFrame.listen(DEFAULT_BROKER_FRAME_PORT);
 console.log(`BrokeredApp listening on port: ${port1}...`);
 console.log(`BrokerApp listening on port: ${port2}...`);
+console.log(`BrokerFrame listening on port: ${DEFAULT_BROKER_FRAME_PORT}...`);

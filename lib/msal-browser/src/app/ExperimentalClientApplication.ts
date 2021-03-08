@@ -4,18 +4,18 @@
  */
 
 import { AccountInfo, AuthenticationResult, PromptValue, SilentFlowRequest, StringUtils } from "@azure/msal-common";
-import { BrokerClientApplication } from "../broker/client/BrokerClientApplication";
+import { HostedBrokerClientApplication } from "../broker/client/HostedBrokerClientApplication";
 import { EmbeddedClientApplication } from "../broker/client/EmbeddedClientApplication";
 import { Configuration } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { EventType } from "../event/EventType";
+import { FrameUtils } from "../interaction_handler/FrameUtils";
 import { PopupHandler } from "../interaction_handler/PopupHandler";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { ApiId, InteractionType } from "../utils/BrowserConstants";
-import { BrowserUtils } from "../utils/BrowserUtils";
 import { ClientApplication } from "./ClientApplication";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 
@@ -23,7 +23,9 @@ export class ExperimentalClientApplication extends ClientApplication implements 
 
     // Broker Objects
     protected embeddedApp?: EmbeddedClientApplication;
-    protected broker?: BrokerClientApplication;
+    protected broker?: HostedBrokerClientApplication;
+
+    protected brokerFrame?: HTMLIFrameElement;
     
     constructor(configuration: Configuration, parent: ClientApplication) {
         super(configuration);
@@ -55,12 +57,19 @@ export class ExperimentalClientApplication extends ClientApplication implements 
             return;
         }
 
-        if (this.config.experimental.brokerOptions.actAsBroker && !BrowserUtils.isInIframe()) {
+        if (this.config.experimental.brokerOptions.actAsBroker) {
             if(this.config.experimental.brokerOptions.allowBrokering) {
                 this.logger.verbose("Running in top frame and both actAsBroker, allowBrokering flags set to true. actAsBroker takes precedence.");
             }
-
-            this.broker = new BrokerClientApplication(this.config);
+            
+            if (!this.config.experimental.brokerOptions.actAsHostedBroker) {
+                this.brokerFrame = FrameUtils.loadFrameSync("http://localhost:30664");
+                this.brokerFrame.name = "MsalHostedBrokerFrame";
+                this.brokerFrame.id = "MsalHostedBrokerFrame";
+                document.body.appendChild(this.brokerFrame);
+            }
+            
+            this.broker = new HostedBrokerClientApplication(this.config);
             this.logger.verbose("Acting as Broker");
             this.broker.listenForBrokerMessage();
         } else if (this.config.experimental.brokerOptions.allowBrokering) {

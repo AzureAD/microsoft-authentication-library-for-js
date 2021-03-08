@@ -9,6 +9,7 @@ import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { DEFAULT_IFRAME_TIMEOUT_MS } from "../config/Configuration";
+import { FrameUtils } from "./FrameUtils";
 
 export class SilentHandler extends InteractionHandler {
 
@@ -30,7 +31,7 @@ export class SilentHandler extends InteractionHandler {
             throw BrowserAuthError.createEmptyNavigationUriError();
         }
 
-        return this.navigateFrameWait ? await this.loadFrame(requestUrl) : this.loadFrameSync(requestUrl);
+        return this.navigateFrameWait ? await FrameUtils.loadFrame(requestUrl, this.navigateFrameWait) : FrameUtils.loadFrameSync(requestUrl);
     }
 
     /**
@@ -53,7 +54,7 @@ export class SilentHandler extends InteractionHandler {
 
             const intervalId = setInterval(() => {
                 if (window.performance.now() > timeoutMark) {
-                    this.removeHiddenIframe(iframe);
+                    FrameUtils.removeHiddenIframe(iframe);
                     clearInterval(intervalId);
                     reject(BrowserAuthError.createMonitorIframeTimeoutError());
                     return;
@@ -77,7 +78,7 @@ export class SilentHandler extends InteractionHandler {
                 const contentHash = contentWindow ? contentWindow.location.hash: Constants.EMPTY_STRING;
                 if (UrlString.hashContainsKnownProperties(contentHash)) {
                     // Success case
-                    this.removeHiddenIframe(iframe);
+                    FrameUtils.removeHiddenIframe(iframe);
                     clearInterval(intervalId);
                     resolve(contentHash);
                     return;
@@ -85,75 +86,5 @@ export class SilentHandler extends InteractionHandler {
             }, BrowserConstants.POLL_INTERVAL_MS);
         });
     }
-
-    /**
-     * @hidden
-     * Loads iframe with authorization endpoint URL
-     * @ignore
-     */
-    private loadFrame(urlNavigate: string): Promise<HTMLIFrameElement> {
-        /*
-         * This trick overcomes iframe navigation in IE
-         * IE does not load the page consistently in iframe
-         */
-
-        return new Promise((resolve, reject) => {
-            const frameHandle = this.createHiddenIframe();
-
-            setTimeout(() => {
-                if (!frameHandle) {
-                    reject("Unable to load iframe");
-                    return;
-                }
-
-                frameHandle.src = urlNavigate;
-
-                resolve(frameHandle);
-            }, this.navigateFrameWait);
-        });
-    }
-
-    /**
-     * @hidden
-     * Loads the iframe synchronously when the navigateTimeFrame is set to `0`
-     * @param urlNavigate
-     * @param frameName
-     * @param logger
-     */
-    private loadFrameSync(urlNavigate: string): HTMLIFrameElement{
-        const frameHandle = this.createHiddenIframe();
-
-        frameHandle.src = urlNavigate;
-
-        return frameHandle;
-    }
-
-    /**
-     * @hidden
-     * Creates a new hidden iframe or gets an existing one for silent token renewal.
-     * @ignore
-     */
-    private createHiddenIframe(): HTMLIFrameElement {
-        const authFrame = document.createElement("iframe");
-
-        authFrame.style.visibility = "hidden";
-        authFrame.style.position = "absolute";
-        authFrame.style.width = authFrame.style.height = "0";
-        authFrame.style.border = "0";
-        authFrame.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms");
-        document.getElementsByTagName("body")[0].appendChild(authFrame);
-
-        return authFrame;
-    }
-
-    /**
-     * @hidden
-     * Removes a hidden iframe from the page.
-     * @ignore
-     */
-    private removeHiddenIframe(iframe: HTMLIFrameElement): void {
-        if (document.body === iframe.parentNode) {
-            document.body.removeChild(iframe);
-        }
-    }
+    
 }

@@ -1,7 +1,7 @@
 // Config object to be passed to Msal on creation
 const msalConfig = {
     auth: {
-        clientId: "abdd063b-76df-4d97-afc3-05dd10c8b017"
+        clientId: "654736c7-9f4e-4158-9c22-54081d1896c6"
     },
     cache: {
         cacheLocation: "sessionStorage", // This configures where your cache will be stored
@@ -10,32 +10,34 @@ const msalConfig = {
     system: {
         loggerOptions: {
             loggerCallback: (level, message, containsPii) => {
-                if (containsPii) {	
-                    return;	
-                }	
-                message = "Child Frame: " + message;
-                switch (level) {	
-                    case msal.LogLevel.Error:	
-                        console.error(message);	
-                        return;	
-                    case msal.LogLevel.Info:	
-                        console.info(message);	
-                        return;	
-                    case msal.LogLevel.Verbose:	
-                        console.debug(message);	
-                        return;	
-                    case msal.LogLevel.Warning:	
-                        console.warn(message);	
-                        return;	
+                if (containsPii) {
+                    return;
+                }
+                message = "Broker Frame: " + message;
+                switch (level) {
+                    case msal.LogLevel.Error:
+                        console.error(message);
+                        return;
+                    case msal.LogLevel.Info:
+                        console.info(message);
+                        return;
+                    case msal.LogLevel.Verbose:
+                        console.debug(message);
+                        return;
+                    case msal.LogLevel.Warning:
+                        console.warn(message);
+                        return;
                 }
             }
         }
     },
     experimental: {
+        enable: true,
+        // TODO: Use interaction type enum
         brokerOptions: {
-            allowBrokering: true,
-            trustedBrokerDomains: ["http://localhost:30663"],
-            brokeredRedirectUri: "http://localhost:30662"
+            actAsBroker: true,
+            actAsHostedBroker: true,
+            preferredInteractionType: "popup"
         }
     }
 };
@@ -43,6 +45,7 @@ const msalConfig = {
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
 const loginRequest = {
     scopes: ["User.Read"],
+    prompt: "select_account",
     extraQueryParameters: {
         "dc": "ESTS-PUB-WUS2-AZ1-TEST1"
     }
@@ -50,8 +53,8 @@ const loginRequest = {
 
 // Add here the endpoints for MS Graph API services you would like to use.
 const graphConfig = {
-    graphMeEndpoint: "https://graph.microsoft-ppe.com/v1.0/me",
-    graphMailEndpoint: "https://graph.microsoft-ppe.com/v1.0/me/messages"
+    graphMeEndpoint: "https://graph.microsoft.com/v1.0/me",
+    graphMailEndpoint: "https://graph.microsoft.com/v1.0/me/messages"
 };
 
 // Add here scopes for access token to be used at MS Graph API endpoints.

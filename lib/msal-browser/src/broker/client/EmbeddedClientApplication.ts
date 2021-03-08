@@ -171,7 +171,7 @@ export class EmbeddedClientApplication {
                 this.logger.warning("Broker handshake timed out");
                 window.removeEventListener("message", onHandshakeResponse);
                 reject(BrowserAuthError.createMessageBrokerTimeoutError());
-            }, DEFAULT_MESSAGE_TIMEOUT);
+            }, 10000);
 
             const onHandshakeResponse = (message: MessageEvent) => {
                 try {
@@ -192,11 +192,17 @@ export class EmbeddedClientApplication {
             };
 
             window.addEventListener("message", onHandshakeResponse);
-
             const handshakeRequest = new BrokerHandshakeRequest(this.clientId, this.version);
             this.logger.verbose(`Sending handshake request: ${handshakeRequest}`);
             // Message top frame window
-            window.top.postMessage(handshakeRequest, "*");
+            setTimeout(() => {
+                // TODO: Find a way to explicitly inform that the broker is available for messaging
+                try {
+                    window.top.frames["MsalHostedBrokerFrame"].postMessage(handshakeRequest, "http://localhost:30664");
+                } catch(e) {
+                    this.logger.info(e);
+                }
+            }, 2000);
         });
     }
 
@@ -223,7 +229,7 @@ export class EmbeddedClientApplication {
                 resolve(message);
             });
             // Message top frame window
-            window.top.postMessage(payload, this.brokerOrigin, [messageChannel.port2]);
+            window.top.frames["MsalHostedBrokerFrame"].postMessage(payload, this.brokerOrigin, [messageChannel.port2]);
         });
     }
 }

@@ -14,6 +14,7 @@ const msalConfig = {
                 if (containsPii) {
                     return;
                 }
+                message = "Child Frame: " + message;
                 switch (level) {
                     case msal.LogLevel.Error:
                         console.error(message);
@@ -32,10 +33,10 @@ const msalConfig = {
         }
     },
     experimental: {
-        enable: false,
+        enable: true,
         brokerOptions: {
             allowBrokering: true,
-            trustedBrokerDomains: ["http://localhost:30663"],
+            trustedBrokerDomains: ["http://localhost:30663", "http://localhost:30664"],
             brokeredRedirectUri: "http://localhost:30662"
         }
     }
@@ -43,14 +44,14 @@ const msalConfig = {
 
 let username;
 const myMSALObj = new msal.PublicClientApplication(msalConfig);
-// myMSALObj.initializeBrokering().then(() => {
-//         // Must ensure that initialize has completed before calling any other MSAL functions
-    
-// });
-
-myMSALObj.handleRedirectPromise().then(handleResponse).catch(err => {
-    console.error(err);
-});  
+setTimeout(() => {
+    myMSALObj.experimental.initializeBrokering().then(() => {
+        // Must ensure that initialize has completed before calling any other MSAL functions
+        myMSALObj.experimental.handleRedirectPromise().then(handleResponse).catch(err => {
+            console.error(err);
+        });  
+    });
+}, 2000);
 
 const contentElement = document.getElementsByClassName("myContent")[0];
 
@@ -60,10 +61,10 @@ document.getElementById("brokerLoginBtn").addEventListener("click", () => {
         loginHint: "idlab@msidlab4.onmicrosoft.com" 
     };
     
-    myMSALObj.ssoSilent(loginReq).then(handleResponse).catch(err => {
+    myMSALObj.experimental.ssoSilent(loginReq).then(handleResponse).catch(err => {
         console.error(err);
         if (err instanceof msal.InteractionRequiredAuthError) {
-            return myMSALObj.loginPopup(loginReq).then(handleResponse);
+            return myMSALObj.experimental.loginPopup(loginReq).then(handleResponse);
         }
         contentElement.innerHTML = "I am unable to get data, from where I sit, the Identity provider does not think I am logged in";
     }).catch(err => {

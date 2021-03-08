@@ -55,6 +55,7 @@ export type CacheOptions = {
  */
 export type BrokerOptions = {
     actAsBroker?: boolean;
+    actAsHostedBroker?: boolean;
     preferredInteractionType: InteractionType.Popup | InteractionType.Redirect | InteractionType.None | null;
     allowBrokering?: boolean;
     trustedBrokerDomains?: string[];
@@ -158,6 +159,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         brokerRedirectParams: {},
         actAsBroker: false,
         allowBrokering: false,
+        actAsHostedBroker: false,
         trustedBrokerDomains: []
     };
 

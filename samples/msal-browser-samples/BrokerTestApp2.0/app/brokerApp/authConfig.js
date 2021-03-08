@@ -13,6 +13,7 @@ const msalConfig = {
                 if (containsPii) {
                     return;
                 }
+                message = "Top Frame: " + message;
                 switch (level) {
                     case msal.LogLevel.Error:
                         console.error(message);
@@ -27,7 +28,8 @@ const msalConfig = {
                         console.warn(message);
                         return;
                 }
-            }
+            },
+            logLevel: msal.LogLevel.Verbose
         }
     },
     experimental: {

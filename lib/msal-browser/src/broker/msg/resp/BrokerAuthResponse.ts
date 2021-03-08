@@ -43,25 +43,25 @@ export class BrokerAuthResponse extends BrokerMessage {
         if (!messageError) {
             return undefined;
         }
-        const errorStack = messageError.stack;
-        const errMessage = messageError.message.split(":");
+        // const errorStack = messageError.stack;
+        const errMessage = messageError.errorMessage.split(":");
         const code = errMessage.shift().trim();
         const messageBody = errMessage.join().trim();
-        if (errorStack.indexOf("InteractionRequiredAuthError") === 0) {
+        if (messageError.name.indexOf("InteractionRequiredAuthError") === 0) {
             return new InteractionRequiredAuthError(code, messageBody);
-        } else if (errorStack.indexOf("ServerError") === 0) {
+        } else if (messageError.name.indexOf("ServerError") === 0) {
             return new ServerError(code, messageBody);
-        } else if (errorStack.indexOf("ClientAuthError") === 0) {
+        } else if (messageError.name.indexOf("ClientAuthError") === 0) {
             return new ClientAuthError(code, messageBody);
-        } else if (errorStack.indexOf("ClientConfigurationError") === 0) {
+        } else if (messageError.name.indexOf("ClientConfigurationError") === 0) {
             return new ClientConfigurationError(code, messageBody);
-        } else if (errorStack.indexOf("BrowserAuthError") === 0) {
+        } else if (messageError.name.indexOf("BrowserAuthError") === 0) {
             return new BrowserAuthError(code, messageBody);
-        } else if (errorStack.indexOf("BrowserConfigurationAuthError") === 0) {
+        } else if (messageError.name.indexOf("BrowserConfigurationAuthError") === 0) {
             return new BrowserConfigurationAuthError(code, messageBody);   
-        } else if (errorStack.indexOf("BrokerAuthError") === 0) {
+        } else if (messageError.name.indexOf("BrokerAuthError") === 0) {
             return new BrokerAuthError(code, messageBody);
-        } else if (errorStack.indexOf("AuthError") === 0) {
+        } else if (messageError.name.indexOf("AuthError") === 0) {
             return new AuthError(code, messageBody);
         }
         return messageError;
