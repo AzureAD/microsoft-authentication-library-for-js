@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "add a doc for migrating from adal to msal",
-  "packageName": "@azure/msal-node",
-  "email": "samuel.kamau@microsoft.com",
-  "dependentChangeType": "none"
-}

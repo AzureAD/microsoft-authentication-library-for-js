@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update browser error doc (#3093)",
-  "packageName": "@azure/msal-browser",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "none"
-}
