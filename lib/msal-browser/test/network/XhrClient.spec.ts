@@ -83,5 +83,93 @@ describe("XhrClient.ts Unit Tests", () => {
             await expect(xhrClient.sendGetRequestAsync<any>(targetUri)).to.be.rejectedWith(BrowserAuthErrorMessage.httpMethodNotImplementedError.desc);
             await expect(xhrClient.sendGetRequestAsync<any>(targetUri)).to.be.rejectedWith(BrowserAuthError);
         });
+
+        it("throws error if xhr returns non-200 status", (done) => {
+            const xhr = sinon.useFakeXMLHttpRequest();
+            let testRequest;
+            xhr.onCreate = function(xhrRequest) {
+                testRequest = xhrRequest;
+            };
+            const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
+            const requestOptions: NetworkRequestOptions = {
+                body: "thisIsAPostBody"
+            };
+
+            xhrClient.sendPostRequestAsync<any>(targetUri, requestOptions).catch(e => {
+                expect(e).to.be.instanceOf(BrowserAuthError);
+                expect(e.errorCode).to.be.eq(BrowserAuthErrorMessage.networkRequestFailed.code);
+                expect(e.errorMessage).to.contain("Failed with status 16");
+                done();
+            });
+            testRequest.respond(16);
+        });
+
+        it("throws error if xhr request cannot parse response", (done) => {
+            const xhr = sinon.useFakeXMLHttpRequest();
+            let testRequest;
+            xhr.onCreate = function(xhrRequest) {
+                testRequest = xhrRequest;
+            };
+            const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
+            const requestOptions: NetworkRequestOptions = {
+                body: "thisIsAPostBody"
+            };
+
+            xhrClient.sendPostRequestAsync<any>(targetUri, requestOptions).catch(e => {
+                expect(e).to.be.instanceOf(BrowserAuthError);
+                expect(e.errorCode).to.be.eq(BrowserAuthErrorMessage.xhrFailedToParse.code);
+                done();
+            });
+            testRequest.respond(200, { 'Content-Type': 'text/json' }, "thisIsNotJSON");
+        });
+
+        it("throws error if xhr errors", (done) => {
+            const xhr = sinon.useFakeXMLHttpRequest();
+            let testRequest;
+            xhr.onCreate = function(xhrRequest) {
+                testRequest = xhrRequest;
+            };
+            const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
+            const requestOptions: NetworkRequestOptions = {
+                body: "thisIsAPostBody"
+            };
+
+            xhrClient.sendPostRequestAsync<any>(targetUri, requestOptions).catch(e => {
+                expect(e).to.be.instanceOf(BrowserAuthError);
+                expect(e.errorCode).to.be.eq(BrowserAuthErrorMessage.networkRequestFailed.code);
+                expect(e.errorMessage).to.contain("Failed with status 0");
+                done();
+            });
+            testRequest.error();
+        });
+
+        it("throws error if xhr errors and network is unavailable", (done) => {
+            const xhr = sinon.useFakeXMLHttpRequest();
+            let testRequest;
+            xhr.onCreate = function(xhrRequest) {
+                testRequest = xhrRequest;
+            };
+            const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
+            const requestOptions: NetworkRequestOptions = {
+                body: "thisIsAPostBody"
+            };
+
+            const oldWindow = window;
+            window = {
+                ...oldWindow, 
+                navigator: {
+                    ...oldWindow.navigator,
+                    onLine: false
+                }
+            }
+
+            xhrClient.sendPostRequestAsync<any>(targetUri, requestOptions).catch(e => {
+                expect(e).to.be.instanceOf(BrowserAuthError);
+                expect(e.errorCode).to.be.eq(BrowserAuthErrorMessage.noNetworkConnectivity.code);
+                window = oldWindow;
+                done();
+            });
+            testRequest.error(0);
+        });
     });
 });

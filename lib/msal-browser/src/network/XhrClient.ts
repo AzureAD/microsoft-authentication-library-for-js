@@ -39,13 +39,13 @@ export class XhrClient implements INetworkModule {
      * @param options 
      */
     private sendRequestAsync<T>(url: string, method: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
-        return new Promise<NetworkResponse<T>>((resolve) => {
+        return new Promise<NetworkResponse<T>>((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             xhr.open(method, url, /* async: */ true);
             this.setXhrHeaders(xhr, options);
             xhr.onload = (): void => {
                 if (xhr.status < 200 || xhr.status >= 300) {
-                    throw BrowserAuthError.createNetworkRequestFailedError(`Failed with status ${xhr.status}`, url);
+                    reject(BrowserAuthError.createNetworkRequestFailedError(`Failed with status ${xhr.status}`, url));
                 }
                 try {
                     const jsonResponse = JSON.parse(xhr.responseText) as T;
@@ -56,15 +56,15 @@ export class XhrClient implements INetworkModule {
                     };
                     resolve(networkResponse);
                 } catch (e) {
-                    throw BrowserAuthError.createXhrFailedToParseError(url);
+                    reject(BrowserAuthError.createXhrFailedToParseError(url));
                 }
             };
 
             xhr.onerror = (): void => {
                 if (window.navigator.onLine) {
-                    throw BrowserAuthError.createNetworkRequestFailedError(`Failed with status ${xhr.status}`, url);
+                    reject(BrowserAuthError.createNetworkRequestFailedError(`Failed with status ${xhr.status}`, url));
                 } else {
-                    throw BrowserAuthError.createNoNetworkConnectivityError();
+                    reject(BrowserAuthError.createNoNetworkConnectivityError());
                 }
             };
 
