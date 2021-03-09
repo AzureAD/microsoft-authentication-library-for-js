@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Throw BrowserAuthError when fetch fails #3146",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
