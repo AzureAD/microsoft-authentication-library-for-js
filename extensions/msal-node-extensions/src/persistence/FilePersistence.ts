@@ -46,7 +46,7 @@ export class FilePersistence implements IPersistence {
         }
     }
 
-    public async load(): Promise<string> {
+    public async load(): Promise<string | null> {
         try {
             return await fs.readFile(this.getFilePath(), "utf-8");
         } catch (err) {
@@ -67,7 +67,7 @@ export class FilePersistence implements IPersistence {
             await fs.unlink(this.getFilePath());
             return true;
         } catch (err) {
-            if (err.code == Constants.ENOENT_ERROR) {
+            if (err.code === Constants.ENOENT_ERROR) {
                 // file does not exist, so it was not deleted
                 this.logger.warning("Cache file does not exist, so it could not be deleted");
                 return false;
@@ -103,7 +103,7 @@ export class FilePersistence implements IPersistence {
             const stats = await fs.stat(this.filePath);
             return stats.mtime.getTime();
         } catch (err) {
-            if (err.code == Constants.ENOENT_ERROR) {
+            if (err.code === Constants.ENOENT_ERROR) {
                 // file does not exist, so it's never been modified
                 this.logger.verbose("Cache file does not exist");
                 return 0;
@@ -124,7 +124,7 @@ export class FilePersistence implements IPersistence {
         try {
             await fs.mkdir(dirname(this.filePath), {recursive: true});
         } catch (err) {
-            if (err.code == Constants.EEXIST_ERROR) {
+            if (err.code === Constants.EEXIST_ERROR) {
                 this.logger.info(`Directory ${dirname(this.filePath)}  already exists`);
             } else {
                 throw PersistenceError.createFileSystemError(err.code, err.message);
