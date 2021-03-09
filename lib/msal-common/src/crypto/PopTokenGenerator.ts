@@ -60,7 +60,7 @@ export class PopTokenGenerator {
         return this.signPayload(accessToken, tokenClaims.cnf.kid, resourceRequestMethod, resourceRequestUri);
     }
 
-    async signPayload(payload: string, kid: string, resourceRequestMethod: string, resourceRequestUri: string): Promise<string> {
+    async signPayload(payload: string, kid: string, resourceRequestMethod: string, resourceRequestUri: string, claims?: object): Promise<string> {
         const resourceUrlString: UrlString = new UrlString(resourceRequestUri);
         const resourceUrlComponents: IUri = resourceUrlString.getUrlComponents();
 
@@ -72,6 +72,7 @@ export class PopTokenGenerator {
             nonce: this.cryptoUtils.createNewGuid(),
             p: resourceUrlComponents.AbsolutePath,
             q: [[], resourceUrlComponents.QueryString],
+            ...claims
         }, kid);
     }
 }
