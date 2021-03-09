@@ -15,6 +15,7 @@
 
 1. [How do I get accounts?](#how-do-i-get-accounts)
 1. [How do I get and set active accounts?](#how-do-i-get-and-set-active-accounts)
+1. [How do I log users in when they hit the application?](#how-do-i-log-users-in-when-they-hit-the-application)
 1. [Why is my app looping when logging in with redirect?](#why-is-my-app-looping-when-logging-in-with-redirect)
 
 **[Errors](#errors)**
@@ -74,6 +75,14 @@ We recommend setting the active account:
 **Note:** Currently, active accounts are for each page load and do not persist. While this is an enhancement we are looking to make, we recommend that you set the active account for each page load.
 
 Our [Angular 11](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app) sample demonstrates basic usage. Your app may require more complicated logic to choose accounts.
+
+### How do I log users in when they hit the application?
+
+If you are wanting the users to be prompted to log in as soon as they hit your application, without needing to use a login button, we recommend setting the `MsalGuard` on your initial page. The `MsalGuard` will then prompt users to log in before they reach other pages in your application. 
+
+Additionally, if you want all your routes protected, not just your initial page, then you should all the `MsalGuard` to all your routes. Please see our [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app-routing.module.ts) for examples of how to protect routes with `MsalGuard`.
+
+We do not recommend calling `login` in the `ngOnInit` in `app.component.ts`, as this can cause looping with redirects. 
 
 ### Why is my app looping when logging in with redirect?
 
