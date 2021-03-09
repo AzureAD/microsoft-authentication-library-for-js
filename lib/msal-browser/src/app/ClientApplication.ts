@@ -743,7 +743,18 @@ export abstract class ClientApplication {
             this.logger.verbose("asyncPopup set to false, opening popup");
             popup = PopupUtils.openSizedPopup("about:blank", popupName);
         }
-        return this.logoutPopupAsync(validLogoutRequest, popupName, logoutRequest.authority, popup);
+        return this.logoutPopupAsync(validLogoutRequest, popupName, logoutRequest.authority, popup)
+            .then(() => {
+                if (logoutRequest.redirectMainWindowTo) {
+                    const navigationOptions: NavigationOptions = {
+                        apiId: ApiId.logoutPopup,
+                        timeout: this.config.system.redirectNavigationTimeout,
+                        noHistory: false
+                    };
+                    const absoluteUrl = UrlString.getAbsoluteUrl(logoutRequest.redirectMainWindowTo, BrowserUtils.getCurrentUri());
+                    this.navigationClient.navigateInternal(absoluteUrl, navigationOptions);
+                }
+            });
     }
 
     /**
