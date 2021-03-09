@@ -25,6 +25,8 @@ import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload";
 import { TimeUtils } from "../utils/TimeUtils";
+import { TokenClaims } from "../account/TokenClaims";
+import { AccountInfo } from "../account/AccountInfo";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -248,10 +250,19 @@ export class AuthorizationCodeClient extends BaseClient {
         // Add sid or loginHint with preference for sid -> loginHint -> username of AccountInfo object
         if (request.sid) {
             parameterBuilder.addSid(request.sid);
+        } else if (request.account) {
+            const accountSid = this.extractAccountSid(request.account);
+            // If account and loginHint are provided, we will check account first for sid before adding loginHint
+            if (accountSid) {
+                parameterBuilder.addSid(accountSid);
+            } else if (request.loginHint) {
+                parameterBuilder.addLoginHint(request.loginHint);
+            } else if (request.account.username) {
+                // Fallback to account username if provided
+                parameterBuilder.addLoginHint(request.account.username);
+            }
         } else if (request.loginHint) {
             parameterBuilder.addLoginHint(request.loginHint);
-        } else if (request.account && request.account.username) {
-            parameterBuilder.addLoginHint(request.account.username);
         }
 
         if (request.nonce) {
@@ -293,5 +304,17 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         return parameterBuilder.createQueryString();
+    }
+
+    /**
+     * Helper to get sid from account. Returns null if idTokenClaims are not present or sid is not present.
+     * @param account 
+     */
+    private extractAccountSid(account: AccountInfo): string | null {
+        if (account.idTokenClaims) {
+            const tokenClaims = account.idTokenClaims as TokenClaims;
+            return tokenClaims.sid || null;
+        }
+        return null;
     }
 }
