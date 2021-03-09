@@ -161,6 +161,7 @@ export class PopupUtils {
      * @param request 
      */
     static generateLogoutPopupName(clientId: string, request: CommonEndSessionRequest): string {
-        return `msal.${clientId}.${request.account?.homeAccountId}.${request.correlationId}`;
+        const homeAccountId = request.account && request.account.homeAccountId;
+        return `msal.${clientId}.${homeAccountId}.${request.correlationId}`;
     }
 }

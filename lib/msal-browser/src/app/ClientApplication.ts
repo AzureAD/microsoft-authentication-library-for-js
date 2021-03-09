@@ -24,6 +24,7 @@ import { EventType } from "../event/EventType";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 import { PopupUtils } from "../utils/PopupUtils";
+import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 
 export abstract class ClientApplication {
 
@@ -665,7 +666,7 @@ export abstract class ClientApplication {
      * Clears local cache for the current user then opens a popup window prompting the user to sign-out of the server
      * @param logoutRequest 
      */
-    async logoutPopup(logoutRequest: EndSessionRequest): Promise<void> {
+    logoutPopup(logoutRequest: EndSessionPopupRequest): Promise<void> {
         let validLogoutRequest: CommonEndSessionRequest;
         try {
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
@@ -677,17 +678,17 @@ export abstract class ClientApplication {
         }
 
         const popupName = PopupUtils.generateLogoutPopupName(this.config.auth.clientId, validLogoutRequest);
+        let popup;
 
         // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
         if (this.config.system.asyncPopups) {
             this.logger.verbose("asyncPopups set to true");
-            return this.logoutPopupAsync(validLogoutRequest, popupName, logoutRequest.authority);
         } else {
             // asyncPopups flag is set to false. Opens popup before logging out.
             this.logger.verbose("asyncPopup set to false, opening popup");
-            const popup = PopupUtils.openSizedPopup("about:blank", popupName);
-            return this.logoutPopupAsync(validLogoutRequest, popupName, logoutRequest.authority, popup);
+            popup = PopupUtils.openSizedPopup("about:blank", popupName);
         }
+        return this.logoutPopupAsync(validLogoutRequest, popupName, logoutRequest.authority, popup);
     }
 
     /**
