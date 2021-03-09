@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "fix: #3149 - Msal Redirect Component was not part of the Module",
+  "packageName": "@azure/msal-angular",
+  "email": "rchinnakampalli@worldbankgroup.org",
+  "dependentChangeType": "patch"
+}
