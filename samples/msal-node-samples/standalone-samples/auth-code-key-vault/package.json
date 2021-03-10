@@ -12,11 +12,11 @@
   "author": "Microsoft",
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-node": "file:../../../../lib/msal-node",
-    "express": "^4.17.1",
     "@azure/identity": "^1.2.3",
     "@azure/keyvault-certificates": "^4.1.0",
     "@azure/keyvault-secrets": "^4.1.0",
-    "pem": "^1.14.4"
+    "@azure/msal-node": "file:../../../../lib/msal-node",
+    "express": "^4.17.1",
+    "node-forge": "^0.10.0"
   }
 }

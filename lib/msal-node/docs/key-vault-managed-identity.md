@@ -17,13 +17,27 @@ Now you can upload your certificate to Key Vault. **Azure Key Vault** expects ce
 * *.pem* file format contains one or more X509 certificate files.
 * *.pfx* file format is an archive file format for storing several cryptographic objects in a single file i.e. server certificate (issued for your domain), a matching private key, and may optionally include an intermediate CA.
 
-We will combine our public and private key into a single *.pfx* file, and upload this file to Key Vault. For conversion, we will use OpenSSL. Type the following in a terminal:
+We will combine our public and private key into a single *.pfx* file, and upload this file to Key Vault. For conversion, we will use **OpenSSL**. Type the following in a terminal:
 
 ```console
 openssl pkcs12 -export -out example.pfx -inkey example.key -in example.crt
 ```
 
-// Upload steps
+This should give you `example.pfx`. Next, **upload** this to Key Vault.
+
+1. Navigate to your key vault on [Azure portal](https://portal.azure.com).
+1. On the Key Vault properties pages, select **Certificates**.
+1. Click on **Generate/Import**.
+1. On the **Create a certificate** screen choose the following values:
+   * **Method of Certificate Creation**: Import.
+   * **Certificate Name**: ExampleCertificate.
+   * **Upload Certificate File**: select the certificate file from disk
+   * **Password** : If you are uploading a password protected certificate file, provide that password here. Otherwise, leave it blank. Once the certificate file is successfully imported, key vault will remove that password.
+1. Click **Create**.
+
+For alternative ways of importing, see: [Tutorial: Import a certificate in Azure Key Vault](https://docs.microsoft.com/azure/key-vault/certificates/tutorial-import-certificate).
+
+> :information_source: When you import a certificate to Azure Key Vault Certificates, a corresponding private key is created automatically under Azure Key Vault Secrets. Later on, you can retrieve your private key from the Secrets blade.
 
 ### Get certificate from your vault in Node.js
 
@@ -102,15 +116,18 @@ function msalApp(thumbprint, privateKey) {
 
 async function main() {
 
-    // grab the certificate thumbprint
+    // Grab the certificate thumbprint
     const certResponse = await certClient.getCertificate(CERTIFICATE_NAME);
     const thumbprint = certResponse.properties.x509Thumbprint.toString('hex').toUpperCase();
     
-    // when you upload a certificate to Key Vault, a "secret" containing your private key is automatically created
+    // When you upload a certificate to Key Vault, a secret containing your private key is automatically created (in PFX)
     const secretResponse = await secretClient.getSecret(CERTIFICATE_NAME);
 
-    // private keys on Azure Vault are base64 encoded strings in pkcs12 syntax, which needs to be parsed first
-    pem.readPkcs12(Buffer.from(secretResponse.value, 'base64'), (err, cert) => msalApp(thumbprint, cert.key));
+    // Convert to PFX to PEM and grab the private key
+    const privateKey = convertPFX(secretResponse.value).key;
+
+    // Create initialize msal and start the server 
+    msalApp(thumbprint, privateKey);
 }
 
 main();
@@ -138,34 +155,49 @@ For more information, visit: [How to use managed identities for App Service](htt
 6. After you respond to all the prompts, **VS Code** shows the **Azure** resources that are being created for your app in its notification popup.
 7. Select **Yes** when prompted to update your configuration to run `npm install` on the target Linux server.
 
-### Step 2: Update your authentication configuration
+### Step 2: Update your app's Redirect URI
 
-Now we need to obtain authentication parameters. There are 2 things to do:
-
-* Update Azure AD **App Registration**
-* Update `index.js`.
-
-First, navigate to the [Azure portal](https://portal.azure.com) and select the **Azure AD** service.
-
+1. Navigate to [Azure portal](https://portal.azure.com) and select the **Azure AD** service.
 1. Select the **App Registrations** blade on the left, then find and select the web app that you have registered.
 1. Navigate to the **Authentication** blade. There, in **Redirect URI** section, enter the following redirect URI: `https://msal-node-webapp1.azurewebsites.net/redirect`.
 1. Select **Save** to save your changes.
 
-Now, open the `index.js` that you have deployed to **Azure App Service**.
-
-1. Find the key `redirectUri` and replace the existing value with the Redirect URI for your app. For example, `https://msal-node-webapp1.azurewebsites.net/redirect`.
-
 ### Integrate Managed Identity
-
-// Here 1
 
 #### Create a system-assigned identity
 
-// Here 2
+1. Navigate to [Azure portal](https://portal.azure.com) and select the **Azure App Service**.
+1. Find and select the App Service you've created previously.
+1. On App Service portal, select **Identity**.
+1. Within the **System assigned** tab, switch **Status** to **On**. Click **Save**.
+
+For more information, see [Add a system-assigned identity](https://docs.microsoft.com/azure/app-service/overview-managed-identity?tabs=dotnet#add-a-system-assigned-identity)
+
+#### Grant access to Key Vault
+
+Now that your app deployed to App Service has a managed identity, in this step you grant it access to your key vault.
+
+1. Go to the [Azure portal](https://portal.azure.com) and search for your Key Vault.
+1. Select **Overview** > **Access policies** blade on the left.
+1. Click on **Add Access Policy** > **Certificate permissions** > **Get**
+1. Click on **Add Access Policy** > **Secret permissions** > **Get**
+1. Click on **Select Principal**, add your account and pre-created **system-assigned** identity.
+1. Click on **OK** to add the new Access Policy, then click **Save** to save the Access Policy.
+
+For more information, see [Use Key Vault from App Service with Azure Managed Identity](https://docs.microsoft.com/samples/azure-samples/app-service-msi-keyvault-dotnet/keyvault-msi-appservice-sample/)
 
 #### Add environment variables
 
-// Here 3
+Finally, you need to add environment variables to the App Service where you deployed your web app.
+
+1. In the [Azure portal](https://portal.azure.com) , search for and select **App Service**, and then select your app.
+1. Select **Configuration** blade on the left, then select **New Application Settings**.
+1. Add the following variables (name-value):
+    1. **REDIRECT_URI**: the redirect URI you've registered on Azure AD, e.g. `https://msal-node-webapp1.azurewebsites.net/redirect`
+    1. **KEY_VAULT_NAME**: the name of the key vault you've created, e.g. `node-test-vault`
+    1. **CERTIFICATE_NAME**: the name of the certificate you specified when importing it to key vault, e.g. `ExampleCert`
+
+Wait for a few minutes for your changes to **App Service** to take effect. You should then be able to visit your published website and sign-in accordingly.
 
 ## More Information
 
