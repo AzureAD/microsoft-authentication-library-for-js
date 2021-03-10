@@ -8,7 +8,7 @@
 ## `useAccount` hook
 
 The `useAccount` hook accepts an `accountIdentifier` parameter and returns the `AccountInfo` object for that account if it is signed in or `null` if it is not.
-You can read more about the `AccountInfo` object returned in the `msal-browser` docs [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md#account-apis).
+You can read more about the `AccountInfo` object returned in the `@azure/msal-browser` docs [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md#account-apis).
 
 Note: At least one account identifier must be provided, all others are optional. Additionally we do not recommend relying only on `username`.
 
@@ -109,7 +109,7 @@ if (inProgress === "login") {
 }
 ```
 
-Docs for the APIs `PublicClientApplication` exposes can be found in the `msal-browser` docs:
+Docs for the APIs `PublicClientApplication` exposes can be found in the `@azure/msal-browser` docs:
 
 - [Login APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md)
 - [Logout API](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/logout.md)
