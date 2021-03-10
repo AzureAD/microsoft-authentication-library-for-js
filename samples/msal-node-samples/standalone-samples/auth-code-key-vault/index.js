@@ -14,7 +14,7 @@ const keyvaultSecret = require('@azure/keyvault-secrets');
 // App constants
 const SERVER_PORT = process.env.PORT || 3000;
 const CERTIFICATE_NAME = process.env["CERTIFICATE_NAME"] || "NAME_OF_YOUR_CERTIFICATE_ON_KEY_VAULT";
-const REDIRECT_URI = "http://localhost:3000/redirect";
+const REDIRECT_URI = process.env["REDIRECT_URI"] || "http://localhost:3000/redirect";
 
 // Importing from key vault
 const KEY_VAULT_NAME = process.env["KEY_VAULT_NAME"] || "YOUR_KEY_VAULT_NAME";
