@@ -1,6 +1,6 @@
-# Using msal-react with class components
+# Using @azure/msal-react with class components
 
-`msal-react` does support both function components and class components. However, you will not be able to use `msal-react` hooks inside your class components so if you need access to authentication state inside your class component you will need to use `msal-browser` directly to obtain similar functionality.
+`@azure/msal-react` does support both function components and class components. However, you will not be able to use `@azure/msal-react` hooks inside your class components so if you need access to authentication state inside your class component you will need to use `@azure/msal-browser` directly to obtain similar functionality.
 
 For a working example, see [react-router-sample](../../../samples/msal-react-samples/react-router-sample/readme.md#(optional)-msal-react-and-class-components).
 
@@ -56,9 +56,9 @@ class App extends React.Component {
 }
 ```
 
-## Accessing msal-react context in a class component
+## Accessing MSAL React context in a class component
 
-Since you can't use the `useMsal` hook to access the [msal-react context](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_react.imsalcontext.html) in a class component you have 2 other options. You can either use the raw context directly or you can use the `withMsal` higher order component to inject the context into your component's props.
+Since you can't use the `useMsal` hook to access the [MSAL React context](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_react.imsalcontext.html) in a class component you have 2 other options. You can either use the raw context directly or you can use the `withMsal` higher order component to inject the context into your component's props.
 
 ### Accessing raw context
 
@@ -128,7 +128,7 @@ For a working example, see [ProfileWithMsal.jsx](../../../samples/msal-react-sam
 
 ## Logging in using a class component
 
-Regardless of which approach you take to get the `msal-react` context the usage will be the same. Once you have the context object you can invoke [any of the APIs](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_browser.ipublicclientapplication.html) on `PublicClientApplication`, inspect the accounts signed in, or determine if authentication is currently in progress.
+Regardless of which approach you take to get the `MSAL React` context the usage will be the same. Once you have the context object you can invoke [any of the APIs](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_browser.ipublicclientapplication.html) on `PublicClientApplication`, inspect the accounts signed in, or determine if authentication is currently in progress.
 
 The following examples will show how to login using the `withMsal` HOC approach but you can quickly adapt to the other approach if needed.
 

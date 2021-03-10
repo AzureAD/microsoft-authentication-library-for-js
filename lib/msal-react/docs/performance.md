@@ -1,6 +1,6 @@
 # Performance
 
-## How to configure `msal-react` to use your router's navigate function for client-side navigation
+## How to configure `@azure/msal-react` to use your router's navigate function for client-side navigation
 
 By default, when msal.js needs to navigate from one page in your application to another it will reassign `window.location`, causing a full frame redirect to the other page and causing your application to re-render. If you're using a router this may be undesireable since many routers provide a method you can use to do "client-side" navigation and re-render only the parts of the page that need to be re-rendered.
 
@@ -48,7 +48,7 @@ class CustomNavigationClient extends NavigationClient{
 }
 ```
 
-#### Providing your custom NavigationClient to msal-browser
+#### Providing your custom NavigationClient to `@azure/msal-browser`
 
 ```javascript
 import { MsalProvider } from "@azure/msal-react";
