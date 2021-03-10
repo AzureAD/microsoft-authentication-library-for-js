@@ -48,7 +48,7 @@ export class EventMessageUtils {
             case EventType.HANDLE_REDIRECT_END:
             case EventType.LOGIN_FAILURE:
             case EventType.SSO_SILENT_FAILURE:
-            case EventType.LOGOUT_FAILURE:
+            case EventType.LOGOUT_END:
                 return InteractionStatus.None;
             case EventType.ACQUIRE_TOKEN_SUCCESS:
             case EventType.ACQUIRE_TOKEN_FAILURE:

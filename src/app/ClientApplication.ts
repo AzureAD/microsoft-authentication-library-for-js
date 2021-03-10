@@ -682,19 +682,19 @@ export abstract class ClientApplication {
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, logoutRequest && logoutRequest.authority);
             // create logout string and navigate user window to logout. Auth module will clear cache.
             const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
-            this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
-
+            
             if (!validLogoutRequest.account || AccountEntity.accountInfoIsEqual(validLogoutRequest.account, this.getActiveAccount())) {
                 this.logger.verbose("Setting active account to null");
                 this.setActiveAccount(null);
             }
-
+            
             const navigationOptions: NavigationOptions = {
                 apiId: ApiId.logout,
                 timeout: this.config.system.redirectNavigationTimeout,
                 noHistory: false
             };
             
+            this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
             // Check if onRedirectNavigate is implemented, and invoke it if so
             if (logoutRequest && typeof logoutRequest.onRedirectNavigate === "function") {
                 const navigate = logoutRequest.onRedirectNavigate(logoutUri);
@@ -715,13 +715,15 @@ export abstract class ClientApplication {
             this.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Redirect, null, e);
             throw e;
         }
+
+        this.emitEvent(EventType.LOGOUT_END, InteractionType.Redirect);
     }
 
     /**
      * Clears local cache for the current user then opens a popup window prompting the user to sign-out of the server
      * @param logoutRequest 
      */
-    logoutPopup(logoutRequest: EndSessionPopupRequest): Promise<void> {
+    logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void> {
         let validLogoutRequest: CommonEndSessionRequest;
         try {
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
@@ -743,18 +745,10 @@ export abstract class ClientApplication {
             this.logger.verbose("asyncPopup set to false, opening popup");
             popup = PopupUtils.openSizedPopup("about:blank", popupName);
         }
-        return this.logoutPopupAsync(validLogoutRequest, popupName, logoutRequest.authority, popup)
-            .then(() => {
-                if (logoutRequest.redirectMainWindowTo) {
-                    const navigationOptions: NavigationOptions = {
-                        apiId: ApiId.logoutPopup,
-                        timeout: this.config.system.redirectNavigationTimeout,
-                        noHistory: false
-                    };
-                    const absoluteUrl = UrlString.getAbsoluteUrl(logoutRequest.redirectMainWindowTo, BrowserUtils.getCurrentUri());
-                    this.navigationClient.navigateInternal(absoluteUrl, navigationOptions);
-                }
-            });
+
+        const authority = logoutRequest && logoutRequest.authority;
+        const redirectMainWindowTo = logoutRequest && logoutRequest.redirectMainWindowTo;
+        return this.logoutPopupAsync(validLogoutRequest, popupName, authority, popup, redirectMainWindowTo);
     }
 
     /**
@@ -764,7 +758,7 @@ export abstract class ClientApplication {
      * @param requestAuthority
      * @param popup 
      */
-    private async logoutPopupAsync(validRequest: CommonEndSessionRequest, popupName: string, requestAuthority?: string, popup?: Window|null): Promise<void> {
+    private async logoutPopupAsync(validRequest: CommonEndSessionRequest, popupName: string, requestAuthority?: string, popup?: Window|null, redirectMainWindowTo?: string): Promise<void> {
         this.logger.verbose("logoutPopupAsync called");
         this.emitEvent(EventType.LOGOUT_START, InteractionType.Popup, validRequest);
         
@@ -782,6 +776,8 @@ export abstract class ClientApplication {
                 this.setActiveAccount(null);
             }
 
+            this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Popup, validRequest);
+
             const popupUtils = new PopupUtils(this.browserStorage, this.logger);
             // Set interaction status in the library.
             this.logger.infoPii("Navigate to:" + logoutUri);
@@ -795,13 +791,25 @@ export abstract class ClientApplication {
             } catch {}
 
             popupUtils.cleanPopup(popupWindow);
-            this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Popup, validRequest);
+
+            if (redirectMainWindowTo) {
+                const navigationOptions: NavigationOptions = {
+                    apiId: ApiId.logoutPopup,
+                    timeout: this.config.system.redirectNavigationTimeout,
+                    noHistory: false
+                };
+                const absoluteUrl = UrlString.getAbsoluteUrl(redirectMainWindowTo, BrowserUtils.getCurrentUri());
+                this.navigationClient.navigateInternal(absoluteUrl, navigationOptions);
+            }
+
         } catch (e) {
             this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY));
             this.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Popup, null, e);
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }
+
+        this.emitEvent(EventType.LOGOUT_END, InteractionType.Popup);
     }
 
     // #endregion
