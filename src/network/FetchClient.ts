@@ -19,10 +19,19 @@ export class FetchClient implements INetworkModule {
      * @param body 
      */
     async sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
-        const response = await fetch(url, {
-            method: HTTP_REQUEST_TYPE.GET,
-            headers: this.getFetchHeaders(options)
-        });
+        let response;
+        try {
+            response = await fetch(url, {
+                method: HTTP_REQUEST_TYPE.GET,
+                headers: this.getFetchHeaders(options)
+            });
+        } catch (e) {
+            if (window.navigator.onLine) {
+                throw BrowserAuthError.createGetRequestFailedError(e, url);
+            } else {
+                throw BrowserAuthError.createNoNetworkConnectivityError();
+            }
+        }
 
         try {
             return {
@@ -53,7 +62,7 @@ export class FetchClient implements INetworkModule {
             });
         } catch (e) {
             if (window.navigator.onLine) {
-                throw BrowserAuthError.createNetworkRequestFailedError(e, url);
+                throw BrowserAuthError.createPostRequestFailedError(e, url);
             } else {
                 throw BrowserAuthError.createNoNetworkConnectivityError();
             }
