@@ -1,7 +1,7 @@
 # Microsoft Authentication Library for Angular
 
 
-Note: MSAL Angular v2 is under development. **We do not recommend using this version in a production environment yet**.
+Note: MSAL Angular v2 is under development.
 
 ![npm (scoped)](https://img.shields.io/npm/v/@azure/msal-angular)![npm](https://img.shields.io/npm/dw/@azure/msal-angular)
 
@@ -34,8 +34,8 @@ The current `@azure/msal-angular` library improves upon the previous version and
 
 ## Guides
 
-- [Upgrade Guide (1.x-2.x)](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/1.x-2.x-upgrade-guide.md)
-- [Upgrade Guide (0.x-1.x)](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v1-docs/0.x-1.x-upgrade-guide.md)
+- [Upgrade Guide (v1-v2)](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/v1-v2-upgrade-guide.md)
+- [Upgrade Guide (v0-v1)](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v1-docs/v0-v1-upgrade-guide.md)
 - [Configuration](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/configuration.md)
 
 ## Version Support

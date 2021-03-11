@@ -61,7 +61,7 @@ See the [updated sample](https://github.com/AzureAD/microsoft-authentication-lib
 
 ## Angular 9+ and rxjs@6
 
-MSAL Angular now expects that your application is built with `@angular/core@>=9`, `@angular/common@>=9`, `rxjs@6`. As with MSAL Angular 1.x, `rxjs-compat` is not required.
+MSAL Angular now expects that your application is built with `@angular/core@>=9`, `@angular/common@>=9`, `rxjs@6`. As with MSAL Angular v1, `rxjs-compat` is not required.
 
 Steps:
 1. Install newer versions of Angular and rxjs: `npm install @angular/core @angular/common rxjs`
