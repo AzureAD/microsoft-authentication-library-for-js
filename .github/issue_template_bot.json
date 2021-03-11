@@ -6,10 +6,10 @@
                     "searchStrings": ["msal@1."]
                 },
                 "msal-angular": {
-                    "searchStrings": ["msal-angular@0.", "msal-angular@1.", "msal-angular@2."]
+                    "searchStrings": ["msal-angular@"]
                 },
                 "msal-angularjs": {
-                    "searchStrings": ["msal-angularjs@1."]
+                    "searchStrings": ["msal-angularjs@"]
                 },
                 "msal-browser": {
                     "searchStrings": ["msal-browser"]
