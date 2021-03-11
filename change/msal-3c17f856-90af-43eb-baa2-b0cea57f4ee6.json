@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Dont migrate tokens for different clientId #3188",
+  "packageName": "msal",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
