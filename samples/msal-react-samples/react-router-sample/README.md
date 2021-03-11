@@ -7,7 +7,7 @@ This sample was bootstrapped with [Create React App](https://github.com/facebook
 
 ## Notable files and what they demonstrate
 
-1. `./src/App.js` - Shows implementation of `MsalProvider`, all children will have access to `msal-react` context, hooks and components.
+1. `./src/App.js` - Shows implementation of `MsalProvider`, all children will have access to `@azure/msal-react` context, hooks and components.
 1. `./src/index.js` - Shows intialization of the `PublicClientApplication` that is passed to `App.js`
 1. `./src/pages/Home.jsx` - Homepage, shows how to conditionally render content using `AuthenticatedTemplate` and `UnauthenticatedTemplate` depending on whether or not a user is signed in.
 1. `./src/pages/Profile.jsx` - Example of a protected route using `MsalAuthenticationTemplate`. If a user is not yet signed in, signin will be invoked automatically. If a user is signed in it will acquire an access token and make a call to MS Graph to fetch user profile data.
@@ -37,7 +37,7 @@ For more information, visit:
 
 ### Pre-requisites
 
-- Ensure [all pre-requisites](../../../lib/msal-react/README.md#prerequisites) have been completed to run msal-react.
+- Ensure [all pre-requisites](../../../lib/msal-react/README.md#prerequisites) have been completed to run `@azure/msal-react`.
 - Install node.js if needed (<https://nodejs.org/en/>).
 
 ### Configure the application
@@ -109,7 +109,7 @@ You will also see any lint errors in the console.
 
 #### Running the sample in IE11
 
-`msal-react` and `msal-browser` support IE11 but the `react-scripts` package requires a few polyfills to work properly. In order to run this sample in IE11 go to `src/index.js` and uncomment the first 2 imports. We recommend using the redirect flow and setting the `storeAuthStateInCookie` config parameter to `true` in IE11 as there are known issues with popups. You can read more about the known issues with IE11 [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Known-issues-on-IE-and-Edge-Browser)
+`@azure/msal-react` and `@azure/msal-browser` support IE11 but the `react-scripts` package requires a few polyfills to work properly. In order to run this sample in IE11 go to `src/index.js` and uncomment the first 2 imports. We recommend using the redirect flow and setting the `storeAuthStateInCookie` config parameter to `true` in IE11 as there are known issues with popups. You can read more about the known issues with IE11 [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Known-issues-on-IE-and-Edge-Browser)
 
 #### Learn more about the 3rd-party libraries used to create this sample
 
