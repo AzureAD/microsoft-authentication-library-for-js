@@ -125,8 +125,8 @@ export const BrowserAuthErrorMessage = {
         code: "network_request_failed",
         desc: "Network request failed: If the browser threw a CORS error, check that the redirectUri is registered in the Azure App Portal as type 'SPA'"
     },
-    xhrFailedToParse: {
-        code: "xhr_failed_to_parse_response",
+    failedToParseNetworkResponse: {
+        code: "failed_to_parse_response",
         desc: "Failed to parse network response. Check network trace."
     }
 };
@@ -368,9 +368,9 @@ export class BrowserAuthError extends AuthError {
     }
 
     /**
-     * Create an error thrown when xhr client fails to parse network response
+     * Create an error thrown when network client fails to parse network response
      */
-    static createXhrFailedToParseError(endpoint: string): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.xhrFailedToParse.code, `${BrowserAuthErrorMessage.xhrFailedToParse.desc} | Attempted to reach: ${endpoint.split("?")[0]}`);
+    static createFailedToParseNetworkResponseError(endpoint: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.failedToParseNetworkResponse.code, `${BrowserAuthErrorMessage.failedToParseNetworkResponse.desc} | Attempted to reach: ${endpoint.split("?")[0]}`);
     }
 }
