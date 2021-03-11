@@ -40,28 +40,27 @@ export class AuthCache extends BrowserStorage {// Singleton
         const errorDescKey = `${Constants.cachePrefix}.${ErrorCacheKeys.ERROR_DESC}`;
 
         const idTokenValue = super.getItem(idTokenKey);
-        const clientInfoValue = super.getItem(clientInfoKey);
-        const errorValue = super.getItem(errorKey);
-        const errorDescValue = super.getItem(errorDescKey);
 
-        const values = [errorValue, errorDescValue];
-        const keysToMigrate: string[] = [ErrorCacheKeys.ERROR, ErrorCacheKeys.ERROR_DESC];
+        let idToken;
 
         if (idTokenValue) {
             try {
-                const idToken = new IdToken(idTokenValue);
-                if (idToken.claims.aud === this.clientId) {
-                    values.push(idTokenValue, clientInfoValue);
-                    keysToMigrate.push(PersistentCacheKeys.IDTOKEN, PersistentCacheKeys.CLIENT_INFO);
-                }
+                idToken = new IdToken(idTokenValue);
             } catch (e) {
-                // If there's a problem parsing the cached token (old schema), remove it
-                super.removeItem(idTokenKey);
-                super.removeItem(clientInfoKey);
+                return;
             }
         }
 
-        keysToMigrate.forEach((cacheKey, index) => this.duplicateCacheEntry(cacheKey, values[index], storeAuthStateInCookie));
+        if (idToken && idToken.claims && idToken.claims.aud === this.clientId) {
+            const clientInfoValue = super.getItem(clientInfoKey);
+            const errorValue = super.getItem(errorKey);
+            const errorDescValue = super.getItem(errorDescKey);
+
+            const values = [idTokenValue, clientInfoValue, errorValue, errorDescValue];
+            const keysToMigrate = [PersistentCacheKeys.IDTOKEN, PersistentCacheKeys.CLIENT_INFO,ErrorCacheKeys.ERROR, ErrorCacheKeys.ERROR_DESC];
+
+            keysToMigrate.forEach((cacheKey, index) => this.duplicateCacheEntry(cacheKey, values[index], storeAuthStateInCookie));
+        }
     }
 
     /**
