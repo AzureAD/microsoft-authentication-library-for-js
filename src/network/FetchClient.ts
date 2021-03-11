@@ -23,11 +23,16 @@ export class FetchClient implements INetworkModule {
             method: HTTP_REQUEST_TYPE.GET,
             headers: this.getFetchHeaders(options)
         });
-        return {
-            headers: this.getHeaderDict(response.headers),
-            body: await response.json() as T,
-            status: response.status
-        };
+
+        try {
+            return {
+                headers: this.getHeaderDict(response.headers),
+                body: await response.json() as T,
+                status: response.status
+            };
+        } catch (e) {
+            throw BrowserAuthError.createFailedToParseNetworkResponseError(url);
+        }
     }
 
     /**
@@ -53,11 +58,16 @@ export class FetchClient implements INetworkModule {
                 throw BrowserAuthError.createNoNetworkConnectivityError();
             }
         }
-        return {
-            headers: this.getHeaderDict(response.headers),
-            body: await response.json() as T,
-            status: response.status
-        };
+
+        try {
+            return {
+                headers: this.getHeaderDict(response.headers),
+                body: await response.json() as T,
+                status: response.status
+            };
+        } catch (e) {
+            throw BrowserAuthError.createFailedToParseNetworkResponseError(url);
+        }
     }
 
     /**

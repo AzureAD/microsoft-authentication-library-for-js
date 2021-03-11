@@ -117,7 +117,7 @@ describe("XhrClient.ts Unit Tests", () => {
 
             xhrClient.sendPostRequestAsync<any>(targetUri, requestOptions).catch(e => {
                 expect(e).to.be.instanceOf(BrowserAuthError);
-                expect(e.errorCode).to.be.eq(BrowserAuthErrorMessage.xhrFailedToParse.code);
+                expect(e.errorCode).to.be.eq(BrowserAuthErrorMessage.failedToParseNetworkResponse.code);
                 done();
             });
             testRequest.respond(200, { 'Content-Type': 'text/json' }, "thisIsNotJSON");

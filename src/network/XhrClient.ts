@@ -56,7 +56,7 @@ export class XhrClient implements INetworkModule {
                     };
                     resolve(networkResponse);
                 } catch (e) {
-                    reject(BrowserAuthError.createXhrFailedToParseError(url));
+                    reject(BrowserAuthError.createFailedToParseNetworkResponseError(url));
                 }
             };
 
