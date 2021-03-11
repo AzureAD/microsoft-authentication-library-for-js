@@ -121,9 +121,13 @@ export const BrowserAuthErrorMessage = {
         code: "no_network_connectivity",
         desc: "No network connectivity. Check your internet connection."
     },
-    networkRequestFailed: {
-        code: "network_request_failed",
+    postRequestFailed: {
+        code: "post_request_failed",
         desc: "Network request failed: If the browser threw a CORS error, check that the redirectUri is registered in the Azure App Portal as type 'SPA'"
+    },
+    getRequestFailed: {
+        code: "get_request_failed",
+        desc: "Network request failed. Please check the network trace to determine root cause."
     },
     failedToParseNetworkResponse: {
         code: "failed_to_parse_response",
@@ -363,8 +367,15 @@ export class BrowserAuthError extends AuthError {
     /**
      * Create an error thrown when token fetch fails due to reasons other than internet connectivity
      */
-    static createNetworkRequestFailedError(errorDesc: string, endpoint: string): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.networkRequestFailed.code, `${BrowserAuthErrorMessage.networkRequestFailed.desc} | Network client threw: ${errorDesc} | Attempted to reach: ${endpoint.split("?")[0]}`);
+    static createPostRequestFailedError(errorDesc: string, endpoint: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.postRequestFailed.code, `${BrowserAuthErrorMessage.postRequestFailed.desc} | Network client threw: ${errorDesc} | Attempted to reach: ${endpoint.split("?")[0]}`);
+    }
+
+    /**
+     * Create an error thrown when get request fails due to reasons other than internet connectivity
+     */
+    static createGetRequestFailedError(errorDesc: string, endpoint: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.getRequestFailed.code, `${BrowserAuthErrorMessage.getRequestFailed.desc} | Network client threw: ${errorDesc} | Attempted to reach: ${endpoint.split("?")[0]}`);
     }
 
     /**
