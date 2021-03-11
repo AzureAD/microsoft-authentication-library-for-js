@@ -1,6 +1,6 @@
-# Angular 9 MSAL Angular 2.x Sample
+# Angular 9 MSAL Angular v2 Sample
 
-This developer sample is used to demonstrate how to use `@azure/msal-angular@2`.
+This developer sample is used to demonstrate how to use `@azure/msal-angular`.
 
 This project was generated with [Angular CLI](https://github.com/angular/angular-cli) version 9.0.0.
 
