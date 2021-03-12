@@ -20,13 +20,15 @@ Afterwards, add the path to `OpenSSL` to your **environment variables** so that 
 
 Type the following in a terminal. You will be prompted to enter a *pass phrase* (this is optional, but recommended):
 
-```console
-    openssl req -x509 -newkey rsa:4096 -sha256 -days 365 -keyout example.key -out example.crt -subj "/CN=example.com"
+```bash
+    openssl req -x509 -newkey rsa:2048 -sha256 -days 365 -keyout example.key -out example.crt -subj "/CN=example.com"
 ```
+
+> :lightbulb: add *-nodes* if you don't want to encrypt your private key with a *pass phrase*.
 
 In your terminal, you should see:
 
-```console
+```bash
     Generating a RSA private key
     ..............................................
     ..............................................
@@ -39,7 +41,7 @@ In your terminal, you should see:
 After that, the following files should be generated:
 
 * `example.crt`: your public key. This is the actual certificate file that you'll mainly work with.
-* `example.key`: your private key, encrypted with a *pass phrase*.
+* `example.key`: your private key
 
 > Powershell users can run the [New-SelfSignedCertificate](https://docs.microsoft.com/powershell/module/pkiclient/new-selfsignedcertificate?view=win10-ps) command:
 >
@@ -55,9 +57,7 @@ After that, the following files should be generated:
 
 You'll need to add your self-signed certificates to the *credential manager* / *key chain* of your **OS**. You may still see a warning in your browser afterwards (e.g. Chrome).
 
-* For Windows users, follow the guide here: [Installing the trusted root certificate](https://docs.microsoft.com/skype-sdk/sdn/articles/installing-the-trusted-root-certificate).
-
-> Alternatively, see: [How to: View certificates with the MMC snap-in](https://docs.microsoft.com/dotnet/framework/wcf/feature-details/how-to-view-certificates-with-the-mmc-snap-in)
+* For Windows users, follow the guide here: [Installing the trusted root certificate](https://docs.microsoft.com/skype-sdk/sdn/articles/installing-the-trusted-root-certificate) and here [How to: View certificates with the MMC snap-in](https://docs.microsoft.com/dotnet/framework/wcf/feature-details/how-to-view-certificates-with-the-mmc-snap-in).
 
 * For Linux and MacOS users, use community guides -with judgment- to learn about how to install certificates.
 
@@ -106,14 +106,30 @@ const cca = new msal.ConfidentialClientApplication(config);
 Both `thumbprint` and `privateKey` are expected to be strings. `privateKey` is further expected to be in the following form:
 
 ```text
------BEGIN PRIVATE KEY-----
+-----BEGIN ENCRYPTED PRIVATE KEY-----
 MIIJQwIBADANBgkqhkiG9w0BAQEFAASCCS0wggkpAgEAAoICAQDkpKPrsfpIijS3
 z2HCpDsa7dxOsKIrm7F1AtGBjyB0yVDjlh/FA7jT5sd2ypBh3FVsZGJudQsLRKfE
 // more lines...
------END PRIVATE KEY-----
+-----END ENCRYPTED PRIVATE KEY-----
 ```
 
 If you have encrypted your private key with a *pass phrase* as recommended, you'll need to decrypt it before passing to **MSAL Node**. This can be done using [Node crypto module](https://nodejs.org/docs/latest-v12.x/api/crypto.html):
+
+First, ensure that your private key is of type `pkcs8`:
+
+```bash
+openssl pkcs8 -topk8 -inform PEM -outform PEM -in example.key -out example.key
+```
+
+You'll be prompted for the pass phrase you specified earlier and a new encryption password:
+
+```console
+Enter pass phrase for example.key.pem:
+Enter Encryption Password:
+Verifying - Enter Encryption Password:
+```
+
+Then use the `createPrivateKey()` API to parse and export your key:
 
 ```javascript
 const fs = require('fs');
@@ -149,7 +165,8 @@ Setup a **HTTPS** server by importing the generated **certificate** and **public
     
     const options = {
         key: fs.readFileSync(path.join(__dirname + "/example.com.key")),
-        cert: fs.readFileSync(path.join(__dirname + "/example.com.crt"))
+        cert: fs.readFileSync(path.join(__dirname + "/example.com.crt")),
+        passphrase: "YOUR_PASSPHRASE" // omit if passphrase is not used
     };
     
     const server = https.createServer(options, app);

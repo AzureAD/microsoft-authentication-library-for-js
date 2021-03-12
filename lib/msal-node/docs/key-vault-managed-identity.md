@@ -1,6 +1,6 @@
 # Securing MSAL Node app credentials with Azure Key Vault and Azure Managed Identity
 
-> :warning: Before you start here, make sure you understand [Using Certificate Credentials with MSAL Node](./certificate-credentials.md).
+> :warning: Before you start here, make sure you understand [Using certificate credentials with MSAL Node](./certificate-credentials.md).
 
 ## Using Azure Key Vault
 
@@ -12,18 +12,34 @@ First, create a key vault. To do so, follow the guide: [Quickstart: Create a key
 
 > :information_source: In addition to certificates, **Azure Key Vault** can also be used for storing secrets and other sensitive information such as database connection strings and etc.
 
-Now you can upload your certificate to Key Vault. **Azure Key Vault** expects certificates in either:
+Now you can import your certificate to Key Vault. **Azure Key Vault** expects certificates in either:
 
 * *.pem* file format contains one or more X509 certificate files.
 * *.pfx* file format is an archive file format for storing several cryptographic objects in a single file i.e. server certificate (issued for your domain), a matching private key, and may optionally include an intermediate CA.
 
-We will combine our public and private key into a single *.pfx* file, and upload this file to Key Vault. For conversion, we will use **OpenSSL**. Type the following in a terminal:
+> :lightbulb: If you don't have any certificates at hand, you can use Azure Key Vault to generate it for you. It will have the additional benefits of assigning partner Certificate Authority and automating certificate rotation. For more information, see [Quickstart: Generate a certificate with Azure Key Vault using the Azure portal](https://docs.microsoft.com/azure/key-vault/certificates/quick-create-portal)
 
-```console
-openssl pkcs12 -export -out example.pfx -inkey example.key -in example.crt
+We will combine our public and private key into a single *.pem* file, and upload this file to Key Vault. For conversion, we will use **OpenSSL**. Type the following in a terminal:
+
+If your private key is encrypted, you'll have to decrypt it first:
+
+```bash
+openssl pkcs8 -in example.key -out example.key
 ```
 
-This should give you `example.pfx`. Next, **upload** this to Key Vault.
+Then combine the public key with the decrypted private key to get a single `.pem` file:
+
+```bash
+cat example.crt example.key > example.pem
+```
+
+> Powershell users can use **cat** equivalent below:
+>
+>```powershell
+>    Get-Content example.crt, exampleDecrypted.key | Set-Content example.pem
+>```
+
+This should give you `example.pem`. Next, **upload** this to Key Vault.
 
 1. Navigate to your key vault on [Azure portal](https://portal.azure.com).
 1. On the Key Vault properties pages, select **Certificates**.
@@ -37,7 +53,7 @@ This should give you `example.pfx`. Next, **upload** this to Key Vault.
 
 For alternative ways of importing, see: [Tutorial: Import a certificate in Azure Key Vault](https://docs.microsoft.com/azure/key-vault/certificates/tutorial-import-certificate).
 
-> :information_source: When you import a certificate to Azure Key Vault Certificates, a corresponding private key is created automatically under Azure Key Vault Secrets. Later on, you can retrieve your private key from the Secrets blade.
+> :information_source: When you generate/import a certificate to Azure Key Vault Certificates, a corresponding private key is created automatically under Azure Key Vault Secrets. Later on, you can retrieve your private key from the **Secrets** blade.
 
 ### Get certificate from your vault in Node.js
 
@@ -120,13 +136,13 @@ async function main() {
     const certResponse = await certClient.getCertificate(CERTIFICATE_NAME);
     const thumbprint = certResponse.properties.x509Thumbprint.toString('hex').toUpperCase();
     
-    // When you upload a certificate to Key Vault, a secret containing your private key is automatically created (in PFX)
+    // When you upload a certificate to Key Vault, a "secret" containing your private key is automatically created
     const secretResponse = await secretClient.getSecret(CERTIFICATE_NAME);
 
-    // Convert to PFX to PEM and grab the private key
-    const privateKey = convertPFX(secretResponse.value).key;
+    // secretResponse contains both public and private key, but we only need the private key
+    const privateKey = secretResponse.value.split('-----BEGIN CERTIFICATE-----\n')[0]
 
-    // Create initialize msal and start the server 
+    // Initialize msal and start the server 
     msalApp(thumbprint, privateKey);
 }
 

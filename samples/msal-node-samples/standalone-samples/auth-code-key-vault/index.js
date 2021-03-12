@@ -90,52 +90,17 @@ function msalApp(thumbprint, privateKey) {
 async function main() {
 
     // Grab the certificate thumbprint
-    const certResponse = await certClient.getCertificate(CERTIFICATE_NAME);
-    const thumbprint = certResponse.properties.x509Thumbprint.toString('hex').toUpperCase();
+    const certResponse = await certClient.getCertificate(CERTIFICATE_NAME).catch(err => console.log(err));
+    const thumbprint = certResponse.properties.x509Thumbprint.toString('hex')
     
-    // When you upload a certificate to Key Vault, a secret containing your private key is automatically created (in PFX)
-    const secretResponse = await secretClient.getSecret(CERTIFICATE_NAME);
+    // When you upload a certificate to Key Vault, a secret containing your private key is automatically created
+    const secretResponse = await secretClient.getSecret(CERTIFICATE_NAME).catch(err => console.log(err));;
 
-    // Convert to PFX to PEM and grab the private key
-    const privateKey = convertPFX(secretResponse.value).key;
+    // secretResponse contains both public and private key, but we only need the private key
+    const privateKey = secretResponse.value.split('-----BEGIN CERTIFICATE-----\n')[0]
 
     // Initialize msal and start the server 
     msalApp(thumbprint, privateKey);
-}
-
-/**
- * Implements an equivalent of "openssl pkcs12 -in certificate.pfx -out certificate.pem -nodes"
- * using node-forge https://www.npmjs.com/package/node-forge
- * @param {string} pfx: a certificate in pkcs12 format
- * @param {string} passphrase: passphrase used to encrypt pfx file
- * @returns 
- */
-function convertPFX(pfx, passphrase = null) {
-
-    const asn = forge.asn1.fromDer(forge.util.decode64(pfx));   
-    const p12 = forge.pkcs12.pkcs12FromAsn1(asn, true, passphrase);
-
-    // Retrieve key data
-    const keyData = p12.getBags({ bagType: forge.pki.oids.pkcs8ShroudedKeyBag })[forge.pki.oids.pkcs8ShroudedKeyBag]
-        .concat(p12.getBags({ bagType: forge.pki.oids.keyBag })[forge.pki.oids.keyBag]);
-
-    // Retrieve certificate data
-    const certBags = p12.getBags({ bagType: forge.pki.oids.certBag })[forge.pki.oids.certBag];
-    const certificate = forge.pki.certificateToPem(certBags[0].cert)
-
-    // Convert a forge private key to an ASN.1 RSAPrivateKey
-    const rsaPrivateKey = forge.pki.privateKeyToAsn1(keyData[0].key);
-
-    // Wrap an RSAPrivateKey ASN.1 object in a PKCS#8 ASN.1 PrivateKeyInfo
-    const privateKeyInfo = forge.pki.wrapRsaPrivateKey(rsaPrivateKey);
-
-    // Convert a PKCS#8 ASN.1 PrivateKeyInfo to PEM
-    const privateKey = forge.pki.privateKeyInfoToPem(privateKeyInfo);
-
-    return {
-        cert: certificate,
-        key: privateKey
-    };
 }
 
 main();
