@@ -69,6 +69,22 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
             });
         });
 
+        it("logoutRedirect throws", (done) => {
+            stubbedPublicClientApplication.logoutRedirect().catch(e => {
+                expect(e.errorCode).to.eq(BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled.code);
+                expect(e.errorMessage).to.eq(BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled.desc);
+                done();
+            });
+        });
+
+        it("logoutPopup throws", (done) => {
+            stubbedPublicClientApplication.logoutPopup().catch(e => {
+                expect(e.errorCode).to.eq(BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled.code);
+                expect(e.errorMessage).to.eq(BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled.desc);
+                done();
+            });
+        });
+
         it("ssoSilent throws", (done) => {
             stubbedPublicClientApplication.ssoSilent({}).catch(e => {
                 expect(e.errorCode).to.eq(BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled.code);
