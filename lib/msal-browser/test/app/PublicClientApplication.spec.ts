@@ -26,6 +26,7 @@ import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { RedirectRequest } from "../../src/request/RedirectRequest";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { NavigationOptions } from "../../src/navigation/NavigationOptions";
+import { PopupUtils } from "../../src/utils/PopupUtils";
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
@@ -329,14 +330,28 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
         });
 
-        it("logout throws", (done) => {
+        it("logoutRedirect throws", (done) => {
             const instance = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 }
             });
 
-            instance.logout()
+            instance.logoutRedirect()
+                .catch(error => {
+                    expect(error.errorCode).to.equal(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
+                    done();
+                });
+        });
+
+        it("logoutPopup throws", (done) => {
+            const instance = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                }
+            });
+
+            instance.logoutPopup()
                 .catch(error => {
                     expect(error.errorCode).to.equal(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
                     done();
@@ -1630,7 +1645,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     verifier: TEST_CONFIG.TEST_VERIFIER
                 });
 
-                const popupSpy = sinon.stub(PopupHandler, "openSizedPopup");
+                const popupSpy = sinon.stub(PopupUtils, "openSizedPopup");
 
                 try {
                     await pca.acquireTokenPopup(request);
@@ -1665,7 +1680,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
                 };
 
-                const popupSpy = sinon.stub(PopupHandler, "openSizedPopup");
+                const popupSpy = sinon.stub(PopupUtils, "openSizedPopup");
 
                 try {
                     await pca.acquireTokenPopup(request);
@@ -2088,7 +2103,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
     });
 
-    describe("logout", () => {
+    describe("logoutRedirect", () => {
 
         it("passes logoutUri from authModule to window nav util", (done) => {
             const logoutUriSpy = sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
@@ -2098,7 +2113,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 done();
                 return Promise.resolve(true);
             });
-            pca.logout();
+            pca.logoutRedirect();
             const validatedLogoutRequest: CommonEndSessionRequest = {
                 correlationId: RANDOM_TEST_GUID,
                 postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
@@ -2113,7 +2128,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 done();
                 return Promise.resolve(true);
             });
-            pca.logout({
+            pca.logoutRedirect({
                 postLogoutRedirectUri
             });
         });
@@ -2133,7 +2148,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             });
 
-            pcaWithPostLogout.logout();
+            pcaWithPostLogout.logoutRedirect();
         });
 
         it("doesnt include postLogoutRedirectUri if null is configured", (done) => {
@@ -2150,7 +2165,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             });
 
-            pcaWithPostLogout.logout();
+            pcaWithPostLogout.logoutRedirect();
         });
 
         it("doesnt include postLogoutRedirectUri if null is set on request", (done) => {
@@ -2159,7 +2174,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 done();
                 return Promise.resolve(true);
             });
-            pca.logout({
+            pca.logoutRedirect({
                 postLogoutRedirectUri: null
             });
         });
@@ -2170,7 +2185,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 done();
                 return Promise.resolve(true);
             });
-            pca.logout();
+            pca.logoutRedirect();
         });
 
         it("doesnt navigate if onRedirectNavigate returns false", (done) => {
@@ -2180,7 +2195,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 done();
                 return Promise.resolve(true);
             });
-            pca.logout({
+            pca.logoutRedirect({
                 onRedirectNavigate: (url) => {
                     expect(url).to.be.eq(testLogoutUrl);
                     done();
@@ -2196,7 +2211,136 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         
         it("throws an error if inside an iframe", async () => {
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
-            await expect(pca.logout()).to.be.rejectedWith(BrowserAuthErrorMessage.redirectInIframeError.desc);
+            await expect(pca.logoutRedirect()).to.be.rejectedWith(BrowserAuthErrorMessage.redirectInIframeError.desc);
+        });
+    });
+
+    describe("logoutPopup", () => {
+        beforeEach(() => {
+            sinon.stub(window, "open").returns(window);
+        });
+
+        afterEach(() => {
+            sinon.restore();
+        });
+
+        it("throws error if interaction is in progress", async () => {
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+
+            await expect(pca.logoutPopup()).to.be.rejectedWith(BrowserAuthErrorMessage.interactionInProgress.desc);
+            await expect(pca.logoutPopup()).to.be.rejectedWith(BrowserAuthError);
+        });
+
+        it("opens popup window before network request by default", async () => {
+            const popupSpy = sinon.stub(PopupUtils, "openSizedPopup");
+
+            try {
+                await pca.logoutPopup();
+            } catch(e) {}
+            expect(popupSpy.getCall(0).args).to.be.length(2);
+        });
+
+        it("opens popups asynchronously if configured", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    asyncPopups: true
+                }
+            });
+            sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate, popupName) => {
+                expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).to.be.true;
+                expect(popupName.startsWith(`msal.${TEST_CONFIG.MSAL_CLIENT_ID}`)).to.be.true;
+                done();
+                return null;
+            });
+
+            pca.logoutPopup().catch(() => {});
+        });
+
+        it("catches error and cleans cache before rethrowing", async () => {
+            const testError = {
+                errorCode: "create_logout_url_error",
+                errorMessage: "Error in creating a logout url"
+            };
+            sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").throws(testError);
+
+            try {
+                await pca.logoutPopup();
+            } catch (e) {
+                // Test that error was cached for telemetry purposes and then thrown
+                expect(window.sessionStorage).to.be.length(1);
+                const failures = window.sessionStorage.getItem(`server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`);
+                const failureObj = JSON.parse(failures) as ServerTelemetryEntity;
+                expect(failureObj.failedRequests).to.be.length(2);
+                expect(failureObj.failedRequests[0]).to.eq(ApiId.logoutPopup);
+                expect(failureObj.errors[0]).to.eq(testError.errorCode);
+                expect(e).to.be.eq(testError);
+            }
+        });
+
+        it("includes postLogoutRedirectUri if one is passed", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    asyncPopups: true
+                }
+            });
+            sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
+                expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).to.be.true;
+                expect(urlNavigate).to.contain(`post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`);
+                done();
+                throw "Stop Test";
+            });
+
+            const postLogoutRedirectUri = "https://localhost:8000/logout";
+
+            pca.logoutPopup({
+                postLogoutRedirectUri
+            }).catch(() => {});
+        });
+
+        it("includes postLogoutRedirectUri if one is configured", (done) => {
+            const postLogoutRedirectUri = "https://localhost:8000/logout";
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    postLogoutRedirectUri
+                },
+                system: {
+                    asyncPopups: true
+                }
+            });
+            sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
+                expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).to.be.true;
+                expect(urlNavigate).to.contain(`post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`);
+                done();
+                throw "Stop Test";
+            });
+
+            pca.logoutPopup().catch(() => {});
+        });
+
+        it("includes postLogoutRedirectUri as current page if none is set on request", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    asyncPopups: true
+                }
+            });
+            sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
+                expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).to.be.true;
+                expect(urlNavigate).to.contain(`post_logout_redirect_uri=${encodeURIComponent(window.location.href)}`);
+                done();
+                throw "Stop Test";
+            });
+
+            pca.logoutPopup().catch(() => {});
         });
     });
 
@@ -2386,13 +2530,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             it("Clears active account on logout with no account", async () => {
                 expect((pca as any).activeLocalAccountId).to.be.eq(testAccountInfo1.localAccountId);
-                await pca.logout();
+                await pca.logoutRedirect();
                 expect(pca.getActiveAccount()).to.be.null;
             });
     
             it("Clears active account on logout when the given account info matches", async () => {
                 expect((pca as any).activeLocalAccountId).to.be.eq(testAccountInfo1.localAccountId);
-                await pca.logout({
+                await pca.logoutRedirect({
                     account: testAccountInfo1
                 });
                 expect(pca.getActiveAccount()).to.be.null;
@@ -2400,7 +2544,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
             it("Does not clear active account on logout if given account object does not match", async () => {
                 expect((pca as any).activeLocalAccountId).to.be.eq(testAccountInfo1.localAccountId);
-                await pca.logout({
+                await pca.logoutRedirect({
                     account: testAccountInfo2
                 });
                 expect(pca.getActiveAccount()).to.be.deep.eq(testAccountInfo1);

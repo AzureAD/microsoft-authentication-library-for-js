@@ -1202,6 +1202,12 @@ export abstract class ClientApplication {
      */
     protected initializeLogoutRequest(logoutRequest?: EndSessionRequest): CommonEndSessionRequest {
         this.logger.verbose("initializeLogoutRequest called");
+
+        // Check if interaction is in progress. Throw error if true.
+        if (this.interactionInProgress()) {
+            throw BrowserAuthError.createInteractionInProgressError();
+        }
+
         const validLogoutRequest: CommonEndSessionRequest = {
             correlationId: this.browserCrypto.createNewGuid(),
             ...logoutRequest
