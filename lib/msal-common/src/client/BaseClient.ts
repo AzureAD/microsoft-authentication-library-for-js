@@ -3,19 +3,20 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfiguration, buildClientConfiguration, CommonClientConfiguration } from "../config/ClientConfiguration";
-import { INetworkModule } from "../network/INetworkModule";
-import { NetworkManager, NetworkResponse } from "../network/NetworkManager";
-import { ICrypto } from "../crypto/ICrypto";
-import { Authority } from "../authority/Authority";
-import { Logger } from "../logger/Logger";
-import { AADServerParamKeys, Constants, HeaderNames } from "../utils/Constants";
-import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
-import { CacheManager } from "../cache/CacheManager";
-import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
-import { RequestThumbprint } from "../network/RequestThumbprint";
-import { version, name } from "../packageMetadata";
-import { ClientAuthError } from "../error/ClientAuthError";
+import {buildClientConfiguration, ClientConfiguration, CommonClientConfiguration} from "../config/ClientConfiguration";
+import {INetworkModule} from "../network/INetworkModule";
+import {NetworkManager, NetworkResponse} from "../network/NetworkManager";
+import {ICrypto} from "../crypto/ICrypto";
+import {Authority} from "../authority/Authority";
+import {Logger} from "../logger/Logger";
+import {AADServerParamKeys, Constants, HeaderNames} from "../utils/Constants";
+import {ServerAuthorizationTokenResponse} from "../response/ServerAuthorizationTokenResponse";
+import {CacheManager} from "../cache/CacheManager";
+import {ServerTelemetryManager} from "../telemetry/server/ServerTelemetryManager";
+import {RequestThumbprint} from "../network/RequestThumbprint";
+import {name, version} from "../packageMetadata";
+import {ClientAuthError} from "../error/ClientAuthError";
+import {ProtocolMode} from "../authority/ProtocolMode";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -76,14 +77,18 @@ export abstract class BaseClient {
      */
     protected createDefaultTokenRequestHeaders(): Record<string, string> {
         const headers = this.createDefaultLibraryHeaders();
+
         headers[HeaderNames.CONTENT_TYPE] = Constants.URL_FORM_CONTENT_TYPE;
-        headers[HeaderNames.X_MS_LIB_CAPABILITY] = HeaderNames.X_MS_LIB_CAPABILITY_VALUE;
 
-        if (this.serverTelemetryManager) {
-            headers[HeaderNames.X_CLIENT_CURR_TELEM] = this.serverTelemetryManager.generateCurrentRequestHeaderValue();
-            headers[HeaderNames.X_CLIENT_LAST_TELEM] = this.serverTelemetryManager.generateLastRequestHeaderValue();
+        if (this.config.authOptions.authority.protocolMode === ProtocolMode.AAD) {
+            headers[HeaderNames.X_MS_LIB_CAPABILITY] = HeaderNames.X_MS_LIB_CAPABILITY_VALUE;
+
+            if (this.serverTelemetryManager) {
+                headers[HeaderNames.X_CLIENT_CURR_TELEM] = this.serverTelemetryManager.generateCurrentRequestHeaderValue();
+                headers[HeaderNames.X_CLIENT_LAST_TELEM] = this.serverTelemetryManager.generateLastRequestHeaderValue();
+            }
+
         }
-
         return headers;
     }
 
@@ -92,13 +97,13 @@ export abstract class BaseClient {
      */
     protected createDefaultLibraryHeaders(): Record<string, string> {
         const headers: Record<string, string> = {};
-
-        // client info headers
-        headers[AADServerParamKeys.X_CLIENT_SKU] = this.config.libraryInfo.sku;
-        headers[AADServerParamKeys.X_CLIENT_VER] = this.config.libraryInfo.version;
-        headers[AADServerParamKeys.X_CLIENT_OS] = this.config.libraryInfo.os;
-        headers[AADServerParamKeys.X_CLIENT_CPU] = this.config.libraryInfo.cpu;
-
+        if(this.config.authOptions.authority.protocolMode === ProtocolMode.AAD) {
+            // client info headers
+            headers[AADServerParamKeys.X_CLIENT_SKU] = this.config.libraryInfo.sku;
+            headers[AADServerParamKeys.X_CLIENT_VER] = this.config.libraryInfo.version;
+            headers[AADServerParamKeys.X_CLIENT_OS] = this.config.libraryInfo.os;
+            headers[AADServerParamKeys.X_CLIENT_CPU] = this.config.libraryInfo.cpu;
+        }
         return headers;
     }
 
@@ -113,7 +118,7 @@ export abstract class BaseClient {
         const response = await this.networkManager.sendPostRequest<ServerAuthorizationTokenResponse>(
             thumbprint,
             tokenEndpoint,
-            { body: queryString, headers: headers }
+            {body: queryString, headers: headers}
         );
 
         if (this.config.serverTelemetryManager && response.status < 500 && response.status !== 429) {
@@ -126,7 +131,7 @@ export abstract class BaseClient {
 
     /**
      * Updates the authority object of the client. Endpoint discovery must be completed.
-     * @param updatedAuthority 
+     * @param updatedAuthority
      */
     updateAuthority(updatedAuthority: Authority): void {
         if (!updatedAuthority.discoveryComplete()) {

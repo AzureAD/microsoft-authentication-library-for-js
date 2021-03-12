@@ -154,8 +154,8 @@ export const mockCrypto = {
 };
 
 export class ClientTestUtils {
-    
-    static async createTestClientConfiguration(): Promise<ClientConfiguration>{
+
+    static async createTestClientConfiguration(authorityOptions?: AuthorityOptions): Promise<ClientConfiguration>{
         const mockStorage = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
 
         const testLoggerCallback = (): void => {
@@ -171,12 +171,15 @@ export class ClientTestUtils {
             }
         };
 
-        const authorityOptions: AuthorityOptions = {
-            protocolMode: ProtocolMode.AAD,
-            knownAuthorities: [TEST_CONFIG.validAuthority],
-            cloudDiscoveryMetadata: "",
-            authorityMetadata: ""
-        };
+        if (!authorityOptions) {
+            authorityOptions = {
+                protocolMode: ProtocolMode.AAD,
+                knownAuthorities: [TEST_CONFIG.validAuthority],
+                cloudDiscoveryMetadata: "",
+                authorityMetadata: ""
+            };
+        }
+
         const authority  = AuthorityFactory.createInstance(TEST_CONFIG.validAuthority, mockHttpClient, mockStorage, authorityOptions);
 
         await authority.resolveEndpointsAsync().catch(error => {

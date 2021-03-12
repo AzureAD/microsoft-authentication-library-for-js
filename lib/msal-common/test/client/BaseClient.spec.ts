@@ -1,11 +1,11 @@
-import { expect } from "chai";
-import { BaseClient } from "../../src/client/BaseClient";
-import { Authority, Constants, ServerTelemetryManager, ServerTelemetryRequest } from "../../src";
-import { AADServerParamKeys, HeaderNames } from "../../src/utils/Constants";
-import { ClientTestUtils, mockCrypto, MockStorageClass } from "./ClientTestUtils";
-import { ClientConfiguration } from "../../src/config/ClientConfiguration";
+import {expect} from "chai";
+import {BaseClient} from "../../src/client/BaseClient";
+import {Authority, Constants, ProtocolMode, ServerTelemetryManager, ServerTelemetryRequest} from "../../src";
+import {AADServerParamKeys, HeaderNames} from "../../src/utils/Constants";
+import {ClientTestUtils, mockCrypto, MockStorageClass} from "./ClientTestUtils";
+import {ClientConfiguration} from "../../src/config/ClientConfiguration";
 import sinon from "sinon";
-import { DEFAULT_OPENID_CONFIG_RESPONSE, TEST_CONFIG } from "../utils/StringConstants";
+import {DEFAULT_OPENID_CONFIG_RESPONSE, TEST_CONFIG} from "../utils/StringConstants";
 
 class TestClient extends BaseClient {
 
@@ -89,6 +89,23 @@ describe("BaseClient.ts Class Unit Tests", () => {
             expect(headers[AADServerParamKeys.X_CLIENT_CPU]).to.eq(TEST_CONFIG.TEST_CPU);
         });
 
+        it("Creates default library headers for OIDC mode", async () => {
+            const config = await ClientTestUtils.createTestClientConfiguration({
+                protocolMode: ProtocolMode.OIDC,
+                knownAuthorities: [TEST_CONFIG.validAuthority],
+                cloudDiscoveryMetadata: "",
+                authorityMetadata: ""
+            });
+
+            const client = new TestClient(config);
+            const headers = client.createDefaultTokenRequestHeaders();
+            expect(headers[HeaderNames.CONTENT_TYPE]).to.eq(Constants.URL_FORM_CONTENT_TYPE);
+            expect(headers[AADServerParamKeys.X_CLIENT_SKU]).to.be.undefined;
+            expect(headers[AADServerParamKeys.X_CLIENT_VER]).to.be.undefined;
+            expect(headers[AADServerParamKeys.X_CLIENT_OS]).to.be.undefined;
+            expect(headers[AADServerParamKeys.X_CLIENT_CPU]).to.be.undefined;
+        });
+
         it("Creates telemetry headers if serverTelemetryManager is available on BaseClient", async () => {
             const config = await ClientTestUtils.createTestClientConfiguration();
             const telemetryPayload: ServerTelemetryRequest = {
@@ -122,5 +139,7 @@ describe("BaseClient.ts Class Unit Tests", () => {
             expect(headers[AADServerParamKeys.X_CLIENT_CPU]).to.eq(TEST_CONFIG.TEST_CPU);
             expect(headers[HeaderNames.CONTENT_TYPE]).to.eq(Constants.URL_FORM_CONTENT_TYPE);
         });
+
+
     });
 });
