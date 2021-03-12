@@ -1,4 +1,4 @@
-# Errors
+# MSAL Angular v2 Errors
 
 ***
 
@@ -18,7 +18,7 @@
 
 This error is thrown when an interactive API (`loginPopup`, `loginRedirect`, `acquireTokenPopup`, `acquireTokenRedirect`) is invoked while another interactive API is still in progress. The login and acquireToken APIs are async so you will need to ensure that the resulting promises have resolved before invoking another one.
 
-In `msal-angular` there are 2 common scenarios when this can happen:
+In `@azure/msal-angular` there are 2 common scenarios when this can happen:
 
 1. Your application is not handling redirects correctly. The error then occurs when either the app or the user tries to call an interactive API. 
 1. Your application is calling one of the above APIs without first checking if interaction is already in progress elsewhere.
@@ -27,7 +27,7 @@ We recommend that you bootstrap the the **`MsalRedirectComponent`** if you want 
 
 We also recommend that any interaction should be done after subscribing to the `inProgress$` subject and filtering for none. Please see our [events doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/events.md#the-inprogress-observable) for more details. 
 
-Please see the [`msal-browser` error doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/errors.md) for more information on this error.
+Please see the [`@azure/msal-browser` error doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/errors.md) for more information on this error.
 
 ❌ The following example will throw this error when another component has already invoked an interactive API that is in progress:
 
