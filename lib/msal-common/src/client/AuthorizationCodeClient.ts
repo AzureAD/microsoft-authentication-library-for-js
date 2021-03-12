@@ -77,7 +77,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        return await responseHandler.handleServerTokenResponse(response.body, this.authority, reqTimestamp, request.resourceRequestMethod, request.resourceRequestUri, authCodePayload);
+        return await responseHandler.handleServerTokenResponse(response.body, this.authority, reqTimestamp, request.resourceRequestMethod, request.resourceRequestUri, authCodePayload, request.scopes);
     }
 
     /**
@@ -308,7 +308,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
     /**
      * Helper to get sid from account. Returns null if idTokenClaims are not present or sid is not present.
-     * @param account 
+     * @param account
      */
     private extractAccountSid(account: AccountInfo): string | null {
         if (account.idTokenClaims) {
