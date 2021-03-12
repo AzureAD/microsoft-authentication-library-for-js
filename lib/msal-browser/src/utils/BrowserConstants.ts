@@ -93,6 +93,7 @@ export enum BrokerMessageType {
     REDIRECT_RESPONSE = "BrokerRedirectResponse",
     HANDLE_REDIRECT_REQUEST = "BrokerHandleRedirectRequest",
     AUTH_RESULT = "BrokerAuthResult",
+    BROKER_READY_REQUEST = "BrokerReadyRequest"
 }
 
 export const DEFAULT_REQUEST: RedirectRequest|PopupRequest = {

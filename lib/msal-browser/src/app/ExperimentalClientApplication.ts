@@ -17,12 +17,13 @@ import { ApiId, InteractionType } from "../utils/BrowserConstants";
 import { ClientApplication } from "./ClientApplication";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { BrokerClientApplication } from "../broker/client/BrokerClientApplication";
-
+import { HostedBrokerClientApplication } from "../broker/client/HostedBrokerClientApplication";
 export class ExperimentalClientApplication extends ClientApplication implements IPublicClientApplication {
 
     // Broker Objects
     protected embeddedApp?: EmbeddedClientApplication;
-    protected broker?: BrokerClientApplication;
+    protected broker?: BrokerClientApplication|HostedBrokerClientApplication;
+    protected brokerFrame?: HTMLIFrameElement;
     
     constructor(configuration: Configuration, parent: ClientApplication) {
         super(configuration);
@@ -61,6 +62,14 @@ export class ExperimentalClientApplication extends ClientApplication implements 
             
             this.broker = new BrokerClientApplication(this.config);
             this.logger.verbose("Acting as Broker");
+            this.broker.listenForBrokerMessage();
+        } else if (this.config.experimental.brokerOptions.actAsHostedBroker) {
+            if(this.config.experimental.brokerOptions.allowBrokering) {
+                this.logger.verbose("Running in top frame and both actAsBroker, allowBrokering flags set to true. actAsBroker takes precedence.");
+            }
+            
+            this.broker = new HostedBrokerClientApplication(this.config);
+            this.logger.verbose("Acting as Hosted Broker");
             this.broker.listenForBrokerMessage();
         } else if (this.config.experimental.brokerOptions.allowBrokering) {
             this.embeddedApp = new EmbeddedClientApplication(this.config.auth.clientId, this.config.experimental.brokerOptions, this.logger, this.browserStorage);

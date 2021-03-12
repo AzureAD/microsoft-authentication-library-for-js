@@ -198,7 +198,7 @@ export class EmbeddedClientApplication {
             setTimeout(() => {
                 // TODO: Find a way to explicitly inform that the broker is available for messaging
                 try {
-                    window.top.frames["MsalHostedBrokerFrame"].postMessage(handshakeRequest, "http://localhost:30664");
+                    window.top.postMessage(handshakeRequest, "*");
                 } catch(e) {
                     this.logger.info(e);
                 }

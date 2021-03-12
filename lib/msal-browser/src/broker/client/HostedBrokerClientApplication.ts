@@ -8,8 +8,6 @@ import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeCl
 import { BrokerMessage } from "../msg/BrokerMessage";
 import { BrokerMessageType, InteractionType } from "../../utils/BrowserConstants";
 import { Configuration } from "../../config/Configuration";
-import { BrokerHandshakeRequest } from "../msg/req/BrokerHandshakeRequest";
-import { BrokerHandshakeResponse } from "../msg/resp/BrokerHandshakeResponse";
 import { BrokerAuthRequest } from "../msg/req/BrokerAuthRequest";
 import { BrokerRedirectResponse } from "../msg/resp/BrokerRedirectResponse";
 import { BrokerAuthResponse } from "../msg/resp/BrokerAuthResponse";
@@ -22,6 +20,7 @@ import { BrokerRedirectRequest } from "../request/BrokerRedirectRequst";
 import { BrokerSsoSilentRequest } from "../request/BrokerSsoSilentRequest";
 import { AuthorizationUrlRequest } from "../../request/AuthorizationUrlRequest";
 import { BrokerStateObject } from "../../utils/BrowserProtocolUtils";
+import { BrokerReadyRequest } from "../msg/req/BrokerReadyRequest";
 
 /**
  * Broker Application class to manage brokered requests.
@@ -35,6 +34,9 @@ export class HostedBrokerClientApplication extends ClientApplication {
         super(configuration);
 
         this.currentBrokerRedirectResponse = undefined;
+        const hostedBrokerReady = new BrokerReadyRequest(this.config.auth.clientId, version);
+        window.parent.postMessage(hostedBrokerReady, "*");
+        this.logger.info("Sent broker ready request");
     }
 
     /**
@@ -93,9 +95,11 @@ export class HostedBrokerClientApplication extends ClientApplication {
         const clientMessage = BrokerMessage.validateMessage(message);
         if (clientMessage) {
             switch (clientMessage.data.messageType) {
-                case BrokerMessageType.HANDSHAKE_REQUEST:
-                    this.logger.verbose("Broker handshake request received");
-                    return await this.handleBrokerHandshake(clientMessage);
+                /*
+                 * case BrokerMessageType.HANDSHAKE_REQUEST:
+                 *     this.logger.verbose("Broker handshake request received");
+                 *     return await this.handleBrokerHandshake(clientMessage);
+                 */
                 case BrokerMessageType.HANDLE_REDIRECT_REQUEST:
                     this.logger.verbose("Broker handle redirect request received");
                     return await this.handleBrokerRedirectResponse(clientMessage);
@@ -106,22 +110,6 @@ export class HostedBrokerClientApplication extends ClientApplication {
                     return;
             }
         }
-    }
-
-    /* eslint-disable */
-    /**
-     * Handle a broker handshake request from a child.
-     * @param clientMessage 
-     */
-    private async handleBrokerHandshake(clientMessage: MessageEvent): Promise<void> {
-        const validMessage = BrokerHandshakeRequest.validate(clientMessage);
-        this.logger.verbose(`Broker handshake validated: ${validMessage}`);
-        // TODO: Add broker origin here
-        const brokerHandshakeResponse = new BrokerHandshakeResponse(version, "");
-
-        // @ts-ignore
-        clientMessage.source.postMessage(brokerHandshakeResponse, clientMessage.origin);
-        this.logger.info(`Sending handshake response to ${clientMessage.origin}`);
     }
 
     /**
@@ -144,7 +132,7 @@ export class HostedBrokerClientApplication extends ClientApplication {
                 const brokerResponse = JSON.parse(cachedBrokerResponse) as BrokerAuthenticationResult;
                 const clientPort = clientMessage.ports[0];
                 const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Redirect, brokerResponse);
-                this.logger.info(`Sending auth response`);
+                this.logger.info("Sending auth response");
                 clientPort.postMessage(brokerAuthResponse);
                 clientPort.close();
                 return;
@@ -187,7 +175,7 @@ export class HostedBrokerClientApplication extends ClientApplication {
                 const brokerResponse = JSON.parse(cachedBrokerResponse) as BrokerAuthenticationResult;
                 const clientPort = clientMessage.ports[0];
                 const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Redirect, brokerResponse);
-                this.logger.info(`Sending auth response`);
+                this.logger.info("Sending auth response");
                 clientPort.postMessage(brokerAuthResponse);
                 clientPort.close();
                 return;
@@ -217,7 +205,7 @@ export class HostedBrokerClientApplication extends ClientApplication {
      * @param messageInteractionType 
      */
     private getInteractionType(messageInteractionType: InteractionType): InteractionType {
-        const configuredPreferredType = this.config.experimental!.brokerOptions.preferredInteractionType;;
+        const configuredPreferredType = this.config.experimental!.brokerOptions.preferredInteractionType;
         return configuredPreferredType ? configuredPreferredType : messageInteractionType;
     }
 
@@ -234,13 +222,13 @@ export class HostedBrokerClientApplication extends ClientApplication {
             case InteractionType.Popup:
                 return this.brokeredPopupRequest(validMessage, clientMessage.ports[0]);
             case InteractionType.Silent:
-                this.logger.error("Invalid code path. interactiveBrokerRequest() should only be called for interactive requests.")
+                this.logger.error("Invalid code path. interactiveBrokerRequest() should only be called for interactive requests.");
                 return;
             case InteractionType.None:
-                this.logger.error("Broker is blocking interactive requests. Please attempt a silent request or sign into the broker first.")
+                this.logger.error("Broker is blocking interactive requests. Please attempt a silent request or sign into the broker first.");
                 return;
             default:
-                this.logger.error("Invalid code path. interactiveBrokerRequest() should only be called for interactive requests.")
+                this.logger.error("Invalid code path. interactiveBrokerRequest() should only be called for interactive requests.");
                 return;
         }
     }
@@ -259,23 +247,14 @@ export class HostedBrokerClientApplication extends ClientApplication {
             clientPort.close();
             this.logger.info(`Sending redirect response: ${brokerRedirectResp}`);
 
-            // Initialize the brokered redirect request with the required parameters.
-            const redirectRequest = validMessage.request as BrokerRedirectRequest;
-            redirectRequest.redirectUri = validMessage.embeddedAppOrigin;
-            redirectRequest.embeddedAppClientId = validMessage.embeddedClientId;
-            redirectRequest.brokerRedirectUri = this.getRedirectUri();
+            if (window.parent !== window.top) {
+                throw BrokerAuthError.createBrokerRedirectBlockedError();
+            }
 
-            // Update parameters in request with required broker parameters
-            const validatedBrokerRequest = this.initializeBrokeredRequest(redirectRequest, InteractionType.Redirect, validMessage.embeddedAppOrigin);
-
-            // Call acquireTokenRedirect()
-            this.acquireTokenRedirectAsync(
-                validatedBrokerRequest, 
-                this.config.experimental?.brokerOptions.brokerRedirectParams?.redirectStartPage, 
-                this.config.experimental?.brokerOptions.brokerRedirectParams?.onRedirectNavigate);
+            window.parent.postMessage(validMessage, "*");
         } catch (err) {
             const brokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, null, err);
-            this.logger.info(`Found auth error in popup: ${err}`);
+            this.logger.info(`Found auth error in redirect: ${err}`);
             clientPort.postMessage(brokerAuthResponse);
             clientPort.close();
         }        
@@ -295,12 +274,12 @@ export class HostedBrokerClientApplication extends ClientApplication {
             popupRequest.brokerRedirectUri = this.getRedirectUri();
             
             // Update parameters in request with required broker parameters
-            const validatedBrokerRequest = this.initializeBrokeredRequest(popupRequest, InteractionType.Popup, validMessage.embeddedAppOrigin);
+            const validatedBrokerRequest = this.initializeBrokeredRequest(popupRequest, InteractionType.Popup);
             
             // Call acquireTokenPopup() and send the response back to the embedded application. 
             const response = (await this.acquireTokenPopupAsync(validatedBrokerRequest, "")) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, response);
-            this.logger.info(`Sending auth response`);
+            this.logger.info("Sending auth response");
             clientPort.postMessage(brokerAuthResponse);
             clientPort.close();
         } catch (err) {
@@ -325,12 +304,12 @@ export class HostedBrokerClientApplication extends ClientApplication {
             silentRequest.brokerRedirectUri = this.getRedirectUri();
             
             // Update parameters in request with required broker parameters
-            const brokeredSilentRequest = this.initializeBrokeredRequest(silentRequest, InteractionType.Silent, validMessage.embeddedAppOrigin);
+            const brokeredSilentRequest = this.initializeBrokeredRequest(silentRequest, InteractionType.Silent);
             
             // Call ssoSilent() and send the response back to the embedded application. 
             const response: BrokerAuthenticationResult = (await this.acquireTokenByIframe(brokeredSilentRequest)) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, response);
-            this.logger.info(`Sending auth response`);
+            this.logger.info("Sending auth response");
             clientPort.postMessage(JSON.parse(JSON.stringify(brokerAuthResponse)));
             clientPort.close();
         } catch (err) {
@@ -406,7 +385,7 @@ export class HostedBrokerClientApplication extends ClientApplication {
      * @param interactionType 
      * @param messageOrigin 
      */
-    private initializeBrokeredRequest(embeddedRequest: BrokerRedirectRequest|BrokerPopupRequest|BrokerSsoSilentRequest, interactionType: InteractionType, messageOrigin: string): AuthorizationUrlRequest {
+    private initializeBrokeredRequest(embeddedRequest: BrokerRedirectRequest|BrokerPopupRequest|BrokerSsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
         let embeddedState: string = Constants.EMPTY_STRING;
         if (embeddedRequest.state) {
             const embeddedStateObj = ProtocolUtils.parseRequestState(this.browserCrypto, embeddedRequest.state);

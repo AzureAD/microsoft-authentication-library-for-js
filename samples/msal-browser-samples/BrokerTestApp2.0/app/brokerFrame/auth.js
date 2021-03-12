@@ -20,9 +20,11 @@ let username = "";
 const myMSALObj = new msal.PublicClientApplication(msalConfig);
 myMSALObj.experimental.initializeBrokering().then(() => {
     // Must ensure that initialize has completed before calling any other MSAL functions
-    myMSALObj.experimental.handleRedirectPromise().then(handleResponse).catch(err => {
-        console.error(err);
-    });
+    // myMSALObj.experimental.handleRedirectPromise().then(handleResponse).catch(err => {
+    //     console.error(err);
+    // });
+}).catch((e) => {
+    console.error(e);
 });
 
 function handleResponse(resp) {

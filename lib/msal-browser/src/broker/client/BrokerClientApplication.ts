@@ -15,7 +15,6 @@ import { BrokerHandleRedirectRequest } from "../msg/req/BrokerHandleRedirectRequ
 import { BrokerAuthResponse } from "../msg/resp/BrokerAuthResponse";
 import { BrokerAuthRequest } from "../msg/req/BrokerAuthRequest";
 import { BrokerAuthError } from "../../error/BrokerAuthError";
-import { BrokerRedirectResponse } from "../msg/resp/BrokerRedirectResponse";
 import { BrokerRedirectRequest } from "../request/BrokerRedirectRequst";
 import { BrokerPopupRequest } from "../request/BrokerPopupRequest";
 import { BrokerSsoSilentRequest } from "../request/BrokerSsoSilentRequest";
@@ -23,17 +22,20 @@ import { BrokerSilentRequest } from "../request/BrokerSilentRequest";
 import { BrokerStateObject } from "../../utils/BrowserProtocolUtils";
 import { AuthorizationUrlRequest } from "../../request/AuthorizationUrlRequest";
 import { FrameUtils } from "../../interaction_handler/FrameUtils";
+import { BrokerReadyRequest } from "../msg/req/BrokerReadyRequest";
 
 export class BrokerClientApplication extends ClientApplication {
 
     // Current promise which is processing the hash in the url response, trading for tokens, and caching the brokered response in memory.
     private currentBrokerRedirectResponse?: Promise<BrokerAuthenticationResult | null>;
     protected brokerFrame?: HTMLIFrameElement;
+    protected brokeredOrigins: Array<MessageEvent>;
 
     constructor(configuration: Configuration) {
         super(configuration);
 
         this.currentBrokerRedirectResponse = undefined;
+        this.brokeredOrigins = [];
     }
 
     /**
@@ -88,6 +90,7 @@ export class BrokerClientApplication extends ClientApplication {
      * @param message 
      */
     private async handleBrokerMessage(message: MessageEvent): Promise<void> {
+        this.logger.info(`request received:${message}`);
         // Check that message is a BrokerHandshakeRequest
         const clientMessage = BrokerMessage.validateMessage(message);
         if (clientMessage) {
@@ -95,6 +98,9 @@ export class BrokerClientApplication extends ClientApplication {
                 case BrokerMessageType.HANDSHAKE_REQUEST:
                     this.logger.verbose("Broker handshake request received");
                     return await this.handleBrokerHandshake(clientMessage);
+                case BrokerMessageType.BROKER_READY_REQUEST:
+                    this.logger.verbose("Hosted Broker Ready request received");
+                    return await this.handleHostedBrokerReady(clientMessage);
                 case BrokerMessageType.HANDLE_REDIRECT_REQUEST:
                     this.logger.verbose("Broker handle redirect request received");
                     return await this.handleBrokerRedirectResponse(clientMessage);
@@ -107,6 +113,21 @@ export class BrokerClientApplication extends ClientApplication {
         }
     }
 
+    private async handleHostedBrokerReady(clientMessage: MessageEvent): Promise<void> {
+        const validMessage = BrokerReadyRequest.validate(clientMessage);
+        this.logger.verbose(`Hosted broker ready request validated: ${validMessage}`);
+        // TODO: Add broker origin here
+        const brokerHandshakeResponse = new BrokerHandshakeResponse(version, "http://localhost:30664");
+        
+        this.brokeredOrigins.forEach((clientMessage: MessageEvent) => {
+            if (clientMessage) {
+                // @ts-ignore
+                clientMessage.source.postMessage(brokerHandshakeResponse, clientMessage.origin);
+                this.logger.info(`Sending handshake response to ${clientMessage.origin}`);
+            }
+        });
+    }
+
     /* eslint-disable */
     /**
      * Handle a broker handshake request from a child.
@@ -115,20 +136,21 @@ export class BrokerClientApplication extends ClientApplication {
     private async handleBrokerHandshake(clientMessage: MessageEvent): Promise<void> {
         const validMessage = BrokerHandshakeRequest.validate(clientMessage);
         this.logger.verbose(`Broker handshake validated: ${validMessage}`);
-        // TODO: Add broker origin here
-        const brokerHandshakeResponse = new BrokerHandshakeResponse(version, "");
 
-                    
-        if (this.config.experimental && !this.config.experimental.brokerOptions.actAsHostedBroker) {
+        if (!this.brokerFrame) {
+            this.brokeredOrigins.push(clientMessage);
+
             this.brokerFrame = FrameUtils.loadFrameSync("http://localhost:30664");
             this.brokerFrame.name = "MsalHostedBrokerFrame";
             this.brokerFrame.id = "MsalHostedBrokerFrame";
             document.body.appendChild(this.brokerFrame);
+            this.logger.info("Created broker frame");            
+        } else {
+            // @ts-ignore
+            clientMessage.source.postMessage(brokerHandshakeResponse, clientMessage.origin);
+            this.logger.info(`Sending handshake response to ${clientMessage.origin}`);
+            return;
         }
-
-        // @ts-ignore
-        clientMessage.source.postMessage(brokerHandshakeResponse, clientMessage.origin);
-        this.logger.info(`Sending handshake response to ${clientMessage.origin}`);
     }
 
     /**
@@ -260,11 +282,11 @@ export class BrokerClientApplication extends ClientApplication {
     private async brokeredRedirectRequest(validMessage: BrokerAuthRequest, clientPort: MessagePort): Promise<void> {
         try {
             // Inform embedded application that a redirect will occur
-            const brokerRedirectResp = new BrokerRedirectResponse();
+            // const brokerRedirectResp = new BrokerRedirectResponse();
             // @ts-ignore
-            clientPort.postMessage(brokerRedirectResp);
-            clientPort.close();
-            this.logger.info(`Sending redirect response: ${brokerRedirectResp}`);
+            // clientPort.postMessage(brokerRedirectResp);
+            // clientPort.close();
+            // this.logger.info(`Sending redirect response: ${brokerRedirectResp}`);
 
             // Initialize the brokered redirect request with the required parameters.
             const redirectRequest = validMessage.request as BrokerRedirectRequest;

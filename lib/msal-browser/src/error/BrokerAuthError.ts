@@ -20,6 +20,10 @@ export const BrokerAuthErrorMessage = {
     brokerRequestIncompleteError: {
         code: "broker_request_incomplete",
         desc: "The brokered request did not have the expected values."
+    },
+    brokerRedirectBlockedError: {
+        code: "broker_redirect_blocked",
+        desc: "The brokered redirect was blocked because the parent frame of the hosted broker was not the top frame. Please use a popup APIs."
     }
 };
 
@@ -59,5 +63,14 @@ export class BrokerAuthError extends BrowserAuthError {
     static createBrokerRequestIncompleteError(): BrokerAuthError {
         return new BrokerAuthError(BrokerAuthErrorMessage.brokerRequestIncompleteError.code,
             `${BrokerAuthErrorMessage.brokerRequestIncompleteError.desc}`);
+    }
+
+    /**
+     * Creates an error thrown when the broker response is invalid.
+     * @param errDetail 
+     */
+    static createBrokerRedirectBlockedError(): BrokerAuthError {
+        return new BrokerAuthError(BrokerAuthErrorMessage.brokerRedirectBlockedError.code,
+            `${BrokerAuthErrorMessage.brokerRedirectBlockedError.desc}`);
     }
 }

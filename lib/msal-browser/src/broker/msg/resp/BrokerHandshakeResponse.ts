@@ -41,7 +41,7 @@ export class BrokerHandshakeResponse extends BrokerMessage {
                 throw BrowserAuthError.createUntrustedBrokerError();
             }
 
-            return new BrokerHandshakeResponse(validMessage.data.version, validMessage.origin);
+            return new BrokerHandshakeResponse(validMessage.data.version, validMessage.data.brokerOrigin);
         }
         return null;
     }

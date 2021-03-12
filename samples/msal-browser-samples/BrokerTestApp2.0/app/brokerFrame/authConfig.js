@@ -35,9 +35,8 @@ const msalConfig = {
         enable: true,
         // TODO: Use interaction type enum
         brokerOptions: {
-            actAsBroker: true,
             actAsHostedBroker: true,
-            preferredInteractionType: "popup"
+            preferredInteractionType: "redirect"
         }
     }
 };
