@@ -459,7 +459,7 @@ import { MsalConfigDynamicModule } from './msal-config-dynamic.module';
     MatToolbarModule,
     MatListModule,
     HttpClientModule,
-    MsalConfigDynamicModule.forRoot('configuration.json')
+    MsalConfigDynamicModule.forRoot('assets/configuration.json')
   ],
   providers: [
   ],
