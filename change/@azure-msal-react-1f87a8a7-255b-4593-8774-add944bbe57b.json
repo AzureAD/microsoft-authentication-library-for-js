@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Update getting-started.md",
+  "packageName": "@azure/msal-react",
+  "email": "hraz@microsoft.com",
+  "dependentChangeType": "none"
+}
