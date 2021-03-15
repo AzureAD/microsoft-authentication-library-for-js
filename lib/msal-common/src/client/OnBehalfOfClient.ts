@@ -89,7 +89,10 @@ export class OnBehalfOfClient extends BaseClient {
                 idToken: cachedIdToken,
                 refreshToken: null,
                 appMetadata: null
-            }, true, idTokenObject);
+            },
+            true,
+            request,
+            idTokenObject);
     }
 
     /**

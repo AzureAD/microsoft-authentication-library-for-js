@@ -7,7 +7,7 @@
  * BaseAuthRequest
  * - scopes                  - Array of scopes the application is requesting access to.
  * - claims                  - A stringified claims request which will be added to all /authorize and /token calls
- * - clientClaims            - A stringified claims object which will be added to a Signed HTTP Request
+ * - shrClaims               - A stringified claims object which will be added to a Signed HTTP Request
  * - authority               - URL of the authority, the security token service (STS) from which MSAL will acquire tokens. Defaults to https://login.microsoftonline.com/common. If using the same authority for all request, authority should set on client application object and not request, to avoid resolving authority endpoints multiple times.
  * - correlationId           - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - resourceRequestMethod      - HTTP Request type used to request data from the resource (i.e. "GET", "POST", etc.).  Used for proof-of-possession flows.
@@ -18,7 +18,7 @@ export type BaseAuthRequest = {
     correlationId: string;
     scopes: Array<string>;
     claims?: string;
-    clientClaims?: string;
+    shrClaims?: string;
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
 };
