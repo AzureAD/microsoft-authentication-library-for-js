@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add network error for failed requests (#3146)",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

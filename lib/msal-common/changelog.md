@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Wed, 03 Mar 2021 21:47:05 GMT and should not be manually modified.
+This log was last generated on Mon, 15 Mar 2021 23:45:17 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 4.0.3
+
+Mon, 15 Mar 2021 23:45:17 GMT
+
+### Patches
+
+- Use sid from account when available #3147 (prkanher@microsoft.com)
+- Add network error for failed requests (#3146) (thomas.norling@microsoft.com)
 
 ## 4.0.2
 
