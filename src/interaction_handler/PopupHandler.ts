@@ -65,6 +65,13 @@ export class PopupHandler extends InteractionHandler {
 
             this.popupUtils.monitorPopupForSameOrigin(popupWindow).then(() => {
                 const intervalId = setInterval(() => {
+                    if (popupWindow.closed) {
+                        // Window is closed
+                        this.popupUtils.cleanPopup();
+                        clearInterval(intervalId);
+                        reject(BrowserAuthError.createUserCancelledError());
+                        return;
+                    }
                     // Only run clock when we are on same domain
                     ticks++;
                     const contentHash = popupWindow.location.hash;

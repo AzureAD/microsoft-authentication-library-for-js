@@ -141,6 +141,7 @@ export class PopupUtils {
                     return;
                 }
 
+                clearInterval(intervalId);
                 resolve();
             }, BrowserConstants.POLL_INTERVAL_MS);
         });
