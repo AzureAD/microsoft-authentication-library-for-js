@@ -112,7 +112,6 @@ export class ResponseHandler {
         reqTimestamp: number,
         request: BaseAuthRequest,
         authCodePayload?: AuthorizationCodePayload,
-        requestScopes?: string[],
         oboAssertion?: string,
         handlingRefreshTokenResponse?: boolean): Promise<AuthenticationResult> {
 
@@ -138,7 +137,7 @@ export class ResponseHandler {
             requestStateObj = ProtocolUtils.parseRequestState(this.cryptoObj, authCodePayload.state);
         }
 
-        const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, reqTimestamp, idTokenObj, requestScopes, oboAssertion, authCodePayload);
+        const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, reqTimestamp, idTokenObj, request.scopes, oboAssertion, authCodePayload);
         let cacheContext;
         try {
             if (this.persistencePlugin && this.serializableCache) {
@@ -156,7 +155,7 @@ export class ResponseHandler {
                 const account = this.cacheStorage.getAccount(key);
                 if (!account) {
                     this.logger.warning("Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache");
-                    return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, idTokenObj, request, requestStateObj);
+                    return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj);
                 }
             }
             this.cacheStorage.saveCacheRecord(cacheRecord);
@@ -166,7 +165,7 @@ export class ResponseHandler {
                 await this.persistencePlugin.afterCacheAccess(cacheContext);
             }
         }
-        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, idTokenObj, request, requestStateObj);
+        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj);
     }
 
     /**
