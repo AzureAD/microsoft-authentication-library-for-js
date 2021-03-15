@@ -1,4 +1,4 @@
-# MSAL Angular Public APIs for MSAL Angular v2
+# Public APIs for MSAL Angular v2
 
 Before you start here, make sure you understand how to [initialize the application object](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-angular-v2/lib/msal-angular/docs/v2-docs/initialization.md).
 
