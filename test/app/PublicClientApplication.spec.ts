@@ -27,6 +27,7 @@ import { RedirectRequest } from "../../src/request/RedirectRequest";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { NavigationOptions } from "../../src/navigation/NavigationOptions";
 import { PopupUtils } from "../../src/utils/PopupUtils";
+import { EndSessionPopupRequest } from "../../src/request/EndSessionPopupRequest";
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
@@ -2208,6 +2209,26 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             expect(logoutUriSpy.calledWith(validatedLogoutRequest));
         });
+
+        it("does navigate if onRedirectNavigate returns true", (done) => {
+            const logoutUriSpy = sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(urlNavigate).to.be.eq(testLogoutUrl);
+                done();
+                return Promise.resolve(true);
+            });
+            pca.logoutRedirect({
+                onRedirectNavigate: (url) => {
+                    expect(url).to.be.eq(testLogoutUrl);
+                    return true;
+                }
+            });
+            const validatedLogoutRequest: CommonEndSessionRequest = {
+                correlationId: RANDOM_TEST_GUID,
+                postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
+            };
+            expect(logoutUriSpy.calledWith(validatedLogoutRequest));
+        });
         
         it("throws an error if inside an iframe", async () => {
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
@@ -2341,6 +2362,25 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             pca.logoutPopup().catch(() => {});
+        });
+
+        it("redirects main window when logout is complete", (done) => {
+            const popupWindow = {...window};
+            sinon.stub(PopupUtils, "openSizedPopup").returns(popupWindow);
+            sinon.stub(PopupUtils.prototype, "openPopup").returns(popupWindow);
+            sinon.stub(PopupUtils.prototype, "cleanPopup");
+            sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((url, navigationOptions) => {
+                expect(url.endsWith("/home")).to.be.true;
+                expect(navigationOptions.apiId).to.be.eq(ApiId.logoutPopup);
+                done();
+                return Promise.resolve(false);
+            });
+
+            const request: EndSessionPopupRequest = {
+                redirectMainWindowTo: "/home"
+            };
+
+            pca.logoutPopup(request);
         });
     });
 
@@ -2526,15 +2566,19 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(options.noHistory).to.be.false;
                     return Promise.resolve(true);
                 });
+                const popupWindow = {...window};
+                sinon.stub(PopupUtils.prototype, "openPopup").returns(popupWindow);
+                sinon.stub(PopupUtils, "openSizedPopup").returns(popupWindow);
+                sinon.stub(PopupUtils.prototype, "cleanPopup");
             });
 
-            it("Clears active account on logout with no account", async () => {
+            it("Clears active account on logoutRedirect with no account", async () => {
                 expect((pca as any).activeLocalAccountId).to.be.eq(testAccountInfo1.localAccountId);
                 await pca.logoutRedirect();
                 expect(pca.getActiveAccount()).to.be.null;
             });
     
-            it("Clears active account on logout when the given account info matches", async () => {
+            it("Clears active account on logoutRedirect when the given account info matches", async () => {
                 expect((pca as any).activeLocalAccountId).to.be.eq(testAccountInfo1.localAccountId);
                 await pca.logoutRedirect({
                     account: testAccountInfo1
@@ -2542,9 +2586,31 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(pca.getActiveAccount()).to.be.null;
             });
 
-            it("Does not clear active account on logout if given account object does not match", async () => {
+            it("Does not clear active account on logoutRedirect if given account object does not match", async () => {
                 expect((pca as any).activeLocalAccountId).to.be.eq(testAccountInfo1.localAccountId);
                 await pca.logoutRedirect({
+                    account: testAccountInfo2
+                });
+                expect(pca.getActiveAccount()).to.be.deep.eq(testAccountInfo1);
+            });
+
+            it("Clears active account on logoutPopup with no account", async () => {
+                expect((pca as any).activeLocalAccountId).to.be.eq(testAccountInfo1.localAccountId);
+                await pca.logoutPopup();
+                expect(pca.getActiveAccount()).to.be.null;
+            });
+    
+            it("Clears active account on logoutPopup when the given account info matches", async () => {
+                expect((pca as any).activeLocalAccountId).to.be.eq(testAccountInfo1.localAccountId);
+                await pca.logoutPopup({
+                    account: testAccountInfo1
+                });
+                expect(pca.getActiveAccount()).to.be.null;
+            });
+
+            it("Does not clear active account on logoutPopup if given account object does not match", async () => {
+                expect((pca as any).activeLocalAccountId).to.be.eq(testAccountInfo1.localAccountId);
+                await pca.logoutPopup({
                     account: testAccountInfo2
                 });
                 expect(pca.getActiveAccount()).to.be.deep.eq(testAccountInfo1);
