@@ -312,7 +312,7 @@ const acquireAccessToken = async (msalInstance) => {
         */   
     }
     const request = {
-        scopes: ["User.Read"]
+        scopes: ["User.Read"],
         account: activeAccount || accounts[0]
     };
 
