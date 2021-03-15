@@ -46,6 +46,21 @@ function buildNotesForComments(commits, label) {
     ];
 }
 
+async function createGithubMilestone(name, version) {
+    const title = `${name}@${version}`;
+
+    try {
+        // Next patch milestone
+        const nextPatchMilestone = await octokit.issues.createMilestone({
+            ...repoMeta,
+            title
+        });
+        console.log(`Milestone created: ${title}`);
+    } catch (e) {
+        console.log(`Milestone exists: ${title}`);
+    }
+}
+
 async function createReleaseForFolder(folderName) {
     const {
         name,
@@ -153,43 +168,19 @@ async function createReleaseForFolder(folderName) {
         }
 
         const currentVersion = new semver.SemVer(version);
-        const nextPatchVersion = semver.inc(version, "patch");
         
-        try {
-            // Next patch milestone
-            const nextPatchMilestone = await octokit.issues.createMilestone({
-                ...repoMeta,
-                title: `${name}@${nextPatchVersion}`
-            });
-            console.log(`Milestone created: ${name}@${version}`);
-        } catch (e) {
-            console.log(`Milestone exists: ${name}@${version}`);
-        }
-
+        // Next patch milestone
+        const nextPatchVersion = semver.inc(currentVersion.raw, "patch");
+        await createGithubMilestone(name, nextPatchVersion);
+        
         if (currentVersion.prerelease.length) {
-            try {
-                // Next prerelease milestone
-                const nextPrereleaseVersion = semver.inc(currentVersion.raw, "prerelease")
-                const nextPreleaseMilestone = await octokit.issues.createMilestone({
-                    ...repoMeta,
-                    title: `${name}@${nextPrereleaseVersion}`
-                });
-                console.log(`Milestone created: ${name}@${version}`);
-            } catch (e) {
-                console.log(`Milestone exists: ${name}@${version}`);
-            }
+            // Next prerelease milestone
+            const nextPrereleaseVersion = semver.inc(currentVersion.raw, "prerelease")
+            await createGithubMilestone(name, nextPrereleaseVersion);
         } else {
-            try {
-                // Next minor milestone
-                const nextMinorVersion = semver.inc(currentVersion.raw, "minor")
-                const nextMinorMilestone = await octokit.issues.createMilestone({
-                    ...repoMeta,
-                    title: `${name}@${nextMinorVersion}`
-                });
-                console.log(`Milestone created: ${name}@${version}`);
-            } catch (e) {
-                console.log(`Milestone exists: ${name}@${version}`);
-            }
+            // Next minor milestone
+            const nextMinorVersion = semver.inc(currentVersion.raw, "minor")
+            await createGithubMilestone(name, nextMinorVersion);
         }
     } else {
         console.log(`Release exists for: ${tag_name}`);
