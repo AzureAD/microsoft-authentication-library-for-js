@@ -1,6 +1,6 @@
-# Upgrading from MSAL Angular 0.x to 1.x
+# Upgrading from MSAL Angular v0 to v1
 
-MSAL Angular 1.x brings our Angular wrapper up-to-date with the latest version of MSAL core, and with out-of-the-box support for modern versions of Angular (6+) and rxjs (6).
+MSAL Angular v1 brings our Angular wrapper up-to-date with the latest version of MSAL core, and with out-of-the-box support for modern versions of Angular (6+) and rxjs (6).
 
 This guide will demonstrate changes needed to migrate an existing application from `@azure/msal-angular@0.x` to `@azure/msal-angular@1.0.0`.
 
@@ -13,7 +13,7 @@ The first fundamental change to MSAL Angular is that the core `msal` package is 
 Steps:
 1. Install `msal` and `@azure/msal-angular`: `npm install msal@beta @azure/msal-angular@beta`.
 
-## Breaking changes in msal@1
+## Breaking changes in MSAL.js v1
 
 `msal@1` includes a number of breaking changes from `msal@0.2.x`. Many of these should be abstracted away from your application, but there are a few which will require code changes.
 

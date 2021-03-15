@@ -16,7 +16,7 @@ describe("Configuration.ts Class Unit Tests", () => {
     const testLoggerCallback = (level: LogLevel, message: string, containsPii: boolean): void => {}
 
     it("buildConfiguration assigns default values", () => {
-        let emptyConfig: Configuration = buildConfiguration({auth: null});
+        let emptyConfig: Configuration = buildConfiguration({auth: null}, true);
         // Auth config checks
         expect(emptyConfig.auth).to.be.not.null;
         expect(emptyConfig.auth.clientId).to.be.empty;
