@@ -38,14 +38,18 @@ export class XhrClient implements INetworkModule {
      * @param method 
      * @param options 
      */
-    private sendRequestAsync<T>(url: string, method: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
+    private sendRequestAsync<T>(url: string, method: HTTP_REQUEST_TYPE, options?: NetworkRequestOptions): Promise<NetworkResponse<T>> {
         return new Promise<NetworkResponse<T>>((resolve, reject) => {
             const xhr = new XMLHttpRequest();
             xhr.open(method, url, /* async: */ true);
             this.setXhrHeaders(xhr, options);
             xhr.onload = (): void => {
                 if (xhr.status < 200 || xhr.status >= 300) {
-                    reject(xhr.responseText);
+                    if (method === HTTP_REQUEST_TYPE.POST) {
+                        reject(BrowserAuthError.createPostRequestFailedError(`Failed with status ${xhr.status}`, url));
+                    } else {
+                        reject(BrowserAuthError.createGetRequestFailedError(`Failed with status ${xhr.status}`, url));
+                    }
                 }
                 try {
                     const jsonResponse = JSON.parse(xhr.responseText) as T;
@@ -56,17 +60,25 @@ export class XhrClient implements INetworkModule {
                     };
                     resolve(networkResponse);
                 } catch (e) {
-                    reject(xhr.responseText);
+                    reject(BrowserAuthError.createFailedToParseNetworkResponseError(url));
                 }
             };
 
             xhr.onerror = (): void => {
-                reject(xhr.status);
+                if (window.navigator.onLine) {
+                    if (method === HTTP_REQUEST_TYPE.POST) {
+                        reject(BrowserAuthError.createPostRequestFailedError(`Failed with status ${xhr.status}`, url));
+                    } else {
+                        reject(BrowserAuthError.createGetRequestFailedError(`Failed with status ${xhr.status}`, url));
+                    }
+                } else {
+                    reject(BrowserAuthError.createNoNetworkConnectivityError());
+                }
             };
 
-            if (method === "POST" && options && options.body) {
+            if (method === HTTP_REQUEST_TYPE.POST && options && options.body) {
                 xhr.send(options.body);
-            } else if (method === "GET") {
+            } else if (method === HTTP_REQUEST_TYPE.GET) {
                 xhr.send();
             } else {
                 throw BrowserAuthError.createHttpMethodNotImplementedError(method);
