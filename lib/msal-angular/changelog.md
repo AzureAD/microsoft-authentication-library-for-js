@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Wed, 03 Mar 2021 21:47:05 GMT and should not be manually modified.
+This log was last generated on Mon, 15 Mar 2021 23:45:17 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.0.0-beta.1
+
+Mon, 15 Mar 2021 23:45:17 GMT
+
+### Changes
+
+- fix: #3149 - Msal Redirect Component was not part of the Module (rchinnakampalli@worldbankgroup.org)
 
 ## 2.0.0-beta.0
 

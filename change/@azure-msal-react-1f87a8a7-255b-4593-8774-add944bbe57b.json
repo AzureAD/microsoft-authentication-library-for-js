@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Docs fix syntax error (#3209)",
-  "packageName": "@azure/msal-react",
-  "email": "hraz@microsoft.com",
-  "dependentChangeType": "none"
-}
