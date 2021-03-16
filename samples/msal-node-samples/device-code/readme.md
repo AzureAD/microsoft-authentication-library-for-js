@@ -1,4 +1,4 @@
-# MSAL Node Standalone Sample:  Device Code
+# MSAL Node Sample:  Device Code
 
 This sample application demonstrates how to use the Device Code Grant APIs provided by MSAL Node.js in a Node application.
 

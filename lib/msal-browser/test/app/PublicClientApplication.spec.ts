@@ -219,6 +219,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("Non-browser environment", () => {
+        // @ts-ignore
         let oldWindow;
 
         beforeEach(() => {

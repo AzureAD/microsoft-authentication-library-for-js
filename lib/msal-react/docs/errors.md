@@ -18,9 +18,9 @@
 
 ### stubbed_public_client_application_called
 
-**Error Message**: Stub instance of Public Client Application was called. If using msal-react, please ensure context is not used without a provider.
+**Error Message**: Stub instance of Public Client Application was called. If using `@azure/msal-react`, please ensure context is not used without a provider.
 
-When using `msal-react` this error is thrown when you try to use an msal component or hook without an `MsalProvider` higher up in the component tree. All `msal-react` hooks and components make use of the [React Context API](https://reactjs.org/docs/context.html) and require a provider.
+When using `@azure/msal-react` this error is thrown when you try to use an msal component or hook without an `MsalProvider` higher up in the component tree. All hooks and components make use of the [React Context API](https://reactjs.org/docs/context.html) and require a provider.
 
 ❌ The following example will throw this error because the `useMsal` hook is used outside the context of `MsalProvider`:
 
@@ -72,9 +72,9 @@ function App() {
 
 This error is thrown when an interactive API (`loginPopup`, `loginRedirect`, `acquireTokenPopup`, `acquireTokenRedirect`) is invoked while another interactive API is still in progress. The login and acquireToken APIs are async so you will need to ensure that the resulting promises have resolved before invoking another one.
 
-In `msal-react` there are 2 scenarios when this can happen:
+In `@azure/msal-react` there are 2 scenarios when this can happen:
 
-1. Your application is calling one of the above APIs outside of the `msal-react` context where you do not have access to the `inProgress` state. For more about context see the [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/FAQ.md#what-can-i-do-outside-of-msal-react-context)
+1. Your application is calling one of the above APIs outside of the context where you do not have access to the `inProgress` state. For more about context see the [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/FAQ.md#what-can-i-do-outside-of-msal-react-context)
 1. Your application is calling one of the above APIs without first checking if interaction is already in progress elsewhere.
 
 ❌ The following example will throw this error when another component has already invoked an interactive API that is in progress:

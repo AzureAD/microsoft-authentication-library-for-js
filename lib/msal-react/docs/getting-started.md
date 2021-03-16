@@ -3,12 +3,12 @@
 1. [Initialization](#initialization)
 1. [Determining whether a user is authenticated](#determining-whether-a-user-is-authenticated)
 1. [Protecting Components](#protecting-components)
-1. [Sign a user in using the login APIs provided by msal-browser](#sign-a-user-in-using-the-login-apis-provided-by-msal-browser)
+1. [Sign a user in using the login APIs provided by @azure/msal-browser](#sign-a-user-in-using-the-login-apis-provided-by-azuremsal-browser)
 1. [Acquiring an access token](#acquiring-an-access-token)
 
 ## Initialization
 
-`msal-react` is built on the [React context API](https://reactjs.org/docs/context.html) and all parts of your app that require authentication must be wrapped in the `MsalProvider` component. You will first need to [initialize](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/initialization.md) an instance of `PublicClientApplication` then pass this to `MsalProvider` as a prop.
+`@azure/msal-react` is built on the [React context API](https://reactjs.org/docs/context.html) and all parts of your app that require authentication must be wrapped in the `MsalProvider` component. You will first need to [initialize](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/initialization.md) an instance of `PublicClientApplication` then pass this to `MsalProvider` as a prop.
 
 ```javascript
 import React from "react";
@@ -38,11 +38,11 @@ const AppProvider = () => (
 ReactDOM.render(<AppProvider />, document.getElementById("root"));
 ```
 
-All components underneath `MsalProvider` will have access to the `PublicClientApplication` instance via context as well as all hooks and components provided by `msal-react`.
+All components underneath `MsalProvider` will have access to the `PublicClientApplication` instance via context as well as all hooks and components provided by `@azure/msal-react`.
 
 ## Determining whether a user is authenticated
 
-Most applications will need to conditionally render certain components based on whether a user is signed in or not. `msal-react` provides 2 easy ways to do this.
+Most applications will need to conditionally render certain components based on whether a user is signed in or not. `@azure/msal-react` provides 2 easy ways to do this.
 
 ### `AuthenticatedTemplate` and `UnauthenticatedTemplate`
 
@@ -95,7 +95,7 @@ export function App() {
 
 ## Protecting Components
 
-If you have components you only want to show to authenticated users you can use any of the methods above. But what if you want to automatically invoke a login if a user is not yet authenticated? `msal-react` provides 2 ways of doing this with the `MsalAuthenticationTemplate` or the `useMsalAuthentication` hook.
+If you have components you only want to show to authenticated users you can use any of the methods above. But what if you want to automatically invoke a login if a user is not yet authenticated? `@azure/msal-react` provides 2 ways of doing this with the `MsalAuthenticationTemplate` or the `useMsalAuthentication` hook.
 
 ### `MsalAuthenticationTemplate` Component
 
@@ -163,9 +163,9 @@ export function App() {
 }
 ```
 
-## Sign a user in using the login APIs provided by `msal-browser`
+## Sign a user in using the login APIs provided by `@azure/msal-browser`
 
-Another way to invoke a sign-in is by using `msal-browser` APIs directly from the `PublicClientApplication` instance in context. There are 3 ways you can access the instance from context.
+Another way to invoke a sign-in is by using `@azure/msal-browser` APIs directly from the `PublicClientApplication` instance in context. There are 3 ways you can access the instance from context.
 
 ### `useMsal` hook
 
@@ -198,7 +198,7 @@ export function App() {
 ### Consuming the raw context
 
 If you are using a class component and can't use hooks you can consume the raw msal context through `MsalContext`.
-You can read more about using `msal-react` in class components [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/class-components.md).
+You can read more about using `@azure/msal-react` in class components [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/class-components.md).
 
 ```javascript
 import React from "react";
@@ -249,7 +249,7 @@ export default YourWrappedComponent = withMsal(LoginButton);
 
 ## Acquiring an access token
 
-We recommend that your app calls the `acquireTokenSilent` API on your `PublicClientApplication` object each time you need an access token to access an API. This can be done similar to the ways laid out in the previous section: [Call login APIs provided by `msal-browser`](#call-login-apis-provided-by-msal-browser)
+We recommend that your app calls the `acquireTokenSilent` API on your `PublicClientApplication` object each time you need an access token to access an API. This can be done similar to the ways laid out in the previous section: [Call login APIs provided by `@azure/msal-browser`](#call-login-apis-provided-by-@azure/msal-browser)
 
 ```javascript
 import React, { useState, useEffect } from "react"
@@ -312,7 +312,7 @@ const acquireAccessToken = async (msalInstance) => {
         */   
     }
     const request = {
-        scopes: ["User.Read"]
+        scopes: ["User.Read"],
         account: activeAccount || accounts[0]
     };
 

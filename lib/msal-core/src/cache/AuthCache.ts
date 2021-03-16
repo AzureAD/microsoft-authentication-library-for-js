@@ -10,6 +10,7 @@ import { BrowserStorage } from "./BrowserStorage";
 import { RequestUtils } from "../utils/RequestUtils";
 import { AccessTokenKey } from "./AccessTokenKey";
 import { StringUtils } from "../utils/StringUtils";
+import { IdToken } from "../IdToken";
 
 /**
  * @hidden
@@ -39,14 +40,27 @@ export class AuthCache extends BrowserStorage {// Singleton
         const errorDescKey = `${Constants.cachePrefix}.${ErrorCacheKeys.ERROR_DESC}`;
 
         const idTokenValue = super.getItem(idTokenKey);
-        const clientInfoValue = super.getItem(clientInfoKey);
-        const errorValue = super.getItem(errorKey);
-        const errorDescValue = super.getItem(errorDescKey);
 
-        const values = [idTokenValue, clientInfoValue, errorValue, errorDescValue];
-        const keysToMigrate = [PersistentCacheKeys.IDTOKEN, PersistentCacheKeys.CLIENT_INFO, ErrorCacheKeys.ERROR, ErrorCacheKeys.ERROR_DESC];
+        let idToken;
 
-        keysToMigrate.forEach((cacheKey, index) => this.duplicateCacheEntry(cacheKey, values[index], storeAuthStateInCookie));
+        if (idTokenValue) {
+            try {
+                idToken = new IdToken(idTokenValue);
+            } catch (e) {
+                return;
+            }
+        }
+
+        if (idToken && idToken.claims && idToken.claims.aud === this.clientId) {
+            const clientInfoValue = super.getItem(clientInfoKey);
+            const errorValue = super.getItem(errorKey);
+            const errorDescValue = super.getItem(errorDescKey);
+
+            const values = [idTokenValue, clientInfoValue, errorValue, errorDescValue];
+            const keysToMigrate = [PersistentCacheKeys.IDTOKEN, PersistentCacheKeys.CLIENT_INFO,ErrorCacheKeys.ERROR, ErrorCacheKeys.ERROR_DESC];
+
+            keysToMigrate.forEach((cacheKey, index) => this.duplicateCacheEntry(cacheKey, values[index], storeAuthStateInCookie));
+        }
     }
 
     /**

@@ -1,6 +1,6 @@
-# Events in msal-react
+# Events in MSAL React
 
-For the most part `msal-react` abstracts away login calls and the handling of the response. As an application developer you are mostly left to determine which components should be protected and which method you'd like to use to sign your users in, but may be less concerned with the specifics of the response. There may be cases, however, where your application needs direct access to the response of a login call or maybe you need to handle a specific error. `msal-browser` exposes an [Event API](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/events.md) you can use for this purpose and this doc will walk you through how you can take advantage of this in a react app.
+For the most part `@azure/msal-react` abstracts away login calls and the handling of the response. As an application developer you are mostly left to determine which components should be protected and which method you'd like to use to sign your users in, but may be less concerned with the specifics of the response. There may be cases, however, where your application needs direct access to the response of a login call or maybe you need to handle a specific error. `@azure/msal-browser` exposes an [Event API](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/events.md) you can use for this purpose and this doc will walk you through how you can take advantage of this in a react app.
 
 ## Registering and unregistering an event callback
 
