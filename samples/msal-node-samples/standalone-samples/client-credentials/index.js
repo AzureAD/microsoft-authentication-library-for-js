@@ -7,9 +7,9 @@ var msal = require('@azure/msal-node');
 
 const config = {
     auth: {
-        clientId: "6cae280d-dab5-4a63-87f7-38bc383dd8a3",
-        authority: "https://login.microsoftonline.com/72f988bf-86f1-41af-91ab-2d7cd011db47",
-        clientSecret: "HX8_2DBRk1.cbV_XS5L0UraJe-2Q14jCrI"
+        clientId: "48f55727-da76-4dbb-9908-d9335f239e20",
+        authority: "https://login.microsoftonline.com/eefab79a-7793-4852-be01-105ecb6f6d4e/",
+        clientSecret: "epFuS.3-QDTU3DGI-QQs8UwQx-34jy.u9y",
     },
     system: {
         loggerOptions: {
@@ -32,8 +32,9 @@ const clientCredentialRequest = {
     prefferedAzureRegionOptions: {
         useAzureRegion: true,
         regionUsedIfAutoDetectionFails: "westus2",
-        fallbackToGlobal: true,
-    } 
+        fallbackToGlobal: false,
+    },
+    skipCache: true, 
 };
 
 cca.acquireTokenByClientCredential(clientCredentialRequest).then((response) => {
