@@ -89,6 +89,8 @@ export class PopupHandler extends InteractionHandler {
                         return;
                     }
                 }, BrowserConstants.POLL_INTERVAL_MS);
+            }).catch((e) => {
+                reject(e);
             });
         });
     }
