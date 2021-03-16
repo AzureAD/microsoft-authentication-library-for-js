@@ -2,6 +2,33 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Mon, 15 Mar 2021 23:45:17 GMT",
+      "tag": "@azure/msal-react_v1.0.0-beta.0",
+      "version": "1.0.0-beta.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Docs update (#3144)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "a7e703018c3595fd16d6017bf6f50cce9e1b2b66",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "Remove Storybook #3136",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "1b49461d376ee972a58c367c828020b045dd80de",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "Docs fix syntax error (#3209)",
+            "author": "hraz@microsoft.com",
+            "commit": "d6ba4ffec7cfbb0c73974629a47f233b50f3fbb4",
+            "package": "@azure/msal-react"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 03 Mar 2021 21:47:05 GMT",
       "tag": "@azure/msal-react_v1.0.0-beta.0",
       "version": "1.0.0-beta.0",

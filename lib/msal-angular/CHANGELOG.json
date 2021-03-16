@@ -2,6 +2,29 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Mon, 15 Mar 2021 23:45:17 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-beta.1",
+      "version": "2.0.0-beta.1",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "fix: #3149 - Msal Redirect Component was not part of the Module",
+            "author": "rchinnakampalli@worldbankgroup.org",
+            "commit": "852fff6690bdb86dec2344b0e01106ebfaf9bc59",
+            "package": "@azure/msal-angular"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Docs update (#3137)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "9dbd969fd6faf7215887746add05cd370d291674",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 03 Mar 2021 21:47:05 GMT",
       "tag": "@azure/msal-angular_v2.0.0-beta.0",
       "version": "2.0.0-beta.0",
