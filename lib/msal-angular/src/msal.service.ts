@@ -20,6 +20,7 @@ import { MSAL_INSTANCE } from "./constants";
 import { Observable, from } from "rxjs";
 import { IMsalService } from "./IMsalService";
 import { name, version } from "./packageMetadata";
+import { EndSessionPopupRequest } from "@azure/msal-browser/dist/request/EndSessionPopupRequest";
 
 @Injectable()
 export class MsalService implements IMsalService {
@@ -59,6 +60,12 @@ export class MsalService implements IMsalService {
     }
     logout(logoutRequest?: EndSessionRequest): Observable<void> {
         return from(this.instance.logout(logoutRequest));
+    }
+    logoutRedirect(logoutRequest?: EndSessionRequest): Observable<void> {
+        return from(this.instance.logoutRedirect(logoutRequest));
+    }
+    logoutPopup(logoutRequest?: EndSessionPopupRequest): Observable<void> {
+        return from(this.instance.logoutPopup(logoutRequest));
     }
     ssoSilent(request: SsoSilentRequest): Observable<AuthenticationResult> {
         return from(this.instance.ssoSilent(request));
