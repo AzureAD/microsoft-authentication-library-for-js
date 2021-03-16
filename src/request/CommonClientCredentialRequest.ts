@@ -13,8 +13,8 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  */
 export type PrefferedAzureRegionOptions = {
     useAzureRegion: boolean;
-    regionUsedIfAutoDetectionFails: string;
-    fallbackToGlobal: boolean;
+    regionUsedIfAutoDetectionFails?: string;
+    fallbackToGlobal?: boolean;
 };
 
 /**

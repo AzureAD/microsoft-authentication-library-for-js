@@ -17,6 +17,7 @@ import { AuthorityMetadataEntity } from "../cache/entities/AuthorityMetadataEnti
 import { AuthorityOptions } from "./AuthorityOptions";
 import { CloudInstanceDiscoveryResponse, isCloudInstanceDiscoveryResponse } from "./CloudInstanceDiscoveryResponse";
 import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
+import { RegionDiscovery } from "./RegionDiscovery";
 import { PrefferedAzureRegionOptions } from "../request/CommonClientCredentialRequest";
 
 /**
@@ -37,6 +38,8 @@ export class Authority {
     private authorityOptions: AuthorityOptions;
     // Authority metadata
     private metadata: AuthorityMetadataEntity;
+    // Region discovery service
+    private regionDiscovery: RegionDiscovery;
     // Authority preffered azure region options
     private prefferedAzureRegionOptions: PrefferedAzureRegionOptions | null;
 
@@ -46,6 +49,7 @@ export class Authority {
         this.networkInterface = networkInterface;
         this.cacheManager = cacheManager;
         this.authorityOptions = authorityOptions;
+        this.regionDiscovery = new RegionDiscovery(networkInterface);
         this.prefferedAzureRegionOptions = prefferedAzureRegionOptions || null;
     }
 
@@ -268,9 +272,16 @@ export class Authority {
         if (metadata) {
             // If the user prefers to use an azure region replace the global endpoints with regional information.
             if (this.prefferedAzureRegionOptions?.useAzureRegion) {
-                const azureRegion = this.prefferedAzureRegionOptions.regionUsedIfAutoDetectionFails;
-                metadata.authorization_endpoint = Authority.buildAuthorityString(metadata.authorization_endpoint, azureRegion);
-                metadata.token_endpoint = Authority.buildAuthorityString(metadata.token_endpoint, azureRegion);
+                const autodetectedRegionName = await this.regionDiscovery.detectRegion();
+                const azureRegion = autodetectedRegionName || this.prefferedAzureRegionOptions.regionUsedIfAutoDetectionFails;
+
+                if (!azureRegion && !this.prefferedAzureRegionOptions.fallbackToGlobal) {
+                    throw ClientAuthError.createNoAzureRegionDetectedError();
+                }
+
+                if (azureRegion) {
+                    Authority.replaceWithRegionalInformation(metadata, azureRegion);
+                }
             }
 
             metadataEntity.updateEndpointMetadata(metadata, true);
@@ -458,7 +469,7 @@ export class Authority {
      * @param host string
      * @param region string 
      */
-    static buildAuthorityString(host: string, region: string): string {
+    static buildRegionalAuthorityString(host: string, region: string): string {
         // Create and validate a Url string object with the initial authority string
         const globalUrl = new UrlString(host);
         globalUrl.validateAsUri();
@@ -467,5 +478,17 @@ export class Authority {
 
         // Include the query string portion of the url
         return `${urlComponents.Protocol}//${region}.login.microsoft.com${urlComponents.AbsolutePath}`;
+    }
+
+    /**
+     * Replace the endpoints in the metadata object with their regional equivalents.
+     * 
+     * @param metadata OpenIdConfigResponse
+     * @param azureRegion string
+     */
+    static replaceWithRegionalInformation(metadata: OpenIdConfigResponse, azureRegion: string): void {
+        metadata.authorization_endpoint = Authority.buildRegionalAuthorityString(metadata.authorization_endpoint, azureRegion);
+        metadata.token_endpoint = Authority.buildRegionalAuthorityString(metadata.token_endpoint, azureRegion);
+        metadata.end_session_endpoint = Authority.buildRegionalAuthorityString(metadata.end_session_endpoint, azureRegion); 
     }
 }

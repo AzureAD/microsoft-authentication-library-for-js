@@ -165,7 +165,11 @@ export const ClientAuthErrorMessage = {
     },
     noAuthorizationCodeFromServer: {
         code: "authorization_code_missing_from_server_response",
-        desc: "Srver response does not contain an authorization code to proceed"
+        desc: "Server response does not contain an authorization code to proceed"
+    },
+    noAzureRegionDetected: {
+        code: "no_azure_region_detected",
+        desc: "No azure region was detected and no fallback was made available"
     }
 };
 
@@ -473,5 +477,12 @@ export class ClientAuthError extends AuthError {
      */
     static createNoAuthCodeInServerResponseError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.noAuthorizationCodeFromServer.code, ClientAuthErrorMessage.noAuthorizationCodeFromServer.desc);
+    }
+
+    /**
+     * Throws error when no azure region is detected and fallback is provided
+     */
+    static createNoAzureRegionDetectedError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.noAzureRegionDetected.code, ClientAuthErrorMessage.noAzureRegionDetected.desc);
     }
 }
