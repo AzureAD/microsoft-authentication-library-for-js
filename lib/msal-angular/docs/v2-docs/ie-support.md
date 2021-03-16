@@ -1,6 +1,6 @@
 # Internet Explorer support for MSAL Angular v2
 
-This library supports Internet Explorer 11 with the following configuration:
+`@azure/msal-angular` supports Internet Explorer 11 with the following configuration:
 
 -   For CORS API calls, the Iframe needs to access the cookies for the same domain that you did the initial sign in on. IE does not allow to access cookies in Iframe for localhost. Your URL needs to be fully qualified domain i.e http://yoursite.azurewebsites.com. Chrome does not have this restriction.
 -   If you put your site in the trusted site list, cookies are not accessible for Iframe requests. You need to remove protected mode for Internet zone or add the authority URL for the login to the trusted sites as well.
