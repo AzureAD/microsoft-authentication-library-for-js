@@ -3,13 +3,13 @@
         "Library": {
             "labels": {
                 "msal@1.x": {
-                    "searchStrings": ["msal@1.x"]
+                    "searchStrings": ["msal@1."]
                 },
                 "msal-angular": {
-                    "searchStrings": ["msal-angular@0.x", "msal-angular@1.x", "msal-angular@2.x"]
+                    "searchStrings": ["msal-angular@"]
                 },
                 "msal-angularjs": {
-                    "searchStrings": ["msal-angularjs@1.x"]
+                    "searchStrings": ["msal-angularjs@"]
                 },
                 "msal-browser": {
                     "searchStrings": ["msal-browser"]

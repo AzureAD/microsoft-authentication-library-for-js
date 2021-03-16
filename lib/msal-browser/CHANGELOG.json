@@ -2,6 +2,41 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 15 Mar 2021 23:45:17 GMT",
+      "tag": "@azure/msal-browser_v2.12.1",
+      "version": "2.12.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update Docs #3177",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "d448f10701d5416190ea0eb267495ad6522320a2",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Docs changes for sid/loginHint in SSO scenarios #3147",
+            "author": "prkanher@microsoft.com",
+            "commit": "c4eadd724df908e287faf162787ab15a512ed192",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Clear temporary cache cookies on page load #3129",
+            "author": "prkanher@microsoft.com",
+            "commit": "3cbb550cb0cd63a78f3f78621d56ee42c905fcf3",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Throw BrowserAuthError when fetch fails #3146",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "da0294f006a4646f101f646544cb9542d8b29628",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 03 Mar 2021 21:47:05 GMT",
       "tag": "@azure/msal-browser_v2.12.0",
       "version": "2.12.0",

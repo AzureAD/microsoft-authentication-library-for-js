@@ -13,6 +13,7 @@ import { MockStorageClass }  from "../client/ClientTestUtils";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { ServerError } from "../../src/error/ServerError";
 import { AUTHENTICATION_RESULT, NETWORK_REQUEST_OPTIONS, THUMBPRINT, THROTTLING_ENTITY, DEFAULT_NETWORK_IMPLEMENTATION } from "../utils/StringConstants";
+import { ClientAuthError, ClientAuthErrorMessage } from "../../src";
 
 describe("NetworkManager", () => {
     describe("sendPostRequest", () => {
@@ -121,6 +122,24 @@ describe("NetworkManager", () => {
             sinon.assert.callCount(setThrottlingStub, 1);
             sinon.assert.callCount(removeItemStub, 0);
             expect(res).to.deep.eq(mockRes);
+        });
+
+        it("throws network error if fetch client fails", (done) => {
+            const networkInterface = DEFAULT_NETWORK_IMPLEMENTATION;
+            const cache = new MockStorageClass();
+            const networkManager = new NetworkManager(networkInterface, cache);
+            const thumbprint: RequestThumbprint = THUMBPRINT;
+            const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
+
+            sinon.stub(networkInterface, "sendPostRequestAsync").returns(Promise.reject("Fetch failed"));
+
+            networkManager.sendPostRequest<NetworkResponse<ServerAuthorizationTokenResponse>>(thumbprint, "tokenEndpoint", options).catch(e => {
+                expect(e).to.be.instanceOf(ClientAuthError);
+                expect(e.errorCode).to.be.eq(ClientAuthErrorMessage.networkError.code);
+                expect(e.errorMessage).to.contain("Fetch failed");
+                expect(e.errorMessage).to.contain("tokenEndpoint");
+                done();
+            });
         });
     });
 });
