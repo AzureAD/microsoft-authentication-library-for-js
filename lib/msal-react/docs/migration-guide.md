@@ -317,7 +317,7 @@ async function getIdToken() {
 `react-aad-msal` provided out of the box integration with a redux store by dispatching actions when events such as login or logout occurred.
 `@azure/msal-react` does not provide this feature, however, similar functionality can be achieved using the [event api](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/events.md) exposed by `@azure/msal-browser`.
 
-The way it works is that you register an event callback that will be called each time an event is broadcast (e.g. `LOGIN_SUCCESS`). Your callback function can inspect the event and do something with the payload. If you would like to continue using your existing redux store you can register an event callback that dispatches actions to your store.
+You can register an event callback that will be called each time an event is broadcast (e.g. `LOGIN_SUCCESS`). Your callback function can inspect the event and do something with the payload. If you would like to continue using your existing redux store you can register an event callback that dispatches actions to your store.
 
 ```javascript
 import { PublicClientApplication, EventType } from "@azure/msal-browser";
