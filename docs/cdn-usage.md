@@ -16,7 +16,7 @@ In addition to npm, `msal` can be consumed from Microsoft-hosted CDNs.
 
 <!-- CDN_LATEST -->
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/browser/2.10.0/js/msal-browser.min.js"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/browser/2.12.1/js/msal-browser.min.js"></script>
 ```
 
 ## Unminified builds
@@ -84,6 +84,16 @@ It is highly recommended to use SRI Hashes with CDN builds of MSAL.js to help se
 <!-- SRI_TABLE_START -->
 Version      | Build               | SRI Hash
 ------------ | ------------------- | ---------------------------
+2.12.1        | msal-browser.js     | `sha384-QMpSjAFJzgh/J1zBL23Xx95KfVI1n9Je9GmB3byJbZ0/hj8o9CJTmxOK/BPZivil`
+2.12.1        | msal-browser.min.js | `sha384-cZM20w+KzsO/N+6IGI+U1e2zsBS1ciCc6VdEC5SZ1/pHGyvcpE6D2uk0XcFwgb1q`
+2.12.0        | msal-browser.js     | `sha384-WqJE0XrCKXbaCrjTk1+pq6qArRvxmGqf6YUBgoqwCz4WDXJFCW2hZZN0HMLE7/XB`
+2.12.0        | msal-browser.min.js | `sha384-eD9W7ukFmFKtgjDgCWa6WpkuqKjQ5Q/EP686z9/t2DK93dQtdIx8LAhMc9Mjy3hA`
+2.11.2        | msal-browser.js     | `sha384-Zr4eBs1XVPlVMD5df2RNBeFhTy62Z8nN//v8dOR8pAgf6iI9rBTuvRZJSGjGjOCQ`
+2.11.2        | msal-browser.min.js | `sha384-MkT8/EXqCzh7OVmmpVdg5H2Fhpbt9uNrQM7UMbTg+v8fJVcfQ0BWf16siodTYgF6`
+2.11.1        | msal-browser.js     | `sha384-LIpmPPrsEE7hCBPf0k4nn8zf9h8Z1i69YnG8TmRLTnaMDI6B2nGzLIh/c51BHgpN`
+2.11.1        | msal-browser.min.js | `sha384-wgFLXq8mfWaFslz/C51m2NvUX7aBENCLEqRi9BNL+23HBfWkeFCGfvqaPGmAbrzC`
+2.11.0        | msal-browser.js     | `sha384-4PutheeyrGgwghN7WV8QaHBshN673W9fDW3PDP0Zw1Wm9CVZIuU2RFSWfcxEWAR0`
+2.11.0        | msal-browser.min.js | `sha384-mxc9xXB8zELCYWdhT4JCez24AMsgk+uN7e991ek2TrQy9rBPVlUiuppobVCuja8S`
 2.10.0       | msal-browser.js     | `sha384-h4/puysjUElY8ygLCfA1sWMW/y1DsRmX02pAa6Om71bq6qS/w9PzLjby6YTkgH6W`
 2.10.0       | msal-browser.min.js | `sha384-UiyYbBRwVt3gTqaQfkEn8ceYV1cB9KAofImJ8nOc/vdqHATCuzgGZhxWgkhPBjNe`
 2.9.0        | msal-browser.js     | `sha384-+akJUidBAUlm36Zv/ib9eOD+CZDJ67/yVEPaDV9aNw7164awXZbuEjLnsxDXuQO1`

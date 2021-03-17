@@ -3,12 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationUrlRequest } from "@azure/msal-common";
+import { CommonAuthorizationUrlRequest } from "@azure/msal-common";
 
 /**
  * PopupRequest: Request object passed by user to retrieve a Code from the
  * server (first leg of authorization code grant flow) with a popup window.
- * 
+ *
  * - scopes                     - Array of scopes the application is requesting access to.
  * - authority                  - Url of the authority which the application acquires tokens from.
  * - correlationId              - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
@@ -27,6 +27,6 @@ import { AuthorizationUrlRequest } from "@azure/msal-common";
  * - claims                     - In cases where Azure AD tenant admin has enabled conditional access policies, and the policy has not been met, exceptions will contain claims that need to be consented to.
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
  */
-export type PopupRequest = Partial<Omit<AuthorizationUrlRequest, "responseMode"|"scopes"|"codeChallenge"|"codeChallengeMethod">> & {
+export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode"|"scopes"|"codeChallenge"|"codeChallengeMethod">> & {
     scopes: Array<string>;
 };
