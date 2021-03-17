@@ -8,7 +8,6 @@
     "declarationMap": true,
     "lib": ["dom", "esnext"],
     "importHelpers": true,
-    "declaration": true,
     "sourceMap": true,
     "rootDir": "./",
     "outDir": "./dist",

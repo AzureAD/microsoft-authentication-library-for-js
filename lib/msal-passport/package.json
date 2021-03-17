@@ -1,5 +1,5 @@
 {
-  "name": "@azure/msal-node",
+  "name": "@azure/msal-passport",
   "version": "0.0.1",
   "author": {
     "name": "Microsoft",
