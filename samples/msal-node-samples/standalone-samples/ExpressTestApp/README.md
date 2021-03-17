@@ -18,7 +18,7 @@ Initialize the wrapper by providing a settings file in JSON (see: [appSettings.j
     "settings": {
         "homePageRoute": "/home",
         "redirectUri": "http://localhost:4000/redirect",
-        "postLogoutRedirectUri": "http://localhost:4000/"
+        "postLogoutRedirectUri": "http://localhost:4000"
     }
 }
 ```
@@ -50,9 +50,6 @@ If you are authenticating with **Azure AD B2C**, user-flows and/or policies shou
         "resetPassword": {
             "authority": "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_reset"
         },
-        "editProfile": {
-            "authority": "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_edit_profile"
-        },
         "authorityDomain": "fabrikamb2c.b2clogin.com"  
     }
 }
@@ -62,6 +59,8 @@ To initialize the wrapper, import it and supply the settings file and an (option
 
 ```javascript
 const settings = require('../../appSettings.json');
+const cache = require('../utils/cachePlugin');
+
 const msalWrapper = require('msal-express-wrapper/dist/AuthProvider');
 
 const authProvider = new msalWrapper.AuthProvider(settings, cache);
@@ -91,7 +90,7 @@ app.get('/id', authProvider.isAuthenticated, mainController.getIdPage);
 
 ### Acquiring tokens
 
-Simply add the `isAuthenticated` middleware before the controller that makes a call to web API you would like to access. The access token will be available as a session variable:
+Simply add the `isAuthenticated` middleware before the controller that makes a call to the web API that you would like to access. The access token will be available as a *session variable*:
 
 ```javascript
 // secure routes that call protected resources
