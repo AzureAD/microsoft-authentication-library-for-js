@@ -8,6 +8,7 @@ import { Location } from "@angular/common";
 import {
     IPublicClientApplication,
     EndSessionRequest,
+    EndSessionPopupRequest,
     AuthenticationResult,
     RedirectRequest,
     SilentRequest,
@@ -20,7 +21,6 @@ import { MSAL_INSTANCE } from "./constants";
 import { Observable, from } from "rxjs";
 import { IMsalService } from "./IMsalService";
 import { name, version } from "./packageMetadata";
-import { EndSessionPopupRequest } from "@azure/msal-browser/dist/request/EndSessionPopupRequest";
 
 @Injectable()
 export class MsalService implements IMsalService {
