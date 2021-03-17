@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, SilentFlowRequest } from "@azure/msal-common";
+import { AuthenticationResult, CommonSilentFlowRequest } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, ApiId, InteractionType } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -55,6 +55,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @param request
      */
     async loginRedirect(request?: RedirectRequest): Promise<void> {
+        this.logger.verbose("loginRedirect called");
         return this.acquireTokenRedirect(request || DEFAULT_REQUEST);
     }
 
@@ -66,22 +67,24 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
+        this.logger.verbose("loginPopup called");
         return this.acquireTokenPopup(request || DEFAULT_REQUEST);
     }
 
     /**
      * Silently acquire an access token for a given set of scopes. Will use cached token if available, otherwise will attempt to acquire a new token from the network via refresh token.
-     * 
-     * @param request
-     * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
+     *
+     * @param {@link (SilentRequest:type)}
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
+        this.logger.verbose("acquireTokenSilent called");
         const account = request.account || this.getActiveAccount();
         if (!account) {
             throw BrowserAuthError.createNoAccountError();
         }
-        const silentRequest: SilentFlowRequest = {
+        const silentRequest: CommonSilentFlowRequest = {
             ...request,
             ...this.initializeBaseRequest(request),
             account: account,

@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-angular",
-  "version": "2.0.0-alpha.3",
+  "version": "2.0.0-beta.1",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
@@ -16,7 +16,7 @@
     "lint:fix": "npm run lint -- -- --fix",
     "e2e": "ng e2e",
     "prepack": "npm run build:all",
-    "preinstall": "npx npm-force-resolutions",
+    "preinstall": "npx npm-force-resolutions@0.0.3",
     "prepublishOnly": "echo Use npm run deploy && exit 1"
   },
   "main": "./dist/bundles/azure-msal-angular.umd.js",
@@ -34,7 +34,7 @@
     "@angular/platform-browser": "~10.0.9",
     "@angular/platform-browser-dynamic": "~10.0.9",
     "@angular/router": "~10.0.9",
-    "@azure/msal-browser": "^2.10.0",
+    "@azure/msal-browser": "^2.12.1",
     "@types/jasmine": "~3.5.0",
     "@types/jasminewd2": "~2.0.3",
     "@types/node": "^12.11.1",
@@ -57,7 +57,7 @@
   "peerDependencies": {
     "@angular/common": "9 - 11",
     "@angular/core": "9 - 11",
-    "@azure/msal-browser": "^2.10.0",
+    "@azure/msal-browser": "^2.12.1",
     "rxjs": "^6.0.0"
   },
   "resolutions": {

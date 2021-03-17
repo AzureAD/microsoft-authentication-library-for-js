@@ -2,6 +2,80 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Mon, 15 Mar 2021 23:45:17 GMT",
+      "tag": "msal_v1.4.8",
+      "version": "1.4.8",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Dont migrate tokens for different clientId #3188",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "2933eaab47f1f840b71bfdb5b991eb297922e48a",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 03 Mar 2021 21:47:05 GMT",
+      "tag": "msal_v1.4.7",
+      "version": "1.4.7",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix lib version on request (#3080) ",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "b38129df9722e009e9e9a8b6a482a272835c3bf9",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 09 Feb 2021 01:48:22 GMT",
+      "tag": "msal_v1.4.6",
+      "version": "1.4.6",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix version.json import errors (#2993)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6dc3bc9e2148bc53b181d9f079f6e11e0159620b",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 02 Feb 2021 01:56:47 GMT",
+      "tag": "msal_v1.4.5",
+      "version": "1.4.5",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Get package version from version.json (#2915)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "a6f4702f9439e318a8cb6dc65d1def16351a84fd",
+            "package": "msal"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Typedocs Updates (#2926)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "3fd4a48143ed4fb62b9e3266338b1abda920d68a",
+            "package": "msal"
+          },
+          {
+            "comment": "Add deprecation notice to Readme (#2956)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "d2c3d3d742bb32411d6fb4846f775400b8c3a49e",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 12 Jan 2021 00:51:26 GMT",
       "tag": "msal_v1.4.4",
       "version": "1.4.4",

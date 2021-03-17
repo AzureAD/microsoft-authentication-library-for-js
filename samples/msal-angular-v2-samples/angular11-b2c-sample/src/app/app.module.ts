@@ -13,19 +13,23 @@ import { ProfileComponent } from './profile/profile.component';
 
 import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { IPublicClientApplication, PublicClientApplication, InteractionType, BrowserCacheLocation, LogLevel } from '@azure/msal-browser';
-import { MsalGuard, MsalInterceptor, MsalBroadcastService, MsalInterceptorConfiguration, MsalModule, MsalService, MSAL_GUARD_CONFIG, MSAL_INSTANCE, MSAL_INTERCEPTOR_CONFIG, MsalGuardConfiguration } from '@azure/msal-angular';
+import { MsalGuard, MsalInterceptor, MsalBroadcastService, MsalInterceptorConfiguration, MsalModule, MsalService, MSAL_GUARD_CONFIG, MSAL_INSTANCE, MSAL_INTERCEPTOR_CONFIG, MsalGuardConfiguration, MsalRedirectComponent } from '@azure/msal-angular';
 
 import { b2cPolicies, apiConfig } from './b2c-config';
 
 const isIE = window.navigator.userAgent.indexOf("MSIE ") > -1 || window.navigator.userAgent.indexOf("Trident/") > -1;
+
+export function loggerCallback(logLevel: LogLevel, message: string) {
+  console.log(message);
+}
 
 export function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
     auth: {
       clientId: '9067c884-9fa6-414f-9aa4-a565b1cb46be',
       authority: b2cPolicies.authorities.signUpSignIn.authority,
-      redirectUri: 'http://localhost:4200',
-      postLogoutRedirectUri: 'http://localhost:4200',
+      redirectUri: '/',
+      postLogoutRedirectUri: '/',
       knownAuthorities: [b2cPolicies.authorityDomain]
     },
     cache: {
@@ -33,13 +37,11 @@ export function MSALInstanceFactory(): IPublicClientApplication {
       storeAuthStateInCookie: isIE, // set to true for IE 11
     },
     system: {
-        loggerOptions: {
-            piiLoggingEnabled: true,
-            loggerCallback: (level, message) => {
-                console.log(message);
-            },
-            logLevel: LogLevel.Verbose
-        }
+      loggerOptions: {
+        loggerCallback,
+        logLevel: LogLevel.Info,
+        piiLoggingEnabled: false
+      }
     }
   });
 }
@@ -55,7 +57,7 @@ export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
 }
 
 export function MSALGuardConfigFactory(): MsalGuardConfiguration {
-  return { 
+  return {
     interactionType: InteractionType.Redirect,
     authRequest: {
       scopes: [...apiConfig.scopes],
@@ -101,6 +103,6 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
     MsalGuard,
     MsalBroadcastService
   ],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent, MsalRedirectComponent]
 })
 export class AppModule { }

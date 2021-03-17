@@ -44,7 +44,7 @@ export class CrossPlatformLock {
                 await this.lockFileHandle.write(pid.toString());
                 return;
             } catch (err) {
-                if (err.code == Constants.EEXIST_ERROR || err.code == Constants.EPERM_ERROR) {
+                if (err.code === Constants.EEXIST_ERROR || err.code === Constants.EPERM_ERROR) {
                     this.logger.info(err);
                     await this.sleep(this.retryDelay);
                 } else {
@@ -72,7 +72,7 @@ export class CrossPlatformLock {
                 this.logger.warning("lockfile handle does not exist, so lockfile could not be deleted");
             }
         } catch (err) {
-            if (err.code == Constants.ENOENT_ERROR) {
+            if (err.code === Constants.ENOENT_ERROR) {
                 this.logger.info("Tried to unlock but lockfile does not exist");
             } else {
                 this.logger.error(`${pid} was not able to release lock. Ran into error: ${err.message}`);

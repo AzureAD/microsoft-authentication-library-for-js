@@ -1,8 +1,40 @@
 # Change Log - msal
 
-This log was last generated on Wed, 11 Nov 2020 23:33:20 GMT and should not be manually modified.
+This log was last generated on Mon, 15 Mar 2021 23:45:17 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.4.8
+
+Mon, 15 Mar 2021 23:45:17 GMT
+
+### Patches
+
+- Dont migrate tokens for different clientId #3188 (thomas.norling@microsoft.com)
+
+## 1.4.7
+
+Wed, 03 Mar 2021 21:47:05 GMT
+
+### Patches
+
+- Fix lib version on request (#3080)  (thomas.norling@microsoft.com)
+
+## 1.4.6
+
+Tue, 09 Feb 2021 01:48:22 GMT
+
+### Patches
+
+- Fix version.json import errors (#2993) (thomas.norling@microsoft.com)
+
+## 1.4.5
+
+Tue, 02 Feb 2021 01:56:47 GMT
+
+### Patches
+
+- Get package version from version.json (#2915) (thomas.norling@microsoft.com)
 
 ## 1.4.4
 

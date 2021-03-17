@@ -1,4 +1,7 @@
-# Known issues for MSAL Angular 2.x
+# Known issues for MSAL Angular v2
+
+## 2.0.0-alpha.3
+* MSAL Guard's `Canload` interface has a return type of `Observable<boolean|UrlTree>`, which is incompatible with the Angular 9 `CanLoad` base type. This is addressed in version `2.0.0-alpha.4`.
 
 ## 2.0.0-alpha.0
 * Warnings related to `minimatch` and `path`: These warnings should not cause any problems and will be addressed in a future release.

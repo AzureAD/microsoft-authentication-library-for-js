@@ -1,4 +1,4 @@
-# MSAL Angular 2.x Configuration
+# MSAL Angular v2 Configuration
 
 MSAL for Angular can be configured in multiple ways:
 - `MsalModule.forRoot`
@@ -9,7 +9,7 @@ This guide will detail how to leverage each method for your application.
 
 ## Configuration Options
 
-MSAL for Angular accepts three configuration objects:
+`@azure/msal-angular` accepts three configuration objects:
 
 1. [Configuration](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_config_configuration_.html): This is the same configuration object that is used for the core `@azure/msal-browser` library. All configuration options can be found [here](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_config_configuration_.html).
 2. [`MsalGuardConfiguration`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/msal.guard.config.ts): A set of options specifically for the Angular guard.
@@ -18,9 +18,16 @@ MSAL for Angular accepts three configuration objects:
 ### Angular-specific configurations
 
 * An `interactionType` must be specified on `MsalGuardConfiguration` and `MsalInterceptorConfiguration`, and can be set to `Popup` or `Redirect`.
-* An `authRequest` object can be specified on `MsalGuardConfiguration` and `MsalInterceptorConfiguration` to set additional options. This is an advanced featured that is not required. All possible parameters for the request object can be found here: [`PopupRequest`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_request_popuprequest_.html) and [`RedirectRequest`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_request_redirectrequest_.html).
-* The `protectedResourceMap` object on `MsalInterceptorConfiguration` is used to protect routes. See the [upgrade guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/1.x-2.x-upgrade-guide.md) to see how to use wildcards, and how this differs from MSAL 1.x.
-* The `loginFailedRoute` string can be set on `MsalGuardConfiguration`. Msal Guard will redirect to this route if login is required and fails. 
+* An `authRequest` object can be specified on `MsalGuardConfiguration` and `MsalInterceptorConfiguration` to set additional options. 
+  * This is an advanced featured that is not required. However, we recommend setting `authRequest` on the `MsalGuardConfiguration` with `scopes` so that consent may be obtained for the scopes upfront. If consent for `scopes` are not consented to upfront, scopes can be obtained incrementally. This may result in a consent dialogue being presented to your app user multiple times. 
+  * Consenting to scopes upfront is demonstrated in the code samples below, and in our [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples).
+  * All possible parameters for the request object can be found here: [`PopupRequest`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_request_popuprequest_.html) and [`RedirectRequest`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_request_redirectrequest_.html).
+* The `protectedResourceMap` object on `MsalInterceptorConfiguration` is used to protect routes. See the [upgrade guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/v1-v2-upgrade-guide.md) to see how to use wildcards, and how this differs from MSAL v1.
+* The `loginFailedRoute` string can be set on `MsalGuardConfiguration`. Msal Guard will redirect to this route if login is required and fails.
+
+### Configuration for redirects
+
+We recommend importing `MsalRedirectComponent` and bootstrapping with the `AppComponent` if you intend to use redirects. Please see the [redirect documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/redirects.md) for more details. 
 
 ## MsalModule.forRoot
 
@@ -51,7 +58,10 @@ import { IPublicClientApplication, PublicClientApplication, InteractionType, Bro
                 }
             }
         }, {
-            interactionType: InteractionType.Popup // MSAL Guard Configuration
+            interactionType: InteractionType.Popup, // MSAL Guard Configuration
+            authRequest: {
+              scopes: ['user.read']
+            },
             loginFailedRoute: "/login-failed" 
         }, {
             interactionType: InteractionType.Redirect, // MSAL Interceptor Configuration
@@ -112,6 +122,9 @@ export function MSALInterceptorConfigFactory(): MsalInterceptorConfig {
 export function MSALGuardConfigFactory(): MsalGuardConfiguration {
   return { 
     interactionType: InteractionType.Redirect,
+    authRequest: {
+      scopes: ['user.read']
+    },
     loginFailedRoute: "./login-failed"
   };
 }
@@ -151,7 +164,7 @@ export class AppModule { }
 
 If you need to dynamically configure MSAL Angular (e.g. based on values returned from an API), you can use `platformBrowserDynamic`. `platformBrowserDyamic` is a platform factory, used to bootstrap the application, and is able to take in configuration options. `platformBrowserDynamic` should already be present when the Angular application is set up.
 
-The following is an example of how to dynamically configure MSAL Angular with `platformBrowserDynamic` and a json file:
+The following is an example of how to dynamically configure `@azure/msal-angular` with `platformBrowserDynamic` and a json file:
 
 `app.module.ts`
 ```typescript
@@ -213,6 +226,7 @@ fetch('/assets/configuration.json')
       }) },
       { provide: MSAL_GUARD_CONFIG, useValue: {
         interactionType: json.guard.interactionType,
+        authRequest: json.guard.authRequest,
         loginFailedRoute: json.guard.loginFailedRoute
       } as MsalGuardConfiguration },
       { provide: MSAL_INTERCEPTOR_CONFIG, useValue: {
@@ -243,6 +257,9 @@ fetch('/assets/configuration.json')
   },
   "guard": {
     "interactionType": "redirect",
+    "authRequest": {
+      "scopes": ["user.read"]
+    },
     "loginFailedRoute": "/login-failed" 
   },
   "interceptor": {

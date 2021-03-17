@@ -4,8 +4,7 @@
  */
 
 import * as React from "react";
-import { IPublicClientApplication, stubbedPublicClientApplication, Logger } from "@azure/msal-browser";
-import { InteractionStatus } from "./utils/Constants";
+import { IPublicClientApplication, stubbedPublicClientApplication, Logger, InteractionStatus } from "@azure/msal-browser";
 import { AccountIdentifiers } from "./types/AccountIdentifiers";
 
 export interface IMsalContext {
