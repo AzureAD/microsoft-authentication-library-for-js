@@ -18,6 +18,7 @@ const deviceCodeRequest = {
     deviceCodeCallback: (response) => (console.log(response.message)),
     scopes: ["user.read"],
     timeout: 20,
+    cancel: false,
 };
 
 pca.acquireTokenByDeviceCode(deviceCodeRequest).then((response) => {
