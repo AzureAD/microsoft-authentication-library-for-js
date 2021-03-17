@@ -7,8 +7,7 @@ import { useState, useEffect } from "react";
 import { useMsal } from "./useMsal";
 import { AccountIdentifiers } from "../types/AccountIdentifiers";
 import { useAccount } from "./useAccount";
-import { AccountInfo } from "@azure/msal-browser";
-import { InteractionStatus } from "../utils/Constants";
+import { AccountInfo, InteractionStatus } from "@azure/msal-browser";
 
 function isAuthenticated(allAccounts: AccountIdentifiers[], account: AccountInfo | null, matchAccount?: AccountIdentifiers): boolean {
     if(matchAccount && (matchAccount.username || matchAccount.homeAccountId || matchAccount.localAccountId)) {

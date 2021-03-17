@@ -10,6 +10,8 @@ import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
+import { WrapperSKU } from "../utils/BrowserConstants";
+import { INavigationClient } from "../navigation/INavigationClient";
 
 export interface IPublicClientApplication {
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
@@ -30,17 +32,19 @@ export interface IPublicClientApplication {
     setLogger(logger: Logger): void;
     setActiveAccount(account: AccountInfo | null): void;
     getActiveAccount(): AccountInfo | null;
+    initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
+    setNavigationClient(navigationClient: INavigationClient): void;
 }
 
 export const stubbedPublicClientApplication: IPublicClientApplication = {
     acquireTokenPopup: () => {
-        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());
     },
     acquireTokenRedirect: () => {	
-        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);	
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());	
     },	
     acquireTokenSilent: () => {	
-        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);	
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());	
     },	
     getAllAccounts: () => {
         return [];	
@@ -55,19 +59,19 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         return null;
     },
     handleRedirectPromise: () => {	
-        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);	
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());	
     },	
     loginPopup: () => {	
-        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);	
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());	
     },	
     loginRedirect: () => {	
-        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);	
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());	
     },	
     logout: () => {	
-        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);	
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());	
     },	
     ssoSilent: () => {	
-        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError);	
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());	
     },
     addEventCallback: () => {
         return null;
@@ -86,5 +90,11 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     },
     getActiveAccount: () => {
         return null;
+    },
+    initializeWrapperLibrary: () => {
+        return;
+    },
+    setNavigationClient: () => {
+        return;
     }
 };

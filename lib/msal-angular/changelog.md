@@ -1,8 +1,56 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Tue, 12 Jan 2021 00:51:26 GMT and should not be manually modified.
+This log was last generated on Mon, 15 Mar 2021 23:45:17 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.0.0-beta.1
+
+Mon, 15 Mar 2021 23:45:17 GMT
+
+### Changes
+
+- fix: #3149 - Msal Redirect Component was not part of the Module (rchinnakampalli@worldbankgroup.org)
+
+## 2.0.0-beta.0
+
+Wed, 03 Mar 2021 21:47:05 GMT
+
+### Changes
+
+- Fix BroadcastService logging to use msal-angular version, update samples versions, profile, and links (#3015) (joarroyo@microsoft.com)
+- Add FAQ.md and active accounts in sample (#2977) (joarroyo@microsoft.com)
+- Update msal-angular preinstall script to force npm-force-resolutions version (#3074) (joarroyo@microsoft.com)
+
+## 2.0.0-alpha.6
+
+Thu, 18 Feb 2021 00:34:32 GMT
+
+### Changes
+
+- Await loginRedirect in MSAL Guard to prevent race conditions (janutter@microsoft.com)
+
+## 2.0.0-alpha.5
+
+Tue, 09 Feb 2021 01:48:22 GMT
+
+### Changes
+
+- Msal-angular typedocs and instrumentation (#2863) (joarroyo@microsoft.com)
+- Fix version.json import errors (#2993) (thomas.norling@microsoft.com)
+- Update ssoSilent and cors-api documentation (#2971) (joarroyo@microsoft.com)
+
+## 2.0.0-alpha.4
+
+Tue, 02 Feb 2021 01:56:47 GMT
+
+### Changes
+
+- Invoke interaction if MSAL Interceptor resolves with null access token, mitigates B2C service not supporting RTs for multiple resources (janutter@microsoft.com)
+- Pass SKU and version to msal-browser (#2845) (joarroyo@microsoft.com)
+- Add redirect component, get interactionStatus from msal-browser, add inProgress$, and sample updates (#2885) (joarroyo@microsoft.com)
+- Get package version from version.json (#2915) (thomas.norling@microsoft.com)
+- Add version detection to msal guard for canLoad interface (#2948) (joarroyo@microsoft.com)
 
 ## 2.0.0-alpha.3
 

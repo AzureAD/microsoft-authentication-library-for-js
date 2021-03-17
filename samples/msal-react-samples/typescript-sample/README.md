@@ -9,7 +9,7 @@ This sample was bootstrapped with [Create React App](https://github.com/facebook
 
 ### Pre-requisites
 
-- Ensure [all pre-requisites](../../../lib/msal-react/README.md#prerequisites) have been completed to run msal-react.
+- Ensure [all pre-requisites](../../../lib/msal-react/README.md#prerequisites) have been completed to run `@azure/msal-react`.
 - Install node.js if needed (<https://nodejs.org/en/>).
 
 ### Configure the application
@@ -17,7 +17,7 @@ This sample was bootstrapped with [Create React App](https://github.com/facebook
 - Open `./src/authConfig.ts` in an editor.
 - Replace client id with the Application (client) ID from the portal registration, or use the currently configured lab registration.
   - Optionally, you may replace any of the other parameters, or you can remove them and use the default values.
-- If you are using this sample on it's own (without local builds of `msal-react` and `msal-browser`) you will also need to update the `package.json` file to specify the versions of `@azure/msal-react`, `@azure/msal-browser`, `react` and `react-dom` you would like to use.
+- If you are using this sample on it's own (without local builds of `@azure/msal-react` and `@azure/msal-browser`) you will also need to update the `package.json` file to specify the versions of `@azure/msal-react`, `@azure/msal-browser`, `react` and `react-dom` you would like to use.
 
 #### Install npm dependencies for sample
 
@@ -28,12 +28,15 @@ This sample was bootstrapped with [Create React App](https://github.com/facebook
 npm install
 
 # Change directory to sample directory
-cd samples/msal-react-samples/typescript-sample
+cd samples/msal-react-samples/nextjs-sample
 
 # Build packages locally
 npm run build:package
 
-#Install sample dependencies
+# Install local libs
+npm run install:local
+
+# Install sample dependencies
 npm install
 ```
 
@@ -48,14 +51,12 @@ Note: If you suspect you are not using the local builds check that the `package.
 
 ##### Installing @azure/msal-react and @azure/msal-browser from released versions available on npm
 
-These samples are configured to be used with the development builds of our packages out of the box but there may be cases where you want to run the samples against a released version of the library. The steps to reconfigure the sample to use the released versions are as follows:
-
 ```bash
 # Change directory to sample directory
-cd samples/msal-react-samples/typescript-sample
+cd samples/msal-react-samples/nextjs-sample
 
 # Install packages from npm
-npm install @azure/msal-react@latest @azure/msal-browser@latest react@17 react-dom@17
+npm run install:published
 
 # Install rest of dependencies
 npm install
