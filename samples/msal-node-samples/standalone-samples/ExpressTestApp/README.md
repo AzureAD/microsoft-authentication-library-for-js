@@ -19,13 +19,6 @@ Initialize the wrapper by providing a settings file in JSON (see: [appSettings.j
         "homePageRoute": "/home",
         "redirectUri": "http://localhost:4000/redirect",
         "postLogoutRedirectUri": "http://localhost:4000/"
-    },
-    "resources": {
-        "graphAPI": {
-            "callingPageRoute": "/resource1",
-            "endpoint": "https://graph.microsoft.com/v1.0/me",
-            "scopes": ["user.read"]
-        },
     }
 }
 ```
@@ -78,6 +71,8 @@ Once the wrapper is initialized, you can use it as below:
 
 ### Authentication
 
+These routes are dedicated to the wrapper for handing authorization and token requests. They do not serve any page.
+
 ```javascript
 // authentication routes
 app.get('/signin', authProvider.signIn);
@@ -87,12 +82,16 @@ app.get('/redirect', authProvider.handleRedirect);
 
 ### Securing routes
 
+Simply add the `isAuthenticated` middleware before the controller that serves the page you would like to secure:
+
 ```javascript
 // secure routes
 app.get('/id', authProvider.isAuthenticated, mainController.getIdPage);
 ```
 
 ### Acquiring tokens
+
+Simply add the `isAuthenticated` middleware before the controller that makes a call to web API you would like to access. The access token will be available as a session variable:
 
 ```javascript
 // secure routes that call protected resources
