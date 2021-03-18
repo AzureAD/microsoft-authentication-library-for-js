@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Remove Storybook #3136",
-  "packageName": "@azure/msal-react",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none"
-}
