@@ -272,7 +272,7 @@ describe('MsalService', () => {
     });
   });
 
-  fdescribe("handleRedirectObservable", () => {
+  describe("handleRedirectObservable", () => {
     it("success", (done) => {
       const sampleAccessToken = {
         accessToken: "123abc"
