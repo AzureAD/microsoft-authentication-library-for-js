@@ -1,6 +1,6 @@
 {
   "type": "prerelease",
-  "comment": "Update MSAL Service handleRedirectObservable hash handling (#3243)",
+  "comment": "Update MSAL Service handleRedirectObservable hash handling #3243",
   "packageName": "@azure/msal-angular",
   "email": "joarroyo@microsoft.com",
   "dependentChangeType": "patch"
