@@ -11,8 +11,8 @@
     "test:e2e": "ts-node ./e2eTests/testRunner.ts"
   },
   "dependencies": {
-    "@azure/identity": "^1.0.2",
-    "axios": "^0.19.2",
+    "@azure/identity": "^1.2.4",
+    "axios": "^0.21.1",
     "clear-module": "^4.1.1",
     "express": "^4.12.3",
     "morgan": "^1.5.2",

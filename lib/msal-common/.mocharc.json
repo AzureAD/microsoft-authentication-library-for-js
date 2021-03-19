@@ -1,4 +1,4 @@
 {
-    "require": ["./test/mochaSetup.js", "@babel/polyfill"],
+    "require": ["./test/mochaSetup.js", "core-js/stable", "regenerator-runtime/runtime"],
     "spec":  ["./test/**/*.spec.ts"]
 }

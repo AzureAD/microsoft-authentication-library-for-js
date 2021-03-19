@@ -11,7 +11,7 @@
     "test:e2e": "ts-node ./testRunner.ts"
   },
   "dependencies": {
-    "@azure/identity": "^1.0.2",
+    "@azure/identity": "^1.2.4",
     "axios": "^0.21.1",
     "clear-module": "^4.1.1",
     "e2eTestUtils": "file:../../.",
