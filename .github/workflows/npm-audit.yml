@@ -23,7 +23,7 @@ jobs:
       uses: actions/setup-node@v1
 
     - name: npm audit (root)
-      run: npm audit
+      run: npm audit --production
 
   audit-lib:
     runs-on: ubuntu-latest
@@ -47,4 +47,4 @@ jobs:
 
     - name: npm audit (lib)
       working-directory: lib/${{ matrix.library }}
-      run: npm audit
+      run: npm audit --production
