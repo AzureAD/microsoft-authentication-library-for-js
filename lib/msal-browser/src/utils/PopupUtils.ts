@@ -40,9 +40,11 @@ export class PopupUtils {
             // Popup window passed in, setting url to navigate to
             if (popup) {
                 popupWindow = popup;
+                this.logger.verbosePii(`Navigating popup window to: ${urlNavigate}`);
                 popupWindow.location.assign(urlNavigate);
             } else if (typeof popup === "undefined") {
                 // Popup will be undefined if it was not passed in
+                this.logger.verbosePii(`Opening popup window to: ${urlNavigate}`);
                 popupWindow = PopupUtils.openSizedPopup(urlNavigate, popupName);
             }
 
