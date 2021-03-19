@@ -4,7 +4,7 @@
  */
 
 import { Inject, Injectable } from "@angular/core";
-import { Observable, Subject } from "rxjs";
+import { BehaviorSubject, Observable, Subject } from "rxjs";
 import { MSAL_INSTANCE } from "./constants";
 import { EventMessage, EventMessageUtils, IPublicClientApplication, InteractionStatus } from "@azure/msal-browser";
 import { MsalService } from "./msal.service";
@@ -13,7 +13,7 @@ import { MsalService } from "./msal.service";
 export class MsalBroadcastService {
     private _msalSubject: Subject<EventMessage>;
     public msalSubject$: Observable<EventMessage>;
-    private _inProgress: Subject<InteractionStatus>;
+    private _inProgress: BehaviorSubject<InteractionStatus>;
     public inProgress$: Observable<InteractionStatus>;
 
     constructor(
@@ -22,8 +22,11 @@ export class MsalBroadcastService {
     ) {
         this._msalSubject = new Subject<EventMessage>();
         this.msalSubject$  = this._msalSubject.asObservable();
-        this._inProgress = new Subject<InteractionStatus>();
+
+        // InProgress as BehaviorSubject so most recent inProgress state will be available upon subscription
+        this._inProgress = new BehaviorSubject<InteractionStatus>(null);
         this.inProgress$ = this._inProgress.asObservable();
+
         this.msalInstance.addEventCallback((message: EventMessage) => {
             this._msalSubject.next(message);
             const status = EventMessageUtils.getInteractionStatusFromEvent(message);
