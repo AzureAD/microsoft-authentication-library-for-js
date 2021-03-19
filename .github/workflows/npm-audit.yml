@@ -4,6 +4,9 @@
 name: npm audit
 
 on:
+  pull_request:
+    branches:  
+      - dev
   push:
     branches:
       - 'master'
