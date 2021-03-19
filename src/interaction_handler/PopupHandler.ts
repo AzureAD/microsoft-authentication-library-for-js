@@ -8,7 +8,6 @@ import { InteractionHandler, InteractionParams } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { DEFAULT_POPUP_TIMEOUT_MS } from "../config/Configuration";
 import { PopupUtils } from "../utils/PopupUtils";
 
 export type PopupParams = InteractionParams & {
@@ -54,44 +53,21 @@ export class PopupHandler extends InteractionHandler {
      * @param popupWindow - window that is being monitored
      * @param timeout - milliseconds until timeout
      */
-    monitorPopupForHash(popupWindow: Window, timeout: number): Promise<string> {
-        return new Promise((resolve, reject) => {
-            if (timeout < DEFAULT_POPUP_TIMEOUT_MS) {
-                this.authModule.logger.warning(`system.loadFrameTimeout or system.windowHashTimeout set to lower (${timeout}ms) than the default (${DEFAULT_POPUP_TIMEOUT_MS}ms). This may result in timeouts.`);
+    monitorPopupForHash(popupWindow: Window): Promise<string> {
+        return this.popupUtils.monitorPopupForSameOrigin(popupWindow).then(() => {
+            const contentHash = popupWindow.location.hash;
+            this.popupUtils.cleanPopup(popupWindow);
+
+            if (!contentHash) {
+                throw BrowserAuthError.createEmptyHashError(popupWindow.location.href);
             }
 
-            const maxTicks = timeout / BrowserConstants.POLL_INTERVAL_MS;
-            let ticks = 0;
-
-            this.popupUtils.monitorPopupForSameOrigin(popupWindow).then(() => {
-                const intervalId = setInterval(() => {
-                    if (popupWindow.closed) {
-                        // Window is closed
-                        this.popupUtils.cleanPopup();
-                        clearInterval(intervalId);
-                        reject(BrowserAuthError.createUserCancelledError());
-                        return;
-                    }
-                    // Only run clock when we are on same domain
-                    ticks++;
-                    const contentHash = popupWindow.location.hash;
-                    if (UrlString.hashContainsKnownProperties(contentHash)) {
-                        // Success case
-                        this.popupUtils.cleanPopup(popupWindow);
-                        clearInterval(intervalId);
-                        resolve(contentHash);
-                        return;
-                    } else if (ticks > maxTicks) {
-                        // Timeout error
-                        this.popupUtils.cleanPopup(popupWindow);
-                        clearInterval(intervalId);
-                        reject(BrowserAuthError.createMonitorPopupTimeoutError());
-                        return;
-                    }
-                }, BrowserConstants.POLL_INTERVAL_MS);
-            }).catch((e) => {
-                reject(e);
-            });
-        });
+            if (UrlString.hashContainsKnownProperties(contentHash)) {
+                return contentHash;
+            } else {
+                throw BrowserAuthError.createHashDoesNotContainKnownPropertiesError();
+            }
+        }
+        );
     }
 }

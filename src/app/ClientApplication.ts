@@ -485,10 +485,10 @@ export abstract class ClientApplication {
                 popupName
             };
             const popupWindow: Window = interactionHandler.initiateAuthRequest(navigateUrl, popupParameters);
-            this.emitEvent(EventType.POPUP_OPENED, InteractionType.Popup, popupWindow, null);
+            this.emitEvent(EventType.POPUP_OPENED, InteractionType.Popup, {popupWindow}, null);
 
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-            const hash = await interactionHandler.monitorPopupForHash(popupWindow, this.config.system.windowHashTimeout);
+            const hash = await interactionHandler.monitorPopupForHash(popupWindow);
             const state = this.validateAndExtractStateFromHash(hash, InteractionType.Popup);
 
             // Remove throttle if it exists
@@ -730,7 +730,7 @@ export abstract class ClientApplication {
             this.logger.verbose("logoutPopup called");
             validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
         } catch (e) {
-            // Since this function is syncronous we need to reject
+            // Since this function is synchronous we need to reject
             return Promise.reject(e);
         }
 
@@ -779,11 +779,9 @@ export abstract class ClientApplication {
             this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Popup, validRequest);
 
             const popupUtils = new PopupUtils(this.browserStorage, this.logger);
-            // Set interaction status in the library.
-            this.logger.infoPii("Navigate to:" + logoutUri);
             // Open the popup window to requestUrl.
             const popupWindow = popupUtils.openPopup(logoutUri, popupName, popup);
-            this.emitEvent(EventType.POPUP_OPENED, InteractionType.Popup, popupWindow, null);
+            this.emitEvent(EventType.POPUP_OPENED, InteractionType.Popup, {popupWindow}, null);
 
             try {
                 // Don't care if this throws an error (User Cancelled)
