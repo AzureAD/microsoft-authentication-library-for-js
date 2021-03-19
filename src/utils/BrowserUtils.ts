@@ -101,6 +101,15 @@ export class BrowserUtils {
     }
 
     /**
+     * Block redirectUri loaded in popup from calling AcquireToken APIs
+     */
+    static blockAcquireTokenInPopups(): void {
+        if (window.opener && window.opener !== window) {
+            throw BrowserAuthError.createBlockAcquireTokenInPopupsError();
+        }
+    }
+
+    /**
      * Throws error if token requests are made in non-browser environment
      * @param isBrowserEnvironment Flag indicating if environment is a browser.
      */
