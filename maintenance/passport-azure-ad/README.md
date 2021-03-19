@@ -115,7 +115,7 @@ passport.use(new OIDCStrategy({
     https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration
   ```
   
-  For B2C, you cannot use v2 common endpoint unless you specify the tenant in `passport.authenticate` using `tenantIdOrName` option. See section 5.1.3 for more details.
+  For B2C, you cannot use v2 common endpoint unless you specify the tenant in `passport.authenticate` using `tenantIdOrName` option. See section 4.1.3 for more details.
   
 * `clientID` (Required)
 
@@ -135,7 +135,7 @@ passport.use(new OIDCStrategy({
 
 * `passReqToCallback`  (Conditional)
 
-  Required to set to true if using `req` as the first paramter in the verify function, default value is false. See section 5.1.1.3 for more details.
+  Required to set to true if using `req` as the first paramter in the verify function, default value is false. See section 4.1.1.3 for more details.
 
 * `allowHttpForRedirectUrl`  (Conditional) 
   
@@ -165,7 +165,7 @@ passport.use(new OIDCStrategy({
 
 * `validateIssuer`  (Conditional)
   
-  Required to set to false if you don't want to validate issuer, default value is true. We validate the `iss` claim in id_token against user provided `issuer` values and the issuer value we get from tenant-specific endpoint. If you use common endpoint for `identityMetadata` and you want to validate issuer, then you have to either provide `issuer`, or provide the tenant for each login request using `tenantIdOrName` option in `passport.authenticate` (see section 5.1.3 for more details).
+  Required to set to false if you don't want to validate issuer, default value is true. We validate the `iss` claim in id_token against user provided `issuer` values and the issuer value we get from tenant-specific endpoint. If you use common endpoint for `identityMetadata` and you want to validate issuer, then you have to either provide `issuer`, or provide the tenant for each login request using `tenantIdOrName` option in `passport.authenticate` (see section 4.1.3 for more details).
   
 * `issuer`  (Conditional)
   
@@ -174,7 +174,7 @@ passport.use(new OIDCStrategy({
 * `jweKeyStore`  (Conditional)
 
   This option is required if you want to accept and decrypt id_token in JWE Compact Serialization format. See 
-  section 5.1.1.4 for more details.
+  section 4.1.1.4 for more details.
 
 * `useCookieInsteadOfSession`  (Conditional)
   
@@ -393,7 +393,7 @@ the strategy.
 
 * `prompt`: v1 and v2 endpoint support `login`, `consent` and `admin_consent`; B2C endpoint only supports `login`. 
 
-* `response`: this is required if you want to use cookie instead of session to save state/nonce. See section 5.1.4.
+* `response`: this is required if you want to use cookie instead of session to save state/nonce. See section 4.1.4.
 
 Example:
 
@@ -413,7 +413,7 @@ Passport framework uses session to keep a persistent login session. As a plug in
     nonceLifetime: 600,  // state/nonce cookie expiration in seconds
     nonceMaxAmount: 5,   // max amount of state/nonce cookie you want to keep (cookie is deleted after validation so this can be very small)
     useCookieInsteadOfSession: true,  // use cookie, not session
-    cookieEncryptionKeys: [ { key: '12345678901234567890123456789012', 'iv': '123456789012' }],  // encrypt/decrypt key and iv, see `cookieEncryptionKeys` instruction in section 5.1.1.2
+    cookieEncryptionKeys: [ { key: '12345678901234567890123456789012', 'iv': '123456789012' }],  // encrypt/decrypt key and iv, see `cookieEncryptionKeys` instruction in section 4.1.1.2
   },
     // any supported verify callback
     function(iss, sub, profile, accessToken, refreshToken, done) {
@@ -504,7 +504,7 @@ var bearerStrategy = new BearerStrategy(options,
 
 * `passReqToCallback`  (Conditional)
 
-  Required to set to true if using `req` as the first paramter in the verify function, default value is false. See section 5.2.1.3 for more details.
+  Required to set to true if using `req` as the first paramter in the verify function, default value is false. See section 4.2.1.3 for more details.
   
 * `isB2C`  (Conditional)
 
