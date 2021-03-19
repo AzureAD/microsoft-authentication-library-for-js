@@ -1,0 +1,55 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Run CI - Extensions
+
+on:
+  push:
+    branches:
+      - 'dev'
+      - 'master'
+  pull_request:
+    paths-ignore:
+      - '**.md'
+      - '**/.vscode/*.json'
+      - 'samples/**'
+      - 'change/**'
+
+jobs:
+
+  build-test:
+    runs-on: ubuntu-latest
+    env: 
+      NOT_FROM_FORK: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
+  
+    steps:
+    - name: Cancel Previous Runs
+      uses: styfle/cancel-workflow-action@0.8.0
+      with:
+        access_token: ${{ github.token }}
+
+    - uses: actions/checkout@v2
+
+    - name: Use Node.js
+      uses: actions/setup-node@v1
+
+    - name: Clean Install
+      env:
+        RUNNING_NODE_CI: 1
+      run: npm ci
+
+    - name: Build Common
+      working-directory: extensions/msal-node-extensions
+      run: npm run build:common
+
+    - name: Link Common
+      working-directory: extensions/msal-node-extensions
+      run: npm run link:common
+
+    - name: Build
+      working-directory: extensions/msal-node-extensions
+      run: npm run build
+
+    - name: Test
+      working-directory: extensions/msal-node-extensions
+      run: npm run test
