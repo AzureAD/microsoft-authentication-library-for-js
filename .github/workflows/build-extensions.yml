@@ -38,6 +38,10 @@ jobs:
         RUNNING_NODE_CI: 1
       run: npm ci
 
+    - name: Install Extensions
+      working-directory: extensions/msal-node-extensions
+      run: npm ci
+
     - name: Build Common
       working-directory: extensions/msal-node-extensions
       run: npm run build:common
