@@ -1,0 +1,54 @@
+{
+  "name": "passport-azure-ad",
+  "version": "4.3.0",
+  "license": "MIT",
+  "keywords": [
+    "azure active directory",
+    "aad",
+    "adfs",
+    "sso",
+    "oidc",
+    "bearer",
+    "shibboleth"
+  ],
+  "description": "OIDC and Bearer Passport strategies for Azure Active Directory",
+  "author": {
+    "name": "azuread",
+    "email": "nugetaad@microsoft.com",
+    "url": "http://microsoft.com/"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git@github.com:AzureAD/passport-azure-ad.git"
+  },
+  "main": "./lib",
+  "devDependencies": {
+    "chai": "2.x.x",
+    "chai-passport-strategy": "1.x.x",
+    "grunt": "^1.0.1",
+    "grunt-contrib-nodeunit": "^2.1.0",
+    "grunt-mocha-test": "^0.12.7",
+    "mocha": "^5.2.0",
+    "nodeunit": "^0.11.3"
+  },
+  "dependencies": {
+    "async": "^1.5.2",
+    "base64url": "^3.0.0",
+    "bunyan": "^1.8.14",
+    "cache-manager": "2.10.2",
+    "https-proxy-agent": "^2.2.2",
+    "jwk-to-pem": "^2.0.4",
+    "jws": "^3.1.3",
+    "lodash": "^4.11.2",
+    "oauth": "0.9.15",
+    "passport": "^0.3.2",
+    "request": "^2.72.0",
+    "valid-url": "^1.0.6"
+  },
+  "scripts": {
+    "test": "grunt run_tests"
+  },
+  "engines": {
+    "node": ">= 8.0.0"
+  }
+}
