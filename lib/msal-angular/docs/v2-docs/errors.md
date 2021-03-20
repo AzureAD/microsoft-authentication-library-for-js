@@ -25,7 +25,7 @@ In `@azure/msal-angular` there are 2 common scenarios when this can happen:
 
 We recommend that you bootstrap the the **`MsalRedirectComponent`** if you want to use redirects as this will handle all redirects for you. See the docs on redirects [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/redirects.md) for how to use the `MsalRedirectComponent` or alternatively calling `handleRedirectObservable` manually. 
 
-We also recommend that any interaction should be done after subscribing to the `inProgress$` subject and filtering for none. Please see our [events doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/events.md#the-inprogress-observable) for more details. 
+We also recommend that any interaction should be done after subscribing to the `inProgress$` observable and filtering for `InteractionStatus.None`. Please see our [events doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/events.md#the-inprogress-observable) for more details. 
 
 Please see the [`@azure/msal-browser` error doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/errors.md) for more information on this error.
 
