@@ -13,6 +13,7 @@
 
 **[Usage](#usage)**
 
+1. [How do I secure routes?](#how-do-i-secure-routes)
 1. [How do I get accounts?](#how-do-i-get-accounts)
 1. [How do I get and set active accounts?](#how-do-i-get-and-set-active-accounts)
 1. [Why is my app looping when logging in with redirect?](#why-is-my-app-looping-when-logging-in-with-redirect)
@@ -53,6 +54,13 @@ See our [initialization doc](https://github.com/AzureAD/microsoft-authentication
 Please note that using the `MsalInterceptor` is optional and you can write your own interceptor if you choose to. Alternatively, you can also explicitly acquire tokens using the acquireToken APIs.
 
 ## Usage
+
+### How do I secure routes?
+Please see our [initialization doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/initialization.md#secure-the-routes-in-your-application) for more information about securing routes with the `MsalGuard`.
+
+Please note that while the `MsalGuard` is done with best effort, it is a convenience feature intended to improve the user experience and, as such, should not be relied upon for security. Attackers can potentially get around client-side guards, and you should ensure that the server does not return any data the user should not access.
+
+You may also need a route guard that addresses specific needs. We encourage you to write your own guard if `MsalGuard` does not meet all those needs.
 
 ### How do I get accounts?
 
