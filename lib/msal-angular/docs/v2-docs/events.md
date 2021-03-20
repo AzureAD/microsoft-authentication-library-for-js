@@ -92,7 +92,7 @@ An example of error handling can also be found on our [MSAL Angular v2 B2C Sampl
 
 The `inProgress$` observable is also handled by the `MsalBroadcastService`, and should be subscribed to when application needs to know the status of interactions, particularly to check that interactions are completed. We recommend checking that the status of interactions is `InteractionStatus.None` before functions involving user accounts. 
 
-Note that the last most recent `InteractionStatus` will also be available on the `inProgress$` observable when initially subscribed to.
+Note that the last / most recent `InteractionStatus` will also be available when subscribing to the `inProgress$` observable.
 
 See the example below for its use. A full example can also be found in our [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/home/home.component.ts#L23). A full list of interaction statuses can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/src/utils/BrowserConstants.ts#L87).
 
