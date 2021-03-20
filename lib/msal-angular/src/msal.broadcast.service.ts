@@ -24,7 +24,7 @@ export class MsalBroadcastService {
         this.msalSubject$  = this._msalSubject.asObservable();
 
         // InProgress as BehaviorSubject so most recent inProgress state will be available upon subscription
-        this._inProgress = new BehaviorSubject<InteractionStatus>(null);
+        this._inProgress = new BehaviorSubject<InteractionStatus>(undefined);
         this.inProgress$ = this._inProgress.asObservable();
 
         this.msalInstance.addEventCallback((message: EventMessage) => {
