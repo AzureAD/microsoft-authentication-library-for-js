@@ -10,7 +10,7 @@
     1. [Protecting your components](#protecting-your-components)
     1. [Acquiring an access token](#acquiring-an-access-token)
     1. [Acquiring an id token](#acquiring-an-id-token)
-    1. [Updating redux store integration / reacting to events](#updating-redux-store-integration-/-reacting-to-events)
+    1. [Updating redux store integration / reacting to events](#updating-redux-store-integration--reacting-to-events)
 
 ***
 
