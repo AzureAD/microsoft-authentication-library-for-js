@@ -49,7 +49,7 @@ export class MsalInterceptor implements HttpInterceptor {
         }
 
         // Load dynamic authority based on account that is going to be used.
-        let authority: string | undefined;
+        let authority: string = undefined;
         if (this.msalInterceptorConfig.dynamicAuthority !== undefined) {
             this.authService.getLogger().verbose("Interceptor - using dynamic authority");
             authority = this.msalInterceptorConfig.dynamicAuthority(account) ?? this.msalInterceptorConfig.authRequest?.authority;
@@ -90,7 +90,7 @@ export class MsalInterceptor implements HttpInterceptor {
      * @param scopes Array of scopes for the request
      * @returns Result from the interactive request
      */
-    private acquireTokenInteractively(scopes: string[], authority: string = undefined): Observable<AuthenticationResult> {
+    private acquireTokenInteractively(scopes: string[], authority?: string): Observable<AuthenticationResult> {
         if (this.msalInterceptorConfig.interactionType === InteractionType.Popup) {
             this.authService.getLogger().verbose("Interceptor - error acquiring token silently, acquiring by popup");
             return this.authService.acquireTokenPopup({...this.msalInterceptorConfig.authRequest, scopes, authority});
