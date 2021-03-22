@@ -30,7 +30,7 @@ export class RegionDiscovery {
         // Call the local IMDS endpoint for applications running in azure vms
         if (!autodetectedRegionName) {
             try {
-                const response = await this.networkInterface.sendGetRequestAsync<string>(RegionDiscovery.IMDS_ENDPOINT);
+                const response = await this.networkInterface.sendGetRequestAsync<string>(RegionDiscovery.IMDS_ENDPOINT, { headers: {"Metadata": "true"} });
                 autodetectedRegionName = response.body;
                 // eslint-disable-next-line no-console
                 console.log(`Auto detected region from IMDS endpoint: ${JSON.stringify(autodetectedRegionName)}`);
