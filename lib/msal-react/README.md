@@ -90,7 +90,7 @@ Migrating from [react-aad-msal](https://www.npmjs.com/package/react-aad-msal)? C
 
 ### MSAL Basics
 
-Since `@azure/msal-react` is built on top of `@azure/msal-browser` a lot of the same docs are relevant. For concepts specific to `@azure/msal-react` please see [below](#msal-react-specific-concepts)
+Since `@azure/msal-react` is a wrapper around `@azure/msal-browser` many docs from the `msal-browser` repo are relevant here as well. For concepts specific to `@azure/msal-react` please see [below](#msal-react-specific-concepts)
 
 1. [Initialization](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/initialization.md)
 1. [Acquiring and using an access token](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/acquire-token.md)
