@@ -40,7 +40,7 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
 
 export async function approveRemoteConnect(page: Page, screenshot: Screenshot): Promise<void> {
     try {
-        await page.waitFor("#remoteConnectDescription");
+        await page.waitForSelector("#remoteConnectDescription");
         await screenshot.takeScreenshot(page, "remoteConnectPage");
         await Promise.all([
             page.click("#remoteConnectSubmit"),
