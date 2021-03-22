@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "React-add-msal to msal-react migration guide #2964",
+  "packageName": "@azure/msal-react",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "none"
+}
