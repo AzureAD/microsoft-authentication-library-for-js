@@ -12,6 +12,7 @@ The Auth Code flow is most commonly used for a web app that signs in users.  Gen
 ## Test the Sample
 
 ### Configure the application
+
 Open the `config/customConfig.json` file.
 
 We will change this to add details about our app registration and deployment.
