@@ -273,8 +273,11 @@ export class Authority {
             // If the user prefers to use an azure region replace the global endpoints with regional information.
             if (this.prefferedAzureRegionOptions?.useAzureRegion) {
                 const autodetectedRegionName = await this.regionDiscovery.detectRegion();
+                // eslint-disable-next-line no-console
+                console.log(`Auto detected region from region discovery service: ${JSON.stringify(autodetectedRegionName)}`);
                 const azureRegion = autodetectedRegionName || this.prefferedAzureRegionOptions.regionUsedIfAutoDetectionFails;
-
+                // eslint-disable-next-line no-console
+                console.log(`Final azure region being used: ${JSON.stringify(azureRegion)}`);
                 if (!azureRegion && !this.prefferedAzureRegionOptions.fallbackToGlobal) {
                     throw ClientAuthError.createNoAzureRegionDetectedError();
                 }
