@@ -43,7 +43,7 @@ export async function approveRemoteConnect(page: Page, screenshot: Screenshot): 
         await page.waitFor("#remoteConnectDescription");
         await screenshot.takeScreenshot(page, "remoteConnectPage");
         await Promise.all([
-            page.click("#idSIButton9"),
+            page.click("#remoteConnectSubmit"),
             page.waitForNavigation({ waitUntil: "networkidle0"})
         ]);
     } catch (e) {
