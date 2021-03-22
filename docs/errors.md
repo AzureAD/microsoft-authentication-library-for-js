@@ -93,6 +93,7 @@ msalInstance.handleRedirectPromise()
             }
         } else {
             // Do something with the tokenResponse
+        }
     })
     .catch(err => {
         // Handle error
