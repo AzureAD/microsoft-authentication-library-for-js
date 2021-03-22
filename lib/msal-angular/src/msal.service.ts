@@ -46,10 +46,8 @@ export class MsalService implements IMsalService {
     acquireTokenSilent(silentRequest: SilentRequest): Observable<AuthenticationResult> {
         return from(this.instance.acquireTokenSilent(silentRequest));
     }
-    handleRedirectObservable(): Observable<AuthenticationResult> {
-        const handleRedirect = from(this.instance.handleRedirectPromise(this.redirectHash));
-        this.redirectHash = "";
-        return handleRedirect;
+    handleRedirectObservable(hash?: string): Observable<AuthenticationResult> {
+        return from(this.instance.handleRedirectPromise(hash || this.redirectHash));
     }
     loginPopup(request?: PopupRequest): Observable<AuthenticationResult> {
         return from(this.instance.loginPopup(request));
