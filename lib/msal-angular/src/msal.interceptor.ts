@@ -48,20 +48,29 @@ export class MsalInterceptor implements HttpInterceptor {
             return next.handle(req);
         }
 
+        // Load dynamic authority based on account that is going to be used.
+        let authority: string | undefined;
+        if (this.msalInterceptorConfig.dynamicAuthority !== undefined) {
+            this.authService.getLogger().verbose("Interceptor - using dynamic authority");
+            authority = this.msalInterceptorConfig.dynamicAuthority(account) ?? this.msalInterceptorConfig.authRequest?.authority;
+        } else {
+            authority = this.msalInterceptorConfig.authRequest?.authority;
+        }
+
         this.authService.getLogger().info(`Interceptor - ${scopes.length} scopes found for endpoint`);
         this.authService.getLogger().infoPii(`Interceptor - [${scopes}] scopes found for ${req.url}`);
 
         // Note: For MSA accounts, include openid scope when calling acquireTokenSilent to return idToken
-        return this.authService.acquireTokenSilent({...this.msalInterceptorConfig.authRequest, scopes, account})
+        return this.authService.acquireTokenSilent({...this.msalInterceptorConfig.authRequest, scopes, account, authority})
             .pipe(
                 catchError(() => {
                     this.authService.getLogger().error("Interceptor - acquireTokenSilent rejected with error. Invoking interaction to resolve.");
-                    return this.acquireTokenInteractively(scopes);
+                    return this.acquireTokenInteractively(scopes, authority);
                 }),
                 switchMap((result: AuthenticationResult)  => {
                     if (!result.accessToken) {
                         this.authService.getLogger().error("Interceptor - acquireTokenSilent resolved with null access token. Known issue with B2C tenants, invoking interaction to resolve.");
-                        return this.acquireTokenInteractively(scopes);
+                        return this.acquireTokenInteractively(scopes, authority);
                     }
                     return of(result);
                 }),
@@ -81,14 +90,14 @@ export class MsalInterceptor implements HttpInterceptor {
      * @param scopes Array of scopes for the request
      * @returns Result from the interactive request
      */
-    private acquireTokenInteractively(scopes: string[]): Observable<AuthenticationResult> {
+    private acquireTokenInteractively(scopes: string[], authority: string = undefined): Observable<AuthenticationResult> {
         if (this.msalInterceptorConfig.interactionType === InteractionType.Popup) {
             this.authService.getLogger().verbose("Interceptor - error acquiring token silently, acquiring by popup");
-            return this.authService.acquireTokenPopup({...this.msalInterceptorConfig.authRequest, scopes});
+            return this.authService.acquireTokenPopup({...this.msalInterceptorConfig.authRequest, scopes, authority});
         }
         this.authService.getLogger().verbose("Interceptor - error acquiring token silently, acquiring by redirect");
         const redirectStartPage = window.location.href;
-        this.authService.acquireTokenRedirect({...this.msalInterceptorConfig.authRequest, scopes, redirectStartPage});
+        this.authService.acquireTokenRedirect({...this.msalInterceptorConfig.authRequest, scopes, redirectStartPage, authority});
         return EMPTY;
     }
 
