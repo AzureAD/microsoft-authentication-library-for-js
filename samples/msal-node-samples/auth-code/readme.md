@@ -5,7 +5,7 @@ This sample application demonstrates how to use the Authorization Code Grant API
 Once MSAL Node is installed, and you have the right files, come here to learn about this scenario.
 
 ### How is this scenario used?
-The Auth Code flow is most commonly used for a web app that signs in users.  General information about this scenario is available [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/scenario-web-app-sign-user-overview?tabs=aspnetcore).
+The Auth Code flow is most commonly used for a web app that signs in users.  General information about this scenario is available [here](https://docs.microsoft.com/azure/active-directory/develop/scenario-web-app-sign-user-overview?tabs=aspnetcore).
 
 >**Note: Although this sample application has a web server component that allows the user to input their credentials in the browser, it is important to remember that MSAL Node does not support browser-based Single Page Applications. If you are looking to use the authorization code grant to acquire tokens in a Single-Page Application, please use [MSAL Browser](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-browser).**
 
@@ -32,7 +32,7 @@ Check that supported account types are: **Accounts in any organizational directo
 
 If so, then set the authority attribute in the JSON configuraiton file to `https://login.microsoftonline.com/common`
 
-For other supported account types, review the other [Authority options](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-client-application-configuration).  Unless there is a specific need to restrict users of your app to an organization, we strongly suggest that everyone use the default authority. User restrictions can be placed later in the application flow if needed.
+For other supported account types, review the other [Authority options](https://docs.microsoft.com/azure/active-directory/develop/msal-client-application-configuration).  Unless there is a specific need to restrict users of your app to an organization, we strongly suggest that everyone use the default authority. User restrictions can be placed later in the application flow if needed.
 
 #### **Client Secret**
 
@@ -165,7 +165,7 @@ We add our sign in code to the default route.
 app.get('/', (req, res) => {
 ```
 
-Next, we have to pick the `scopes` related to the user.  If we are logging in a user, then we must at least request access to basic user information.  The default scope of `user.read` grants that basic access. To learn more see the [Microsoft Graph permissions reference](https://docs.microsoft.com/en-us/graph/permissions-reference).
+Next, we have to pick the `scopes` related to the user.  If we are logging in a user, then we must at least request access to basic user information.  The default scope of `user.read` grants that basic access. To learn more see the [Microsoft Graph permissions reference](https://docs.microsoft.com/graph/permissions-reference).
 
 **auth-code/config/customConfig.json:**
 ```json
