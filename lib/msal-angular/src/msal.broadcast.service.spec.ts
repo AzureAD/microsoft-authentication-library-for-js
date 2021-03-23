@@ -37,7 +37,7 @@ describe('MsalBroadcastService', () => {
       done();
     });
 
-    const expectedInProgress = [undefined, InteractionStatus.Login];
+    const expectedInProgress = [InteractionStatus.Startup, InteractionStatus.Login];
     let index = 0;
 
     broadcastService.inProgress$.subscribe((result) => {
