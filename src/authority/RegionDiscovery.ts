@@ -30,39 +30,27 @@ export class RegionDiscovery {
     public async detectRegion(): Promise<string | null> {
         // Detect region from the process environment variable
         let autodetectedRegionName = process.env[RegionDiscovery.REGION_ENV_NAME];
-        // eslint-disable-next-line no-console
-        console.log(`Auto detected region name from environment variable ["REGION_NAME"]: ${autodetectedRegionName}`);
+
         // Call the local IMDS endpoint for applications running in azure vms
         if (!autodetectedRegionName) {
             try {
                 const response = await this.networkInterface.sendGetRequestAsync<string>(this.buildIMDSEndpoint(RegionDiscovery.IMDS_ENDPOINT, RegionDiscovery.VERSION), RegionDiscovery.IMDS_OPTIONS);
-                // eslint-disable-next-line no-console
-                console.log(JSON.stringify(response));
                 if (response.status === 200) {
                     autodetectedRegionName = response.body;
-                    // eslint-disable-next-line no-console
-                    console.log(`Auto detected region from IMDS endpoint: ${JSON.stringify(autodetectedRegionName)}`);
-                } else if (response.status === 400) {
+                } 
+                
+                if (response.status === 400) {
                     const latestIMDSVersion = await this.getCurrentVersion();
                     if (!latestIMDSVersion) {
-                        // eslint-disable-next-line no-console
-                        console.log("Failed to get the new version of the IMDS endpoint");
                         return null;
                     }
 
                     const response = await this.networkInterface.sendGetRequestAsync<string>(this.buildIMDSEndpoint(RegionDiscovery.IMDS_ENDPOINT, latestIMDSVersion), RegionDiscovery.IMDS_OPTIONS);
                     if (response.status === 200) {
                         autodetectedRegionName = response.body;
-                        // eslint-disable-next-line no-console
-                        console.log(`Auto detected region from IMDS endpoint: ${JSON.stringify(autodetectedRegionName)}`);
                     }
-                } else {
-                    // eslint-disable-next-line no-console
-                    console.log(`Failed to get the region from IMDS endpoint with status code: ${response.status}`);
-                }
+                } 
             } catch(e) {
-                // eslint-disable-next-line no-console
-                console.log(JSON.stringify(e));
                 return null;
             } 
         }
@@ -92,15 +80,11 @@ export class RegionDiscovery {
 
             // When IMDS endpoint is called without the api version query param, bad request response comes back with latest version.
             if (response.status === 400) {
-                // eslint-disable-next-line no-console
-                console.log(JSON.stringify(response));
                 return response.body["newest-versions"][0];
             }
 
             return null;
         } catch (e) {
-            // eslint-disable-next-line no-console
-            console.log(`Error while fetching the current version: ${JSON.stringify(e)}`);
             return null;
         }
     }
