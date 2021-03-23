@@ -105,7 +105,7 @@ export class BrowserUtils {
      */
     static blockAcquireTokenInPopups(): void {
         // Popups opened by msal popup APIs are given a name that starts with "msal."
-        if (window.opener && window.opener !== window && window.name.indexOf(`${BrowserConstants.POPUP_NAME_PREFIX}.`) === 0) {
+        if (window.opener && window.opener !== window && typeof window.name === "string" && window.name.indexOf(`${BrowserConstants.POPUP_NAME_PREFIX}.`) === 0) {
             throw BrowserAuthError.createBlockAcquireTokenInPopupsError();
         }
     }
