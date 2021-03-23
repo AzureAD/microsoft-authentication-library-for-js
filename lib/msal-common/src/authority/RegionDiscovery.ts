@@ -39,9 +39,7 @@ export class RegionDiscovery {
                     autodetectedRegionName = response.body;
                     // eslint-disable-next-line no-console
                     console.log(`Auto detected region from IMDS endpoint: ${JSON.stringify(autodetectedRegionName)}`);
-                }
-
-                if (response.status === 400) {
+                } else if (response.status === 400) {
                     const latestIMDSVersion = await this.getCurrentVersion();
                     if (!latestIMDSVersion) {
                         // eslint-disable-next-line no-console
@@ -55,6 +53,9 @@ export class RegionDiscovery {
                         // eslint-disable-next-line no-console
                         console.log(`Auto detected region from IMDS endpoint: ${JSON.stringify(autodetectedRegionName)}`);
                     }
+                } else {
+                    // eslint-disable-next-line no-console
+                    console.log(`Failed to get the region from IMDS endpoint with status code: ${response.status}`);
                 }
             } catch(e) {
                 // eslint-disable-next-line no-console
