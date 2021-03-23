@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Wed, 03 Mar 2021 21:47:05 GMT and should not be manually modified.
+This log was last generated on Mon, 15 Mar 2021 23:45:17 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.12.1
+
+Mon, 15 Mar 2021 23:45:17 GMT
+
+### Patches
+
+- Clear temporary cache cookies on page load #3129 (prkanher@microsoft.com)
+- Throw BrowserAuthError when fetch fails #3146 (thomas.norling@microsoft.com)
 
 ## 2.12.0
 

@@ -272,6 +272,7 @@ lib/msal-core/lib-es6
 samples/**/screenshots
 samples/**/data/cache.json
 samples/**/data/testCache.json
+samples/**/data/*.cache.json
 samples/**/dist/
 .env
 lib/msal-node/temp

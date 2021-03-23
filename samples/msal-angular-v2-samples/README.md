@@ -1,8 +1,8 @@
 # MSAL Angular v2 Samples
 
-**`@azure/msal-angular@2` is now available for private preview. Please see the [`@azure/msal-angular` README](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular) for information on installation and changes.** 
+**`@azure/msal-angular` is now available for public preview. Please see the [`@azure/msal-angular` README](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular) for information on installation and changes.** 
 
-### Current available samples for `@azure/msal-angular@2`:
+### Current available samples for `@azure/msal-angular`:
 
 * [Angular v9](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular9-v2-sample-app)
     * `handleRedirectObservable`: This sample demonstrates how to call `handleRedirectObservable` manually to handle redirects. See our doc on [redirects](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/redirects.md) for more information. 
@@ -25,12 +25,12 @@
     * This sample demonstrates how to use Msal Angular with B2C. See our [B2C doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/working-with-b2c.md) for more information on configuration and usage.
     * `MsalRedirectComponent`: This sample uses the `MsalRedirectComponent` to handle redirects. See our doc on [redirects](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/redirects.md) for more information.
 
-### Advanced Samples using `@azure/msal-angular@2`:
+### Advanced Samples using `@azure/msal-angular`:
 * [Angular SPA with ASP.NET Core web API](https://github.com/Azure-Samples/ms-identity-javascript-angular-spa-aspnetcore-webapi)
 * [Angular SPA with APS.NET Core web API using App Roles and RBAC](https://github.com/Azure-Samples/ms-identity-javascript-angular-spa-dotnetcore-webapi-roles-groups)
 * [Multi-tenant tutorial  using MSAL Angular v2](https://github.com/Azure-Samples/ms-identity-javascript-angular-spa-aspnet-webapi-multitenant)
 
-### Pre-Angular v2 sample
+### Pre-MSAL Angular v2 samples
 
 * [Angular 10 Browser Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular10-browser-sample)
     * **Note:** This sample was created before `@azure/msal-angular@2` was available to demonstrate how to use `@azure/msal-browser` in an Angular application directly.

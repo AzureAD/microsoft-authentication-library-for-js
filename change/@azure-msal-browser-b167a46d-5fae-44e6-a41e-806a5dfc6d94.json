@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Clear temporary cache cookies on page load #3129",
-  "packageName": "@azure/msal-browser",
-  "email": "prkanher@microsoft.com",
-  "dependentChangeType": "patch"
-}
