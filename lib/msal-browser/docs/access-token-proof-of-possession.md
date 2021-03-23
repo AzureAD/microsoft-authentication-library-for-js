@@ -4,6 +4,13 @@ In order to increase the protection of OAuth 2.0 access tokens stored in the bro
 
 It is important to understand that for `AT PoP` to work end-to-end and provide the security upgrade intended, both the **authorization service** that issues the access tokens and the **resource server** that they are provide access to must support `AT PoP`.
 
+## Contents
+- Bearer Access Token vs PoP AccessToken
+    - [Bearer Access Token](#bearer-access-token)
+    - [PoP Access Token (Signed HTTP Request)](#pop-access-token-(signed-http-request))
+- [Making a PoP Token Request](#making-a-pop-token-request)
+- [PoP Token Caching](#pop-token-caching)
+
 ## Bearer Access Token vs PoP Access Token
 
 ### Bearer Access Token
@@ -47,14 +54,22 @@ headers.append("Authorization", authHeader);
 
 ## Making a PoP Token Request
 
-Once you have determined the authorization service and resource server support access token binding, you can configure your MSAL authentication and authorization request objects to acquire bound access tokens by enabling the `POP` authenticaiton scheme in the request configuration:
+Once you have determined the authorization service and resource server support access token binding, you can configure your MSAL authentication and authorization request objects to acquire bound access tokens by building a token request object containing the Access Token PoP-specific attributes.
+
+### AT PoP Request Parameters
+
+|           Name          |                      Description                            |
+|-------------------------| ----------------------------------------------------------- |
+|  `authenticationScheme` | Indicates whether MSAL should acquire a `Bearer` or `PoP` token. Default is `Bearer`. |
+| `resourceRequestMethod` | The all-caps name of the HTTP method of the request that will use the signed token (`GET`, `POST`, `PUT`, etc.)|
+| `resourceRequestUri`    | The URL of the protected resource for which the access token is being issued |
 
 ### Acquire Token Redirect Request Example
 
 ```typescript
 const popTokenRequest = {
     scopes: ["User.Read"],
-    authenticationScheme: msal.AuthenticationScheme.POP, // Default is "BEARER"
+    authenticationScheme: msal.AuthenticationScheme.POP,
     resourceRequestMethod: "POST",
     resourceRequestUri: "YOUR_RESOURCE_ENDPOINT"
 }
@@ -127,4 +142,8 @@ fetch(endpoint, options)
     .catch(error => console.log(error));
 });
 ```
+
+## PoP Token Caching
+
+MSAL Browser caches access tokens acquired using proof-of-possession in order to reduce the amount of network calls and improve performance. However,  
 
