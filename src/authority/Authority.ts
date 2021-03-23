@@ -56,15 +56,10 @@ export class Authority {
     // See above for AuthorityType
     public get authorityType(): AuthorityType {
         const pathSegments = this.canonicalAuthorityUrlComponents.PathSegments;
-        const hostNameAndPort = this.canonicalAuthorityUrlComponents.HostNameAndPort;
 
         if (pathSegments.length && pathSegments[0].toLowerCase() === Constants.ADFS) {
             return AuthorityType.Adfs;
         }
-
-        if (hostNameAndPort.split(".").length === 4) {
-            return AuthorityType.Regional;
-        } 
 
         return AuthorityType.Default;
     }

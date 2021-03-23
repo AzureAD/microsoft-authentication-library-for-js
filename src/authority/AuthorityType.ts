@@ -8,6 +8,5 @@
  */
 export enum AuthorityType {
     Default,
-    Adfs,
-    Regional
+    Adfs
 }
