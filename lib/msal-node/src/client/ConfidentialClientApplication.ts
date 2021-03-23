@@ -67,6 +67,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
                 serverTelemetryManager,
                 validRequest.prefferedAzureRegionOptions,
             );
+            this.logger.verbose("Auth client config generated");
             const clientCredentialClient = new ClientCredentialClient(clientCredentialConfig);
             return clientCredentialClient.acquireToken(validRequest);
         } catch(e) {
