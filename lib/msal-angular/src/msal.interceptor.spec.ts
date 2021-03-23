@@ -45,7 +45,7 @@ function MSALInterceptorFactory(): MsalInterceptorConfiguration {
       ["http://localhost:3000/", ["base.scope"]]
     ]),
     authRequest: testInterceptorConfig.authRequest,
-    dynamicAuthority: testInterceptorConfig.dynamicAuthority
+    dynamicAuthRequest: testInterceptorConfig.dynamicAuthRequest
   }
 }
 
@@ -375,7 +375,13 @@ describe('MsalInterceptor', () => {
     testInterceptorConfig.authRequest = {
       authority: 'https://login.microsoftonline.com/common'
     };
-    testInterceptorConfig.dynamicAuthority = (account: AccountInfo) => `https://login.microsoftonline.com/${account.tenantId}`
+    // testInterceptorConfig.dynamicAuthority = (account: AccountInfo) => `https://login.microsoftonline.com/${account.tenantId}`
+    testInterceptorConfig.dynamicAuthRequest = (authRequest, httpReq) => {
+      return {
+        ...authRequest,
+        authority: `https://login.microsoftonline.com/${authRequest.account.tenantId}`
+      };
+    }
     initializeMsal();
     spyOn(PublicClientApplication.prototype, "getActiveAccount").and.returnValue(sampleAccountInfo);
     spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.callFake((silentRequest: SilentRequest) => new Promise((resolve) => {
@@ -399,7 +405,7 @@ describe('MsalInterceptor', () => {
     testInterceptorConfig.authRequest = {
       authority: 'https://login.microsoftonline.com/common'
     };
-    testInterceptorConfig.dynamicAuthority = (account: AccountInfo) => undefined
+    testInterceptorConfig.dynamicAuthRequest = (authRequest, httpReq) => undefined;
     initializeMsal();
     spyOn(PublicClientApplication.prototype, "getActiveAccount").and.returnValue(sampleAccountInfo);
     spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.callFake((silentRequest: SilentRequest) => new Promise((resolve) => {
@@ -420,7 +426,7 @@ describe('MsalInterceptor', () => {
   });
 
   it("calls dynamic authority with account, authority undefined", done => {
-    testInterceptorConfig.dynamicAuthority = (account: AccountInfo) => undefined
+    testInterceptorConfig.dynamicAuthRequest = (authRequest, httpReq) => undefined;
     initializeMsal();
     spyOn(PublicClientApplication.prototype, "getActiveAccount").and.returnValue(sampleAccountInfo);
     spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.callFake((silentRequest: SilentRequest) => new Promise((resolve) => {

@@ -48,7 +48,7 @@ export class AppComponent implements OnInit {
 
 ## Multi-tenant access tokens
 
-By default the MsalInterceptor will retrieve access tokens from the users' primary tenant. You can however override this behavior by setting a dynamic authority on the MsalInterceptorConfig.
+By default the MsalInterceptor will retrieve access tokens from the users' primary tenant. You can however override this behavior by setting a dynamic auth request on the MsalInterceptorConfig.
 
 ```js
 export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
@@ -61,7 +61,12 @@ export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
     authRequest: {
       authority: 'https://login.microsoftonline.com/organizations',
     },
-    dynamicAuthority: (account: AccountInfo) => `https://login.microsoftonline.com/${account.tenantId ?? 'organizations'}` 
+    dynamicAuthRequest: (authRequest, httpReq) => {
+      return {
+        ...authRequest,
+        authority: `https://login.microsoftonline.com/${authRequest.account?.tenantId ?? 'organizations'}`
+      };
+    }
   };
 }
 ...
