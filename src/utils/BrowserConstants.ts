@@ -28,6 +28,10 @@ export const BrowserConstants = {
      */
     POPUP_HEIGHT: 600,
     /**
+     * Name of the popup window starts with
+     */
+    POPUP_NAME_PREFIX: "msal",
+    /**
      * Default popup monitor poll interval in milliseconds
      */
     POLL_INTERVAL_MS: 50,

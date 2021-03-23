@@ -1206,7 +1206,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const oldWindow = global.window;
                 global.window = {
                     ...oldWindow,
-                    opener: global.window
+                    opener: global.window,
+                    name: "msal.testPopup"
                 }
 
                 sinon.stub(BrowserUtils, "isInIframe").returns(false);
@@ -1621,7 +1622,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const oldWindow = global.window;
                 global.window = {
                     ...oldWindow,
-                    opener: global.window
+                    opener: global.window,
+                    name: "msal.testPopup"
                 }
 
                 pca.acquireTokenPopup({scopes: ["openid"]}).catch(e => {
