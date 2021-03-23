@@ -786,7 +786,10 @@ export abstract class ClientApplication {
             try {
                 // Don't care if this throws an error (User Cancelled)
                 await popupUtils.monitorPopupForSameOrigin(popupWindow);
-            } catch {}
+                this.logger.verbose("Popup successfully redirected to postLogoutRedirectUri");
+            } catch (e) {
+                this.logger.verbose(`Error occurred while monitoring popup for same origin. Session on server may remain active. Error: ${e}`);
+            }
 
             popupUtils.cleanPopup(popupWindow);
 
@@ -797,7 +800,12 @@ export abstract class ClientApplication {
                     noHistory: false
                 };
                 const absoluteUrl = UrlString.getAbsoluteUrl(redirectMainWindowTo, BrowserUtils.getCurrentUri());
+
+                this.logger.verbose("Redirecting main window to url specified in the request");
+                this.logger.verbosePii(`Redirecing main window to: ${absoluteUrl}`);
                 this.navigationClient.navigateInternal(absoluteUrl, navigationOptions);
+            } else {
+                this.logger.verbose("No main window navigation requested");
             }
 
         } catch (e) {
