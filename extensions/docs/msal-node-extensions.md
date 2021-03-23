@@ -120,5 +120,5 @@ Error: The module
 ```
 This error is probably due to Node.js version differences between the Electron project and the extension. This can be handled by re-building the dpapi module with the following steps:
 - Install ```electron-rebuild``` with the command ```npm i -D electron-rebuild``` if you don't already have it installed.
-- Remove ```packages-lock.json```
+- Remove ```packages-lock.json``` from your project if it exists
 - Run ```./node_modules/.bin/electron-rebuild```
