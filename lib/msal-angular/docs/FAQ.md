@@ -78,11 +78,27 @@ Our [Angular 11](https://github.com/AzureAD/microsoft-authentication-library-for
 
 ### How do I log users in when they hit the application?
 
-If you are wanting the users to be prompted to log in as soon as they hit your application, without needing to use a login button, we recommend setting the `MsalGuard` on your initial page. The `MsalGuard` will then prompt users to log in before they reach other pages in your application. 
+To log your users in when they hit the application, without using a login button, **do not** call `login` in the `ngOnInit` in `app.component.ts`, as this can cause looping with redirects. Instead, we recommend setting the `MsalGuard` on your initial page, which will prompt users to log in before they reach other pages in your application. Our additional recommendations depend on your routing strategy:
 
-Additionally, if you want all your routes protected, not just your initial page, then you should all the `MsalGuard` to all your routes. Please see our [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app-routing.module.ts) for examples of how to protect routes with `MsalGuard`.
+#### PathLocationStrategy
 
-We do not recommend calling `login` in the `ngOnInit` in `app.component.ts`, as this can cause looping with redirects. 
+For those using the `PathLocationStrategy`, we recommend:
+- Setting the `MsalGuard` on your initial page
+- Set your `redirectUri` to `'http://localhost:4200/auth'`
+- Adding an `'auth'` path to your routes, setting the `MsalRedirectComponent` as the component (this route should not be protected by the `MsalGuard`)
+- Making sure the `MsalRedirectComponent` is bootstrapped
+- Optionally: adding `MsalGuard` to all your routes if you want all your routes protected
+
+Our [Angular 10 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular10-sample-app) demonstrates use of the `PathRoutingStrategy`.
+
+#### HashLocationStrategy
+
+For those using the `HashLocationStrategy`, we recommend:
+- Setting the `MsalGuard` on your initial page
+- Making sure the `MsalRedirectComponent` is bootstrapped
+- Optionally: adding `MsalGuard` to all your routes if you want all your routes protected
+
+See our [Angular 11 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app-routing.module.ts) for examples of how to protect routes with `MsalGuard`.
 
 ### Why is my app looping when logging in with redirect?
 
