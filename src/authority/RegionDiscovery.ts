@@ -31,10 +31,14 @@ export class RegionDiscovery {
         if (!autodetectedRegionName) {
             try {
                 const response = await this.networkInterface.sendGetRequestAsync<string>(RegionDiscovery.IMDS_ENDPOINT, { headers: {"Metadata": "true"} });
-                autodetectedRegionName = response.body;
-                // eslint-disable-next-line no-console
-                console.log(`Auto detected region from IMDS endpoint: ${JSON.stringify(autodetectedRegionName)}`);
+                if (response.status === 200) {
+                    autodetectedRegionName = response.body;
+                    // eslint-disable-next-line no-console
+                    console.log(`Auto detected region from IMDS endpoint: ${JSON.stringify(autodetectedRegionName)}`);
+                }
             } catch(e) {
+                // eslint-disable-next-line no-console
+                console.log(JSON.stringify(e));
                 return null;
             } 
         }
