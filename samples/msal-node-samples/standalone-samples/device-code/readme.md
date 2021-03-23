@@ -1,6 +1,6 @@
 # MSAL Node Standalone Sample:  Device Code
 
-The sample applications contained in this directory are independent samples of MSAL Node usage, covering each of the authorization flows that MSAL Node currently supports. To get started with this sample, first follow the general instructions [here](../readme.me).
+The sample applications contained in this directory are independent samples of MSAL Node usage, covering each of the authorization flows that MSAL Node currently supports. To get started with this sample, first follow the general instructions [here](../README.md).
 
 Once MSAL Node is installed, and you have the right files, come here to learn about this scenario.
 

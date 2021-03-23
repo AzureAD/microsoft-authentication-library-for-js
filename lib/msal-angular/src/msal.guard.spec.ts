@@ -68,10 +68,11 @@ describe('MsalGuard', () => {
     spyOn(UrlString, "hashContainsKnownProperties").and.returnValue(true);
     spyOn(BrowserUtils, "isInIframe").and.returnValue(true);
 
-    const listener = jasmine.createSpy();
-    guard.canActivate(routeMock, routeStateMock).subscribe(listener);
-    expect(listener).toHaveBeenCalledWith(false);
-    done();
+    guard.canActivate(routeMock, routeStateMock)
+      .subscribe(result => {
+        expect(result).toBeFalse();
+        done();
+      });
   });
 
   it("returns true for a logged in user", (done) => {
@@ -88,10 +89,11 @@ describe('MsalGuard', () => {
       username: "test"
     }]);
 
-    const listener = jasmine.createSpy();
-    guard.canActivate(routeMock, routeStateMock).subscribe(listener);
-    expect(listener).toHaveBeenCalledWith(true);
-    done();
+    guard.canActivate(routeMock, routeStateMock)
+      .subscribe(result => {
+        expect(result).toBeTrue();
+        done();
+      });
   });
 
   it("should return true after logging in with popup", (done) => {
@@ -107,10 +109,11 @@ describe('MsalGuard', () => {
       of(true)
     );
 
-    const listener = jasmine.createSpy();
-    guard.canActivate(routeMock, routeStateMock).subscribe(listener);
-    expect(listener).toHaveBeenCalledWith(true);
-    done();
+    guard.canActivate(routeMock, routeStateMock)
+      .subscribe(result => {
+        expect(result).toBeTrue();
+        done();
+      });
   });
 
   it("should return false after login with popup fails and no loginFailedRoute set", (done) => {
@@ -123,10 +126,11 @@ describe('MsalGuard', () => {
 
     spyOn(MsalService.prototype, "loginPopup").and.throwError("login error");
 
-    const listener = jasmine.createSpy();
-    guard.canActivate(routeMock, routeStateMock).subscribe(listener);
-    expect(listener).toHaveBeenCalledWith(false);
-    done();
+    guard.canActivate(routeMock, routeStateMock)
+      .subscribe(result => {
+        expect(result).toBeFalse();
+        done();
+      });
   });
 
   it("should return loginFailedRoute after login with popup fails and loginFailedRoute set", (done) => {
@@ -146,10 +150,11 @@ describe('MsalGuard', () => {
 
     spyOn(MsalService.prototype, "loginPopup").and.throwError("login error");
 
-    const listener = jasmine.createSpy();
-    guard.canActivate(routeMock, routeStateMock).subscribe(listener);
-    expect(listener).toHaveBeenCalledWith("failed");
-    done();
+    guard.canActivate(routeMock, routeStateMock)
+      .subscribe(result => {
+        expect(result).toBe("failed" as unknown as UrlTree);
+        done();
+      });
   });
 
   it("should return false after logging in with redirect", (done) => {
@@ -190,10 +195,11 @@ describe('MsalGuard', () => {
       username: "test"
     }]);
 
-    const listener = jasmine.createSpy();
-    guard.canActivateChild(routeMock, routeStateMock).subscribe(listener);
-    expect(listener).toHaveBeenCalledWith(true);
-    done();
+    guard.canActivateChild(routeMock, routeStateMock)
+      .subscribe(result => {
+        expect(result).toBeTrue();
+        done();
+      });
   });
 
   it("canLoad returns true with logged in user", (done) => {
@@ -210,10 +216,11 @@ describe('MsalGuard', () => {
       username: "test"
     }]);
 
-    const listener = jasmine.createSpy();
-    guard.canLoad().subscribe(listener);
-    expect(listener).toHaveBeenCalledWith(true);
-    done();
+    guard.canLoad()
+      .subscribe(result => {
+        expect(result).toBeTrue();
+        done();
+      });
   });
 
   it("canLoad returns false with no users logged in", (done) => {
@@ -224,10 +231,11 @@ describe('MsalGuard', () => {
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([]);
 
-    const listener = jasmine.createSpy();
-    guard.canLoad().subscribe(listener);
-    expect(listener).toHaveBeenCalledWith(false);
-    done();
+    guard.canLoad()
+      .subscribe(result => {
+        expect(result).toBeFalse();
+        done();
+      });
   });
 
 });

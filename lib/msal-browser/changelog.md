@@ -1,8 +1,40 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 09 Feb 2021 01:48:22 GMT and should not be manually modified.
+This log was last generated on Mon, 15 Mar 2021 23:45:17 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.12.1
+
+Mon, 15 Mar 2021 23:45:17 GMT
+
+### Patches
+
+- Clear temporary cache cookies on page load #3129 (prkanher@microsoft.com)
+- Throw BrowserAuthError when fetch fails #3146 (thomas.norling@microsoft.com)
+
+## 2.12.0
+
+Wed, 03 Mar 2021 21:47:05 GMT
+
+### Minor changes
+
+- Add option to make MSAL browser cookies secure (#3001) (hemoral@microsoft.com)
+- Add setNavigationClient API and expose INavigationClient interface (#2985) (thomas.norling@microsoft.com)
+
+### Patches
+
+- Separate telemetry for ssoSilent and ATS iframe renewal (#3064) (thomas.norling@microsoft.com)
+- Add instrumentation to msal-browser (#3004) (joarroyo@microsoft.com)
+- Memoize multiple calls to handleRedirectPromise (#3072) (thomas.norling@microsoft.com)
+
+## 2.11.2
+
+Thu, 18 Feb 2021 00:34:32 GMT
+
+### Patches
+
+- Ensure scrollbars are enabled for popups in browser (janutter@microsoft.com)
 
 ## 2.11.1
 

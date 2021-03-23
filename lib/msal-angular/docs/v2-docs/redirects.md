@@ -1,4 +1,4 @@
-# Using redirects in MSAL Angular 2.x
+# Using redirects in MSAL Angular v2
 
 ## Using redirects
 
@@ -8,7 +8,7 @@ Some users of MSAL find redirects confusing. The following are two approaches th
 
 This is our recommended approach for handling redirects:
 
-- MSAL Angular 2.x provides a dedicated redirect component that can be imported  into your application. We recommend importing the `MsalRedirectComponent` and bootstrapping this alongside `AppComponent` in your application on the `app.module.ts`, as this will handle all redirects without your components needing to subscribe to `handleRedirectObservable()` manually.
+- `@azure/msal-angular` provides a dedicated redirect component that can be imported  into your application. We recommend importing the `MsalRedirectComponent` and bootstrapping this alongside `AppComponent` in your application on the `app.module.ts`, as this will handle all redirects without your components needing to subscribe to `handleRedirectObservable()` manually.
 - Pages that wish to perform functions following redirects (e.g. user account functions, UI changes, etc) should subscribe to the `inProgress$` subject, filtering for `InteractionStatus.None`. This will ensure that there are no interactions in progress when performing the functions. 
 - See our [Angular 10](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular10-sample-app), [Angular 11](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-sample-app) and [Angular 11 B2C samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-b2c-sample) for examples of this approach.
 
@@ -184,7 +184,7 @@ export class AppComponent implements OnInit, OnDestroy {
 This is not our recommended approach, but if you are unable to bootstrap the `MsalRedirectComponent`, we would suggest the following:
 
 - `handleRedirectObservable()` should be subscribed to on every page to which a redirect may occur. Pages protected by the MSAL Guard do not need to subscribe to `handleRedirectObservable()`, as redirects are processed in the Guard.
-- Accessing or performing any action related to user accounts should not be done until `handleRedirectObservable()` is complete. This prevents multiple `handleRedirectObservables()` being called, resulting in an `interaction_in_progress` error.
+- Accessing or performing any action related to user accounts should not be done until `handleRedirectObservable()` is complete, as it may not be fully populated until then. Additionally, if interactive APIs are called while `handleRedirectObservables()` is in progress, it will result in an `interaction_in_progress` error. See our document on [events](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/events.md#the-inprogress-observable) for more information on checking for interactions, and our document on [errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/errors.md) for details about the `interaction_in_progress` error. 
 - See our [Angular 9 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular9-v2-sample-app) for examples of this approach.
 
 Example of home.component.ts file:
