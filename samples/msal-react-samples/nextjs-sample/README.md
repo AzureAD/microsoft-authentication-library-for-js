@@ -7,17 +7,18 @@ This sample was bootstrapped with [Learn Next.js](https://nextjs.org/learn).
 
 ## Notable files and what they demonstrate
 
-1. `./pages/_app.js` - Shows implementation of `MsalProvider`, all children will have access to `msal-react` context, hooks and components
+1. `./pages/_app.js` - Shows implementation of `MsalProvider`, all children will have access to `@azure/msal-react` context, hooks and components
 1. `./pages/index.js` - Homepage, shows how to conditionally render content using `AuthenticatedTemplate` and `UnauthenticatedTemplate` depending on whether or not a user is signed in.
 1. `./pages/profile.js` - Example of a protected route using `MsalAuthenticationTemplate`. If a user is not yet signed in, signin will be invoked automatically. If a user is signed in it will acquire an access token and make a call to MS Graph to fetch user profile data.
 1. `./src/authConfig.js` - Configuration options for `PublicClientApplication` and token requests
 1. `./src/ui.js` - Example of how to invoke login/logout as a result of user interaction (clicking a button) and conditionally rendering a Sign In or Sign Out button using the `useIsAuthenticated` hook.
+1. `./src/NavigationClient.js` - Example implementation of `INavigationClient` which can be used to override the default navigation functions MSAL.js uses
 
 ## How to run the sample
 
 ### Pre-requisites
 
-- Ensure [all pre-requisites](../../../lib/msal-react/README.md#prerequisites) have been completed to run msal-react.
+- Ensure [all pre-requisites](../../../lib/msal-react/README.md#prerequisites) have been completed to run `@azure/msal-react`.
 - Install node.js if needed (<https://nodejs.org/en/>).
 
 ### Configure the application

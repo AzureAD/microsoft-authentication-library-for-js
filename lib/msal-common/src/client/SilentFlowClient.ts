@@ -55,7 +55,6 @@ export class SilentFlowClient extends BaseClient {
         if (!request.account) {
             throw ClientAuthError.createNoAccountInSilentRequestError();
         }
-
         const requestScopes = new ScopeSet(request.scopes || []);
         const environment = request.authority || this.authority.getPreferredCache();
         const cacheRecord = this.cacheManager.readCacheRecord(request.account, this.config.authOptions.clientId, requestScopes, environment);

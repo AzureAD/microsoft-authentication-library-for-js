@@ -2,7 +2,7 @@ import { Component } from "react";
 
 // Msal imports
 import { MsalAuthenticationTemplate, withMsal } from "@azure/msal-react";
-import { InteractionType } from "@azure/msal-browser";
+import { InteractionType, InteractionStatus } from "@azure/msal-browser";
 import { loginRequest } from "../authConfig";
 
 // Sample app imports
@@ -29,7 +29,7 @@ class ProfileContent extends Component {
     }
 
     componentDidMount() {
-        if (this.props.msalContext.accounts[0] && this.props.msalContext.inProgress === "none") {
+        if (this.props.msalContext.accounts[0] && this.props.msalContext.inProgress === InteractionStatus.None) {
             this.props.msalContext.instance.acquireTokenSilent({
                 ...loginRequest,
                 account: this.props.msalContext.accounts[0]

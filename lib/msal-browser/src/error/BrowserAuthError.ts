@@ -43,7 +43,7 @@ export const BrowserAuthErrorMessage = {
     },
     interactionInProgress: {
         code: "interaction_in_progress",
-        desc: "Interaction is currently in progress. Please ensure that this interaction has been completed before calling an interactive API."
+        desc: "Interaction is currently in progress. Please ensure that this interaction has been completed before calling an interactive API.  For more visit: aka.ms/msaljs/browser-errors."
     },
     popUpWindowError: {
         code: "popup_window_error",
@@ -116,6 +116,22 @@ export const BrowserAuthErrorMessage = {
     databaseNotOpen: {
         code: "database_not_open",
         desc: "Database is not open!"
+    },
+    noNetworkConnectivity: {
+        code: "no_network_connectivity",
+        desc: "No network connectivity. Check your internet connection."
+    },
+    postRequestFailed: {
+        code: "post_request_failed",
+        desc: "Network request failed: If the browser threw a CORS error, check that the redirectUri is registered in the Azure App Portal as type 'SPA'"
+    },
+    getRequestFailed: {
+        code: "get_request_failed",
+        desc: "Network request failed. Please check the network trace to determine root cause."
+    },
+    failedToParseNetworkResponse: {
+        code: "failed_to_parse_response",
+        desc: "Failed to parse network response. Check network trace."
     }
 };
 
@@ -339,5 +355,33 @@ export class BrowserAuthError extends AuthError {
      */
     static createDatabaseNotOpenError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.databaseNotOpen.code, BrowserAuthErrorMessage.databaseNotOpen.desc);
+    }
+
+    /**
+     * Create an error thrown when token fetch fails due to no internet
+     */
+    static createNoNetworkConnectivityError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.noNetworkConnectivity.code, BrowserAuthErrorMessage.noNetworkConnectivity.desc);
+    }
+
+    /**
+     * Create an error thrown when token fetch fails due to reasons other than internet connectivity
+     */
+    static createPostRequestFailedError(errorDesc: string, endpoint: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.postRequestFailed.code, `${BrowserAuthErrorMessage.postRequestFailed.desc} | Network client threw: ${errorDesc} | Attempted to reach: ${endpoint.split("?")[0]}`);
+    }
+
+    /**
+     * Create an error thrown when get request fails due to reasons other than internet connectivity
+     */
+    static createGetRequestFailedError(errorDesc: string, endpoint: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.getRequestFailed.code, `${BrowserAuthErrorMessage.getRequestFailed.desc} | Network client threw: ${errorDesc} | Attempted to reach: ${endpoint.split("?")[0]}`);
+    }
+
+    /**
+     * Create an error thrown when network client fails to parse network response
+     */
+    static createFailedToParseNetworkResponseError(endpoint: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.failedToParseNetworkResponse.code, `${BrowserAuthErrorMessage.failedToParseNetworkResponse.desc} | Attempted to reach: ${endpoint.split("?")[0]}`);
     }
 }

@@ -2,6 +2,36 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Fri, 05 Mar 2021 21:26:46 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.6",
+      "version": "1.0.0-alpha.6",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Fix lint in extensions to trigger version bump",
+            "author": "janutter@microsoft.com",
+            "commit": "4901e740f2687447f1eac537dac71ef243ce957a",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 03 Mar 2021 22:13:23 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.5",
+      "version": "1.0.0-alpha.5",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Fix npm audit warnings",
+            "author": "janutter@microsoft.com",
+            "commit": "751026cdaa24dd370c50ad714bf0b1d54c71fbde",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 14 Oct 2020 23:45:07 GMT",
       "tag": "@azure/msal-node-extensions_v1.0.0-alpha.4",
       "version": "1.0.0-alpha.4",
