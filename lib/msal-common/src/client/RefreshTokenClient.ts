@@ -129,6 +129,7 @@ export class RefreshTokenClient extends BaseClient {
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
 
         const requestBody = await this.createTokenRequestBody(request);
+        const queryParameters = this.createTokenQueryParameters(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
@@ -136,7 +137,23 @@ export class RefreshTokenClient extends BaseClient {
             scopes: request.scopes
         };
 
-        return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
+        const endpoint = StringUtils.isEmpty(queryParameters) ? authority.tokenEndpoint : `${authority.tokenEndpoint}?${queryParameters}`;
+
+        return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
+    }
+
+    /**
+     * Creates query string for the /token request
+     * @param request 
+     */
+    private createTokenQueryParameters(request: CommonRefreshTokenRequest): string {
+        const parameterBuilder = new RequestParameterBuilder();
+
+        if (request.tokenQueryParameters) {
+            parameterBuilder.addExtraQueryParameters(request.tokenQueryParameters);
+        }
+
+        return parameterBuilder.createQueryString();
     }
 
     /**
