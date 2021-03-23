@@ -1,0 +1,22 @@
+{
+    "authOptions":
+    {
+        "clientId": "c3f3b506-8ca9-4c23-acda-035ee2c9d960",
+        "authority": "https://login.microsoftonline.com/common"  
+    },
+    "request":
+    {
+        "authCodeUrlParameters": {
+            "scopes": ["user.read"],
+            "redirectUri": "http://localhost:3001/redirect"
+        },
+        "tokenRequest": {
+            "redirectUri": "http://localhost:3001/redirect",
+            "scopes": ["user.read"]
+        }
+    },
+    "resourceApi":
+    {
+        "endpoint": "https://graph.microsoft.com/v1.0/me"
+    }
+}
