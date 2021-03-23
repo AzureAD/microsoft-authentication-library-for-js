@@ -35,6 +35,8 @@ export class RegionDiscovery {
         if (!autodetectedRegionName) {
             try {
                 const response = await this.networkInterface.sendGetRequestAsync<string>(this.buildIMDSEndpoint(RegionDiscovery.IMDS_ENDPOINT, RegionDiscovery.VERSION), options);
+                // eslint-disable-next-line no-console
+                console.log(JSON.stringify(response));
                 if (response.status === 200) {
                     autodetectedRegionName = response.body;
                     // eslint-disable-next-line no-console
@@ -84,13 +86,21 @@ export class RegionDiscovery {
      * @returns Promise<string | null>
      */
     private async getCurrentVersion(): Promise<string | null> {
-        const response = await this.networkInterface.sendGetRequestAsync<IMDSBadResponse>(`${RegionDiscovery.IMDS_ENDPOINT}?format=json`);
+        try {
+            const response = await this.networkInterface.sendGetRequestAsync<IMDSBadResponse>(`${RegionDiscovery.IMDS_ENDPOINT}?format=json`);
 
-        // When IMDS endpoint is called without the api version query param, bad request response comes back with latest version.
-        if (response.status === 400) {
-            return response.body["newest-versions"][0];
+            // When IMDS endpoint is called without the api version query param, bad request response comes back with latest version.
+            if (response.status === 400) {
+                // eslint-disable-next-line no-console
+                console.log(JSON.stringify(response));
+                return response.body["newest-versions"][0];
+            }
+
+            return null;
+        } catch (e) {
+            // eslint-disable-next-line no-console
+            console.log(`Error while fetching the current version: ${JSON.stringify(e)}`);
+            return null;
         }
-
-        return null;
     }
 }
