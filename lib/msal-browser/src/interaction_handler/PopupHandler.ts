@@ -204,6 +204,6 @@ export class PopupHandler extends InteractionHandler {
      * @param request
      */
     static generatePopupName(clientId: string, request: AuthorizationUrlRequest): string {
-        return `msal.${clientId}.${request.scopes.join("-")}.${request.authority}.${request.correlationId}`;
+        return `${BrowserConstants.POPUP_NAME_PREFIX}.${clientId}.${request.scopes.join("-")}.${request.authority}.${request.correlationId}`;
     }
 }

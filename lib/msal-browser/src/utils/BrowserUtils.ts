@@ -7,7 +7,7 @@ import { Constants, INetworkModule, UrlString } from "@azure/msal-common";
 import { FetchClient } from "../network/FetchClient";
 import { XhrClient } from "../network/XhrClient";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { InteractionType } from "./BrowserConstants";
+import { InteractionType, BrowserConstants } from "./BrowserConstants";
 
 /**
  * Utility class for browser specific functions
@@ -104,7 +104,8 @@ export class BrowserUtils {
      * Block redirectUri loaded in popup from calling AcquireToken APIs
      */
     static blockAcquireTokenInPopups(): void {
-        if (window.opener && window.opener !== window) {
+        // Popups opened by msal popup APIs are given a name that starts with "msal."
+        if (window.opener && window.opener !== window && window.name.indexOf(`${BrowserConstants.POPUP_NAME_PREFIX}.`) === 0) {
             throw BrowserAuthError.createBlockAcquireTokenInPopupsError();
         }
     }
