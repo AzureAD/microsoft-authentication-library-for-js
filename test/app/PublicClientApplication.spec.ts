@@ -2377,7 +2377,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             const request: EndSessionPopupRequest = {
-                redirectMainWindowTo: "/home"
+                mainWindowRedirectUri: "/home"
             };
 
             pca.logoutPopup(request);

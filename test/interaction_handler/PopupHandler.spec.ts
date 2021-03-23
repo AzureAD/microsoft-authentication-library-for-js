@@ -205,8 +205,8 @@ describe("PopupHandler.ts Unit Tests", () => {
         it("returns hash", done => {
             const popup = {
                 location: {
-                    href: "http://localhost",
-                    hash: ""
+                    href: "http://localhost/#/code=hello",
+                    hash: "#code=hello"
                 },
                 close: () => {}
             };
@@ -218,13 +218,6 @@ describe("PopupHandler.ts Unit Tests", () => {
                     expect(hash).to.equal("#code=hello");
                     done();
                 });
-
-            setTimeout(() => {
-                popup.location = {
-                    href: "http://localhost/#/code=hello",
-                    hash: "#code=hello"
-                };
-            }, 500);
         });
 
         it("closed", done => {
@@ -234,7 +227,7 @@ describe("PopupHandler.ts Unit Tests", () => {
                     hash: ""
                 },
                 close: () => {},
-                closed: false
+                closed: true
             };
 
             const popupHandler = new PopupHandler(authCodeModule, browserStorage, defaultTokenRequest);
@@ -244,10 +237,6 @@ describe("PopupHandler.ts Unit Tests", () => {
                     expect(error.errorCode).to.equal("user_cancelled");
                     done();
                 });
-
-            setTimeout(() => {
-                popup.closed = true;
-            }, 500);
         });
     });
 
