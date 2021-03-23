@@ -1,4 +1,4 @@
-import { NavigationClient, NavigationOptions } from "@azure/msal-browser";
+import { NavigationClient, NavigationOptions, UrlString } from "@azure/msal-browser";
 import { Router } from "@angular/router";
 
 /**
@@ -15,7 +15,10 @@ export class CustomNavigationClient extends NavigationClient {
     }
 
     async navigateInternal(url:string, options: NavigationOptions): Promise<boolean> {
-        this.router.navigateByUrl(url);
+        const urlComponents = new UrlString(url).getUrlComponents();
+        const joinedPathSegments = urlComponents.PathSegments.join("/");
+        const newUrl = urlComponents.QueryString ? `/${joinedPathSegments}?${urlComponents.QueryString}` : `/${joinedPathSegments}`;
+        this.router.navigateByUrl(newUrl);
         return Promise.resolve(false);
     }
 }
