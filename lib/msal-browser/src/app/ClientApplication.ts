@@ -747,8 +747,8 @@ export abstract class ClientApplication {
         }
 
         const authority = logoutRequest && logoutRequest.authority;
-        const redirectMainWindowTo = logoutRequest && logoutRequest.redirectMainWindowTo;
-        return this.logoutPopupAsync(validLogoutRequest, popupName, authority, popup, redirectMainWindowTo);
+        const mainWindowRedirectUri = logoutRequest && logoutRequest.mainWindowRedirectUri;
+        return this.logoutPopupAsync(validLogoutRequest, popupName, authority, popup, mainWindowRedirectUri);
     }
 
     /**
@@ -758,7 +758,7 @@ export abstract class ClientApplication {
      * @param requestAuthority
      * @param popup 
      */
-    private async logoutPopupAsync(validRequest: CommonEndSessionRequest, popupName: string, requestAuthority?: string, popup?: Window|null, redirectMainWindowTo?: string): Promise<void> {
+    private async logoutPopupAsync(validRequest: CommonEndSessionRequest, popupName: string, requestAuthority?: string, popup?: Window|null, mainWindowRedirectUri?: string): Promise<void> {
         this.logger.verbose("logoutPopupAsync called");
         this.emitEvent(EventType.LOGOUT_START, InteractionType.Popup, validRequest);
         
@@ -793,13 +793,13 @@ export abstract class ClientApplication {
 
             popupUtils.cleanPopup(popupWindow);
 
-            if (redirectMainWindowTo) {
+            if (mainWindowRedirectUri) {
                 const navigationOptions: NavigationOptions = {
                     apiId: ApiId.logoutPopup,
                     timeout: this.config.system.redirectNavigationTimeout,
                     noHistory: false
                 };
-                const absoluteUrl = UrlString.getAbsoluteUrl(redirectMainWindowTo, BrowserUtils.getCurrentUri());
+                const absoluteUrl = UrlString.getAbsoluteUrl(mainWindowRedirectUri, BrowserUtils.getCurrentUri());
 
                 this.logger.verbose("Redirecting main window to url specified in the request");
                 this.logger.verbosePii(`Redirecing main window to: ${absoluteUrl}`);

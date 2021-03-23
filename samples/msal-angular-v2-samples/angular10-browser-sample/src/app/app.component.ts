@@ -69,7 +69,7 @@ export class AppComponent implements OnInit, OnDestroy {
   logout() {
     if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
       this.authService.logoutPopup({
-        redirectMainWindowTo: "/"
+        mainWindowRedirectUri: "/"
       });
     } else {
       this.authService.logoutRedirect();
