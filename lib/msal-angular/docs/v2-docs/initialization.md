@@ -37,7 +37,7 @@ You can add authentication to secure specific routes in your application by just
 
 You may also need a route guard that addresses specific needs. We encourage you to write your own guard if `MsalGuard` does not meet all those needs.
 
-SEe this example of a route defined with the `MsalGuard`:
+See this example of a route defined with the `MsalGuard`:
 
 ```js
   {

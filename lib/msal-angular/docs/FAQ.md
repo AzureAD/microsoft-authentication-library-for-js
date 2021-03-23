@@ -87,7 +87,7 @@ Our [Angular 11](https://github.com/AzureAD/microsoft-authentication-library-for
 
 One of the common reasons your app may be looping while logging in with redirects is due to improper usage of the `loginRedirect()` API. We recommend that you do not call `loginRedirect()` in the `ngOnInit` in the `app.component.ts`, as this will attempt to log in with every page load, often before any redirect has finished processing. 
 
-We recommend that all redirects are handled with the `MsalRedirectComponent` (see docs [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/redirects.md)), and that any interaction or account validation should be done after  subscribing to the `inProgress$` observable and filtering for `InteractionStatus.None`. Please see our [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/30b5ff95e2ff2cc827d98118004d92968bb67b3f/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app.component.ts#L27) for an example. 
+Redirects **must** be handled either with the `MsalRedirectComponent` or with calling `handleRedirectObservable()`. See our docs on redirects [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/redirects.md) for more information. Additionally, any interaction or account validation should be done after  subscribing to the `inProgress$` observable and filtering for `InteractionStatus.None`. Please see our [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/30b5ff95e2ff2cc827d98118004d92968bb67b3f/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app.component.ts#L27) for an example. 
 
 ## Errors
 
