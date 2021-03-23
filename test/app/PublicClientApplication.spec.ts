@@ -9,7 +9,7 @@ import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, testNavUrlNoRequest } from "../utils/StringConstants";
-import { ServerError, Constants, AccountInfo, TokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthToken, PersistentCacheKeys, TimeUtils, AuthorizationCodeClient, ResponseMode, AccountEntity, ProtocolUtils, AuthenticationScheme, RefreshTokenClient, Logger, ServerTelemetryEntity, SilentFlowRequest, EndSessionRequest as CommonEndSessionRequest, LogLevel } from "@azure/msal-common";
+import { ServerError, Constants, AccountInfo, TokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthToken, PersistentCacheKeys, AuthorizationCodeClient, ResponseMode, AccountEntity, ProtocolUtils, AuthenticationScheme, RefreshTokenClient, Logger, ServerTelemetryEntity, SilentFlowRequest, EndSessionRequest as CommonEndSessionRequest, LogLevel, NetworkResponse, ServerAuthorizationTokenResponse } from "@azure/msal-common";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { BrowserConstants, TemporaryCacheKeys, ApiId, InteractionType, BrowserCacheLocation, WrapperSKU } from "../../src/utils/BrowserConstants";
 import { Base64Encode } from "../../src/encode/Base64Encode";
@@ -24,7 +24,8 @@ import { EventType } from "../../src/event/EventType";
 import { SilentRequest } from "../../src/request/SilentRequest";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { RedirectRequest } from "../../src/request/RedirectRequest";
-import { version } from "../../src/packageMetadata";
+import { NavigationClient } from "../../src/navigation/NavigationClient";
+import { NavigationOptions } from "../../src/navigation/NavigationOptions";
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
@@ -84,12 +85,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             sinon.stub(pca, <any>"interactionInProgress").returns(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_ALTERNATE_REDIR_URI);
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory?: boolean) => {
-                expect(noHistory).to.be.true;
-                expect(timeout).to.be.greaterThan(0);
-                expect(logger).to.be.instanceOf(Logger);
+            sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(options.noHistory).to.be.true;
+                expect(options.timeout).to.be.greaterThan(0);
                 expect(urlNavigate).to.be.eq(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
-                return Promise.resolve(done());
+                done();
+                return Promise.resolve(true);
             });
             pca.handleRedirectPromise();
             expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).to.be.eq(null);
@@ -98,13 +99,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("navigates to root and caches hash if navigateToLoginRequestUri is true", (done) => {
             sinon.stub(pca, <any>"interactionInProgress").returns(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory?: boolean) => {
-                expect(noHistory).to.be.true;
-                expect(timeout).to.be.greaterThan(0);
-                expect(logger).to.be.instanceOf(Logger);
+            sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(options.noHistory).to.be.true;
+                expect(options.timeout).to.be.greaterThan(0);
                 expect(urlNavigate).to.be.eq("https://localhost:8081/");
                 expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`)).to.be.eq("https://localhost:8081/");
-                return Promise.resolve(done());
+                done();
+                return Promise.resolve(true);
             });
             pca.handleRedirectPromise();
             expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).to.be.eq(null);
@@ -114,13 +115,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             sinon.stub(pca, <any>"interactionInProgress").returns(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, "null");
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory?: boolean) => {
-                expect(noHistory).to.be.true;
-                expect(timeout).to.be.greaterThan(0);
-                expect(logger).to.be.instanceOf(Logger);
+            sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(options.noHistory).to.be.true;
+                expect(options.timeout).to.be.greaterThan(0);
                 expect(urlNavigate).to.be.eq("https://localhost:8081/");
                 expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`)).to.be.eq("https://localhost:8081/");
-                return Promise.resolve(done());
+                done();
+                return Promise.resolve(true);
             });
             pca.handleRedirectPromise();
             expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).to.be.eq(null);
@@ -131,12 +132,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const loginRequestUrl = window.location.href + "?testQueryString=1";
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory?: boolean) => {
-                expect(noHistory).to.be.true;
-                expect(timeout).to.be.greaterThan(0);
-                expect(logger).to.be.instanceOf(Logger);
+            sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(options.noHistory).to.be.true;
+                expect(options.timeout).to.be.greaterThan(0);
                 expect(urlNavigate).to.be.eq(loginRequestUrl);
-                return Promise.resolve(done());
+                done();
+                return Promise.resolve(true);
             });
             pca.handleRedirectPromise();
             expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).to.be.eq(null);
@@ -147,12 +148,12 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const loginRequestUrl = window.location.href + "?testQueryString=1#testHash";
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory?: boolean) => {
-                expect(noHistory).to.be.true;
-                expect(timeout).to.be.greaterThan(0);
-                expect(logger).to.be.instanceOf(Logger);
+            sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(options.noHistory).to.be.true;
+                expect(options.timeout).to.be.greaterThan(0);
                 expect(urlNavigate).to.be.eq(loginRequestUrl);
-                return Promise.resolve(done());
+                done();
+                return Promise.resolve(true);
             });
             pca.handleRedirectPromise();
             expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).to.be.eq(null);
@@ -218,6 +219,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("Non-browser environment", () => {
+        // @ts-ignore
         let oldWindow;
 
         beforeEach(() => {
@@ -484,6 +486,115 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(window.sessionStorage.length).to.be.eq(4);
             });
 
+            it("Multiple concurrent calls to handleRedirectPromise return the same promise", async () => {
+                const b64Encode = new Base64Encode();
+                const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
+                const browserCrypto = new CryptoOps();
+                const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
+
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`, TEST_CONFIG.validAuthority);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`, TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`, "123523");
+                const testTokenReq: AuthorizationCodeRequest = {
+                    redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+                    code: "thisIsATestCode",
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                    authority: `${Constants.DEFAULT_AUTHORITY}`,
+                    correlationId: RANDOM_TEST_GUID,
+                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+                };
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`, b64Encode.encode(JSON.stringify(testTokenReq)));
+                const testServerTokenResponse = {
+                    headers: {},
+                    status: 200,
+                    body: {
+                        token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                        scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                        expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                        ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                        access_token: TEST_TOKENS.ACCESS_TOKEN,
+                        refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                        id_token: TEST_TOKENS.IDTOKEN_V2,
+                        client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO
+                    }
+                };
+                const testIdTokenClaims: TokenClaims = {
+                    "ver": "2.0",
+                    "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                    "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                    "name": "Abe Lincoln",
+                    "preferred_username": "AbeLi@microsoft.com",
+                    "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                    "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    "nonce": "123523",
+                };
+                const testAccount: AccountInfo = {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                    environment: "login.windows.net",
+                    tenantId: testIdTokenClaims.tid,
+                    username: testIdTokenClaims.preferred_username
+                };
+                const testTokenResponse: AuthenticationResult = {
+                    authority: TEST_CONFIG.validAuthority,
+                    uniqueId: testIdTokenClaims.oid,
+                    tenantId: testIdTokenClaims.tid,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    idToken: testServerTokenResponse.body.id_token,
+                    idTokenClaims: testIdTokenClaims,
+                    accessToken: testServerTokenResponse.body.access_token,
+                    fromCache: false,
+                    expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
+                    account: testAccount,
+                    tokenType: AuthenticationScheme.BEARER
+                };
+                sinon.stub(XhrClient.prototype, "sendGetRequestAsync").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+                sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
+                pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                    }
+                });
+
+                const promise1 = pca.handleRedirectPromise();
+                const promise2 = pca.handleRedirectPromise();
+                const tokenResponse1 = await promise1;
+                const tokenResponse2 = await promise2;
+                const tokenResponse3 = await pca.handleRedirectPromise("testHash");
+                expect(tokenResponse3).to.be.null;
+                const tokenResponse4 = await pca.handleRedirectPromise();
+
+                if (!tokenResponse1 || !tokenResponse2) {
+                    throw "This should not throw. Both responses should be non-null."
+                }
+
+                // Response from first promise
+                expect(tokenResponse1.uniqueId).to.be.eq(testTokenResponse.uniqueId);
+                expect(tokenResponse1.tenantId).to.be.eq(testTokenResponse.tenantId);
+                expect(tokenResponse1.scopes).to.be.deep.eq(testTokenResponse.scopes);
+                expect(tokenResponse1.idToken).to.be.eq(testTokenResponse.idToken);
+                expect(tokenResponse1.idTokenClaims).to.be.contain(testTokenResponse.idTokenClaims);
+                expect(tokenResponse1.accessToken).to.be.eq(testTokenResponse.accessToken);
+                expect(testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse1.expiresOn.getMilliseconds()).to.be.true;
+                
+                // Response from second promise
+                expect(tokenResponse2.uniqueId).to.be.eq(testTokenResponse.uniqueId);
+                expect(tokenResponse2.tenantId).to.be.eq(testTokenResponse.tenantId);
+                expect(tokenResponse2.scopes).to.be.deep.eq(testTokenResponse.scopes);
+                expect(tokenResponse2.idToken).to.be.eq(testTokenResponse.idToken);
+                expect(tokenResponse2.idTokenClaims).to.be.contain(testTokenResponse.idTokenClaims);
+                expect(tokenResponse2.accessToken).to.be.eq(testTokenResponse.accessToken);
+                expect(testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse2.expiresOn.getMilliseconds()).to.be.true;
+
+                expect(tokenResponse1).to.deep.eq(tokenResponse2);
+                expect(tokenResponse4).to.deep.eq(tokenResponse1);
+                expect(window.sessionStorage.length).to.be.eq(4);
+            });
+
             it("gets hash from cache and processes error", (done) => {
                 const testAuthCodeRequest: AuthorizationCodeRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -606,6 +717,114 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(tokenResponse.idTokenClaims).to.be.contain(testTokenResponse.idTokenClaims);
                 expect(tokenResponse.accessToken).to.be.eq(testTokenResponse.accessToken);
                 expect(testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse.expiresOn.getMilliseconds()).to.be.true;
+                expect(window.sessionStorage.length).to.be.eq(4);
+                expect(window.location.hash).to.be.empty;
+            });
+
+            it("calls custom navigateInternal function then processes hash", async () => {
+                const b64Encode = new Base64Encode();
+                const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
+                const browserCrypto = new CryptoOps();
+                const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
+
+                window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`, TEST_CONFIG.validAuthority);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`, "123523");
+
+                const testTokenReq: AuthorizationCodeRequest = {
+                    redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+                    code: "thisIsATestCode",
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                    authority: `${Constants.DEFAULT_AUTHORITY}`,
+                    correlationId: RANDOM_TEST_GUID,
+                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+                };
+
+                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`, b64Encode.encode(JSON.stringify(testTokenReq)));
+                const testServerTokenResponse: NetworkResponse<ServerAuthorizationTokenResponse> = {
+                    headers: {},
+                    status: 200,
+                    body: {
+                        token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                        scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                        expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                        ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                        access_token: TEST_TOKENS.ACCESS_TOKEN,
+                        refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                        id_token: TEST_TOKENS.IDTOKEN_V2,
+                        client_info: TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO
+                    }
+                };
+
+                const testIdTokenClaims: TokenClaims = {
+                    "ver": "2.0",
+                    "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                    "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                    "name": "Abe Lincoln",
+                    "preferred_username": "AbeLi@microsoft.com",
+                    "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                    "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    "nonce": "123523"
+                };
+
+                const testAccount: AccountInfo = {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                    environment: "login.windows.net",
+                    tenantId: testIdTokenClaims.tid!,
+                    username: testIdTokenClaims.preferred_username!
+                };
+
+                const testTokenResponse: AuthenticationResult = {
+                    authority: TEST_CONFIG.validAuthority,
+                    uniqueId: testIdTokenClaims.oid!,
+                    tenantId: testIdTokenClaims.tid!,
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    idToken: testServerTokenResponse.body.id_token!,
+                    idTokenClaims: testIdTokenClaims,
+                    accessToken: testServerTokenResponse.body.access_token!,
+                    fromCache: false,
+                    expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in! * 1000)),
+                    account: testAccount,
+                    tokenType: AuthenticationScheme.BEARER
+                };
+
+                sinon.stub(XhrClient.prototype, "sendGetRequestAsync").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+                sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
+                pca = new PublicClientApplication({
+                    auth: {
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    }
+                });
+
+                let callbackCalled = false;
+                const navigationClient = new NavigationClient();
+                navigationClient.navigateInternal = async (url: string, options: NavigationOptions): Promise<boolean> => {
+                        callbackCalled = true;
+                        expect(url).to.be.eq(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+                        expect(options.noHistory).to.be.true;
+                        expect(options.apiId).to.eq(ApiId.handleRedirectPromise);
+                        return false;
+                };
+                pca.setNavigationClient(navigationClient);
+
+                const tokenResponse = await pca.handleRedirectPromise();
+                if (!tokenResponse) {
+                    expect(tokenResponse).not.to.be.null;
+                    throw new Error("Token Response is null!"); // Throw to resolve Typescript complaints below
+                }
+                expect(callbackCalled).to.be.true;
+                expect(tokenResponse.uniqueId).to.be.eq(testTokenResponse.uniqueId);
+                expect(tokenResponse.tenantId).to.be.eq(testTokenResponse.tenantId);
+                expect(tokenResponse.scopes).to.be.deep.eq(testTokenResponse.scopes);
+                expect(tokenResponse.idToken).to.be.eq(testTokenResponse.idToken);
+                expect(tokenResponse.idTokenClaims).to.be.contain(testTokenResponse.idTokenClaims);
+                expect(tokenResponse.accessToken).to.be.eq(testTokenResponse.accessToken);
+                expect(testTokenResponse.expiresOn!.getMilliseconds() >= tokenResponse.expiresOn!.getMilliseconds()).to.be.true;
                 expect(window.sessionStorage.length).to.be.eq(4);
                 expect(window.location.hash).to.be.empty;
             });
@@ -783,11 +1002,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
 
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
-                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory?: boolean) => {
-                    expect(noHistory).to.be.undefined;
-                    expect(logger).to.be.instanceOf(Logger);
+                sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                    expect(options.noHistory).to.be.false;
                     expect(urlNavigate).to.be.not.empty;
-                    return Promise.resolve();
+                    return Promise.resolve(true);
                 });
                 const testLogger = new Logger(loggerOptions);
 
@@ -817,11 +1035,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 });
 
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
-                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory?: boolean) => {
-                    expect(noHistory).to.be.undefined;
-                    expect(logger).to.be.instanceOf(Logger);
+                sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                    expect(options.noHistory).to.be.false;
                     expect(urlNavigate).to.be.not.empty;
-                    return Promise.resolve();
+                    return Promise.resolve(true);
                 });
 
                 const browserCrypto = new CryptoOps();
@@ -897,11 +1114,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     verifier: TEST_CONFIG.TEST_VERIFIER
                 });
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
-                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory?: boolean) => {
-                    expect(noHistory).to.be.undefined;
-                    expect(logger).to.be.instanceOf(Logger);
+                sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                    expect(options.noHistory).to.be.false;
                     expect(urlNavigate).to.be.not.empty;
-                    return Promise.resolve();
+                    return Promise.resolve(true);
                 });
                 const emptyRequest: AuthorizationUrlRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -952,11 +1168,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     verifier: TEST_CONFIG.TEST_VERIFIER
                 });
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
-                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory?: boolean) => {
-                    expect(noHistory).to.be.undefined;
-                    expect(logger).to.be.instanceOf(Logger);
+                sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                    expect(options.noHistory).to.be.false;
                     expect(urlNavigate).to.be.not.empty;
-                    return Promise.resolve();
+                    return Promise.resolve(true);
                 });
                 const loginRequest: AuthorizationUrlRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -1065,11 +1280,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     verifier: TEST_CONFIG.TEST_VERIFIER
                 });
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
-                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory?: boolean) => {
-                    expect(noHistory).to.be.undefined;
-                    expect(logger).to.be.instanceOf(Logger);
+                sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                    expect(options.noHistory).to.be.false;
                     expect(urlNavigate).to.be.not.empty;
-                    return Promise.resolve();
+                    return Promise.resolve(true);
                 });
                 const browserCrypto = new CryptoOps();
                 const testLogger = new Logger(loggerOptions);
@@ -1097,11 +1311,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     verifier: TEST_CONFIG.TEST_VERIFIER
                 });
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
-                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory?: boolean) => {
-                    expect(noHistory).to.be.undefined;
-                    expect(logger).to.be.instanceOf(Logger);
+                sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                    expect(options.noHistory).to.be.false;
                     expect(urlNavigate).to.be.not.empty;
-                    return Promise.resolve();
+                    return Promise.resolve(true);
                 });
                 const browserCrypto = new CryptoOps();
                 const testLogger = new Logger(loggerOptions);
@@ -1177,11 +1390,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     verifier: TEST_CONFIG.TEST_VERIFIER
                 });
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
-                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory?: boolean) => {
-                    expect(noHistory).to.be.undefined;
-                    expect(logger).to.be.instanceOf(Logger);
+                sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                    expect(options.noHistory).to.be.false;
                     expect(urlNavigate).to.be.not.empty;
-                    return Promise.resolve();
+                    return Promise.resolve(true);
                 });
                 const emptyRequest: AuthorizationUrlRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -1232,11 +1444,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     verifier: TEST_CONFIG.TEST_VERIFIER
                 });
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
-                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory?: boolean) => {
-                    expect(noHistory).to.be.undefined;
-                    expect(logger).to.be.instanceOf(Logger);
+                sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                    expect(options.noHistory).to.be.false;
                     expect(urlNavigate).to.be.not.empty;
-                    return Promise.resolve();
+                    return Promise.resolve(true);
                 });
                 const testScope = "testscope";
                 const loginRequest: AuthorizationUrlRequest = {
@@ -1881,11 +2092,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("passes logoutUri from authModule to window nav util", (done) => {
             const logoutUriSpy = sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory: boolean | undefined) => {
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(urlNavigate).to.be.eq(testLogoutUrl);
-                expect(logger).to.be.instanceOf(Logger);
-                expect(noHistory).to.be.undefined;
-                return Promise.resolve(done());
+                expect(options.noHistory).to.be.false;
+                done();
+                return Promise.resolve(true);
             });
             pca.logout();
             const validatedLogoutRequest: CommonEndSessionRequest = {
@@ -1897,9 +2108,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("includes postLogoutRedirectUri if one is passed", (done) => {
             const postLogoutRedirectUri = "https://localhost:8000/logout";
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory: boolean | undefined) => {
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(urlNavigate).to.include(`post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`);
-                return Promise.resolve(done());
+                done();
+                return Promise.resolve(true);
             });
             pca.logout({
                 postLogoutRedirectUri
@@ -1908,9 +2120,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("includes postLogoutRedirectUri if one is configured", (done) => {
             const postLogoutRedirectUri = "https://localhost:8000/logout";
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory: boolean | undefined) => {
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(urlNavigate).to.include(`post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`);
-                return Promise.resolve(done());
+                done();
+                return Promise.resolve(true);
             });
             
             const pcaWithPostLogout = new PublicClientApplication({
@@ -1924,9 +2137,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("doesnt include postLogoutRedirectUri if null is configured", (done) => {
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory: boolean | undefined) => {
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(urlNavigate).to.not.include(`post_logout_redirect_uri`);
-                return Promise.resolve(done());
+                done();
+                return Promise.resolve(true);
             });
             
             const pcaWithPostLogout = new PublicClientApplication({
@@ -1940,9 +2154,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("doesnt include postLogoutRedirectUri if null is set on request", (done) => {
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory: boolean | undefined) => {
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(urlNavigate).to.not.include("post_logout_redirect_uri");
-                return Promise.resolve(done());
+                done();
+                return Promise.resolve(true);
             });
             pca.logout({
                 postLogoutRedirectUri: null
@@ -1950,18 +2165,20 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         it("includes postLogoutRedirectUri as current page if none is set on request", (done) => {
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory: boolean | undefined) => {
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(urlNavigate).to.include(`post_logout_redirect_uri=${encodeURIComponent("https://localhost:8081/index.html")}`);
-                return Promise.resolve(done());
+                done();
+                return Promise.resolve(true);
             });
             pca.logout();
         });
 
         it("doesnt navigate if onRedirectNavigate returns false", (done) => {
             const logoutUriSpy = sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory: boolean | undefined) => {
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 // If onRedirectNavigate does not stop navigatation, this will be called, failing the test as done will be invoked twice
-                return Promise.resolve(done());
+                done();
+                return Promise.resolve(true);
             });
             pca.logout({
                 onRedirectNavigate: (url) => {
@@ -2160,11 +2377,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             beforeEach(() => {
                 pca.setActiveAccount(testAccountInfo1);
                 sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
-                sinon.stub(BrowserUtils, "navigateWindow").callsFake((urlNavigate: string, timeout: number, logger: Logger, noHistory: boolean) => {
+                sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                     expect(urlNavigate).to.be.eq(testLogoutUrl);
-                    expect(logger).to.be.instanceOf(Logger);
-                    expect(noHistory).to.be.undefined;
-                    return Promise.resolve();
+                    expect(options.noHistory).to.be.false;
+                    return Promise.resolve(true);
                 });
             });
 
