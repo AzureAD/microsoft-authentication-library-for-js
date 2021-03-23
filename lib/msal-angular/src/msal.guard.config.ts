@@ -4,9 +4,12 @@
  */
 
 import { PopupRequest, RedirectRequest,InteractionType } from "@azure/msal-browser";
+import { MsalService } from "./msal.service";
+
+export declare type MsalGuardAuthRequest = Partial<PopupRequest> | Partial<Omit<RedirectRequest, "redirectStartPage">>;
 
 export type MsalGuardConfiguration = {
     interactionType: InteractionType.Popup | InteractionType.Redirect;
-    authRequest?: Partial<PopupRequest> | Partial<Omit<RedirectRequest, "redirectStartPage">>;
+    authRequest?: MsalGuardAuthRequest | ((config: MsalGuardConfiguration, authService: MsalService) => MsalGuardAuthRequest);
     loginFailedRoute?: string;
 };

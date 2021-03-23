@@ -64,9 +64,12 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
      * @param url Path of the requested page
      */
     private loginInteractively(url: string): Observable<boolean> {
+        const authRequest = typeof this.msalGuardConfig.authRequest === "function"
+            ? this.msalGuardConfig.authRequest(this.msalGuardConfig, this.authService)
+            : { ...this.msalGuardConfig.authRequest };
         if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
             this.authService.getLogger().verbose("Guard - logging in by popup");
-            return this.authService.loginPopup({ ...this.msalGuardConfig.authRequest } as PopupRequest)
+            return this.authService.loginPopup(authRequest as PopupRequest)
                 .pipe(
                     map((response: AuthenticationResult) => {
                         this.authService.getLogger().verbose("Guard - login by popup successful, can activate, setting active account");
@@ -80,7 +83,7 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
         const redirectStartPage = this.getDestinationUrl(url);
         return this.authService.loginRedirect({
             redirectStartPage,
-            ...this.msalGuardConfig.authRequest
+            ...authRequest
         } as RedirectRequest)
             .pipe(
                 map(() => false)

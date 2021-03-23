@@ -48,22 +48,9 @@ export class MsalInterceptor implements HttpInterceptor {
             return next.handle(req);
         }
 
-        let authRequest: MsalInterceptorAuthRequest = {
-            ...this.msalInterceptorConfig.authRequest,
-            account
-        };
-
-        // Allow dynamically override most properties on the auth request.
-        if (typeof this.msalInterceptorConfig.dynamicAuthRequest === "function") {
-            this.authService.getLogger().verbose("Interceptor - using dynamic auth request");
-            authRequest = this.msalInterceptorConfig.dynamicAuthRequest(authRequest, req);
-            if (authRequest === undefined) {
-                authRequest = {
-                    ...this.msalInterceptorConfig.authRequest,
-                    account
-                };
-            }
-        }
+        const authRequest = typeof this.msalInterceptorConfig.authRequest === "function"
+            ? this.msalInterceptorConfig.authRequest({ account: account }, req)
+            : { ...this.msalInterceptorConfig.authRequest, account };
 
         this.authService.getLogger().info(`Interceptor - ${scopes.length} scopes found for endpoint`);
         this.authService.getLogger().infoPii(`Interceptor - [${scopes}] scopes found for ${req.url}`);

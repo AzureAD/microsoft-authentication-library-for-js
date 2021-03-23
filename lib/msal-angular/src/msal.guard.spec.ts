@@ -13,6 +13,7 @@ let routeStateMock: any = { snapshot: {}, url: '/' };
 let routerMock = { navigate: jasmine.createSpy('navigate') };
 let testInteractionType: InteractionType;
 let testLoginFailedRoute: string;
+let testConfiguration: Partial<MsalGuardConfiguration>;
 
 function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
@@ -27,7 +28,8 @@ function MSALGuardConfigFactory(): MsalGuardConfiguration {
   return {
     //@ts-ignore
     interactionType: testInteractionType,
-    loginFailedRoute: testLoginFailedRoute
+    loginFailedRoute: testLoginFailedRoute,
+    authRequest: testConfiguration?.authRequest
   }
 }
 
@@ -57,12 +59,27 @@ describe('MsalGuard', () => {
   beforeEach(() => {
     testInteractionType = InteractionType.Popup;
     testLoginFailedRoute = undefined;
+    testConfiguration = { };
     initializeMsal();
   });
 
   it("is created", () => {
     expect(guard).toBeTruthy();
   });
+
+  it("throws error for silent interaction type", (done) => {
+    testInteractionType = InteractionType.Silent;
+    initializeMsal();
+    try {
+      guard.canActivate(routeMock, routeStateMock)
+      .subscribe(
+        (result) => {},
+      );
+    } catch (err) {
+      expect(err.errorCode).toBe("invalid_interaction_type");
+      done();
+    }
+  })
 
   it("returns false if page with MSAL Guard is set as redirectUri", (done) => {
     spyOn(UrlString, "hashContainsKnownProperties").and.returnValue(true);
@@ -108,6 +125,14 @@ describe('MsalGuard', () => {
       //@ts-ignore
       of(true)
     );
+
+    testConfiguration = {
+      authRequest: (config, authService) => {
+        expect(config.interactionType).toBe(InteractionType.Popup);
+        expect(authService).toBeDefined();
+        return { };
+      }
+    }
 
     guard.canActivate(routeMock, routeStateMock)
       .subscribe(result => {

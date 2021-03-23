@@ -44,8 +44,7 @@ function MSALInterceptorFactory(): MsalInterceptorConfiguration {
       ["http://localhost:3000/unprotect", null],
       ["http://localhost:3000/", ["base.scope"]]
     ]),
-    authRequest: testInterceptorConfig.authRequest,
-    dynamicAuthRequest: testInterceptorConfig.dynamicAuthRequest
+    authRequest: testInterceptorConfig.authRequest
   }
 }
 
@@ -376,7 +375,7 @@ describe('MsalInterceptor', () => {
       authority: 'https://login.microsoftonline.com/common'
     };
     // testInterceptorConfig.dynamicAuthority = (account: AccountInfo) => `https://login.microsoftonline.com/${account.tenantId}`
-    testInterceptorConfig.dynamicAuthRequest = (authRequest, httpReq) => {
+    testInterceptorConfig.authRequest = (authRequest, httpReq) => {
       return {
         ...authRequest,
         authority: `https://login.microsoftonline.com/${authRequest.account.tenantId}`
@@ -400,50 +399,4 @@ describe('MsalInterceptor', () => {
       done();
     }, 200);
   });
-
-  it("calls dynamic authority with account, authority kept", done => {
-    testInterceptorConfig.authRequest = {
-      authority: 'https://login.microsoftonline.com/common'
-    };
-    testInterceptorConfig.dynamicAuthRequest = (authRequest, httpReq) => undefined;
-    initializeMsal();
-    spyOn(PublicClientApplication.prototype, "getActiveAccount").and.returnValue(sampleAccountInfo);
-    spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.callFake((silentRequest: SilentRequest) => new Promise((resolve) => {
-      //@ts-ignore
-      resolve({
-        accessToken: `access-token-for-${silentRequest.authority}`
-      });
-    }));
-
-    httpClient.get("https://api.test.com").subscribe();
-    setTimeout(() => {
-      const request = httpMock.expectOne("https://api.test.com");
-      request.flush({ data: "test" });
-      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token-for-https://login.microsoftonline.com/common");
-      httpMock.verify();
-      done();
-    }, 200);
-  });
-
-  it("calls dynamic authority with account, authority undefined", done => {
-    testInterceptorConfig.dynamicAuthRequest = (authRequest, httpReq) => undefined;
-    initializeMsal();
-    spyOn(PublicClientApplication.prototype, "getActiveAccount").and.returnValue(sampleAccountInfo);
-    spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.callFake((silentRequest: SilentRequest) => new Promise((resolve) => {
-      //@ts-ignore
-      resolve({
-        accessToken: `access-token-for-${silentRequest.authority}`
-      });
-    }));
-
-    httpClient.get("https://api.test.com").subscribe();
-    setTimeout(() => {
-      const request = httpMock.expectOne("https://api.test.com");
-      request.flush({ data: "test" });
-      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token-for-undefined");
-      httpMock.verify();
-      done();
-    }, 200);
-  });
-
 });
