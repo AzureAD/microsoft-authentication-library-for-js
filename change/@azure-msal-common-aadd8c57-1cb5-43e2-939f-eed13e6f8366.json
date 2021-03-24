@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Properly handle expiration timestamps when returned as strings",
+  "packageName": "@azure/msal-common",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "patch"
+}
