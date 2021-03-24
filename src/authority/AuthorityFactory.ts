@@ -24,9 +24,9 @@ export class AuthorityFactory {
      * @param networkClient
      * @param protocolMode
      */
-    static async createDiscoveredInstance(authorityUri: string, networkClient: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, prefferedAzureRegionOptions?: PreferredAzureRegionOptions): Promise<Authority> {
+    static async createDiscoveredInstance(authorityUri: string, networkClient: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, preferredAzureRegionOptions?: PreferredAzureRegionOptions): Promise<Authority> {
         // Initialize authority and perform discovery endpoint check.
-        const acquireTokenAuthority: Authority = AuthorityFactory.createInstance(authorityUri, networkClient, cacheManager, authorityOptions, prefferedAzureRegionOptions);
+        const acquireTokenAuthority: Authority = AuthorityFactory.createInstance(authorityUri, networkClient, cacheManager, authorityOptions, preferredAzureRegionOptions);
 
         try {
             await acquireTokenAuthority.resolveEndpointsAsync();
@@ -46,12 +46,12 @@ export class AuthorityFactory {
      * @param networkInterface
      * @param protocolMode
      */
-    static createInstance(authorityUrl: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, prefferedAzureRegionOptions?: PreferredAzureRegionOptions): Authority {
+    static createInstance(authorityUrl: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, preferredAzureRegionOptions?: PreferredAzureRegionOptions): Authority {
         // Throw error if authority url is empty
         if (StringUtils.isEmpty(authorityUrl)) {
             throw ClientConfigurationError.createUrlEmptyError();
         }
 
-        return new Authority(authorityUrl, networkInterface, cacheManager, authorityOptions, prefferedAzureRegionOptions);
+        return new Authority(authorityUrl, networkInterface, cacheManager, authorityOptions, preferredAzureRegionOptions);
     }
 }
