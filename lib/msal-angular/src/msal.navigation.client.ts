@@ -5,6 +5,8 @@
 
 import { NavigationClient, NavigationOptions, UrlString } from "@azure/msal-browser";
 import { Router } from "@angular/router";
+import { Location } from "@angular/common";
+import { MsalService } from "./msal.service";
 
 /**
  * Custom navigation used for Angular client-side navigation.
@@ -12,21 +14,23 @@ import { Router } from "@angular/router";
  * https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/performance.md
  */
 export class MsalCustomNavigationClient extends NavigationClient {
-    private router: Router;
 
-    constructor(router: Router) {
+    constructor(
+        private authService: MsalService,
+        private router: Router, 
+        private location: Location
+    ) {
         super();
         this.router = router;
+        this.location = location;
     }
 
     async navigateInternal(url:string, options: NavigationOptions): Promise<boolean> {
+        this.authService.getLogger().verbose("MsalCustomNavigationClient called");
         const urlComponents = new UrlString(url).getUrlComponents();
-        
-        // Ensures url does not end with / character
-        const joinedPathSegments = urlComponents.PathSegments.join("/");
 
-        // Adds query to url if present
-        const newUrl = urlComponents.QueryString ? `/${joinedPathSegments}?${urlComponents.QueryString}` : `/${joinedPathSegments}`;
+        // Normalizing newUrl if no query string
+        const newUrl = urlComponents.QueryString ? `${urlComponents.AbsolutePath}?${urlComponents.QueryString}` : this.location.normalize(urlComponents.AbsolutePath);
 
         this.router.navigateByUrl(newUrl);
         return Promise.resolve(false);
