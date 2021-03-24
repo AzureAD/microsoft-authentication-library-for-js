@@ -13,7 +13,11 @@ const routes: Routes = [
     ]
   },
   {
-    // Needed for login on page load for PathLocationStrategy
+    /**
+     * Needed for login on page load for PathLocationStrategy. 
+     * See FAQ for details: 
+     * https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/FAQ.md
+     */
     path: 'auth',
     component: MsalRedirectComponent
   },
