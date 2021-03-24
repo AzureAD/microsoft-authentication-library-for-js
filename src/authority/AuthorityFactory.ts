@@ -10,7 +10,7 @@ import { StringUtils } from "../utils/StringUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { ICacheManager } from "../cache/interface/ICacheManager";
 import { AuthorityOptions } from "./AuthorityOptions";
-import { PrefferedAzureRegionOptions } from "../request/CommonClientCredentialRequest";
+import { PreferredAzureRegionOptions } from "./PreferredAzureRegionOptions";
 
 export class AuthorityFactory {
 
@@ -24,7 +24,7 @@ export class AuthorityFactory {
      * @param networkClient
      * @param protocolMode
      */
-    static async createDiscoveredInstance(authorityUri: string, networkClient: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, prefferedAzureRegionOptions?: PrefferedAzureRegionOptions): Promise<Authority> {
+    static async createDiscoveredInstance(authorityUri: string, networkClient: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, prefferedAzureRegionOptions?: PreferredAzureRegionOptions): Promise<Authority> {
         // Initialize authority and perform discovery endpoint check.
         const acquireTokenAuthority: Authority = AuthorityFactory.createInstance(authorityUri, networkClient, cacheManager, authorityOptions, prefferedAzureRegionOptions);
 
@@ -46,7 +46,7 @@ export class AuthorityFactory {
      * @param networkInterface
      * @param protocolMode
      */
-    static createInstance(authorityUrl: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, prefferedAzureRegionOptions?: PrefferedAzureRegionOptions): Authority {
+    static createInstance(authorityUrl: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, prefferedAzureRegionOptions?: PreferredAzureRegionOptions): Authority {
         // Throw error if authority url is empty
         if (StringUtils.isEmpty(authorityUrl)) {
             throw ClientConfigurationError.createUrlEmptyError();
