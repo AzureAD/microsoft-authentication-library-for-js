@@ -155,7 +155,7 @@ export class PopupUtils {
      * @param request
      */
     static generatePopupName(clientId: string, request: AuthorizationUrlRequest): string {
-        return `msal.${clientId}.${request.scopes.join("-")}.${request.authority}.${request.correlationId}`;
+        return `${BrowserConstants.POPUP_NAME_PREFIX}.${clientId}.${request.scopes.join("-")}.${request.authority}.${request.correlationId}`;
     }
 
     /**
@@ -165,6 +165,6 @@ export class PopupUtils {
      */
     static generateLogoutPopupName(clientId: string, request: CommonEndSessionRequest): string {
         const homeAccountId = request.account && request.account.homeAccountId;
-        return `msal.${clientId}.${homeAccountId}.${request.correlationId}`;
+        return `${BrowserConstants.POPUP_NAME_PREFIX}.${clientId}.${homeAccountId}.${request.correlationId}`;
     }
 }

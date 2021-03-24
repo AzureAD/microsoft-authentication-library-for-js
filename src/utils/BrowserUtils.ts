@@ -7,7 +7,7 @@ import { Constants, INetworkModule, UrlString } from "@azure/msal-common";
 import { FetchClient } from "../network/FetchClient";
 import { XhrClient } from "../network/XhrClient";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { InteractionType } from "./BrowserConstants";
+import { InteractionType, BrowserConstants } from "./BrowserConstants";
 
 /**
  * Utility class for browser specific functions
@@ -97,6 +97,16 @@ export class BrowserUtils {
         if (interactionType === InteractionType.Redirect && isIframedApp && !allowRedirectInIframe) {
             // If we are not in top frame, we shouldn't redirect. This is also handled by the service.
             throw BrowserAuthError.createRedirectInIframeError(isIframedApp);
+        }
+    }
+
+    /**
+     * Block redirectUri loaded in popup from calling AcquireToken APIs
+     */
+    static blockAcquireTokenInPopups(): void {
+        // Popups opened by msal popup APIs are given a name that starts with "msal."
+        if (window.opener && window.opener !== window && typeof window.name === "string" && window.name.indexOf(`${BrowserConstants.POPUP_NAME_PREFIX}.`) === 0) {
+            throw BrowserAuthError.createBlockAcquireTokenInPopupsError();
         }
     }
 
