@@ -10,12 +10,14 @@
 **[Configuration](#configuration)**
 
 1. [How do I add tokens to API calls?](#how-do-i-add-tokens-to-api-calls)
+1. [How do I use my app with path/hash location strategy?](#how-do-i-use-my-app-with-pathhash-location-strategy)
 
 **[Usage](#usage)**
 
 1. [How do I secure routes?](#how-do-i-secure-routes)
 1. [How do I get accounts?](#how-do-i-get-accounts)
 1. [How do I get and set active accounts?](#how-do-i-get-and-set-active-accounts)
+1. [How do I log users in when they hit the application?](#how-do-i-log-users-in-when-they-hit-the-application)
 1. [Why is my app looping when logging in with redirect?](#why-is-my-app-looping-when-logging-in-with-redirect)
 
 **[Errors](#errors)**
@@ -53,6 +55,12 @@ See our [initialization doc](https://github.com/AzureAD/microsoft-authentication
 
 Please note that the `MsalInterceptor` is optional. You may wish to explicitly acquire tokens using the acquireToken APIs instead. The `MsalInterceptor` is provided for your convenience and may not fit all use cases. We encourage you to write your own interceptor if you have specific needs that are not addressed by the `MsalInterceptor`. 
 
+### How do I use my app with path/hash location strategy?
+
+`@azure/msal-angular` supports both the `PathLocationStrategy` and `HashLocationStrategy`, can be configured in the `app-routing.module.ts` of your app. `PathLocationStrategy` is demonstrated in our [Angular 10 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular10-sample-app), while `HashLocationStrategy` is demonstrated in our [Angular 11 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-sample-app). See the [Angular docs](https://angular.io/guide/router#locationstrategy-and-browser-url-styles) for more details on routing strategies. 
+
+See [below](#how-do-i-log-users-in-when-they-hit-the-application) for additional considerations for each strategy if you are wanting to log users in on page load.
+
 ## Usage
 
 ### How do I secure routes?
@@ -82,6 +90,30 @@ We recommend setting the active account:
 **Note:** Currently, active accounts are for each page load and do not persist. While this is an enhancement we are looking to make, we recommend that you set the active account for each page load.
 
 Our [Angular 11](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app) sample demonstrates basic usage. Your app may require more complicated logic to choose accounts.
+
+### How do I log users in when they hit the application?
+
+To log your users in when they hit the application, without using a login button, **do not** call `login` in the `ngOnInit` in `app.component.ts`, as this can cause looping with redirects. Instead, we recommend setting the `MsalGuard` on your initial page, which will prompt users to log in before they reach other pages in your application. Our additional recommendations depend on your routing strategy:
+
+#### PathLocationStrategy
+
+For those using the `PathLocationStrategy`, we recommend:
+- Setting the `MsalGuard` on your initial page
+- Set your `redirectUri` to `'http://localhost:4200/auth'`
+- Adding an `'auth'` path to your routes, setting the `MsalRedirectComponent` as the component (this route should not be protected by the `MsalGuard`)
+- Making sure the `MsalRedirectComponent` is bootstrapped
+- Optionally: adding `MsalGuard` to all your routes if you want all your routes protected
+
+Our [Angular 10 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular10-sample-app) demonstrates use of the `PathRoutingStrategy`.
+
+#### HashLocationStrategy
+
+For those using the `HashLocationStrategy`, we recommend:
+- Setting the `MsalGuard` on your initial page
+- Making sure the `MsalRedirectComponent` is bootstrapped
+- Optionally: adding `MsalGuard` to all your routes if you want all your routes protected
+
+See our [Angular 11 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app-routing.module.ts) for examples of how to protect routes with `MsalGuard`.
 
 ### Why is my app looping when logging in with redirect?
 
