@@ -7,12 +7,14 @@ import { NavigationClient, NavigationOptions, UrlString } from "@azure/msal-brow
 import { Router } from "@angular/router";
 import { Location } from "@angular/common";
 import { MsalService } from "./msal.service";
+import { Injectable } from "@angular/core";
 
 /**
  * Custom navigation used for Angular client-side navigation.
  * See performance doc for details:
  * https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/performance.md
  */
+@Injectable()
 export class MsalCustomNavigationClient extends NavigationClient {
 
     constructor(
@@ -21,8 +23,6 @@ export class MsalCustomNavigationClient extends NavigationClient {
         private location: Location
     ) {
         super();
-        this.router = router;
-        this.location = location;
     }
 
     async navigateInternal(url:string, options: NavigationOptions): Promise<boolean> {
@@ -33,7 +33,8 @@ export class MsalCustomNavigationClient extends NavigationClient {
         const newUrl = urlComponents.QueryString ? `${urlComponents.AbsolutePath}?${urlComponents.QueryString}` : this.location.normalize(urlComponents.AbsolutePath);
 
         // Replaces current state if noHistory flag set to true
-        this.router.navigateByUrl(newUrl, { replaceUrl: options.noHistory});
+        this.authService.getLogger().verbosePii(`MsalCustomNavigationClient - navigating to newUrl: ${newUrl}`);
+        this.router.navigateByUrl(newUrl, { replaceUrl: options.noHistory });
 
         return Promise.resolve(false);
     }
