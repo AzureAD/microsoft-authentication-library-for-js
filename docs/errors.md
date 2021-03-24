@@ -133,7 +133,7 @@ Our recommended mitigation for this is to set your `redirectUri` to a blank page
 ```javascript
 msalInstance.acquireTokenSilent({
     scopes: ["User.Read"],
-    redirectUri: "http://localhost:3000/blank"
+    redirectUri: "http://localhost:3000/blank.html"
 });
 ```
 
@@ -152,4 +152,3 @@ This error occurs with MSAL.js v2.x and is due to improper configuration during 
 > Your Redirect URI is eligible for the Authorization Code Flow with PKCE.
 
 ![image](https://user-images.githubusercontent.com/5307810/110390912-922fa380-801b-11eb-9e2b-d7aa88ca0687.png)
-
