@@ -10,7 +10,7 @@
 **[Configuration](#configuration)**
 
 1. [How do I add tokens to API calls?](#how-do-i-add-tokens-to-api-calls)
-1. [How do I use my app with path/hash location strategy?](#how-do-i-use-my-app-with-path-/-hash-location-strategy)
+1. [How do I use my app with path/hash location strategy?](#how-do-i-use-my-app-with-pathhash-location-strategy)
 
 **[Usage](#usage)**
 
