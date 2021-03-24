@@ -45,7 +45,7 @@ export class PopTokenGenerator {
         return this.cryptoUtils.base64Encode(JSON.stringify(reqCnf));
     }
 
-    async signPopToken(accessToken: string, resourceRequestMethod: string, resourceRequestUri: string): Promise<string> {
+    async signPopToken(accessToken: string, resourceRequestMethod: string, resourceRequestUri: string, shrClaims?: string): Promise<string> {
         const tokenClaims: TokenClaims | null = AuthToken.extractTokenClaims(accessToken, this.cryptoUtils);
         const resourceUrlString: UrlString = new UrlString(resourceRequestUri);
         const resourceUrlComponents: IUri = resourceUrlString.getUrlComponents();
@@ -62,6 +62,7 @@ export class PopTokenGenerator {
             nonce: this.cryptoUtils.createNewGuid(),
             p: resourceUrlComponents.AbsolutePath,
             q: [[], resourceUrlComponents.QueryString],
+            client_claims: shrClaims || undefined
         }, tokenClaims.cnf.kid);
     }
 }
