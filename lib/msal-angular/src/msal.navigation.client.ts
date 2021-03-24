@@ -32,7 +32,9 @@ export class MsalCustomNavigationClient extends NavigationClient {
         // Normalizing newUrl if no query string
         const newUrl = urlComponents.QueryString ? `${urlComponents.AbsolutePath}?${urlComponents.QueryString}` : this.location.normalize(urlComponents.AbsolutePath);
 
-        this.router.navigateByUrl(newUrl);
+        // Replaces current state if noHistory flag set to true
+        this.router.navigateByUrl(newUrl, { replaceUrl: options.noHistory});
+
         return Promise.resolve(false);
     }
 }
