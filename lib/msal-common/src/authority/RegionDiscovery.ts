@@ -74,7 +74,7 @@ export class RegionDiscovery {
             const response = await this.networkInterface.sendGetRequestAsync<IMDSBadResponse>(`${Constants.IMDS_ENDPOINT}?format=json`, RegionDiscovery.IMDS_OPTIONS);
 
             // When IMDS endpoint is called without the api version query param, bad request response comes back with latest version.
-            if (response.status === 400) {
+            if (response.status === 400 && response.body && response.body["newest-versions"] && response.body["newest-versions"].length > 0) {
                 return response.body["newest-versions"][0];
             }
 
