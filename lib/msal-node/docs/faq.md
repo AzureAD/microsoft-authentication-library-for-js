@@ -38,9 +38,8 @@ MSAL Node extensions is a support library for MSAL Node which offers secure mech
 ### What versions of Node.js are supported? How do I bypass the installation error if I want to use an active development Node.js version?
 MSAL Node officially supports even numbered stable LTS releases as documented [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node#node-version-support).
 
-If using yarn you can bypass this error using the `--ignore-engines` flag
-If using npm you can bypass this error by adding `engine-strict=false` to your .npmrc file
-
+- **Yarn**: Pass the `--ignore-engines` flag to the `yarn` command.
+- **npm**: Add `engine-strict=false` to your .npmrc file.
 
 
 
