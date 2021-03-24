@@ -1,6 +1,6 @@
 {
   "type": "prerelease",
-  "comment": "Add logs to MsalRedirectComponent (#3174)",
+  "comment": "Add MsalCustomNavigationClient, updates samples and docs #3174",
   "packageName": "@azure/msal-angular",
   "email": "joarroyo@microsoft.com",
   "dependentChangeType": "patch"
