@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add null as possible type for account on EndSessionRequest #3044",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

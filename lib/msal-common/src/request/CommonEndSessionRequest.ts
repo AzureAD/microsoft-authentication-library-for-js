@@ -14,7 +14,7 @@ import { AccountInfo } from "../account/AccountInfo";
  */
 export type CommonEndSessionRequest = {
     correlationId: string
-    account?: AccountInfo,
+    account?: AccountInfo | null,
     postLogoutRedirectUri?: string | null,
     idTokenHint?: string
 };

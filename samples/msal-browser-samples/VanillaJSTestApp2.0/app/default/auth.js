@@ -42,22 +42,28 @@ function handleResponse(resp) {
 }
 
 async function signIn(method) {
-    signInType = isIE ? "loginRedirect" : method;
-    if (signInType === "loginPopup") {
+    signInType = isIE ? "redirect" : method;
+    if (signInType === "popup") {
         return myMSALObj.loginPopup(loginRequest).then(handleResponse).catch(function (error) {
             console.log(error);
         });
-    } else if (signInType === "loginRedirect") {
+    } else if (signInType === "redirect") {
         return myMSALObj.loginRedirect(loginRequest)
     }
 }
 
-function signOut() {
+function signOut(interactionType) {
     const logoutRequest = {
         account: myMSALObj.getAccountByHomeId(accountId)
     };
 
-    myMSALObj.logout(logoutRequest);
+    if (interactionType === "popup") {
+        myMSALObj.logoutPopup(logoutRequest).then(() => {
+            window.location.reload();
+        });
+    } else {
+        myMSALObj.logoutRedirect(logoutRequest);
+    }
 }
 
 async function getTokenPopup(request, account) {

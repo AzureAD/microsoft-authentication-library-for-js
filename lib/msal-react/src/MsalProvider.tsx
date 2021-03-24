@@ -44,7 +44,7 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
                 case EventType.HANDLE_REDIRECT_END:
                 case EventType.LOGIN_FAILURE:
                 case EventType.SSO_SILENT_FAILURE:
-                case EventType.LOGOUT_FAILURE:
+                case EventType.LOGOUT_END:
                 case EventType.ACQUIRE_TOKEN_SUCCESS:
                 case EventType.ACQUIRE_TOKEN_FAILURE:
                     const currentAccounts = instance.getAllAccounts();

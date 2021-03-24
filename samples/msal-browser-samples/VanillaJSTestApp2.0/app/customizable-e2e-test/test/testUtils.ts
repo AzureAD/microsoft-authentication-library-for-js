@@ -47,7 +47,14 @@ export async function clickLoginRedirect(screenshot: Screenshot, page: Page): Pr
     await page.click("#SignIn");
     await screenshot.takeScreenshot(page, "signInClicked");
     // Click Sign In With Redirect
-    await page.click("#loginRedirect");
+    await page.click("#redirect");
+}
+
+export async function clickLogoutRedirect(screenshot: Screenshot, page: Page): Promise<void> {
+    await page.click("#SignIn");
+    await screenshot.takeScreenshot(page, "signOutClicked");
+    // Click Sign Out With Redirect
+    await page.click("#redirect");
 }
 
 export async function clickLoginPopup(screenshot: Screenshot, page: Page): Promise<[Page, Promise<void>]> {
@@ -58,7 +65,20 @@ export async function clickLoginPopup(screenshot: Screenshot, page: Page): Promi
     await screenshot.takeScreenshot(page, "signInClicked");
     // Click Sign In With Popup
     const newPopupWindowPromise = new Promise<Page>(resolve => page.once("popup", resolve));
-    await page.click("#loginPopup");
+    await page.click("#popup");
+    const popupPage = await newPopupWindowPromise;
+    const popupWindowClosed = new Promise<void>(resolve => popupPage.once("close", resolve));
+
+    return [popupPage, popupWindowClosed];
+}
+
+export async function clickLogoutPopup(screenshot: Screenshot, page: Page): Promise<[Page, Promise<void>]> {
+
+    await page.click("#SignIn");
+    await screenshot.takeScreenshot(page, "signOutClicked");
+    // Click Sign Out With Popup
+    const newPopupWindowPromise = new Promise<Page>(resolve => page.once("popup", resolve));
+    await page.click("#popup");
     const popupPage = await newPopupWindowPromise;
     const popupWindowClosed = new Promise<void>(resolve => popupPage.once("close", resolve));
 

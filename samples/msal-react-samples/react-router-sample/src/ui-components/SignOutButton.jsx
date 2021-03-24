@@ -11,9 +11,14 @@ export const SignOutButton = () => {
     const [anchorEl, setAnchorEl] = useState(null);
     const open = Boolean(anchorEl);
 
-    const handleLogout = () => {
+    const handleLogout = (logoutType) => {
         setAnchorEl(null);
-        instance.logout();
+
+        if (logoutType === "popup") {
+            instance.logoutPopup();
+        } else if (logoutType === "redirect") {
+            instance.logoutRedirect();
+        }
     }
 
     return (
@@ -39,7 +44,8 @@ export const SignOutButton = () => {
                 open={open}
                 onClose={() => setAnchorEl(null)}
             >
-                <MenuItem onClick={handleLogout}>Logout</MenuItem>
+                <MenuItem onClick={() => handleLogout("popup")} key="logoutPopup">Logout using Popup</MenuItem>
+                <MenuItem onClick={() => handleLogout("redirect")} key="logoutRedirect">Logout using Redirect</MenuItem>
             </Menu>
         </div>
     )
