@@ -18,7 +18,6 @@ import { AuthorityOptions } from "./AuthorityOptions";
 import { CloudInstanceDiscoveryResponse, isCloudInstanceDiscoveryResponse } from "./CloudInstanceDiscoveryResponse";
 import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
 import { RegionDiscovery } from "./RegionDiscovery";
-import { PreferredAzureRegionOptions } from "./PreferredAzureRegionOptions";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
@@ -40,17 +39,14 @@ export class Authority {
     private metadata: AuthorityMetadataEntity;
     // Region discovery service
     private regionDiscovery: RegionDiscovery;
-    // Authority preffered azure region options
-    private preferredAzureRegionOption: PreferredAzureRegionOptions | null;
 
-    constructor(authority: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, preferredAzureRegionOptions?: PreferredAzureRegionOptions) {
+    constructor(authority: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions) {
         this.canonicalAuthority = authority;
         this._canonicalAuthority.validateAsUri();
         this.networkInterface = networkInterface;
         this.cacheManager = cacheManager;
         this.authorityOptions = authorityOptions;
         this.regionDiscovery = new RegionDiscovery(networkInterface);
-        this.preferredAzureRegionOption = preferredAzureRegionOptions || null;
     }
 
     // See above for AuthorityType
@@ -266,11 +262,11 @@ export class Authority {
         metadata = await this.getEndpointMetadataFromNetwork();
         if (metadata) {
             // If the user prefers to use an azure region replace the global endpoints with regional information.
-            if (this.preferredAzureRegionOption?.useAzureRegion) {
+            if (this.authorityOptions.preferredAzureRegionOptions?.useAzureRegion) {
                 const autodetectedRegionName = await this.regionDiscovery.detectRegion();
-                const azureRegion = autodetectedRegionName || this.preferredAzureRegionOption.regionUsedIfAutoDetectionFails;
+                const azureRegion = autodetectedRegionName || this.authorityOptions.preferredAzureRegionOptions.regionUsedIfAutoDetectionFails;
 
-                if (!azureRegion && !this.preferredAzureRegionOption.fallbackToGlobal) {
+                if (!azureRegion && !this.authorityOptions.preferredAzureRegionOptions.fallbackToGlobal) {
                     throw ClientAuthError.createNoAzureRegionDetectedError();
                 }
 
