@@ -9,6 +9,7 @@
 **[BrowserAuthErrors](#browserautherrors)**
 
 1. [interaction_in_progress](#interaction_in_progress)
+1. [block_iframe_reload](#block_iframe_reload)
 
 **[Other](#other)**
 
@@ -119,6 +120,26 @@ If you are unable to figure out why this error is being thrown please [open an i
 - A sample app and/or code snippets that we can use to reproduce the issue
 - Refresh the page. Does the error go away?
 - Open your application in a new tab. Does the error go away?
+
+### block_iframe_reload
+
+**Error Message**: Request was blocked inside an iframe because MSAL detected an authentication response.
+
+This error is thrown when calling `ssoSilent` or `acquireTokenSilent` and the page used as your `redirectUri` is attempting to invoke a login or acquireToken function.
+Our recommended mitigation for this is to set your `redirectUri` to a blank page that does not implement MSAL when invoking silent APIs. This will also have the added benefit of improving performance as the hidden iframe doesn't need to render your page.
+
+✔️ You can do this on a per request basis, for example:
+
+```javascript
+msalInstance.acquireTokenSilent({
+    scopes: ["User.Read"],
+    redirectUri: "http://localhost:3000/blank"
+});
+```
+
+Remember that you will need to register this new `redirectUri` on your App Registration.
+
+If you do not want to use a dedicated `redirectUri` for this purpose, you should instead ensure that your `redirectUri` is not attempting to call MSAL APIs when rendered inside the hidden iframe used by the silent APIs.
 
 ## Other
 
