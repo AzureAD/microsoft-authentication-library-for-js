@@ -5,18 +5,13 @@
 
 import { INetworkModule } from "../network/INetworkModule";
 import { IMDSBadResponse } from "../response/IMDSBadResponse";
+import { Constants } from "../utils/Constants";
 
 export class RegionDiscovery {
     // Network interface to make requests with.
     protected networkInterface: INetworkModule;
-    // The IMDS endpoint to retrieve region information.
-    protected static IMDS_ENDPOINT = "http://169.254.169.254/metadata/instance/compute/location";
     // Options for the IMDS endpoint request
     protected static IMDS_OPTIONS = {headers: {"Metadata": "true"}};
-    // The version of the IMDS endpoint to use
-    protected static VERSION = "2020-06-01";
-    // Region variable name
-    protected static REGION_ENV_NAME = "REGION_NAME";
 
     constructor(networkInterface: INetworkModule) {
         this.networkInterface = networkInterface;
@@ -29,12 +24,12 @@ export class RegionDiscovery {
      */
     public async detectRegion(): Promise<string | null> {
         // Detect region from the process environment variable
-        let autodetectedRegionName = process.env[RegionDiscovery.REGION_ENV_NAME];
+        let autodetectedRegionName = process.env[Constants.REGION_ENVIRONMENT_VARIABLE];
 
         // Call the local IMDS endpoint for applications running in azure vms
         if (!autodetectedRegionName) {
             try {
-                const response = await this.networkInterface.sendGetRequestAsync<string>(this.buildIMDSEndpoint(RegionDiscovery.IMDS_ENDPOINT, RegionDiscovery.VERSION), RegionDiscovery.IMDS_OPTIONS);
+                const response = await this.networkInterface.sendGetRequestAsync<string>(this.buildIMDSEndpoint(Constants.IMDS_ENDPOINT, Constants.IMDS_VERSION), RegionDiscovery.IMDS_OPTIONS);
                 if (response.status === 200) {
                     autodetectedRegionName = response.body;
                 } 
@@ -45,7 +40,7 @@ export class RegionDiscovery {
                         return null;
                     }
 
-                    const response = await this.networkInterface.sendGetRequestAsync<string>(this.buildIMDSEndpoint(RegionDiscovery.IMDS_ENDPOINT, latestIMDSVersion), RegionDiscovery.IMDS_OPTIONS);
+                    const response = await this.networkInterface.sendGetRequestAsync<string>(this.buildIMDSEndpoint(Constants.IMDS_ENDPOINT, latestIMDSVersion), RegionDiscovery.IMDS_OPTIONS);
                     if (response.status === 200) {
                         autodetectedRegionName = response.body;
                     }
@@ -76,7 +71,7 @@ export class RegionDiscovery {
      */
     private async getCurrentVersion(): Promise<string | null> {
         try {
-            const response = await this.networkInterface.sendGetRequestAsync<IMDSBadResponse>(`${RegionDiscovery.IMDS_ENDPOINT}?format=json`, RegionDiscovery.IMDS_OPTIONS);
+            const response = await this.networkInterface.sendGetRequestAsync<IMDSBadResponse>(`${Constants.IMDS_ENDPOINT}?format=json`, RegionDiscovery.IMDS_OPTIONS);
 
             // When IMDS endpoint is called without the api version query param, bad request response comes back with latest version.
             if (response.status === 400) {
