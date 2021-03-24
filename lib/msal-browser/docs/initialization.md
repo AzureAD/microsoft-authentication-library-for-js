@@ -100,7 +100,7 @@ When using popup APIs we recommend setting the `redirectUri` to a blank page or 
 
 ```javascript
 msalInstance.loginPopup({
-    redirectUri: "http://localhost:3000/blank"
+    redirectUri: "http://localhost:3000/blank.html"
 });
 ```
 

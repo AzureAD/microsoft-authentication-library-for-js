@@ -132,7 +132,7 @@ Note: This does not apply for `loginRedirect` or `acquireTokenRedirect`. When us
 
 ```javascript
 msalInstance.loginPopup({
-    redirectUri: "http://localhost:3000/blank"
+    redirectUri: "http://localhost:3000/blank.html"
 });
 ```
 
