@@ -1218,6 +1218,24 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         describe("acquireTokenRedirect", () => {
 
+            it("throws error if called in a popup", (done) => {
+                const oldWindow = global.window;
+                global.window = {
+                    ...oldWindow,
+                    opener: global.window,
+                    name: "msal.testPopup"
+                }
+
+                sinon.stub(BrowserUtils, "isInIframe").returns(false);
+                pca.acquireTokenRedirect({scopes: ["openid"]}).catch(e => {
+                    expect(e).to.be.instanceOf(BrowserAuthError);
+                    expect(e.errorCode).to.be.eq(BrowserAuthErrorMessage.blockAcquireTokenInPopupsError.code);
+                    expect(e.errorMessage).to.be.eq(BrowserAuthErrorMessage.blockAcquireTokenInPopupsError.desc);
+                    global.window = oldWindow;
+                    done();
+                });
+            });
+
             it("throws an error if interaction is currently in progress", async () => {
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
                 await expect(pca.acquireTokenRedirect(null)).to.be.rejectedWith(BrowserAuthErrorMessage.interactionInProgress.desc);
@@ -1614,6 +1632,23 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 window.localStorage.clear();
                 window.sessionStorage.clear();
                 sinon.restore();
+            });
+
+            it("throws error if called in a popup", (done) => {
+                const oldWindow = global.window;
+                global.window = {
+                    ...oldWindow,
+                    opener: global.window,
+                    name: "msal.testPopup"
+                }
+
+                pca.acquireTokenPopup({scopes: ["openid"]}).catch(e => {
+                    expect(e).to.be.instanceOf(BrowserAuthError);
+                    expect(e.errorCode).to.be.eq(BrowserAuthErrorMessage.blockAcquireTokenInPopupsError.code);
+                    expect(e.errorMessage).to.be.eq(BrowserAuthErrorMessage.blockAcquireTokenInPopupsError.desc);
+                    global.window = oldWindow;
+                    done();
+                });
             });
 
             it("throws error if interaction is in progress", async () => {
