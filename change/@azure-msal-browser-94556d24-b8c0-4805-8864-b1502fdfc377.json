@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix errors thrown on cache lookups when reading non-msal cache values #3245",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
