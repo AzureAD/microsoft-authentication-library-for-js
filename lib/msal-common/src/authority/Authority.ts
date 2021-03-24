@@ -41,16 +41,16 @@ export class Authority {
     // Region discovery service
     private regionDiscovery: RegionDiscovery;
     // Authority preffered azure region options
-    private prefferedAzureRegionOptions: PreferredAzureRegionOptions | null;
+    private preferredAzureRegionOption: PreferredAzureRegionOptions | null;
 
-    constructor(authority: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, prefferedAzureRegionOptions?: PreferredAzureRegionOptions) {
+    constructor(authority: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, preferredAzureRegionOptions?: PreferredAzureRegionOptions) {
         this.canonicalAuthority = authority;
         this._canonicalAuthority.validateAsUri();
         this.networkInterface = networkInterface;
         this.cacheManager = cacheManager;
         this.authorityOptions = authorityOptions;
         this.regionDiscovery = new RegionDiscovery(networkInterface);
-        this.prefferedAzureRegionOptions = prefferedAzureRegionOptions || null;
+        this.preferredAzureRegionOption = preferredAzureRegionOptions || null;
     }
 
     // See above for AuthorityType
@@ -266,11 +266,11 @@ export class Authority {
         metadata = await this.getEndpointMetadataFromNetwork();
         if (metadata) {
             // If the user prefers to use an azure region replace the global endpoints with regional information.
-            if (this.prefferedAzureRegionOptions?.useAzureRegion) {
+            if (this.preferredAzureRegionOption?.useAzureRegion) {
                 const autodetectedRegionName = await this.regionDiscovery.detectRegion();
-                const azureRegion = autodetectedRegionName || this.prefferedAzureRegionOptions.regionUsedIfAutoDetectionFails;
+                const azureRegion = autodetectedRegionName || this.preferredAzureRegionOption.regionUsedIfAutoDetectionFails;
 
-                if (!azureRegion && !this.prefferedAzureRegionOptions.fallbackToGlobal) {
+                if (!azureRegion && !this.preferredAzureRegionOption.fallbackToGlobal) {
                     throw ClientAuthError.createNoAzureRegionDetectedError();
                 }
 
@@ -469,10 +469,11 @@ export class Authority {
         const globalUrl = new UrlString(host);
         globalUrl.validateAsUri();
 
-        const urlComponents = globalUrl.getUrlComponents();
-
         // Include the query string portion of the url
-        return `${urlComponents.Protocol}//${region}.login.microsoft.com${urlComponents.AbsolutePath}`;
+        return UrlString.constructAuthorityUriFromObject({
+            ...globalUrl.getUrlComponents(),
+            HostNameAndPort: `${region}.login.microsoft.com`
+        }).urlString;
     }
 
     /**
