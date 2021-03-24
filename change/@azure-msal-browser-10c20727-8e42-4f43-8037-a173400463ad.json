@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Block nested popups #3249",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

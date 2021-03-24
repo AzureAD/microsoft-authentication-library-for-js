@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add logoutPopup API #3044",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
