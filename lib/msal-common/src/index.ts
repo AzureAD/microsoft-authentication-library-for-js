@@ -65,7 +65,7 @@ export { CommonSilentFlowRequest } from "./request/CommonSilentFlowRequest";
 export { CommonDeviceCodeRequest } from "./request/CommonDeviceCodeRequest";
 export { CommonEndSessionRequest } from "./request/CommonEndSessionRequest";
 export { CommonUsernamePasswordRequest } from "./request/CommonUsernamePasswordRequest";
-export { PrefferedAzureRegionOptions } from "./request/CommonClientCredentialRequest";
+export { PreferredAzureRegionOptions } from "./authority/PreferredAzureRegionOptions";
 export { AuthenticationResult } from "./response/AuthenticationResult";
 export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload";
 export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse";

@@ -65,7 +65,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
             const clientCredentialConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
                 serverTelemetryManager,
-                validRequest.prefferedAzureRegionOptions,
+                validRequest.preferredAzureRegionOptions,
             );
             this.logger.verbose("Auth client config generated");
             const clientCredentialClient = new ClientCredentialClient(clientCredentialConfig);

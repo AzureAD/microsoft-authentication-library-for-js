@@ -18,7 +18,7 @@ import { AuthorityOptions } from "./AuthorityOptions";
 import { CloudInstanceDiscoveryResponse, isCloudInstanceDiscoveryResponse } from "./CloudInstanceDiscoveryResponse";
 import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
 import { RegionDiscovery } from "./RegionDiscovery";
-import { PrefferedAzureRegionOptions } from "../request/CommonClientCredentialRequest";
+import { PreferredAzureRegionOptions } from "./PreferredAzureRegionOptions";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
@@ -41,9 +41,9 @@ export class Authority {
     // Region discovery service
     private regionDiscovery: RegionDiscovery;
     // Authority preffered azure region options
-    private prefferedAzureRegionOptions: PrefferedAzureRegionOptions | null;
+    private prefferedAzureRegionOptions: PreferredAzureRegionOptions | null;
 
-    constructor(authority: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, prefferedAzureRegionOptions?: PrefferedAzureRegionOptions) {
+    constructor(authority: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, prefferedAzureRegionOptions?: PreferredAzureRegionOptions) {
         this.canonicalAuthority = authority;
         this._canonicalAuthority.validateAsUri();
         this.networkInterface = networkInterface;
