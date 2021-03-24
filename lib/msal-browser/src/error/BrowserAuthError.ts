@@ -71,7 +71,7 @@ export const BrowserAuthErrorMessage = {
     },
     blockTokenRequestsInHiddenIframeError: {
         code: "block_iframe_reload",
-        desc: "Request was blocked inside an iframe because MSAL detected an authentication response. Please ensure monitorWindowForHash was called."
+        desc: "Request was blocked inside an iframe because MSAL detected an authentication response. For more visit: aka.ms/msaljs/browser-errors"
     },
     iframeClosedPrematurelyError: {
         code: "iframe_closed_prematurely",

@@ -12,7 +12,7 @@ See [here](./initialization.md#choosing-an-interaction-type) if you are uncertai
 
 ## Login the user
 
-You must pass a request object to the login APIs. This object allows you to use different parameters in the request. See [here](./request-response-object.md) for more information on the request object parameters. 
+You must pass a request object to the login APIs. This object allows you to use different parameters in the request. See [here](./request-response-object.md) for more information on the request object parameters.
 
 For login requests, all parameters are optional, so you can just send an empty object.
 
@@ -122,6 +122,18 @@ try {
         // handle error
     }
 }
+```
+
+## RedirectUri Considerations
+
+When using popup and silent APIs we recommend setting the `redirectUri` to a blank page or a page that does not implement MSAL. This will help prevent potential issues as well as improve performance. If your application is only using popup and silent APIs you can set this on the `PublicClientApplication` config. If your application also needs to support redirect APIs you can set the `redirectUri` on a per request basis:
+
+Note: This does not apply for `loginRedirect` or `acquireTokenRedirect`. When using those APIs please see the directions on handling redirects [here](./initialization#redirect-apis)
+
+```javascript
+msalInstance.loginPopup({
+    redirectUri: "http://localhost:3000/blank"
+});
 ```
 
 # Next Steps
