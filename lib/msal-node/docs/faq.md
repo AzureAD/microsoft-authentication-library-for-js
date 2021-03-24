@@ -35,6 +35,12 @@ Please refer to [MSAL Browser](https://github.com/AzureAD/microsoft-authenticati
 ### What is MSAL Node extensions? What is a Cache Plugin?
 MSAL Node extensions is a support library for MSAL Node which offers secure mechanisms for client applications to perform cross-platform token cache serialization and persistence. Please find the usage, samples and more about this [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions)
 
+### What versions of Node.js are supported? How do I bypass the installation error if I want to use an active development Node.js version?
+MSAL Node officially supports even numbered stable LTS releases as documented [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node#node-version-support).
+
+If using yarn you can bypass this error using the `--ignore-engines` flag
+If using npm you can bypass this error by adding `engine-strict=false` to your .npmrc file
+
 
 
 
