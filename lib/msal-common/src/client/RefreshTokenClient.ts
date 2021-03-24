@@ -49,10 +49,8 @@ export class RefreshTokenClient extends BaseClient {
             response.body,
             this.authority,
             reqTimestamp,
-            request.resourceRequestMethod,
-            request.resourceRequestUri,
+            request,
             undefined,
-            [],
             undefined,
             true
         );
