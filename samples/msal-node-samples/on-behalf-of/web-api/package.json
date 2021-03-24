@@ -1,0 +1,21 @@
+{
+  "name": "msal-node-on-behalf-of-web-app",
+  "version": "1.0.0",
+  "description": "sample app for msal-node showing on-behalf-of flow",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "start": "node index.js",
+    "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
+    "start:build": "npm run build:package && npm start"
+  },
+  "author": "Microsoft",
+  "license": "MIT",
+  "dependencies": {
+    "@azure/msal-node": "^1.0.1",
+    "express": "^4.17.1",
+    "jsonwebtoken": "^8.5.1",
+    "jwks-rsa": "^1.8.1",
+    "uuid": "^8.3.1"
+  }
+}
