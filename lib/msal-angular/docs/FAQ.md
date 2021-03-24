@@ -10,6 +10,7 @@
 **[Configuration](#configuration)**
 
 1. [How do I add tokens to API calls?](#how-do-i-add-tokens-to-api-calls)
+1. [How do I use my app with path/hash location strategy?](#how-do-i-use-my-app-with-path-/-hash-location-strategy)
 
 **[Usage](#usage)**
 
@@ -52,6 +53,12 @@ Things to note about the `protectedResourceMap`:
 See our [initialization doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/initialization.md#get-tokens-for-web-api-calls) for more information on setting this up, our [upgrade guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/v1-v2-upgrade-guide.md#protected-resources) for differences to MSAL Angular v1, and our [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/5cc21a95a389c31a0d5e74d37ff297931aeee479/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app.module.ts#L47) for examples of usage.
 
 Please note that using the `MsalInterceptor` is optional and you can write your own interceptor if you choose to. Alternatively, you can also explicitly acquire tokens using the acquireToken APIs.
+
+### How do I use my app with path/hash location strategy?
+
+`@azure/msal-angular` supports both the `PathLocationStrategy` and `HashLocationStrategy`, can be configured in the `app-routing.module.ts` of your app. `PathLocationStrategy` is demonstrated in our [Angular 10 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular10-sample-app), while `HashLocationStrategy` is demonstrated in our [Angular 11 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-sample-app). See the [Angular docs](https://angular.io/guide/router#locationstrategy-and-browser-url-styles) for more details on routing strategies. 
+
+See [below](#how-do-i-log-users-in-when-they-hit-the-application) for additional considerations for each strategy if you are wanting to log users in on page load.
 
 ## Usage
 
