@@ -321,8 +321,9 @@ export abstract class ClientApplication {
             protocolMode: this.config.auth.protocolMode!,
             knownAuthorities: this.config.auth.knownAuthorities!,
             cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata!,
-            authorityMetadata: this.config.auth.authorityMetadata!
+            authorityMetadata: this.config.auth.authorityMetadata!,
+            preferredAzureRegionOptions
         };
-        return await AuthorityFactory.createDiscoveredInstance(authorityString, this.config.system!.networkClient!, this.storage, authorityOptions, preferredAzureRegionOptions);
+        return await AuthorityFactory.createDiscoveredInstance(authorityString, this.config.system!.networkClient!, this.storage, authorityOptions);
     }
 }
