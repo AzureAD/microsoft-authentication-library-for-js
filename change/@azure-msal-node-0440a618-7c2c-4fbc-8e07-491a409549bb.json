@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Added additional documentation for Electron (#3288)",
+  "packageName": "@azure/msal-node",
+  "email": "amsrin@microsoft.com",
+  "dependentChangeType": "none"
+}
