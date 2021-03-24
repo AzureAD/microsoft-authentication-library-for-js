@@ -312,6 +312,28 @@ describe('MsalService', () => {
         });
     });
 
+    it("called with hash", (done) => {
+      const sampleAccessToken = {
+        accessToken: "123abc"
+      };
+
+      const hash = '#/test';
+
+      spyOn(PublicClientApplication.prototype, "handleRedirectPromise").and.returnValue((
+        new Promise((resolve) => {
+          //@ts-ignore
+          resolve(sampleAccessToken);
+        })
+      ));
+
+      authService.handleRedirectObservable(hash)
+        .subscribe((response: AuthenticationResult) => {
+          expect(response.accessToken).toBe(sampleAccessToken.accessToken);
+          expect(PublicClientApplication.prototype.handleRedirectPromise).toHaveBeenCalledWith(hash);
+          done();
+        });
+    });
+
   });
 
 });
