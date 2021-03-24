@@ -201,7 +201,7 @@ export class AuthModule {
             account
         };
         
-        this.myMSALObj.logout(logOutRequest);
+        this.myMSALObj.logoutRedirect(logOutRequest);
     }
 
     /**

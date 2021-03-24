@@ -23,6 +23,8 @@ import { EventError, EventMessage, EventPayload, EventCallbackFunction } from ".
 import { EventType } from "../event/EventType";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
+import { PopupUtils } from "../utils/PopupUtils";
+import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NavigationOptions } from "../navigation/NavigationOptions";
 
@@ -430,7 +432,7 @@ export abstract class ClientApplication {
             return Promise.reject(e);
         }
 
-        const popupName = PopupHandler.generatePopupName(this.config.auth.clientId, validRequest);
+        const popupName = PopupUtils.generatePopupName(this.config.auth.clientId, validRequest);
 
         // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
         if (this.config.system.asyncPopups) {
@@ -439,7 +441,7 @@ export abstract class ClientApplication {
         } else {
             // asyncPopups flag is set to false. Opens popup before acquiring token.
             this.logger.verbose("asyncPopup set to false, opening popup before acquiring token");
-            const popup = PopupHandler.openSizedPopup("about:blank", popupName);
+            const popup = PopupUtils.openSizedPopup("about:blank", popupName);
             return this.acquireTokenPopupAsync(validRequest, popupName, popup);
         }
     }
@@ -483,9 +485,10 @@ export abstract class ClientApplication {
                 popupName
             };
             const popupWindow: Window = interactionHandler.initiateAuthRequest(navigateUrl, popupParameters);
+            this.emitEvent(EventType.POPUP_OPENED, InteractionType.Popup, {popupWindow}, null);
 
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
-            const hash = await interactionHandler.monitorPopupForHash(popupWindow, this.config.system.windowHashTimeout);
+            const hash = await interactionHandler.monitorPopupForHash(popupWindow);
             const state = this.validateAndExtractStateFromHash(hash, InteractionType.Popup);
 
             // Remove throttle if it exists
@@ -654,13 +657,23 @@ export abstract class ClientApplication {
     // #region Logout
 
     /**
+     * Deprecated logout function. Use logoutRedirect or logoutPopup instead
+     * @param logoutRequest 
+     * @deprecated
+     */
+    async logout(logoutRequest?: EndSessionRequest): Promise<void> {
+        this.logger.warning("logout API is deprecated and will be removed in msal-browser v3.0.0. Use logoutRedirect instead.");
+        return this.logoutRedirect(logoutRequest);
+    }
+
+    /**
      * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
      * Default behaviour is to redirect the user to `window.location.href`.
      * @param logoutRequest
      */
-    async logout(logoutRequest?: EndSessionRequest): Promise<void> {
+    async logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
-        this.logger.verbose("logout called");
+        this.logger.verbose("logoutRedirect called");
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.logout, validLogoutRequest.correlationId);
 
@@ -669,19 +682,19 @@ export abstract class ClientApplication {
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, logoutRequest && logoutRequest.authority);
             // create logout string and navigate user window to logout. Auth module will clear cache.
             const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
-            this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
-
+            
             if (!validLogoutRequest.account || AccountEntity.accountInfoIsEqual(validLogoutRequest.account, this.getActiveAccount())) {
-                this.logger.verbose("Account not valid on validLogoutRequest, setting active account to null");
+                this.logger.verbose("Setting active account to null");
                 this.setActiveAccount(null);
             }
-
+            
             const navigationOptions: NavigationOptions = {
                 apiId: ApiId.logout,
                 timeout: this.config.system.redirectNavigationTimeout,
                 noHistory: false
             };
             
+            this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
             // Check if onRedirectNavigate is implemented, and invoke it if so
             if (logoutRequest && typeof logoutRequest.onRedirectNavigate === "function") {
                 const navigate = logoutRequest.onRedirectNavigate(logoutUri);
@@ -702,6 +715,107 @@ export abstract class ClientApplication {
             this.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Redirect, null, e);
             throw e;
         }
+
+        this.emitEvent(EventType.LOGOUT_END, InteractionType.Redirect);
+    }
+
+    /**
+     * Clears local cache for the current user then opens a popup window prompting the user to sign-out of the server
+     * @param logoutRequest 
+     */
+    logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void> {
+        let validLogoutRequest: CommonEndSessionRequest;
+        try {
+            this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
+            this.logger.verbose("logoutPopup called");
+            validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
+        } catch (e) {
+            // Since this function is synchronous we need to reject
+            return Promise.reject(e);
+        }
+
+        const popupName = PopupUtils.generateLogoutPopupName(this.config.auth.clientId, validLogoutRequest);
+        let popup;
+
+        // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
+        if (this.config.system.asyncPopups) {
+            this.logger.verbose("asyncPopups set to true");
+        } else {
+            // asyncPopups flag is set to false. Opens popup before logging out.
+            this.logger.verbose("asyncPopup set to false, opening popup");
+            popup = PopupUtils.openSizedPopup("about:blank", popupName);
+        }
+
+        const authority = logoutRequest && logoutRequest.authority;
+        const mainWindowRedirectUri = logoutRequest && logoutRequest.mainWindowRedirectUri;
+        return this.logoutPopupAsync(validLogoutRequest, popupName, authority, popup, mainWindowRedirectUri);
+    }
+
+    /**
+     * 
+     * @param request 
+     * @param popupName 
+     * @param requestAuthority
+     * @param popup 
+     */
+    private async logoutPopupAsync(validRequest: CommonEndSessionRequest, popupName: string, requestAuthority?: string, popup?: Window|null, mainWindowRedirectUri?: string): Promise<void> {
+        this.logger.verbose("logoutPopupAsync called");
+        this.emitEvent(EventType.LOGOUT_START, InteractionType.Popup, validRequest);
+        
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.logoutPopup, validRequest.correlationId);
+        
+        try {
+            this.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
+            // Initialize the client
+            const authClient = await this.createAuthCodeClient(serverTelemetryManager, requestAuthority);
+
+            // create logout string and navigate user window to logout. Auth module will clear cache.
+            const logoutUri: string = authClient.getLogoutUri(validRequest);
+            if (!validRequest.account || AccountEntity.accountInfoIsEqual(validRequest.account, this.getActiveAccount())) {
+                this.logger.verbose("Setting active account to null");
+                this.setActiveAccount(null);
+            }
+
+            this.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Popup, validRequest);
+
+            const popupUtils = new PopupUtils(this.browserStorage, this.logger);
+            // Open the popup window to requestUrl.
+            const popupWindow = popupUtils.openPopup(logoutUri, popupName, popup);
+            this.emitEvent(EventType.POPUP_OPENED, InteractionType.Popup, {popupWindow}, null);
+
+            try {
+                // Don't care if this throws an error (User Cancelled)
+                await popupUtils.monitorPopupForSameOrigin(popupWindow);
+                this.logger.verbose("Popup successfully redirected to postLogoutRedirectUri");
+            } catch (e) {
+                this.logger.verbose(`Error occurred while monitoring popup for same origin. Session on server may remain active. Error: ${e}`);
+            }
+
+            popupUtils.cleanPopup(popupWindow);
+
+            if (mainWindowRedirectUri) {
+                const navigationOptions: NavigationOptions = {
+                    apiId: ApiId.logoutPopup,
+                    timeout: this.config.system.redirectNavigationTimeout,
+                    noHistory: false
+                };
+                const absoluteUrl = UrlString.getAbsoluteUrl(mainWindowRedirectUri, BrowserUtils.getCurrentUri());
+
+                this.logger.verbose("Redirecting main window to url specified in the request");
+                this.logger.verbosePii(`Redirecing main window to: ${absoluteUrl}`);
+                this.navigationClient.navigateInternal(absoluteUrl, navigationOptions);
+            } else {
+                this.logger.verbose("No main window navigation requested");
+            }
+
+        } catch (e) {
+            this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY));
+            this.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Popup, null, e);
+            serverTelemetryManager.cacheFailedRequest(e);
+            throw e;
+        }
+
+        this.emitEvent(EventType.LOGOUT_END, InteractionType.Popup);
     }
 
     // #endregion
@@ -1094,6 +1208,12 @@ export abstract class ClientApplication {
      */
     protected initializeLogoutRequest(logoutRequest?: EndSessionRequest): CommonEndSessionRequest {
         this.logger.verbose("initializeLogoutRequest called");
+
+        // Check if interaction is in progress. Throw error if true.
+        if (this.interactionInProgress()) {
+            throw BrowserAuthError.createInteractionInProgressError();
+        }
+
         const validLogoutRequest: CommonEndSessionRequest = {
             correlationId: this.browserCrypto.createNewGuid(),
             ...logoutRequest

@@ -8,6 +8,7 @@ import { Location } from "@angular/common";
 import {
     IPublicClientApplication,
     EndSessionRequest,
+    EndSessionPopupRequest,
     AuthenticationResult,
     RedirectRequest,
     SilentRequest,
@@ -57,6 +58,12 @@ export class MsalService implements IMsalService {
     }
     logout(logoutRequest?: EndSessionRequest): Observable<void> {
         return from(this.instance.logout(logoutRequest));
+    }
+    logoutRedirect(logoutRequest?: EndSessionRequest): Observable<void> {
+        return from(this.instance.logoutRedirect(logoutRequest));
+    }
+    logoutPopup(logoutRequest?: EndSessionPopupRequest): Observable<void> {
+        return from(this.instance.logoutPopup(logoutRequest));
     }
     ssoSilent(request: SsoSilentRequest): Observable<AuthenticationResult> {
         return from(this.instance.ssoSilent(request));
