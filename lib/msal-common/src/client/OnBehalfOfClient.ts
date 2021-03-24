@@ -89,7 +89,10 @@ export class OnBehalfOfClient extends BaseClient {
                 idToken: cachedIdToken,
                 refreshToken: null,
                 appMetadata: null
-            }, true, idTokenObject);
+            },
+            true,
+            request,
+            idTokenObject);
     }
 
     /**
@@ -181,11 +184,7 @@ export class OnBehalfOfClient extends BaseClient {
             response.body,
             this.authority,
             reqTimestamp,
-            request.resourceRequestMethod,
-            request.resourceRequestUri,
-            undefined,
-            request.scopes,
-            request.oboAssertion
+            request
         );
 
         return tokenResponse;
