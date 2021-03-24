@@ -275,7 +275,7 @@ export class Authority {
                 }
 
                 if (azureRegion) {
-                    Authority.replaceWithRegionalInformation(metadata, azureRegion);
+                    metadata = Authority.replaceWithRegionalInformation(metadata, azureRegion);
                 }
             }
 
@@ -482,9 +482,11 @@ export class Authority {
      * @param metadata OpenIdConfigResponse
      * @param azureRegion string
      */
-    static replaceWithRegionalInformation(metadata: OpenIdConfigResponse, azureRegion: string): void {
+    static replaceWithRegionalInformation(metadata: OpenIdConfigResponse, azureRegion: string): OpenIdConfigResponse {
         metadata.authorization_endpoint = Authority.buildRegionalAuthorityString(metadata.authorization_endpoint, azureRegion);
         metadata.token_endpoint = Authority.buildRegionalAuthorityString(metadata.token_endpoint, azureRegion);
-        metadata.end_session_endpoint = Authority.buildRegionalAuthorityString(metadata.end_session_endpoint, azureRegion); 
+        metadata.end_session_endpoint = Authority.buildRegionalAuthorityString(metadata.end_session_endpoint, azureRegion);
+        
+        return metadata;
     }
 }
