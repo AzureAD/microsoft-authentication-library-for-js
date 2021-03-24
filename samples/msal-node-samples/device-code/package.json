@@ -1,0 +1,22 @@
+{
+  "name": "msal-node-device-code",
+  "version": "1.0.0",
+  "description": "Command line app that uses Oauth device code flow to get a token from Azure AD",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "start": "node index.js",
+    "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
+    "start:build": "npm run build:package && npm start",
+    "install:local": "npm install ../../../lib/msal-node"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "@azure/msal-node": "^1.0.1",
+    "express": "^4.17.1"
+  },
+  "devDependencies": {
+    "jest": "^26.6.3"
+  }
+}
