@@ -9,6 +9,7 @@
 **[BrowserAuthErrors](#browserautherrors)**
 
 1. [interaction_in_progress](#interaction_in_progress)
+1. [block_iframe_reload](#block_iframe_reload)
 
 **[Other](#other)**
 
@@ -93,6 +94,7 @@ msalInstance.handleRedirectPromise()
             }
         } else {
             // Do something with the tokenResponse
+        }
     })
     .catch(err => {
         // Handle error
@@ -120,6 +122,26 @@ If you are unable to figure out why this error is being thrown please [open an i
 - Refresh the page. Does the error go away?
 - Open your application in a new tab. Does the error go away?
 
+### block_iframe_reload
+
+**Error Message**: Request was blocked inside an iframe because MSAL detected an authentication response.
+
+This error is thrown when calling `ssoSilent` or `acquireTokenSilent` and the page used as your `redirectUri` is attempting to invoke a login or acquireToken function.
+Our recommended mitigation for this is to set your `redirectUri` to a blank page that does not implement MSAL when invoking silent APIs. This will also have the added benefit of improving performance as the hidden iframe doesn't need to render your page.
+
+✔️ You can do this on a per request basis, for example:
+
+```javascript
+msalInstance.acquireTokenSilent({
+    scopes: ["User.Read"],
+    redirectUri: "http://localhost:3000/blank.html"
+});
+```
+
+Remember that you will need to register this new `redirectUri` on your App Registration.
+
+If you do not want to use a dedicated `redirectUri` for this purpose, you should instead ensure that your `redirectUri` is not attempting to call MSAL APIs when rendered inside the hidden iframe used by the silent APIs.
+
 ## Other
 
 Errors not thrown by msal, such as server errors
@@ -131,4 +153,3 @@ This error occurs with MSAL.js v2.x and is due to improper configuration during 
 > Your Redirect URI is eligible for the Authorization Code Flow with PKCE.
 
 ![image](https://user-images.githubusercontent.com/5307810/110390912-922fa380-801b-11eb-9e2b-d7aa88ca0687.png)
-
