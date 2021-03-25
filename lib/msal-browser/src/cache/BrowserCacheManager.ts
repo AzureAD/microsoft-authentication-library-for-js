@@ -171,15 +171,11 @@ export class BrowserCacheManager extends CacheManager {
         }
 
         const parsedAccount = this.validateAndParseJson(account);
-        if (!parsedAccount) {
+        if (!parsedAccount || !AccountEntity.isAccountEntity(parsedAccount)) {
             return null;
         }
 
-        const accountEntity = CacheManager.toObject<AccountEntity>(new AccountEntity(), parsedAccount);
-        if (AccountEntity.isAccountEntity(accountEntity)) {
-            return accountEntity;
-        }
-        return null;
+        return CacheManager.toObject<AccountEntity>(new AccountEntity(), parsedAccount);
     }
 
     /**
@@ -205,16 +201,12 @@ export class BrowserCacheManager extends CacheManager {
         }
 
         const parsedIdToken = this.validateAndParseJson(value);
-        if (!parsedIdToken) {
+        if (!parsedIdToken || !IdTokenEntity.isIdTokenEntity(parsedIdToken)) {
             return null;
         }
 
-        const idToken: IdTokenEntity = CacheManager.toObject(new IdTokenEntity(), parsedIdToken);
-        if (IdTokenEntity.isIdTokenEntity(idToken)) {
-            this.logger.verbose("BrowserCacheManager.getIdTokenCredential: cache hit");
-            return idToken;
-        }
-        return null;
+        this.logger.verbose("BrowserCacheManager.getIdTokenCredential: cache hit");
+        return CacheManager.toObject(new IdTokenEntity(), parsedIdToken);
     }
 
     /**
@@ -238,16 +230,12 @@ export class BrowserCacheManager extends CacheManager {
             return null;
         }
         const parsedAccessToken = this.validateAndParseJson(value);
-        if (!parsedAccessToken) {
+        if (!parsedAccessToken || !AccessTokenEntity.isAccessTokenEntity(parsedAccessToken)) {
             return null;
         }
 
-        const accessToken: AccessTokenEntity = CacheManager.toObject(new AccessTokenEntity(), parsedAccessToken);
-        if (AccessTokenEntity.isAccessTokenEntity(accessToken)) {
-            this.logger.verbose("BrowserCacheManager.getAccessTokenCredential: cache hit");
-            return accessToken;
-        }
-        return null;
+        this.logger.verbose("BrowserCacheManager.getAccessTokenCredential: cache hit");
+        return CacheManager.toObject(new AccessTokenEntity(), parsedAccessToken);
     }
 
     /**
@@ -271,16 +259,12 @@ export class BrowserCacheManager extends CacheManager {
             return null;
         }
         const parsedRefreshToken = this.validateAndParseJson(value);
-        if (!parsedRefreshToken) {
+        if (!parsedRefreshToken || !RefreshTokenEntity.isRefreshTokenEntity(parsedRefreshToken)) {
             return null;
         }
 
-        const refreshToken: RefreshTokenEntity = CacheManager.toObject(new RefreshTokenEntity(), parsedRefreshToken);
-        if (RefreshTokenEntity.isRefreshTokenEntity(refreshToken)) {
-            this.logger.verbose("BrowserCacheManager.getRefreshTokenCredential: cache hit");
-            return refreshToken;
-        }
-        return null;
+        this.logger.verbose("BrowserCacheManager.getRefreshTokenCredential: cache hit");
+        return CacheManager.toObject(new RefreshTokenEntity(), parsedRefreshToken);
     }
 
     /**
@@ -305,16 +289,12 @@ export class BrowserCacheManager extends CacheManager {
         }
 
         const parsedMetadata = this.validateAndParseJson(value);
-        if (!parsedMetadata) {
+        if (!parsedMetadata || !AppMetadataEntity.isAppMetadataEntity(appMetadataKey, parsedMetadata)) {
             return null;
         }
 
-        const appMetadata: AppMetadataEntity = CacheManager.toObject(new AppMetadataEntity(), parsedMetadata);
-        if (AppMetadataEntity.isAppMetadataEntity(appMetadataKey, appMetadata)) {
-            this.logger.verbose("BrowserCacheManager.getAppMetadata: cache hit");
-            return appMetadata;
-        }
-        return null;
+        this.logger.verbose("BrowserCacheManager.getAppMetadata: cache hit");
+        return CacheManager.toObject(new AppMetadataEntity(), parsedMetadata);
     }
 
     /**
@@ -338,16 +318,12 @@ export class BrowserCacheManager extends CacheManager {
             return null;
         }
         const parsedMetadata = this.validateAndParseJson(value);
-        if (!parsedMetadata) {
+        if (!parsedMetadata || !ServerTelemetryEntity.isServerTelemetryEntity(serverTelemetryKey, parsedMetadata)) {
             return null;
         }
 
-        const serverTelemetryEntity = CacheManager.toObject(new ServerTelemetryEntity(), parsedMetadata);
-        if (ServerTelemetryEntity.isServerTelemetryEntity(serverTelemetryKey, serverTelemetryEntity)) {
-            this.logger.verbose("BrowserCacheManager.getServerTelemetry: cache hit");
-            return serverTelemetryEntity;
-        }
-        return null;
+        this.logger.verbose("BrowserCacheManager.getServerTelemetry: cache hit");
+        return CacheManager.toObject(new ServerTelemetryEntity(), parsedMetadata);
     }
 
     /**
@@ -408,16 +384,12 @@ export class BrowserCacheManager extends CacheManager {
         }
 
         const parsedThrottlingCache = this.validateAndParseJson(value);
-        if (!parsedThrottlingCache) {
+        if (!parsedThrottlingCache || !ThrottlingEntity.isThrottlingEntity(throttlingCacheKey, parsedThrottlingCache)) {
             return null;
         }
 
-        const throttlingCache = CacheManager.toObject(new ThrottlingEntity(), parsedThrottlingCache);
-        if (ThrottlingEntity.isThrottlingEntity(throttlingCacheKey, throttlingCache)) {
-            this.logger.verbose("BrowserCacheManager.getThrottlingCache: cache hit");
-            return throttlingCache;
-        }
-        return null;
+        this.logger.verbose("BrowserCacheManager.getThrottlingCache: cache hit");
+        return CacheManager.toObject(new ThrottlingEntity(), parsedThrottlingCache);
     }
 
     /**
