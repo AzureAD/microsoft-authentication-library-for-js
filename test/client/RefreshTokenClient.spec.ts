@@ -78,6 +78,39 @@ describe("RefreshTokenClient unit tests", () => {
         });
     });
 
+    describe("exectuteTokenRequest", () => {
+        let config: ClientConfiguration;
+
+        beforeEach(async () => {
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            config = await ClientTestUtils.createTestClientConfiguration();
+        });
+
+        it("Adds tokenQueryParameters to the /token request", (done) => {
+            sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").callsFake((url) => {
+                expect(url).to.contain("/token?testParam=testValue")
+                done();
+            });
+
+            const client = new RefreshTokenClient(config);
+            const refreshTokenRequest: RefreshTokenRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                claims: TEST_CONFIG.CLAIMS,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                tokenQueryParameters: {
+                    testParam: "testValue"
+                }
+            };
+
+            client.acquireToken(refreshTokenRequest).catch(e => {
+                // Catch errors thrown after the function call this test is testing    
+            });
+        });
+    });
+
     describe("acquireToken APIs", () => {
         let config: ClientConfiguration;
         let client: RefreshTokenClient;
