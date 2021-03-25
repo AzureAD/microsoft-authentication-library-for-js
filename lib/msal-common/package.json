@@ -62,7 +62,6 @@
     "@babel/preset-typescript": "^7.7.2",
     "@babel/register": "^7.7.0",
     "@istanbuljs/nyc-config-babel": "^2.1.1",
-    "@rollup/plugin-babel": "^5.3.0",
     "@rollup/plugin-json": "^4.0.0",
     "@types/chai": "^4.2.5",
     "@types/chai-as-promised": "^7.1.2",
