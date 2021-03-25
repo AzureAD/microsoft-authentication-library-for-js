@@ -16,7 +16,9 @@ export enum EventType {
     SSO_SILENT_FAILURE = "msal:ssoSilentFailure",
     HANDLE_REDIRECT_START = "msal:handleRedirectStart",
     HANDLE_REDIRECT_END = "msal:handleRedirectEnd",
+    POPUP_OPENED = "msal:popupOpened",
     LOGOUT_START = "msal:logoutStart",
     LOGOUT_SUCCESS = "msal:logoutSuccess",
-    LOGOUT_FAILURE = "msal:logoutFailure"
+    LOGOUT_FAILURE = "msal:logoutFailure",
+    LOGOUT_END = "msal:logoutEnd"
 }
