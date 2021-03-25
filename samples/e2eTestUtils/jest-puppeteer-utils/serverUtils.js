@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 const { exec } = require('child_process');
 const waitOn  = require('wait-on');
 const find = require("find-process");

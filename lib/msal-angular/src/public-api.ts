@@ -18,3 +18,4 @@ export { MSAL_INSTANCE, MSAL_GUARD_CONFIG, MSAL_INTERCEPTOR_CONFIG } from "./con
 export { MsalBroadcastService } from "./msal.broadcast.service";
 export { MsalModule } from "./msal.module";
 export { MsalRedirectComponent } from "./msal.redirect.component";
+export { MsalCustomNavigationClient } from "./msal.navigation.client";
