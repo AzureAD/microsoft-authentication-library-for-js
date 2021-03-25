@@ -31,7 +31,6 @@ import { ICachePlugin } from "../cache/interface/ICachePlugin";
 import { TokenCacheContext } from "../cache/persistence/TokenCacheContext";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload";
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
 
 /**
@@ -308,11 +307,7 @@ export class ResponseHandler {
         if (cacheRecord.accessToken) {
             if (cacheRecord.accessToken.tokenType === AuthenticationScheme.POP) {
                 const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(cryptoObj);
-
-                if (!request.resourceRequestMethod || !request.resourceRequestUri) {
-                    throw ClientConfigurationError.createResourceRequestParametersRequiredError();
-                }
-                accessToken = await popTokenGenerator.signPopToken(cacheRecord.accessToken.secret, request.resourceRequestMethod, request.resourceRequestUri, request.shrClaims);
+                accessToken = await popTokenGenerator.signPopToken(cacheRecord.accessToken.secret, request);
             } else {
                 accessToken = cacheRecord.accessToken.secret;
             }

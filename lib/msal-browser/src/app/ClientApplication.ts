@@ -1145,15 +1145,17 @@ export abstract class ClientApplication {
             browserState
         );
 
-        const authenticationScheme = request.authenticationScheme || AuthenticationScheme.BEARER;
+        // Set authenticationScheme to BEARER if not explicitly set in the request
+        if (!request.authenticationScheme) {
+            request.authenticationScheme = AuthenticationScheme.BEARER;
+        }
 
         const validatedRequest: AuthorizationUrlRequest = {
             ...this.initializeBaseRequest(request),
             redirectUri: redirectUri,
             state: state,
             nonce: request.nonce || this.browserCrypto.createNewGuid(),
-            responseMode: ResponseMode.FRAGMENT,
-            authenticationScheme: authenticationScheme
+            responseMode: ResponseMode.FRAGMENT
         };
 
         const account = request.account || this.getActiveAccount();

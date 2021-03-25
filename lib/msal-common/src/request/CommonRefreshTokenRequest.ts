@@ -18,5 +18,4 @@ import { AuthenticationScheme } from "../utils/Constants";
  */
 export type CommonRefreshTokenRequest = BaseAuthRequest & {
     refreshToken: string;
-    authenticationScheme: AuthenticationScheme;
 };
