@@ -112,6 +112,30 @@ describe('MsalService', () => {
     })
   });
 
+  describe("logoutPopup", () => {
+    it("calls logoutPopup on msalService", async () => {
+      spyOn(PublicClientApplication.prototype, "logoutPopup").and.returnValue((
+        new Promise((resolve) => {
+          resolve();
+        })
+      ));
+      await authService.logoutPopup();
+      expect(PublicClientApplication.prototype.logoutPopup).toHaveBeenCalled();
+    })
+  });
+
+  describe("logoutRedirect", () => {
+    it("calls logoutRedirect on msalService", async () => {
+      spyOn(PublicClientApplication.prototype, "logoutRedirect").and.returnValue((
+        new Promise((resolve) => {
+          resolve();
+        })
+      ));
+      await authService.logoutRedirect();
+      expect(PublicClientApplication.prototype.logoutRedirect).toHaveBeenCalled();
+    })
+  });
+
   describe("ssoSilent", () => {
     it("success", (done) => {
       const sampleIdToken = {
