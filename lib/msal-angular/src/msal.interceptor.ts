@@ -32,6 +32,12 @@ export class MsalInterceptor implements HttpInterceptor {
         this.authService.getLogger().verbose("MSAL Interceptor activated");
         const scopes = this.getScopesForEndpoint(req.url);
 
+        // If no scopes for endpoint, does not acquire token
+        if (!scopes || scopes.length === 0) {
+            this.authService.getLogger().verbose("Interceptor - no scopes for endpoint");
+            return next.handle(req);
+        }
+
         // Sets account as active account or first account
         let account: AccountInfo;
         if (!!this.authService.instance.getActiveAccount()) {
@@ -42,14 +48,8 @@ export class MsalInterceptor implements HttpInterceptor {
             account = this.authService.instance.getAllAccounts()[0];
         }
 
-        // If no scopes for endpoint, does not acquire token
-        if (!scopes || scopes.length === 0) {
-            this.authService.getLogger().verbose("Interceptor - no scopes for endpoint");
-            return next.handle(req);
-        }
-
         const authRequest = typeof this.msalInterceptorConfig.authRequest === "function"
-            ? this.msalInterceptorConfig.authRequest({ account: account }, req)
+            ? this.msalInterceptorConfig.authRequest({ account: account }, this.authService, req)
             : { ...this.msalInterceptorConfig.authRequest, account };
 
         this.authService.getLogger().info(`Interceptor - ${scopes.length} scopes found for endpoint`);

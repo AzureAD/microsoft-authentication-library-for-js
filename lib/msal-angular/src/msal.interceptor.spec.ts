@@ -371,11 +371,7 @@ describe('MsalInterceptor', () => {
   });
 
   it("calls dynamic authority with account, authority override", done => {
-    testInterceptorConfig.authRequest = {
-      authority: 'https://login.microsoftonline.com/common'
-    };
-    // testInterceptorConfig.dynamicAuthority = (account: AccountInfo) => `https://login.microsoftonline.com/${account.tenantId}`
-    testInterceptorConfig.authRequest = (authRequest, httpReq) => {
+    testInterceptorConfig.authRequest = (authRequest, msalService, httpReq) => {
       return {
         ...authRequest,
         authority: `https://login.microsoftonline.com/${authRequest.account.tenantId}`

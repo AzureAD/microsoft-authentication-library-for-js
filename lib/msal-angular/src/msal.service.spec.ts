@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { AuthenticationResult, AuthError, InteractionType, PublicClientApplication, SilentRequest } from '@azure/msal-browser';
+import { AuthenticationResult, AuthError, InteractionType, Logger, PublicClientApplication, SilentRequest } from '@azure/msal-browser';
 import { MsalModule, MsalBroadcastService, MsalService } from './public-api';
 
 let authService: MsalService;
@@ -98,6 +98,18 @@ describe('MsalService', () => {
 
       expect(PublicClientApplication.prototype.loginRedirect).toHaveBeenCalled();
     });
+  });
+
+  describe("logout", () => {
+    it("calls logout on msalService", async () => {
+      spyOn(PublicClientApplication.prototype, "logout").and.returnValue((
+        new Promise((resolve) => {
+          resolve();
+        })
+      ));
+      await authService.logout();
+      expect(PublicClientApplication.prototype.logout).toHaveBeenCalled();
+    })
   });
 
   describe("ssoSilent", () => {
@@ -335,5 +347,13 @@ describe('MsalService', () => {
     });
 
   });
+
+  describe("setLogger", () => {
+    it("works", () => {
+      spyOn(PublicClientApplication.prototype, "setLogger");
+      authService.setLogger(new Logger({}));
+      expect(PublicClientApplication.prototype.setLogger).toHaveBeenCalled();
+    })
+  })
 
 });

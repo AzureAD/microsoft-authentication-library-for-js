@@ -1,7 +1,7 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Router, UrlTree } from '@angular/router';
-import { BrowserUtils, InteractionType, IPublicClientApplication, PublicClientApplication, UrlString } from '@azure/msal-browser';
+import { BrowserSystemOptions, BrowserUtils, InteractionType, IPublicClientApplication, LogLevel, PublicClientApplication, UrlString } from '@azure/msal-browser';
 import { of } from 'rxjs';
 import { MsalGuardConfiguration } from './msal.guard.config';
 import { MsalModule, MsalGuard, MsalService, MsalBroadcastService } from './public-api';
@@ -14,13 +14,15 @@ let routerMock = { navigate: jasmine.createSpy('navigate') };
 let testInteractionType: InteractionType;
 let testLoginFailedRoute: string;
 let testConfiguration: Partial<MsalGuardConfiguration>;
+let browserSystemOptions: BrowserSystemOptions;
 
 function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
     auth: {
       clientId: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
       redirectUri: 'http://localhost:4200'
-    }
+    },
+    //system: browserSystemOptions
   });
 }
 
@@ -29,7 +31,8 @@ function MSALGuardConfigFactory(): MsalGuardConfiguration {
     //@ts-ignore
     interactionType: testInteractionType,
     loginFailedRoute: testLoginFailedRoute,
-    authRequest: testConfiguration?.authRequest
+    authRequest: testConfiguration?.authRequest,
+    canActivate: testConfiguration?.canActivate
   }
 }
 
@@ -60,6 +63,7 @@ describe('MsalGuard', () => {
     testInteractionType = InteractionType.Popup;
     testLoginFailedRoute = undefined;
     testConfiguration = { };
+    browserSystemOptions = { };
     initializeMsal();
   });
 
@@ -114,6 +118,14 @@ describe('MsalGuard', () => {
   });
 
   it("should return true after logging in with popup", (done) => {
+    testConfiguration = {
+      authRequest: (authService, state) => {
+        expect(state).toBeDefined();
+        expect(authService).toBeDefined();
+        return { };
+      }
+    }
+    initializeMsal();
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
       of("test")
@@ -125,15 +137,7 @@ describe('MsalGuard', () => {
       //@ts-ignore
       of(true)
     );
-
-    testConfiguration = {
-      authRequest: (config, authService) => {
-        expect(config.interactionType).toBe(InteractionType.Popup);
-        expect(authService).toBeDefined();
-        return { };
-      }
-    }
-
+    
     guard.canActivate(routeMock, routeStateMock)
       .subscribe(result => {
         expect(result).toBeTrue();
@@ -227,6 +231,39 @@ describe('MsalGuard', () => {
       });
   });
 
+  it("canActivateChild returns false with logged in user and access validator", (done) => {
+    browserSystemOptions = {
+      loggerOptions: {
+        logLevel: LogLevel.Verbose,
+        loggerCallback: (level, message) => console.log(message)
+      }
+    };
+    testConfiguration.canActivate = (msalService, state) => {
+      expect(msalService).toBeDefined();
+      expect(state).toBeDefined();
+      return of(false);
+    }
+    initializeMsal();
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
+      //@ts-ignore
+      of("test")
+    );
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
+      homeAccountId: "test",
+      localAccountId: "test",
+      environment: "test",
+      tenantId: "test",
+      username: "test"
+    }]);
+
+    guard.canActivateChild(routeMock, routeStateMock)
+      .subscribe(result => {
+        expect(result).toBeFalse();
+        done();
+      });
+  });
+
   it("canLoad returns true with logged in user", (done) => {
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
@@ -244,6 +281,41 @@ describe('MsalGuard', () => {
     guard.canLoad()
       .subscribe(result => {
         expect(result).toBeTrue();
+        done();
+      });
+  });
+
+  it("canLoad returns false with logged in user and access validator", (done) => {
+    browserSystemOptions = {
+      loggerOptions: {
+        logLevel: LogLevel.Verbose,
+        loggerCallback: (level, message) => console.log(message)
+      }
+    };
+    testConfiguration.canActivate = (msalService, state) => {
+      expect(msalService).toBeDefined();
+      expect(state).toBeUndefined();
+      return false;
+    }
+    initializeMsal();
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
+      //@ts-ignore
+      of("test")
+    );
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
+      homeAccountId: "test",
+      localAccountId: "test",
+      environment: "test",
+      tenantId: "test",
+      username: "test"
+    }]);
+
+    
+
+    guard.canLoad()
+      .subscribe(result => {
+        expect(result).toBeFalse();
         done();
       });
   });
