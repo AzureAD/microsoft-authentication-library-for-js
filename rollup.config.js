@@ -6,7 +6,6 @@
 import resolve from "rollup-plugin-node-resolve";
 import typescript from "rollup-plugin-typescript2";
 import { terser } from "rollup-plugin-terser";
-import babel from "@rollup/plugin-babel";
 import json from "rollup-plugin-json";
 import pkg from "./package.json";
 
@@ -47,8 +46,7 @@ export default [
                 typescript: require("typescript"),
                 tsconfig: "tsconfig.build.json"
             }),
-            json(),
-            babel()
+            json()
         ]
     },
     // Minified version of msal
@@ -77,8 +75,7 @@ export default [
                     preamble: libraryHeader
                 }
             }),
-            json(),
-            babel()
+            json()
         ]
     }
 ];
