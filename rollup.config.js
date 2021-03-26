@@ -15,33 +15,17 @@ const fileHeader = `${libraryHeader}\n${useStrictHeader}`;
 
 export default [
     {
+        // for es build
         input: "src/index.ts",
-        output: [
-            {
-                file: pkg.main,
-                format: "cjs",
-                banner: fileHeader,
-                sourcemap: true,
-            },
-            {
-                file: pkg.module,
-                format: "es",
-                banner: fileHeader,
-                sourcemap: true,
-            },
-            {
-                file: "./lib/msal-browser.js",
-                format: "umd",
-                name: "msal",
-                banner: fileHeader,
-                sourcemap: true,
-            }
-        ],
+        preserveModules: true,
+        output: {
+            dir: "dist/preserved",
+            preserveModulesRoot: "src",
+            format: "es",
+            banner: fileHeader,
+            sourcemap: true,
+        },
         plugins: [
-            resolve({
-                browser: true,
-                only: ["@azure/msal-common"]
-            }),
             typescript({
                 typescript: require("typescript"),
                 tsconfig: "tsconfig.build.json"
@@ -49,33 +33,62 @@ export default [
             json()
         ]
     },
+    // {
+    //     input: "src/index.ts",
+    //     output: [
+    //         {
+    //             file: pkg.main,
+    //             format: "cjs",
+    //             banner: fileHeader,
+    //             sourcemap: true,
+    //         },
+    //         {
+    //             file: "./lib/msal-browser.js",
+    //             format: "umd",
+    //             name: "msal",
+    //             banner: fileHeader,
+    //             sourcemap: true,
+    //         }
+    //     ],
+    //     plugins: [
+    //         resolve({
+    //             browser: true,
+    //             only: ["@azure/msal-common"]
+    //         }),
+    //         typescript({
+    //             typescript: require("typescript"),
+    //             tsconfig: "tsconfig.build.json"
+    //         }),
+    //         json()
+    //     ]
+    // },
     // Minified version of msal
-    {
-        input: "src/index.ts",
-        output: [
-            {
-                file: "./lib/msal-browser.min.js",
-                format: "umd",
-                name: "msal",
-                banner: useStrictHeader,
-                sourcemap: false,
-            }
-        ],
-        plugins: [
-            resolve({
-                browser: true,
-                only: ["@azure/msal-common"]
-            }),
-            typescript({
-                typescript: require("typescript"),
-                tsconfig: "tsconfig.build.json"
-            }),
-            terser({
-                output: {
-                    preamble: libraryHeader
-                }
-            }),
-            json()
-        ]
-    }
+    // {
+    //     input: "src/index.ts",
+    //     output: [
+    //         {
+    //             file: "./lib/msal-browser.min.js",
+    //             format: "umd",
+    //             name: "msal",
+    //             banner: useStrictHeader,
+    //             sourcemap: false,
+    //         }
+    //     ],
+    //     plugins: [
+    //         resolve({
+    //             browser: true,
+    //             only: ["@azure/msal-common"]
+    //         }),
+    //         typescript({
+    //             typescript: require("typescript"),
+    //             tsconfig: "tsconfig.build.json"
+    //         }),
+    //         terser({
+    //             output: {
+    //                 preamble: libraryHeader
+    //             }
+    //         }),
+    //         json()
+    //     ]
+    // }
 ];
