@@ -12,4 +12,5 @@ export type SignedHttpRequest = {
     q?: [Array<string>, string];
     ts?: string;
     nonce?: string;
+    client_claims?: string;
 };

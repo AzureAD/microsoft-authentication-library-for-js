@@ -41,7 +41,7 @@ function signOut() {
         account: myMSALObj.getAccountByHomeId(accountId)
     };
 
-    myMSALObj.logout(logoutRequest);
+    myMSALObj.logoutRedirect(logoutRequest);
 }
 
 function getTokenRedirect(request, account) {
