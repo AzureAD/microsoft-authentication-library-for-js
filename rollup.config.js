@@ -18,7 +18,7 @@ export default [
         input: "src/index.ts",
         preserveModules: true,
         output: {
-            dir: "dist/preserved",
+            dir: "dist",
             preserveModulesRoot: "src",
             format: "es",
             banner: fileHeader,
@@ -36,68 +36,62 @@ export default [
             json()
         ]
     },
-    // {
-    //     input: "src/index.ts",
-    //     output: [
-    //         {
-    //             file: pkg.main,
-    //             format: "cjs",
-    //             banner: fileHeader,
-    //             sourcemap: "inline"
-    //         },
-    //         // {
-    //         //     file: pkg.module,
-    //         //     format: "es",
-    //         //     banner: fileHeader,
-    //         //     sourcemap: "inline"
-    //         // },
-    //         {
-    //             file: "./lib/msal-common.js",
-    //             format: "umd",
-    //             name: "msalCommon",
-    //             banner: fileHeader,
-    //             sourcemap: "inline"
-    //         }
-    //     ],
-    //     external: [
-    //         ...Object.keys(pkg.dependencies || {}),
-    //         ...Object.keys(pkg.peerDependencies || {})
-    //     ],
-    //     plugins: [
-    //         typescript({
-    //             typescript: require("typescript"),
-    //             tsconfig: "tsconfig.build.json"
-    //         }),
-    //         json()
-    //     ]
-    // },
-    // // Minified version of msal
-    // {
-    //     input: "src/index.ts",
-    //     output: [
-    //         {
-    //             file: "./lib/msal-common.min.js",
-    //             format: "umd",
-    //             name: "msalCommon",
-    //             banner: useStrictHeader,
-    //             sourcemap: true
-    //         }
-    //     ],
-    //     external: [
-    //         ...Object.keys(pkg.dependencies || {}),
-    //         ...Object.keys(pkg.peerDependencies || {})
-    //     ],
-    //     plugins: [
-    //         typescript({
-    //             typescript: require("typescript"),
-    //             tsconfig: "tsconfig.build.json"
-    //         }),
-    //         json(),
-    //         terser({
-    //             output: {
-    //                 preamble: libraryHeader
-    //             }
-    //         })
-    //     ]
-    // }
+    {
+        input: "src/index.ts",
+        output: [
+            {
+                file: pkg.main,
+                format: "cjs",
+                banner: fileHeader,
+                sourcemap: "inline"
+            },
+            {
+                file: "./lib/msal-common.js",
+                format: "umd",
+                name: "msalCommon",
+                banner: fileHeader,
+                sourcemap: "inline"
+            }
+        ],
+        external: [
+            ...Object.keys(pkg.dependencies || {}),
+            ...Object.keys(pkg.peerDependencies || {})
+        ],
+        plugins: [
+            typescript({
+                typescript: require("typescript"),
+                tsconfig: "tsconfig.build.json"
+            }),
+            json()
+        ]
+    },
+    // Minified version of msal
+    {
+        input: "src/index.ts",
+        output: [
+            {
+                file: "./lib/msal-common.min.js",
+                format: "umd",
+                name: "msalCommon",
+                banner: useStrictHeader,
+                sourcemap: true
+            }
+        ],
+        external: [
+            ...Object.keys(pkg.dependencies || {}),
+            ...Object.keys(pkg.peerDependencies || {})
+        ],
+        plugins: [
+            typescript({
+                typescript: require("typescript"),
+                tsconfig: "tsconfig.build.json"
+            }),
+            json(),
+            terser({
+                output: {
+                    preamble: libraryHeader
+                }
+            })
+        ]
+    }
 ];
