@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update blockReloadInIframe error message with link to error doc #3294",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
