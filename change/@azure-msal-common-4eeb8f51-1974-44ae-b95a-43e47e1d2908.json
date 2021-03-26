@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Ignore account hints when prompt=select_account #3315",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
