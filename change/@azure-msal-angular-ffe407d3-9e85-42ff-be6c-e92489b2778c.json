@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Add support for logoutPopup API #3044",
-  "packageName": "@azure/msal-angular",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

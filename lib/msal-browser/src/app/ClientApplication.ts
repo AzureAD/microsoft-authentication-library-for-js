@@ -1078,6 +1078,9 @@ export abstract class ClientApplication {
         // Block auth requests inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
+        // Block redirectUri opened in a popup from calling MSAL APIs
+        BrowserUtils.blockAcquireTokenInPopups();
+
         // Block redirects if memory storage is enabled but storeAuthStateInCookie is not
         if (interactionType === InteractionType.Redirect &&
             this.config.cache.cacheLocation === BrowserCacheLocation.MemoryStorage &&
