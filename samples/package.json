@@ -1,8 +1,11 @@
 {
-    "name": "samples",
+    "name": "msal-node-samples",
     "version": "0.0.1",
     "license": "MIT",
     "private": true,
+    "scripts": {
+        "test": "jest"
+    },
     "dependencies": {
         "axios": "^0.21.1",
         "typescript": "^4.1.3"

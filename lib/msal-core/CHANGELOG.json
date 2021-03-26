@@ -2,6 +2,36 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Wed, 24 Mar 2021 22:55:46 GMT",
+      "tag": "msal_v1.4.8",
+      "version": "1.4.8",
+      "comments": {
+        "none": [
+          {
+            "comment": "Fix code example",
+            "author": "stef.heyenrath@gmail.com",
+            "commit": "f2542071844d89989a5db16d36552cdd5826309b",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 15 Mar 2021 23:45:17 GMT",
+      "tag": "msal_v1.4.8",
+      "version": "1.4.8",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Dont migrate tokens for different clientId #3188",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "2933eaab47f1f840b71bfdb5b991eb297922e48a",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 03 Mar 2021 21:47:05 GMT",
       "tag": "msal_v1.4.7",
       "version": "1.4.7",

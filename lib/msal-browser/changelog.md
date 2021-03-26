@@ -1,8 +1,31 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Wed, 03 Mar 2021 21:47:05 GMT and should not be manually modified.
+This log was last generated on Wed, 24 Mar 2021 22:55:46 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.13.0
+
+Wed, 24 Mar 2021 22:55:46 GMT
+
+### Minor changes
+
+- Add logoutPopup API #3044 (thomas.norling@microsoft.com)
+
+### Patches
+
+- Fix errors thrown on cache lookups when reading non-msal cache values #3245 (thomas.norling@microsoft.com)
+- Update blockReloadInIframe error message with link to error doc #3294 (thomas.norling@microsoft.com)
+- Block nested popups #3249 (thomas.norling@microsoft.com)
+
+## 2.12.1
+
+Mon, 15 Mar 2021 23:45:17 GMT
+
+### Patches
+
+- Clear temporary cache cookies on page load #3129 (prkanher@microsoft.com)
+- Throw BrowserAuthError when fetch fails #3146 (thomas.norling@microsoft.com)
 
 ## 2.12.0
 

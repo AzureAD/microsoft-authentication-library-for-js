@@ -2,6 +2,56 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 24 Mar 2021 22:55:46 GMT",
+      "tag": "@azure/msal-common_v4.1.0",
+      "version": "4.1.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add client claims support for SHRs (#3089)",
+            "author": "hemoral@microsoft.com",
+            "commit": "44bc5edc3104400bef0e876c68ea529ce543e398",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Properly handle expiration timestamps when returned as strings",
+            "author": "janutter@microsoft.com",
+            "commit": "d2e0dd1a390b40fbe6225e4e214bb0df2f8b7174",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Add null as possible type for account on EndSessionRequest #3044",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "866a4c8507155134282449d92d8b1cdfc384ab7e",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 15 Mar 2021 23:45:17 GMT",
+      "tag": "@azure/msal-common_v4.0.3",
+      "version": "4.0.3",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Use sid from account when available #3147",
+            "author": "prkanher@microsoft.com",
+            "commit": "1e98ccd91788fd8072226b9139eb109d83df1a25",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Add network error for failed requests (#3146)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "07b2ea44a3f794d8812247020c729e00d49d33ec",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 03 Mar 2021 21:47:05 GMT",
       "tag": "@azure/msal-common_v4.0.2",
       "version": "4.0.2",
