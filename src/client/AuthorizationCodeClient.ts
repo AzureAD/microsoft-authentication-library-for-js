@@ -252,20 +252,25 @@ export class AuthorizationCodeClient extends BaseClient {
             // AAD will throw if prompt=select_account is passed with an account hint
             if (request.sid && request.prompt === PromptValue.NONE) {
                 // SessionID is only used in silent calls
+                this.logger.verbose("createAuthCodeUrlQueryString: Prompt is none, adding sid from request");
                 parameterBuilder.addSid(request.sid);
             } else if (request.account) {
                 const accountSid = this.extractAccountSid(request.account);
                 // If account and loginHint are provided, we will check account first for sid before adding loginHint
                 if (accountSid && request.prompt === PromptValue.NONE) {
                     // SessionId is only used in silent calls
+                    this.logger.verbose("createAuthCodeUrlQueryString: Prompt is none, adding sid from account");
                     parameterBuilder.addSid(accountSid);
                 } else if (request.loginHint) {
+                    this.logger.verbose("createAuthCodeUrlQueryString: Adding login_hint from request");
                     parameterBuilder.addLoginHint(request.loginHint);
                 } else if (request.account.username) {
                     // Fallback to account username if provided
+                    this.logger.verbose("createAuthCodeUrlQueryString: Adding login_hint from account");
                     parameterBuilder.addLoginHint(request.account.username);
                 }
             } else if (request.loginHint) {
+                this.logger.verbose("createAuthCodeUrlQueryString: No account, adding login_hint from request");
                 parameterBuilder.addLoginHint(request.loginHint);
             }
         } else {
