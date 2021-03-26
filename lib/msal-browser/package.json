@@ -21,9 +21,10 @@
     "msal",
     "oauth"
   ],
+  "sideEffects": false,
   "main": "./dist/index.js",
-  "module": "./dist/index.es.js",
-  "types": "./dist/index.d.ts",
+  "module": "./dist/preserved/index.js",
+  "types": "./dist/preserved/index.d.ts",
   "engines": {
     "node": ">=0.8.0"
   },
