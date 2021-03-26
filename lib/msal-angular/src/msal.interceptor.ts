@@ -9,6 +9,7 @@ import {
     HttpEvent,
     HttpInterceptor
 } from "@angular/common/http";
+import { Location } from "@angular/common";
 import { Observable, EMPTY, of } from "rxjs";
 import { switchMap, catchError } from "rxjs/operators";
 import { MsalService } from "./msal.service";
@@ -21,7 +22,8 @@ import { MsalInterceptorConfiguration } from "./msal.interceptor.config";
 export class MsalInterceptor implements HttpInterceptor {
     constructor(
         @Inject(MSAL_INTERCEPTOR_CONFIG) private msalInterceptorConfig: MsalInterceptorConfiguration,
-        private authService: MsalService
+        private authService: MsalService,
+        private location: Location
     ) {}
 
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
@@ -100,9 +102,11 @@ export class MsalInterceptor implements HttpInterceptor {
      */
     private getScopesForEndpoint(endpoint: string): Array<string>|null {
         this.authService.getLogger().verbose("Interceptor - getting scopes for endpoint");
+        const normalizedEndpoint = this.location.normalize(endpoint);
         const protectedResourcesArray = Array.from(this.msalInterceptorConfig.protectedResourceMap.keys());
         const keyMatchesEndpointArray = protectedResourcesArray.filter(key => {
-            return StringUtils.matchPattern(key, endpoint);
+            let normalizedKey = this.location.normalize(key);
+            return StringUtils.matchPattern(normalizedKey, normalizedEndpoint);
         });
 
         // Process all protected resources and send the first matched resource

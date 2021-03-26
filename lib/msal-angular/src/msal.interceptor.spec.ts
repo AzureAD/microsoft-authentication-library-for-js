@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HTTP_INTERCEPTORS, HttpClient } from "@angular/common/http";
 import { HttpClientTestingModule, HttpTestingController } from "@angular/common/http/testing";
+import { Location } from "@angular/common";
 import { RouterTestingModule } from "@angular/router/testing";
 import { AccountInfo, AuthError, InteractionType, IPublicClientApplication, PublicClientApplication } from '@azure/msal-browser';
 import { MsalModule, MsalService, MsalInterceptor, MsalBroadcastService } from './public-api';
@@ -41,7 +42,9 @@ function MSALInterceptorFactory(): MsalInterceptorConfiguration {
       ["https://*.test.com", ["default.scope2"]],
       ["http://localhost:3000/unprotect", null],
       ["http://localhost:3000/", ["base.scope"]],
-      ["http://apps.com/tenant?abc", ["query.scope"]]
+      ["http://apps.com/tenant?abc", ["query.scope"]],
+      ["http://applicationA/slash/", ["custom.scope"]],
+      ["http://applicationB/noSlash", ["custom.scope"]]
     ])
   }
 }
@@ -63,7 +66,8 @@ function initializeMsal() {
         provide: HTTP_INTERCEPTORS,
         useClass: MsalInterceptor,
         multi: true,
-      }
+      },
+      Location
     ],
   });
 
@@ -357,6 +361,50 @@ describe('MsalInterceptor', () => {
     httpClient.get("http://apps.com/tenant?abc").subscribe();
     setTimeout(() => {
       const request = httpMock.expectOne("http://apps.com/tenant?abc");
+      request.flush({ data: "test" });
+      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+      httpMock.verify();
+      done();
+    }, 200);
+  });
+
+  it("attaches authorization header with access token for protected resource with trailing slash", done => {
+    spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
+      new Promise((resolve) => {
+        //@ts-ignore
+        resolve({
+          accessToken: "access-token"
+        });
+      })
+    ));
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
+
+    httpClient.get("http://applicationA/slash").subscribe();
+    setTimeout(() => {
+      const request = httpMock.expectOne("http://applicationA/slash");
+      request.flush({ data: "test" });
+      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+      httpMock.verify();
+      done();
+    }, 200);
+  });
+
+  it("attaches authorization header with access token for endpoint with trailing slash", done => {
+    spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
+      new Promise((resolve) => {
+        //@ts-ignore
+        resolve({
+          accessToken: "access-token"
+        });
+      })
+    ));
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
+
+    httpClient.get("http://applicationB/noSlash/").subscribe();
+    setTimeout(() => {
+      const request = httpMock.expectOne("http://applicationB/noSlash/");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
       httpMock.verify();
