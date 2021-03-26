@@ -40,23 +40,26 @@ function handleResponse(resp) {
     }
 }
 
-async function signIn(method) {
-    signInType = method;
-    if (signInType === "loginPopup") {
+async function signIn(signInType) {
+    if (signInType === "popup") {
         return myMSALObj.loginPopup(authConfig.request).then(handleResponse).catch(function (error) {
             console.log(error);
         });
-    } else if (signInType === "loginRedirect") {
+    } else if (signInType === "redirect") {
         return myMSALObj.loginRedirect(authConfig.request)
     }
 }
 
-function signOut() {
+function signOut(signOutType) {
     const logoutRequest = {
         account: myMSALObj.getAccountByHomeId(homeAccountId)
     };
 
-    myMSALObj.logout(logoutRequest);
+    if (signOutType === "popup") {
+        myMSALObj.logoutPopup(logoutRequest);
+    } else {
+        myMSALObj.logoutRedirect(logoutRequest);
+    }
 }
 
 async function getTokenPopup() {

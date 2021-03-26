@@ -21,6 +21,7 @@ export class MsalRedirectComponent implements OnInit {
     constructor(private authService: MsalService) { }
 
     ngOnInit(): void {    
+        this.authService.getLogger().verbose("MsalRedirectComponent activated");
         this.authService.handleRedirectObservable().subscribe();
     }
 

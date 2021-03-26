@@ -2,7 +2,7 @@ import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { ProfileComponent } from './profile/profile.component';
 import { HomeComponent } from './home/home.component';
-import { MsalGuard } from '@azure/msal-angular';
+import { MsalGuard, MsalRedirectComponent } from '@azure/msal-angular';
 
 const routes: Routes = [
   {
@@ -13,9 +13,13 @@ const routes: Routes = [
     ]
   },
   {
-    // Needed for hash routing
-    path: 'code',
-    component: HomeComponent
+    /**
+     * Needed for login on page load for PathLocationStrategy. 
+     * See FAQ for details: 
+     * https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/FAQ.md
+     */
+    path: 'auth',
+    component: MsalRedirectComponent
   },
   {
     path: '',
@@ -27,7 +31,7 @@ const isIframe = window !== window.parent && !window.opener;
 
 @NgModule({
   imports: [RouterModule.forRoot(routes, {
-    useHash: true,
+    useHash: false,
     // Don't perform initial navigation in iframes
     initialNavigation: !isIframe ? 'enabled' : 'disabled'
   })],
