@@ -1381,7 +1381,7 @@ export class UserAgentApplication {
     private getTokenCacheItemByAuthority(authority: string, tokenCacheItems: Array<AccessTokenCacheItem>, requestScopes: Array<string>, tokenType: string): AccessTokenCacheItem {
         let filteredAuthorityItems: Array<AccessTokenCacheItem>;
     
-        if (UrlUtils.isCommonAuthority(authority) || UrlUtils.isOrganizationsAuthority(authority)) {
+        if (UrlUtils.isCommonAuthority(authority) || UrlUtils.isOrganizationsAuthority(authority) || UrlUtils.isConsumersAuthority(authority)) {
             filteredAuthorityItems = AuthCacheUtils.filterTokenCacheItemsByDomain(tokenCacheItems, UrlUtils.GetUrlComponents(authority).HostNameAndPort);
         } else {
             filteredAuthorityItems = AuthCacheUtils.filterTokenCacheItemsByAuthority(tokenCacheItems, authority);
