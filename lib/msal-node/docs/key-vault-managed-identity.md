@@ -4,7 +4,7 @@
 
 ## Using Azure Key Vault
 
-Sensitive information should not be stored in source code. This section covers creating a key vault and accessing credentials from it using Azure SDKs. For an implementation, see the code sample: [auth-code-key-vault](../../../samples/msal-node-samples/standalone-samples/auth-code-key-vault).
+Sensitive information should not be stored in source code. This section covers creating a key vault and accessing credentials from it using Azure SDKs. For an implementation, see the code sample: [auth-code-key-vault](../../../samples/msal-node-samples/auth-code-key-vault).
 
 ### Create a key vault and import certificates
 
@@ -149,7 +149,7 @@ async function main() {
 main();
 ```
 
-For an implementation, see the code sample: [auth-code-key-vault](../../../samples/msal-node-samples/standalone-samples/auth-code-key-vault).
+For an implementation, see the code sample: [auth-code-key-vault](../../../samples/msal-node-samples/auth-code-key-vault).
 
 ## Using Azure Managed Identity
 

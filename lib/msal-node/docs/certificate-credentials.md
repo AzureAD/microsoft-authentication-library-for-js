@@ -10,7 +10,7 @@ You can build confidential client applications with MSAL Node (web apps, daemon 
 
 ## Using certificates
 
-This section covers creating a self-signed certificate and initializing a confidential client. For an implementation, see the code sample: [auth-code-with-certs](../../../samples/msal-node-samples/standalone-samples/auth-code-with-certs)
+This section covers creating a self-signed certificate and initializing a confidential client. For an implementation, see the code sample: [auth-code-with-certs](../../../samples/msal-node-samples/auth-code-with-certs)
 
 ### Generating self-signed certificates
 
@@ -176,7 +176,7 @@ Setup a **HTTPS** server by importing the generated **certificate** and **public
     });
 ```
 
-For an implementation, see the code sample: [auth-code-with-certs](../../../samples/msal-node-samples/standalone-samples/auth-code-with-certs)
+For an implementation, see the code sample: [auth-code-with-certs](../../../samples/msal-node-samples/auth-code-with-certs)
 
 ## More Information
 
