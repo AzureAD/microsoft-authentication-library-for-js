@@ -40,7 +40,8 @@ function MSALInterceptorFactory(): MsalInterceptorConfiguration {
       ["https://api.test.com", ["default.scope1"]],
       ["https://*.test.com", ["default.scope2"]],
       ["http://localhost:3000/unprotect", null],
-      ["http://localhost:3000/", ["base.scope"]]
+      ["http://localhost:3000/", ["base.scope"]],
+      ["http://apps.com/tenant?abc", ["query.scope"]]
     ])
   }
 }
@@ -336,6 +337,28 @@ describe('MsalInterceptor', () => {
     setTimeout(() => {
       const request = httpMock.expectNone("https://graph.microsoft.com/v1.0/me");
       expect(request).toBeUndefined();
+      httpMock.verify();
+      done();
+    }, 200);
+  });
+
+  it("attaches authorization header with access token for protected resource with queries", done => {
+    spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
+      new Promise((resolve) => {
+        //@ts-ignore
+        resolve({
+          accessToken: "access-token"
+        });
+      })
+    ));
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
+
+    httpClient.get("http://apps.com/tenant?abc").subscribe();
+    setTimeout(() => {
+      const request = httpMock.expectOne("http://apps.com/tenant?abc");
+      request.flush({ data: "test" });
+      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
       httpMock.verify();
       done();
     }, 200);
