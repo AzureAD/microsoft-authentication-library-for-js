@@ -1,5 +1,5 @@
 ---
-name: Bug report
+name: Bug Template
 description: Broken or unintended behavior with one of our libraries.
 labels: bug-unconfirmed, question
 ---
