@@ -250,12 +250,14 @@ export class AuthorizationCodeClient extends BaseClient {
         // Add sid or loginHint with preference for sid -> loginHint -> username of AccountInfo object
         if (request.prompt !== PromptValue.SELECT_ACCOUNT) {
             // AAD will throw if prompt=select_account is passed with an account hint
-            if (request.sid) {
+            if (request.sid && request.prompt === PromptValue.NONE) {
+                // SessionID is only used in silent calls
                 parameterBuilder.addSid(request.sid);
             } else if (request.account) {
                 const accountSid = this.extractAccountSid(request.account);
                 // If account and loginHint are provided, we will check account first for sid before adding loginHint
-                if (accountSid) {
+                if (accountSid && request.prompt === PromptValue.NONE) {
+                    // SessionId is only used in silent calls
                     parameterBuilder.addSid(accountSid);
                 } else if (request.loginHint) {
                     parameterBuilder.addLoginHint(request.loginHint);
