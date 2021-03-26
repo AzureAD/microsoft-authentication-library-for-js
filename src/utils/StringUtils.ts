@@ -101,13 +101,13 @@ export class StringUtils {
     }
 
     /**
-     * Tests if a given string matches a given pattern, with support for wildcards.
-     * @param pattern Wildcard pattern to string match. Supports "*" for wildcards
+     * Tests if a given string matches a given pattern, with support for wildcards and queries.
+     * @param pattern Wildcard pattern to string match. Supports "*" for wildcards and queries
      * @param input String to match against
      */
     static matchPattern(pattern: string, input: string): boolean {
         // https://stackoverflow.com/a/3117248/4888559
-        const regex: RegExp = new RegExp(pattern.replace(/\*/g, "[^ ]*"));
+        const regex: RegExp = new RegExp(pattern.replace(/\*/g, "[^ ]*").replace(/\?/g, "\\\?"));
 
         return regex.test(input);
     }
