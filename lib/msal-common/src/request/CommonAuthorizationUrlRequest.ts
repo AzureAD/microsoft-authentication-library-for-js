@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ResponseMode, AuthenticationScheme } from "../utils/Constants";
+import { ResponseMode } from "../utils/Constants";
 import { StringDict } from "../utils/MsalTypes";
 import { BaseAuthRequest } from "./BaseAuthRequest";
 import { AccountInfo } from "../account/AccountInfo";

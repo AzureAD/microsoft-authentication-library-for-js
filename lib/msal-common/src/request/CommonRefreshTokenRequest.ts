@@ -4,7 +4,6 @@
  */
 
 import { BaseAuthRequest } from "./BaseAuthRequest";
-import { AuthenticationScheme } from "../utils/Constants";
 
 /**
  * CommonRefreshTokenRequest
