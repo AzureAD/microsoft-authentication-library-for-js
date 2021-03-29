@@ -1,0 +1,116 @@
+---
+name: Bug Template
+description: Broken or unintended behavior with one of our libraries.
+labels: bug-unconfirmed, question
+---
+
+body:
+- type: dropdown
+  attributes:
+    label: Library
+    multiple: true
+    options: 
+      - `@azure/msal` or `msal`
+      - `@azure/msal-browser`
+      - `@azure/msal-node`
+      - `@azure/msal-angular`
+      - `@azure/msal-react`
+  validations:
+    required: true
+    
+- type: input
+  attributes:
+    label: Core Library Version
+    description: "Please enter the version of core library (msal, msal-browser, msal-node) you are using. "
+  validations:
+    required: true
+    
+- type: input
+  attributes:
+    label: Wrapper Library Version
+    description: "Please enter the version of wrapper library (msal-angular, msal-react) you are using"
+    
+- type: textarea
+  attributes:
+    label: Description
+    description: "Please describe your issue briefly"
+  validations: 
+    required: true
+    
+- type: textarea
+  attributes:
+    label: Error Message
+    description: "Please provide any error message you are receiving and a stack trace."
+    
+- type: textarea
+  attributes:
+    label: MSAL Configuration
+    description: "Please provide your MSAL configuration."
+    render: javascript
+  validations:
+    required: true
+    
+- type: textarea
+  attributes:
+    label: Reproduction Steps
+    description: "Please provide relevant code snippets that can be used to reproduce this issue"
+    render: javascript
+  validations:
+    required: true
+    
+- type: textarea
+  attributes:
+    label: Expected Behavior
+    description: "Please describe what you expect the behavior to be."
+  validations:
+    required: true
+    
+- type: dropdown
+  attributes:
+    label: Identity Provider
+    options: 
+      - Azure AD
+      - Azure B2C Basic Policy
+      - Azure B2C Custom Policy
+      - ADFS
+      - Other (Please specify)
+  validations:
+    required: true
+    
+- type: dropdown
+  attributes:
+    label: Browsers Affected
+    multiple: true
+    options: 
+      - Chrome
+      - Firefox
+      - Edge
+      - Safari
+      - Internet Explorer
+      - Other (Please specify)
+  validations:
+    required: true
+    
+- type: input
+  attributes:
+    label: Regression
+    description: "If this behavior worked before, please enter the last working version."
+    
+- type: dropdown
+  attributes:
+    label: Source
+    description: "Are you an internal or external customer?"
+    options: 
+      - Internal (Microsoft)
+      - External (Customer)
+   validations: 
+     required: true
+    
+- type: markdown
+  value: "## Security Reporting"
+- type: markdown
+  value: |
+    If you find a security issue with our libraries or services [please report it to the Microsoft Security Response Center (MSRC)](https://aka.ms/report-security-issue) with as much detail as possible. Your submission may be eligible for a bounty through the [Microsoft Bounty](http://aka.ms/bugbounty) program. Please do not post security issues to GitHub Issues or any other public site. We will contact you shortly upon receiving the information. We encourage you to get notifications of when security incidents occur by visiting [this page](https://www.microsoft.com/msrc/technical-security-notifications) and subscribing to Security Advisory Alerts.
+
+
+  
