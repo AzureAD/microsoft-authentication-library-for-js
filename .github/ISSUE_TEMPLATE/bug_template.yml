@@ -100,7 +100,7 @@ body:
     options: 
       - Internal (Microsoft)
       - External (Customer)
-   validations: 
+  validations: 
      required: true
     
 - type: markdown
