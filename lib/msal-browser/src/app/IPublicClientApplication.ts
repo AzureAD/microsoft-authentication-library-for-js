@@ -27,6 +27,8 @@ export interface IPublicClientApplication {
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
     loginRedirect(request?: RedirectRequest): Promise<void>;
     logout(logoutRequest?: EndSessionRequest): Promise<void>;
+    logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void>;
+    logoutPopup(logoutRequest?: EndSessionRequest): Promise<void>;
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
     getLogger(): Logger;
     setLogger(logger: Logger): void;
@@ -70,6 +72,12 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     logout: () => {	
         return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());	
     },	
+    logoutRedirect: () => {	
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());	
+    },
+    logoutPopup: () => {	
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());	
+    },
     ssoSilent: () => {	
         return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());	
     },

@@ -23,7 +23,7 @@ Please find this in the [MSAL basics](https://github.com/AzureAD/microsoft-authe
 ### How do I get the Refresh Token?
 MSAL Node does not return the refresh token to the user. Instead we manage the refresh token through the cache and update it as required to fetch the corresponding IdToken and AccessToken for the developer. A detailed discussion on this can be found [here](https://docs.microsoft.com/azure/active-directory-b2c/tokens-overview#configuration)
 
-### Is Electron supported?
+### Is Electron supported? 
 Yes. We also provide a sample for [MSAL Node with Electron](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/standalone-samples/ElectronTestApp).
 
 ### Is interactive flow supported?
@@ -35,13 +35,15 @@ Please refer to [MSAL Browser](https://github.com/AzureAD/microsoft-authenticati
 ### What is MSAL Node extensions? What is a Cache Plugin?
 MSAL Node extensions is a support library for MSAL Node which offers secure mechanisms for client applications to perform cross-platform token cache serialization and persistence. Please find the usage, samples and more about this [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions)
 
+### Can the cache plugin provided in MSAL Node extensions be used in Electron applications?
+Yes, it can. In case you run into node version related issues, refer to this [note](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/docs/msal-node-extensions.md#note-for-electron-developers) that provides the steps to troubleshoot.
+
 ### What versions of Node.js are supported? How do I bypass the installation error if I want to use an active development Node.js version?
 MSAL Node officially supports even numbered stable LTS releases as documented [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node#node-version-support).
 
 If you want to work around this, please note:
 - **Yarn**: Pass the `--ignore-engines` flag to the `yarn` command.
 - **npm**: Add `engine-strict=false` to your .npmrc file.
-
 
 
 

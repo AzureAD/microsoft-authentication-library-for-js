@@ -2,6 +2,29 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Wed, 24 Mar 2021 22:55:46 GMT",
+      "tag": "@azure/msal-react_v1.0.0-beta.1",
+      "version": "1.0.0-beta.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "React-add-msal to msal-react migration guide #2964",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6e6b1e9cc11140d0f8da21a19fc0fef100b550c6",
+            "package": "@azure/msal-react"
+          }
+        ],
+        "prerelease": [
+          {
+            "comment": "Add support for logoutPopup #3044",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "9c913e05cc75728510e6a88fc50c7d759ec82fef",
+            "package": "@azure/msal-react"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 15 Mar 2021 23:45:17 GMT",
       "tag": "@azure/msal-react_v1.0.0-beta.0",
       "version": "1.0.0-beta.0",

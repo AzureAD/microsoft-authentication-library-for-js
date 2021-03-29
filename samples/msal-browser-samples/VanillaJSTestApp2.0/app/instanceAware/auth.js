@@ -54,7 +54,7 @@ function signOut() {
         account: myMSALObj.getAccountByHomeId(accountId)
     };
 
-    myMSALObj.logout(logoutRequest);
+    myMSALObj.logoutRedirect(logoutRequest);
 }
 
 async function getTokenPopup(request, account) {
