@@ -74,11 +74,11 @@ const popTokenRequest = {
 Once the request has been configured and `POP` is set as the `authenticationScheme`, it can be sent into the `acquireTokenRedirect` MSAL v2 API.
 
 ```typescript
-const { accessToken } = await myMSALObj.acquireTokenRedirect(popTokenRequest);
+const response = await myMSALObj.acquireTokenRedirect(popTokenRequest);
 
 // Once a Pop Token has been acquired, it can be added on the authorization header of a resource request
 const headers = new Headers();
-const authHeader = `PoP ${accessToken}`;
+const authHeader = `${response.tokenType} ${response.accessToken}`;
 
 headers.append("Authorization", authHeader);
 
