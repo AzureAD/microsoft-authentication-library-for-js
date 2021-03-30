@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Update AccountInfo to refer to typedocs (#3266)",
+  "packageName": "@azure/msal-common",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "none"
+}
