@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, INetworkModule, Logger, UrlString } from "@azure/msal-common";
+import { Constants, INetworkModule, UrlString } from "@azure/msal-common";
 import { FetchClient } from "../network/FetchClient";
 import { XhrClient } from "../network/XhrClient";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { InteractionType } from "./BrowserConstants";
+import { InteractionType, BrowserConstants } from "./BrowserConstants";
 
 /**
  * Utility class for browser specific functions
@@ -15,27 +15,6 @@ import { InteractionType } from "./BrowserConstants";
 export class BrowserUtils {
 
     // #region Window Navigation and URL management
-
-    /**
-     * Used to redirect the browser to the STS authorization endpoint
-     * @param {string} urlNavigate - URL of the authorization endpoint
-     * @param {boolean} noHistory - boolean flag, uses .replace() instead of .assign() if true
-     */
-    static navigateWindow(urlNavigate: string, navigationTimeout: number, logger: Logger, noHistory?: boolean): Promise<void> {
-        if (noHistory) {
-            window.location.replace(urlNavigate);
-        } else {
-            window.location.assign(urlNavigate);
-        }
-
-        // To block code from running after navigation, this should not throw if navigation succeeds
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                logger.warning("Expected to navigate away from the current page but timeout occurred.");
-                resolve();
-            }, navigationTimeout);
-        });
-    }
 
     /**
      * Clears hash from window url.
@@ -118,6 +97,16 @@ export class BrowserUtils {
         if (interactionType === InteractionType.Redirect && isIframedApp && !allowRedirectInIframe) {
             // If we are not in top frame, we shouldn't redirect. This is also handled by the service.
             throw BrowserAuthError.createRedirectInIframeError(isIframedApp);
+        }
+    }
+
+    /**
+     * Block redirectUri loaded in popup from calling AcquireToken APIs
+     */
+    static blockAcquireTokenInPopups(): void {
+        // Popups opened by msal popup APIs are given a name that starts with "msal."
+        if (window.opener && window.opener !== window && typeof window.name === "string" && window.name.indexOf(`${BrowserConstants.POPUP_NAME_PREFIX}.`) === 0) {
+            throw BrowserAuthError.createBlockAcquireTokenInPopupsError();
         }
     }
 
