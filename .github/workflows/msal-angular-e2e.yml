@@ -45,11 +45,21 @@ jobs:
     - name: Clean Install
       env:
         RUNNING_NODE_CI: 1
-      run: npm ci
+      run: |
+        npm ci
+        npm install -g yalc
 
     - name: Build packages
       working-directory: lib/msal-angular
       run: npm run build:all
+      
+    - name: Publish msal-angular
+      working-directory: lib/msal-angular/dist
+      run: yalc publish
+
+    - name: Publish msal-browser
+      working-directory: lib/msal-browser
+      run: yalc publish
 
     - name: Install Test Tools
       working-directory: samples/msal-angular-v2-samples
@@ -59,6 +69,8 @@ jobs:
       working-directory: samples/msal-angular-v2-samples/${{ matrix.sample }}
       run: |
         npm install
+        yalc add @azure/msal-browser @azure/msal-angular
+        
     - name: Build ${{ matrix.sample }}
       working-directory: samples/msal-angular-v2-samples/${{ matrix.sample }}
       run: npm run build
