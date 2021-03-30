@@ -27,11 +27,15 @@ export const BrowserAuthErrorMessage = {
     },
     hashEmptyError: {
         code: "hash_empty_error",
-        desc: "Hash value cannot be processed because it is empty."
+        desc: "Hash value cannot be processed because it is empty. Please verify that your redirectUri is not clearing the hash."
     },
     hashDoesNotContainStateError: {
         code: "no_state_in_hash",
         desc: "Hash does not contain state. Please verify that the request originated from msal."
+    },
+    hashDoesNotContainKnownPropertiesError: {
+        code: "hash_does_not_contain_known_properties",
+        desc: "Hash does not contain known properites. Please verify that your redirectUri is not changing the hash."
     },
     unableToParseStateError: {
         code: "unable_to_parse_state",
@@ -71,7 +75,11 @@ export const BrowserAuthErrorMessage = {
     },
     blockTokenRequestsInHiddenIframeError: {
         code: "block_iframe_reload",
-        desc: "Request was blocked inside an iframe because MSAL detected an authentication response. Please ensure monitorWindowForHash was called."
+        desc: "Request was blocked inside an iframe because MSAL detected an authentication response. For more visit: aka.ms/msaljs/browser-errors"
+    },
+    blockAcquireTokenInPopupsError: {
+        code: "block_nested_popups",
+        desc: "Request was blocked inside a popup because MSAL detected it was running in a popup."
     },
     iframeClosedPrematurelyError: {
         code: "iframe_closed_prematurely",
@@ -197,6 +205,13 @@ export class BrowserAuthError extends AuthError {
     }
 
     /**
+     * Creates an error thrown when the hash string value does not contain known properties
+     */
+    static createHashDoesNotContainKnownPropertiesError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.hashDoesNotContainKnownPropertiesError.code, BrowserAuthErrorMessage.hashDoesNotContainKnownPropertiesError.desc);
+    }
+
+    /**
      * Creates an error thrown when the hash string value is unexpectedly empty.
      */
     static createUnableToParseStateError(): BrowserAuthError {
@@ -274,6 +289,15 @@ export class BrowserAuthError extends AuthError {
     static createBlockReloadInHiddenIframeError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.blockTokenRequestsInHiddenIframeError.code,
             BrowserAuthErrorMessage.blockTokenRequestsInHiddenIframeError.desc);
+    }
+
+    /**
+     * Creates an error thrown when a popup attempts to call an acquireToken API
+     * @returns 
+     */
+    static createBlockAcquireTokenInPopupsError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.blockAcquireTokenInPopupsError.code, 
+            BrowserAuthErrorMessage.blockAcquireTokenInPopupsError.desc);
     }
 
     /**

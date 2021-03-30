@@ -363,7 +363,7 @@ describe("withMsal tests", () => {
             expect(await screen.findByText("In Progress")).toBeInTheDocument();
 
             eventMessage = {
-                eventType: EventType.LOGOUT_FAILURE,
+                eventType: EventType.LOGOUT_END,
                 interactionType: InteractionType.Redirect,
                 payload: null,
                 error: null,

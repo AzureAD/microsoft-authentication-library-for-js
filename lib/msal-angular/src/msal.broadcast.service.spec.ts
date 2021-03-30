@@ -1,6 +1,6 @@
 import { TestBed } from '@angular/core/testing';
+import { EventType, InteractionStatus, InteractionType, PublicClientApplication } from '@azure/msal-browser';
 import { MsalBroadcastService } from './msal.broadcast.service';
-import { EventType, InteractionType, PublicClientApplication } from '@azure/msal-browser';
 import { MsalModule } from './public-api';
 
 const msalInstance = new PublicClientApplication({
@@ -37,7 +37,16 @@ describe('MsalBroadcastService', () => {
       done();
     });
 
-    //@ts-ignore
+    const expectedInProgress = [InteractionStatus.Startup, InteractionStatus.Login];
+    let index = 0;
+
+    broadcastService.inProgress$.subscribe((result) => {
+      expect(result).toEqual(expectedInProgress[index]);
+      index++;
+      done();
+    });
+
+    // @ts-ignore
     msalInstance.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
   });
 

@@ -46,6 +46,13 @@ function Pages() {
 						});
 					}
 				}
+			} else if (event.eventType === EventType.LOGIN_SUCCESS) {
+				if (event.payload.idTokenClaims["acr"] === "b2c_1_reset") {
+					// Tokens returned from password reset policy cannot be used for sign-in policy, must log out then sign back in
+					instance.logout({
+						account: event.payload.account
+					});
+				}
 			}
 		});
 
