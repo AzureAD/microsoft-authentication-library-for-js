@@ -4,13 +4,6 @@ In order to increase the protection of OAuth 2.0 access tokens stored in the bro
 
 It is important to understand that for `AT PoP` to work end-to-end and provide the security upgrade intended, both the **authorization service** that issues the access tokens and the **resource server** that they are provide access to must support `AT PoP`.
 
-## Contents
-- Bearer Access Token vs PoP AccessToken
-    - [Bearer Access Token](#bearer-access-token)
-    - [PoP Access Token (Signed HTTP Request)](#pop-access-token-(signed-http-request))
-- [Making a PoP Token Request](#making-a-pop-token-request)
-- [PoP Token Caching](#pop-token-caching)
-
 ## Bearer Access Token vs PoP Access Token
 
 ### Bearer Access Token
@@ -32,7 +25,7 @@ headers.append("Authorization", authHeader);
 
 ### PoP Access Token (Signed HTTP Request)
 
-When the `POP` authorization scheme is enabled in an MSAL token request, the authorization server will still provide a `Bearer` type access token, which MSAL will also cache. The main difference is that when using the `POP` scheme, MSAL will sign the access token secret before returning it to the client application.
+When the `POP` authorization scheme is enabled in an MSAL token request, the authorization server will still provide a JSON Web Token access token secret that looks like a `Bearer` access token, which MSAL will also cache. The main difference is that when using the `POP` scheme, MSAL will sign the access token secret before returning it to the client application.
 
 The access token secret is wrapped in a new JSON Web Token, which will be signed using the `HMAC` (Hash-based Message Authentication Code) hashing algorithm and a private key that MSAL generates, stores and manages. The signed JWT is then added to the `AuthorizationResult` object under the `accessToken` property and returned from the MSAL v2 API called.
 
@@ -54,7 +47,7 @@ headers.append("Authorization", authHeader);
 
 ## Making a PoP Token Request
 
-Once you have determined the authorization service and resource server support access token binding, you can configure your MSAL authentication and authorization request objects to acquire bound access tokens by building a token request object containing the Access Token PoP-specific attributes.
+Once you have determined the authorization service and resource server support access token binding, you can configure your MSAL authentication and authorization request objects to acquire bound access tokens by building a token request object containing the Access Token PoP-specific attributes. All of the following attributes are optional in the request object, however, **authorizationScheme must be manually set to 'pop' in order to enable proof-of-possession**.
 
 ### AT PoP Request Parameters
 
@@ -63,6 +56,8 @@ Once you have determined the authorization service and resource server support a
 |  `authenticationScheme` | Indicates whether MSAL should acquire a `Bearer` or `PoP` token. Default is `Bearer`. |
 | `resourceRequestMethod` | The all-caps name of the HTTP method of the request that will use the signed token (`GET`, `POST`, `PUT`, etc.)|
 | `resourceRequestUri`    | The URL of the protected resource for which the access token is being issued |
+|       `shrClaims`       | A stringified JSON object containing custom client claims to be added to the SignedHTTPRequest. Check out the [Custom SHR Claims](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/shr-client-claims.md) documentation for more information. |
+
 
 ### Acquire Token Redirect Request Example
 
@@ -142,8 +137,3 @@ fetch(endpoint, options)
     .catch(error => console.log(error));
 });
 ```
-
-## PoP Token Caching
-
-MSAL Browser caches access tokens acquired using proof-of-possession in order to reduce the amount of network calls and improve performance. However,  
-
