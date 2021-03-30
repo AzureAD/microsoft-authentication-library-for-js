@@ -61,13 +61,10 @@ export class SilentFlowClient extends BaseClient {
         if (request.forceRefresh || 
             request.claims || 
             !cacheRecord.accessToken || 
-            TimeUtils.isTokenExpired(cacheRecord.accessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
+            TimeUtils.isTokenExpired(cacheRecord.accessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds) ||
+            (cacheRecord.accessToken.refreshOn && TimeUtils.isTokenExpired(cacheRecord.accessToken.refreshOn, 0))) {
             // Must refresh due to request parameters, or expired or non-existent access_token
             throw ClientAuthError.createRefreshRequiredError();
-        } else if (cacheRecord.accessToken.refreshOn && TimeUtils.isTokenExpired(cacheRecord.accessToken.refreshOn, 0)) {
-            // Refresh on time has passed, start token renewal process and return current access token
-            const refreshTokenClient = new RefreshTokenClient(this.config);
-            refreshTokenClient.acquireTokenByRefreshToken(request);
         }
 
         if (this.config.serverTelemetryManager) {
