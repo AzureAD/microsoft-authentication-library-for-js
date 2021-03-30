@@ -23,7 +23,7 @@ export class TimeUtils {
     static isTokenExpired(expiresOn: string, offset: number): boolean {
         // check for access token expiry
         const expirationSec = Number(expiresOn) || 0;
-        const offsetCurrentTimeSec = TimeUtils.nowSeconds() + offset; 
+        const offsetCurrentTimeSec = TimeUtils.nowSeconds() + offset;
 
         // If current time + offset is greater than token expiration time, then token is expired.
         return (offsetCurrentTimeSec > expirationSec);
