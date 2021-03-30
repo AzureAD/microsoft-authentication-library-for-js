@@ -109,14 +109,14 @@ export class MsalInterceptor implements HttpInterceptor {
         const protectedResourcesArray = Array.from(this.msalInterceptorConfig.protectedResourceMap.keys());
 
         const keyMatchesEndpointArray = protectedResourcesArray.filter(key => {
-            let normalizedKey = this.location.normalize(key);
+            const normalizedKey = this.location.normalize(key);
             
             // Normalized key should include query strings if applicable
-            let keyComponents = new UrlString(key).getUrlComponents();
-            let relativeNormalizedKey = keyComponents.QueryString ? `${keyComponents.AbsolutePath}?${keyComponents.QueryString}` : this.location.normalize(keyComponents.AbsolutePath);
+            const keyComponents = new UrlString(key).getUrlComponents();
+            const relativeNormalizedKey = keyComponents.QueryString ? `${keyComponents.AbsolutePath}?${keyComponents.QueryString}` : this.location.normalize(keyComponents.AbsolutePath);
 
             // Relative endpoint not applicable, matching endpoint with protected resource. StringUtils.matchPattern accounts for wildcards
-            if (relativeNormalizedKey === '' || relativeNormalizedKey === '/*') {
+            if (relativeNormalizedKey === "" || relativeNormalizedKey === "/*") {
                 return StringUtils.matchPattern(normalizedKey, normalizedEndpoint);
             } else {
                 // Matching endpoint with both protected resource and relative url of protected resource
