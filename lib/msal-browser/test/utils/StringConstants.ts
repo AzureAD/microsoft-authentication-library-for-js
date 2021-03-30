@@ -3,7 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { Constants } from "@azure/msal-common";
+import { Constants, NetworkResponse } from "@azure/msal-common";
+import { OpenIdConfigResponse } from "@azure/msal-common/dist/authority/OpenIdConfigResponse";
 import { version } from "../../package.json";
 
 /**
@@ -21,6 +22,7 @@ export const TEST_URIS = {
     TEST_ALTERNATE_REDIR_URI: "https://localhost:8081/index2.html",
     TEST_LOGOUT_URI: "https://localhost:8081/logout.html",
     TEST_AUTH_ENDPT: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
+    TEST_END_SESSION_ENDPOINT: "https://login.microsoftonline.com/common/oauth2/v2.0/logout",
     TEST_AUTH_ENDPT_WITH_PARAMS: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?param1=value1&param2=value2",
 };
 
@@ -115,8 +117,8 @@ export const TEST_HASHES = {
     TEST_CONSENT_REQ_ERROR_HASH2: `#error=consent_required&error_description=msal+error+description+consent_required&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`
 };
 
-export const DEFAULT_OPENID_CONFIG_RESPONSE = {
-    headers: null,
+export const DEFAULT_OPENID_CONFIG_RESPONSE: NetworkResponse<unknown> = {
+    headers: {},
     status: 200,
     body : {
         "token_endpoint": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/token",

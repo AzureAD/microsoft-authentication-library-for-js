@@ -12,7 +12,7 @@ See [here](./initialization.md#choosing-an-interaction-type) if you are uncertai
 
 ## Login the user
 
-You must pass a request object to the login APIs. This object allows you to use different parameters in the request. See [here](./request-response-object.md) for more information on the request object parameters. 
+You must pass a request object to the login APIs. This object allows you to use different parameters in the request. See [here](./request-response-object.md) for more information on the request object parameters.
 
 For login requests, all parameters are optional, so you can just send an empty object.
 
@@ -97,7 +97,13 @@ These APIs will return an account object or an array of account objects with the
 
 ## Silent login with ssoSilent()
 
-If you already have a session that exists with the authentication server, you can use the ssoSilent() API to make request for tokens without interaction. You will need to pass a `login_hint` (which can be retrieved from the account object `username` property or the `upn` claim in the ID token) in the request object in order to successfully obtain a token silently.
+If you already have a session that exists with the authentication server, you can use the ssoSilent() API to make request for tokens without interaction. You will need to pass one of the following into the request object in order to successfully obtain a token silently.
+
+- `account` (which can be retrieved using on of the [account APIs](./accounts.md))
+- `sid` (which can be retrieved from the `idTokenClaims` of an `account` object)
+- `login_hint` (which can be retrieved from the account object `username` property or the `upn` claim in the ID token)
+
+Passing an account will look for sid in the token claims, then fall back to loginHint (if provided) or account username.
 
 ```javascript
 const silentRequest = {
@@ -116,6 +122,18 @@ try {
         // handle error
     }
 }
+```
+
+## RedirectUri Considerations
+
+When using popup and silent APIs we recommend setting the `redirectUri` to a blank page or a page that does not implement MSAL. This will help prevent potential issues as well as improve performance. If your application is only using popup and silent APIs you can set this on the `PublicClientApplication` config. If your application also needs to support redirect APIs you can set the `redirectUri` on a per request basis:
+
+Note: This does not apply for `loginRedirect` or `acquireTokenRedirect`. When using those APIs please see the directions on handling redirects [here](./initialization#redirect-apis)
+
+```javascript
+msalInstance.loginPopup({
+    redirectUri: "http://localhost:3000/blank.html"
+});
 ```
 
 # Next Steps

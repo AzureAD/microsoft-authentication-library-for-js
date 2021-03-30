@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { IPersistence } from "../persistence/IPersistence";
+import { IPersistence } from "./IPersistence";
 import { CrossPlatformLock } from "../lock/CrossPlatformLock";
 import { CrossPlatformLockOptions } from "../lock/CrossPlatformLockOptions";
 import { pid } from "process";
@@ -52,14 +52,14 @@ export class PersistenceCachePlugin implements ICachePlugin {
      * Reads from storage and saves an in-memory copy. If persistence has not been updated
      * since last time data was read, in memory copy is used.
      * 
-     * If cacheContext.cacheHasChanged == true, then file lock is created and not deleted until 
+     * If cacheContext.cacheHasChanged === true, then file lock is created and not deleted until 
      * afterCacheAccess() is called, to prevent the cache file from changing in between 
      * beforeCacheAccess() and afterCacheAccess(). 
      */
     public async beforeCacheAccess(cacheContext: TokenCacheContext): Promise<void> {
-        this.logger.info('Executing before cache access');
+        this.logger.info("Executing before cache access");
         const reloadNecessary = await this.persistence.reloadNecessary(this.lastSync);
-        if (!reloadNecessary && this.currentCache != null) {
+        if (!reloadNecessary && this.currentCache !== null) {
             if (cacheContext.cacheHasChanged) {
                 await this.crossPlatformLock.lock();
             }
@@ -79,7 +79,7 @@ export class PersistenceCachePlugin implements ICachePlugin {
                 await this.crossPlatformLock.unlock();
                 this.logger.info(`Pid ${pid} released lock`);
             } else {
-                this.logger.info(`Pid ${pid} beforeCacheAccess did not release lock`)
+                this.logger.info(`Pid ${pid} beforeCacheAccess did not release lock`);
             }
         }
     }
@@ -95,7 +95,7 @@ export class PersistenceCachePlugin implements ICachePlugin {
                 this.currentCache = cacheContext.tokenCache.serialize();
                 await this.persistence.save(this.currentCache);
             } else {
-                this.logger.info("Msal in-memory cache has not changed. Did not write to persistence")
+                this.logger.info("Msal in-memory cache has not changed. Did not write to persistence");
             }
         } finally {
             await this.crossPlatformLock.unlock();

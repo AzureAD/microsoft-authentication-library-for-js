@@ -55,7 +55,6 @@ export class SilentFlowClient extends BaseClient {
         if (!request.account) {
             throw ClientAuthError.createNoAccountInSilentRequestError();
         }
-
         const requestScopes = new ScopeSet(request.scopes || []);
         const environment = request.authority || this.authority.getPreferredCache();
         const cacheRecord = this.cacheManager.readCacheRecord(request.account, this.config.authOptions.clientId, requestScopes, environment);
@@ -66,7 +65,7 @@ export class SilentFlowClient extends BaseClient {
             if (this.config.serverTelemetryManager) {
                 this.config.serverTelemetryManager.incrementCacheHits();
             }
-            return await this.generateResultFromCacheRecord(cacheRecord, request.resourceRequestMethod, request.resourceRequestUri);
+            return await this.generateResultFromCacheRecord(cacheRecord, request);
         }
     }
 
@@ -74,7 +73,7 @@ export class SilentFlowClient extends BaseClient {
      * Helper function to build response object from the CacheRecord
      * @param cacheRecord
      */
-    private async generateResultFromCacheRecord(cacheRecord: CacheRecord, resourceRequestMethod?: string, resourceRequestUri?: string): Promise<AuthenticationResult> {
+    private async generateResultFromCacheRecord(cacheRecord: CacheRecord, request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
         let idTokenObj: AuthToken | undefined;
         if (cacheRecord.idToken) {
             idTokenObj = new AuthToken(cacheRecord.idToken.secret, this.config.cryptoInterface);
@@ -84,10 +83,8 @@ export class SilentFlowClient extends BaseClient {
             this.authority,
             cacheRecord,
             true,
-            idTokenObj,
-            undefined,
-            resourceRequestMethod,
-            resourceRequestUri
+            request,
+            idTokenObj
         );
     }
 

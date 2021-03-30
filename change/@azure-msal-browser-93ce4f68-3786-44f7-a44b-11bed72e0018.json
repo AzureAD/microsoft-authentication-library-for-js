@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Separate telemetry for ssoSilent and ATS iframe renewal (#3064)",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

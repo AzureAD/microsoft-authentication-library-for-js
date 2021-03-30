@@ -1,8 +1,37 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Thu, 18 Feb 2021 00:34:32 GMT and should not be manually modified.
+This log was last generated on Wed, 24 Mar 2021 22:55:46 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.0.0-beta.2
+
+Wed, 24 Mar 2021 22:55:46 GMT
+
+### Changes
+
+- Add support for logoutPopup API #3044 (thomas.norling@microsoft.com)
+- Add MsalCustomNavigationClient, updates samples and docs #3174 (joarroyo@microsoft.com)
+- Update MsalGuard and _inProgress subject #3269 (joarroyo@microsoft.com)
+- Update MSAL Service handleRedirectObservable hash handling #3243 (joarroyo@microsoft.com)
+
+## 2.0.0-beta.1
+
+Mon, 15 Mar 2021 23:45:17 GMT
+
+### Changes
+
+- fix: #3149 - Msal Redirect Component was not part of the Module (rchinnakampalli@worldbankgroup.org)
+
+## 2.0.0-beta.0
+
+Wed, 03 Mar 2021 21:47:05 GMT
+
+### Changes
+
+- Fix BroadcastService logging to use msal-angular version, update samples versions, profile, and links (#3015) (joarroyo@microsoft.com)
+- Add FAQ.md and active accounts in sample (#2977) (joarroyo@microsoft.com)
+- Update msal-angular preinstall script to force npm-force-resolutions version (#3074) (joarroyo@microsoft.com)
 
 ## 2.0.0-alpha.6
 

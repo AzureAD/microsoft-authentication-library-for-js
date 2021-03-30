@@ -149,7 +149,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(loginUrl).to.contain(`${SSOTypes.SID}=${encodeURIComponent(TEST_CONFIG.SID)}`);
         });
 
-        it("Prefers loginHint over Account if both provided", async () => {
+        it("Prefers loginHint over Account if both provided and account does not have token claims", async () => {
             // Override with alternate authority openid_config
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
 
@@ -161,6 +161,78 @@ describe("AuthorizationCodeClient unit tests", () => {
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 loginHint: TEST_CONFIG.LOGIN_HINT,
                 account: TEST_ACCOUNT_INFO,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER,
+                authority: TEST_CONFIG.validAuthority,
+                responseMode: ResponseMode.FRAGMENT
+            };
+            const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
+            expect(loginUrl).to.contain(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_CONFIG.LOGIN_HINT)}`);
+            expect(loginUrl).to.not.contain(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_ACCOUNT_INFO.username)}`);
+            expect(loginUrl).to.not.contain(`${SSOTypes.SID}=`);
+        });
+
+        it("Uses sid from account if not provided in request, overrides login_hint", async () => {
+            // Override with alternate authority openid_config
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
+
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(config);
+            const testAccount = TEST_ACCOUNT_INFO;
+            const testTokenClaims: Required<Omit<TokenClaims, "home_oid"|"upn"|"cloud_instance_host_name"|"cnf"|"emails">> = {
+                ver: "2.0",
+                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                exp: 1536361411,
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523",
+                sid: "testSid"
+            };
+            testAccount.idTokenClaims = testTokenClaims;
+
+            const authCodeUrlRequest: AuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                account: testAccount,
+                loginHint: TEST_CONFIG.LOGIN_HINT,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER,
+                authority: TEST_CONFIG.validAuthority,
+                responseMode: ResponseMode.FRAGMENT
+            };
+            const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
+            expect(loginUrl).to.contain(`${SSOTypes.SID}=${encodeURIComponent(testTokenClaims.sid)}`);
+            expect(loginUrl).to.not.contain(`${SSOTypes.LOGIN_HINT}=`);
+        });
+
+        it("Uses login_hint instead of username if sid is not present in token claims for account or request", async () => {
+            // Override with alternate authority openid_config
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
+
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(config);
+            const testAccount = TEST_ACCOUNT_INFO;
+            const testTokenClaims: Required<Omit<TokenClaims, "home_oid"|"upn"|"cloud_instance_host_name"|"cnf"|"emails"|"sid">> = {
+                ver: "2.0",
+                iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                exp: 1536361411,
+                name: "Abe Lincoln",
+                preferred_username: "AbeLi@microsoft.com",
+                oid: "00000000-0000-0000-66f3-3332eca7ea81",
+                tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                nonce: "123523"
+            };
+            testAccount.idTokenClaims = testTokenClaims;
+
+            const authCodeUrlRequest: AuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                account: testAccount,
+                loginHint: TEST_CONFIG.LOGIN_HINT,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
@@ -510,6 +582,84 @@ describe("AuthorizationCodeClient unit tests", () => {
             await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.POP}`);
             await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.REQ_CNF}=${encodeURIComponent(TEST_POP_VALUES.ENCODED_REQ_CNF)}`);
             await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`);
+        });
+
+        it("properly handles expiration timestamps as strings", async () => {
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").resolves({
+                ...AUTHENTICATION_RESULT,
+                body: {
+                    ...AUTHENTICATION_RESULT.body,
+                    expires_in: "3599",
+                    ext_expires_in: "3599"
+                }
+            });
+            const createTokenRequestBodySpy = sinon.spy(AuthorizationCodeClient.prototype, <any>"createTokenRequestBody");
+
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
+
+            // Set up required objects and mocked return values
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
+            const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
+            config.cryptoInterface.base64Decode = (input: string): string => {
+                switch (input) {
+                    case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                        return TEST_POP_VALUES.DECODED_REQ_CNF;
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
+                        return decodedLibState;
+                    default:
+                        return input;
+                }
+            };
+
+            config.cryptoInterface.base64Encode = (input: string): string => {
+                switch (input) {
+                    case TEST_POP_VALUES.DECODED_REQ_CNF:
+                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                    case "123-test-uid":
+                        return "MTIzLXRlc3QtdWlk";
+                    case "456-test-utid":
+                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    default:
+                        return input;
+                }
+            };
+            // Set up stubs
+            const idTokenClaims = {
+                "ver": "2.0",
+                "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "exp": 1536361411,
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+            };
+            sinon.stub(IdToken, "extractTokenClaims").returns(idTokenClaims);
+            const client = new AuthorizationCodeClient(config);
+            const authCodeRequest: AuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
+            };
+
+            const authenticationResult = await client.acquireToken(authCodeRequest, {
+                code: authCodeRequest.code,
+                nonce: idTokenClaims.nonce,
+                state: testState
+            });
+
+            expect(authenticationResult.expiresOn?.toString()).to.not.equal("Invalid Date");
         });
     });
 

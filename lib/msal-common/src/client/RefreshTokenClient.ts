@@ -49,10 +49,8 @@ export class RefreshTokenClient extends BaseClient {
             response.body,
             this.authority,
             reqTimestamp,
-            request.resourceRequestMethod,
-            request.resourceRequestUri,
+            request,
             undefined,
-            [],
             undefined,
             true
         );
@@ -80,8 +78,7 @@ export class RefreshTokenClient extends BaseClient {
         if (isFOCI) {
             try {
                 return this.acquireTokenWithCachedRefreshToken(request, true);
-            }
-            catch (e) {
+            } catch (e) {
                 const noFamilyRTInCache = e instanceof ClientAuthError && e.errorCode === ClientAuthErrorMessage.noTokensFoundError.code;
                 const clientMismatchErrorWithFamilyRT = e instanceof ServerError && e.errorCode === Errors.INVALID_GRANT_ERROR && e.subError === Errors.CLIENT_MISMATCH_ERROR;
 

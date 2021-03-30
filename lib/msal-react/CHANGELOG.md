@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-react
 
-This log was last generated on Tue, 09 Feb 2021 01:48:22 GMT and should not be manually modified.
+This log was last generated on Wed, 24 Mar 2021 22:55:46 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-beta.1
+
+Wed, 24 Mar 2021 22:55:46 GMT
+
+### Changes
+
+- Add support for logoutPopup #3044 (thomas.norling@microsoft.com)
+
+## 1.0.0-beta.0
+
+Wed, 03 Mar 2021 21:47:05 GMT
+
+### Changes
+
+- Remove InteractionStatus export (#3048) (thomas.norling@microsoft.com)
 
 ## 1.0.0-alpha.5
 
