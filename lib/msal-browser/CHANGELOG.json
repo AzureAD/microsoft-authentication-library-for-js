@@ -2,6 +2,172 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 24 Mar 2021 22:55:46 GMT",
+      "tag": "@azure/msal-browser_v2.13.0",
+      "version": "2.13.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Add Typedocs links to event doc #2964",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6e6b1e9cc11140d0f8da21a19fc0fef100b550c6",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Doc Updates #3287",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "e4f3b3a09aa3f48c7b8d1d0b58f978f3eb8dca29",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Fix code example",
+            "author": "stef.heyenrath@gmail.com",
+            "commit": "f2542071844d89989a5db16d36552cdd5826309b",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add custom SHR Client Claims documentation (#3089)",
+            "author": "hemoral@microsoft.com",
+            "commit": "44bc5edc3104400bef0e876c68ea529ce543e398",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Fix errors thrown on cache lookups when reading non-msal cache values #3245",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "8626ba19ec3fb33bc16b9c62fda914920e3a21e0",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update blockReloadInIframe error message with link to error doc #3294",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "e4601c8d5581e0cedd4b7b0cc4301e4e56b49049",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Block nested popups #3249",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "4241838226c4f0e54c2f7dee79d5e999e0f34f71",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add logoutPopup API #3044",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "9c913e05cc75728510e6a88fc50c7d759ec82fef",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 15 Mar 2021 23:45:17 GMT",
+      "tag": "@azure/msal-browser_v2.12.1",
+      "version": "2.12.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update Docs #3177",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "d448f10701d5416190ea0eb267495ad6522320a2",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Docs changes for sid/loginHint in SSO scenarios #3147",
+            "author": "prkanher@microsoft.com",
+            "commit": "c4eadd724df908e287faf162787ab15a512ed192",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Clear temporary cache cookies on page load #3129",
+            "author": "prkanher@microsoft.com",
+            "commit": "3cbb550cb0cd63a78f3f78621d56ee42c905fcf3",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Throw BrowserAuthError when fetch fails #3146",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "da0294f006a4646f101f646544cb9542d8b29628",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 03 Mar 2021 21:47:05 GMT",
+      "tag": "@azure/msal-browser_v2.12.0",
+      "version": "2.12.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update browser error doc (#3093)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "c26265e6f337cead73979c8da396d09929d963e8",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "docs: fix",
+            "author": "johnjosephmendez2016@gmail.com",
+            "commit": "0d2ad7b0170f9c7bd658dd7fa70a66d62578d76a",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Separate telemetry for ssoSilent and ATS iframe renewal (#3064)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "8fb91651b0f3e0fbfdfceaf92ca6048148a28643",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add instrumentation to msal-browser (#3004)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "e512a95d65964ccf304a9adb37aa758d25e59f58",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Memoize multiple calls to handleRedirectPromise (#3072)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6f1537582e6f254463ee091e13747c352cb3b540",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add option to make MSAL browser cookies secure (#3001)",
+            "author": "hemoral@microsoft.com",
+            "commit": "04db417301936b0f2ad9d36f535d9c3e6b8dc75c",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add setNavigationClient API and expose INavigationClient interface (#2985)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "0ef9a0af4aba8a63ae84690ee62ac2ab0baaa85b",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 18 Feb 2021 00:34:32 GMT",
+      "tag": "@azure/msal-browser_v2.11.2",
+      "version": "2.11.2",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Ensure scrollbars are enabled for popups in browser",
+            "author": "janutter@microsoft.com",
+            "commit": "fbdccb8be4f089493b2a4130bdbf95596f0e88a4",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 09 Feb 2021 01:48:22 GMT",
       "tag": "@azure/msal-browser_v2.11.1",
       "version": "2.11.1",

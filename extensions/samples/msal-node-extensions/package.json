@@ -13,7 +13,7 @@
   "license": "MIT",
   "dependencies": {
     "@azure/msal-node": "^1.0.0-beta.1",
-    "@azure/msal-node-extensions": "1.0.0-alpha.4",
+    "@azure/msal-node-extensions": "1.0.0-alpha.6",
     "express": "^4.17.1"
   }
 }

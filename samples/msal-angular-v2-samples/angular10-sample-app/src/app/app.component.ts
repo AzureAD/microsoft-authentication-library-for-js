@@ -1,5 +1,7 @@
 import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
-import { MsalService, MsalBroadcastService, MSAL_GUARD_CONFIG, MsalGuardConfiguration } from '@azure/msal-angular';
+import { Router } from '@angular/router';
+import { Location } from "@angular/common";
+import { MsalService, MsalBroadcastService, MSAL_GUARD_CONFIG, MsalGuardConfiguration, MsalCustomNavigationClient } from '@azure/msal-angular';
 import { AuthenticationResult, InteractionType, InteractionStatus, PopupRequest, RedirectRequest } from '@azure/msal-browser';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
@@ -18,8 +20,14 @@ export class AppComponent implements OnInit, OnDestroy {
   constructor(
     @Inject(MSAL_GUARD_CONFIG) private msalGuardConfig: MsalGuardConfiguration,
     private authService: MsalService,
-    private msalBroadcastService: MsalBroadcastService
-  ) {}
+    private msalBroadcastService: MsalBroadcastService,
+    private router: Router,
+    private location: Location
+  ) {
+    // Custom navigation set for client-side navigation. See performance doc for details: https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/performance.md
+    const customNavigationClient = new MsalCustomNavigationClient(authService, this.router, this.location);
+    this.authService.instance.setNavigationClient(customNavigationClient);
+  }
 
   ngOnInit(): void {
     this.isIframe = window !== window.parent && !window.opener;
@@ -61,7 +69,13 @@ export class AppComponent implements OnInit, OnDestroy {
   }
 
   logout() {
-    this.authService.logout();
+    if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
+      this.authService.logoutPopup({
+        mainWindowRedirectUri: "/"
+      });
+    } else {
+      this.authService.logoutRedirect();
+    }
   }
 
   ngOnDestroy(): void {

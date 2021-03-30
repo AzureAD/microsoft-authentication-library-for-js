@@ -12,6 +12,7 @@ import { MsalGuardConfiguration } from "./msal.guard.config";
 import { MSAL_GUARD_CONFIG } from "./constants";
 import { concatMap, catchError, map } from "rxjs/operators";
 import { Observable, of } from "rxjs";
+import { MsalBroadcastService } from "./msal.broadcast.service";
 
 @Injectable()
 export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
@@ -19,10 +20,14 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
 
     constructor(
         @Inject(MSAL_GUARD_CONFIG) private msalGuardConfig: MsalGuardConfiguration,
+        private msalBroadcastService: MsalBroadcastService,
         private authService: MsalService,
         private location: Location,
         private router: Router
-    ) { }
+    ) { 
+        // Subscribing so events in MsalGuard will set inProgress$ observable
+        this.msalBroadcastService.inProgress$.subscribe();
+    }
 
     /**
      * Parses url string to UrlTree
@@ -78,11 +83,13 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
 
         this.authService.getLogger().verbose("Guard - logging in by redirect");
         const redirectStartPage = this.getDestinationUrl(url);
-        this.authService.loginRedirect({
+        return this.authService.loginRedirect({
             redirectStartPage,
             ...this.msalGuardConfig.authRequest
-        } as RedirectRequest);
-        return of(false);
+        } as RedirectRequest)
+            .pipe(
+                map(() => false)
+            );
     }
 
     /**

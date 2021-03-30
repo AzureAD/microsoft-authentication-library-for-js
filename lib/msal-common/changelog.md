@@ -1,8 +1,46 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Tue, 09 Feb 2021 01:48:22 GMT and should not be manually modified.
+This log was last generated on Wed, 24 Mar 2021 22:55:46 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 4.1.0
+
+Wed, 24 Mar 2021 22:55:46 GMT
+
+### Minor changes
+
+- Add client claims support for SHRs (#3089) (hemoral@microsoft.com)
+
+### Patches
+
+- Properly handle expiration timestamps when returned as strings (janutter@microsoft.com)
+- Add null as possible type for account on EndSessionRequest #3044 (thomas.norling@microsoft.com)
+
+## 4.0.3
+
+Mon, 15 Mar 2021 23:45:17 GMT
+
+### Patches
+
+- Use sid from account when available #3147 (prkanher@microsoft.com)
+- Add network error for failed requests (#3146) (thomas.norling@microsoft.com)
+
+## 4.0.2
+
+Wed, 03 Mar 2021 21:47:05 GMT
+
+### Patches
+
+- Fix OIDC Scopes Caching Issue (#3065) (prkanher@microsoft.com)
+
+## 4.0.1
+
+Thu, 18 Feb 2021 00:34:32 GMT
+
+### Patches
+
+- Clarify Device Code Timeout units (#3031) (hemoral@microsoft.com)
 
 ## 4.0.0
 
