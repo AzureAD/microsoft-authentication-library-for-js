@@ -13,7 +13,7 @@ The standard [Authentication Result](https://azuread.github.io/microsoft-authent
 Example Bearer Access Token Usage:
 
 ```typescript
-// Using the Bearer scheme (default), acquierTokenRedirect returns an AuthenticationResult object containing the Bearer access token secret
+// Using the Bearer scheme (default), acquireTokenRedirect returns an AuthenticationResult object containing the Bearer access token secret
 const { accessToken } = await myMSALObj.acquireTokenRedirect(popTokenRequest);
 
 // The bearer token secret is appended to the Authorization header
