@@ -7,10 +7,9 @@ chai.use(chaiAsPromised);
 import {
     Authority,
     AuthorizationCodeClient,
-    AuthorizationCodeRequest,
-    AuthorizationUrlRequest,
+    CommonAuthorizationCodeRequest,
+    CommonAuthorizationUrlRequest,
     Constants,
-    ClientConfigurationErrorMessage,
     ClientAuthErrorMessage,
     ServerError,
     IdToken,
@@ -65,7 +64,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
-            const authCodeUrlRequest: AuthorizationUrlRequest = {
+            const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
                 authority: TEST_CONFIG.validAuthority,
                 responseMode: ResponseMode.QUERY,
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
@@ -94,7 +93,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
-            const authCodeUrlRequest: AuthorizationUrlRequest = {
+            const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 authority: TEST_CONFIG.validAuthority,
@@ -134,7 +133,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
-            const authCodeUrlRequest: AuthorizationUrlRequest = {
+            const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 loginHint: TEST_CONFIG.LOGIN_HINT,
@@ -156,7 +155,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
-            const authCodeUrlRequest: AuthorizationUrlRequest = {
+            const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 loginHint: TEST_CONFIG.LOGIN_HINT,
@@ -193,7 +192,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
             testAccount.idTokenClaims = testTokenClaims;
 
-            const authCodeUrlRequest: AuthorizationUrlRequest = {
+            const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 account: testAccount,
@@ -228,7 +227,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
             testAccount.idTokenClaims = testTokenClaims;
 
-            const authCodeUrlRequest: AuthorizationUrlRequest = {
+            const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 account: testAccount,
@@ -250,7 +249,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
-            const authCodeUrlRequest: AuthorizationUrlRequest = {
+            const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 account: TEST_ACCOUNT_INFO,
@@ -273,7 +272,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             const testScope1 = "testscope1";
             const testScope2 = "testscope2";
-            const loginRequest: AuthorizationUrlRequest = {
+            const loginRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: [testScope1, testScope2],
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -388,7 +387,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
-            const codeRequest: AuthorizationCodeRequest = {
+            const codeRequest: CommonAuthorizationCodeRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: ["scope"],
                 code: null,
@@ -452,7 +451,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
             sinon.stub(IdToken, "extractTokenClaims").returns(idTokenClaims);
             const client = new AuthorizationCodeClient(config);
-            const authCodeRequest: AuthorizationCodeRequest = {
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
@@ -479,6 +478,35 @@ describe("AuthorizationCodeClient unit tests", () => {
             await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`);
             await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`);
             await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`);
+        });
+
+        it("Adds tokenQueryParameters to the /token request", (done) => {
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").callsFake((url) => {
+                expect(url).to.contain("/token?testParam=testValue")
+                done();
+            });
+
+            ClientTestUtils.createTestClientConfiguration().then(config => {
+                const client = new AuthorizationCodeClient(config);
+                const authCodeRequest: CommonAuthorizationCodeRequest = {
+                    authority: Constants.DEFAULT_AUTHORITY,
+                    scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                    redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                    code: TEST_TOKENS.AUTHORIZATION_CODE,
+                    codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                    claims: TEST_CONFIG.CLAIMS,
+                    correlationId: RANDOM_TEST_GUID,
+                    authenticationScheme: AuthenticationScheme.BEARER,
+                    tokenQueryParameters: {
+                        testParam: "testValue"
+                    }
+                };
+    
+                client.acquireToken(authCodeRequest).catch(e => {
+                    // Catch errors thrown after the function call this test is testing    
+                });
+            });
         });
 
         it("Sends the required parameters when a pop token is requested", async () => {
@@ -550,7 +578,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 }
             });
             const client = new AuthorizationCodeClient(config);
-            const authCodeRequest: AuthorizationCodeRequest = {
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authenticationScheme: AuthenticationScheme.POP,
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
@@ -642,7 +670,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
             sinon.stub(IdToken, "extractTokenClaims").returns(idTokenClaims);
             const client = new AuthorizationCodeClient(config);
-            const authCodeRequest: AuthorizationCodeRequest = {
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,

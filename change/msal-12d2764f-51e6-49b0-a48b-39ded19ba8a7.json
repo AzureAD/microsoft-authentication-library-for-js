@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix token cache for /consumers authority #3327",
+  "packageName": "msal",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

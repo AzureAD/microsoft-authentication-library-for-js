@@ -4,6 +4,7 @@
  */
 
 import { BaseAuthRequest } from "./BaseAuthRequest";
+import { StringDict } from "../utils/MsalTypes";
 
 /**
  * CommonRefreshTokenRequest
@@ -17,4 +18,5 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  */
 export type CommonRefreshTokenRequest = BaseAuthRequest & {
     refreshToken: string;
+    tokenQueryParameters?: StringDict;
 };
