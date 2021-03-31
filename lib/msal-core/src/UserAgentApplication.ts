@@ -1463,13 +1463,6 @@ export class UserAgentApplication {
         
         if (!accessTokenCacheItem) {
             this.logger.verbose("No matching token found when filtering by scope and authority");
-            const authorityList = this.getUniqueAuthority(tokenCacheItems, "authority");
-            if (authorityList.length > 1) {
-                throw ClientAuthError.createMultipleAuthoritiesInCacheError(scopes.toString());
-            }
-
-            this.logger.verbose("Single authority used, setting authorityInstance");
-            serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(authorityList[0], this.config.auth.validateAuthority);
             return null;
         } else {
             serverAuthenticationRequest.authorityInstance = AuthorityFactory.CreateInstance(accessTokenCacheItem.key.authority, this.config.auth.validateAuthority);
@@ -1517,25 +1510,6 @@ export class UserAgentApplication {
     private evaluateTokenExpiration(tokenCacheItem: AccessTokenCacheItem): Boolean {
         const expiration = Number(tokenCacheItem.value.expiresIn);
         return TokenUtils.validateExpirationIsWithinOffset(expiration, this.config.system.tokenRenewalOffsetSeconds);
-    }
-
-    /**
-     * @hidden
-     * Used to get a unique list of authorities from the cache
-     * @param {Array<AccessTokenCacheItem>}  accessTokenCacheItems - accessTokenCacheItems saved in the cache
-     * @ignore
-     */
-    private getUniqueAuthority(accessTokenCacheItems: Array<AccessTokenCacheItem>, property: string): Array<string> {
-        this.logger.verbose("GetUniqueAuthority has been called");
-        const authorityList: Array<string> = [];
-        const flags: Array<string> = [];
-        accessTokenCacheItems.forEach(element => {
-            if (element.key.hasOwnProperty(property) && (flags.indexOf(element.key[property]) === -1)) {
-                flags.push(element.key[property]);
-                authorityList.push(element.key[property]);
-            }
-        });
-        return authorityList;
     }
 
     /**
