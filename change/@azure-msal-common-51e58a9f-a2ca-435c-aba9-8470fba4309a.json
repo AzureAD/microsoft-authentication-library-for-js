@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Adds tokenQueryParameters request param #3309",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
