@@ -147,7 +147,7 @@ export class AuthorizationCodeClient extends BaseClient {
         };
 
         const requestBody = await this.createTokenRequestBody(request);
-        const queryParameters = await this.createTokenQueryParameters(request);
+        const queryParameters = this.createTokenQueryParameters(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
 
         const endpoint = StringUtils.isEmpty(queryParameters) ? authority.tokenEndpoint : `${authority.tokenEndpoint}?${queryParameters}`;
