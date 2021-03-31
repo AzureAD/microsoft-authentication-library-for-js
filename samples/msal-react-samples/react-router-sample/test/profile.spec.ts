@@ -90,5 +90,43 @@ describe('/profile', () => {
         // Verify tokens are in cache
         await verifyTokenStore(BrowserCache, ["User.Read"]);
     });
+
+    it("Navigating to a protected route when already signed in, does not invoke new login", async () => {
+        const testName = "MsalAuthenticationTemplateSignedInCase";
+        const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+        await screenshot.takeScreenshot(page, "Page loaded");
+
+        // Initiate Login
+        const [signInButton] = await page.$x("//button[contains(., 'Login')]");
+        await signInButton.click();
+        await screenshot.takeScreenshot(page, "Login button clicked");
+        const [loginPopupButton] = await page.$x("//li[contains(., 'Sign in using Popup')]");
+        const newPopupWindowPromise = new Promise<puppeteer.Page>(resolve => page.once("popup", resolve));
+        await loginPopupButton.click();
+        const popupPage = await newPopupWindowPromise;
+        const popupWindowClosed = new Promise<void>(resolve => popupPage.once("close", resolve));
+
+        await enterCredentials(popupPage, screenshot, username, accountPwd);
+        await popupWindowClosed;
+        await page.waitForXPath("//header[contains(., 'Welcome,')]", {timeout: 3000});
+        await screenshot.takeScreenshot(page, "Popup closed");
+
+        // Verify UI now displays logged in content
+        const [signedIn] = await page.$x("//header[contains(., 'Welcome,')]");
+        expect(signedIn).toBeDefined();
+        const [profileButton] = await page.$x("//header//button");
+        await profileButton.click();
+        const logoutButtons = await page.$x("//li[contains(., 'Logout using')]");
+        expect(logoutButtons.length).toBe(2);
+        await screenshot.takeScreenshot(page, "App signed in");
+
+        // Verify tokens are in cache
+        await verifyTokenStore(BrowserCache, ["User.Read"]);
+
+        await page.goto(`http://localhost:${port}/profile`);
+        // Wait for Graph data to display
+        await page.waitForXPath("//div/ul/li[contains(., 'Name')]", {timeout: 5000});
+        await screenshot.takeScreenshot(page, "Graph data acquired");
+    });
   }
 );

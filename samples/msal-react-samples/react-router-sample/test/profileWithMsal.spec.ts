@@ -60,31 +60,19 @@ describe('/profileWithMsal', () => {
     });
 
     it("Navigating directly to a protected route automatically invokes loginRedirect", async () => {
-        const testName = "MsalAuthenticationTemplateBaseCase";
+        const testName = "MsalAuthenticationTemplateRedirectCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         await screenshot.takeScreenshot(page, "Home page loaded");
 
         // Navigate to /profileWithMsal and expect redirect to be initiated without interaction
         await page.goto(`http://localhost:${port}/profileWithMsal`);
-        await Promise.all([
-            await screenshot.takeScreenshot(page, "Profile page loaded"),
-            page.waitForNavigation({ waitUntil: "networkidle0"})
-        ]);
+        await screenshot.takeScreenshot(page, "Profile page loaded");
 
         await enterCredentials(page, screenshot, username, accountPwd);
 
         // Wait for Graph data to display
         await page.waitForXPath("//div/ul/li[contains(., 'Name')]", {timeout: 5000});
         await screenshot.takeScreenshot(page, "Graph data acquired");
-
-        // Verify UI now displays logged in content
-        const [signedIn] = await page.$x("//header[contains(., 'Welcome,')]");
-        expect(signedIn).toBeDefined();
-        const [profileButton] = await page.$x("//header//button");
-        await profileButton.click();
-        const logoutButtons = await page.$x("//li[contains(., 'Logout using')]");
-        expect(logoutButtons.length).toBe(2);
-        await screenshot.takeScreenshot(page, "App signed in");
 
         // Verify tokens are in cache
         await verifyTokenStore(BrowserCache, ["User.Read"]);

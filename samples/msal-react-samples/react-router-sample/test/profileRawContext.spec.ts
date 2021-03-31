@@ -60,7 +60,7 @@ describe('/profileRawContext', () => {
     });
 
     it("Navigating directly to a protected route automatically invokes loginPopup", async () => {
-        const testName = "MsalAuthenticationTemplateBaseCase";
+        const testName = "MsalAuthenticationTemplatePopupCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         await screenshot.takeScreenshot(page, "Home page loaded");
 
@@ -77,15 +77,6 @@ describe('/profileRawContext', () => {
         // Wait for Graph data to display
         await page.waitForXPath("//div/ul/li[contains(., 'Name')]", {timeout: 5000});
         await screenshot.takeScreenshot(page, "Graph data acquired");
-
-        // Verify UI now displays logged in content
-        const [signedIn] = await page.$x("//header[contains(., 'Welcome,')]");
-        expect(signedIn).toBeDefined();
-        const [profileButton] = await page.$x("//header//button");
-        await profileButton.click();
-        const logoutButtons = await page.$x("//li[contains(., 'Logout using')]");
-        expect(logoutButtons.length).toBe(2);
-        await screenshot.takeScreenshot(page, "App signed in");
 
         // Verify tokens are in cache
         await verifyTokenStore(BrowserCache, ["User.Read"]);
