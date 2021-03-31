@@ -15,7 +15,8 @@ import { AccountInfo, CommonSilentFlowRequest, StringDict } from "@azure/msal-co
  * - correlationId          - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - account                - Account entity to lookup the credentials.
  * - forceRefresh           - Forces silent requests to make network calls if true.
- * - extraQueryParameters   - String to string map of custom query parameters. Only used when renewing the refresh token.
+ * - extraQueryParameters       - String to string map of custom query parameters added to the /authorize call. Only used when renewing the refresh token.
+ * - tokenQueryParameters       - String to string map of custom query parameters added to the /token call. Only used when renewing access tokens.
  * - redirectUri            - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal. Only used for cases where refresh token is expired.
  */
 export type SilentRequest = Omit<CommonSilentFlowRequest, "authority"|"correlationId"|"forceRefresh"|"account"> & {
