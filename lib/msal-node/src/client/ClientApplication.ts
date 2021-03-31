@@ -23,7 +23,7 @@ import {
     ResponseMode,
     AuthorityOptions,
     OIDC_DEFAULT_SCOPES,
-    PreferredAzureRegionOptions
+    AzureRegionConfiguration
 } from "@azure/msal-common";
 import { Configuration, buildAppConfiguration } from "../config/Configuration";
 import { CryptoProvider } from "../crypto/CryptoProvider";
@@ -233,12 +233,12 @@ export abstract class ClientApplication {
      * @param authority - user passed authority in configuration
      * @param serverTelemetryManager - initializes servertelemetry if passed
      */
-    protected async buildOauthClientConfiguration(authority: string, serverTelemetryManager?: ServerTelemetryManager, preferredAzureRegionOptions?: PreferredAzureRegionOptions): Promise<ClientConfiguration> {
+    protected async buildOauthClientConfiguration(authority: string, serverTelemetryManager?: ServerTelemetryManager, azureRegionConfiguration?: AzureRegionConfiguration): Promise<ClientConfiguration> {
         this.logger.verbose("buildOauthClientConfiguration called");
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
         this.logger.verbose(`building oauth client configuration with the authority: ${authority}`);
 
-        const discoveredAuthority = await this.createAuthority(authority, preferredAzureRegionOptions);
+        const discoveredAuthority = await this.createAuthority(authority, azureRegionConfiguration);
 
         return {
             authOptions: {
@@ -315,14 +315,14 @@ export abstract class ClientApplication {
      * object. If no authority set in application object, then default to common authority.
      * @param authorityString - authority from user configuration
      */
-    private async createAuthority(authorityString: string, preferredAzureRegionOptions?: PreferredAzureRegionOptions): Promise<Authority> {
+    private async createAuthority(authorityString: string, azureRegionConfiguration?: AzureRegionConfiguration): Promise<Authority> {
         this.logger.verbose("createAuthority called");
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode!,
             knownAuthorities: this.config.auth.knownAuthorities!,
             cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata!,
             authorityMetadata: this.config.auth.authorityMetadata!,
-            preferredAzureRegionOptions
+            azureRegionConfiguration 
         };
         return await AuthorityFactory.createDiscoveredInstance(authorityString, this.config.system!.networkClient!, this.storage, authorityOptions);
     }

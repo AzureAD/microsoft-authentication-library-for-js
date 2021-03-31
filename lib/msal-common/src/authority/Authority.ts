@@ -262,11 +262,11 @@ export class Authority {
         metadata = await this.getEndpointMetadataFromNetwork();
         if (metadata) {
             // If the user prefers to use an azure region replace the global endpoints with regional information.
-            if (this.authorityOptions.preferredAzureRegionOptions?.useAzureRegion) {
-                const autodetectedRegionName = await this.regionDiscovery.detectRegion();
-                const azureRegion = autodetectedRegionName || this.authorityOptions.preferredAzureRegionOptions.regionUsedIfAutoDetectionFails;
+            if (this.authorityOptions.azureRegionConfiguration?.useAzureRegion) {
+                const autodetectedRegionName = await this.regionDiscovery.detectRegion(this.authorityOptions.azureRegionConfiguration.environmentRegionFunc);
+                const azureRegion = autodetectedRegionName || this.authorityOptions.azureRegionConfiguration.regionUsedIfAutoDetectionFails;
 
-                if (!azureRegion && !this.authorityOptions.preferredAzureRegionOptions.fallbackToGlobal) {
+                if (!azureRegion && !this.authorityOptions.azureRegionConfiguration.fallbackToGlobal) {
                     throw ClientAuthError.createNoAzureRegionDetectedError();
                 }
 
