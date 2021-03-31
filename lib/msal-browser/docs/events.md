@@ -15,7 +15,7 @@ export type EventMessage = {
 
 The payload and error in `EventMessage` are defined as follows: 
 ```javascript
-export type EventPayload = PopupRequest | RedirectRequest | SilentRequest | SsoSilentRequest | EndSessionRequest | AuthenticationResult | null;
+export type EventPayload = PopupRequest | RedirectRequest | SilentRequest | SsoSilentRequest | EndSessionRequest | AuthenticationResult | PopupEvent | null;
 
 export type EventError = AuthError | Error | null;
 ```
