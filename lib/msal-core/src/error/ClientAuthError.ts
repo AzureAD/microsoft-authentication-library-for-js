@@ -8,10 +8,6 @@ import { IdToken } from "../IdToken";
 import { StringUtils } from "../utils/StringUtils";
 
 export const ClientAuthErrorMessage = {
-    multipleCacheAuthorities: {
-        code: "multiple_authorities",
-        desc: "Multiple authorities found in the cache. Pass authority in the API overload."
-    },
     endpointResolutionError: {
         code: "endpoints_resolution_error",
         desc: "Error: could not resolve endpoints. Please check network and try again."
@@ -112,11 +108,6 @@ export class ClientAuthError extends AuthError {
             errorMessage += ` Details: ${errDetail}`;
         }
         return new ClientAuthError(ClientAuthErrorMessage.endpointResolutionError.code, errorMessage);
-    }
-
-    static createMultipleAuthoritiesInCacheError(scope: string): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.multipleCacheAuthorities.code,
-            `Cache error for scope ${scope}: ${ClientAuthErrorMessage.multipleCacheAuthorities.desc}.`);
     }
 
     static createPopupWindowError(errDetail?: string): ClientAuthError {
