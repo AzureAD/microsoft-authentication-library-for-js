@@ -22,9 +22,9 @@ export class RegionDiscovery {
      * 
      * @returns Promise<string | null>
      */
-    public async detectRegion(): Promise<string | null> {
+    public async detectRegion(environmentRegionFunc: () => string | undefined): Promise<string | null> {
         // Detect region from the process environment variable
-        let autodetectedRegionName = process.env[Constants.REGION_ENVIRONMENT_VARIABLE];
+        let autodetectedRegionName = environmentRegionFunc();
 
         // Call the local IMDS endpoint for applications running in azure vms
         if (!autodetectedRegionName) {

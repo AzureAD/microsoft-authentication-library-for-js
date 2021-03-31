@@ -4,12 +4,12 @@
  */
 
 import { ProtocolMode } from "./ProtocolMode";
-import { PreferredAzureRegionOptions } from "./PreferredAzureRegionOptions";
+import { AzureRegionConfiguration } from "./AzureRegionConfiguration";
 
 export type AuthorityOptions = {
     protocolMode: ProtocolMode;
     knownAuthorities: Array<string>;
     cloudDiscoveryMetadata: string;
     authorityMetadata: string;
-    preferredAzureRegionOptions?: PreferredAzureRegionOptions;
+    azureRegionConfiguration?: AzureRegionConfiguration;
 };
