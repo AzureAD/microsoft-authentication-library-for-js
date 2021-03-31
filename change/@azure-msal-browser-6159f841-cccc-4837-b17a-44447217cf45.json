@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Add AT PoP documentation (#3071)",
+  "packageName": "@azure/msal-browser",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "none"
+}
