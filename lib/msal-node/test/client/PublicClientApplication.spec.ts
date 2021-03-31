@@ -154,7 +154,7 @@ describe('PublicClientApplication', () => {
         expect(authorityMock.mock.calls[0][3]).toStrictEqual({
             protocolMode: ProtocolMode.AAD,
             knownAuthorities: [],
-            preferredAzureRegionOptions: undefined,
+            azureRegionConfigurtion: undefined,
             cloudDiscoveryMetadata: "",
             authorityMetadata: ""
         });
@@ -181,7 +181,7 @@ describe('PublicClientApplication', () => {
         expect(authorityMock.mock.calls[0][3]).toStrictEqual({
             protocolMode: ProtocolMode.AAD,
             knownAuthorities: [],
-            preferredAzureRegionOptions: undefined,
+            azureRegionConfiguration: undefined,
             cloudDiscoveryMetadata: "",
             authorityMetadata: ""
         });
