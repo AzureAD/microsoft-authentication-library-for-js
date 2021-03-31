@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Make SHR parameters optional (#3320)",
+  "comment": "Make SHR parameters optional #3320",
   "packageName": "@azure/msal-common",
   "email": "hemoral@microsoft.com",
   "dependentChangeType": "patch"
