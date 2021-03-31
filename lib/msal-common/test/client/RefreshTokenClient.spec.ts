@@ -78,7 +78,7 @@ describe("RefreshTokenClient unit tests", () => {
         });
     });
 
-    describe("exectuteTokenRequest", () => {
+    describe("executeTokenRequest", () => {
         let config: ClientConfiguration;
 
         beforeEach(async () => {
