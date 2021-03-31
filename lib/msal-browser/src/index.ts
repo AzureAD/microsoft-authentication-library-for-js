@@ -31,7 +31,7 @@ export { EndSessionPopupRequest } from "./request/EndSessionPopupRequest";
 export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
 
 // Events
-export { EventMessage, EventPayload, EventError, EventCallbackFunction, EventMessageUtils } from "./event/EventMessage";
+export { EventMessage, EventPayload, EventError, EventCallbackFunction, EventMessageUtils, PopupEvent } from "./event/EventMessage";
 export { EventType } from "./event/EventType";
 
 // Common Object Formats
