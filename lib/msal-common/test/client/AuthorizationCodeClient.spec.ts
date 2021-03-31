@@ -174,6 +174,28 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(loginUrl).to.not.contain(`${SSOTypes.SID}=`);
         });
 
+        it("Ignores sid if prompt!=None", async () => {
+            // Override with alternate authority openid_config
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
+
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(config);
+
+            const authCodeUrlRequest: AuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                prompt: PromptValue.LOGIN,
+                sid: TEST_CONFIG.SID,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER,
+                authority: TEST_CONFIG.validAuthority,
+                responseMode: ResponseMode.FRAGMENT
+            };
+            const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
+            expect(loginUrl).to.not.contain(`${SSOTypes.LOGIN_HINT}=`);
+            expect(loginUrl).to.not.contain(`${SSOTypes.SID}=`);
+        });
+
         it("Prefers loginHint over Account if both provided and account does not have token claims", async () => {
             // Override with alternate authority openid_config
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(ALTERNATE_OPENID_CONFIG_RESPONSE.body);
