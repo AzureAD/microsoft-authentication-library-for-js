@@ -1140,34 +1140,6 @@ describe("UserAgentApplication.ts Class", function () {
             });
         });
 
-        it("tests getCachedToken without sending authority when no matching accesstoken is found and multiple authorities exist", function (done) {
-            const tokenRequest : AuthenticationParameters = {
-                scopes: ["S3"],
-                account: account
-            };
-            const params: kv = {  };
-            params[SSOTypes.SID] = account.sid;
-            setUtilUnifiedCacheQPStubs(params);
-
-            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-            accessTokenKey.scopes = "S2";
-            accessTokenKey.authority = TEST_CONFIG.alternateValidAuthority;
-            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
-            cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
-
-            msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                // Won't happen
-                console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
-            }).catch(function(err: AuthError) {
-                expect(err.errorCode).to.include(ClientAuthErrorMessage.multipleCacheAuthorities.code);
-                expect(err.errorMessage).to.include(ClientAuthErrorMessage.multipleCacheAuthorities.desc);
-                expect(err.message).to.contain(ClientAuthErrorMessage.multipleCacheAuthorities.desc);
-                expect(err.name).to.equal("ClientAuthError");
-                expect(err.stack).to.include("UserAgentApplication.spec.ts");
-                done();
-            });
-        });
-
         it("tests getCachedToken when common authority is passed and single matching accessToken is found", function (done) {
             const tokenRequest : AuthenticationParameters = {
                 authority: TEST_CONFIG.validAuthority,
@@ -1246,6 +1218,59 @@ describe("UserAgentApplication.ts Class", function () {
             idTokenKey.authority = TEST_URIS.DEFAULT_INSTANCE + "organizations/";
             cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
             idTokenKey.authority = TEST_URIS.ALTERNATE_INSTANCE + "organizations/";
+            cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
+
+            msal.acquireTokenSilent(tokenRequest).then(function(response) {
+                expect(response.scopes).to.be.deep.eq(["s1"]);
+                expect(response.account).to.be.eq(account);
+                expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                expect(response.accessToken).to.include(TEST_TOKENS.ACCESSTOKEN);
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+            }).catch(function(err: AuthError) {
+                // Won't happen
+                console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
+            });
+            msal.acquireTokenSilent(tokenRequestAlternate).then(function(response) {
+                expect(response.scopes).to.be.deep.eq(["s1"]);
+                expect(response.account).to.be.eq(account);
+                expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                expect(response.accessToken).to.include("accessTokenAlternate");
+                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                done();
+            }).catch(function(err: AuthError) {
+                // Won't happen
+                console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
+            });
+        });
+
+        it("tests getCachedToken when consumers authority is passed and single matching accessToken is found", function (done) {
+            
+            const tokenRequest : AuthenticationParameters = {
+                authority: TEST_URIS.DEFAULT_INSTANCE + "consumers/",
+                scopes: ["S1"],
+                account: account
+            };
+            const tokenRequestAlternate : AuthenticationParameters = {
+                authority: TEST_URIS.ALTERNATE_INSTANCE + "consumers/",
+                scopes: ["S1"],
+                account: account
+            };
+            const params: kv = {  };
+            params[SSOTypes.SID] = account.sid;
+            setUtilUnifiedCacheQPStubs(params);
+
+            accessTokenKey.authority = TEST_URIS.DEFAULT_INSTANCE + "9188040d-6c67-4c5b-b112-36a304b66dad/";
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+
+            accessTokenKey.authority = TEST_URIS.ALTERNATE_INSTANCE + "9188040d-6c67-4c5b-b112-36a304b66dad/";
+            accessTokenValue.accessToken = "accessTokenAlternate";
+            cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
+            
+            idTokenKey.authority = TEST_URIS.DEFAULT_INSTANCE + "9188040d-6c67-4c5b-b112-36a304b66dad/";
+            cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
+            idTokenKey.authority = TEST_URIS.ALTERNATE_INSTANCE + "9188040d-6c67-4c5b-b112-36a304b66dad/";
             cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
