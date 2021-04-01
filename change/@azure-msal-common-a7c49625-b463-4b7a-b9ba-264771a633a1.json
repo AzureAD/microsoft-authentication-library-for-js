@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update StringUtils.matchPattern to account for queries in string #3307",
-  "packageName": "@azure/msal-common",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}
