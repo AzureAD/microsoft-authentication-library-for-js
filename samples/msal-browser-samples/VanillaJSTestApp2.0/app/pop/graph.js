@@ -47,10 +47,11 @@ function callPopResource(endpoint, method, accessToken, callback) {
 async function popRequest() {
     const currentAcc = myMSALObj.getAccountByUsername(username);
     if (currentAcc) {
-        const response = await getTokenPopup(loginRequest, currentAcc).catch(error => {
+        const response = await getTokenPopup(popTokenRequest, currentAcc).catch(error => {
             console.log(error);
         });
         popToken = response.accessToken;
+        console.log(popToken);
         callPopResource(popConfig.endpoint, "POST", response.accessToken, updateUI);
     }
 }
@@ -58,7 +59,7 @@ async function popRequest() {
 async function seeProfile() {
     const currentAcc = myMSALObj.getAccountByUsername(username);
     if (currentAcc) {
-        const response = await getTokenPopup(loginRequest, currentAcc).catch(error => {
+        const response = await getTokenPopup(bearerRequest, currentAcc).catch(error => {
             console.log(error);
         });
         popToken = response.accessToken;
