@@ -443,7 +443,6 @@ import { MsalRedirectComponent } from '@azure/msal-angular';
 import { DetailComponent } from './detail/detail.component';
 import { MsalConfigDynamicModule } from './msal-config-dynamic.module';
 
-
 @NgModule({
   declarations: [
     AppComponent,
