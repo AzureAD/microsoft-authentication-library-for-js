@@ -6,9 +6,7 @@ export class StringUtils {
      * @param templateBody 
      */
     static getLabelsFromTemplate(templateBody: Object): Array<string> {
-        const labels = templateBody["labels"] || "";
-
-        return labels.trim().split(" ");
+        return templateBody["labels"] || [];
     }
 
     /**

@@ -10419,8 +10419,7 @@ class StringUtils {
      * @param templateBody
      */
     static getLabelsFromTemplate(templateBody) {
-        const labels = templateBody["labels"] || "";
-        return labels.trim().split(" ");
+        return templateBody["labels"] || [];
     }
     /**
      * Parses the template and returns a map where the key is the heading (denoted by at least 2 #) and value is the content underneath
