@@ -286,7 +286,6 @@ import { map } from 'rxjs/operators';
   providedIn: 'root'
 })
 export class ConfigService {
-
   private settings: any;
   private http: HttpClient;
   constructor(private readonly httpHandler: HttpBackend) {
