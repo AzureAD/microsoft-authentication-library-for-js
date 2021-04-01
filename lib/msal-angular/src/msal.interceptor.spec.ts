@@ -406,6 +406,7 @@ describe('MsalInterceptor', () => {
   });
 
   it("attaches authorization header with access token for protected resource with queries", done => {
+    spyOn(PublicClientApplication.prototype, "getActiveAccount").and.returnValue(sampleAccountInfo);
     spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
       new Promise((resolve) => {
         //@ts-ignore
@@ -414,8 +415,6 @@ describe('MsalInterceptor', () => {
         });
       })
     ));
-
-    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
     httpClient.get("http://apps.com/tenant?abc").subscribe();
     setTimeout(() => {
