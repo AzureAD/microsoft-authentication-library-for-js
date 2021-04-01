@@ -68,6 +68,17 @@ body:
     label: MSAL Configuration
     description: "Please provide your MSAL configuration."
     render: javascript
+    placeholder: |
+      {
+        auth: {
+          clientId: "clientId",
+          authority: "https://login.microsoftonline.com/common/"
+        },
+        cache: {
+          cacheLocation: "sessionStorage"
+          storeAuthStateInCookie: false
+        }
+      }
   validations:
     required: true
     
@@ -126,7 +137,7 @@ body:
 - type: input
   attributes:
     label: Regression
-    description: "If this behavior worked before, please enter the last working version."
+    description: "If this behavior worked before, please enter the last working version(s)."
     placeholder: "@azure/msal-browser 2.0.0"
     
 - type: dropdown
