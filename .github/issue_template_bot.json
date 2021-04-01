@@ -15,12 +15,15 @@
             "enforceSelection": false
         },
         "Wrapper Library": {
-            "msal-angular": {
-                "searchStrings": ["@azure/msal-angular"]
+            "labels": {
+                "msal-angular": {
+                    "searchStrings": ["@azure/msal-angular"]
+                },
+                "msal-react": {
+                    "searchStrings": ["@azure/msal-react"]
+                }
             },
-            "msal-react": {
-                "searchStrings": ["@azure/msal-react"]
-            }
+            "enforceSelection": false
         },
         "Identity Provider": {
             "labels": {
