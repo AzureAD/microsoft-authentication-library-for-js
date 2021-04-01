@@ -5,12 +5,35 @@ export class StringUtils {
      * Returns a list of labels configured on a template
      * @param templateBody 
      */
-    static getLabelsFromTemplate(templateBody: string): Array<string> {
-        const templateMetadata: Object = yaml.load(templateBody);
-        const labels = templateMetadata["labels"] || "";
+    static getLabelsFromTemplate(templateBody: Object): Array<string> {
+        const labels = templateBody["labels"] || "";
 
         return labels.split(" ");
     }
+
+    /**
+     * Parses the template and returns a map where the key is the heading (denoted by at least 2 #) and value is the content underneath
+     * @param issueBody 
+     */
+     static getTemplateSections(template: Object): Array<string> {
+        const sections = [];
+        const body: Array<Object> = template["body"];
+
+        body.forEach((item: Object) => {
+            if (item["type"] === "markdown") {
+                // Markdown does not show up in the published issue, ignore for the purposes of template matching
+                return;
+            }
+
+            const attributes: Object = item["attributes"];
+            const sectionName = attributes["label"];
+            if (sectionName) {
+                sections.push(sectionName);
+            }
+        });
+
+        return sections;
+    };
 
     /**
      * Parses the body of an issue and returns a map where the key is the heading (denoted by at least 2 #) and value is the content underneath

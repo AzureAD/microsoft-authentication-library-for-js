@@ -10070,7 +10070,6 @@ const StringUtils_1 = __webpack_require__(6855);
 class TemplateEnforcer {
     constructor(issueNo, action) {
         this.action = action || "edited";
-        this.allTemplates = [];
         this.issueBotUtils = new IssueBotUtils_1.IssueBotUtils(issueNo);
         this.issueLabels = new IssueLabels_1.IssueLabels(this.issueBotUtils);
         this.issueComments = new IssueComments_1.IssueComments(this.issueBotUtils);
@@ -10092,6 +10091,7 @@ class TemplateEnforcer {
         }
         await this.commentOnIssue(config, !!templateUsed, isIssueFilled);
         if (config.noTemplateClose && !templateUsed) {
+            core.info("Closing issue due to no template used");
             await this.issueBotUtils.closeIssue();
         }
         // Return true if template filled out completely, false if not used or incomplete
@@ -10173,9 +10173,8 @@ class TemplateEnforcer {
      * @param optionalSections
      */
     didIssueFillOutTemplate(issueBody, template, optionalSections) {
-        const templateSections = StringUtils_1.StringUtils.getIssueSections(template);
+        const templateHeaders = StringUtils_1.StringUtils.getTemplateSections(template);
         const issueSections = StringUtils_1.StringUtils.getIssueSections(issueBody);
-        const templateHeaders = [...templateSections.keys()];
         return templateHeaders.every((sectionHeader) => {
             if (optionalSections && optionalSections.includes(sectionHeader)) {
                 return true;
@@ -10184,18 +10183,10 @@ class TemplateEnforcer {
                 core.info(`Does not have header: ${sectionHeader}`);
                 return false;
             }
-            const templateContent = StringUtils_1.StringUtils.normalizeString(templateSections.get(sectionHeader));
             const issueContent = StringUtils_1.StringUtils.normalizeString(issueSections.get(sectionHeader));
             core.info(`Checking Header: ${sectionHeader}`);
-            if (issueContent === templateContent || templateContent.includes(issueContent)) {
-                if (issueContent === templateContent) {
-                    core.info(`Content is same as template for section ${sectionHeader}`);
-                }
-                if (templateContent.includes(issueContent)) {
-                    core.info(`Issue Content for ${sectionHeader} is subset of template content`);
-                    core.info(`Issue Content: ${issueContent}`);
-                    core.info(`Template Content: ${templateContent}`);
-                }
+            if (!issueContent.trim()) {
+                core.info(`Content is empty for section ${sectionHeader}`);
                 return false;
             }
             return true;
@@ -10210,7 +10201,6 @@ class TemplateEnforcer {
         let largestMatch = 0;
         let templateName = null;
         templateMap.forEach((contents, filename) => {
-            this.allTemplates.push(StringUtils_1.StringUtils.getIssueSections(contents));
             const templateLabels = StringUtils_1.StringUtils.getLabelsFromTemplate(contents);
             const templateMatch = templateLabels.every(templateLabel => {
                 return currentLabels.includes(templateLabel);
@@ -10238,20 +10228,19 @@ class TemplateEnforcer {
         const issueSections = StringUtils_1.StringUtils.getIssueSections(issueBody);
         templateMap.forEach((contents, filename) => {
             core.info(`Checking: ${filename}`);
-            const templateSections = StringUtils_1.StringUtils.getIssueSections(contents);
+            const templateHeaders = StringUtils_1.StringUtils.getTemplateSections(contents);
             let sectionsMatched = 0;
-            let templateHeaders = [...templateSections.keys()];
             templateHeaders.forEach((sectionHeader) => {
                 if (issueSections.has(sectionHeader)) {
                     sectionsMatched += 1;
                 }
             });
-            if (sectionsMatched === templateSections.size && sectionsMatched > largestFullMatch) {
+            if (sectionsMatched === templateHeaders.length && sectionsMatched > largestFullMatch) {
                 core.info(`Full Match with ${sectionsMatched} sections!`);
                 largestFullMatch = sectionsMatched;
                 fullMatchTemplateName = filename;
             }
-            else if (sectionsMatched < templateSections.size && sectionsMatched > largestPartialMatch) {
+            else if (sectionsMatched < templateHeaders.length && sectionsMatched > largestPartialMatch) {
                 core.info(`Partial Match with ${sectionsMatched} sections!`);
                 largestPartialMatch = sectionsMatched;
                 partialMatchTemplateName = filename;
@@ -10417,23 +10406,42 @@ exports.IssueBotUtils = IssueBotUtils;
 /***/ }),
 
 /***/ 6855:
-/***/ ((__unused_webpack_module, exports, __webpack_require__) => {
+/***/ ((__unused_webpack_module, exports) => {
 
 "use strict";
 
 Object.defineProperty(exports, "__esModule", ({ value: true }));
 exports.StringUtils = void 0;
-const yaml = __webpack_require__(1917);
 class StringUtils {
     /**
      * Returns a list of labels configured on a template
      * @param templateBody
      */
     static getLabelsFromTemplate(templateBody) {
-        const templateMetadata = yaml.load(templateBody);
-        const labels = templateMetadata["labels"] || "";
+        const labels = templateBody["labels"] || "";
         return labels.split(" ");
     }
+    /**
+     * Parses the template and returns a map where the key is the heading (denoted by at least 2 #) and value is the content underneath
+     * @param issueBody
+     */
+    static getTemplateSections(template) {
+        const sections = [];
+        const body = template["body"];
+        body.forEach((item) => {
+            if (item["type"] === "markdown") {
+                // Markdown does not show up in the published issue, ignore for the purposes of template matching
+                return;
+            }
+            const attributes = item["attributes"];
+            const sectionName = attributes["label"];
+            if (sectionName) {
+                sections.push(sectionName);
+            }
+        });
+        return sections;
+    }
+    ;
     /**
      * Parses the body of an issue and returns a map where the key is the heading (denoted by at least 2 #) and value is the content underneath
      * @param issueBody
@@ -10833,8 +10841,8 @@ class RepoFiles {
         });
         const promises = filenames.map(async (filename) => {
             const fileContents = await this.getFileContents(`${Constants_1.Constants.TEMPLATE_DIRECTORY}/${filename}`);
-            console.log(yaml.load(fileContents));
-            templates.set(filename, fileContents);
+            const yamlContents = yaml.load(fileContents);
+            templates.set(filename, yamlContents);
         });
         await Promise.all(promises);
         return templates;
