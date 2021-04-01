@@ -58,6 +58,7 @@ export class RepoFiles {
 
         response.data.forEach((file: any) => {
             if (file.type === "file" && file.name.endsWith(".yml")) {
+                core.info(`Found template: ${file.name}`);
                 filenames.push(file.name);
             }
         });

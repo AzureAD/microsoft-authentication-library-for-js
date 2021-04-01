@@ -165,6 +165,7 @@ export class TemplateEnforcer {
         
         templateMap.forEach((contents, filename) => {
             const templateLabels = StringUtils.getLabelsFromTemplate(contents);
+            core.info(`${filename} is configured with labels: ${templateLabels.join(", ")}`);
             const templateMatch = templateLabels.every(templateLabel => {
                 return currentLabels.includes(templateLabel);
             });

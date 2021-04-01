@@ -10202,6 +10202,7 @@ class TemplateEnforcer {
         let templateName = null;
         templateMap.forEach((contents, filename) => {
             const templateLabels = StringUtils_1.StringUtils.getLabelsFromTemplate(contents);
+            core.info(`${filename} is configured with labels: ${templateLabels.join(", ")}`);
             const templateMatch = templateLabels.every(templateLabel => {
                 return currentLabels.includes(templateLabel);
             });
@@ -10836,6 +10837,7 @@ class RepoFiles {
         const templates = new Map();
         response.data.forEach((file) => {
             if (file.type === "file" && file.name.endsWith(".yml")) {
+                core.info(`Found template: ${file.name}`);
                 filenames.push(file.name);
             }
         });
