@@ -46,7 +46,7 @@ After that, the following files should be generated:
 > Powershell users can run the [New-SelfSignedCertificate](https://docs.microsoft.com/powershell/module/pkiclient/new-selfsignedcertificate?view=win10-ps) command:
 >
 > ```powershell
->$cert=New-SelfSignedCertificate -Subject "CN=example" -CertStoreLocation "Cert:\CurrentUser\My"  -KeyExportPolicy Exportable -KeySpec Signature
+>$cert=New-SelfSignedCertificate -Subject "CN=example.com" -CertStoreLocation "Cert:\CurrentUser\My"  -KeyExportPolicy Exportable -KeySpec Signature
 >```
 >
 > This command will generate two files: *example.cer* (public key) and *example.pfx* (public key + encrypted private key).
