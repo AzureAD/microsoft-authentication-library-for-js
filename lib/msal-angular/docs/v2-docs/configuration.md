@@ -461,7 +461,6 @@ import { MsalConfigDynamicModule } from './msal-config-dynamic.module';
     MsalConfigDynamicModule.forRoot('assets/configuration.json')
   ],
   providers: [],
-  ],
   bootstrap: [AppComponent, MsalRedirectComponent]
 })
 export class AppModule { }
