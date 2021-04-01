@@ -372,7 +372,7 @@ export function MSALInterceptorConfigFactory(config: ConfigService): MsalInterce
     };
   }
   
-  export function MSALGuardConfigFactory(config: ConfigService): MsalGuardConfiguration {
+export function MSALGuardConfigFactory(config: ConfigService): MsalGuardConfiguration {
     return { 
       interactionType: config.getSettings('guard').interactionType,
       authRequest: config.getSettings('guard').authRequest,
