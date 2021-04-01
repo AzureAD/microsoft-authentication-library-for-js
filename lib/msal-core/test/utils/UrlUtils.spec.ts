@@ -34,12 +34,17 @@ describe("UrlUtils.ts class", () => {
         it("/organizations", () => {
             expect(UrlUtils.replaceTenantPath("http://a.com/organizations", "1234-5678")).to.eq("http://a.com/1234-5678/");
         });
+
+        it("/consumers", () => {
+            expect(UrlUtils.replaceTenantPath("http://login.microsoftonline.com/consumers", "9188040d-6c67-4c5b-b112-36a304b66dad")).to.eq("http://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/");
+        });
     });
 
     it("isCommonAuthority", () => {
         expect(UrlUtils.isCommonAuthority("https://login.microsoftonline.com/common/")).to.eq(true);
         expect(UrlUtils.isCommonAuthority("https://login.microsoftonline.com/common")).to.eq(true);
         expect(UrlUtils.isCommonAuthority("https://login.microsoftonline.com/organizations/")).to.eq(false);
+        expect(UrlUtils.isCommonAuthority("https://login.microsoftonline.com/consumers/")).to.eq(false);
         expect(UrlUtils.isCommonAuthority("https://login.microsoftonline.com/123456789/")).to.eq(false);
     });
 
@@ -47,7 +52,16 @@ describe("UrlUtils.ts class", () => {
         expect(UrlUtils.isOrganizationsAuthority("https://login.microsoftonline.com/organizations/")).to.eq(true);
         expect(UrlUtils.isOrganizationsAuthority("https://login.microsoftonline.com/organizations")).to.eq(true);
         expect(UrlUtils.isOrganizationsAuthority("https://login.microsoftonline.com/common/")).to.eq(false);
+        expect(UrlUtils.isOrganizationsAuthority("https://login.microsoftonline.com/consumers/")).to.eq(false);
         expect(UrlUtils.isOrganizationsAuthority("https://login.microsoftonline.com/123456789/")).to.eq(false);
+    });
+
+    it("isConsumersAuthority", () => {
+        expect(UrlUtils.isConsumersAuthority("https://login.microsoftonline.com/consumers/")).to.eq(true);
+        expect(UrlUtils.isConsumersAuthority("https://login.microsoftonline.com/consumers")).to.eq(true);
+        expect(UrlUtils.isConsumersAuthority("https://login.microsoftonline.com/common/")).to.eq(false);
+        expect(UrlUtils.isConsumersAuthority("https://login.microsoftonline.com/organizations/")).to.eq(false);
+        expect(UrlUtils.isConsumersAuthority("https://login.microsoftonline.com/123456789/")).to.eq(false);
     });
 
     it("test getHashFromUrl returns hash from url if hash is single character", () => {
