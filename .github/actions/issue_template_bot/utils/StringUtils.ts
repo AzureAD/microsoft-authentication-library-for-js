@@ -1,17 +1,15 @@
+import * as yaml from "js-yaml";
+
 export class StringUtils {
     /**
      * Returns a list of labels configured on a template
      * @param templateBody 
      */
     static getLabelsFromTemplate(templateBody: string): Array<string> {
-        const templateMetadataRegEx = RegExp("---.*?labels:\\s*(.*?)(?=\\n).*?---", "gs");
-        let match: RegExpExecArray | null;
-        const labels = [];
-        while((match = templateMetadataRegEx.exec(templateBody)) !== null) {
-            labels.push(...match[1].split(" "));
-        }
+        const templateMetadata: Object = yaml.load(templateBody);
+        const labels = templateMetadata["labels"] || "";
 
-        return labels;
+        return labels.split(" ");
     }
 
     /**

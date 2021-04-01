@@ -3,6 +3,7 @@ import * as core from "@actions/core";
 import { IssueBotConfig } from "../../types/IssueBotConfig";
 import { IssueBotUtils } from "../IssueBotUtils";
 import { ConfigParams, Constants } from "../Constants";
+import * as yaml from "js-yaml";
 
 export class RepoFiles {
     private issueBotUtils: IssueBotUtils;
@@ -56,13 +57,14 @@ export class RepoFiles {
         const templates: Map<string, string> = new Map();
 
         response.data.forEach((file: any) => {
-            if (file.type === "file" && file.name.endsWith(".md")) {
+            if (file.type === "file" && file.name.endsWith(".yml")) {
                 filenames.push(file.name);
             }
         });
 
         const promises = filenames.map(async (filename) => {
             const fileContents = await this.getFileContents(`${Constants.TEMPLATE_DIRECTORY}/${filename}`);
+            console.log(yaml.load(fileContents));
             templates.set(filename, fileContents);
         });
 
