@@ -295,7 +295,7 @@ export class ConfigService {
 
   init(endpoint: string): Promise<boolean> {
     return new Promise<boolean>((resolve, reject) => {
-      this.http.get(endpoint).pipe(map(res => res))
+      this.http.get(endpoint).pipe(map(result => result))
         .subscribe(value => {
           this.settings = value;
           resolve(true);
