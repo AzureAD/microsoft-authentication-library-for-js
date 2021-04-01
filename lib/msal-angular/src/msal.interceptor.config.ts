@@ -12,5 +12,5 @@ export declare type MsalInterceptorAuthRequest = Omit<PopupRequest, "scopes"> | 
 export type MsalInterceptorConfiguration = {
     interactionType: InteractionType.Popup | InteractionType.Redirect;
     protectedResourceMap: Map<string, Array<string>>;
-    authRequest?: MsalInterceptorAuthRequest | ((originalAuthRequest: MsalInterceptorAuthRequest, msalService: MsalService, req: HttpRequest<unknown>) => MsalInterceptorAuthRequest);
+    authRequest?: MsalInterceptorAuthRequest | ((msalService: MsalService, req: HttpRequest<unknown>, originalAuthRequest: MsalInterceptorAuthRequest) => MsalInterceptorAuthRequest);
 };

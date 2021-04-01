@@ -49,7 +49,7 @@ export class MsalInterceptor implements HttpInterceptor {
         }
 
         const authRequest = typeof this.msalInterceptorConfig.authRequest === "function"
-            ? this.msalInterceptorConfig.authRequest({ account: account }, this.authService, req)
+            ? this.msalInterceptorConfig.authRequest(this.authService, req, { account: account })
             : { ...this.msalInterceptorConfig.authRequest, account };
 
         this.authService.getLogger().info(`Interceptor - ${scopes.length} scopes found for endpoint`);

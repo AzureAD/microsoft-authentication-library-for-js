@@ -58,7 +58,7 @@ export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
   return {
     interactionType: InteractionType.Popup,
     protectedResourceMap,
-    authRequest: (originalAuthRequest, msalService, httpReq) => {
+    authRequest: (msalService, httpReq, originalAuthRequest) => {
       return {
         ...originalAuthRequest,
         authority: `https://login.microsoftonline.com/${originalAuthRequest.account?.tenantId ?? 'organizations'}`
