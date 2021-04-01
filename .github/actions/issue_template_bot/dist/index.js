@@ -10438,11 +10438,11 @@ class StringUtils {
                 // Markdown does not show up in the published issue, ignore for the purposes of template matching
                 return;
             }
-            const validators = item["validators"];
-            if (!validators) {
+            const validations = item["validations"];
+            if (!validations) {
                 return;
             }
-            const required = validators["required"];
+            const required = validations["required"];
             if (!required) {
                 return;
             }

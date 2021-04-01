@@ -26,11 +26,11 @@ export class StringUtils {
                 return;
             }
 
-            const validators: Object = item["validators"];
-            if (!validators) {
+            const validations: Object = item["validations"];
+            if (!validations) {
                 return;
             }
-            const required: boolean = validators["required"];
+            const required: boolean = validations["required"];
             if (!required) {
                 return;
             }
