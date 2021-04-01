@@ -5,6 +5,7 @@
 
 import { AccountInfo } from "../account/AccountInfo";
 import { BaseAuthRequest } from "./BaseAuthRequest";
+import { StringDict } from "../utils/MsalTypes";
 
 /**
  * SilentFlow parameters passed by the user to retrieve credentials silently
@@ -20,4 +21,5 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
 export type CommonSilentFlowRequest = BaseAuthRequest & {
     account: AccountInfo;
     forceRefresh: boolean;
+    tokenQueryParameters?: StringDict;
 };

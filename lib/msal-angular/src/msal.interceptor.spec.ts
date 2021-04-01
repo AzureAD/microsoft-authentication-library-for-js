@@ -1,6 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { HTTP_INTERCEPTORS, HttpClient } from "@angular/common/http";
 import { HttpClientTestingModule, HttpTestingController } from "@angular/common/http/testing";
+import { Location } from "@angular/common";
 import { RouterTestingModule } from "@angular/router/testing";
 import { AccountInfo, AuthError, InteractionType, IPublicClientApplication, PublicClientApplication, SilentRequest } from '@azure/msal-browser';
 import { MsalModule, MsalService, MsalInterceptor, MsalBroadcastService } from './public-api';
@@ -42,7 +43,10 @@ function MSALInterceptorFactory(): MsalInterceptorConfiguration {
       ["https://api.test.com", ["default.scope1"]],
       ["https://*.test.com", ["default.scope2"]],
       ["http://localhost:3000/unprotect", null],
-      ["http://localhost:3000/", ["base.scope"]]
+      ["http://localhost:3000/", ["base.scope"]],
+      ["http://apps.com/tenant?abc", ["query.scope"]],
+      ["http://applicationA/slash/", ["custom.scope"]],
+      ["http://applicationB/noSlash", ["custom.scope"]]
     ]),
     authRequest: testInterceptorConfig.authRequest
   }
@@ -65,7 +69,8 @@ function initializeMsal() {
         provide: HTTP_INTERCEPTORS,
         useClass: MsalInterceptor,
         multi: true,
-      }
+      },
+      Location
     ],
   });
 
@@ -95,22 +100,24 @@ describe('MsalInterceptor', () => {
     });
   });
 
-  it("does not attach authorization header for unprotected resource", () => {
+  it("does not attach authorization header for unprotected resource", (done) => {
     httpClient.get("http://localhost/api").subscribe(response => expect(response).toBeTruthy());
 
     const request = httpMock.expectOne("http://localhost/api");
     request.flush({ data: "test" });
     expect(request.request.headers.get("Authorization")).toBeUndefined;
     httpMock.verify();
+    done();
   });
 
-  it("does not attach authorization header for own domain", () => {
+  it("does not attach authorization header for own domain", (done) => {
     httpClient.get("http://localhost:4200").subscribe(response => expect(response).toBeTruthy());
 
     const request = httpMock.expectOne("http://localhost:4200");
     request.flush({ data: "test" });
     expect(request.request.headers.get("Authorization")).toBeUndefined;
     httpMock.verify();
+    done();
   });
 
   it("attaches authorization header with access token for protected resource with exact match", done => {
@@ -188,7 +195,7 @@ describe('MsalInterceptor', () => {
     }, 200);
   });
 
-  it("attaches authorization header with access token to urlfor protected resource with wildcard, url has multiple slashes", done => {
+  it("attaches authorization header with access token to url for protected resource with wildcard, url has multiple slashes", done => {
     spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
       new Promise((resolve) => {
         //@ts-ignore
@@ -276,13 +283,14 @@ describe('MsalInterceptor', () => {
     }, 200);
   });
 
-  it("does not attach authorization header when scopes set to null, and resource is before any base url or wildcards", () => {
+  it("does not attach authorization header when scopes set to null, and resource is before any base url or wildcards", done => {
     httpClient.get("http://localhost:3000/unprotect").subscribe(response => expect(response).toBeTruthy());
 
     const request = httpMock.expectOne("http://localhost:3000/unprotect");
     request.flush({ data: "test" });
     expect(request.request.headers.get("Authorization")).toBeUndefined;
     httpMock.verify();
+    done();
   });
 
   it("attaches authorization header with access token from acquireTokenPopup if acquireTokenSilent fails in interceptor and interaction type is Popup", done => {
@@ -345,6 +353,7 @@ describe('MsalInterceptor', () => {
     }, 200);
   });
 
+
   it("keeps original authority, https://login.microsoftonline.com/common", done => {
     testInterceptorConfig.authRequest = {
       authority: 'https://login.microsoftonline.com/common'
@@ -395,4 +404,115 @@ describe('MsalInterceptor', () => {
       done();
     }, 200);
   });
+
+  it("attaches authorization header with access token for protected resource with queries", done => {
+    spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
+      new Promise((resolve) => {
+        //@ts-ignore
+        resolve({
+          accessToken: "access-token"
+        });
+      })
+    ));
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
+
+    httpClient.get("http://apps.com/tenant?abc").subscribe();
+    setTimeout(() => {
+      const request = httpMock.expectOne("http://apps.com/tenant?abc");
+      request.flush({ data: "test" });
+      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+      httpMock.verify();
+      done();
+    }, 200);
+  });
+
+  it("attaches authorization header with access token for protected resource with trailing slash", done => {
+    spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
+      new Promise((resolve) => {
+        //@ts-ignore
+        resolve({
+          accessToken: "access-token"
+        });
+      })
+    ));
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
+
+    httpClient.get("http://applicationA/slash").subscribe();
+    setTimeout(() => {
+      const request = httpMock.expectOne("http://applicationA/slash");
+      request.flush({ data: "test" });
+      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+      httpMock.verify();
+      done();
+    }, 200);
+  });
+
+  it("attaches authorization header with access token for endpoint with trailing slash", done => {
+    spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
+      new Promise((resolve) => {
+        //@ts-ignore
+        resolve({
+          accessToken: "access-token"
+        });
+      })
+    ));
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
+
+    httpClient.get("http://applicationB/noSlash/").subscribe();
+    setTimeout(() => {
+      const request = httpMock.expectOne("http://applicationB/noSlash/");
+      request.flush({ data: "test" });
+      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+      httpMock.verify();
+      done();
+    }, 200);
+  });
+
+  it("attaches authorization header with access token for relative endpoint", done => {
+    spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
+      new Promise((resolve) => {
+        //@ts-ignore
+        resolve({
+          accessToken: "access-token"
+        });
+      })
+    ));
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
+
+    httpClient.get("/v1.0/me").subscribe();
+    setTimeout(() => {
+      const request = httpMock.expectOne("/v1.0/me");
+      request.flush({ data: "test" });
+      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+      httpMock.verify();
+      done();
+    }, 200);
+  });
+
+  it("attaches authorization header with access token for relative endpoint which includes query", done => {
+    spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
+      new Promise((resolve) => {
+        //@ts-ignore
+        resolve({
+          accessToken: "access-token"
+        });
+      })
+    ));
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
+
+    httpClient.get("/tenant?abc").subscribe();
+    setTimeout(() => {
+      const request = httpMock.expectOne("/tenant?abc");
+      request.flush({ data: "test" });
+      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+      httpMock.verify();
+      done();
+    }, 200);
+  });
+
 });

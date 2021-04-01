@@ -2,6 +2,41 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 31 Mar 2021 22:25:57 GMT",
+      "tag": "@azure/msal-common_v4.1.1",
+      "version": "4.1.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update AccountInfo to refer to typedocs (#3266)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "ea88b22a7133f3e7001ce0690d26f84d93117d4b",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Update StringUtils.matchPattern to account for queries in string #3307",
+            "author": "joarroyo@microsoft.com",
+            "commit": "53af1706880da73c5e0185756c16f285840a7f1f",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Adds tokenQueryParameters request param #3309",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "91da4f7f8dc126458dcc7b4a1e22b707f48a302a",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Ignore account hints when prompt=select_account #3315",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6e836ce254dff695da41261d0012209cf98df13e",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 24 Mar 2021 22:55:46 GMT",
       "tag": "@azure/msal-common_v4.1.0",
       "version": "4.1.0",

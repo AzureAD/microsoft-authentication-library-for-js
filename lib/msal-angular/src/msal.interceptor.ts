@@ -9,10 +9,11 @@ import {
     HttpEvent,
     HttpInterceptor
 } from "@angular/common/http";
+import { Location } from "@angular/common";
 import { Observable, EMPTY, of } from "rxjs";
 import { switchMap, catchError } from "rxjs/operators";
 import { MsalService } from "./msal.service";
-import { AccountInfo, AuthenticationResult, BrowserConfigurationAuthError, InteractionType, StringUtils } from "@azure/msal-browser";
+import { AccountInfo, AuthenticationResult, BrowserConfigurationAuthError, InteractionType, StringUtils, UrlString } from "@azure/msal-browser";
 import { Injectable, Inject } from "@angular/core";
 import { MSAL_INTERCEPTOR_CONFIG } from "./constants";
 import { MsalInterceptorAuthRequest, MsalInterceptorConfiguration } from "./msal.interceptor.config";
@@ -21,7 +22,8 @@ import { MsalInterceptorAuthRequest, MsalInterceptorConfiguration } from "./msal
 export class MsalInterceptor implements HttpInterceptor {
     constructor(
         @Inject(MSAL_INTERCEPTOR_CONFIG) private msalInterceptorConfig: MsalInterceptorConfiguration,
-        private authService: MsalService
+        private authService: MsalService,
+        private location: Location
     ) {}
 
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
@@ -104,9 +106,26 @@ export class MsalInterceptor implements HttpInterceptor {
      */
     private getScopesForEndpoint(endpoint: string): Array<string>|null {
         this.authService.getLogger().verbose("Interceptor - getting scopes for endpoint");
+
+        // Ensures endpoints and protected resources compared are normalized
+        const normalizedEndpoint = this.location.normalize(endpoint);
+
         const protectedResourcesArray = Array.from(this.msalInterceptorConfig.protectedResourceMap.keys());
+
         const keyMatchesEndpointArray = protectedResourcesArray.filter(key => {
-            return StringUtils.matchPattern(key, endpoint);
+            const normalizedKey = this.location.normalize(key);
+            
+            // Normalized key should include query strings if applicable
+            const keyComponents = new UrlString(key).getUrlComponents();
+            const relativeNormalizedKey = keyComponents.QueryString ? `${keyComponents.AbsolutePath}?${keyComponents.QueryString}` : this.location.normalize(keyComponents.AbsolutePath);
+
+            // Relative endpoint not applicable, matching endpoint with protected resource. StringUtils.matchPattern accounts for wildcards
+            if (relativeNormalizedKey === "" || relativeNormalizedKey === "/*") {
+                return StringUtils.matchPattern(normalizedKey, normalizedEndpoint);
+            } else {
+                // Matching endpoint with both protected resource and relative url of protected resource
+                return StringUtils.matchPattern(normalizedKey, normalizedEndpoint) || StringUtils.matchPattern(relativeNormalizedKey, normalizedEndpoint);
+            }
         });
 
         // Process all protected resources and send the first matched resource
