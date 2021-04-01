@@ -24,9 +24,9 @@ body:
   attributes:
     label: Core Library
     options: 
-      - azure/msal or msal
-      - azure/msal-browser
-      - azure/msal-node
+      - "@azure/msal or msal"
+      - "@azure/msal-browser"
+      - "@azure/msal-node"
   validations:
     required: true
     
@@ -42,8 +42,8 @@ body:
   attributes:
     label: Wrapper Library
     options:
-      - azure/msal-angular
-      - azure/msal-react
+      - "@azure/msal-angular"
+      - "@azure/msal-react"
     
 - type: input
   attributes:
