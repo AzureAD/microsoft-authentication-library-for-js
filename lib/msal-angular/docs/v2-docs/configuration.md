@@ -315,7 +315,7 @@ export class ConfigService {
       key = key.split('.');
     }
 
-    let result = key.reduce((acc: any, current: string) => acc && acc[current], this.settings);
+    let result = key.reduce((account: any, current: string) => account && account[current], this.settings);
 
     return result;
   }
