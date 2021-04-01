@@ -10841,7 +10841,7 @@ class RepoFiles {
         const filenames = [];
         const templates = new Map();
         response.data.forEach((file) => {
-            if (file.type === "file" && file.name.endsWith(".yml")) {
+            if (file.type === "file" && file.name.endsWith(".yml") && file.name !== "config.yml") {
                 core.info(`Found template: ${file.name}`);
                 filenames.push(file.name);
             }
