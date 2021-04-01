@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Wed, 24 Mar 2021 22:55:46 GMT and should not be manually modified.
+This log was last generated on Wed, 31 Mar 2021 22:25:57 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 4.1.1
+
+Wed, 31 Mar 2021 22:25:57 GMT
+
+### Patches
+
+- Update StringUtils.matchPattern to account for queries in string #3307 (joarroyo@microsoft.com)
+- Adds tokenQueryParameters request param #3309 (thomas.norling@microsoft.com)
+- Ignore account hints when prompt=select_account #3315 (thomas.norling@microsoft.com)
 
 ## 4.1.0
 
