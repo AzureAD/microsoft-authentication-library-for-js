@@ -8,7 +8,7 @@ export class StringUtils {
     static getLabelsFromTemplate(templateBody: Object): Array<string> {
         const labels = templateBody["labels"] || "";
 
-        return labels.split(" ");
+        return labels.trim().split(" ");
     }
 
     /**
