@@ -76,20 +76,15 @@ export class IssueManager {
             // Iterate through the label config to determine what labels should be added/removed
             Object.entries(labels).forEach(([label, labelConfig]) => {
                 core.info(`Checking label: ${label}`);
-                let labelMatched = false;
-                labelConfig.searchStrings.every(searchString => {
+                const labelMatched = labelConfig.searchStrings.some(searchString => {
                     // For each search string in the config determine if a selection was made on the issue with [x]
                     core.info(`Searching string: ${searchString}`);
-                    const libraryRegEx = RegExp("-\\s*\\[\\s*[xX]\\s*\\]\\s*(.*)", "g");
-                    let match: RegExpExecArray | null;
-                    while((match = libraryRegEx.exec(headerContent)) !== null) {
-                        if (match[1].includes(searchString)) {
-                            labelMatched = true;
-                            break;
-                        }
+                    if (headerContent.includes(searchString)) {
+                        core.info(`Found ${searchString}`);
+                        return true;
                     }
 
-                    return !labelMatched;
+                    return false;
                 });
 
                 // If a search string was found and selected, add the relevant label to the issue
