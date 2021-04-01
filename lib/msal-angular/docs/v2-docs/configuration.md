@@ -348,6 +348,7 @@ const isIE = window.navigator.userAgent.indexOf("MSIE ") > -1 || window.navigato
 export function loggerCallback(logLevel: LogLevel, message: string) {
   console.log(message);
 }
+
 export function MSALInstanceFactory(config: ConfigService): IPublicClientApplication {
   return new PublicClientApplication({
     auth: config.getSettings('msal').auth,
