@@ -10,10 +10,10 @@ export class StringUtils {
     }
 
     /**
-     * Parses the template and returns a map where the key is the heading (denoted by at least 2 #) and value is the content underneath
-     * @param issueBody 
+     * Parses the template and returns an array of required sections on the template
+     * @param template
      */
-     static getTemplateSections(template: Object): Array<string> {
+     static getRequiredTemplateSections(template: Object): Array<string> {
         const sections = [];
         const body: Array<Object> = template["body"];
         if (!body) {
@@ -23,6 +23,15 @@ export class StringUtils {
         body.forEach((item: Object) => {
             if (!item["type"] || item["type"] === "markdown") {
                 // Markdown does not show up in the published issue, ignore for the purposes of template matching
+                return;
+            }
+
+            const validators: Object = item["validators"];
+            if (!validators) {
+                return;
+            }
+            const required: boolean = validators["required"];
+            if (!required) {
                 return;
             }
 

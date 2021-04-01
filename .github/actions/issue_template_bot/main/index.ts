@@ -44,6 +44,10 @@ async function run() {
         const templateEnforcer = new TemplateEnforcer(issue.number, payload.action);
         const isTemplateComplete = await templateEnforcer.enforceTemplate(issue.body, config);
 
+        if (templateEnforcer.issueClosed) {
+            return;
+        }
+
         // Label, assign, comment on issue based on content in the issue body
         core.info("Start Issue Manager");
         const issueManager = new IssueManager(issue.number, config.selectors);

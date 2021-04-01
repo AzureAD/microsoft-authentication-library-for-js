@@ -37,14 +37,6 @@
         }
     },
     "enforceTemplate": true,
-    "optionalSections": [
-        "Framework",
-        "Error Message",
-        "Security",
-        "Regression",
-        "Browsers/Environment",
-        "Source"
-    ],
     "templateEnforcementLabel": "more-information-needed",
     "incompleteTemplateMessage": "Please update the original issue and make sure to fill out the entire issue template so we can better assist you.",
     "noTemplateMessage": "Please open a new issue and use one of the provided issue templates. Thanks!",

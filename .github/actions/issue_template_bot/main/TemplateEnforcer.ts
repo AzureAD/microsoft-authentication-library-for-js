@@ -15,6 +15,7 @@ export class TemplateEnforcer {
     private issueLabels: IssueLabels;
     private issueComments: IssueComments;
     private repoFiles: RepoFiles;
+    issueClosed: boolean;
 
     constructor(issueNo: number, action?: string) {
         this.action = action || "edited";
@@ -22,6 +23,7 @@ export class TemplateEnforcer {
         this.issueLabels = new IssueLabels(this.issueBotUtils);
         this.issueComments = new IssueComments(this.issueBotUtils);
         this.repoFiles = new RepoFiles(this.issueBotUtils);
+        this.issueClosed = false;
     }
 
     /**
@@ -36,7 +38,7 @@ export class TemplateEnforcer {
         const templateUsed = await this.getTemplate(issueBody, templateMap, currentLabels);
         let isIssueFilled = false;
         if (templateUsed) {
-            isIssueFilled = this.didIssueFillOutTemplate(issueBody, templateUsed, config.optionalSections);
+            isIssueFilled = this.didIssueFillOutTemplate(issueBody, templateUsed);
         }
 
         await this.commentOnIssue(config, !!templateUsed, isIssueFilled);
@@ -44,6 +46,7 @@ export class TemplateEnforcer {
         if (config.noTemplateClose && !templateUsed) {
             core.info("Closing issue due to no template used");
             await this.issueBotUtils.closeIssue();
+            this.issueClosed = true;
         }
 
         // Return true if template filled out completely, false if not used or incomplete
@@ -129,15 +132,11 @@ export class TemplateEnforcer {
      * @param template 
      * @param optionalSections 
      */
-    private didIssueFillOutTemplate(issueBody: string, template: Object, optionalSections?: Array<string>): boolean {
-        const templateHeaders = StringUtils.getTemplateSections(template);
+    private didIssueFillOutTemplate(issueBody: string, template: Object): boolean {
+        const requiredSections = StringUtils.getRequiredTemplateSections(template);
         const issueSections = StringUtils.getIssueSections(issueBody);
 
-        return templateHeaders.every((sectionHeader) => {
-            if (optionalSections && optionalSections.includes(sectionHeader)) {
-                return true;
-            }
-
+        return requiredSections.every((sectionHeader) => {
             if (!issueSections.has(sectionHeader)) {
                 core.info(`Does not have header: ${sectionHeader}`)
                 return false;
@@ -197,7 +196,7 @@ export class TemplateEnforcer {
 
         templateMap.forEach((contents, filename) => {
             core.info(`Checking: ${filename}`);
-            const templateHeaders = StringUtils.getTemplateSections(contents);
+            const templateHeaders = StringUtils.getRequiredTemplateSections(contents);
             let sectionsMatched = 0;
             templateHeaders.forEach((sectionHeader) => {
                 if (issueSections.has(sectionHeader)) {
@@ -216,7 +215,7 @@ export class TemplateEnforcer {
             }
         });
 
-        if (largestFullMatch >= largestPartialMatch) {
+        if (largestFullMatch > 0) {
             core.info(`Best Possible Template Match: ${fullMatchTemplateName}`);
             return fullMatchTemplateName;
         } else {

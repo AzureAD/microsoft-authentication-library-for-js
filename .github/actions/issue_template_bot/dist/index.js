@@ -10074,6 +10074,7 @@ class TemplateEnforcer {
         this.issueLabels = new IssueLabels_1.IssueLabels(this.issueBotUtils);
         this.issueComments = new IssueComments_1.IssueComments(this.issueBotUtils);
         this.repoFiles = new RepoFiles_1.RepoFiles(this.issueBotUtils);
+        this.issueClosed = false;
     }
     /**
      * Attempts to determine what issue template was used based on the current labels and content in the issue
@@ -10087,12 +10088,13 @@ class TemplateEnforcer {
         const templateUsed = await this.getTemplate(issueBody, templateMap, currentLabels);
         let isIssueFilled = false;
         if (templateUsed) {
-            isIssueFilled = this.didIssueFillOutTemplate(issueBody, templateUsed, config.optionalSections);
+            isIssueFilled = this.didIssueFillOutTemplate(issueBody, templateUsed);
         }
         await this.commentOnIssue(config, !!templateUsed, isIssueFilled);
         if (config.noTemplateClose && !templateUsed) {
             core.info("Closing issue due to no template used");
             await this.issueBotUtils.closeIssue();
+            this.issueClosed = true;
         }
         // Return true if template filled out completely, false if not used or incomplete
         return !!templateUsed && !!isIssueFilled;
@@ -10172,13 +10174,10 @@ class TemplateEnforcer {
      * @param template
      * @param optionalSections
      */
-    didIssueFillOutTemplate(issueBody, template, optionalSections) {
-        const templateHeaders = StringUtils_1.StringUtils.getTemplateSections(template);
+    didIssueFillOutTemplate(issueBody, template) {
+        const requiredSections = StringUtils_1.StringUtils.getRequiredTemplateSections(template);
         const issueSections = StringUtils_1.StringUtils.getIssueSections(issueBody);
-        return templateHeaders.every((sectionHeader) => {
-            if (optionalSections && optionalSections.includes(sectionHeader)) {
-                return true;
-            }
+        return requiredSections.every((sectionHeader) => {
             if (!issueSections.has(sectionHeader)) {
                 core.info(`Does not have header: ${sectionHeader}`);
                 return false;
@@ -10229,7 +10228,7 @@ class TemplateEnforcer {
         const issueSections = StringUtils_1.StringUtils.getIssueSections(issueBody);
         templateMap.forEach((contents, filename) => {
             core.info(`Checking: ${filename}`);
-            const templateHeaders = StringUtils_1.StringUtils.getTemplateSections(contents);
+            const templateHeaders = StringUtils_1.StringUtils.getRequiredTemplateSections(contents);
             let sectionsMatched = 0;
             templateHeaders.forEach((sectionHeader) => {
                 if (issueSections.has(sectionHeader)) {
@@ -10247,7 +10246,7 @@ class TemplateEnforcer {
                 partialMatchTemplateName = filename;
             }
         });
-        if (largestFullMatch >= largestPartialMatch) {
+        if (largestFullMatch > 0) {
             core.info(`Best Possible Template Match: ${fullMatchTemplateName}`);
             return fullMatchTemplateName;
         }
@@ -10307,6 +10306,9 @@ async function run() {
         core.info("Start Template Enforcer");
         const templateEnforcer = new TemplateEnforcer_1.TemplateEnforcer(issue.number, payload.action);
         const isTemplateComplete = await templateEnforcer.enforceTemplate(issue.body, config);
+        if (templateEnforcer.issueClosed) {
+            return;
+        }
         // Label, assign, comment on issue based on content in the issue body
         core.info("Start Issue Manager");
         const issueManager = new IssueManager_1.IssueManager(issue.number, config.selectors);
@@ -10422,10 +10424,10 @@ class StringUtils {
         return templateBody["labels"] || [];
     }
     /**
-     * Parses the template and returns a map where the key is the heading (denoted by at least 2 #) and value is the content underneath
-     * @param issueBody
+     * Parses the template and returns an array of required sections on the template
+     * @param template
      */
-    static getTemplateSections(template) {
+    static getRequiredTemplateSections(template) {
         const sections = [];
         const body = template["body"];
         if (!body) {
@@ -10434,6 +10436,14 @@ class StringUtils {
         body.forEach((item) => {
             if (!item["type"] || item["type"] === "markdown") {
                 // Markdown does not show up in the published issue, ignore for the purposes of template matching
+                return;
+            }
+            const validators = item["validators"];
+            if (!validators) {
+                return;
+            }
+            const required = validators["required"];
+            if (!required) {
                 return;
             }
             const attributes = item["attributes"];
