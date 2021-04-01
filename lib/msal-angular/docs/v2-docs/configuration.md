@@ -288,6 +288,7 @@ import { map } from 'rxjs/operators';
 export class ConfigService {
   private settings: any;
   private http: HttpClient;
+
   constructor(private readonly httpHandler: HttpBackend) {
     this.http = new HttpClient(httpHandler);
   }
