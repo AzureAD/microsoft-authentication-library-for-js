@@ -274,7 +274,7 @@ fetch('/assets/configuration.json')
 
 ## Dynamic configurations using Factory Providers and APP_INITIALIZER
 
-To dynamically configure MSAL Angular, you can use the Factory Providers with APP_INITIALIZER
+To dynamically configure MSAL Angular, you can use the Factory Providers with APP_INITIALIZER.
 
 `src/app/config.service.ts`
 ```typescript
