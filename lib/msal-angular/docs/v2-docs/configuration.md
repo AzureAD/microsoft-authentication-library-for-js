@@ -378,7 +378,7 @@ export function MSALGuardConfigFactory(config: ConfigService): MsalGuardConfigur
       authRequest: config.getSettings('guard').authRequest,
       loginFailedRoute: config.getSettings('guard').loginFailedRoute
     };
-  }
+}
 
 @NgModule({
     providers: [
