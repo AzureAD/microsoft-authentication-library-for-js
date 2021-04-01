@@ -326,7 +326,7 @@ export class ConfigService {
 ```typescript
 import { InjectionToken, NgModule, APP_INITIALIZER } from '@angular/core';
 import { IPublicClientApplication, PublicClientApplication, 
-    InteractionType, BrowserCacheLocation, LogLevel } from '@azure/msal-browser';
+    LogLevel } from '@azure/msal-browser';
 import { MsalGuard, MsalInterceptor, MsalBroadcastService,
      MsalInterceptorConfiguration, MsalModule, MsalService,
       MSAL_GUARD_CONFIG, MSAL_INSTANCE, MSAL_INTERCEPTOR_CONFIG, 
