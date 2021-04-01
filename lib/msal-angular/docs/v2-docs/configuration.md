@@ -381,7 +381,7 @@ export function MSALGuardConfigFactory(config: ConfigService): MsalGuardConfigur
 }
 
 @NgModule({
-    providers: [
+    providers: [],
     ],
     imports: [MsalModule]
 })
