@@ -10428,12 +10428,18 @@ class StringUtils {
     static getTemplateSections(template) {
         const sections = [];
         const body = template["body"];
+        if (!body) {
+            return [];
+        }
         body.forEach((item) => {
-            if (item["type"] === "markdown") {
+            if (!item["type"] || item["type"] === "markdown") {
                 // Markdown does not show up in the published issue, ignore for the purposes of template matching
                 return;
             }
             const attributes = item["attributes"];
+            if (!attributes) {
+                return;
+            }
             const sectionName = attributes["label"];
             if (sectionName) {
                 sections.push(sectionName);
