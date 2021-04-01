@@ -330,7 +330,7 @@ import { IPublicClientApplication, PublicClientApplication,
 import { MsalGuard, MsalInterceptor, MsalBroadcastService,
      MsalInterceptorConfiguration, MsalModule, MsalService,
       MSAL_GUARD_CONFIG, MSAL_INSTANCE, MSAL_INTERCEPTOR_CONFIG, 
-      MsalGuardConfiguration, MsalRedirectComponent } from '@azure/msal-angular';
+      MsalGuardConfiguration } from '@azure/msal-angular';
 import { HTTP_INTERCEPTORS } from '@angular/common/http';
 import { ConfigService } from './config.service';
 
