@@ -10262,7 +10262,6 @@ async function run() {
         core.setFailed("No issue on payload!");
         return;
     }
-    core.info(`Issue Created at: ${issue.created_at}`);
     if (issue.number && issue.body) {
         const issueBotUtils = new IssueBotUtils_1.IssueBotUtils(issue.number);
         const repoFiles = new RepoFiles_1.RepoFiles(issueBotUtils);
@@ -10271,6 +10270,20 @@ async function run() {
         if (!config) {
             core.setFailed("Unable to parse config file!");
             return;
+        }
+        if (config.ignoreIssuesOpenedBefore) {
+            try {
+                const createDate = Date.parse(issue.created_at);
+                const ignoreBeforeDate = Date.parse(config.ignoreIssuesOpenedBefore);
+                if (createDate < ignoreBeforeDate) {
+                    core.info(`Ignoring issue due to configuration. Issue created at: ${issue.created_at}`);
+                    return;
+                }
+            }
+            catch (e) {
+                core.error(`Error Occurred when parsing dates: ${e}`);
+                return;
+            }
         }
         // Ensure a template was used and filled out
         core.info("Start Template Enforcer");

@@ -1,5 +1,3 @@
-import * as yaml from "js-yaml";
-
 export class StringUtils {
     /**
      * Returns a list of labels configured on a template

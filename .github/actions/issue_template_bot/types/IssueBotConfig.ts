@@ -5,7 +5,7 @@ import { IssueLabelerConfig } from "./IssueLabelerConfig";
  */
 export type IssueBotConfig = {
     selectors: IssueLabelerConfig,
-    ignoreIssuesOpenedBefore: string,
+    ignoreIssuesOpenedBefore?: string,
     enforceTemplate: boolean,
     templateEnforcementLabel?: string,
     incompleteTemplateMessage?: string,

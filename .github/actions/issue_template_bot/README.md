@@ -58,6 +58,7 @@ Schema:
         },
     },
     "enforceTemplate": boolean,
+    "ignoreIssuesOpenedBefore"?: string,
     "templateEnforcementLabel"?: string,
     "incompleteTemplateMessage"?: string,
     "noTemplateMessage"?: string,
@@ -70,6 +71,7 @@ Schema:
 | Config Key                  | Description                                                                               |
 |-----------------------------|-------------------------------------------------------------------------------------------|
 | `selectors`                 | Configuration for checkbox selections (See [below](#selector-config))                     |
+| `ignoreIssuesOpenedBefore`  | String date. Issues created before this date will be ignored                              |
 | `enforceTemplate`           | When set to true the issue content will be compared to issue templates                    |
 | `templateEnforcementLabel`  | Label to add to issues that fail template enforcement                                     |
 | `incompleteTemplateMessage` | Comment to leave on issues that use a template but did not complete all required sections |
