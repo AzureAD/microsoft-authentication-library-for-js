@@ -80,17 +80,20 @@ export class TemplateEnforcer {
                 const chosenTemplate = new Map();
                 chosenTemplate.set(templateName, templateMap.get(templateName));
                 templateName = this.matchBySection(chosenTemplate, issueBody);
+                if (templateName) {
+                    return templateMap.get(templateName);
+                }
             }
-        } else {
-            templateName = this.matchBySection(templateMap, issueBody);
         }
+
+        templateName = this.matchBySection(templateMap, issueBody);
 
         if (!templateName) {
             core.info("No matching template found!");
             return null;
         }
 
-        return templateMap.get(templateName) || null;
+        return templateMap.get(templateName);
     }
 
     /**

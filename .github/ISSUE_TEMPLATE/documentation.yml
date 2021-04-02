@@ -6,6 +6,7 @@ body:
 - type: dropdown
   attributes:
     label: Core Library
+    multiple: true
     options: 
       - "@azure/msal or msal"
       - "@azure/msal-browser"
@@ -14,6 +15,7 @@ body:
 - type: dropdown
   attributes:
     label: Wrapper Library
+    multiple: true
     options:
       - "@azure/msal-angular"
       - "@azure/msal-react"
