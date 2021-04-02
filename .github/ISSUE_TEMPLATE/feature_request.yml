@@ -1,0 +1,37 @@
+name: Feature request
+description: Suggest a feature for one of our libraries.
+labels: feature
+body:
+- type: dropdown
+  attributes:
+    label: Core Library
+    options: 
+      - "@azure/msal or msal"
+      - "@azure/msal-browser"
+      - "@azure/msal-node"
+  validations:
+    required: true
+
+- type: dropdown
+  attributes:
+    label: Wrapper Library
+    options:
+      - "@azure/msal-angular"
+      - "@azure/msal-react"
+
+- type: textarea
+  attributes:
+    label: Description
+    description: "Please briefly describe the feature you are requesting."
+  validations: 
+    required: true
+
+- type: dropdown
+  attributes:
+    label: Source
+    description: "Are you an internal or external customer?"
+    options: 
+      - Internal (Microsoft)
+      - External (Customer)
+  validations: 
+     required: true

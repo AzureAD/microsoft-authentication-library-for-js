@@ -1,0 +1,34 @@
+name: Documentation
+description: Issues with documentation for one of our libraries.
+labels: documentation, question
+body:
+
+- type: dropdown
+  attributes:
+    label: Core Library
+    options: 
+      - "@azure/msal or msal"
+      - "@azure/msal-browser"
+      - "@azure/msal-node"
+
+- type: dropdown
+  attributes:
+    label: Wrapper Library
+    options:
+      - "@azure/msal-angular"
+      - "@azure/msal-react"
+
+- type: input
+  attributes:
+    label: Documentation Location
+    description: Please provide a link to the documentation this issue is about
+    placeholder: "docs.microsoft.com"
+  validations: 
+    required: true
+
+- type: textarea
+  attributes:
+    label: Description
+    description: "Please briefly describe your issue."
+  validations: 
+    required: true
