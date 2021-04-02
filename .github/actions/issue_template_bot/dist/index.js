@@ -10262,6 +10262,7 @@ async function run() {
         core.setFailed("No issue on payload!");
         return;
     }
+    core.info(`Issue Created at: ${issue.created_at}`);
     if (issue.number && issue.body) {
         const issueBotUtils = new IssueBotUtils_1.IssueBotUtils(issue.number);
         const repoFiles = new RepoFiles_1.RepoFiles(issueBotUtils);

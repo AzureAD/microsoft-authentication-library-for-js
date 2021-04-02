@@ -28,6 +28,8 @@ async function run() {
         return;
     }
 
+    core.info(`Issue Created at: ${issue.created_at}`);
+
     if (issue.number && issue.body) {
         const issueBotUtils = new IssueBotUtils(issue.number);
         const repoFiles = new RepoFiles(issueBotUtils);

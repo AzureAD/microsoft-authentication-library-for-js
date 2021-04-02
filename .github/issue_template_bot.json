@@ -34,6 +34,7 @@
             }
         }
     },
+    "ignoreIssuesOpenedBefore": "2021-04-01T00:00:00Z",
     "enforceTemplate": true,
     "templateEnforcementLabel": "more-information-needed",
     "incompleteTemplateMessage": "Please update the original issue and make sure to fill out the entire issue template so we can better assist you.",
