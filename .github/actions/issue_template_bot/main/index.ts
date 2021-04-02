@@ -4,7 +4,6 @@ import { IssueBotUtils } from "../utils/IssueBotUtils";
 import { RepoFiles } from "../utils/github_api_utils/RepoFiles";
 import { IssueManager } from "./IssueManager";
 import { TemplateEnforcer } from "./TemplateEnforcer";
-import { IssueLabels } from "../utils/github_api_utils/IssueLabels";
 
 /**
  * Entry point for the issue template bot

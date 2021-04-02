@@ -1,6 +1,6 @@
 name: Documentation
 description: Issues with documentation for one of our libraries.
-labels: documentation, question
+labels: [documentation, question]
 body:
 
 - type: dropdown

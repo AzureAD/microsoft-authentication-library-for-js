@@ -1,6 +1,6 @@
 name: Question
 description: General questions about one of our libraries or related services.
-labels: question
+labels: [question]
 body:
 - type: markdown
   attributes:
