@@ -15,7 +15,6 @@ export class TemplateEnforcer {
     private issueLabels: IssueLabels;
     private issueComments: IssueComments;
     private repoFiles: RepoFiles;
-    issueClosed: boolean;
 
     constructor(issueNo: number, action?: string) {
         this.action = action || "edited";
@@ -23,7 +22,6 @@ export class TemplateEnforcer {
         this.issueLabels = new IssueLabels(this.issueBotUtils);
         this.issueComments = new IssueComments(this.issueBotUtils);
         this.repoFiles = new RepoFiles(this.issueBotUtils);
-        this.issueClosed = false;
     }
 
     /**
@@ -36,21 +34,34 @@ export class TemplateEnforcer {
         const currentLabels = await this.issueLabels.getCurrentLabels();
         const templateMap = await this.repoFiles.getIssueTemplates();
         const templateUsed = await this.getTemplate(issueBody, templateMap, currentLabels);
-        let isIssueFilled = false;
+        let isTemplateComplete = false;
         if (templateUsed) {
-            isIssueFilled = this.didIssueFillOutTemplate(issueBody, templateUsed);
+            isTemplateComplete = this.didIssueFillOutTemplate(issueBody, templateUsed);
         }
 
-        await this.commentOnIssue(config, !!templateUsed, isIssueFilled);
+        await this.commentOnIssue(config, !!templateUsed, isTemplateComplete);
+
+        // Add/remove enforcement label if the user needs to edit their issue
+        if (config.enforceTemplate && config.templateEnforcementLabel) {
+            const issueLabels = new IssueLabels(this.issueBotUtils);
+            if (isTemplateComplete) {
+                const currentLabels = await issueLabels.getCurrentLabels();
+                await issueLabels.removeLabels([config.templateEnforcementLabel], currentLabels);
+            } else {
+                await issueLabels.addLabels([config.templateEnforcementLabel]);
+            }
+        }
 
         if (config.noTemplateClose && !templateUsed) {
             core.info("Closing issue due to no template used");
             await this.issueBotUtils.closeIssue();
-            this.issueClosed = true;
+
+            // Return true if template was not used and issue is closed
+            return true;
         }
 
-        // Return true if template filled out completely, false if not used or incomplete
-        return !!templateUsed && !!isIssueFilled;
+        // Return false if template was used
+        return false;
     }
 
     /**

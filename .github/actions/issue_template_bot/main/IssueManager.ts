@@ -5,7 +5,6 @@ import { IssueLabelerConfig } from "../types/IssueLabelerConfig";
 import { ProjectConfig } from "../types/ProjectConfig";
 import { StringUtils } from "../utils/StringUtils";
 import { IssueLabels } from "../utils/github_api_utils/IssueLabels";
-import { IssueComments } from "../utils/github_api_utils/IssueComments";
 import { IssueAssignees } from "../utils/github_api_utils/IssueAssignees";
 
 /**
@@ -13,7 +12,6 @@ import { IssueAssignees } from "../utils/github_api_utils/IssueAssignees";
  */
 export class IssueManager {
     private issueLabelConfig: IssueLabelerConfig;
-    private noSelectionMadeHeaders: Array<string>
     private assignees: Set<string>;
     private projectsToAdd: Set<ProjectConfig>;
     private allProjects: Set<ProjectConfig>;
@@ -22,12 +20,10 @@ export class IssueManager {
     private issueBotUtils: IssueBotUtils;
     private projectBoard: ProjectBoard;
     private issueLabels: IssueLabels;
-    private issueComments: IssueComments;
     private issueAssignees: IssueAssignees;
 
     constructor(issueNo: number, issueLabelConfig: IssueLabelerConfig){
         this.issueLabelConfig = issueLabelConfig;
-        this.noSelectionMadeHeaders = [];
         this.assignees = new Set();
         this.projectsToAdd = new Set();
         this.allProjects = new Set();
@@ -37,7 +33,6 @@ export class IssueManager {
         this.issueBotUtils = new IssueBotUtils(issueNo);
         this.projectBoard = new ProjectBoard(this.issueBotUtils);
         this.issueLabels = new IssueLabels(this.issueBotUtils);
-        this.issueComments = new IssueComments(this.issueBotUtils);
         this.issueAssignees = new IssueAssignees(this.issueBotUtils);
     }
 
@@ -45,15 +40,11 @@ export class IssueManager {
      * Main entry function. Calls all the helper functions to perform specific tasks on the issue
      * @param issueBody 
      */
-    async updateIssue(issueBody: string): Promise<boolean> {
+    async updateIssue(issueBody: string): Promise<void> {
         await this.parseIssue(issueBody);
         await this.updateIssueLabels();
         await this.assignUsersToIssue();
-        await this.commentOnIssue();
         await this.updateIssueProjects();
-
-        // Return true if compliant, false if not compliant
-        return this.noSelectionMadeHeaders.length < 1;
     }
 
     /**
@@ -112,11 +103,6 @@ export class IssueManager {
                     this.allProjects.add(labelConfig.project);
                 }
             });
-
-            // If no selection was made under this header, add the header to an array denoting no selection was made. Will be compared later to the required sections
-            if (!labelFoundForHeader && value.enforceSelection) {
-                this.noSelectionMadeHeaders.push(header);
-            }
         });
     }
 
@@ -125,40 +111,6 @@ export class IssueManager {
      */
     private async updateIssueLabels() {
         await this.issueLabels.updateLabels(this.labelsToAdd, this.labelsToRemove);
-    }
-
-    /**
-     * Add a comment to the issue if no selection was made in a required section (e.g. no library was selected)
-     * Remove or update a previous comment if the status has changed (user edited their issue to make a selection)
-     */
-    private async commentOnIssue() {
-        const baseComment = "Invalid Selections Detected:"
-        const lastCommentId = await this.issueComments.getLastCommentId(baseComment);
-        if (this.noSelectionMadeHeaders.length <= 0) {
-            core.info("All required sections contained valid selections");
-            if (lastCommentId) {
-                core.info("Removing last comment from bot");
-                await this.issueComments.removeComment(lastCommentId);
-            }
-            return;
-        }
-
-        let commentLines = [baseComment]
-
-        this.noSelectionMadeHeaders.forEach((header) => {
-            const headerConfig = this.issueLabelConfig[header];
-            if (headerConfig.enforceSelection && headerConfig.message) {
-                commentLines.push(headerConfig.message);
-            }
-        });
-
-        if (lastCommentId) {
-            core.info("Updating last comment from bot");
-            await this.issueComments.updateComment(lastCommentId, commentLines.join("\n"));
-        } else {
-            core.info("Creating new comment");
-            await this.issueComments.addComment(commentLines.join("\n"));
-        }
     }
 
     /**

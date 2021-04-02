@@ -9892,7 +9892,6 @@ const IssueBotUtils_1 = __webpack_require__(446);
 const ProjectBoard_1 = __webpack_require__(2723);
 const StringUtils_1 = __webpack_require__(6855);
 const IssueLabels_1 = __webpack_require__(6035);
-const IssueComments_1 = __webpack_require__(5606);
 const IssueAssignees_1 = __webpack_require__(6848);
 /**
  * Adds labels, assignees and comments and adds issue to a project board based on the content in the issue body.
@@ -9900,7 +9899,6 @@ const IssueAssignees_1 = __webpack_require__(6848);
 class IssueManager {
     constructor(issueNo, issueLabelConfig) {
         this.issueLabelConfig = issueLabelConfig;
-        this.noSelectionMadeHeaders = [];
         this.assignees = new Set();
         this.projectsToAdd = new Set();
         this.allProjects = new Set();
@@ -9909,7 +9907,6 @@ class IssueManager {
         this.issueBotUtils = new IssueBotUtils_1.IssueBotUtils(issueNo);
         this.projectBoard = new ProjectBoard_1.ProjectBoard(this.issueBotUtils);
         this.issueLabels = new IssueLabels_1.IssueLabels(this.issueBotUtils);
-        this.issueComments = new IssueComments_1.IssueComments(this.issueBotUtils);
         this.issueAssignees = new IssueAssignees_1.IssueAssignees(this.issueBotUtils);
     }
     /**
@@ -9920,10 +9917,7 @@ class IssueManager {
         await this.parseIssue(issueBody);
         await this.updateIssueLabels();
         await this.assignUsersToIssue();
-        await this.commentOnIssue();
         await this.updateIssueProjects();
-        // Return true if compliant, false if not compliant
-        return this.noSelectionMadeHeaders.length < 1;
     }
     /**
      * Parse the issue to determine what labels need to be added/removed, users assigned and projects the issue should belong to
@@ -9976,10 +9970,6 @@ class IssueManager {
                     this.allProjects.add(labelConfig.project);
                 }
             });
-            // If no selection was made under this header, add the header to an array denoting no selection was made. Will be compared later to the required sections
-            if (!labelFoundForHeader && value.enforceSelection) {
-                this.noSelectionMadeHeaders.push(header);
-            }
         });
     }
     /**
@@ -9987,37 +9977,6 @@ class IssueManager {
      */
     async updateIssueLabels() {
         await this.issueLabels.updateLabels(this.labelsToAdd, this.labelsToRemove);
-    }
-    /**
-     * Add a comment to the issue if no selection was made in a required section (e.g. no library was selected)
-     * Remove or update a previous comment if the status has changed (user edited their issue to make a selection)
-     */
-    async commentOnIssue() {
-        const baseComment = "Invalid Selections Detected:";
-        const lastCommentId = await this.issueComments.getLastCommentId(baseComment);
-        if (this.noSelectionMadeHeaders.length <= 0) {
-            core.info("All required sections contained valid selections");
-            if (lastCommentId) {
-                core.info("Removing last comment from bot");
-                await this.issueComments.removeComment(lastCommentId);
-            }
-            return;
-        }
-        let commentLines = [baseComment];
-        this.noSelectionMadeHeaders.forEach((header) => {
-            const headerConfig = this.issueLabelConfig[header];
-            if (headerConfig.enforceSelection && headerConfig.message) {
-                commentLines.push(headerConfig.message);
-            }
-        });
-        if (lastCommentId) {
-            core.info("Updating last comment from bot");
-            await this.issueComments.updateComment(lastCommentId, commentLines.join("\n"));
-        }
-        else {
-            core.info("Creating new comment");
-            await this.issueComments.addComment(commentLines.join("\n"));
-        }
     }
     /**
      * Assign users to issue based on configuration and selections
@@ -10074,7 +10033,6 @@ class TemplateEnforcer {
         this.issueLabels = new IssueLabels_1.IssueLabels(this.issueBotUtils);
         this.issueComments = new IssueComments_1.IssueComments(this.issueBotUtils);
         this.repoFiles = new RepoFiles_1.RepoFiles(this.issueBotUtils);
-        this.issueClosed = false;
     }
     /**
      * Attempts to determine what issue template was used based on the current labels and content in the issue
@@ -10086,18 +10044,30 @@ class TemplateEnforcer {
         const currentLabels = await this.issueLabels.getCurrentLabels();
         const templateMap = await this.repoFiles.getIssueTemplates();
         const templateUsed = await this.getTemplate(issueBody, templateMap, currentLabels);
-        let isIssueFilled = false;
+        let isTemplateComplete = false;
         if (templateUsed) {
-            isIssueFilled = this.didIssueFillOutTemplate(issueBody, templateUsed);
+            isTemplateComplete = this.didIssueFillOutTemplate(issueBody, templateUsed);
         }
-        await this.commentOnIssue(config, !!templateUsed, isIssueFilled);
+        await this.commentOnIssue(config, !!templateUsed, isTemplateComplete);
+        // Add/remove enforcement label if the user needs to edit their issue
+        if (config.enforceTemplate && config.templateEnforcementLabel) {
+            const issueLabels = new IssueLabels_1.IssueLabels(this.issueBotUtils);
+            if (isTemplateComplete) {
+                const currentLabels = await issueLabels.getCurrentLabels();
+                await issueLabels.removeLabels([config.templateEnforcementLabel], currentLabels);
+            }
+            else {
+                await issueLabels.addLabels([config.templateEnforcementLabel]);
+            }
+        }
         if (config.noTemplateClose && !templateUsed) {
             core.info("Closing issue due to no template used");
             await this.issueBotUtils.closeIssue();
-            this.issueClosed = true;
+            // Return true if template was not used and issue is closed
+            return true;
         }
-        // Return true if template filled out completely, false if not used or incomplete
-        return !!templateUsed && !!isIssueFilled;
+        // Return false if template was used
+        return false;
     }
     /**
      * Matches the content of the issue to the best template match. If the issue was just opened, attempt to match based on the labels + headers.
@@ -10273,7 +10243,6 @@ const IssueBotUtils_1 = __webpack_require__(446);
 const RepoFiles_1 = __webpack_require__(7364);
 const IssueManager_1 = __webpack_require__(8416);
 const TemplateEnforcer_1 = __webpack_require__(74);
-const IssueLabels_1 = __webpack_require__(6035);
 /**
  * Entry point for the issue template bot
  */
@@ -10305,25 +10274,14 @@ async function run() {
         // Ensure a template was used and filled out
         core.info("Start Template Enforcer");
         const templateEnforcer = new TemplateEnforcer_1.TemplateEnforcer(issue.number, payload.action);
-        const isTemplateComplete = await templateEnforcer.enforceTemplate(issue.body, config);
-        if (templateEnforcer.issueClosed) {
+        const closed = await templateEnforcer.enforceTemplate(issue.body, config);
+        if (closed) {
             return;
         }
         // Label, assign, comment on issue based on content in the issue body
         core.info("Start Issue Manager");
         const issueManager = new IssueManager_1.IssueManager(issue.number, config.selectors);
-        const isSelectionMade = await issueManager.updateIssue(issue.body);
-        // Add/remove enforcement label if the user needs to edit their issue
-        if (config.enforceTemplate && config.templateEnforcementLabel) {
-            const issueLabels = new IssueLabels_1.IssueLabels(issueBotUtils);
-            if (isTemplateComplete && isSelectionMade) {
-                const currentLabels = await issueLabels.getCurrentLabels();
-                await issueLabels.removeLabels([config.templateEnforcementLabel], currentLabels);
-            }
-            else {
-                await issueLabels.addLabels([config.templateEnforcementLabel]);
-            }
-        }
+        await issueManager.updateIssue(issue.body);
     }
     else {
         core.setFailed("No issue number or body available, cannot label issue!");

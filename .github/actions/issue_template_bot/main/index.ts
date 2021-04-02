@@ -42,28 +42,16 @@ async function run() {
         // Ensure a template was used and filled out
         core.info("Start Template Enforcer");
         const templateEnforcer = new TemplateEnforcer(issue.number, payload.action);
-        const isTemplateComplete = await templateEnforcer.enforceTemplate(issue.body, config);
+        const closed = await templateEnforcer.enforceTemplate(issue.body, config);
 
-        if (templateEnforcer.issueClosed) {
+        if (closed) {
             return;
         }
 
         // Label, assign, comment on issue based on content in the issue body
         core.info("Start Issue Manager");
         const issueManager = new IssueManager(issue.number, config.selectors);
-        const isSelectionMade = await issueManager.updateIssue(issue.body);
-
-
-        // Add/remove enforcement label if the user needs to edit their issue
-        if (config.enforceTemplate && config.templateEnforcementLabel) {
-            const issueLabels = new IssueLabels(issueBotUtils);
-            if (isTemplateComplete && isSelectionMade) {
-                const currentLabels = await issueLabels.getCurrentLabels();
-                await issueLabels.removeLabels([config.templateEnforcementLabel], currentLabels);
-            } else {
-                await issueLabels.addLabels([config.templateEnforcementLabel]);
-            }
-        }
+        await issueManager.updateIssue(issue.body);
     } else {
         core.setFailed("No issue number or body available, cannot label issue!");
         return;

@@ -11,8 +11,7 @@
                 "msal-node": {
                     "searchStrings": ["@azure/msal-node"]
                 }
-            },
-            "enforceSelection": false
+            }
         },
         "Wrapper Library": {
             "labels": {
@@ -22,8 +21,7 @@
                 "msal-react": {
                     "searchStrings": ["@azure/msal-react"]
                 }
-            },
-            "enforceSelection": false
+            }
         },
         "Identity Provider": {
             "labels": {

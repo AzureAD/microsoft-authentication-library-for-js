@@ -54,13 +54,10 @@ Schema:
                         "column": string
                     }
                 }
-            },
-            "enforceSelection": boolean,
-            "message"?: string
+            }
         },
     },
     "enforceTemplate": boolean,
-    "optionalSections"?: Array<string>,
     "templateEnforcementLabel"?: string,
     "incompleteTemplateMessage"?: string,
     "noTemplateMessage"?: string,
@@ -74,7 +71,6 @@ Schema:
 |-----------------------------|-------------------------------------------------------------------------------------------|
 | `selectors`                 | Configuration for checkbox selections (See [below](#selector-config))                     |
 | `enforceTemplate`           | When set to true the issue content will be compared to issue templates                    |
-| `optionalSections`          | Any section headers specified here will not cause template enforcement to fail            |
 | `templateEnforcementLabel`  | Label to add to issues that fail template enforcement                                     |
 | `incompleteTemplateMessage` | Comment to leave on issues that use a template but did not complete all required sections |
 | `noTemplateMessage`         | Comment to leave on issues that did not use a template                                    |
@@ -87,8 +83,6 @@ The selector config can contain one or more key value pairs where the key is the
 | Config Key         | Description                                                                                     |
 |--------------------|-------------------------------------------------------------------------------------------------|
 | `label`            | Configuration for one or more specific selections under the header (See [below](#label-config)) |
-| `enforceSelection` | When set to true a comment will be left on the issue if no selection is made                    |
-| `message`          | Comment to leave on issues that did not make a selection under this header                      |
 
 ### Label Config
 
