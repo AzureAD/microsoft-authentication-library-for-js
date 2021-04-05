@@ -3,6 +3,19 @@ description: Issues with documentation for one of our libraries.
 labels: [documentation, question]
 body:
 
+- type: markdown
+  attributes:
+    value: |
+      ## Before Submitting your Issue
+      If there's a problem with the documentation or samples in this repo, please consider opening a PR with the necessary changes instead.
+      
+      You'll find our contributing doc [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/contributing.md)
+      
+- type: markdown
+  attributes:
+    value: |
+      ## Issue Details
+
 - type: dropdown
   attributes:
     label: Core Library
