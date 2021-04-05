@@ -113,7 +113,7 @@ z2HCpDsa7dxOsKIrm7F1AtGBjyB0yVDjlh/FA7jT5sd2ypBh3FVsZGJudQsLRKfE
 -----END ENCRYPTED PRIVATE KEY-----
 ```
 
-If you have encrypted your private key with a *pass phrase* as recommended, you'll need to decrypt it before passing to **MSAL Node**. This can be done using [Node crypto module](https://nodejs.org/docs/latest-v12.x/api/crypto.html):
+If you have encrypted your private key with a *pass phrase* as recommended, you'll need to decrypt it before passing to **MSAL Node**. This can be done using Node's [crypto module](https://nodejs.org/docs/latest-v12.x/api/crypto.html):
 
 First, ensure that your private key is of type `pkcs8`:
 
@@ -129,7 +129,7 @@ Enter Encryption Password:
 Verifying - Enter Encryption Password:
 ```
 
-Then use the `createPrivateKey()` API to parse and export your key:
+Then use the `createPrivateKey()` method to parse and export your key:
 
 ```javascript
 const fs = require('fs');
