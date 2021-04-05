@@ -10,6 +10,15 @@
                 },
                 "msal-node": {
                     "searchStrings": ["@azure/msal-node"]
+                },
+                "adal-node": {
+                    "searchStrings": ["adal-node"]
+                },
+                "adal.js": {
+                    "searchStrings": ["adal.js"]
+                },
+                "passport-azure-ad": {
+                    "searchStrings": ["passport-azure-ad"]
                 }
             }
         },
@@ -20,6 +29,9 @@
                 },
                 "msal-react": {
                     "searchStrings": ["@azure/msal-react"]
+                },
+                "adal-angular": {
+                    "searchStrings": ["adal-angular"]
                 }
             }
         },

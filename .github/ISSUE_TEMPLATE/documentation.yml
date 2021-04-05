@@ -11,6 +11,9 @@ body:
       - "@azure/msal or msal"
       - "@azure/msal-browser"
       - "@azure/msal-node"
+      - "passport-azure-ad"
+      - "adal-node"
+      - "adal.js"
 
 - type: dropdown
   attributes:
@@ -19,6 +22,10 @@ body:
     options:
       - "@azure/msal-angular"
       - "@azure/msal-react"
+      - "adal-angular"
+      - "Not Applicable"
+  validations:
+    required: true
 
 - type: input
   attributes:

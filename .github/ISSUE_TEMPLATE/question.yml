@@ -27,6 +27,9 @@ body:
       - "@azure/msal or msal"
       - "@azure/msal-browser"
       - "@azure/msal-node"
+      - "passport-azure-ad"
+      - "adal-node"
+      - "adal.js"
   validations:
     required: true
     
@@ -44,12 +47,18 @@ body:
     options:
       - "@azure/msal-angular"
       - "@azure/msal-react"
+      - "adal-angular"
+      - "Not Applicable"
+  validations:
+    required: true
     
 - type: input
   attributes:
     label: Wrapper Library Version
     description: "Please enter the version you are using."
     placeholder: "2.0.0-beta.0"
+  validations:
+    required: true
     
 - type: textarea
   attributes:
@@ -85,7 +94,7 @@ body:
   attributes:
     label: Identity Provider
     options: 
-      - Azure AD
+      - Azure AD / MSA
       - Azure B2C Basic Policy
       - Azure B2C Custom Policy
       - ADFS
