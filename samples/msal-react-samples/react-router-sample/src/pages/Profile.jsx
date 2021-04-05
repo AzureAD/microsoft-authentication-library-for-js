@@ -22,7 +22,7 @@ const ProfileContent = () => {
         if (!graphData && inProgress === InteractionStatus.None) {
             callMsGraph().then(response => setGraphData(response));
         }
-    }, [inProgress]);
+    }, [inProgress, graphData]);
   
     return (
         <Paper>
