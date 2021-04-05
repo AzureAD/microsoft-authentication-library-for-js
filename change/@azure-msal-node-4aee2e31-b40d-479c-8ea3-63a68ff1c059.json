@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Updates typedoc comments for request types #3309",
-  "packageName": "@azure/msal-node",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none"
-}

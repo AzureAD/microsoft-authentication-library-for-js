@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Updates typdoc comments for request types #3309",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none"
-}
