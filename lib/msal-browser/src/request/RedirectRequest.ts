@@ -23,7 +23,8 @@ import { CommonAuthorizationUrlRequest } from "@azure/msal-common";
  * - loginHint                  - Can be used to pre-fill the username/email address field of the sign-in page for the user, if you know the username/email address ahead of time. Often apps use this parameter during re-authentication, having already extracted the username from a previous sign-in using the preferred_username claim.
  * - sid                        - Session ID, unique identifier for the session. Available as an optional claim on ID tokens.
  * - domainHint                 - Provides a hint about the tenant or domain that the user should use to sign in. The value of the domain hint is a registered domain for the tenant.
- * - extraQueryParameters       - String to string map of custom query parameters.
+ * - extraQueryParameters       - String to string map of custom query parameters added to the /authorize call
+ * - tokenQueryParameters       - String to string map of custom query parameters added to the /token call
  * - claims                     - In cases where Azure AD tenant admin has enabled conditional access policies, and the policy has not been met, exceptions will contain claims that need to be consented to.
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
  * - redirectStartPage          - The page that should be returned to after loginRedirect or acquireTokenRedirect. This should only be used if this is different from the redirectUri and will default to the page that initiates the request. When the navigateToLoginRequestUrl config option is set to false this parameter will be ignored.

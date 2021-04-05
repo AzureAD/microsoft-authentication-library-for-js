@@ -7,6 +7,6 @@ import { PopupRequest, RedirectRequest, InteractionType, SilentRequest } from "@
 
 export type MsalInterceptorConfiguration = {
     interactionType: InteractionType.Popup | InteractionType.Redirect;
-    protectedResourceMap: Map<string, Array<string>>;
+    protectedResourceMap: Map<string, Array<string> | null>;
     authRequest?: Omit<PopupRequest, "scopes"> | Omit<RedirectRequest, "scopes"> | Omit<SilentRequest, "scopes">;
 };
