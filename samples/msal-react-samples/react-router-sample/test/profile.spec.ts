@@ -120,13 +120,13 @@ describe('/profile', () => {
         expect(logoutButtons.length).toBe(2);
         await screenshot.takeScreenshot(page, "App signed in");
 
-        // Verify tokens are in cache
-        await verifyTokenStore(BrowserCache, ["User.Read"]);
-
+        // Go to protected page
         await page.goto(`http://localhost:${port}/profile`);
         // Wait for Graph data to display
         await page.waitForXPath("//div/ul/li[contains(., 'Name')]", {timeout: 5000});
         await screenshot.takeScreenshot(page, "Graph data acquired");
+        // Verify tokens are in cache
+        await verifyTokenStore(BrowserCache, ["User.Read"]);
     });
   }
 );
