@@ -50,14 +50,6 @@ jobs:
     - name: Build packages
       working-directory: lib/msal-angular
       run: npm run build:all
-      
-    - name: Publish msal-angular
-      working-directory: lib/msal-angular/dist
-      run: npx yalc publish
-
-    - name: Publish msal-browser
-      working-directory: lib/msal-browser
-      run: npx yalc publish
 
     - name: Install Test Tools
       working-directory: samples/msal-angular-v2-samples
@@ -66,8 +58,8 @@ jobs:
     - name: Install ${{ matrix.sample }}
       working-directory: samples/msal-angular-v2-samples/${{ matrix.sample }}
       run: |
+        npm run install:local
         npm install
-        npx yalc add @azure/msal-browser @azure/msal-angular
 
     - name: Build ${{ matrix.sample }}
       working-directory: samples/msal-angular-v2-samples/${{ matrix.sample }}
