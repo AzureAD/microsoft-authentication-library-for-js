@@ -16,7 +16,7 @@ In addition to npm, `msal` can be consumed from Microsoft-hosted CDNs.
 
 <!-- CDN_LATEST -->
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/browser/2.12.1/js/msal-browser.min.js"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/browser/2.13.1/js/msal-browser.min.js"></script>
 ```
 
 ## Unminified builds
@@ -84,6 +84,10 @@ It is highly recommended to use SRI Hashes with CDN builds of MSAL.js to help se
 <!-- SRI_TABLE_START -->
 Version      | Build               | SRI Hash
 ------------ | ------------------- | ---------------------------
+2.13.1        | msal-browser.js     | `sha384-7hwr87O1w6buPsX92CwuRaz/wQzachgOEq+iLHv0ESavynv6rbYwKImSl7wUW3wV`
+2.13.1        | msal-browser.min.js | `sha384-2Vr9MyareT7qv+wLp1zBt78ZWB4aljfCTMUrml3/cxm0W81ahmDOC6uyNmmn0Vrc`
+2.13.0        | msal-browser.js     | `sha384-8WE3wV17rmapJTrZubql1Rziv4aZmDrlb7F3iZbiQEuOT7nmK8UH39MN2cEIOWQy`
+2.13.0        | msal-browser.min.js | `sha384-vDONqKCGNcmVCJ/YQ6YHzbrhwKdihAE08TkDEHBZjgjqRYz5itQb7Rdst5Oy5GB+`
 2.12.1        | msal-browser.js     | `sha384-QMpSjAFJzgh/J1zBL23Xx95KfVI1n9Je9GmB3byJbZ0/hj8o9CJTmxOK/BPZivil`
 2.12.1        | msal-browser.min.js | `sha384-cZM20w+KzsO/N+6IGI+U1e2zsBS1ciCc6VdEC5SZ1/pHGyvcpE6D2uk0XcFwgb1q`
 2.12.0        | msal-browser.js     | `sha384-WqJE0XrCKXbaCrjTk1+pq6qArRvxmGqf6YUBgoqwCz4WDXJFCW2hZZN0HMLE7/XB`

@@ -1,8 +1,31 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 15 Mar 2021 23:45:17 GMT and should not be manually modified.
+This log was last generated on Wed, 31 Mar 2021 22:25:57 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 4.1.1
+
+Wed, 31 Mar 2021 22:25:57 GMT
+
+### Patches
+
+- Update StringUtils.matchPattern to account for queries in string #3307 (joarroyo@microsoft.com)
+- Adds tokenQueryParameters request param #3309 (thomas.norling@microsoft.com)
+- Ignore account hints when prompt=select_account #3315 (thomas.norling@microsoft.com)
+
+## 4.1.0
+
+Wed, 24 Mar 2021 22:55:46 GMT
+
+### Minor changes
+
+- Add client claims support for SHRs (#3089) (hemoral@microsoft.com)
+
+### Patches
+
+- Properly handle expiration timestamps when returned as strings (janutter@microsoft.com)
+- Add null as possible type for account on EndSessionRequest #3044 (thomas.norling@microsoft.com)
 
 ## 4.0.3
 

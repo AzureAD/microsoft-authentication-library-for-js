@@ -28,7 +28,7 @@ export class AppComponent implements OnInit, OnDestroy {
         filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS), 
         takeUntil(this._destroying$)
       )
-      .subscribe((result) => {
+      .subscribe((result: EventMessage) => {
         // Do something with the result
       });
   }
@@ -40,8 +40,25 @@ export class AppComponent implements OnInit, OnDestroy {
 }
 ```
 
+Note that you may need to cast the `result.payload` as a specific type to prevent compilation errors. The payload type will depend on the event, and can be found in our documentation [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/events.md).
 
-For the full example of using events, please see our sample [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular10-sample-app/src/app/app.component.ts#L29).
+```javascript
+ngOnInit(): void {
+  this.msalBroadcastService.msalSubject$
+    .pipe(
+      filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS),
+    )
+    .subscribe((result: EventMessage) => {
+      // Casting payload as AuthenticationResult to access account
+      const payload = result.payload as AuthenticationResult;
+      this.authService.instance.setActiveAccount(payload.account);
+    });
+}
+```
+
+
+
+For the full example of using events, please see our sample [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/d46c4455243bd51767f669a13fbb717d786c6716/samples/msal-angular-v2-samples/angular11-sample-app/src/app/home/home.component.ts#L17).
 
 ## Table of events
 

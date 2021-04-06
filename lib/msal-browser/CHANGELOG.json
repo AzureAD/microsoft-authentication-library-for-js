@@ -2,6 +2,96 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 31 Mar 2021 22:25:57 GMT",
+      "tag": "@azure/msal-browser_v2.13.1",
+      "version": "2.13.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "Updates typdoc comments for request types #3309",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "91da4f7f8dc126458dcc7b4a1e22b707f48a302a",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add AT PoP documentation (#3071)",
+            "author": "hemoral@microsoft.com",
+            "commit": "b5f1bc8e9a400e50658fd91e14feea460cfb7ce9",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Export PopupEvent #3360",
+            "author": "joarroyo@microsoft.com",
+            "commit": "24fda4c133476d87c12ac913f49eb9aff696f68e",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 24 Mar 2021 22:55:46 GMT",
+      "tag": "@azure/msal-browser_v2.13.0",
+      "version": "2.13.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Add Typedocs links to event doc #2964",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6e6b1e9cc11140d0f8da21a19fc0fef100b550c6",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Doc Updates #3287",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "e4f3b3a09aa3f48c7b8d1d0b58f978f3eb8dca29",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Fix code example",
+            "author": "stef.heyenrath@gmail.com",
+            "commit": "f2542071844d89989a5db16d36552cdd5826309b",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add custom SHR Client Claims documentation (#3089)",
+            "author": "hemoral@microsoft.com",
+            "commit": "44bc5edc3104400bef0e876c68ea529ce543e398",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Fix errors thrown on cache lookups when reading non-msal cache values #3245",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "8626ba19ec3fb33bc16b9c62fda914920e3a21e0",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update blockReloadInIframe error message with link to error doc #3294",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "e4601c8d5581e0cedd4b7b0cc4301e4e56b49049",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Block nested popups #3249",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "4241838226c4f0e54c2f7dee79d5e999e0f34f71",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add logoutPopup API #3044",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "9c913e05cc75728510e6a88fc50c7d759ec82fef",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 15 Mar 2021 23:45:17 GMT",
       "tag": "@azure/msal-browser_v2.12.1",
       "version": "2.12.1",

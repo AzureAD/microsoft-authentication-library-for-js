@@ -2,6 +2,62 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Wed, 31 Mar 2021 22:25:57 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-beta.3",
+      "version": "2.0.0-beta.3",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Update MsalInterceptor types and getScopesForEndpoint with query and relative paths #3307",
+            "author": "joarroyo@microsoft.com",
+            "commit": "054804e1c99b9ac58a0e82c917bf0436d73db481",
+            "package": "@azure/msal-angular"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Update samples and docs with event payload typecasting #3360",
+            "author": "joarroyo@microsoft.com",
+            "commit": "24fda4c133476d87c12ac913f49eb9aff696f68e",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 24 Mar 2021 22:55:46 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-beta.2",
+      "version": "2.0.0-beta.2",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Add support for logoutPopup API #3044",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "5b091a8926cad858b1e00c81b9ff863c5fd40fc4",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Add MsalCustomNavigationClient, updates samples and docs #3174",
+            "author": "joarroyo@microsoft.com",
+            "commit": "e99568a7060fe53cbea84607e35d2532e9fd605e",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update MsalGuard and _inProgress subject #3269",
+            "author": "joarroyo@microsoft.com",
+            "commit": "2f29cb3f2b9cd36e8503ea45f9cf2a4c1a263801",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update MSAL Service handleRedirectObservable hash handling #3243",
+            "author": "joarroyo@microsoft.com",
+            "commit": "1b389e80505b610f323347e06ab35249d0d0ecb3",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 15 Mar 2021 23:45:17 GMT",
       "tag": "@azure/msal-angular_v2.0.0-beta.1",
       "version": "2.0.0-beta.1",

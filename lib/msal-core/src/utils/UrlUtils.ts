@@ -95,7 +95,7 @@ export class UrlUtils {
         const lowerCaseUrl = url.toLowerCase();
         const urlObject = this.GetUrlComponents(lowerCaseUrl);
         const pathArray = urlObject.PathSegments;
-        if (tenantId && (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === SSOTypes.ORGANIZATIONS))) {
+        if (tenantId && (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === SSOTypes.ORGANIZATIONS || pathArray[0] === SSOTypes.CONSUMERS))) {
             pathArray[0] = tenantId;
         }
         return this.constructAuthorityUriFromObject(urlObject, pathArray);
@@ -125,6 +125,17 @@ export class UrlUtils {
         const authority =  this.CanonicalizeUri(url);
         const pathArray = this.GetUrlComponents(authority).PathSegments;
         return (pathArray.length !== 0 && pathArray[0] === SSOTypes.ORGANIZATIONS);
+    }
+
+    /**
+     * Checks if an authority is for consumers (ex. https://a:b/consumers/)
+     * @param url The url
+     * @returns true if authority is for  and false otherwise 
+     */
+    static isConsumersAuthority(url: string): boolean {
+        const authority =  this.CanonicalizeUri(url);
+        const pathArray = this.GetUrlComponents(authority).PathSegments;
+        return (pathArray.length !== 0 && pathArray[0] === SSOTypes.CONSUMERS);
     }
 
     /**
