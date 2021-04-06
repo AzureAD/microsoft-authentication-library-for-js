@@ -2,6 +2,29 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Wed, 31 Mar 2021 22:25:57 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-beta.3",
+      "version": "2.0.0-beta.3",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Update MsalInterceptor types and getScopesForEndpoint with query and relative paths #3307",
+            "author": "joarroyo@microsoft.com",
+            "commit": "054804e1c99b9ac58a0e82c917bf0436d73db481",
+            "package": "@azure/msal-angular"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Update samples and docs with event payload typecasting #3360",
+            "author": "joarroyo@microsoft.com",
+            "commit": "24fda4c133476d87c12ac913f49eb9aff696f68e",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 24 Mar 2021 22:55:46 GMT",
       "tag": "@azure/msal-angular_v2.0.0-beta.2",
       "version": "2.0.0-beta.2",
