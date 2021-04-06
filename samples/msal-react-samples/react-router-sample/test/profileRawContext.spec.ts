@@ -59,7 +59,7 @@ describe('/profileRawContext', () => {
         await context.close();
     });
 
-    it("Navigating directly to a protected route automatically invokes loginPopup", async () => {
+    it("MsalAuthenticationTemplate - invokes loginPopup if user is not signed in (class component w/ raw context)", async () => {
         const testName = "MsalAuthenticationTemplatePopupCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         await screenshot.takeScreenshot(page, "Home page loaded");

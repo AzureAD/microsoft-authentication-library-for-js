@@ -56,7 +56,7 @@ describe('/ (Home Page)', () => {
         await context.close();
     });
 
-    it("loginRedirect", async () => {
+    it("AuthenticatedTemplate - children are rendered after logging in with loginRedirect", async () => {
         const testName = "redirectBaseCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         await screenshot.takeScreenshot(page, "Page loaded");
@@ -83,7 +83,7 @@ describe('/ (Home Page)', () => {
         await verifyTokenStore(BrowserCache, ["User.Read"]);
     });
 
-    it("loginPopup", async () => {
+    it("AuthenticatedTemplate - children are rendered after logging in with loginPopup", async () => {
         const testName = "popupBaseCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         await screenshot.takeScreenshot(page, "Page loaded");

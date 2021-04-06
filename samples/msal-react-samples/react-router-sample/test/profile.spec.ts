@@ -59,7 +59,7 @@ describe('/profile', () => {
         await context.close();
     });
 
-    it("Navigating directly to a protected route automatically invokes loginPopup", async () => {
+    it("MsalAuthenticationTemplate - invokes loginPopup if user is not signed in", async () => {
         const testName = "MsalAuthenticationTemplateBaseCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         await screenshot.takeScreenshot(page, "Home page loaded");
@@ -91,7 +91,7 @@ describe('/profile', () => {
         await verifyTokenStore(BrowserCache, ["User.Read"]);
     });
 
-    it("Navigating to a protected route when already signed in, does not invoke new login", async () => {
+    it("MsalAuthenticationTemplate - renders children without invoking login if user is already signed in", async () => {
         const testName = "MsalAuthenticationTemplateSignedInCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         await screenshot.takeScreenshot(page, "Page loaded");
@@ -127,6 +127,34 @@ describe('/profile', () => {
         await screenshot.takeScreenshot(page, "Graph data acquired");
         // Verify tokens are in cache
         await verifyTokenStore(BrowserCache, ["User.Read"]);
+    });
+
+    it("MsalAuthenticationTemplate - renders loading component when popup is open, then error component when loginPopup is cancelled", async () => {
+        const testName = "MsalAuthenticationTemplateError";
+        const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+        await screenshot.takeScreenshot(page, "Home page loaded");
+
+        // Navigate to /profile and expect popup to be opened without interaction
+        const newPopupWindowPromise = new Promise<puppeteer.Page>(resolve => page.once("popup", resolve));
+        await page.goto(`http://localhost:${port}/profile`);
+        await screenshot.takeScreenshot(page, "Profile page loaded");
+        const popupPage = await newPopupWindowPromise;
+        const popupWindowClosed = new Promise<void>(resolve => popupPage.once("close", resolve));
+
+        // Wait until the popup has navigated to login page
+        await popupPage.waitForNavigation({ waitUntil: "networkidle0"});
+
+        const [loadingComponent] = await page.$x("//h6[contains(., 'Authentication in progress...')]");
+        await screenshot.takeScreenshot(page, "Loading component rendered");
+        expect(loadingComponent).toBeDefined();
+
+        await popupPage.close();
+        await popupWindowClosed;
+
+        await page.waitFor(100);
+        const [errorComponent] = await page.$x("//h6[contains(., 'An Error Occurred: user_cancelled')]");
+        await screenshot.takeScreenshot(page, "Error component rendered");
+        expect(errorComponent).toBeDefined();
     });
   }
 );

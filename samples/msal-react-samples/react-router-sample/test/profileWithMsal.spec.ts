@@ -59,7 +59,7 @@ describe('/profileWithMsal', () => {
         await context.close();
     });
 
-    it("Navigating directly to a protected route automatically invokes loginRedirect", async () => {
+    it("MsalAuthenticationTemplate - invokes loginRedirect if user is not signed in (class component w/ withMsal HOC)", async () => {
         const testName = "MsalAuthenticationTemplateRedirectCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         await screenshot.takeScreenshot(page, "Home page loaded");
