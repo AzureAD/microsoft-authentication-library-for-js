@@ -227,6 +227,7 @@ export class ResponseHandler {
                 responseScopes.printScopes(),
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
+                this.cryptoObj,
                 serverTokenResponse.token_type,
                 oboAssertion
             );
