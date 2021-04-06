@@ -11,7 +11,6 @@ import { StringUtils } from "../utils/StringUtils";
  */
 export class TemplateEnforcer {
     private action: string;
-    private allTemplates: Array<Map<string, string>>;
     private issueBotUtils: IssueBotUtils;
     private issueLabels: IssueLabels;
     private issueComments: IssueComments;
@@ -19,7 +18,6 @@ export class TemplateEnforcer {
 
     constructor(issueNo: number, action?: string) {
         this.action = action || "edited";
-        this.allTemplates = [];
         this.issueBotUtils = new IssueBotUtils(issueNo);
         this.issueLabels = new IssueLabels(this.issueBotUtils);
         this.issueComments = new IssueComments(this.issueBotUtils);
@@ -36,19 +34,34 @@ export class TemplateEnforcer {
         const currentLabels = await this.issueLabels.getCurrentLabels();
         const templateMap = await this.repoFiles.getIssueTemplates();
         const templateUsed = await this.getTemplate(issueBody, templateMap, currentLabels);
-        let isIssueFilled = false;
+        let isTemplateComplete = false;
         if (templateUsed) {
-            isIssueFilled = this.didIssueFillOutTemplate(issueBody, templateUsed, config.optionalSections);
+            isTemplateComplete = this.didIssueFillOutTemplate(issueBody, templateUsed);
         }
 
-        await this.commentOnIssue(config, !!templateUsed, isIssueFilled);
+        await this.commentOnIssue(config, !!templateUsed, isTemplateComplete);
+
+        // Add/remove enforcement label if the user needs to edit their issue
+        if (config.enforceTemplate && config.templateEnforcementLabel) {
+            const issueLabels = new IssueLabels(this.issueBotUtils);
+            if (isTemplateComplete) {
+                const currentLabels = await issueLabels.getCurrentLabels();
+                await issueLabels.removeLabels([config.templateEnforcementLabel], currentLabels);
+            } else {
+                await issueLabels.addLabels([config.templateEnforcementLabel]);
+            }
+        }
 
         if (config.noTemplateClose && !templateUsed) {
+            core.info("Closing issue due to no template used");
             await this.issueBotUtils.closeIssue();
+
+            // Return true if template was not used and issue is closed
+            return true;
         }
 
-        // Return true if template filled out completely, false if not used or incomplete
-        return !!templateUsed && !!isIssueFilled;
+        // Return false if template was used
+        return false;
     }
 
     /**
@@ -58,7 +71,7 @@ export class TemplateEnforcer {
      * @param templateMap 
      * @param currentLabels 
      */
-    private async getTemplate(issueBody: string, templateMap: Map<string, string>, currentLabels: Array<string>): Promise<string|null> {
+    private async getTemplate(issueBody: string, templateMap: Map<string, Object>, currentLabels: Array<string>): Promise<Object|null> {
         let templateName = null
         if (this.action === "opened") {
             templateName = this.matchByLabel(templateMap, currentLabels);
@@ -67,17 +80,20 @@ export class TemplateEnforcer {
                 const chosenTemplate = new Map();
                 chosenTemplate.set(templateName, templateMap.get(templateName));
                 templateName = this.matchBySection(chosenTemplate, issueBody);
+                if (templateName) {
+                    return templateMap.get(templateName);
+                }
             }
-        } else {
-            templateName = this.matchBySection(templateMap, issueBody);
         }
+
+        templateName = this.matchBySection(templateMap, issueBody);
 
         if (!templateName) {
             core.info("No matching template found!");
             return null;
         }
 
-        return templateMap.get(templateName) || null;
+        return templateMap.get(templateName);
     }
 
     /**
@@ -130,34 +146,20 @@ export class TemplateEnforcer {
      * @param template 
      * @param optionalSections 
      */
-    private didIssueFillOutTemplate(issueBody: string, template: string, optionalSections?: Array<string>): boolean {
-        const templateSections = StringUtils.getIssueSections(template);
+    private didIssueFillOutTemplate(issueBody: string, template: Object): boolean {
+        const requiredSections = StringUtils.getRequiredTemplateSections(template);
         const issueSections = StringUtils.getIssueSections(issueBody);
 
-        const templateHeaders = [...templateSections.keys()];
-
-        return templateHeaders.every((sectionHeader) => {
-            if (optionalSections && optionalSections.includes(sectionHeader)) {
-                return true;
-            }
-
+        return requiredSections.every((sectionHeader) => {
             if (!issueSections.has(sectionHeader)) {
                 core.info(`Does not have header: ${sectionHeader}`)
                 return false;
             }
-            const templateContent = StringUtils.normalizeString(templateSections.get(sectionHeader));
             const issueContent = StringUtils.normalizeString(issueSections.get(sectionHeader));
             core.info(`Checking Header: ${sectionHeader}`);
 
-            if (issueContent === templateContent || templateContent.includes(issueContent)) {
-                if (issueContent === templateContent) {
-                    core.info(`Content is same as template for section ${sectionHeader}`);
-                }
-                if (templateContent.includes(issueContent)) {
-                    core.info(`Issue Content for ${sectionHeader} is subset of template content`);
-                    core.info(`Issue Content: ${issueContent}`);
-                    core.info(`Template Content: ${templateContent}`);
-                }
+            if (!issueContent.trim()) {
+                core.info(`Content is empty for section ${sectionHeader}`);
                 return false;
             }
 
@@ -170,13 +172,13 @@ export class TemplateEnforcer {
      * @param templateMap 
      * @param currentLabels 
      */
-    matchByLabel(templateMap: Map<string, string>, currentLabels: Array<string>): string|null {
+    matchByLabel(templateMap: Map<string, Object>, currentLabels: Array<string>): string|null {
         let largestMatch = 0;
         let templateName = null;
         
         templateMap.forEach((contents, filename) => {
-            this.allTemplates.push(StringUtils.getIssueSections(contents));
             const templateLabels = StringUtils.getLabelsFromTemplate(contents);
+            core.info(`${filename} is configured with labels: ${templateLabels.join(", ")}`);
             const templateMatch = templateLabels.every(templateLabel => {
                 return currentLabels.includes(templateLabel);
             });
@@ -198,7 +200,7 @@ export class TemplateEnforcer {
      * @param templateMap 
      * @param issueBody 
      */
-    matchBySection(templateMap: Map<string, string>, issueBody: string): string|null {
+    matchBySection(templateMap: Map<string, Object>, issueBody: string): string|null {
         let largestFullMatch = 0;
         let largestPartialMatch = 0;
         let fullMatchTemplateName: string|null = null;
@@ -208,27 +210,26 @@ export class TemplateEnforcer {
 
         templateMap.forEach((contents, filename) => {
             core.info(`Checking: ${filename}`);
-            const templateSections = StringUtils.getIssueSections(contents);
+            const templateHeaders = StringUtils.getRequiredTemplateSections(contents);
             let sectionsMatched = 0;
-            let templateHeaders = [...templateSections.keys()];
             templateHeaders.forEach((sectionHeader) => {
                 if (issueSections.has(sectionHeader)) {
                     sectionsMatched += 1;
                 }
             });
 
-            if (sectionsMatched === templateSections.size && sectionsMatched > largestFullMatch) {
+            if (sectionsMatched === templateHeaders.length && sectionsMatched > largestFullMatch) {
                 core.info(`Full Match with ${sectionsMatched} sections!`);
                 largestFullMatch = sectionsMatched;
                 fullMatchTemplateName = filename;
-            } else if (sectionsMatched < templateSections.size && sectionsMatched > largestPartialMatch) {
+            } else if (sectionsMatched < templateHeaders.length && sectionsMatched > largestPartialMatch) {
                 core.info(`Partial Match with ${sectionsMatched} sections!`);
                 largestPartialMatch = sectionsMatched;
                 partialMatchTemplateName = filename;
             }
         });
 
-        if (largestFullMatch >= largestPartialMatch) {
+        if (largestFullMatch > 0) {
             core.info(`Best Possible Template Match: ${fullMatchTemplateName}`);
             return fullMatchTemplateName;
         } else {

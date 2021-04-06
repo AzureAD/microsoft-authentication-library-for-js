@@ -1,8 +1,16 @@
 # Change Log - msal
 
-This log was last generated on Mon, 15 Mar 2021 23:45:17 GMT and should not be manually modified.
+This log was last generated on Wed, 31 Mar 2021 22:25:57 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.4.9
+
+Wed, 31 Mar 2021 22:25:57 GMT
+
+### Patches
+
+- Fix token cache for /consumers authority #3327 (thomas.norling@microsoft.com)
 
 ## 1.4.8
 
