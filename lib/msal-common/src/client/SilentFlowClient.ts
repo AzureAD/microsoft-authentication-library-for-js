@@ -60,7 +60,7 @@ export class SilentFlowClient extends BaseClient {
         const environment = request.authority || this.authority.getPreferredCache();
         const authScheme = request.authenticationScheme || AuthenticationScheme.BEARER;
         const cacheRecord = this.cacheManager.readCacheRecord(request.account, this.config.authOptions.clientId, requestScopes, environment, authScheme);
-        
+
         if (this.isRefreshRequired(request, cacheRecord.accessToken)) {
             throw ClientAuthError.createRefreshRequiredError();
         } else {

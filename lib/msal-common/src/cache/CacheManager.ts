@@ -354,6 +354,7 @@ export abstract class CacheManager implements ICacheManager {
 
             // Attempt retrieval
             const entity = this.getSpecificCredential(cacheKey, credType);
+
             if (!entity) {
                 return;
             }
@@ -398,16 +399,16 @@ export abstract class CacheManager implements ICacheManager {
                 case CredentialType.ID_TOKEN:
                     matchingCredentials.idTokens[cacheKey] = entity as IdTokenEntity;
                     break;
-                case CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME:
                 case CredentialType.ACCESS_TOKEN:
+                case CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME:
                     matchingCredentials.accessTokens[cacheKey] = entity as AccessTokenEntity;
-                    console.log(matchingCredentials);
                     break;
                 case CredentialType.REFRESH_TOKEN:
                     matchingCredentials.refreshTokens[cacheKey] = entity as RefreshTokenEntity;
                     break;
             }
         });
+
         return matchingCredentials;
     }
 
@@ -656,7 +657,7 @@ export abstract class CacheManager implements ICacheManager {
         const credentialCache: CredentialCache = this.getCredentialsFilteredBy(accessTokenFilter);
 
         const accessTokens = Object.keys(credentialCache.accessTokens).map((key) => credentialCache.accessTokens[key]);
-        console.log(accessTokens);
+
         const numAccessTokens = accessTokens.length;
         if (numAccessTokens < 1) {
             return null;
@@ -766,7 +767,6 @@ export abstract class CacheManager implements ICacheManager {
      */
     private matchCredentialType(entity: CredentialEntity, credentialType: string): boolean {
         if (entity.credentialType && credentialType.toLowerCase() === entity.credentialType.toLowerCase()) {
-            console.log(entity);
             return true;
         }
         return false;
@@ -805,7 +805,9 @@ export abstract class CacheManager implements ICacheManager {
      * @param target
      */
     private matchTarget(entity: CredentialEntity, target: string): boolean {
-        if (entity.credentialType !== CredentialType.ACCESS_TOKEN || !entity.target) {
+        const isNotAccessTokenCredential = (entity.credentialType !== CredentialType.ACCESS_TOKEN && entity.credentialType !== CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
+
+        if ( isNotAccessTokenCredential || !entity.target) {
             return false;
         }
 
