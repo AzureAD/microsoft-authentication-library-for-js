@@ -134,14 +134,9 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
                         return of(false);
                     }
 
-                    if (!this.msalGuardConfig.canActivate) {
-                        this.authService.getLogger().verbose("Guard - at least 1 account exists, can activate or load");
-                        return of(true);
-                    } else  {
-                        this.authService.getLogger().verbose("Guard - at least 1 account exists, run config.canActivate");
-                        const hasAccess = this.msalGuardConfig.canActivate(this.authService, state);
-                        return typeof hasAccess === "boolean" ? of(hasAccess) : hasAccess;
-                    }
+                    this.authService.getLogger().verbose("Guard - at least 1 account exists, can activate or load");
+                    return of(true);
+
                 }),
                 catchError(() => {
                     this.authService.getLogger().verbose("Guard - error while logging in, unable to activate");
@@ -173,5 +168,4 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
         // @ts-ignore
         return this.activateHelper();
     }
-
 }

@@ -5,7 +5,6 @@
 
 import { RouterStateSnapshot } from "@angular/router";
 import { PopupRequest, RedirectRequest,InteractionType } from "@azure/msal-browser";
-import { Observable } from "rxjs";
 import { MsalService } from "./msal.service";
 
 export declare type MsalGuardAuthRequest = Partial<PopupRequest> | Partial<Omit<RedirectRequest, "redirectStartPage">>;
@@ -14,5 +13,4 @@ export type MsalGuardConfiguration = {
     interactionType: InteractionType.Popup | InteractionType.Redirect;
     authRequest?: MsalGuardAuthRequest | ((authService: MsalService, state: RouterStateSnapshot) => MsalGuardAuthRequest);
     loginFailedRoute?: string;
-    canActivate?: (msalService: MsalService, state?: RouterStateSnapshot) => Observable<boolean> | boolean;
 };

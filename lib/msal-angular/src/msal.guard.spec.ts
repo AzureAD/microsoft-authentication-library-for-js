@@ -21,8 +21,7 @@ function MSALInstanceFactory(): IPublicClientApplication {
     auth: {
       clientId: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
       redirectUri: 'http://localhost:4200'
-    },
-    //system: browserSystemOptions
+    }
   });
 }
 
@@ -32,7 +31,6 @@ function MSALGuardConfigFactory(): MsalGuardConfiguration {
     interactionType: testInteractionType,
     loginFailedRoute: testLoginFailedRoute,
     authRequest: testConfiguration?.authRequest,
-    canActivate: testConfiguration?.canActivate
   }
 }
 
@@ -231,39 +229,6 @@ describe('MsalGuard', () => {
       });
   });
 
-  it("canActivateChild returns false with logged in user and access validator", (done) => {
-    browserSystemOptions = {
-      loggerOptions: {
-        logLevel: LogLevel.Verbose,
-        loggerCallback: (level, message) => console.log(message)
-      }
-    };
-    testConfiguration.canActivate = (msalService, state) => {
-      expect(msalService).toBeDefined();
-      expect(state).toBeDefined();
-      return of(false);
-    }
-    initializeMsal();
-    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
-      //@ts-ignore
-      of("test")
-    );
-
-    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
-      homeAccountId: "test",
-      localAccountId: "test",
-      environment: "test",
-      tenantId: "test",
-      username: "test"
-    }]);
-
-    guard.canActivateChild(routeMock, routeStateMock)
-      .subscribe(result => {
-        expect(result).toBeFalse();
-        done();
-      });
-  });
-
   it("canLoad returns true with logged in user", (done) => {
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
@@ -281,41 +246,6 @@ describe('MsalGuard', () => {
     guard.canLoad()
       .subscribe(result => {
         expect(result).toBeTrue();
-        done();
-      });
-  });
-
-  it("canLoad returns false with logged in user and access validator", (done) => {
-    browserSystemOptions = {
-      loggerOptions: {
-        logLevel: LogLevel.Verbose,
-        loggerCallback: (level, message) => console.log(message)
-      }
-    };
-    testConfiguration.canActivate = (msalService, state) => {
-      expect(msalService).toBeDefined();
-      expect(state).toBeUndefined();
-      return false;
-    }
-    initializeMsal();
-    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
-      //@ts-ignore
-      of("test")
-    );
-
-    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
-      homeAccountId: "test",
-      localAccountId: "test",
-      environment: "test",
-      tenantId: "test",
-      username: "test"
-    }]);
-
-    
-
-    guard.canLoad()
-      .subscribe(result => {
-        expect(result).toBeFalse();
         done();
       });
   });

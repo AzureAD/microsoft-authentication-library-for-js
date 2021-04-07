@@ -46,9 +46,16 @@ export class AppComponent implements OnInit {
   }
 ```
 
-## Multi-tenant access tokens
+## Dynamic auth request
 
-By default the MsalInterceptor will retrieve access tokens from the users' primary tenant. You can however override this behavior by setting a dynamic auth request on the MsalInterceptorConfig.
+By default the MsalGuard and the MsalInterceptor use the static properties you set in the config. Both can be configured with a method for the `authRequest`. This allows to dynamically change the parameters used for authentication.
+
+### MsalInterceptor - dynamic auth request (multi tenant tokens)
+
+If you're using `organizations` or `common` all the tokens will be requested for the users' home tenant, this might not result in the desired effect. If you have this application where you're invited as a guest the tokens will be from the wrong authority.
+
+Setting the `authRequest` in the **MsalInterceptorConfig** to a method allows you to dynamically change the auth request, and for instance set the authority based on the home tenant of the account (when using guest users).
+You can change all properties but be sure to always extend the `originalAuthRequest` like you see below.
 
 ```js
 export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
