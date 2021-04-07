@@ -72,7 +72,7 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
 
     app.get("/redirect", (req, res) => {
         const tokenRequest = { ...requestConfig.tokenRequest, code: req.query.code };
-        
+        console.log(tokenRequest);
         /**
          * MSAL Usage
          * The code below demonstrates the correct usage pattern of the ClientApplicaiton.acquireTokenByCode API.
