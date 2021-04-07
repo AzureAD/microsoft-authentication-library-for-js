@@ -3,6 +3,7 @@ import * as core from "@actions/core";
 import { IssueBotConfig } from "../../types/IssueBotConfig";
 import { IssueBotUtils } from "../IssueBotUtils";
 import { ConfigParams, Constants } from "../Constants";
+import * as yaml from "js-yaml";
 
 export class RepoFiles {
     private issueBotUtils: IssueBotUtils;
@@ -43,7 +44,7 @@ export class RepoFiles {
     /**
      * Get all the issue templates from the repo. Return a map where the key is the template filename and the value is the contents of the template md file.
      */
-    async getIssueTemplates(): Promise<Map<string, string>> {
+    async getIssueTemplates(): Promise<Map<string, Object>> {
         
         const request = this.issueBotUtils.addRepoParams({
             path: Constants.TEMPLATE_DIRECTORY,
@@ -53,17 +54,19 @@ export class RepoFiles {
         const response: any = await this.issueBotUtils.octokit.repos.getContent(request);
 
         const filenames: Array<string> = [];
-        const templates: Map<string, string> = new Map();
+        const templates: Map<string, Object> = new Map();
 
         response.data.forEach((file: any) => {
-            if (file.type === "file" && file.name.endsWith(".md")) {
+            if (file.type === "file" && file.name.endsWith(".yml") && file.name !== "config.yml") {
+                core.info(`Found template: ${file.name}`);
                 filenames.push(file.name);
             }
         });
 
         const promises = filenames.map(async (filename) => {
             const fileContents = await this.getFileContents(`${Constants.TEMPLATE_DIRECTORY}/${filename}`);
-            templates.set(filename, fileContents);
+            const yamlContents: Object = yaml.load(fileContents);
+            templates.set(filename, yamlContents);
         });
 
         await Promise.all(promises);
