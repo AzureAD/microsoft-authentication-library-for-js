@@ -19,6 +19,7 @@ The example below will show how to implement this when using the Angular `Router
 ```javascript
 import { Component, OnInit, Inject } from '@angular/core';
 import { Router } from '@angular/router';
+import { Location } from '@angular/common';
 import { MsalService, MsalBroadcastService, MSAL_GUARD_CONFIG, MsalGuardConfiguration, MsalCustomNavigationClient } from '@azure/msal-angular';
 
 @Component({
@@ -32,9 +33,10 @@ export class AppComponent implements OnInit, OnDestroy {
     @Inject(MSAL_GUARD_CONFIG) private msalGuardConfig: MsalGuardConfiguration,
     private authService: MsalService,
     private msalBroadcastService: MsalBroadcastService,
-    private router: Router
+    private router: Router,
+    private location: Location
   ) {
-    const customNavigationClient = new MsalCustomNavigationClient(this.router);
+    const customNavigationClient = new MsalCustomNavigationClient(this.authService, this.router, this.location);
     this.authService.instance.setNavigationClient(customNavigationClient);
   }
 

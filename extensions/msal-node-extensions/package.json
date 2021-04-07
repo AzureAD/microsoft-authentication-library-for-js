@@ -39,7 +39,7 @@
   "dependencies": {
     "@azure/msal-common": "^1.7.2",
     "bindings": "^1.5.0",
-    "keytar": "7.0.0",
+    "keytar": "^7.6.0",
     "nan": "^2.13.2"
   },
   "devDependencies": {
