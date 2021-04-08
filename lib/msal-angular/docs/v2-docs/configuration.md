@@ -270,3 +270,23 @@ fetch('/assets/configuration.json')
   }
 }
 ```
+
+## MsalGuard - dynamic auth request
+
+The **MsalGuard** also allows you to dynamically change the **authRequest** at runtime. This allow you to pick a different authority for a route, or to dynamically add scopes based on the **RouterStateSnapshot**.
+
+```js
+export function MSALGuardConfigFactory(): MsalGuardConfiguration {
+  return { 
+    interactionType: InteractionType.Redirect,
+    authRequest: (authService, state) => {
+      return {
+        scopes: state.root.url.some(x => x.path === 'calendar')
+          ? ['user.read', '	Calendars.Read']
+          : ['user.read']
+      }
+    },
+    loginFailedRoute: "./login-failed"
+  };
+}
+```
