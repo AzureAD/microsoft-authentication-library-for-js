@@ -5,7 +5,7 @@ import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../e2eTestUtils/Constants";
 import { BrowserCacheUtils } from "../../../e2eTestUtils/BrowserCacheTestUtils";
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/home-tests`;
+const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/lazy-tests`;
 
 async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[]): Promise<void> {
     const tokenStore = await BrowserCache.getTokens();
@@ -18,7 +18,7 @@ async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[
     expect(Object.keys(storage).length).toBe(4);
 }
 
-describe('/ (Home Page)', () => {
+describe('/ (Lazy Loading Page)', () => {
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -56,7 +56,7 @@ describe('/ (Home Page)', () => {
         await context.close();
     });
 
-    it("AuthenticatedTemplate - children are rendered after logging in with loginRedirect", async () => {
+    it("AuthenticatedTemplate - children are rendered after logging in with loginRedirect and clicking lazy-load", async () => {
         const testName = "redirectBaseCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         await screenshot.takeScreenshot(page, "Page loaded");
@@ -66,25 +66,24 @@ describe('/ (Home Page)', () => {
         await signInButton.click();
 
         await enterCredentials(page, screenshot, username, accountPwd);
-
+        
         // Verify UI now displays logged in content
-        const [signedIn] = await page.$x("//p[contains(., 'Login successful!')]");
-        expect(signedIn).toBeDefined();
         const [logoutButtons] = await page.$x("//button[contains(., 'Logout')]");
         expect(logoutButtons).toBeDefined();
-        await screenshot.takeScreenshot(page, "App signed in");
+        await screenshot.takeScreenshot(page, "Page signed in");
 
         // Verify tokens are in cache
         await verifyTokenStore(BrowserCache, ["User.Read"]);
 
-        // Navigate to profile page
-        const [profileButton] = await page.$x("//span[contains(., 'Profile')]");
-        await profileButton.click();
-        await screenshot.takeScreenshot(page, "Profile page loaded");
-        
-        // Verify displays profile page without activating MsalGuard
-        const [profileFirstName] = await page.$x("//strong[contains(., 'First Name: ')]");
-        expect(profileFirstName).toBeDefined();
+        // Lazy loading
+        const [lazyLoadButton] = await page.$x("//span[contains(., 'Lazy-load')]");
+        await lazyLoadButton.click();
+        await screenshot.takeScreenshot(page, "Lazy loading page");
+
+        // Verify displays lazy loading page
+        const [lazyLoadText] = await page.$x("//p[contains(., 'Lazy loading and CanLoad works!')]");
+        expect(lazyLoadText).toBeDefined();
     });
+
   }
 );

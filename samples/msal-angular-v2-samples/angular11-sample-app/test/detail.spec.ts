@@ -5,7 +5,7 @@ import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../e2eTestUtils/Constants";
 import { BrowserCacheUtils } from "../../../e2eTestUtils/BrowserCacheTestUtils";
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/home-tests`;
+const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/detail-tests`;
 
 async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[]): Promise<void> {
     const tokenStore = await BrowserCache.getTokens();
@@ -15,10 +15,10 @@ async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[
     expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).not.toBeNull();
     expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, scopes)).toBeTruthy;
     const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).toBe(4);
+    expect(Object.keys(storage).length).toBe(5);
 }
 
-describe('/ (Home Page)', () => {
+describe('/ (Detail Page)', () => {
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -56,35 +56,41 @@ describe('/ (Home Page)', () => {
         await context.close();
     });
 
-    it("AuthenticatedTemplate - children are rendered after logging in with loginRedirect", async () => {
+    it("AuthenticatedTemplate - children are rendered after clicking profile, logging in with redirect, and detail buttons clicked", async () => {
         const testName = "redirectBaseCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         await screenshot.takeScreenshot(page, "Page loaded");
 
-        // Initiate Login
-        const [signInButton] = await page.$x("//button[contains(., 'Login')]");
-        await signInButton.click();
+        // Initiate Login via MsalGuard by clicking Profile
+        const [profileButton] = await page.$x("//span[contains(., 'Profile')]");
+        await profileButton.click();
 
         await enterCredentials(page, screenshot, username, accountPwd);
 
         // Verify UI now displays logged in content
-        const [signedIn] = await page.$x("//p[contains(., 'Login successful!')]");
-        expect(signedIn).toBeDefined();
         const [logoutButtons] = await page.$x("//button[contains(., 'Logout')]");
         expect(logoutButtons).toBeDefined();
-        await screenshot.takeScreenshot(page, "App signed in");
+        await screenshot.takeScreenshot(page, "Profile page signed in");
 
         // Verify tokens are in cache
         await verifyTokenStore(BrowserCache, ["User.Read"]);
-
-        // Navigate to profile page
-        const [profileButton] = await page.$x("//span[contains(., 'Profile')]");
-        await profileButton.click();
-        await screenshot.takeScreenshot(page, "Profile page loaded");
         
-        // Verify displays profile page without activating MsalGuard
+        // Verify displays profile page
         const [profileFirstName] = await page.$x("//strong[contains(., 'First Name: ')]");
         expect(profileFirstName).toBeDefined();
+
+        // Navigate to details page 
+        const [detailsButton] = await page.$x("//a[contains(., 'details')]");
+        await detailsButton.click();
+        await screenshot.takeScreenshot(page, "Details page");
+        
+        // Wait for Graph data to display
+        await page.waitForXPath("//p[contains(., 'Details for: ')]", {timeout: 5000});
+        await screenshot.takeScreenshot(page, "Graph data acquired");
+
+        // Verify displays details page
+        const [detailsFor] = await page.$x("//p[contains(., 'Details for: ')]");
+        expect(detailsFor).toBeDefined();
     });
   }
 );
