@@ -2014,6 +2014,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["scope1"],
                 account: testAccount,
                 authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: AuthenticationScheme.BEARER,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false
             };
