@@ -3,7 +3,7 @@ import { HTTP_INTERCEPTORS, HttpClient } from "@angular/common/http";
 import { HttpClientTestingModule, HttpTestingController } from "@angular/common/http/testing";
 import { Location } from "@angular/common";
 import { RouterTestingModule } from "@angular/router/testing";
-import { AccountInfo, AuthError, InteractionType, IPublicClientApplication, PublicClientApplication } from '@azure/msal-browser';
+import { AccountInfo, AuthError, InteractionType, IPublicClientApplication, PublicClientApplication, SilentRequest } from '@azure/msal-browser';
 import { MsalModule, MsalService, MsalInterceptor, MsalBroadcastService } from './public-api';
 import { MsalInterceptorConfiguration } from './msal.interceptor.config';
 
@@ -12,11 +12,13 @@ let httpMock: HttpTestingController;
 let httpClient: HttpClient;
 let testInteractionType: InteractionType;
 
+let testInterceptorConfig: Partial<MsalInterceptorConfiguration> = {};
+
 const sampleAccountInfo: AccountInfo = {
   homeAccountId: "test",
   localAccountId: "test",
   environment: "test",
-  tenantId: "test",
+  tenantId: "test-tenant",
   username: "test"
 }
 
@@ -45,7 +47,8 @@ function MSALInterceptorFactory(): MsalInterceptorConfiguration {
       ["http://apps.com/tenant?abc", ["query.scope"]],
       ["http://applicationA/slash/", ["custom.scope"]],
       ["http://applicationB/noSlash", ["custom.scope"]]
-    ])
+    ]),
+    authRequest: testInterceptorConfig.authRequest
   }
 }
 
@@ -79,6 +82,7 @@ function initializeMsal() {
 describe('MsalInterceptor', () => {
   beforeEach(() => {
     testInteractionType = InteractionType.Popup;
+    testInterceptorConfig = {};
     initializeMsal();
   });
 
@@ -349,7 +353,59 @@ describe('MsalInterceptor', () => {
     }, 200);
   });
 
+
+  it("keeps original authority, https://login.microsoftonline.com/common", done => {
+    testInterceptorConfig.authRequest = {
+      authority: 'https://login.microsoftonline.com/common'
+    };
+    initializeMsal();
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
+    spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.callFake((silentRequest: SilentRequest) => new Promise((resolve) => {
+      //@ts-ignore
+      resolve({
+        accessToken: `access-token-for-${silentRequest.authority}`
+      });
+    }));
+
+    httpClient.get("https://api.test.com").subscribe();
+    setTimeout(() => {
+      const request = httpMock.expectOne("https://api.test.com");
+      request.flush({ data: "test" });
+      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token-for-https://login.microsoftonline.com/common");
+      httpMock.verify();
+      done();
+    }, 200);
+
+  });
+
+  it("calls dynamic authority with account, authority override", done => {
+    testInterceptorConfig.authRequest = (msalService, httpReq, authRequest) => {
+      return {
+        ...authRequest,
+        authority: `https://login.microsoftonline.com/${authRequest.account.tenantId}`
+      };
+    }
+    initializeMsal();
+    spyOn(PublicClientApplication.prototype, "getActiveAccount").and.returnValue(sampleAccountInfo);
+    spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.callFake((silentRequest: SilentRequest) => new Promise((resolve) => {
+      //@ts-ignore
+      resolve({
+        accessToken: `access-token-for-${silentRequest.authority}`
+      });
+    }));
+
+    httpClient.get("https://api.test.com").subscribe();
+    setTimeout(() => {
+      const request = httpMock.expectOne("https://api.test.com");
+      request.flush({ data: "test" });
+      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token-for-https://login.microsoftonline.com/test-tenant");
+      httpMock.verify();
+      done();
+    }, 200);
+  });
+
   it("attaches authorization header with access token for protected resource with queries", done => {
+    spyOn(PublicClientApplication.prototype, "getActiveAccount").and.returnValue(sampleAccountInfo);
     spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
       new Promise((resolve) => {
         //@ts-ignore
@@ -358,8 +414,6 @@ describe('MsalInterceptor', () => {
         });
       })
     ));
-
-    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
     httpClient.get("http://apps.com/tenant?abc").subscribe();
     setTimeout(() => {
