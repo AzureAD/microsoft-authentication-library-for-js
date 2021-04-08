@@ -1,12 +1,9 @@
 import { TestBed } from '@angular/core/testing';
-import { of } from 'rxjs';
 import { IPublicClientApplication, PublicClientApplication } from "@azure/msal-browser";
 import { MsalModule } from './msal.module';
 import { MsalService } from './msal.service';
 import { MsalRedirectComponent } from './msal.redirect.component';
-
 import { MsalBroadcastService } from './msal.broadcast.service';
-import { MsalGuardConfiguration } from './msal.guard.config';
 
 let authService: MsalService;
 let broadcastService: MsalBroadcastService;
@@ -17,7 +14,6 @@ function MSALInstanceFactory(): IPublicClientApplication {
       clientId: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
       redirectUri: 'http://localhost:4200'
     },
-    //system: browserSystemOptions
   });
 }
 
@@ -27,12 +23,9 @@ function initializeMsal() {
   TestBed.configureTestingModule({
     declarations: [MsalRedirectComponent],
     imports: [
-
       MsalModule.forRoot(MSALInstanceFactory(), null, null)
     ],
-    providers: [
-
-    ],
+    providers: [],
   });
 
   authService = TestBed.inject(MsalService);

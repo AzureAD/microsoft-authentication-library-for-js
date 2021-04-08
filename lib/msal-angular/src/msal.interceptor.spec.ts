@@ -361,7 +361,6 @@ describe('MsalInterceptor', () => {
     initializeMsal();
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
     spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.callFake((silentRequest: SilentRequest) => new Promise((resolve) => {
-      // expect(silentRequest.authority).toBeUndefined();
       //@ts-ignore
       resolve({
         accessToken: `access-token-for-${silentRequest.authority}`

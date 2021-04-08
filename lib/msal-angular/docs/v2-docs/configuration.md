@@ -273,7 +273,7 @@ fetch('/assets/configuration.json')
 
 ## MsalGuard - dynamic auth request
 
-The **MsalGuard** also allows you to dynamically change the **authRequest** at runtime. This allow you to pick a different authority for some route, or to dynamically add scopes based on the **RouterStateSnapshot**.
+The **MsalGuard** also allows you to dynamically change the **authRequest** at runtime. This allow you to pick a different authority for a route, or to dynamically add scopes based on the **RouterStateSnapshot**.
 
 ```js
 export function MSALGuardConfigFactory(): MsalGuardConfiguration {
