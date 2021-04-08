@@ -68,10 +68,13 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
      * Interactively prompt the user to login
      * @param url Path of the requested page
      */
-    private loginInteractively(url: string): Observable<boolean> {
+    private loginInteractively(state: RouterStateSnapshot): Observable<boolean> {
+        const authRequest = typeof this.msalGuardConfig.authRequest === "function"
+            ? this.msalGuardConfig.authRequest(this.authService, state)
+            : { ...this.msalGuardConfig.authRequest };
         if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
             this.authService.getLogger().verbose("Guard - logging in by popup");
-            return this.authService.loginPopup({ ...this.msalGuardConfig.authRequest } as PopupRequest)
+            return this.authService.loginPopup(authRequest as PopupRequest)
                 .pipe(
                     map((response: AuthenticationResult) => {
                         this.authService.getLogger().verbose("Guard - login by popup successful, can activate, setting active account");
@@ -82,10 +85,10 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
         }
 
         this.authService.getLogger().verbose("Guard - logging in by redirect");
-        const redirectStartPage = this.getDestinationUrl(url);
+        const redirectStartPage = this.getDestinationUrl(state.url);
         return this.authService.loginRedirect({
             redirectStartPage,
-            ...this.msalGuardConfig.authRequest
+            ...authRequest
         } as RedirectRequest)
             .pipe(
                 map(() => false)
@@ -125,13 +128,15 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
                     if (!this.authService.instance.getAllAccounts().length) {
                         if (state) {
                             this.authService.getLogger().verbose("Guard - no accounts retrieved, log in required to activate");
-                            return this.loginInteractively(state.url);
+                            return this.loginInteractively(state);
                         } 
                         this.authService.getLogger().verbose("Guard - no accounts retrieved, no state, cannot load");
                         return of(false);
                     }
-                    this.authService.getLogger().verbose("Guard - account retrieved, can activate or load");
+
+                    this.authService.getLogger().verbose("Guard - at least 1 account exists, can activate or load");
                     return of(true);
+
                 }),
                 catchError(() => {
                     this.authService.getLogger().verbose("Guard - error while logging in, unable to activate");
@@ -163,5 +168,4 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
         // @ts-ignore
         return this.activateHelper();
     }
-
 }

@@ -8,7 +8,7 @@ import { CommonAuthorizationUrlRequest } from "../request/CommonAuthorizationUrl
 import { CommonAuthorizationCodeRequest } from "../request/CommonAuthorizationCodeRequest";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { GrantType, AuthenticationScheme } from "../utils/Constants";
+import { GrantType, AuthenticationScheme, PromptValue } from "../utils/Constants";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { NetworkResponse } from "../network/NetworkManager";
@@ -147,9 +147,26 @@ export class AuthorizationCodeClient extends BaseClient {
         };
 
         const requestBody = await this.createTokenRequestBody(request);
+        const queryParameters = this.createTokenQueryParameters(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
 
-        return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
+        const endpoint = StringUtils.isEmpty(queryParameters) ? authority.tokenEndpoint : `${authority.tokenEndpoint}?${queryParameters}`;
+
+        return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
+    }
+
+    /**
+     * Creates query string for the /token request
+     * @param request 
+     */
+    private createTokenQueryParameters(request: CommonAuthorizationCodeRequest): string {
+        const parameterBuilder = new RequestParameterBuilder();
+
+        if (request.tokenQueryParameters) {
+            parameterBuilder.addExtraQueryParameters(request.tokenQueryParameters);
+        }
+
+        return parameterBuilder.createQueryString();
     }
 
     /**
@@ -248,21 +265,33 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         // Add sid or loginHint with preference for sid -> loginHint -> username of AccountInfo object
-        if (request.sid) {
-            parameterBuilder.addSid(request.sid);
-        } else if (request.account) {
-            const accountSid = this.extractAccountSid(request.account);
-            // If account and loginHint are provided, we will check account first for sid before adding loginHint
-            if (accountSid) {
-                parameterBuilder.addSid(accountSid);
+        if (request.prompt !== PromptValue.SELECT_ACCOUNT) {
+            // AAD will throw if prompt=select_account is passed with an account hint
+            if (request.sid && request.prompt === PromptValue.NONE) {
+                // SessionID is only used in silent calls
+                this.logger.verbose("createAuthCodeUrlQueryString: Prompt is none, adding sid from request");
+                parameterBuilder.addSid(request.sid);
+            } else if (request.account) {
+                const accountSid = this.extractAccountSid(request.account);
+                // If account and loginHint are provided, we will check account first for sid before adding loginHint
+                if (accountSid && request.prompt === PromptValue.NONE) {
+                    // SessionId is only used in silent calls
+                    this.logger.verbose("createAuthCodeUrlQueryString: Prompt is none, adding sid from account");
+                    parameterBuilder.addSid(accountSid);
+                } else if (request.loginHint) {
+                    this.logger.verbose("createAuthCodeUrlQueryString: Adding login_hint from request");
+                    parameterBuilder.addLoginHint(request.loginHint);
+                } else if (request.account.username) {
+                    // Fallback to account username if provided
+                    this.logger.verbose("createAuthCodeUrlQueryString: Adding login_hint from account");
+                    parameterBuilder.addLoginHint(request.account.username);
+                }
             } else if (request.loginHint) {
+                this.logger.verbose("createAuthCodeUrlQueryString: No account, adding login_hint from request");
                 parameterBuilder.addLoginHint(request.loginHint);
-            } else if (request.account.username) {
-                // Fallback to account username if provided
-                parameterBuilder.addLoginHint(request.account.username);
             }
-        } else if (request.loginHint) {
-            parameterBuilder.addLoginHint(request.loginHint);
+        } else {
+            this.logger.verbose("createAuthCodeUrlQueryString: Prompt is select_account, ignoring account hints");
         }
 
         if (request.nonce) {

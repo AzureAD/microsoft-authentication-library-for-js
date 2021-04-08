@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Wed, 24 Mar 2021 22:55:46 GMT and should not be manually modified.
+This log was last generated on Wed, 31 Mar 2021 22:25:57 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.13.1
+
+Wed, 31 Mar 2021 22:25:57 GMT
+
+### Patches
+
+- Export PopupEvent #3360 (joarroyo@microsoft.com)
 
 ## 2.13.0
 

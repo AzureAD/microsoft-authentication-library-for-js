@@ -2,6 +2,21 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Wed, 31 Mar 2021 22:25:57 GMT",
+      "tag": "msal_v1.4.9",
+      "version": "1.4.9",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix token cache for /consumers authority #3327",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "d9f23adb2d26f9008ccb24977b4a8352755fbda5",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 24 Mar 2021 22:55:46 GMT",
       "tag": "msal_v1.4.8",
       "version": "1.4.8",
