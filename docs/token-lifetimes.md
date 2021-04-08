@@ -18,7 +18,7 @@ Access tokens in the browser have a default recommended expiration of 1 hour. Af
 
 ### Refresh tokens
 
-Refresh tokens given to Single-Page Applications are limited-time refresh tokens (usually 24 hours from the time of retrieval). This is a non-adjustable lifetime. Whenever a refresh token is used to renew an access token, a new refresh token is fetched with the renewed access token. Once a refresh token has expired, a new authorization code flow must be initiated to retrieve an authorization code and trade it for a new set of tokens. (TODO: Add docs for RT here)
+Refresh tokens given to Single-Page Applications are limited-time refresh tokens (usually 24 hours from the time of retrieval). This is a non-adjustable, non-sliding window, lifetime. Whenever a refresh token is used to renew an access token, a new refresh token is fetched with the renewed access token. This new refresh token will have a lifetime equal to the remaining lifetime of the original refresh token. Once a refresh token has expired, a new authorization code flow must be initiated to retrieve an authorization code and trade it for a new set of tokens.
 
 ## Token Renewal
 
