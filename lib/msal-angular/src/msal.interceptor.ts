@@ -16,7 +16,7 @@ import { MsalService } from "./msal.service";
 import { AccountInfo, AuthenticationResult, BrowserConfigurationAuthError, InteractionType, StringUtils, UrlString } from "@azure/msal-browser";
 import { Injectable, Inject } from "@angular/core";
 import { MSAL_INTERCEPTOR_CONFIG } from "./constants";
-import { MsalInterceptorConfiguration } from "./msal.interceptor.config";
+import { MsalInterceptorAuthRequest, MsalInterceptorConfiguration } from "./msal.interceptor.config";
 
 @Injectable()
 export class MsalInterceptor implements HttpInterceptor {
@@ -34,6 +34,12 @@ export class MsalInterceptor implements HttpInterceptor {
         this.authService.getLogger().verbose("MSAL Interceptor activated");
         const scopes = this.getScopesForEndpoint(req.url);
 
+        // If no scopes for endpoint, does not acquire token
+        if (!scopes || scopes.length === 0) {
+            this.authService.getLogger().verbose("Interceptor - no scopes for endpoint");
+            return next.handle(req);
+        }
+
         // Sets account as active account or first account
         let account: AccountInfo;
         if (!!this.authService.instance.getActiveAccount()) {
@@ -44,26 +50,24 @@ export class MsalInterceptor implements HttpInterceptor {
             account = this.authService.instance.getAllAccounts()[0];
         }
 
-        // If no scopes for endpoint, does not acquire token
-        if (!scopes || scopes.length === 0) {
-            this.authService.getLogger().verbose("Interceptor - no scopes for endpoint");
-            return next.handle(req);
-        }
+        const authRequest = typeof this.msalInterceptorConfig.authRequest === "function"
+            ? this.msalInterceptorConfig.authRequest(this.authService, req, { account: account })
+            : { ...this.msalInterceptorConfig.authRequest, account };
 
         this.authService.getLogger().info(`Interceptor - ${scopes.length} scopes found for endpoint`);
         this.authService.getLogger().infoPii(`Interceptor - [${scopes}] scopes found for ${req.url}`);
 
         // Note: For MSA accounts, include openid scope when calling acquireTokenSilent to return idToken
-        return this.authService.acquireTokenSilent({...this.msalInterceptorConfig.authRequest, scopes, account})
+        return this.authService.acquireTokenSilent({...authRequest, scopes, account })
             .pipe(
                 catchError(() => {
                     this.authService.getLogger().error("Interceptor - acquireTokenSilent rejected with error. Invoking interaction to resolve.");
-                    return this.acquireTokenInteractively(scopes);
+                    return this.acquireTokenInteractively(authRequest, scopes);
                 }),
                 switchMap((result: AuthenticationResult)  => {
                     if (!result.accessToken) {
                         this.authService.getLogger().error("Interceptor - acquireTokenSilent resolved with null access token. Known issue with B2C tenants, invoking interaction to resolve.");
-                        return this.acquireTokenInteractively(scopes);
+                        return this.acquireTokenInteractively(authRequest, scopes);
                     }
                     return of(result);
                 }),
@@ -83,14 +87,14 @@ export class MsalInterceptor implements HttpInterceptor {
      * @param scopes Array of scopes for the request
      * @returns Result from the interactive request
      */
-    private acquireTokenInteractively(scopes: string[]): Observable<AuthenticationResult> {
+    private acquireTokenInteractively(authRequest: MsalInterceptorAuthRequest, scopes: string[]): Observable<AuthenticationResult> {
         if (this.msalInterceptorConfig.interactionType === InteractionType.Popup) {
             this.authService.getLogger().verbose("Interceptor - error acquiring token silently, acquiring by popup");
-            return this.authService.acquireTokenPopup({...this.msalInterceptorConfig.authRequest, scopes});
+            return this.authService.acquireTokenPopup({ ...authRequest, scopes });
         }
         this.authService.getLogger().verbose("Interceptor - error acquiring token silently, acquiring by redirect");
         const redirectStartPage = window.location.href;
-        this.authService.acquireTokenRedirect({...this.msalInterceptorConfig.authRequest, scopes, redirectStartPage});
+        this.authService.acquireTokenRedirect({...authRequest, scopes, redirectStartPage });
         return EMPTY;
     }
 

@@ -56,9 +56,9 @@ Continue to the appropriate sample to learn how it works, or to build it in to y
 - [Client Credentials](client-credentials/readme.md) [console app]
 - [Device Code](device-code/readme.md) [headless app]
 - [On Behalf Of](on-behalf-of/web-app/readme.md) [calling MS Graph]
-- [Silent Flow](silent-flow/readme.md) [web app showing cache usage]
-- [B2C Auth Code](b2c-auth-code/readme.md) [web app on Azure AD B2C]
-- [Auth Code w/ PKCE](ElectronTestApp/readme.md) [desktop app]
+- [Silent Flow](silent-flow) [web app showing cache usage]
+- [B2C Auth Code](b2c-auth-code/README.md) [web app on Azure AD B2C]
+- [Auth Code w/ PKCE](ElectronTestApp/README.md) [desktop app]
 
 For in-depth tutorials, see:
 
