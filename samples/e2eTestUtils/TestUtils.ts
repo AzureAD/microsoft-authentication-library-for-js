@@ -1,5 +1,5 @@
-import fs from "fs";
-import puppeteer from "puppeteer";
+import * as fs from "fs";
+import * as puppeteer from "puppeteer";
 import { LabConfig } from "./LabConfig";
 import { LabClient } from "./LabClient";
 
