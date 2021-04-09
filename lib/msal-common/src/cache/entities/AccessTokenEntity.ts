@@ -105,9 +105,8 @@ export class AccessTokenEntity extends CredentialEntity {
             const tokenClaims: TokenClaims | null = AuthToken.extractTokenClaims(accessToken, cryptoUtils);
             if (!tokenClaims?.cnf?.kid) {
                 throw ClientAuthError.createTokenClaimsRequiredError();
-            } else {
-                atEntity.keyId = tokenClaims.cnf.kid;
             }
+            atEntity.keyId = tokenClaims.cnf.kid;
         }
 
         return atEntity;
