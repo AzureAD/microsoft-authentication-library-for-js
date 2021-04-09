@@ -577,6 +577,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param clientId
      * @param scopes
      * @param environment
+     * @param authScheme
      */
     readCacheRecord(account: AccountInfo, clientId: string, scopes: ScopeSet, environment: string, authScheme: AuthenticationScheme): CacheRecord {
         const cachedAccount = this.readAccountFromCache(account);
@@ -640,7 +641,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param clientId
      * @param account
      * @param scopes
-     * @param inputRealm
+     * @param authScheme
      */
     readAccessTokenFromCache(clientId: string, account: AccountInfo, scopes: ScopeSet, authScheme: AuthenticationScheme): AccessTokenEntity | null {
         const credentialType = (authScheme === AuthenticationScheme.POP) ? CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME : CredentialType.ACCESS_TOKEN;
