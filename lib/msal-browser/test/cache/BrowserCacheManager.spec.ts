@@ -293,7 +293,7 @@ describe("BrowserCacheManager tests", () => {
                 });
 
                 it("getAccessTokenCredential returns AccessTokenEntity", () => {
-                    const testAccessToken = AccessTokenEntity.createAccessTokenEntity("homeAccountId", "environment", TEST_TOKENS.ACCESS_TOKEN, "client-id", "tenantId", "openid", 1000, 1000, "access", "Bearer", "oboAssertion");
+                    const testAccessToken = AccessTokenEntity.createAccessTokenEntity("homeAccountId", "environment", TEST_TOKENS.ACCESS_TOKEN, "client-id", "tenantId", "openid", 1000, 1000, browserCrypto, 500, "Bearer", "oboAssertion");
 
                     browserLocalStorage.setAccessTokenCredential(testAccessToken);
                     browserSessionStorage.setAccessTokenCredential(testAccessToken);

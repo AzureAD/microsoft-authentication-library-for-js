@@ -67,6 +67,7 @@ export class AccessTokenEntity extends CredentialEntity {
         expiresOn: number,
         extExpiresOn: number,
         cryptoUtils: ICrypto,
+        refreshOn?: number,
         tokenType?: string,
         oboAssertion?: string
     ): AccessTokenEntity {
@@ -85,6 +86,9 @@ export class AccessTokenEntity extends CredentialEntity {
          */
         atEntity.expiresOn = expiresOn.toString();
         atEntity.extendedExpiresOn = extExpiresOn.toString();
+        if (refreshOn) {
+            atEntity.refreshOn = refreshOn.toString();
+        }
 
         atEntity.environment = environment;
         atEntity.clientId = clientId;

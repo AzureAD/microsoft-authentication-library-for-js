@@ -7,7 +7,6 @@ import { BaseClient } from "./BaseClient";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { AccessTokenEntity } from "../cache/entities/AccessTokenEntity";
 import { ScopeSet } from "../request/ScopeSet";
 import { AuthToken } from "../account/AuthToken";
 import { TimeUtils } from "../utils/TimeUtils";
@@ -61,14 +60,20 @@ export class SilentFlowClient extends BaseClient {
         const authScheme = request.authenticationScheme || AuthenticationScheme.BEARER;
         const cacheRecord = this.cacheManager.readCacheRecord(request.account, this.config.authOptions.clientId, requestScopes, environment, authScheme);
 
-        if (this.isRefreshRequired(request, cacheRecord.accessToken)) {
+        if (request.forceRefresh || 
+            request.claims || 
+            !cacheRecord.accessToken || 
+            TimeUtils.isTokenExpired(cacheRecord.accessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds) ||
+            (cacheRecord.accessToken.refreshOn && TimeUtils.isTokenExpired(cacheRecord.accessToken.refreshOn, 0))) {
+            // Must refresh due to request parameters, or expired or non-existent access_token
             throw ClientAuthError.createRefreshRequiredError();
-        } else {
-            if (this.config.serverTelemetryManager) {
-                this.config.serverTelemetryManager.incrementCacheHits();
-            }
-            return await this.generateResultFromCacheRecord(cacheRecord, request);
         }
+
+        if (this.config.serverTelemetryManager) {
+            this.config.serverTelemetryManager.incrementCacheHits();
+        }
+
+        return await this.generateResultFromCacheRecord(cacheRecord, request);
     }
 
     /**
@@ -88,22 +93,5 @@ export class SilentFlowClient extends BaseClient {
             request,
             idTokenObj
         );
-    }
-
-    /**
-     * Given a request object and an accessTokenEntity determine if the accessToken needs to be refreshed
-     * @param request
-     * @param cachedAccessToken
-     */
-    private isRefreshRequired(request: CommonSilentFlowRequest, cachedAccessToken: AccessTokenEntity|null): boolean {
-        if (request.forceRefresh || request.claims) {
-            // Must refresh due to request parameters
-            return true;
-        } else if (!cachedAccessToken || TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
-            // Must refresh due to expired or non-existent access_token
-            return true;
-        }
-
-        return false;
     }
 }
