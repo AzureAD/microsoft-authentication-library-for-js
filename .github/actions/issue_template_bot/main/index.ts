@@ -14,7 +14,7 @@ async function run() {
         core.setFailed("Can only run on issues!");
         return;
     }
-    core.info(`${github.context}`);
+    core.info(`${JSON.stringify(github.context)}`);
     const payload = github.context.payload;
     if (!payload) {
         core.setFailed("No payload!");
