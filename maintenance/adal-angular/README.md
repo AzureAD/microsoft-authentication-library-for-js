@@ -15,8 +15,8 @@ This library, ADAL for JavaScript, will no longer receive new feature improvemen
 
 Active Directory Authentication Library (ADAL) for JavaScript
 ====================================
-|[Getting Started](https://github.com/Azure-Samples/active-directory-javascript-singlepageapp-dotnet-webapi)| [Docs](https://aka.ms/aaddev)| [Samples](https://github.com/azure-samples?query=active-directory)| [Support](README.md#community-help-and-support)
-| --- | --- | --- | --- |
+|[Getting Started](https://github.com/Azure-Samples/active-directory-javascript-singlepageapp-dotnet-webapi)| [Docs](https://aka.ms/aaddev)| [Samples](https://github.com/azure-samples?query=active-directory)| [Support](README.md#community-help-and-support) | [Feedback](https://forms.office.com/r/cnmB9FbgX9)
+| --- | --- | --- | --- | --- |
 
 Active Directory Authentication Library for JavaScript (ADAL JS) helps you to use Azure AD for handling authentication in your single page applications.
 This library works with both plain JS as well as AngularJS applications.
@@ -360,6 +360,9 @@ You can find the changes for each version in the [change log](https://github.com
 We leverage [Stack Overflow](http://stackoverflow.com/) to work with the community on supporting Azure Active Directory and its SDKs, including this one! We highly recommend you ask your questions on Stack Overflow (we're all on there!) Also browser existing issues to see if someone has had your question before.
 
 We recommend you use the "adal" tag so we can see it! Here is the latest Q&A on Stack Overflow for ADAL: [http://stackoverflow.com/questions/tagged/adal](http://stackoverflow.com/questions/tagged/adal)
+
+## Submit Feedback
+We'd like your thoughts on this library. Please complete [this short survey.](https://forms.office.com/r/cnmB9FbgX9)
 
 ## Security Reporting
 
