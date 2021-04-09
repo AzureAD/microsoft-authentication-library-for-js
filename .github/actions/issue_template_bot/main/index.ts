@@ -14,10 +14,19 @@ async function run() {
         core.setFailed("Can only run on issues!");
         return;
     }
-    core.info(`${github.context}`);
+
     const payload = github.context.payload;
     if (!payload) {
         core.setFailed("No payload!");
+        return;
+    }
+
+    try {
+        core.debug(`Issue Payload: ${JSON.stringify(payload)}`);
+    } catch (e) {}
+
+    if (!!payload.changes.old_issue) {
+        core.setFailed("This issue was transferred from another repository. Skipping.");
         return;
     }
 
