@@ -2,7 +2,7 @@
 
 # MSAL Angular
 /lib/msal-angular/ @jasonnutter @jo-arroyo @tnorling
-/lib/msal-angularjs/ @jasonnutter @jo-arroyo @tnorling
+/maintenance/msal-angularjs/ @jasonnutter @jo-arroyo @tnorling
 /samples/msal-angular-samples/ @jasonnutter @jo-arroyo @tnorling
 /samples/msal-angularjs-samples/ @jasonnutter @jo-arroyo @tnorling
 

@@ -25,7 +25,7 @@ The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/t
 - [Microsoft Authentication Library for Angular](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/msal-angular-v1/lib/msal-angular) :
 A wrapper of the core 1.x library for apps using Angular framework.
 
-- [Microsoft Authentication Library for AngularJS](lib/msal-angularjs/) :
+- [Microsoft Authentication Library for AngularJS](maintenance/msal-angularjs/) :
 A wrapper of the core 1.x library for apps using AngularJS framework.
 
 ### Package Structure

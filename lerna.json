@@ -15,7 +15,6 @@
     "exec": {
         "scope": [
             "msal",
-            "@azure/msal-angularjs",
             "@azure/msal-browser",
             "@azure/msal-common",
             "@azure/msal-node"
