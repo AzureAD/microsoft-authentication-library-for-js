@@ -22,6 +22,9 @@
 /samples/msal-node-samples/ @sameerag @hectormmg @samuelkubai
 /extensions/msal-node-extensions/ @sameerag @hectormmg @samuelkubai
 
+# ADAL Node
+/maintenance/adal-node @sameerag @pkanher617 @samuelkubai
+
 # MSAL React
 /lib/msal-react/ @tnorling @jasonnutter @jo-arroyo
 /samples/msal-react-samples/ @tnorling @jasonnutter @jo-arroyo

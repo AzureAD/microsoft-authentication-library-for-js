@@ -2,6 +2,8 @@ msal-node:
   - lib/msal-node/**/*
 extensions:
   - extensions/**/*
+adal-node:
+  - maintenance/**/*
 msal-angular:
   - lib/msal-angular/**/*
 angularjs:
