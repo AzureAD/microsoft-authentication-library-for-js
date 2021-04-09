@@ -22,6 +22,9 @@
 /samples/msal-node-samples/ @sameerag @hectormmg @samuelkubai
 /extensions/msal-node-extensions/ @sameerag @hectormmg @samuelkubai
 
+# Passport Azure Ad
+/maintenance/passport-azure-ad @pkanher617 @samuelkubai @sameerag
+
 # MSAL React
 /lib/msal-react/ @tnorling @jasonnutter @jo-arroyo
 /samples/msal-react-samples/ @tnorling @jasonnutter @jo-arroyo
