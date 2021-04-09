@@ -48,8 +48,9 @@ testAccessTokenEntity.clientId = TEST_CONFIG.MSAL_CLIENT_ID;
 testAccessTokenEntity.environment = testAccountEntity.environment;
 testAccessTokenEntity.realm = ID_TOKEN_CLAIMS.tid;
 testAccessTokenEntity.secret = AUTHENTICATION_RESULT.body.access_token;
-testAccessTokenEntity.target = TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" ");
+testAccessTokenEntity.target = TEST_CONFIG.DEFAULT_SCOPES.join(" ") + " " + TEST_CONFIG.DEFAULT_GRAPH_SCOPE.join(" ");
 testAccessTokenEntity.credentialType = CredentialType.ACCESS_TOKEN;
+testAccessTokenEntity.cachedAt = `${TimeUtils.nowSeconds()}`;
 
 const testRefreshTokenEntity: RefreshTokenEntity = new RefreshTokenEntity();
 testRefreshTokenEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
@@ -368,7 +369,7 @@ describe("SilentFlowClient unit tests", () => {
                 authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
             };
 
-            sinon.stub(SilentFlowClient.prototype, <any>"isRefreshRequired").returns(true);
+            sinon.stub(TimeUtils, <any>"isTokenExpired").returns(true);
             const refreshTokenClientSpy = sinon.stub(RefreshTokenClient.prototype, "acquireToken");
 
             await client.acquireToken(silentFlowRequest);
@@ -420,6 +421,40 @@ describe("SilentFlowClient unit tests", () => {
             };
             
             await expect(client.acquireCachedToken(silentFlowRequest)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRefreshRequired.desc);
+        });
+
+        it("refreshes token if refreshOn time has passed", async () => {
+            sinon.restore();
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            AUTHENTICATION_RESULT.body.client_info = TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+            sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
+            sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
+            testAccessTokenEntity.refreshOn = `${Number(testAccessTokenEntity.cachedAt) - 1}`;
+            testAccessTokenEntity.expiresOn = `${Number(testAccessTokenEntity.cachedAt) + AUTHENTICATION_RESULT.body.expires_in}`;
+            sinon.stub(CacheManager.prototype, "readAccountFromCache").returns(testAccountEntity);
+            sinon.stub(CacheManager.prototype, "readIdTokenFromCache").returns(testIdToken);
+            sinon.stub(CacheManager.prototype, "readAccessTokenFromCache").returns(testAccessTokenEntity);
+            sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
+            
+            const silentFlowRequest: CommonSilentFlowRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false
+            };
+
+            const expectedRefreshRequest: RefreshTokenRequest = {
+                ...silentFlowRequest,
+                refreshToken: testRefreshTokenEntity.secret,
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+            };
+
+            const refreshTokenSpy = sinon.stub(RefreshTokenClient.prototype, "acquireToken");
+
+            await client.acquireToken(silentFlowRequest);
+            expect(refreshTokenSpy.called).to.be.true;
+            expect(refreshTokenSpy.calledWith(expectedRefreshRequest)).to.be.true;
         });
     });
 });
