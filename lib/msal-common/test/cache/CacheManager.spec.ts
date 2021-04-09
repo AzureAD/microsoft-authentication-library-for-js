@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { CredentialType } from "../../src/utils/Constants";
+import { AuthenticationScheme, CredentialType } from "../../src/utils/Constants";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
 import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity";
 import { CacheRecord } from "../../src/cache/entities/CacheRecord";
@@ -322,10 +322,10 @@ describe("CacheManager.ts test cases", () => {
 
     it("readAccessTokenFromCache matches multiple tokens, throws error", () => {
         const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "uid.utid", "login.microsoftonline.com", "an_access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
+            "uid.utid", "login.microsoftonline.com", "an_access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, 500, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
 
         const mockedAtEntity2: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "uid.utid", "login.microsoftonline.com", "an_access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, "User.Read test_scope", 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
+            "uid.utid", "login.microsoftonline.com", "an_access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, "User.Read test_scope", 4600, 4600, mockCrypto, 500, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
 
         const accountData = {
             "username": "John Doe",
@@ -348,8 +348,7 @@ describe("CacheManager.ts test cases", () => {
             tenantId: TEST_CONFIG.TENANT,
             username: "John Doe"
         };
-
-        expect(() => mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, new ScopeSet(["user.read"]))).to.throw(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
+        expect(() => mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, new ScopeSet(["user.read"]), AuthenticationScheme.BEARER)).to.throw(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
     });
 
     it("readIdTokenFromCache", () => {
