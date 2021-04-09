@@ -21,7 +21,7 @@ Active Directory Authentication Library (ADAL) for JavaScript
 Active Directory Authentication Library for JavaScript (ADAL JS) helps you to use Azure AD for handling authentication in your single page applications.
 This library works with both plain JS as well as AngularJS applications.
 
-[![Build Status](https://travis-ci.org/AzureAD/azure-activedirectory-library-for-js.svg?branch=master)](https://travis-ci.org/AzureAD/azure-activedirectory-library-for-js)[![npm](https://img.shields.io/npm/v/adal-angular.svg)](https://www.npmjs.com/package/adal-angular)[![npm](https://img.shields.io/npm/dm/adal-angular.svg)](https://www.npmjs.com/package/adal-angular)
+[![npm](https://img.shields.io/npm/v/adal-angular.svg)](https://www.npmjs.com/package/adal-angular)[![npm](https://img.shields.io/npm/dm/adal-angular.svg)](https://www.npmjs.com/package/adal-angular)
 
 ## Installation
 
