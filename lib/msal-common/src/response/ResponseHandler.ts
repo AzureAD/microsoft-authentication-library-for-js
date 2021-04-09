@@ -214,8 +214,10 @@ export class ResponseHandler {
              */
             const expiresIn: number = (typeof serverTokenResponse.expires_in === "string" ? parseInt(serverTokenResponse.expires_in, 10) : serverTokenResponse.expires_in) || 0;
             const extExpiresIn: number = (typeof serverTokenResponse.ext_expires_in === "string" ? parseInt(serverTokenResponse.ext_expires_in, 10) : serverTokenResponse.ext_expires_in) || 0;
+            const refreshIn: number | undefined = (typeof serverTokenResponse.refresh_in === "string" ? parseInt(serverTokenResponse.refresh_in, 10) : serverTokenResponse.refresh_in) || undefined;
             const tokenExpirationSeconds = reqTimestamp + expiresIn;
             const extendedTokenExpirationSeconds = tokenExpirationSeconds + extExpiresIn;
+            const refreshOnSeconds = refreshIn && refreshIn > 0 ? reqTimestamp + refreshIn : undefined;
 
             // non AAD scenarios can have empty realm
             cachedAccessToken = AccessTokenEntity.createAccessTokenEntity(
@@ -227,6 +229,7 @@ export class ResponseHandler {
                 responseScopes.printScopes(),
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
+                refreshOnSeconds,
                 serverTokenResponse.token_type,
                 oboAssertion
             );
