@@ -766,10 +766,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param credentialType
      */
     private matchCredentialType(entity: CredentialEntity, credentialType: string): boolean {
-        if (entity.credentialType && credentialType.toLowerCase() === entity.credentialType.toLowerCase()) {
-            return true;
-        }
-        return false;
+        return (entity.credentialType && credentialType.toLowerCase() === entity.credentialType.toLowerCase());
     }
 
     /**

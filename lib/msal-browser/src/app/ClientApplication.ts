@@ -1104,6 +1104,8 @@ export abstract class ClientApplication {
         if (!request.authenticationScheme) {
             request.authenticationScheme = AuthenticationScheme.BEARER;
             this.logger.verbose("Authentication Scheme wasn't explicitly set in request, defaulting to \"Bearer\" request");
+        } else {
+            this.logger.verbose(`Authentication Scheme set to "${request.authenticationScheme}" as configured in Auth request`);
         }
 
         const validatedRequest: BaseAuthRequest = {
