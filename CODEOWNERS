@@ -26,6 +26,9 @@
 /lib/msal-react/ @tnorling @jasonnutter @jo-arroyo
 /samples/msal-react-samples/ @tnorling @jasonnutter @jo-arroyo
 
+## ADAL.js
+/maintenance/adal-angular @jasonnutter @sameerag @pkanher617
+
 # Build
 /build/ @pkanher617 @jasonnutter @tnorling
 /.github/ @pkanher617 @jasonnutter @tnorling
