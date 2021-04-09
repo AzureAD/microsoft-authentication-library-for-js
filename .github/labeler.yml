@@ -14,6 +14,8 @@ msal-browser:
   - lib/msal-browser/**/*
 msal-react:
   - lib/msal-react/**/*
+adal.js:
+  - maintenance/adal-angular/**/*
 samples:
   - samples/**/*
 documentation:
