@@ -76,7 +76,7 @@ testRefreshTokenEntity.realm = ID_TOKEN_CLAIMS.tid;
 testRefreshTokenEntity.secret = AUTHENTICATION_RESULT.body.refresh_token;
 testRefreshTokenEntity.credentialType = CredentialType.REFRESH_TOKEN;
 
-describe.only("SilentFlowClient unit tests", () => {
+describe("SilentFlowClient unit tests", () => {
     const testAccount: AccountInfo = {
         homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
         environment: "login.windows.net",
