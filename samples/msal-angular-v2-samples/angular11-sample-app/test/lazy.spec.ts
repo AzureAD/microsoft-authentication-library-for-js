@@ -56,7 +56,7 @@ describe('/ (Lazy Loading Page)', () => {
         await context.close();
     });
 
-    it("AuthenticatedTemplate - children are rendered after logging in with loginRedirect and clicking lazy-load", async () => {
+    it("Lazy-Loading module - children are rendered after logging in with loginRedirect and clicking lazy-load", async () => {
         const testName = "redirectBaseCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         await screenshot.takeScreenshot(page, "Page loaded");
@@ -64,6 +64,9 @@ describe('/ (Lazy Loading Page)', () => {
         // Initiate Login
         const [signInButton] = await page.$x("//button[contains(., 'Login')]");
         await signInButton.click();
+        await screenshot.takeScreenshot(page, "Login button clicked");
+        const [loginRedirectButton] = await page.$x("//button[contains(., 'Login using Redirect')]");
+        await loginRedirectButton.click();
 
         await enterCredentials(page, screenshot, username, accountPwd);
         

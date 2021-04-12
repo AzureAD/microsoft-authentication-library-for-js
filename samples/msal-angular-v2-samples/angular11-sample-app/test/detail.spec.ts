@@ -56,7 +56,7 @@ describe('/ (Detail Page)', () => {
         await context.close();
     });
 
-    it("AuthenticatedTemplate - children are rendered after clicking profile, logging in with redirect, and detail buttons clicked", async () => {
+    it("Detail page - children are rendered after clicking profile, logging in with redirect, and detail buttons clicked", async () => {
         const testName = "redirectBaseCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         await screenshot.takeScreenshot(page, "Page loaded");
