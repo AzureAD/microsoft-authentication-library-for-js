@@ -840,6 +840,89 @@ describe("AuthorizationCodeClient unit tests", () => {
 
             expect(authenticationResult.expiresOn?.toString()).to.not.equal("Invalid Date");
         });
+
+        it("Saves refresh_in correctly to the cache", async () => {
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            const authResult = {
+                ...AUTHENTICATION_RESULT,
+                body: {
+                    ...AUTHENTICATION_RESULT.body,
+                    "refresh_in": 1000
+                }
+            };
+            sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").resolves(authResult);
+            const createTokenRequestBodySpy = sinon.spy(AuthorizationCodeClient.prototype, <any>"createTokenRequestBody");
+
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
+
+            // Set up required objects and mocked return values
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
+            const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
+            config.cryptoInterface.base64Decode = (input: string): string => {
+                switch (input) {
+                    case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                        return TEST_POP_VALUES.DECODED_REQ_CNF;
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
+                        return decodedLibState;
+                    default:
+                        return input;
+                }
+            };
+
+            config.cryptoInterface.base64Encode = (input: string): string => {
+                switch (input) {
+                    case TEST_POP_VALUES.DECODED_REQ_CNF:
+                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                    case "123-test-uid":
+                        return "MTIzLXRlc3QtdWlk";
+                    case "456-test-utid":
+                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    default:
+                        return input;
+                }
+            };
+            // Set up stubs
+            const idTokenClaims = {
+                "ver": "2.0",
+                "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "exp": 1536361411,
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+            };
+            sinon.stub(IdToken, "extractTokenClaims").returns(idTokenClaims);
+            const client = new AuthorizationCodeClient(config);
+            const authCodeRequest: AuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
+            };
+
+            const authenticationResult = await client.acquireToken(authCodeRequest, {
+                code: authCodeRequest.code,
+                nonce: idTokenClaims.nonce,
+                state: testState
+            });
+            const accessTokenKey = config.storageInterface?.getKeys().find(value => value.indexOf("accesstoken") >= 0);
+            const accessTokenCacheItem = accessTokenKey ? config.storageInterface?.getAccessTokenCredential(accessTokenKey) : null;
+
+            expect(authenticationResult.accessToken).to.deep.eq(AUTHENTICATION_RESULT.body.access_token);
+            expect(authenticationResult.expiresOn && (Date.now() + (AUTHENTICATION_RESULT.body.expires_in * 1000)) >= authenticationResult.expiresOn.getMilliseconds()).to.be.true;
+            expect(createTokenRequestBodySpy.calledWith(authCodeRequest)).to.be.ok;
+            expect(accessTokenCacheItem && accessTokenCacheItem.refreshOn && accessTokenCacheItem.refreshOn === accessTokenCacheItem.cachedAt + authResult.body.refresh_in);
+        });
     });
 
     describe("getLogoutUri()", () => {

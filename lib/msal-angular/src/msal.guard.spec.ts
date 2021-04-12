@@ -1,7 +1,7 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
 import { Router, UrlTree } from '@angular/router';
-import { BrowserUtils, InteractionType, IPublicClientApplication, PublicClientApplication, UrlString } from '@azure/msal-browser';
+import { BrowserSystemOptions, BrowserUtils, InteractionType, IPublicClientApplication, LogLevel, PublicClientApplication, UrlString } from '@azure/msal-browser';
 import { of } from 'rxjs';
 import { MsalGuardConfiguration } from './msal.guard.config';
 import { MsalModule, MsalGuard, MsalService, MsalBroadcastService } from './public-api';
@@ -13,6 +13,8 @@ let routeStateMock: any = { snapshot: {}, url: '/' };
 let routerMock = { navigate: jasmine.createSpy('navigate') };
 let testInteractionType: InteractionType;
 let testLoginFailedRoute: string;
+let testConfiguration: Partial<MsalGuardConfiguration>;
+let browserSystemOptions: BrowserSystemOptions;
 
 function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
@@ -27,7 +29,8 @@ function MSALGuardConfigFactory(): MsalGuardConfiguration {
   return {
     //@ts-ignore
     interactionType: testInteractionType,
-    loginFailedRoute: testLoginFailedRoute
+    loginFailedRoute: testLoginFailedRoute,
+    authRequest: testConfiguration?.authRequest,
   }
 }
 
@@ -57,12 +60,28 @@ describe('MsalGuard', () => {
   beforeEach(() => {
     testInteractionType = InteractionType.Popup;
     testLoginFailedRoute = undefined;
+    testConfiguration = { };
+    browserSystemOptions = { };
     initializeMsal();
   });
 
   it("is created", () => {
     expect(guard).toBeTruthy();
   });
+
+  it("throws error for silent interaction type", (done) => {
+    testInteractionType = InteractionType.Silent;
+    initializeMsal();
+    try {
+      guard.canActivate(routeMock, routeStateMock)
+      .subscribe(
+        (result) => {},
+      );
+    } catch (err) {
+      expect(err.errorCode).toBe("invalid_interaction_type");
+      done();
+    }
+  })
 
   it("returns false if page with MSAL Guard is set as redirectUri", (done) => {
     spyOn(UrlString, "hashContainsKnownProperties").and.returnValue(true);
@@ -97,6 +116,14 @@ describe('MsalGuard', () => {
   });
 
   it("should return true after logging in with popup", (done) => {
+    testConfiguration = {
+      authRequest: (authService, state) => {
+        expect(state).toBeDefined();
+        expect(authService).toBeDefined();
+        return { };
+      }
+    }
+    initializeMsal();
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
       of("test")
@@ -108,7 +135,7 @@ describe('MsalGuard', () => {
       //@ts-ignore
       of(true)
     );
-
+    
     guard.canActivate(routeMock, routeStateMock)
       .subscribe(result => {
         expect(result).toBeTrue();
