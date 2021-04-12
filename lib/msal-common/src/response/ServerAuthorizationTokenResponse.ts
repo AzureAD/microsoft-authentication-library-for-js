@@ -8,6 +8,7 @@
  * - token_type: Indicates the token type value. The only type that Azure AD supports is Bearer.
  * - scope: The scopes that the access_token is valid for.
  * - expires_in: How long the access token is valid (in seconds).
+ * - refresh_in: Duration afer which a token should be renewed, regardless of expiration.
  * - ext_expires_in: How long the access token is valid (in seconds) if the server isn't responding.
  * - access_token: The requested access token. The app can use this token to authenticate to the secured resource, such as a web API.
  * - refresh_token: An OAuth 2.0 refresh token. The app can use this token acquire additional access tokens after the current access token expires.
@@ -26,6 +27,7 @@ export type ServerAuthorizationTokenResponse = {
     token_type?: string;
     scope?: string;
     expires_in?: number;
+    refresh_in?: number;
     ext_expires_in?: number;
     access_token?: string;
     refresh_token?: string;
