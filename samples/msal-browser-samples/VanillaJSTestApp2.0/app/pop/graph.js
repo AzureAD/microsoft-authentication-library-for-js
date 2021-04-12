@@ -56,6 +56,20 @@ async function popRequest() {
     }
 }
 
+async function fetchPopToken() {
+    const currentAcc = myMSALObj.getAccountByUsername(username);
+    if (currentAcc) {
+        popToken = getTokenPopup(popTokenRequest, currentAcc).then(response => {
+            if (response.accessToken) {
+                showPopTokenAcquired();
+                return response.accessToken;
+            }
+        }).catch(error => {
+            console.log(error);
+        });
+    }
+}
+
 async function seeProfile() {
     const currentAcc = myMSALObj.getAccountByUsername(username);
     if (currentAcc) {
