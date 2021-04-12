@@ -32,13 +32,8 @@ class ProfileContent extends Component {
     }
 
     componentDidMount() {
-        if (this.context.accounts[0] && this.context.inProgress === InteractionStatus.None) {
-            this.context.instance.acquireTokenSilent({
-                ...loginRequest,
-                account: this.context.accounts[0]
-            }).then((response) => {
-                callMsGraph(response.accessToken).then(response => this.setState({graphData: response}));
-            });
+        if (!this.state.graphData && this.context.inProgress === InteractionStatus.None) {
+            callMsGraph().then(response => this.setState({graphData: response}));
         }
     }
   

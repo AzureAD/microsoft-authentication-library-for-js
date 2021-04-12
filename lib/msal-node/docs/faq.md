@@ -38,6 +38,13 @@ MSAL Node extensions is a support library for MSAL Node which offers secure mech
 ### Can the cache plugin provided in MSAL Node extensions be used in Electron applications?
 Yes, it can. In case you run into node version related issues, refer to this [note](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/extensions/docs/msal-node-extensions.md#note-for-electron-developers) that provides the steps to troubleshoot.
 
+### What versions of Node.js are supported? How do I bypass the installation error if I want to use an active development Node.js version?
+MSAL Node officially supports even numbered stable LTS releases as documented [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node#node-version-support).
+
+If you want to work around this, please note:
+- **Yarn**: Pass the `--ignore-engines` flag to the `yarn` command.
+- **npm**: Add `engine-strict=false` to your .npmrc file.
+
 
 
 
