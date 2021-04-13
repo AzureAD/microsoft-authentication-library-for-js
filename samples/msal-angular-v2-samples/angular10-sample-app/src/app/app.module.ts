@@ -5,6 +5,7 @@ import { NgModule } from '@angular/core';
 import { MatButtonModule } from '@angular/material/button';
 import { MatToolbarModule } from '@angular/material/toolbar';
 import { MatListModule } from '@angular/material/list';
+import { MatMenuModule } from '@angular/material/menu';
 
 import { AppRoutingModule } from './app-routing.module';
 import { AppComponent } from './app.component';
@@ -25,7 +26,7 @@ export function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
     auth: {
       clientId: '3fba556e-5d4a-48e3-8e1a-fd57c12cb82e',
-      authority: "https://login.windows-ppe.net/common",
+      authority: 'https://login.windows-ppe.net/common',
       redirectUri: '/',
       postLogoutRedirectUri: '/'
     },
@@ -75,6 +76,7 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
     MatButtonModule,
     MatToolbarModule,
     MatListModule,
+    MatMenuModule,
     HttpClientModule,
     MsalModule
   ],

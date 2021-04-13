@@ -56,7 +56,7 @@ describe('/ (Home Page)', () => {
         await context.close();
     });
 
-    it("AuthenticatedTemplate - children are rendered after logging in with loginRedirect", async () => {
+    it("Home page - children are rendered after logging in with loginRedirect", async () => {
         const testName = "redirectBaseCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         await screenshot.takeScreenshot(page, "Page loaded");
@@ -64,14 +64,20 @@ describe('/ (Home Page)', () => {
         // Initiate Login
         const [signInButton] = await page.$x("//button[contains(., 'Login')]");
         await signInButton.click();
+        await screenshot.takeScreenshot(page, "Login button clicked");
+        const [loginRedirectButton] = await page.$x("//div//button[contains(., 'Login using Redirect')]");
+        await loginRedirectButton.click();
 
         await enterCredentials(page, screenshot, username, accountPwd);
 
         // Verify UI now displays logged in content
         const [signedIn] = await page.$x("//p[contains(., 'Login successful!')]");
         expect(signedIn).toBeDefined();
-        const [logoutButtons] = await page.$x("//button[contains(., 'Logout')]");
-        expect(logoutButtons).toBeDefined();
+        const [logoutButton] = await page.$x("//button[contains(., 'Logout')]");
+        await logoutButton.click();
+        const logoutButtons = await page.$x("//div//button[contains(., 'Logout using')]");
+        expect(logoutButtons.length).toBe(2);
+        await logoutButton.click();
         await screenshot.takeScreenshot(page, "App signed in");
 
         // Verify tokens are in cache
@@ -81,7 +87,51 @@ describe('/ (Home Page)', () => {
         const [profileButton] = await page.$x("//span[contains(., 'Profile')]");
         await profileButton.click();
         await screenshot.takeScreenshot(page, "Profile page loaded");
-        
+
+        // Verify displays profile page without activating MsalGuard
+        const [profileFirstName] = await page.$x("//strong[contains(., 'First Name: ')]");
+        expect(profileFirstName).toBeDefined();
+    });
+
+    it("Home page - children are rendered after logging in with loginPopup", async () => {
+        const testName = "popupBaseCase";
+        const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+        await screenshot.takeScreenshot(page, "Page loaded");
+
+        // Initiate Login
+        const [signInButton] = await page.$x("//button[contains(., 'Login')]");
+        await signInButton.click();
+        await screenshot.takeScreenshot(page, "Login button clicked");
+        const [loginPopupButton] = await page.$x("//button[contains(., 'Login using Popup')]");
+        const newPopupWindowPromise = new Promise<puppeteer.Page>(resolve => page.once("popup", resolve));
+        await loginPopupButton.click();
+        const popupPage = await newPopupWindowPromise;
+        const popupWindowClosed = new Promise<void>(resolve => popupPage.once("close", resolve));
+
+        await enterCredentials(popupPage, screenshot, username, accountPwd);
+        await popupWindowClosed;
+
+        await page.waitForXPath("//p[contains(., 'Login successful!')]", {timeout: 3000});
+        await screenshot.takeScreenshot(page, "Popup closed");
+
+        // Verify UI now displays logged in content
+        const [signedIn] = await page.$x("//p[contains(., 'Login successful!')]");
+        expect(signedIn).toBeDefined();
+        const [logoutButton] = await page.$x("//button[contains(., 'Logout')]");
+        await logoutButton.click();
+        const logoutButtons = await page.$x("//button[contains(., 'Logout using')]");
+        expect(logoutButtons.length).toBe(2);
+        await logoutButton.click();
+        await screenshot.takeScreenshot(page, "App signed in");
+
+        // Verify tokens are in cache
+        await verifyTokenStore(BrowserCache, ["User.Read"]);
+
+        // Navigate to profile page
+        const [profileButton] = await page.$x("//span[contains(., 'Profile')]");
+        await profileButton.click();
+        await screenshot.takeScreenshot(page, "Profile page loaded");
+
         // Verify displays profile page without activating MsalGuard
         const [profileFirstName] = await page.$x("//strong[contains(., 'First Name: ')]");
         expect(profileFirstName).toBeDefined();
