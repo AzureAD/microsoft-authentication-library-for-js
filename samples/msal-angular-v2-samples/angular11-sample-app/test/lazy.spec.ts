@@ -57,7 +57,7 @@ describe('/ (Lazy Loading Page)', () => {
     });
 
     it("Lazy-Loading module - children are rendered after logging in with loginRedirect and clicking lazy-load", async () => {
-        const testName = "redirectBaseCase";
+        const testName = "lazyloadingBaseCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         await screenshot.takeScreenshot(page, "Page loaded");
 

@@ -94,7 +94,7 @@ describe('/ (Home Page)', () => {
     });
 
     it("Home page - children are rendered after logging in with loginPopup", async () => {
-        const testName = "redirectBaseCase";
+        const testName = "popupBaseCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         await screenshot.takeScreenshot(page, "Page loaded");
 

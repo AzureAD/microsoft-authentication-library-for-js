@@ -58,7 +58,7 @@ describe('/ (Profile Page)', () => {
     it("AuthenticatedTemplate - children are rendered after profile button clicked and logging in with loginRedirect", async () => {
         await page.goto(`http://localhost:${port}`);
 
-        const testName = "redirectBaseCase";
+        const testName = "profileButtonRedirectCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         await screenshot.takeScreenshot(page, "Page loaded");
 
@@ -85,7 +85,7 @@ describe('/ (Profile Page)', () => {
         // Initiate login via MsalGuard by navigating directly to profile route
         await page.goto(`http://localhost:${port}/#/profile`);
 
-        const testName = "redirectBaseCase";
+        const testName = "profileNavigationRedirectCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         await screenshot.takeScreenshot(page, "No home page load");
 
