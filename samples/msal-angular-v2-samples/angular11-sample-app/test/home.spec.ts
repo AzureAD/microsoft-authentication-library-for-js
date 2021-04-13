@@ -65,12 +65,8 @@ describe('/ (Home Page)', () => {
         const [signInButton] = await page.$x("//button[contains(., 'Login')]");
         await signInButton.click();
         await screenshot.takeScreenshot(page, "Login button clicked");
-        await page.waitForXPath("//button[contains(., 'Login using Redirect')]");
-        console.log("REDIRECT BUTTON FOUND");
-        const [loginRedirectButton] = await page.$x("//button[contains(., 'Login using Redirect')]");
-        console.log("AWAIT SELECTING BUTTON");
+        const loginRedirectButton = await page.waitForXPath("//button[contains(., 'Login using Redirect')]", { visible: true });
         await loginRedirectButton.click();
-        console.log("REDIRECT BUTTON CLICKED");
 
         await enterCredentials(page, screenshot, username, accountPwd);
 
