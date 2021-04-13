@@ -65,7 +65,8 @@ describe('/ (Home Page)', () => {
         const [signInButton] = await page.$x("//button[contains(., 'Login')]");
         await signInButton.click();
         await screenshot.takeScreenshot(page, "Login button clicked");
-        const [loginRedirectButton] = await page.$x("//div//button[contains(., 'Login using Redirect')]");
+        await page.waitForXPath("//button[contains(., 'Login using Redirect')]");
+        const [loginRedirectButton] = await page.$x("//button[contains(., 'Login using Redirect')]");
         await loginRedirectButton.click();
 
         await enterCredentials(page, screenshot, username, accountPwd);
@@ -75,7 +76,8 @@ describe('/ (Home Page)', () => {
         expect(signedIn).toBeDefined();
         const [logoutButton] = await page.$x("//button[contains(., 'Logout')]");
         await logoutButton.click();
-        const logoutButtons = await page.$x("//div//button[contains(., 'Logout using')]");
+        await page.waitForXPath("//button[contains(., 'Logout using')]");
+        const logoutButtons = await page.$x("//button[contains(., 'Logout using')]");
         expect(logoutButtons.length).toBe(2);
         await logoutButton.click();
         await screenshot.takeScreenshot(page, "App signed in");
