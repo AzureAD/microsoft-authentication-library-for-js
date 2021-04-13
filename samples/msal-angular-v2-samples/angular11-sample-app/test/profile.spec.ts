@@ -55,7 +55,7 @@ describe('/ (Profile Page)', () => {
         await context.close();
     });
 
-    it("AuthenticatedTemplate - children are rendered after profile button clicked and logging in with loginRedirect", async () => {
+    it("Profile page - children are rendered after profile button clicked and logging in with loginRedirect", async () => {
         await page.goto(`http://localhost:${port}`);
 
         const testName = "profileButtonRedirectCase";
@@ -81,7 +81,7 @@ describe('/ (Profile Page)', () => {
         expect(profileFirstName).toBeDefined();
     });
     
-    it("AuthenticatedTemplate - children are rendered after initial navigation to profile before login ", async () => {
+    it("Profile page - children are rendered after initial navigation to profile before login ", async () => {
         // Initiate login via MsalGuard by navigating directly to profile route
         await page.goto(`http://localhost:${port}/#/profile`);
 
