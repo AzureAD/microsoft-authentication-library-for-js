@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Add Node.js version support in FAQ(#3290)",
+  "packageName": "@azure/msal-node",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "none"
+}
