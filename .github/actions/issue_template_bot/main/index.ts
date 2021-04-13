@@ -25,8 +25,8 @@ async function run() {
         core.debug(`Issue Payload: ${JSON.stringify(payload)}`);
     } catch (e) {}
 
-    if (!!payload.changes.old_issue) {
-        core.setFailed("This issue was transferred from another repository. Skipping.");
+    if (payload.changes && !!payload.changes.old_issue) {
+        core.info("This issue was transferred from another repository. Skipping.");
         return;
     }
 
