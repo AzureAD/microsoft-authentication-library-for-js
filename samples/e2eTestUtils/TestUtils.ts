@@ -1,5 +1,5 @@
 import fs from "fs";
-import puppeteer from "puppeteer";
+import puppeteer, { HTTPResponse } from "puppeteer";
 import { LabConfig } from "./LabConfig";
 import { LabClient } from "./LabClient";
 
@@ -45,31 +45,36 @@ export async function setupCredentials(labConfig: LabConfig, labClient: LabClien
 
 export async function enterCredentials(page: puppeteer.Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
     await Promise.all([
-        page.waitForSelector("#i0116"),
-        page.waitForNavigation({ timeout: 5000, waitUntil: "networkidle0"})
+        page.waitForNavigation({ waitUntil: "networkidle0" }),
+        page.waitForSelector("#i0116")
     ]);
     await screenshot.takeScreenshot(page, "loginPage");
     await page.type("#i0116", username);
     await Promise.all([
         page.click("#idSIButton9"),
-        page.waitForNavigation({ timeout: 5000, waitUntil: "networkidle0"})
+        page.waitForNavigation({ waitUntil: "networkidle0" })
     ]);
     await page.waitForSelector("#idA_PWD_ForgotPassword");
     await screenshot.takeScreenshot(page, "pwdInputPage");
     await page.type("#i0118", accountPwd);
     await Promise.all([
         page.click("#idSIButton9"),
-        page.waitForNavigation({ timeout: 5000, waitUntil: "networkidle0"})
+
+        // Wait either for another navigation to Keep me signed in page or back to redirectUri
+        Promise.race([
+            page.waitForNavigation({ waitUntil: "networkidle0" }),
+            page.waitForResponse((response: HTTPResponse) => response.url().startsWith("http://localhost"), { timeout: 0 })
+        ])
     ]);
-    try {
-        await page.waitForSelector('#KmsiCheckboxField', {timeout: 1000});
-        await screenshot.takeScreenshot(page, "kmsiPage");
-        await Promise.all([
-            page.click("#idSIButton9"),
-            page.waitForNavigation({ timeout: 5000, waitUntil: "networkidle0"})
-        ]);
-    } catch (e) {
-        console.log("ERROR")
+
+    if (page.url().startsWith("http://localhost")) {
         return;
     }
+
+    await page.waitForSelector('#KmsiCheckboxField', {timeout: 1000});
+    await screenshot.takeScreenshot(page, "kmsiPage");
+    await Promise.all([
+        page.waitForResponse((response: HTTPResponse) => response.url().startsWith("http://localhost")),
+        page.click('#idSIButton9')
+    ]);
 }

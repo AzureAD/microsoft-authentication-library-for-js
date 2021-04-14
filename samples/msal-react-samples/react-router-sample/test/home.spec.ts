@@ -47,6 +47,7 @@ describe('/ (Home Page)', () => {
     beforeEach(async () => {
         context = await browser.createIncognitoBrowserContext();
         page = await context.newPage();
+        page.setDefaultTimeout(5000);
         BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
         await page.goto(`http://localhost:${port}`);
     });
@@ -69,11 +70,11 @@ describe('/ (Home Page)', () => {
         await loginRedirectButton.click();
 
         await enterCredentials(page, screenshot, username, accountPwd);
+        await screenshot.takeScreenshot(page, "Returned to app");
 
         // Verify UI now displays logged in content
-        const [signedIn] = await page.$x("//header[contains(., 'Welcome,')]");
-        expect(signedIn).toBeDefined();
-        const [profileButton] = await page.$x("//header//button");
+        await page.waitForXPath("//header[contains(., 'Welcome,')]");
+        const profileButton = await page.waitForXPath("//header//button");
         await profileButton.click();
         const logoutButtons = await page.$x("//li[contains(., 'Logout using')]");
         expect(logoutButtons.length).toBe(2);
@@ -92,7 +93,7 @@ describe('/ (Home Page)', () => {
         const [signInButton] = await page.$x("//button[contains(., 'Login')]");
         await signInButton.click();
         await screenshot.takeScreenshot(page, "Login button clicked");
-        const [loginPopupButton] = await page.$x("//li[contains(., 'Sign in using Popup')]");
+        const loginPopupButton = await page.waitForXPath("//li[contains(., 'Sign in using Popup')]");
         const newPopupWindowPromise = new Promise<puppeteer.Page>(resolve => page.once("popup", resolve));
         await loginPopupButton.click();
         const popupPage = await newPopupWindowPromise;
@@ -104,9 +105,8 @@ describe('/ (Home Page)', () => {
         await screenshot.takeScreenshot(page, "Popup closed");
 
         // Verify UI now displays logged in content
-        const [signedIn] = await page.$x("//header[contains(., 'Welcome,')]");
-        expect(signedIn).toBeDefined();
-        const [profileButton] = await page.$x("//header//button");
+        await page.waitForXPath("//header[contains(., 'Welcome,')]");
+        const profileButton = await page.waitForXPath("//header//button");
         await profileButton.click();
         const logoutButtons = await page.$x("//li[contains(., 'Logout using')]");
         expect(logoutButtons.length).toBe(2);
