@@ -149,7 +149,7 @@ describe("CacheStorage.ts Class - Local Storage", function () {
         it("tests setItemCookie works", function () {
             let idTokenNonceString = "idTokenNonce";
             cacheStorage.setItemCookie(`${AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, TEST_STATE)}`, idTokenNonceString);
-            expect(document.cookie).to.include(`${AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, TEST_STATE)}`);
+            expect(document.cookie).to.include(encodeURIComponent(`${AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, TEST_STATE)}`));
             expect(document.cookie).to.include(idTokenNonceString);
             cacheStorage.clearItemCookie(`${AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, TEST_STATE)}`);
         });
@@ -167,8 +167,8 @@ describe("CacheStorage.ts Class - Local Storage", function () {
             const cookieValue = "cookie|value|\n|";
             cacheStorage.setItemCookie(cookieName, cookieValue);
             let storedCookieValue = cacheStorage.getItemCookie(cookieName);
-            expect(document.cookie).to.include(escape(cookieName));
-            expect(document.cookie).to.include(escape(cookieValue));
+            expect(document.cookie).to.include(encodeURIComponent(cookieName));
+            expect(document.cookie).to.include(encodeURIComponent(cookieValue));
             expect(storedCookieValue).to.equal(cookieValue);
             cacheStorage.clearItemCookie(cookieName);
         });
