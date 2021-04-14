@@ -60,7 +60,9 @@ In **Azure AD**, the scopes (*permissions*) set directly on the application regi
   msalInstance.acquireTokenSilent(tokenRequest);
  ```
 
-In the code snippet above, the user will be prompted for consent once they authenticate and receive an **ID Token** and an **Access Token** with scope `User.Read`. Later, if they request an **Access Token** for `User.Read`, they will not be asked for consent again (in other words, they can acquire a token *silently*). On the other hand, the user did not consented to `Mail.Read` at the authentication stage. As such, they will be asked for consent when requesting an **Access Token** for that scope. The token received will contain all the previously consented scopes (for that specific resource), hence the term *incremental consent*.
+In the code snippet above, the user will be prompted for consent once they authenticate and receive an **ID Token** and an **Access Token** with the scope `User.Read`. Later, if they request an **Access Token** for `User.Read`, they will not be asked for consent again (in other words, they can acquire a token *silently*). 
+
+On the other hand, the user did not consent to `Mail.Read` at the authentication stage, therefore, will be asked for consent when requesting an **Access Token** for `Mail.Read` scope. The token received will contain all the previously consented scopes (for that specific resource), hence the term *incremental consent*.
 
 Consider a slightly different case:
 
