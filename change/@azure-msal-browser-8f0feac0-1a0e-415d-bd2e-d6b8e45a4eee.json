@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Make SHR parameters optional (#3320)",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
