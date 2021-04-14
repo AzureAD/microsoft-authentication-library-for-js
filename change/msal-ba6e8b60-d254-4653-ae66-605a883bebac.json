@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Encode control characters in cookies set by MSAL.js v1",
+  "packageName": "msal",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "patch"
+}
