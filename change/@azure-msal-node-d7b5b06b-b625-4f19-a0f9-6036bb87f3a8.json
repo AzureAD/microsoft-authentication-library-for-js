@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "key vault sample",
-  "packageName": "@azure/msal-node",
-  "email": "dogan.erisen@gmail.com",
-  "dependentChangeType": "none"
-}

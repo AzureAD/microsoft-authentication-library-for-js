@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add support for AccessToken_With_AuthScheme credential type #3426",
-  "packageName": "@azure/msal-node",
-  "email": "hectormgdev@gmail.com",
-  "dependentChangeType": "patch"
-}
