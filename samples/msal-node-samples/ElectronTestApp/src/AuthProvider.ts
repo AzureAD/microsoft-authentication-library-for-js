@@ -20,11 +20,11 @@ import { b2cPolicies } from "./Policies";
 // Redirect URL registered in Azure PPE Lab App
 const CUSTOM_FILE_PROTOCOL_NAME = "msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0";
 
+// Change this to load the desired MSAL Client Configuration
+import * as CLIENT_CONFIG from "./config/ADFS.json";
+
 const MSAL_CONFIG: Configuration = {
-    auth: {
-        clientId: "8fcb9fc1-d8f9-49c0-b80e-a8a8a201d051",
-        authority: "https://login.windows-ppe.net/common/",
-    },
+    auth: CLIENT_CONFIG.authOptions,
     cache: {
         cachePlugin
     },
@@ -34,7 +34,7 @@ const MSAL_CONFIG: Configuration = {
                 console.log(message);
             },
             piiLoggingEnabled: false,
-            logLevel: LogLevel.Verbose,
+            logLevel: LogLevel.Info,
         }
     }
 };
@@ -63,24 +63,18 @@ export default class AuthProvider {
      * Initialize request objects used by this AuthModule.
      */
     private setRequestObjects(): void {
-        const requestScopes =  ['openid', 'profile', 'User.Read'];
-        const redirectUri = "msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0://auth ";
 
         const baseSilentRequest = {
             account: null, 
             forceRefresh: false
         };
 
-        this.authCodeUrlParams = {
-            scopes: requestScopes,
-            redirectUri: redirectUri
-        };
+        this.authCodeUrlParams = CLIENT_CONFIG.request.authCodeUrlParameters;
 
         this.authCodeRequest = {
-            scopes: requestScopes,
-            redirectUri: redirectUri,
+            ...CLIENT_CONFIG.request.authCodeRequest,
             code: null
-        }
+        };
 
         this.silentProfileRequest = {
             ...baseSilentRequest,
@@ -159,13 +153,12 @@ export default class AuthProvider {
         authWindow.loadURL(navigateUrl);
         return new Promise((resolve, reject) => {
             authWindow.webContents.on('will-redirect', (event, responseUrl) => {
-                try {
                     const parsedUrl = new URL(responseUrl);
                     const authCode = parsedUrl.searchParams.get('code');
-                    resolve(authCode);
-                } catch (err) {
-                    reject(err);
-                }
+
+                    if (authCode) {
+                        resolve(authCode);
+                    }
             });
         });
     }
