@@ -7,7 +7,9 @@
   "scripts": {
     "build": "tsc",
     "start": "npm run build && electron dist/app.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
+    "start:build": "npm run build:package && npm start",
+    "install:local": "npm install ../../../lib/msal-node"
   },
   "keywords": [
     "msal-node",
@@ -23,7 +25,7 @@
     "webpack": "^5.6.0"
   },
   "dependencies": {
-    "@azure/msal-node": "^1.0.1",
+    "@azure/msal-node": "file:../../../lib/msal-node",
     "axios": "^0.21.0"
   }
 }

@@ -15,13 +15,15 @@ import { AuthCodeListener } from "./AuthCodeListener";
 import { cachePlugin } from "./CachePlugin";
 import { BrowserWindow } from "electron";
 import { CustomFileProtocolListener } from "./CustomFileProtocol";
+import { b2cPolicies } from "./Policies";
 
-const CUSTOM_FILE_PROTOCOL_NAME = "msal";
+// Redirect URL registered in Azure PPE Lab App
+const CUSTOM_FILE_PROTOCOL_NAME = "msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0";
 
 const MSAL_CONFIG: Configuration = {
     auth: {
-        clientId: "89e61572-2f96-47ba-b571-9d8c8f96b69d",
-        authority: "https://login.microsoftonline.com/5d97b14d-c396-4aee-b524-c86d33e9b660",
+        clientId: "8fcb9fc1-d8f9-49c0-b80e-a8a8a201d051",
+        authority: "https://login.windows-ppe.net/common/",
     },
     cache: {
         cachePlugin
@@ -62,7 +64,7 @@ export default class AuthProvider {
      */
     private setRequestObjects(): void {
         const requestScopes =  ['openid', 'profile', 'User.Read'];
-        const redirectUri = "msal://redirect";
+        const redirectUri = "msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0://auth ";
 
         const baseSilentRequest = {
             account: null, 
