@@ -10,7 +10,8 @@ import {
     AuthorizationCodeRequest,
     AuthorizationUrlRequest,
     AuthenticationResult,
-    SilentFlowRequest } from "@azure/msal-node";
+    SilentFlowRequest, 
+    CryptoProvider} from "@azure/msal-node";
 import { AuthCodeListener } from "./AuthCodeListener";
 import { cachePlugin } from "./CachePlugin";
 import { BrowserWindow } from "electron";
@@ -21,7 +22,7 @@ import { b2cPolicies } from "./Policies";
 const CUSTOM_FILE_PROTOCOL_NAME = "msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0";
 
 // Change this to load the desired MSAL Client Configuration
-import * as CLIENT_CONFIG from "./config/ADFS.json";
+import * as CLIENT_CONFIG from "./config/customConfig.json";
 
 const MSAL_CONFIG: Configuration = {
     auth: CLIENT_CONFIG.authOptions,
@@ -48,7 +49,6 @@ export default class AuthProvider {
     private silentProfileRequest: SilentFlowRequest;
     private silentMailRequest: SilentFlowRequest;
     private authCodeListener: AuthCodeListener;
-
     constructor() {
         this.clientApplication = new PublicClientApplication(MSAL_CONFIG);
         this.account = null;
@@ -120,13 +120,31 @@ export default class AuthProvider {
     }
 
     async getTokenInteractive(authWindow: BrowserWindow, tokenRequest: AuthorizationUrlRequest ): Promise<AuthenticationResult> {
-        const authCodeUrlParams = { ...this.authCodeUrlParams, scopes: tokenRequest.scopes };
+        // Generate PKCE Challenge and Verifier before request
+        const cryptoProvider = new CryptoProvider();
+        const { challenge, verifier } = await cryptoProvider.generatePkceCodes();
+
+        // Add PKCE params to Auth Code URL request
+        const authCodeUrlParams = { 
+            ...this.authCodeUrlParams,
+            codeChallenge: challenge,
+            codeChallengeMethod: "S256" 
+        };
+
+        // Get Auth Code URL
         const authCodeUrl = await this.clientApplication.getAuthCodeUrl(authCodeUrlParams);
+
+        // Set up custom file protocol to listen for redirect response
         this.authCodeListener = new CustomFileProtocolListener(CUSTOM_FILE_PROTOCOL_NAME);
         this.authCodeListener.start();
         const authCode = await this.listenForAuthCode(authCodeUrl, authWindow);
-        const authResult = await this.clientApplication.acquireTokenByCode({ ...this.authCodeRequest, scopes: tokenRequest.scopes, code: authCode});
-        return authResult;
+
+        // Use Authorization Code and PKCE Code verifier to make token request
+        return await this.clientApplication.acquireTokenByCode({
+            ...this.authCodeRequest,
+            code: authCode,
+            codeVerifier: verifier
+        });
     }
 
     async login(authWindow: BrowserWindow): Promise<AccountInfo> {
