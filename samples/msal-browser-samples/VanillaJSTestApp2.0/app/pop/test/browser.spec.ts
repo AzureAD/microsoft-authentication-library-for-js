@@ -85,7 +85,7 @@ describe("Browser tests", function () {
         await browser.close();
     });
 
-    it("Performs loginRedirect and validates PoP token", async () => {
+    it("Performs loginRedirect, acquires and validates PoP token", async () => {
         const testName = "redirectBaseCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         // Home Page
@@ -98,13 +98,16 @@ describe("Browser tests", function () {
         // Enter credentials
         await enterCredentials(page, screenshot);
         await screenshot.takeScreenshot(page, "samplePageLoggedIn");
-        await page.click("#popRequest");
+        await page.click("#popToken");
+        await page.waitForSelector("#PopTokenAcquired");
+        await screenshot.takeScreenshot(page, "popTokenClicked");
         const tokenStore = await BrowserCache.getTokens();
         expect(tokenStore.idTokens).to.be.length(1);
-        expect(tokenStore.accessTokens).to.be.length(1);
+        // One Bearer Token and one PoP token
+        expect(tokenStore.accessTokens).to.be.length(2);
         expect(tokenStore.refreshTokens).to.be.length(1);
         const cachedAccount = await BrowserCache.getAccountFromCache(tokenStore.idTokens[0]);
-        const defaultCachedToken = await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "user.read"]);
+        const defaultCachedToken = await BrowserCache.popAccessTokenForScopesExists(tokenStore.accessTokens, ["openid", "profile", "user.read"]);
         expect(cachedAccount).to.not.be.null;
         expect(defaultCachedToken).to.be.true;
         // Check pop token

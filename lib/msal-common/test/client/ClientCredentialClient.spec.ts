@@ -7,8 +7,8 @@ import {
     TEST_TOKENS
 } from "../utils/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
-import { AADServerParamKeys, GrantType, Constants } from "../../src/utils/Constants";
-import { ClientTestUtils } from "./ClientTestUtils";
+import { AADServerParamKeys, GrantType, Constants, AuthenticationScheme } from "../../src/utils/Constants";
+import { ClientTestUtils, mockCrypto } from "./ClientTestUtils";
 import { Authority } from "../../src/authority/Authority";
 import { ClientCredentialClient } from "../../src/client/ClientCredentialClient";
 import { ClientCredentialRequest } from "../../src/request/ClientCredentialRequest";
@@ -69,7 +69,7 @@ describe("ClientCredentialClient unit tests", () => {
         const client = new ClientCredentialClient(config);
 
         const expectedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600);
+            "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, undefined, AuthenticationScheme.BEARER);
             
         sinon.stub(ClientCredentialClient.prototype, <any>"readAccessTokenFromCache").returns(expectedAtEntity);
         sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
@@ -125,10 +125,10 @@ describe("ClientCredentialClient unit tests", () => {
         
         // mock access token
         const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
+            "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, undefined, TEST_TOKENS.ACCESS_TOKEN);
             
         const mockedAtEntity2: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
+            "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, undefined, TEST_TOKENS.ACCESS_TOKEN);
             
         const mockedCredentialCache: CredentialCache = {
             accessTokens: { 
