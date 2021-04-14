@@ -66,7 +66,7 @@ describe('/ (Home Page)', () => {
         await signInButton.click();
         await page.waitForTimeout(200);
         await screenshot.takeScreenshot(page, "Login button clicked");
-        const loginRedirectButton = await page.waitForXPath("//button[contains(., 'Login using Redirect')]", { visible: true });
+        const [loginRedirectButton] = await page.$x("//button[contains(., 'Login using Redirect')]");
         await loginRedirectButton.click();
 
         await enterCredentials(page, screenshot, username, accountPwd);
@@ -103,6 +103,7 @@ describe('/ (Home Page)', () => {
         // Initiate Login
         const [signInButton] = await page.$x("//button[contains(., 'Login')]");
         await signInButton.click();
+        await page.waitForTimeout(200);
         await screenshot.takeScreenshot(page, "Login button clicked");
         const [loginPopupButton] = await page.$x("//button[contains(., 'Login using Popup')]");
         const newPopupWindowPromise = new Promise<puppeteer.Page>(resolve => page.once("popup", resolve));
