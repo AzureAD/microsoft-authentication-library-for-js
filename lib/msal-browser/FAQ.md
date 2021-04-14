@@ -68,6 +68,19 @@ MSAL.js has been tested and supports the last 2 stable and supported versions of
 - Opera
 
 MSAL.js has also been tested and supports the following browsers with Promise polyfills:
+Support for these browsers will be dropped in the next major version of `@azure/msal-browser` (v3).
+
+- IE 11
+- Edge (Legacy)
+
+MSAL.js also supports the following environments:
+
+- WebViews
+- Chromium Extensions
+- Office Add-ins
+- Teams Applications
+
+MSAL.js has also been tested and supports the following browsers with Promise polyfills:
 
 - IE 11
 - Edge (Legacy)
