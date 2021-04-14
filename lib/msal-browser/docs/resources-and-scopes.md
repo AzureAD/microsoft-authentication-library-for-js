@@ -48,7 +48,7 @@ In **Azure AD**, the scopes (*permissions*) set directly on the application regi
 
  ```javascript
   const loginRequest = {
-       scopes: [ "openid", "profile", "User.Read", "api://<myCustomApiClientId>/My.Scope" ]
+       scopes: [ "openid", "profile", "User.Read" ]
   };
   const tokenRequest = {
        scopes: [ "Mail.Read" ]
