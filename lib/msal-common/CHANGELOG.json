@@ -2,6 +2,35 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 14 Apr 2021 18:39:53 GMT",
+      "tag": "@azure/msal-common_v4.2.0",
+      "version": "4.2.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Adding the refresh_in feature for msal.js #3005",
+            "author": "prkanher@microsoft.com",
+            "commit": "535031a4e98c88797b28f629a7cb3b9c69cbcbaa",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Add support for AccessToken_With_AuthScheme credential type #3426",
+            "author": "hectormgdev@gmail.com",
+            "commit": "c35e120dd8af5dda03b2480cf559cf226fb2fc21",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Make SHR parameters optional #3320",
+            "author": "hemoral@microsoft.com",
+            "commit": "fd0dcd559af8ab0e04dec3c30cf3d4e122d6057d",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 31 Mar 2021 22:25:57 GMT",
       "tag": "@azure/msal-common_v4.1.1",
       "version": "4.1.1",

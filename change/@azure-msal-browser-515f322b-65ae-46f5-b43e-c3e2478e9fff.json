@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Changes to test files",
-  "packageName": "@azure/msal-browser",
-  "email": "prkanher@microsoft.com",
-  "dependentChangeType": "none"
-}
