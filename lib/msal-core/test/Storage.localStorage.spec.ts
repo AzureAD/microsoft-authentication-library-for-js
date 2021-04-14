@@ -162,6 +162,17 @@ describe("CacheStorage.ts Class - Local Storage", function () {
             cacheStorage.clearItemCookie(`${AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, TEST_STATE)}`);
         });
 
+        it("setItemCookie and getItemCookie properly escape control characters", () => {
+            const cookieName = "cookie|name|\r|";
+            const cookieValue = "cookie|value|\n|";
+            cacheStorage.setItemCookie(cookieName, cookieValue);
+            let storedCookieValue = cacheStorage.getItemCookie(cookieName);
+            expect(document.cookie).to.include(escape(cookieName));
+            expect(document.cookie).to.include(escape(cookieValue));
+            expect(storedCookieValue).to.equal(cookieValue);
+            cacheStorage.clearItemCookie(cookieName);
+        });
+
         it("tests getCookieExpirationTime", function () {
             // 86400000 ms = 1 day
             let nextDayUTC = new Date(Date.now() + 86400000);
