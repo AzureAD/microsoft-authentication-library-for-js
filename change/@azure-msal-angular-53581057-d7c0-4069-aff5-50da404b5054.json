@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "fix(Msal-Angular): Dynamic interceptor authority",
-  "packageName": "@azure/msal-angular",
-  "email": "1292510+svrooij@users.noreply.github.com",
-  "dependentChangeType": "patch"
-}
