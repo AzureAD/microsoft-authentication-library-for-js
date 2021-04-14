@@ -8,7 +8,7 @@ Azure Active Directory v2.0 & Microsoft Identity Platform employs a *scope-centr
 - cannot be used for accessing resource **A** with scope `scp2`, and,
 - cannot be used for accessing resource **B** of any scope.
 
-The intended recipient of an **Access Token** is represented by the `aud` claim; in case the value for the `aud` claim does not mach the resource [APP ID URI](https://docs.microsoft.com/azure/active-directory/develop/scenario-protected-web-api-app-registration), the token should be considered invalid. Likewise, the permissions that an **Access Token** grants is represented by the `scp` claim. See [ Access Token claims](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#payload-claims) for more information.
+The intended recipient of an **Access Token** is represented by the `aud` claim; in case the value for the `aud` claim does not match the resource [APP ID URI](https://docs.microsoft.com/azure/active-directory/develop/scenario-protected-web-api-app-registration), the token should be considered invalid. Likewise, the permissions that an **Access Token** grants is represented by the `scp` claim. See [ Access Token claims](https://docs.microsoft.com/azure/active-directory/develop/access-tokens#payload-claims) for more information.
 
 ## Working with Multiple Resources
 
