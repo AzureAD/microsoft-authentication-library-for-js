@@ -1,5 +1,5 @@
 {
-  "type": "minor",
+  "type": "patch",
   "comment": "Change \"ts\" type from string to number in SignedHttpRequest #3474",
   "packageName": "@azure/msal-common",
   "email": "prkanher@microsoft.com",
