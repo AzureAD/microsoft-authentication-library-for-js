@@ -78,7 +78,7 @@ Consider a slightly different case:
   }
   // will return an ID Token and an Access Token with scopes: "openid", "profile" and "User.Read"
   msalInstance.loginPopup(loginRequest);
-  // will fail and fallback to an interactive method prompting a consent screen
+  // will fail with InteractionRequiredError due to lack of consent for "Mail.Read" scope. You should fallback to an interactive method in this case.
   msalInstance.acquireTokenSilent(tokenRequest);
   // will succeed and return an Access Token with scope "api://<myCustomApiClientId>/My.Scope"
   msalInstance.acquireTokenSilent(anotherTokenRequest);
