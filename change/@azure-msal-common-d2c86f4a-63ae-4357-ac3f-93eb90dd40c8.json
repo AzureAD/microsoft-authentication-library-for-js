@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Adding the refresh_in feature for msal.js #3005",
-  "packageName": "@azure/msal-common",
-  "email": "prkanher@microsoft.com",
-  "dependentChangeType": "patch"
-}
