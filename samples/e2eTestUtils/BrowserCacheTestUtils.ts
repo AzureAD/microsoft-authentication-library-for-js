@@ -1,4 +1,4 @@
-import puppeteer from "puppeteer";
+import * as puppeteer from "puppeteer";
 
 import { LabConfig } from "./LabConfig";
 import { Configuration } from "../../lib/msal-browser";
