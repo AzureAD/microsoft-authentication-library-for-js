@@ -80,10 +80,6 @@ export const ClientConfigurationErrorMessage = {
     untrustedAuthority: {
         code: "untrusted_authority",
         desc: "The provided authority is not a trusted authority. Please include this authority in the knownAuthorities config parameter."
-    },
-    resourceRequestParametersRequired: {
-        code: "resourceRequest_parameters_required",
-        desc: "resourceRequestMethod and resourceRequestUri are required"
     }
 };
 
@@ -255,13 +251,5 @@ export class ClientConfigurationError extends ClientAuthError {
     static createUntrustedAuthorityError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.untrustedAuthority.code,
             ClientConfigurationErrorMessage.untrustedAuthority.desc);
-    }
-
-    /**
-     * Throws error when resourceRequestMethod or resourceRequestUri is missing
-     */
-    static createResourceRequestParametersRequiredError(): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.resourceRequestParametersRequired.code,
-            ClientConfigurationErrorMessage.resourceRequestParametersRequired.desc);
     }
 }
