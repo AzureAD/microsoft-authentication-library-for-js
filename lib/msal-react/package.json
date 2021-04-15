@@ -55,10 +55,5 @@
     "tslib": "^2.0.0",
     "typescript": "^3.9.7"
   },
-  "dependencies": {},
-  "browserslist" : [
-    ">2%",
-    "not dead",
-    "last 2 years"
-  ]
+  "dependencies": {}
 }

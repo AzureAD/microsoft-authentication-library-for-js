@@ -112,7 +112,7 @@ export class RefreshTokenClient extends BaseClient {
         const refreshTokenRequest: CommonRefreshTokenRequest = {
             ...request,
             refreshToken: refreshToken.secret,
-            authenticationScheme: AuthenticationScheme.BEARER
+            authenticationScheme: request.authenticationScheme || AuthenticationScheme.BEARER
         };
 
         return this.acquireToken(refreshTokenRequest);
@@ -127,6 +127,7 @@ export class RefreshTokenClient extends BaseClient {
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
 
         const requestBody = await this.createTokenRequestBody(request);
+        const queryParameters = this.createTokenQueryParameters(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
@@ -134,7 +135,23 @@ export class RefreshTokenClient extends BaseClient {
             scopes: request.scopes
         };
 
-        return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
+        const endpoint = StringUtils.isEmpty(queryParameters) ? authority.tokenEndpoint : `${authority.tokenEndpoint}?${queryParameters}`;
+
+        return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
+    }
+
+    /**
+     * Creates query string for the /token request
+     * @param request 
+     */
+    private createTokenQueryParameters(request: CommonRefreshTokenRequest): string {
+        const parameterBuilder = new RequestParameterBuilder();
+
+        if (request.tokenQueryParameters) {
+            parameterBuilder.addExtraQueryParameters(request.tokenQueryParameters);
+        }
+
+        return parameterBuilder.createQueryString();
     }
 
     /**
@@ -169,11 +186,8 @@ export class RefreshTokenClient extends BaseClient {
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
-            if (!request.resourceRequestMethod || !request.resourceRequestUri) {
-                throw ClientConfigurationError.createResourceRequestParametersRequiredError();
-            }
 
-            parameterBuilder.addPopToken(await popTokenGenerator.generateCnf(request.resourceRequestMethod, request.resourceRequestUri));
+            parameterBuilder.addPopToken(await popTokenGenerator.generateCnf(request));
         }
 
         if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {

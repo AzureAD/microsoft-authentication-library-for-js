@@ -1,8 +1,24 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Wed, 24 Mar 2021 22:55:46 GMT and should not be manually modified.
+This log was last generated on Wed, 14 Apr 2021 18:39:53 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.0.0-beta.4
+
+Wed, 14 Apr 2021 18:39:53 GMT
+
+### Changes
+
+- fix(Msal-Angular): Dynamic interceptor authority (1292510+svrooij@users.noreply.github.com)
+
+## 2.0.0-beta.3
+
+Wed, 31 Mar 2021 22:25:57 GMT
+
+### Changes
+
+- Update MsalInterceptor types and getScopesForEndpoint with query and relative paths #3307 (joarroyo@microsoft.com)
 
 ## 2.0.0-beta.2
 

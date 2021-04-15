@@ -36,6 +36,10 @@ jobs:
         RUNNING_NODE_CI: 1
       run: npm ci
 
+    - name: Install Test Tools
+      working-directory: samples
+      run: npm install
+
     - name: Build packages
       working-directory: samples/msal-browser-samples/VanillaJSTestApp2.0
       run: |
