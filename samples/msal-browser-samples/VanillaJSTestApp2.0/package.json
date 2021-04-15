@@ -38,5 +38,9 @@
     "puppeteer": "^8.0.0",
     "ts-node": "^8.6.2",
     "typescript": "^3.8.3"
-  }
+  },
+  "browserslist": [
+    "last 2 versions",
+    "not dead"
+  ]
 }
