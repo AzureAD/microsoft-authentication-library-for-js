@@ -2,6 +2,90 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 14 Apr 2021 18:39:53 GMT",
+      "tag": "@azure/msal-browser_v2.14.0",
+      "version": "2.14.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Add Typedocs links to event doc #2964",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6e6b1e9cc11140d0f8da21a19fc0fef100b550c6",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "[docs] code snippet correction",
+            "author": "dogan.erisen@gmail.com",
+            "commit": "1bdda4f0c07b4c7964fd627af17e8c906fbed5df",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Changes to test files",
+            "author": "prkanher@microsoft.com",
+            "commit": "543d4a94d7508da60ca5f12c710c5de3b240e4b6",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Docs update",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "4e4a6b7334dedabc783f8da4f887f575cffc9c50",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "property name correction",
+            "author": "dogan.erisen@gmail.com",
+            "commit": "7d728fd177f4914ada7a25e45ea91d5fe2a9bdbc",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Make SHR parameters optional (#3320)",
+            "author": "hemoral@microsoft.com",
+            "commit": "fd0dcd559af8ab0e04dec3c30cf3d4e122d6057d",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add support for AccessToken_With_AuthScheme credential type #3426",
+            "author": "hectormgdev@gmail.com",
+            "commit": "c35e120dd8af5dda03b2480cf559cf226fb2fc21",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 31 Mar 2021 22:25:57 GMT",
+      "tag": "@azure/msal-browser_v2.13.1",
+      "version": "2.13.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "Updates typdoc comments for request types #3309",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "91da4f7f8dc126458dcc7b4a1e22b707f48a302a",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add AT PoP documentation (#3071)",
+            "author": "hemoral@microsoft.com",
+            "commit": "b5f1bc8e9a400e50658fd91e14feea460cfb7ce9",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Export PopupEvent #3360",
+            "author": "joarroyo@microsoft.com",
+            "commit": "24fda4c133476d87c12ac913f49eb9aff696f68e",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 24 Mar 2021 22:55:46 GMT",
       "tag": "@azure/msal-browser_v2.13.0",
       "version": "2.13.0",

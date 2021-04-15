@@ -45,10 +45,7 @@ const popConfig = {
 
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
 const loginRequest = {
-    scopes: ["User.Read"],
-    authenticationScheme: msal.AuthenticationScheme.POP,
-    resourceRequestMethod: "POST",
-    resourceRequestUri: popConfig.endpoint
+    scopes: ["User.Read"]
 };
 
 // Add here scopes for access token to be used at MS Graph API endpoints.
@@ -63,3 +60,14 @@ const silentRequest = {
     resourceRequestMethod: "POST",
     resourceRequestUri: graphConfig.graphMeEndpoint
 };
+
+const popTokenRequest = {
+    scopes: ["openid", "profile", "User.Read", "Mail.Read"],
+    authenticationScheme: msal.AuthenticationScheme.POP,
+    resourceRequestMethod: "POST",
+    resourceRequestUri: graphConfig.graphMeEndpoint
+}
+
+const bearerTokenRequest = {
+    scopes: ["openid", "profile", "User.Read", "Mail.Read"]
+}

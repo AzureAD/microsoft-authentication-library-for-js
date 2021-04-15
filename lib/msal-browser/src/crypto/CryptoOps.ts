@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, PkceCodes, SignedHttpRequest } from "@azure/msal-common";
+import { BaseAuthRequest, ICrypto, PkceCodes, SignedHttpRequest } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
@@ -16,8 +16,8 @@ import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
 export type CachedKeyPair = {
     publicKey: CryptoKey,
     privateKey: CryptoKey,
-    requestMethod: string,
-    requestUri: string
+    requestMethod?: string,
+    requestUri?: string
 };
 
 /**
@@ -83,10 +83,9 @@ export class CryptoOps implements ICrypto {
 
     /**
      * Generates a keypair, stores it and returns a thumbprint
-     * @param resourceRequestMethod 
-     * @param resourceRequestUri 
+     * @param request
      */
-    async getPublicKeyThumbprint(resourceRequestMethod: string, resourceRequestUri: string): Promise<string> {
+    async getPublicKeyThumbprint(request: BaseAuthRequest): Promise<string> {
         // Generate Keypair
         const keyPair = await this.browserCrypto.generateKeyPair(CryptoOps.EXTRACTABLE, CryptoOps.POP_KEY_USAGES);
 
@@ -110,8 +109,8 @@ export class CryptoOps implements ICrypto {
         this.cache.put(publicJwkHash, {
             privateKey: unextractablePrivateKey,
             publicKey: keyPair.publicKey,
-            requestMethod: resourceRequestMethod,
-            requestUri: resourceRequestUri
+            requestMethod: request.resourceRequestMethod,
+            requestUri: request.resourceRequestUri
         });
 
         return publicJwkHash;

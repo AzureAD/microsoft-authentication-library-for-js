@@ -1100,6 +1100,14 @@ export abstract class ClientApplication {
         const scopes = [...((request && request.scopes) || [])];
         const correlationId = (request && request.correlationId) || this.browserCrypto.createNewGuid();
 
+        // Set authenticationScheme to BEARER if not explicitly set in the request
+        if (!request.authenticationScheme) {
+            request.authenticationScheme = AuthenticationScheme.BEARER;
+            this.logger.verbose("Authentication Scheme wasn't explicitly set in request, defaulting to \"Bearer\" request");
+        } else {
+            this.logger.verbose(`Authentication Scheme set to "${request.authenticationScheme}" as configured in Auth request`);
+        }
+
         const validatedRequest: BaseAuthRequest = {
             ...request,
             correlationId,
@@ -1148,15 +1156,12 @@ export abstract class ClientApplication {
             browserState
         );
 
-        const authenticationScheme = request.authenticationScheme || AuthenticationScheme.BEARER;
-
         const validatedRequest: AuthorizationUrlRequest = {
             ...this.initializeBaseRequest(request),
             redirectUri: redirectUri,
             state: state,
             nonce: request.nonce || this.browserCrypto.createNewGuid(),
-            responseMode: ResponseMode.FRAGMENT,
-            authenticationScheme: authenticationScheme
+            responseMode: ResponseMode.FRAGMENT
         };
 
         const account = request.account || this.getActiveAccount();

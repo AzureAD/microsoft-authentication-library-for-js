@@ -1066,6 +1066,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(cachedRequest.codeVerifier).to.be.deep.eq(TEST_CONFIG.TEST_VERIFIER);
                 expect(cachedRequest.authority).to.be.deep.eq(`${Constants.DEFAULT_AUTHORITY}`);
                 expect(cachedRequest.correlationId).to.be.deep.eq(RANDOM_TEST_GUID);
+                expect(cachedRequest.authenticationScheme).to.be.deep.eq(TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme);
             });
 
             it("Cleans cache before error is thrown", async () => {
@@ -1359,6 +1360,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(cachedRequest.codeVerifier).to.be.deep.eq(TEST_CONFIG.TEST_VERIFIER);
                 expect(cachedRequest.authority).to.be.deep.eq(`${Constants.DEFAULT_AUTHORITY}`);
                 expect(cachedRequest.correlationId).to.be.deep.eq(RANDOM_TEST_GUID);
+                expect(cachedRequest.authenticationScheme).to.be.deep.eq(TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme);
             });
 
             it("Cleans cache before error is thrown", async () => {
@@ -2014,6 +2016,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["scope1"],
                 account: testAccount,
                 authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: AuthenticationScheme.BEARER,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false
             };
