@@ -61,6 +61,8 @@ describe("On Page Load tests", function () {
         // Enter credentials
         await enterCredentials(page, screenshot, username, accountPwd);
         // Wait for return to page
+        await screenshot.takeScreenshot(page, "samplePageReturnedToApp");
+        await page.waitForSelector("#signOutButton");
         await screenshot.takeScreenshot(page, "samplePageLoggedIn");
         const tokenStore = await BrowserCache.getTokens();
         expect(tokenStore.idTokens).to.be.length(1);

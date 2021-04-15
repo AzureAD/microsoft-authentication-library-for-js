@@ -1,7 +1,7 @@
 import "mocha";
 import puppeteer from "puppeteer";
 import { expect } from "chai";
-import { Screenshot, createFolder, setupCredentials } from "../../../../../e2eTestUtils/TestUtils";
+import { Screenshot, createFolder, setupCredentials, enterCredentials } from "../../../../../e2eTestUtils/TestUtils";
 import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
@@ -12,37 +12,6 @@ const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 const SAMPLE_HOME_URL = "http://localhost:30662/";
 let username = "";
 let accountPwd = "";
-
-async function enterCredentials(page: puppeteer.Page, screenshot: Screenshot): Promise<void> {
-    await page.waitForNavigation({ waitUntil: "networkidle0"});
-    await page.waitForSelector("#i0116");
-    await screenshot.takeScreenshot(page, "loginPage");
-    await page.type("#i0116", username);
-    await page.click("#idSIButton9");
-    await page.waitForSelector("#idA_PWD_ForgotPassword");
-    await screenshot.takeScreenshot(page, "pwdInputPage");
-    await page.type("#i0118", accountPwd);
-    await page.click("#idSIButton9");
-    try {
-        await page.waitForSelector('#KmsiCheckboxField', {timeout: 1000});
-        await screenshot.takeScreenshot(page, "kmsiPage");
-        await Promise.all([
-            page.click("#idSIButton9"),
-            page.waitForNavigation({ waitUntil: "networkidle0"})
-        ]);
-    } catch (e) {
-        return;
-    }
-}
-
-async function goBackToSampleHomepage(page: puppeteer.Page, screenshot: Screenshot): Promise<void> {
-    await page.waitForSelector("#i0116");
-    await screenshot.takeScreenshot(page, "loginPage");
-    await page.click("#idBtn_Back");
-    await page.waitForSelector("#i0116");
-    await screenshot.takeScreenshot(page, "loginPage2");
-    await page.click("#idBtn_Back");
-}
 
 describe("Browser tests", function () {
     this.timeout(0);
@@ -89,14 +58,17 @@ describe("Browser tests", function () {
         const testName = "redirectBaseCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
         // Home Page
+        await page.waitForSelector("#SignIn");
         await screenshot.takeScreenshot(page, "samplePageInit");
         // Click Sign In
         await page.click("#SignIn");
+        await page.waitForSelector("#loginRedirect");
         await screenshot.takeScreenshot(page, "signInClicked");
         // Click Sign In With Redirect
         await page.click("#loginRedirect");
         // Enter credentials
-        await enterCredentials(page, screenshot);
+        await enterCredentials(page, screenshot, username, accountPwd);
+        await page.waitForSelector("#popToken", { visible: true });
         await screenshot.takeScreenshot(page, "samplePageLoggedIn");
         await page.click("#popToken");
         await page.waitForSelector("#PopTokenAcquired");

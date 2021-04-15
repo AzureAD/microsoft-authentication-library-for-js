@@ -1,5 +1,5 @@
-import fs from "fs";
-import puppeteer, { HTTPResponse } from "puppeteer";
+import * as fs from "fs";
+import{ Page, HTTPResponse } from "puppeteer";
 import { LabConfig } from "./LabConfig";
 import { LabClient } from "./LabClient";
 
@@ -13,7 +13,7 @@ export class Screenshot {
         createFolder(this.folderName);
     }
 
-    async takeScreenshot(page: puppeteer.Page, screenshotName: string): Promise<void> {
+    async takeScreenshot(page: Page, screenshotName: string): Promise<void> {
         await page.screenshot({ path: `${this.folderName}/${++this.screenshotNum}_${screenshotName}.png` });
     }
 }
@@ -43,7 +43,7 @@ export async function setupCredentials(labConfig: LabConfig, labClient: LabClien
     return [username, accountPwd];
 }
 
-export async function enterCredentials(page: puppeteer.Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
+export async function enterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
     await Promise.all([
         page.waitForNavigation({ waitUntil: "networkidle0" }),
         page.waitForSelector("#i0116")
