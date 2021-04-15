@@ -68,10 +68,11 @@ MSAL.js has been tested and supports the last 2 stable and supported versions of
 - Opera
 
 MSAL.js has also been tested and supports the following browsers with Promise polyfills:
-Support for these browsers will be dropped in the next major version of `@azure/msal-browser` (v3).
 
 - IE 11
 - Edge (Legacy)
+
+Keep [these steps](./docs/internet-explorer.md) in mind when using MSAL.js with IE or Edge Legacy. Support for these browsers will be dropped in the next major version of `@azure/msal-browser` (v3).
 
 MSAL.js also supports the following environments:
 
@@ -80,11 +81,12 @@ MSAL.js also supports the following environments:
 - Office Add-ins
 - Teams Applications
 
-Keep these steps in mind when [using MSAL.js with IE](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Using-msal.js-with-Internet-Explorer).
+### Known Issues with Certain Browsers
 
-There are certain known issues and mitigations documented for Safari, IE and Edge. Please check out:
-* [Known issues on IE and Edge](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Known-issues-on-IE-and-Edge-Browser)
-* [Known issue on Safari](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Known-issue-on-Safari)
+There are certain known issues and mitigations documented for the following browsers:
+
+- [Browsers that block 3rd Party Cookies (i.e. Safari, Chrome Incognito, Firefox Private)](https://docs.microsoft.com/azure/active-directory/develop/reference-third-party-cookies-spas)
+- [IE 11 and Edge Legacy](./docs/internet-explorer.md)
 
 ## I am moving from MSAL.js 1.x to MSAL.js to 2.x. What should I know?
 
