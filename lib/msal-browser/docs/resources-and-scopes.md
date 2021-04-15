@@ -29,7 +29,7 @@ Bear in mind that you *can* request multiple scopes for the same resource (e.g. 
 
  ```javascript
  const graphToken = await msalInstance.acquireTokenSilent({
-      scopes: [ "User.Read", "User.Write", "Calendar.Read"] // all MS Graph API scopes
+      scopes: [ "User.Read", "User.Write", "Calendar.Read" ] // all MS Graph API scopes
  });
  ```
 
@@ -60,7 +60,7 @@ In **Azure AD**, the scopes (*permissions*) set directly on the application regi
   msalInstance.acquireTokenSilent(tokenRequest);
  ```
 
-In the code snippet above, the user will be prompted for consent once they authenticate and receive an **ID Token** and an **Access Token** with the scope `User.Read`. Later, if they request an **Access Token** for `User.Read`, they will not be asked for consent again (in other words, they can acquire a token *silently*). 
+In the code snippet above, the user will be prompted for consent once they authenticate and receive an **ID Token** and an **Access Token** with the scope `User.Read`. Later, if they request an **Access Token** for `User.Read`, they will not be asked for consent again (in other words, they can acquire a token *silently*).
 
 On the other hand, the user did not consent to `Mail.Read` at the authentication stage, therefore, will be asked for consent when requesting an **Access Token** for `Mail.Read` scope. The token received will contain all the previously consented scopes (for that specific resource), hence the term *incremental consent*.
 
@@ -68,7 +68,8 @@ Consider a slightly different case:
 
  ```javascript
   const loginRequest = {
-       scopes: [ "openid", "profile", "User.Read", "api://<myCustomApiClientId>/My.Scope" ]
+       scopes: [ "openid", "profile", "User.Read" ],
+       extraScopesToConsent: [ "api://<myCustomApiClientId>/My.Scope"]
   };
   const tokenRequest = {
        scopes: [ "Mail.Read" ]
