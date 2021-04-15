@@ -67,7 +67,7 @@ MSAL.js has been tested and supports the last 2 stable and supported versions of
 - Safari
 - Opera
 
-MSAL.js has also been tested and supports the following browsers with Promise polyfills:
+MSAL.js has also been tested and supports the following browsers with Promise polyfills (not included):
 
 - IE 11
 - Edge (Legacy)
