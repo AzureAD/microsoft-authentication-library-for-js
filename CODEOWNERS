@@ -22,6 +22,9 @@
 /samples/msal-node-samples/ @sameerag @hectormmg @samuelkubai
 /extensions/msal-node-extensions/ @sameerag @hectormmg @samuelkubai
 
+# ADAL Node
+/maintenance/adal-node @sameerag @pkanher617 @samuelkubai
+
 # Passport Azure Ad
 /maintenance/passport-azure-ad @pkanher617 @samuelkubai @sameerag
 
