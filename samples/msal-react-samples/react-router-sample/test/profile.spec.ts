@@ -50,6 +50,7 @@ describe('/profile', () => {
     beforeEach(async () => {
         context = await browser.createIncognitoBrowserContext();
         page = await context.newPage();
+        page.setDefaultTimeout(5000);
         BrowserCache = new BrowserCacheUtils(page, "sessionStorage");
         await page.goto(`http://localhost:${port}`);
     });
@@ -79,9 +80,8 @@ describe('/profile', () => {
         await screenshot.takeScreenshot(page, "Graph data acquired");
 
         // Verify UI now displays logged in content
-        const [signedIn] = await page.$x("//header[contains(., 'Welcome,')]");
-        expect(signedIn).toBeDefined();
-        const [profileButton] = await page.$x("//header//button");
+        await page.waitForXPath("//header[contains(., 'Welcome,')]");
+        const profileButton = await page.waitForXPath("//header//button");
         await profileButton.click();
         const logoutButtons = await page.$x("//li[contains(., 'Logout using')]");
         expect(logoutButtons.length).toBe(2);
@@ -97,10 +97,10 @@ describe('/profile', () => {
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login
-        const [signInButton] = await page.$x("//button[contains(., 'Login')]");
+        const signInButton = await page.waitForXPath("//button[contains(., 'Login')]");
         await signInButton.click();
         await screenshot.takeScreenshot(page, "Login button clicked");
-        const [loginPopupButton] = await page.$x("//li[contains(., 'Sign in using Popup')]");
+        const loginPopupButton = await page.waitForXPath("//li[contains(., 'Sign in using Popup')]");
         const newPopupWindowPromise = new Promise<puppeteer.Page>(resolve => page.once("popup", resolve));
         await loginPopupButton.click();
         const popupPage = await newPopupWindowPromise;
@@ -112,9 +112,8 @@ describe('/profile', () => {
         await screenshot.takeScreenshot(page, "Popup closed");
 
         // Verify UI now displays logged in content
-        const [signedIn] = await page.$x("//header[contains(., 'Welcome,')]");
-        expect(signedIn).toBeDefined();
-        const [profileButton] = await page.$x("//header//button");
+        await page.waitForXPath("//header[contains(., 'Welcome,')]");
+        const profileButton = await page.waitForXPath("//header//button");
         await profileButton.click();
         const logoutButtons = await page.$x("//li[contains(., 'Logout using')]");
         expect(logoutButtons.length).toBe(2);
@@ -144,17 +143,14 @@ describe('/profile', () => {
         // Wait until the popup has navigated to login page
         await popupPage.waitForNavigation({ waitUntil: "networkidle0"});
 
-        const [loadingComponent] = await page.$x("//h6[contains(., 'Authentication in progress...')]");
+        await page.waitForXPath("//h6[contains(., 'Authentication in progress...')]");
         await screenshot.takeScreenshot(page, "Loading component rendered");
-        expect(loadingComponent).toBeDefined();
 
         await popupPage.close();
         await popupWindowClosed;
 
-        await page.waitFor(100);
-        const [errorComponent] = await page.$x("//h6[contains(., 'An Error Occurred: user_cancelled')]");
+        await page.waitForXPath("//h6[contains(., 'An Error Occurred: user_cancelled')]");
         await screenshot.takeScreenshot(page, "Error component rendered");
-        expect(errorComponent).toBeDefined();
     });
   }
 );

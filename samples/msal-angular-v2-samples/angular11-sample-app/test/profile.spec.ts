@@ -63,22 +63,20 @@ describe('/ (Profile Page)', () => {
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login via MsalGuard by clicking Profile
-        const [profileButton] = await page.$x("//span[contains(., 'Profile')]");
+        const profileButton = await page.waitForXPath("//span[contains(., 'Profile')]");
         await profileButton.click();
 
         await enterCredentials(page, screenshot, username, accountPwd);
 
         // Verify UI now displays logged in content
-        const [logoutButtons] = await page.$x("//button[contains(., 'Logout')]");
-        expect(logoutButtons).toBeDefined();
+        await page.waitForXPath("//button[contains(., 'Logout')]");
         await screenshot.takeScreenshot(page, "Profile page signed in");
 
         // Verify tokens are in cache
         await verifyTokenStore(BrowserCache, ["User.Read"]);
         
         // Verify displays profile page without activating MsalGuard
-        const [profileFirstName] = await page.$x("//strong[contains(., 'First Name: ')]");
-        expect(profileFirstName).toBeDefined();
+        await page.waitForXPath("//strong[contains(., 'First Name: ')]");
     });
     
     it("Profile page - children are rendered after initial navigation to profile before login ", async () => {
@@ -92,16 +90,14 @@ describe('/ (Profile Page)', () => {
         await enterCredentials(page, screenshot, username, accountPwd);
 
         // Verify UI now displays logged in content
-        const [logoutButtons] = await page.$x("//button[contains(., 'Logout')]");
-        expect(logoutButtons).toBeDefined();
+        await page.waitForXPath("//button[contains(., 'Logout')]");
         await screenshot.takeScreenshot(page, "Profile page signed in directly");
 
         // Verify tokens are in cache
         await verifyTokenStore(BrowserCache, ["User.Read"]);
         
         // Verify displays profile page without activating MsalGuard
-        const [profileFirstName] = await page.$x("//strong[contains(., 'First Name: ')]");
-        expect(profileFirstName).toBeDefined();
+        await page.waitForXPath("//strong[contains(., 'First Name: ')]");
     });
   }
 );

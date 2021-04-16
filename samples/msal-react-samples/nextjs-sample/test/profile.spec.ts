@@ -5,7 +5,7 @@ import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../e2eTestUtils/Constants";
 import { BrowserCacheUtils } from "../../../e2eTestUtils/BrowserCacheTestUtils";
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/home-tests`;
+const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/profile-tests`;
 
 async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[]): Promise<void> {
     const tokenStore = await BrowserCache.getTokens();
@@ -15,10 +15,13 @@ async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[
     expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).not.toBeNull();
     expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, scopes)).toBeTruthy;
     const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).toBe(4);
+    expect(Object.keys(storage).length).toBe(5);
+    const telemetryCacheEntry = await BrowserCache.getTelemetryCacheEntry("3fba556e-5d4a-48e3-8e1a-fd57c12cb82e");
+    expect(telemetryCacheEntry).not.toBeNull;
+    expect(telemetryCacheEntry["cacheHits"]).toBe(1);
 }
 
-describe('/ (Home Page)', () => {
+describe('/profile', () => {
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -57,23 +60,25 @@ describe('/ (Home Page)', () => {
         await context.close();
     });
 
-    it("AuthenticatedTemplate - children are rendered after logging in with loginRedirect", async () => {
-        const testName = "redirectBaseCase";
+    it("MsalAuthenticationTemplate - invokes loginRedirect if user is not signed in", async () => {
+        const testName = "MsalAuthenticationTemplateBaseCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
-        await screenshot.takeScreenshot(page, "Page loaded");
+        await page.waitForXPath("//a[contains(., 'MS Identity Platform')]");
+        await screenshot.takeScreenshot(page, "Home page loaded");
 
-        // Initiate Login
-        const [signInButton] = await page.$x("//button[contains(., 'Login')]");
-        await signInButton.click();
-        await screenshot.takeScreenshot(page, "Login button clicked");
-        const [loginRedirectButton] = await page.$x("//li[contains(., 'Sign in using Redirect')]");
-        await loginRedirectButton.click();
+        // Navigate to /profile and expect redirect to occur to AAD without interaction
+        await page.goto(`http://localhost:${port}/profile`);
+        await screenshot.takeScreenshot(page, "Profile page loaded");
 
         await enterCredentials(page, screenshot, username, accountPwd);
         await screenshot.takeScreenshot(page, "Returned to app");
 
+        // Wait for Graph data to display
+        await page.waitForXPath("//div/ul/li[contains(., 'Name')]");
+        await screenshot.takeScreenshot(page, "Graph data acquired");
+
         // Verify UI now displays logged in content
-        await page.waitForXPath("//header[contains(., 'Welcome,')]");
+        await page.waitForXPath("//header[contains(.,'Welcome,')]");
         const profileButton = await page.waitForXPath("//header//button");
         await profileButton.click();
         const logoutButtons = await page.$x("//li[contains(., 'Logout using')]");
@@ -84,16 +89,17 @@ describe('/ (Home Page)', () => {
         await verifyTokenStore(BrowserCache, ["User.Read"]);
     });
 
-    it("AuthenticatedTemplate - children are rendered after logging in with loginPopup", async () => {
-        const testName = "popupBaseCase";
+    it("MsalAuthenticationTemplate - renders children without invoking login if user is already signed in", async () => {
+        const testName = "MsalAuthenticationTemplateSignedInCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+        await page.waitForXPath("//a[contains(., 'MS Identity Platform')]");
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login
         const [signInButton] = await page.$x("//button[contains(., 'Login')]");
         await signInButton.click();
         await screenshot.takeScreenshot(page, "Login button clicked");
-        const loginPopupButton = await page.waitForXPath("//li[contains(., 'Sign in using Popup')]");
+        const [loginPopupButton] = await page.$x("//li[contains(., 'Sign in using Popup')]");
         const newPopupWindowPromise = new Promise<puppeteer.Page>(resolve => page.once("popup", resolve));
         await loginPopupButton.click();
         const popupPage = await newPopupWindowPromise;
@@ -101,17 +107,22 @@ describe('/ (Home Page)', () => {
 
         await enterCredentials(popupPage, screenshot, username, accountPwd);
         await popupWindowClosed;
-        await page.waitForXPath("//header[contains(., 'Welcome,')]", {timeout: 3000});
+        await page.waitForXPath("//header[contains(., 'Welcome,')]");
         await screenshot.takeScreenshot(page, "Popup closed");
 
         // Verify UI now displays logged in content
-        await page.waitForXPath("//header[contains(., 'Welcome,')]");
+        await page.waitForXPath("//header[contains(.,'Welcome,')]");
         const profileButton = await page.waitForXPath("//header//button");
         await profileButton.click();
         const logoutButtons = await page.$x("//li[contains(., 'Logout using')]");
         expect(logoutButtons.length).toBe(2);
         await screenshot.takeScreenshot(page, "App signed in");
 
+        // Go to protected page
+        await page.goto(`http://localhost:${port}/profile`);
+        // Wait for Graph data to display
+        await page.waitForXPath("//div/ul/li[contains(., 'Name')]");
+        await screenshot.takeScreenshot(page, "Graph data acquired");
         // Verify tokens are in cache
         await verifyTokenStore(BrowserCache, ["User.Read"]);
     });
