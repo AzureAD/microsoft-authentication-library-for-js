@@ -6,6 +6,7 @@
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
+import { CryptoKeyOptions } from "./CryptoOps";
 /**
  * See here for more info on RsaHashedKeyGenParams: https://developer.mozilla.org/en-US/docs/Web/API/RsaHashedKeyGenParams
  */
@@ -66,11 +67,16 @@ export class BrowserCrypto {
      * @param extractable 
      * @param usages 
      */
-    async generateKeyPair(extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKeyPair> {
+    async generateKeyPair(keyOptions: CryptoKeyOptions, extractable: boolean): Promise<CryptoKeyPair> {
+        const keyGenAlgorithmOptions = keyOptions.keyGenAlgorithmOptions;
         return (
             this.hasIECrypto() ? 
-                this.msCryptoGenerateKey(extractable, usages) 
-                : window.crypto.subtle.generateKey(this._keygenAlgorithmOptions, extractable, usages)
+                this.msCryptoGenerateKey(keyOptions, extractable) 
+                : window.crypto.subtle.generateKey(
+                    keyGenAlgorithmOptions,
+                    extractable,
+                    keyOptions.keypairUsages
+                )
         ) as Promise<CryptoKeyPair>;
     }
 
@@ -162,9 +168,15 @@ export class BrowserCrypto {
      * @param extractable 
      * @param usages 
      */
-    private async msCryptoGenerateKey(extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKeyPair> {
+    private async msCryptoGenerateKey(keyOptions: CryptoKeyOptions, extractable: boolean): Promise<CryptoKeyPair> {
         return new Promise((resolve: any, reject: any) => {
-            const msGenerateKey = window["msCrypto"].subtle.generateKey(this._keygenAlgorithmOptions, extractable, usages);
+
+            const msGenerateKey = window["msCrypto"].subtle.generateKey(
+                keyOptions.keyGenAlgorithmOptions,
+                extractable,
+                keyOptions.keypairUsages
+            );
+
             msGenerateKey.addEventListener("complete", (e: { target: { result: CryptoKeyPair | PromiseLike<CryptoKeyPair>; }; }) => {
                 resolve(e.target.result);
             });
