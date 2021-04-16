@@ -2,7 +2,7 @@ import { ClientSecretCredential, AccessToken } from "@azure/identity";
 import axios from "axios";
 import { ENV_VARIABLES, LAB_SCOPE, LAB_API_ENDPOINT, ParamKeys } from "./Constants";
 import { LabApiQueryParams } from "./LabApiQueryParams";
-import dotenv from "dotenv";
+import * as dotenv from "dotenv";
 
 dotenv.config({
     path: "../../.env"

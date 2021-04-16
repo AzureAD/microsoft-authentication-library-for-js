@@ -1,0 +1,3 @@
+last 2 versions
+not dead
+not ie 11 # Despite this, IE 11 is currently supported but we do not include Promise polyfills

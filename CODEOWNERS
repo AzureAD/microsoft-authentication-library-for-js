@@ -25,6 +25,9 @@
 # ADAL Node
 /maintenance/adal-node @sameerag @pkanher617 @samuelkubai
 
+# Passport Azure Ad
+/maintenance/passport-azure-ad @pkanher617 @samuelkubai @sameerag
+
 # MSAL React
 /lib/msal-react/ @tnorling @jasonnutter @jo-arroyo
 /samples/msal-react-samples/ @tnorling @jasonnutter @jo-arroyo

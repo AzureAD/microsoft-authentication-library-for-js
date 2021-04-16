@@ -110,8 +110,8 @@ const SignOutButton = () => {
                 open={open}
                 onClose={() => setAnchorEl(null)}
             >
-                <MenuItem onClick={() => handleLogout("redirect")}>Logout with Redirect</MenuItem>
-                <MenuItem onClick={() => handleLogout("popup")}>Logout with Popup</MenuItem>
+                <MenuItem onClick={() => handleLogout("redirect")}>Logout using Redirect</MenuItem>
+                <MenuItem onClick={() => handleLogout("popup")}>Logout using Popup</MenuItem>
             </Menu>
         </div>
     )

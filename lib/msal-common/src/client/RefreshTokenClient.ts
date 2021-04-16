@@ -112,7 +112,7 @@ export class RefreshTokenClient extends BaseClient {
         const refreshTokenRequest: CommonRefreshTokenRequest = {
             ...request,
             refreshToken: refreshToken.secret,
-            authenticationScheme: AuthenticationScheme.BEARER
+            authenticationScheme: request.authenticationScheme || AuthenticationScheme.BEARER
         };
 
         return this.acquireToken(refreshTokenRequest);
@@ -186,11 +186,8 @@ export class RefreshTokenClient extends BaseClient {
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
-            if (!request.resourceRequestMethod || !request.resourceRequestUri) {
-                throw ClientConfigurationError.createResourceRequestParametersRequiredError();
-            }
 
-            parameterBuilder.addPopToken(await popTokenGenerator.generateCnf(request.resourceRequestMethod, request.resourceRequestUri));
+            parameterBuilder.addPopToken(await popTokenGenerator.generateCnf(request));
         }
 
         if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
