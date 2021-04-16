@@ -1,7 +1,7 @@
 {
   "type": "patch",
-  "comment": "Make SHR parameters optional #3320",
+  "comment": "Add .browserslistrc #3471",
   "packageName": "@azure/msal-common",
-  "email": "hemoral@microsoft.com",
+  "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"
 }
