@@ -60,20 +60,21 @@ describe('/ (Home Page)', () => {
     it("AuthenticatedTemplate - children are rendered after logging in with loginRedirect", async () => {
         const testName = "redirectBaseCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+        await page.waitForXPath("//a[contains(., 'MS Identity Platform')]");
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login
-        const [signInButton] = await page.$x("//button[contains(., 'Login')]");
+        const signInButton = await page.waitForXPath("//button[contains(., 'Login')]");
         await signInButton.click();
         await screenshot.takeScreenshot(page, "Login button clicked");
-        const [loginRedirectButton] = await page.$x("//li[contains(., 'Sign in using Redirect')]");
+        const loginRedirectButton = await page.waitForXPath("//li[contains(., 'Sign in using Redirect')]");
         await loginRedirectButton.click();
 
         await enterCredentials(page, screenshot, username, accountPwd);
         await screenshot.takeScreenshot(page, "Returned to app");
 
         // Verify UI now displays logged in content
-        await page.waitForXPath("//header[contains(., 'Welcome,')]");
+        await page.waitForXPath("//header[contains(.,'Welcome,')]");
         const profileButton = await page.waitForXPath("//header//button");
         await profileButton.click();
         const logoutButtons = await page.$x("//li[contains(., 'Logout using')]");
@@ -87,10 +88,11 @@ describe('/ (Home Page)', () => {
     it("AuthenticatedTemplate - children are rendered after logging in with loginPopup", async () => {
         const testName = "popupBaseCase";
         const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+        await page.waitForXPath("//a[contains(., 'MS Identity Platform')]");
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login
-        const [signInButton] = await page.$x("//button[contains(., 'Login')]");
+        const signInButton = await page.waitForXPath("//button[contains(., 'Login')]");
         await signInButton.click();
         await screenshot.takeScreenshot(page, "Login button clicked");
         const loginPopupButton = await page.waitForXPath("//li[contains(., 'Sign in using Popup')]");
@@ -101,11 +103,11 @@ describe('/ (Home Page)', () => {
 
         await enterCredentials(popupPage, screenshot, username, accountPwd);
         await popupWindowClosed;
-        await page.waitForXPath("//header[contains(., 'Welcome,')]", {timeout: 3000});
+        await page.waitForXPath("//header[contains(., 'Welcome,')]");
         await screenshot.takeScreenshot(page, "Popup closed");
 
         // Verify UI now displays logged in content
-        await page.waitForXPath("//header[contains(., 'Welcome,')]");
+        await page.waitForXPath("//header[contains(.,'Welcome,')]");
         const profileButton = await page.waitForXPath("//header//button");
         await profileButton.click();
         const logoutButtons = await page.$x("//li[contains(., 'Logout using')]");
