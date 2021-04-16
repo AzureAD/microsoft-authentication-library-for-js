@@ -62,35 +62,29 @@ describe('/ (Detail Page)', () => {
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login via MsalGuard by clicking Profile
-        const [profileButton] = await page.$x("//span[contains(., 'Profile')]");
+        const profileButton = await page.waitForXPath("//span[contains(., 'Profile')]");
         await profileButton.click();
 
         await enterCredentials(page, screenshot, username, accountPwd);
 
         // Verify UI now displays logged in content
-        const [logoutButtons] = await page.$x("//button[contains(., 'Logout')]");
-        expect(logoutButtons).toBeDefined();
+        await page.waitForXPath("//button[contains(., 'Logout')]");
         await screenshot.takeScreenshot(page, "Profile page signed in");
 
         // Verify tokens are in cache
         await verifyTokenStore(BrowserCache, ["User.Read"]);
         
         // Verify displays profile page
-        const [profileFirstName] = await page.$x("//strong[contains(., 'First Name: ')]");
-        expect(profileFirstName).toBeDefined();
+        await page.waitForXPath("//strong[contains(., 'First Name: ')]");
 
         // Navigate to details page 
-        const [detailsButton] = await page.$x("//a[contains(., 'details')]");
+        const detailsButton = await page.waitForXPath("//a[contains(., 'details')]");
         await detailsButton.click();
         await screenshot.takeScreenshot(page, "Details page");
         
         // Wait for Graph data to display
         await page.waitForXPath("//p[contains(., 'Details for: ')]", {timeout: 5000});
         await screenshot.takeScreenshot(page, "Graph data acquired");
-
-        // Verify displays details page
-        const [detailsFor] = await page.$x("//p[contains(., 'Details for: ')]");
-        expect(detailsFor).toBeDefined();
     });
   }
 );
