@@ -27,10 +27,11 @@ export { RedirectRequest } from "./request/RedirectRequest";
 export { SilentRequest } from "./request/SilentRequest";
 export { SsoSilentRequest } from "./request/SsoSilentRequest";
 export { EndSessionRequest } from "./request/EndSessionRequest";
+export { EndSessionPopupRequest } from "./request/EndSessionPopupRequest";
 export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
 
 // Events
-export { EventMessage, EventPayload, EventError, EventCallbackFunction, EventMessageUtils } from "./event/EventMessage";
+export { EventMessage, EventPayload, EventError, EventCallbackFunction, EventMessageUtils, PopupEvent } from "./event/EventMessage";
 export { EventType } from "./event/EventType";
 
 // Common Object Formats

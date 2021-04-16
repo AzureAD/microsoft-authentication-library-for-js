@@ -1,10 +1,10 @@
 import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
 import { Router } from '@angular/router';
-import { MsalService, MsalBroadcastService, MSAL_GUARD_CONFIG, MsalGuardConfiguration } from '@azure/msal-angular';
-import { AuthenticationResult, InteractionType, InteractionStatus, PopupRequest, RedirectRequest } from '@azure/msal-browser';
+import { Location } from "@angular/common";
+import { MsalService, MsalBroadcastService, MSAL_GUARD_CONFIG, MsalGuardConfiguration, MsalCustomNavigationClient } from '@azure/msal-angular';
+import { AuthenticationResult, InteractionStatus, PopupRequest, RedirectRequest } from '@azure/msal-browser';
 import { Subject } from 'rxjs';
 import { filter, takeUntil } from 'rxjs/operators';
-import { CustomNavigationClient } from './custom-navigation'; 
 
 @Component({
   selector: 'app-root',
@@ -21,10 +21,11 @@ export class AppComponent implements OnInit, OnDestroy {
     @Inject(MSAL_GUARD_CONFIG) private msalGuardConfig: MsalGuardConfiguration,
     private authService: MsalService,
     private msalBroadcastService: MsalBroadcastService,
-    private router: Router
+    private router: Router,
+    private location: Location
   ) {
     // Custom navigation set for client-side navigation. See performance doc for details: https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/performance.md
-    const customNavigationClient = new CustomNavigationClient(this.router);
+    const customNavigationClient = new MsalCustomNavigationClient(authService, this.router, this.location);
     this.authService.instance.setNavigationClient(customNavigationClient);
   }
 
@@ -45,30 +46,36 @@ export class AppComponent implements OnInit, OnDestroy {
     this.loginDisplay = this.authService.instance.getAllAccounts().length > 0;
   }
 
-  login() {
-    if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
-      if (this.msalGuardConfig.authRequest){
-        this.authService.loginPopup({...this.msalGuardConfig.authRequest} as PopupRequest)
-          .subscribe((response: AuthenticationResult) => {
-            this.authService.instance.setActiveAccount(response.account);
-          });
-        } else {
-          this.authService.loginPopup()
-            .subscribe((response: AuthenticationResult) => {
-              this.authService.instance.setActiveAccount(response.account);
-            });
-      }
+  loginRedirect() {
+    if (this.msalGuardConfig.authRequest){
+      this.authService.loginRedirect({...this.msalGuardConfig.authRequest} as RedirectRequest);
     } else {
-      if (this.msalGuardConfig.authRequest){
-        this.authService.loginRedirect({...this.msalGuardConfig.authRequest} as RedirectRequest);
-      } else {
-        this.authService.loginRedirect();
-      }
+      this.authService.loginRedirect();
     }
   }
 
-  logout() {
-    this.authService.logout();
+  loginPopup() {
+    if (this.msalGuardConfig.authRequest){
+      this.authService.loginPopup({...this.msalGuardConfig.authRequest} as PopupRequest)
+        .subscribe((response: AuthenticationResult) => {
+          this.authService.instance.setActiveAccount(response.account);
+        });
+      } else {
+        this.authService.loginPopup()
+          .subscribe((response: AuthenticationResult) => {
+            this.authService.instance.setActiveAccount(response.account);
+      });
+    }
+  }
+
+  logout(popup?: boolean) {
+    if (popup) {
+      this.authService.logoutPopup({
+        mainWindowRedirectUri: "/"
+      });
+    } else {
+      this.authService.logoutRedirect();
+    }
   }
 
   ngOnDestroy(): void {

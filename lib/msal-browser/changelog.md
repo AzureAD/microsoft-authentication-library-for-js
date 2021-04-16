@@ -1,8 +1,42 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 15 Mar 2021 23:45:17 GMT and should not be manually modified.
+This log was last generated on Wed, 14 Apr 2021 18:39:53 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.14.0
+
+Wed, 14 Apr 2021 18:39:53 GMT
+
+### Minor changes
+
+- Add support for AccessToken_With_AuthScheme credential type #3426 (hectormgdev@gmail.com)
+
+### Patches
+
+- Make SHR parameters optional (#3320) (hemoral@microsoft.com)
+
+## 2.13.1
+
+Wed, 31 Mar 2021 22:25:57 GMT
+
+### Patches
+
+- Export PopupEvent #3360 (joarroyo@microsoft.com)
+
+## 2.13.0
+
+Wed, 24 Mar 2021 22:55:46 GMT
+
+### Minor changes
+
+- Add logoutPopup API #3044 (thomas.norling@microsoft.com)
+
+### Patches
+
+- Fix errors thrown on cache lookups when reading non-msal cache values #3245 (thomas.norling@microsoft.com)
+- Update blockReloadInIframe error message with link to error doc #3294 (thomas.norling@microsoft.com)
+- Block nested popups #3249 (thomas.norling@microsoft.com)
 
 ## 2.12.1
 

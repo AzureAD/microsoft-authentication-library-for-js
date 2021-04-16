@@ -10,40 +10,17 @@ Currently there is one scenario where MSAL.js will navigate from one page in you
 - `PublicClientApplication` is configured with `auth.navigateToLoginRequestUrl: true` (default)
 - Your application has pages that may call `loginRedirect`/`acquireTokenRedirect` with a shared `redirectUri` i.e. You call `loginRedirect` from `http://localhost/protected` with a redirectUri of `http://localhost`
 
-If your application is doing all of the things above you can override the method MSAL uses to navigate by creating a class that extends `NavigationClient` and calling `setNavigationClient`.
+If your application is doing all of the things above you can override the method MSAL uses to navigate by importing the `MsalCustomNavigationClient` and calling `setNavigationClient`.
 
 ### Example Implementation
 
 The example below will show how to implement this when using the Angular `Router`. More information on the Angular Router can be found [here](https://angular.io/guide/router), and you can find a full sample app that implements this for [Angular here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular10-sample-app).
 
-#### Extending NavigationClient
-
-```javascript
-import { NavigationClient, NavigationOptions } from "@azure/msal-browser";
-import { Router } from "@angular/router";
-
-export class CustomNavigationClient extends NavigationClient {
-    private router: Router;
-
-    constructor(router: Router) {
-        super();
-        this.router = router;
-    }
-
-    async navigateInternal(url:string, options: NavigationOptions): Promise<boolean> {
-        this.router.navigateByUrl(url);
-        return Promise.resolve(false);
-    }
-}
-```
-
-#### Setting the NavigationClient in the app.component.ts
-
 ```javascript
 import { Component, OnInit, Inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { MsalService, MsalBroadcastService, MSAL_GUARD_CONFIG, MsalGuardConfiguration } from '@azure/msal-angular';
-import { CustomNavigationClient } from './custom-navigation'; // Import locally
+import { Location } from '@angular/common';
+import { MsalService, MsalBroadcastService, MSAL_GUARD_CONFIG, MsalGuardConfiguration, MsalCustomNavigationClient } from '@azure/msal-angular';
 
 @Component({
   selector: 'app-root',
@@ -56,9 +33,10 @@ export class AppComponent implements OnInit, OnDestroy {
     @Inject(MSAL_GUARD_CONFIG) private msalGuardConfig: MsalGuardConfiguration,
     private authService: MsalService,
     private msalBroadcastService: MsalBroadcastService,
-    private router: Router
+    private router: Router,
+    private location: Location
   ) {
-    const customNavigationClient = new CustomNavigationClient(this.router);
+    const customNavigationClient = new MsalCustomNavigationClient(this.authService, this.router, this.location);
     this.authService.instance.setNavigationClient(customNavigationClient);
   }
 

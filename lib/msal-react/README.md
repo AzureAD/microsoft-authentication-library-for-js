@@ -2,8 +2,6 @@
 
 [![npm version](https://img.shields.io/npm/v/@azure/msal-react.svg?style=flat)](https://www.npmjs.com/package/@azure/msal-react/)[![npm version](https://img.shields.io/npm/dm/@azure/msal-react.svg)](https://nodei.co/npm/@azure/msal-react/)
 
-`msal-react` is under development. **We do not recommend using this in a production environment yet**.
-
 | <a href="https://aka.ms/aaddevv2" target="_blank">AAD Docs</a> | <a href="https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_react.html" target="_blank">Library Reference</a> | <a href="https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples" target="blank">Samples</a>
 | --- | --- | --- |
 
@@ -86,9 +84,11 @@ npm run test:coverage
 
 For help getting started with `@azure/msal-react` please see our [getting started](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/getting-started.md) doc.
 
+Migrating from [react-aad-msal](https://www.npmjs.com/package/react-aad-msal)? Check out our [migration guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/migration-guide.md).
+
 ### MSAL Basics
 
-Since `@azure/msal-react` is built on top of `@azure/msal-browser` a lot of the same docs are relevant. For concepts specific to `@azure/msal-react` please see [below](#msal-react-specific-concepts)
+Since `@azure/msal-react` is a wrapper around `@azure/msal-browser` many docs from the `msal-browser` repo are relevant here as well. For concepts specific to `@azure/msal-react` please see [below](#msal-react-specific-concepts)
 
 1. [Initialization](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/initialization.md)
 1. [Acquiring and using an access token](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/acquire-token.md)
@@ -100,6 +100,7 @@ Since `@azure/msal-react` is built on top of `@azure/msal-browser` a lot of the 
 
 - [Configuration Options](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md)
 - [Request and Response Details](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/request-response-object.md)
+- [Events](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/events.md)
 - [Cache Storage](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/caching.md)
 - [Performance Enhancements](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/performance.md)
 

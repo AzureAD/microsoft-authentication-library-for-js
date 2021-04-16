@@ -4,7 +4,6 @@ import { IssueBotUtils } from "../utils/IssueBotUtils";
 import { RepoFiles } from "../utils/github_api_utils/RepoFiles";
 import { IssueManager } from "./IssueManager";
 import { TemplateEnforcer } from "./TemplateEnforcer";
-import { IssueLabels } from "../utils/github_api_utils/IssueLabels";
 
 /**
  * Entry point for the issue template bot
@@ -19,6 +18,15 @@ async function run() {
     const payload = github.context.payload;
     if (!payload) {
         core.setFailed("No payload!");
+        return;
+    }
+
+    try {
+        core.debug(`Issue Payload: ${JSON.stringify(payload)}`);
+    } catch (e) {}
+
+    if (payload.changes && !!payload.changes.old_issue) {
+        core.info("This issue was transferred from another repository. Skipping.");
         return;
     }
 
@@ -39,27 +47,33 @@ async function run() {
             return;
         }
 
+        if (config.ignoreIssuesOpenedBefore) {
+            try {
+                const createDate = Date.parse(issue.created_at);
+                const ignoreBeforeDate = Date.parse(config.ignoreIssuesOpenedBefore);
+                if (createDate < ignoreBeforeDate) {
+                    core.info(`Ignoring issue due to configuration. Issue created at: ${issue.created_at}`);
+                    return;
+                }
+            } catch (e) {
+                core.error(`Error Occurred when parsing dates: ${e}`);
+                return;
+            }
+        }
+
         // Ensure a template was used and filled out
         core.info("Start Template Enforcer");
         const templateEnforcer = new TemplateEnforcer(issue.number, payload.action);
-        const isTemplateComplete = await templateEnforcer.enforceTemplate(issue.body, config);
+        const closed = await templateEnforcer.enforceTemplate(issue.body, config);
+
+        if (closed) {
+            return;
+        }
 
         // Label, assign, comment on issue based on content in the issue body
         core.info("Start Issue Manager");
         const issueManager = new IssueManager(issue.number, config.selectors);
-        const isSelectionMade = await issueManager.updateIssue(issue.body);
-
-
-        // Add/remove enforcement label if the user needs to edit their issue
-        if (config.enforceTemplate && config.templateEnforcementLabel) {
-            const issueLabels = new IssueLabels(issueBotUtils);
-            if (isTemplateComplete && isSelectionMade) {
-                const currentLabels = await issueLabels.getCurrentLabels();
-                await issueLabels.removeLabels([config.templateEnforcementLabel], currentLabels);
-            } else {
-                await issueLabels.addLabels([config.templateEnforcementLabel]);
-            }
-        }
+        await issueManager.updateIssue(issue.body);
     } else {
         core.setFailed("No issue number or body available, cannot label issue!");
         return;
