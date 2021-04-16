@@ -3,6 +3,7 @@
 ***
 **[Compatibility](#compatibility)**
 
+1. [What browsers are supported?](#what-browsers-are-supported)
 1. [What versions of Angular are supported?](#what-versions-of-angular-are-supported)
 1. [Does `@azure/msal-angular` support Server Side Rendering?](#does-azuremsal-angular-support-server-side-rendering)
 1. [Can `@azure/msal-angular` be used with Internet Explorer?](#can-azuremsal-angular-be-used-with-internet-explorer)
@@ -27,6 +28,10 @@
 ***
 
 ## Compatibility
+
+### What browsers are supported?
+
+Please see [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md#what-browsers-are-supported-by-msaljs) for supported browsers.
 
 ### What versions of Angular are supported?
 

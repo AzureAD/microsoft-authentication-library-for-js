@@ -205,9 +205,9 @@ export class AuthorizationCodeClient extends BaseClient {
         parameterBuilder.addGrantType(GrantType.AUTHORIZATION_CODE_GRANT);
         parameterBuilder.addClientInfo();
 
-        if (request.authenticationScheme === AuthenticationScheme.POP && !!request.resourceRequestMethod && !!request.resourceRequestUri) {
+        if (request.authenticationScheme === AuthenticationScheme.POP) {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
-            const cnfString = await popTokenGenerator.generateCnf(request.resourceRequestMethod, request.resourceRequestUri);
+            const cnfString = await popTokenGenerator.generateCnf(request);
             parameterBuilder.addPopToken(cnfString);
         }
 
