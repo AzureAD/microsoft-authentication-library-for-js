@@ -14,7 +14,8 @@ import { AuthenticationScheme } from "../utils/Constants";
  * - claims                  - A stringified claims request which will be added to all /authorize and /token calls
  * - shrClaims               - A stringified claims object which will be added to a Signed HTTP Request
  * - resourceRequestMethod      - HTTP Request type used to request data from the resource (i.e. "GET", "POST", etc.).  Used for proof-of-possession flows.
- * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
+ * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.\
+ * - stkJwk                     - String representatin of the session transport key JWK used for Refresh Token Binding
  */
 export type BaseAuthRequest = {
     authority: string;
@@ -25,4 +26,5 @@ export type BaseAuthRequest = {
     shrClaims?: string;
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
+    stkJwk?: string
 };
