@@ -53,7 +53,7 @@ export default class Main {
             height: 1000,
             webPreferences: {
                 nodeIntegration: true
-            },
+            }
         });
     }
 

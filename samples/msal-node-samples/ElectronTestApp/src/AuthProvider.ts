@@ -16,16 +16,15 @@ import { AuthCodeListener } from "./AuthCodeListener";
 import { cachePlugin } from "./CachePlugin";
 import { BrowserWindow } from "electron";
 import { CustomFileProtocolListener } from "./CustomFileProtocol";
-import { b2cPolicies } from "./Policies";
-
-// Redirect URL registered in Azure PPE Lab App
-const CUSTOM_FILE_PROTOCOL_NAME = "msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0";
 
 // Change this to load the desired MSAL Client Configuration
-import * as CLIENT_CONFIG from "./config/customConfig.json";
+import * as APP_CONFIG from "./config/customConfig.json";
+
+// Redirect URL registered in Azure PPE Lab App
+const CUSTOM_FILE_PROTOCOL_NAME = APP_CONFIG.fileProtocol.name;
 
 const MSAL_CONFIG: Configuration = {
-    auth: CLIENT_CONFIG.authOptions,
+    auth: APP_CONFIG.authOptions,
     cache: {
         cachePlugin
     },
@@ -69,10 +68,10 @@ export default class AuthProvider {
             forceRefresh: false
         };
 
-        this.authCodeUrlParams = CLIENT_CONFIG.request.authCodeUrlParameters;
+        this.authCodeUrlParams = APP_CONFIG.request.authCodeUrlParameters;
 
         this.authCodeRequest = {
-            ...CLIENT_CONFIG.request.authCodeRequest,
+            ...APP_CONFIG.request.authCodeRequest,
             code: null
         };
 
@@ -113,7 +112,7 @@ export default class AuthProvider {
         try {
             return await this.clientApplication.acquireTokenSilent(tokenRequest);
         } catch (error) {
-            console.log("Silent token acquisition failed, acquiring token using redirect");
+            console.log("Silent token acquisition failed, acquiring token using pop up");
             const authCodeRequest = {...this.authCodeUrlParams, ...tokenRequest };
             return await this.getTokenInteractive(authWindow, authCodeRequest);
         }
@@ -127,6 +126,7 @@ export default class AuthProvider {
         // Add PKCE params to Auth Code URL request
         const authCodeUrlParams = { 
             ...this.authCodeUrlParams,
+            scopes: tokenRequest.scopes,
             codeChallenge: challenge,
             codeChallengeMethod: "S256" 
         };
@@ -173,7 +173,6 @@ export default class AuthProvider {
             authWindow.webContents.on('will-redirect', (event, responseUrl) => {
                     const parsedUrl = new URL(responseUrl);
                     const authCode = parsedUrl.searchParams.get('code');
-
                     if (authCode) {
                         resolve(authCode);
                     }
