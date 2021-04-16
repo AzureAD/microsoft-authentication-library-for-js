@@ -14,6 +14,8 @@ msal-browser:
   - lib/msal-browser/**/*
 msal-react:
   - lib/msal-react/**/*
+passport-azure-ad:
+  - maintenance/passport-azure-ad/**/*
 samples:
   - samples/**/*
 documentation:
