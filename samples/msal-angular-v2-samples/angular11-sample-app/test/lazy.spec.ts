@@ -62,31 +62,29 @@ describe('/ (Lazy Loading Page)', () => {
         await screenshot.takeScreenshot(page, "Page loaded");
 
         // Initiate Login
-        const [signInButton] = await page.$x("//button[contains(., 'Login')]");
+        const signInButton = await page.waitForXPath("//button[contains(., 'Login')]");
         await signInButton.click();
         await page.waitForTimeout(50);
         await screenshot.takeScreenshot(page, "Login button clicked");
-        const [loginRedirectButton] = await page.$x("//button[contains(., 'Login using Redirect')]");
+        const loginRedirectButton = await page.waitForXPath("//button[contains(., 'Login using Redirect')]");
         await loginRedirectButton.click();
 
         await enterCredentials(page, screenshot, username, accountPwd);
         
         // Verify UI now displays logged in content
-        const [logoutButtons] = await page.$x("//button[contains(., 'Logout')]");
-        expect(logoutButtons).toBeDefined();
+        await page.waitForXPath("//button[contains(., 'Logout')]");
         await screenshot.takeScreenshot(page, "Page signed in");
 
         // Verify tokens are in cache
         await verifyTokenStore(BrowserCache, ["User.Read"]);
 
         // Lazy loading
-        const [lazyLoadButton] = await page.$x("//span[contains(., 'Lazy-load')]");
+        const lazyLoadButton = await page.waitForXPath("//span[contains(., 'Lazy-load')]");
         await lazyLoadButton.click();
         await screenshot.takeScreenshot(page, "Lazy loading page");
 
         // Verify displays lazy loading page
-        const [lazyLoadText] = await page.$x("//p[contains(., 'Lazy loading and CanLoad works!')]");
-        expect(lazyLoadText).toBeDefined();
+        await page.waitForXPath("//p[contains(., 'Lazy loading and CanLoad works!')]");
     });
 
   }
