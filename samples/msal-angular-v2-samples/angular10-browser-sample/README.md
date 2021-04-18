@@ -25,3 +25,22 @@ This project was generated with [Angular CLI](https://github.com/angular/angular
 
 ## Additional notes
 - The default interaction type for the sample is redirects. The sample can be configured to use popups by changing the `interactionType` in `app.module.ts` to `InteractionType.Popup`. 
+
+## For obtaining access token: Use acquireTokenSilent after the login process
+- in the `login()` method - use acquireTokenSilent() instead of loginPopup().
+- while requesting auth token the authrequest should contain a logged-in account
+- set the account to the logged-in account - `this.msalGuardConfig.authRequest.account = this.authService.instance.getAllAccounts()[0];`
+
+```js
+if (this.msalGuardConfig.authRequest && this.loginDisplay){
+  this.msalGuardConfig.authRequest.account = this.authService.instance.getAllAccounts()[0];
+  this.authService.acquireTokenSilent({...this.msalGuardConfig.authRequest} as SilentRequest)
+    .subscribe((response: AuthenticationResult) => {
+      this.authService.instance.setActiveAccount(response.account);
+      console.log(response.accessToken);
+      console.log(this.authService.instance.getAllAccounts());
+    });
+  } else {
+    this.authService.loginRedirect();
+}
+```
