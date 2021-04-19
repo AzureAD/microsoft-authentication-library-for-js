@@ -4,7 +4,8 @@ import {
     CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT,
     DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_CONFIG,
-    TEST_TOKENS
+    TEST_TOKENS,
+    CORS_SIMPLE_REQUEST_HEADERS
 } from "../utils/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import { AADServerParamKeys, GrantType, Constants, AuthenticationScheme, ThrottlingConstants } from "../../src/utils/Constants";
@@ -66,6 +67,32 @@ describe("ClientCredentialClient unit tests", () => {
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`);
+    });
+
+    it("Does not add headers that do not qualify for a simple request", async () => {
+        // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
+        let stubCalled = false;
+        sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+        sinon.stub(ClientCredentialClient.prototype, <any>"executePostToTokenEndpoint").callsFake((tokenEndpoint: string, queryString: string, headers: Record<string, string>) => {
+            const headerNames = Object.keys(headers);
+            headerNames.forEach((name) => {
+                expect(CORS_SIMPLE_REQUEST_HEADERS).contains(name.toLowerCase());
+            });
+
+            stubCalled = true;
+            return CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT;
+        });
+
+        const config = await ClientTestUtils.createTestClientConfiguration();
+        const client = new ClientCredentialClient(config);
+        const clientCredentialRequest: CommonClientCredentialRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+        };
+
+        await client.acquireToken(clientCredentialRequest);
+        expect(stubCalled).to.be.true;
     });
 
     it("acquires a token, returns token from the cache", async () => {
