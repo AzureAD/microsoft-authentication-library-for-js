@@ -1,14 +1,14 @@
 import "mocha";
 import puppeteer from "puppeteer";
 import { expect } from "chai";
-import { Screenshot, createFolder, setupCredentials } from "../../../../../e2eTestUtils/TestUtils";
+import { Screenshot, createFolder, setupCredentials, enterCredentials } from "../../../../../e2eTestUtils/TestUtils";
 import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes, UserTypes, B2cProviders } from "../../../../../e2eTestUtils/Constants";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
 import { msalConfig as aadMsalConfig, request as aadTokenRequest } from "../authConfigs/aadAuthConfig.json";
 import { msalConfig as b2cMsalConfig, request as b2cTokenRequest } from "../authConfigs/b2cAuthConfig.json";
-import { b2cAadPpeEnterCredentials, b2cLocalAccountEnterCredentials, clickLoginPopup, clickLoginRedirect, clickLogoutPopup, clickLogoutRedirect, enterCredentials, waitForReturnToApp } from "./testUtils";
+import { b2cAadPpeEnterCredentials, b2cLocalAccountEnterCredentials, clickLoginPopup, clickLoginRedirect, clickLogoutPopup, clickLogoutRedirect, waitForReturnToApp } from "./testUtils";
 import fs from "fs";
 import { RedirectRequest } from "../../../../../../lib/msal-browser/src";
 

@@ -60,7 +60,7 @@ export class PopTokenGenerator {
 
         return await this.cryptoUtils.signJwt({
             at: accessToken,
-            ts: `${TimeUtils.nowSeconds()}`,
+            ts: TimeUtils.nowSeconds(),
             m: resourceRequestMethod?.toUpperCase(),
             u: resourceUrlComponents?.HostNameAndPort,
             nonce: this.cryptoUtils.createNewGuid(),

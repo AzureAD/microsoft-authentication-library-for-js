@@ -3,9 +3,10 @@
 ***
 **[Compatibility](#compatibility)**
 
-1. [What versions of React are supported](#what-versions-of-React-are-supported)
-1. [Does @azure/msal-react support Server Side Rendering (SSR) or static site generation](#does-azuremsal-react-support-Server-Side-Rendering-SSR-or-static-site-generation)
-1. [Does @azure/msal-react support class components](#does-azuremsal-react-support-class-components)
+1. [What browsers are supported?](#what-browsers-are-supported)
+1. [What versions of React are supported?](#what-versions-of-React-are-supported)
+1. [Does @azure/msal-react support Server Side Rendering (SSR) or static site generation?](#does-azuremsal-react-support-Server-Side-Rendering-SSR-or-static-site-generation)
+1. [Does @azure/msal-react support class components?](#does-azuremsal-react-support-class-components)
 
 **[Authentication](#authentication)**
 
@@ -23,6 +24,10 @@
 ***
 
 ## Compatibility
+
+### What browsers are supported?
+
+Please see [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md#what-browsers-are-supported-by-msaljs) for supported browsers.
 
 ### What versions of React are supported?
 
