@@ -4,7 +4,7 @@
  */
 
 import { BaseAuthRequest } from "./BaseAuthRequest";
-import { PreferredAzureRegionOptions } from "../authority/PreferredAzureRegionOptions";
+import { AzureRegion } from "../authority/AzureRegion";
 
 /**
  * CommonClientCredentialRequest
@@ -16,5 +16,5 @@ import { PreferredAzureRegionOptions } from "../authority/PreferredAzureRegionOp
  */
 export type CommonClientCredentialRequest = BaseAuthRequest & {
     skipCache?: boolean;
-    preferredAzureRegionOptions?: PreferredAzureRegionOptions;
+    preferredAzureRegion?: AzureRegion;
 };

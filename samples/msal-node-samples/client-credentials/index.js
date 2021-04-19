@@ -29,11 +29,7 @@ const cca = new msal.ConfidentialClientApplication(config);
 // The scope is always in the format "<resource>/.default"
 const clientCredentialRequest = {
     scopes: ["https://graph.microsoft.com/.default"],
-    preferredAzureRegionOptions: {
-        useAzureRegion: true,
-        regionUsedIfAutoDetectionFails: "westus2",
-        fallbackToGlobal: false,
-    },
+    preferredAzureRegion: "westus2",
     skipCache: true, 
 };
 

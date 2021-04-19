@@ -3,14 +3,15 @@
  * Licensed under the MIT License.
  */
 
+import { AzureRegion } from "./AzureRegion";
+
 /*
  * AzureRegionConfiguration
- * - preferredAzureRegionOptions        - Preferred azure region options from the user 
- * - environmentRegionFunc              - Environment specific way of fetching the region from the environment
+ * - preferredAzureRegion       - Preferred azure region from the user 
+ * - environmentRegionFunc      - Environment specific way of fetching the region from the environment
  */
-import { PreferredAzureRegionOptions } from "./PreferredAzureRegionOptions";
-
-export type AzureRegionConfiguration = PreferredAzureRegionOptions & {
+export type AzureRegionConfiguration = {
+    preferredAzureRegion?: AzureRegion,
     environmentRegionFunc: () => string | undefined; 
 };
 

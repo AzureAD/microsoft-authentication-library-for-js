@@ -62,8 +62,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
             ...this.initializeBaseRequest(request)
         };
         const azureRegionConfiguration: AzureRegionConfiguration = {
-            ...validRequest.preferredAzureRegionOptions,
-            useAzureRegion: validRequest.preferredAzureRegionOptions?.useAzureRegion || false,
+            preferredAzureRegion: validRequest.preferredAzureRegion,
             environmentRegionFunc: () => process.env[REGION_ENVIRONMENT_VARIABLE] 
         };
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByClientCredential, validRequest.correlationId, validRequest.skipCache);
