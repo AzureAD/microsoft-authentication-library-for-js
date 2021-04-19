@@ -40,7 +40,9 @@ export const Constants = {
     EMPTY_STRING: "",
     FORWARD_SLASH: "/",
     IMDS_ENDPOINT: "http://169.254.169.254/metadata/instance/compute/location",
-    IMDS_VERSION: "2020-06-01"
+    IMDS_VERSION: "2020-06-01",
+    IMDS_TIMEOUT: 2000,
+    AZURE_REGION_AUTO_DISCOVER_FLAG: "AUTO_DISCOVER"
 };
 
 export const OIDC_DEFAULT_SCOPES = [

@@ -4,6 +4,7 @@
  */
 
 import { INetworkModule } from "../network/INetworkModule";
+import { NetworkResponse } from "../network/NetworkManager";
 import { IMDSBadResponse } from "../response/IMDSBadResponse";
 import { Constants } from "../utils/Constants";
 
@@ -29,7 +30,7 @@ export class RegionDiscovery {
         // Call the local IMDS endpoint for applications running in azure vms
         if (!autodetectedRegionName) {
             try {
-                const response = await this.networkInterface.sendGetRequestAsync<string>(this.buildIMDSEndpoint(Constants.IMDS_ENDPOINT, Constants.IMDS_VERSION), RegionDiscovery.IMDS_OPTIONS);
+                const response = await this.getRegionFromIMDS(Constants.IMDS_VERSION);
                 if (response.status === 200) {
                     autodetectedRegionName = response.body;
                 } 
@@ -40,7 +41,7 @@ export class RegionDiscovery {
                         return null;
                     }
 
-                    const response = await this.networkInterface.sendGetRequestAsync<string>(this.buildIMDSEndpoint(Constants.IMDS_ENDPOINT, latestIMDSVersion), RegionDiscovery.IMDS_OPTIONS);
+                    const response = await this.getRegionFromIMDS(latestIMDSVersion);
                     if (response.status === 200) {
                         autodetectedRegionName = response.body;
                     }
@@ -54,14 +55,13 @@ export class RegionDiscovery {
     }
 
     /**
-     * Construct the IMDS endpoint url
+     * Make the call to the IMDS endpoint
      * 
-     * @param imdsEndpoint 
-     * @param version 
-     * @returns string 
+     * @param imdsEndpointUrl
+     * @returns Promise<NetworkResponse<string>>
      */
-    private buildIMDSEndpoint(imdsEndpoint: string, version: string): string {
-        return `${imdsEndpoint}?api-version=${version}&format=text`;
+    private async getRegionFromIMDS(version: string): Promise<NetworkResponse<string>> {
+        return this.networkInterface.sendGetRequestAsync<string>(`${Constants.IMDS_ENDPOINT}?api-version=${version}&format=text`, RegionDiscovery.IMDS_OPTIONS, Constants.IMDS_TIMEOUT);
     }
 
     /**
