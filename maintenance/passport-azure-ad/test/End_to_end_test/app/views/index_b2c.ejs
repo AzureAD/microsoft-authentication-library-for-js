@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>Example</title>
+</head>
+<body>
+<% if (!user) { %>
+  <h2>Welcome! Please log in.</h2>
+  <a href="/login/?p=B2C_1_signin">Sign In</a>
+  <a href="/login/?p=B2C_1_signup">Sign Up</a>
+  <a href="/login/?p=B2C_1_updateprofile">Update Profile</a>
+  <a href="/login/?p=B2C_1_resetpassword">Reset Password</a>
+<% } else { %>
+  <h2>Hello, <%= user.emails[0] %>.</h2>
+  <a href="/logout">Log Out</a>
+<% } %>
+</body>
+</html>
+
+
+

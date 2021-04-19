@@ -123,7 +123,7 @@ describe("PopTokenGenerator Unit Tests", () => {
                 expect(kid).to.be.eq(TEST_POP_VALUES.KID);
                 const expectedPayload = {
                     at: accessToken,
-                    ts: `${currTime}`,
+                    ts: currTime,
                     m: resourceReqMethod,
                     u: resourceUrlComponents.HostNameAndPort,
                     nonce: RANDOM_TEST_GUID,
@@ -148,7 +148,7 @@ describe("PopTokenGenerator Unit Tests", () => {
                 expect(kid).to.be.eq(TEST_POP_VALUES.KID);
                 const expectedPayload = {
                     at: accessToken,
-                    ts: `${currTime}`,
+                    ts: currTime,
                     m: undefined,
                     u: undefined,
                     nonce: RANDOM_TEST_GUID,
