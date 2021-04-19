@@ -11,7 +11,8 @@ import {
     TEST_CONFIG,
     TEST_TOKENS,
     TEST_DATA_CLIENT_INFO,
-    TEST_URIS
+    TEST_URIS,
+    CORS_SIMPLE_REQUEST_HEADERS
 } from "../utils/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import { AADServerParamKeys, GrantType, Constants, AuthenticationScheme, ThrottlingConstants } from "../../src/utils/Constants";
@@ -89,6 +90,29 @@ describe("OnBehalfOf unit tests", () => {
             expect(client instanceof OnBehalfOfClient).to.be.true;
             expect(client instanceof BaseClient).to.be.true;
         });
+    });
+
+    it("Does not add headers that do not qualify for a simple request", (done) => {
+        // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
+        sinon.stub(OnBehalfOfClient.prototype, <any>"getCachedAuthenticationResult").resolves(null);
+        sinon.stub(OnBehalfOfClient.prototype, <any>"executePostToTokenEndpoint").callsFake((tokenEndpoint: string, queryString: string, headers: Record<string, string>) => {
+            const headerNames = Object.keys(headers);
+            headerNames.forEach((name) => {
+                expect(CORS_SIMPLE_REQUEST_HEADERS).contains(name.toLowerCase());
+            });
+
+            done();
+            return AUTHENTICATION_RESULT_DEFAULT_SCOPES;
+        });
+        
+        const client = new OnBehalfOfClient(config);
+        const onBehalfOfRequest: CommonOnBehalfOfRequest = {
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            oboAssertion: TEST_TOKENS.ACCESS_TOKEN,
+            skipCache: false
+        };
+
+        client.acquireToken(onBehalfOfRequest);
     });
 
     it("acquires a token, no token in the cache", async () => {
