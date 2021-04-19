@@ -459,7 +459,7 @@ export class Authority {
      * @param host string
      * @param region string 
      */
-    static buildRegionalAuthorityString(host: string, region: string): string {
+    static buildRegionalAuthorityString(host: string, region: string, queryString?: string): string {
         // Create and validate a Url string object with the initial authority string
         const globalUrl = new UrlString(host);
         globalUrl.validateAsUri();
@@ -467,7 +467,8 @@ export class Authority {
         // Include the query string portion of the url
         return UrlString.constructAuthorityUriFromObject({
             ...globalUrl.getUrlComponents(),
-            HostNameAndPort: `${region}.login.microsoft.com`
+            HostNameAndPort: `${region}.login.microsoft.com`,
+            QueryString: `${queryString}`
         }).urlString;
     }
 
@@ -479,7 +480,8 @@ export class Authority {
      */
     static replaceWithRegionalInformation(metadata: OpenIdConfigResponse, azureRegion: string): OpenIdConfigResponse {
         metadata.authorization_endpoint = Authority.buildRegionalAuthorityString(metadata.authorization_endpoint, azureRegion);
-        metadata.token_endpoint = Authority.buildRegionalAuthorityString(metadata.token_endpoint, azureRegion);
+        // TODO: Enquire on whether we should leave the query string or remove it before releasing the feature
+        metadata.token_endpoint = Authority.buildRegionalAuthorityString(metadata.token_endpoint, azureRegion, "allowestsrnonmsi=true");
         metadata.end_session_endpoint = Authority.buildRegionalAuthorityString(metadata.end_session_endpoint, azureRegion);
         
         return metadata;
