@@ -42,7 +42,7 @@ export class ClientCredentialClient extends BaseClient {
             return await this.executeTokenRequest(request, this.authority);
         }
 
-        const cachedAuthenticationResult = await this.getCachedAuthenticationResult();
+        const cachedAuthenticationResult = await this.getCachedAuthenticationResult(request);
         if (cachedAuthenticationResult) {
             return cachedAuthenticationResult;
         } else {
@@ -53,7 +53,7 @@ export class ClientCredentialClient extends BaseClient {
     /**
      * looks up cache if the tokens are cached already
      */
-    private async getCachedAuthenticationResult(): Promise<AuthenticationResult | null> {
+    private async getCachedAuthenticationResult(request: CommonClientCredentialRequest): Promise<AuthenticationResult | null> {
         const cachedAccessToken = this.readAccessTokenFromCache();
         if (!cachedAccessToken ||
             TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
@@ -70,7 +70,8 @@ export class ClientCredentialClient extends BaseClient {
                 refreshToken: null,
                 appMetadata: null
             },
-            true
+            true,
+            request
         );
     }
 
@@ -130,10 +131,7 @@ export class ClientCredentialClient extends BaseClient {
             response.body,
             this.authority,
             reqTimestamp,
-            request.resourceRequestMethod,
-            request.resourceRequestUri,
-            undefined,
-            request.scopes
+            request
         );
 
         return tokenResponse;

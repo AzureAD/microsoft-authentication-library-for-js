@@ -4,6 +4,7 @@
  */
 
 import { AuthError } from "../error/AuthError";
+import { BaseAuthRequest } from "../request/BaseAuthRequest";
 import { SignedHttpRequest } from "./SignedHttpRequest";
 
 /**
@@ -40,10 +41,9 @@ export interface ICrypto {
     generatePkceCodes(): Promise<PkceCodes>;
     /**
      * Generates an JWK RSA S256 Thumbprint
-     * @param resourceRequestMethod 
-     * @param resourceRequestUri 
+     * @param request
      */
-    getPublicKeyThumbprint(resourceRequestMethod: string, resourceRequestUri: string): Promise<string>;
+    getPublicKeyThumbprint(request: BaseAuthRequest): Promise<string>;
     /** 
      * Returns a signed proof-of-possession token with a given acces token that contains a cnf claim with the required kid.
      * @param accessToken 

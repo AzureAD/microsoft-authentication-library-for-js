@@ -14,11 +14,11 @@ import {
     TEST_URIS
 } from "../utils/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
-import { AADServerParamKeys, GrantType, Constants, ThrottlingConstants } from "../../src/utils/Constants";
-import { ClientTestUtils } from "./ClientTestUtils";
+import { AADServerParamKeys, GrantType, Constants, AuthenticationScheme, ThrottlingConstants } from "../../src/utils/Constants";
+import { ClientTestUtils, mockCrypto } from "./ClientTestUtils";
 import { Authority } from "../../src/authority/Authority";
 import { OnBehalfOfClient } from "../../src/client/OnBehalfOfClient";
-import { OnBehalfOfRequest } from "../../src/request/OnBehalfOfRequest";
+import { CommonOnBehalfOfRequest } from "../../src/request/CommonOnBehalfOfRequest";
 import { AuthToken } from "../../src/account/AuthToken";
 import { TimeUtils } from "../../src/utils/TimeUtils";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
@@ -99,7 +99,7 @@ describe("OnBehalfOf unit tests", () => {
         const createTokenRequestBodySpy = sinon.spy(OnBehalfOfClient.prototype, <any>"createTokenRequestBody");
 
         const client = new OnBehalfOfClient(config);
-        const onBehalfOfRequest: OnBehalfOfRequest = {
+        const onBehalfOfRequest: CommonOnBehalfOfRequest = {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             oboAssertion: TEST_TOKENS.ACCESS_TOKEN,
             skipCache: false
@@ -131,7 +131,7 @@ describe("OnBehalfOf unit tests", () => {
 
         // mock access token
         const expectedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "", "login.windows.net", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
+            "", "login.windows.net", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, undefined, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
 
         sinon.stub(OnBehalfOfClient.prototype, <any>"readAccessTokenFromCache").returns(expectedAtEntity);
         sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
@@ -149,7 +149,7 @@ describe("OnBehalfOf unit tests", () => {
         sinon.stub(OnBehalfOfClient.prototype, <any>"readAccountFromCache").returns(expectedAccountEntity);
 
         const client = new OnBehalfOfClient(config);
-        const onBehalfOfRequest: OnBehalfOfRequest = {
+        const onBehalfOfRequest: CommonOnBehalfOfRequest = {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             oboAssertion: TEST_TOKENS.ACCESS_TOKEN
         };
@@ -174,7 +174,7 @@ describe("OnBehalfOf unit tests", () => {
         const createTokenRequestBodySpy = sinon.spy(OnBehalfOfClient.prototype, <any>"createTokenRequestBody");
 
         const client = new OnBehalfOfClient(config);
-        const onBehalfOfRequest: OnBehalfOfRequest = {
+        const onBehalfOfRequest: CommonOnBehalfOfRequest = {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             oboAssertion: TEST_TOKENS.ACCESS_TOKEN,
             skipCache: true
@@ -199,10 +199,10 @@ describe("OnBehalfOf unit tests", () => {
 
     it("Multiple access tokens matched, exception thrown", async () => {
         const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
+            "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, undefined, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
 
         const mockedAtEntity2: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
+            "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, undefined, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
 
         const mockedCredentialCache: CredentialCache = {
             accessTokens: {
@@ -216,7 +216,7 @@ describe("OnBehalfOf unit tests", () => {
         sinon.stub(CacheManager.prototype, <any>"getCredentialsFilteredBy").returns(mockedCredentialCache);
 
         const client = new OnBehalfOfClient(config);
-        const onBehalfOfRequest: OnBehalfOfRequest = {
+        const onBehalfOfRequest: CommonOnBehalfOfRequest = {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             oboAssertion: TEST_TOKENS.ACCESS_TOKEN
         };
