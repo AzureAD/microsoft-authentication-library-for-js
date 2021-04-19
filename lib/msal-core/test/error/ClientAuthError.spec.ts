@@ -48,27 +48,6 @@ describe("ClientAuthError.ts Class", () => {
 
   });
 
-  it("createMultipleAuthoritiesInCacheError creates a ClientAuthError object", () => {
-
-    const scope: string = "user.read";
-    const errorDetail: string = "Cache error for scope";
-    const multipleAuthoritiesError = ClientAuthError.createMultipleAuthoritiesInCacheError(scope);
-    let err: ClientAuthError;
-
-    try {
-      throw multipleAuthoritiesError;
-    } catch (error) {
-      err = error;
-    }
-
-    expect(err.errorCode).to.equal(ClientAuthErrorMessage.multipleCacheAuthorities.code);
-    expect(err.errorMessage).to.include(ClientAuthErrorMessage.multipleCacheAuthorities.desc);
-    expect(err.errorMessage).to.include(`${errorDetail} ${scope}`);
-    expect(err.message).to.include(ClientAuthErrorMessage.multipleCacheAuthorities.desc);
-    expect(err.name).to.equal("ClientAuthError");
-    expect(err.stack).to.include("ClientAuthError.spec.ts");
-  });
-
   it("createPopupWindowError creates a ClientAuthError object", () => {
 
     const ERROR_DETAIL = "Details:";
