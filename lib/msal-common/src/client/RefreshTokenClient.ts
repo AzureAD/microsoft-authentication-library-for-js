@@ -12,7 +12,6 @@ import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { GrantType, AuthenticationScheme, Errors  } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { StringUtils } from "../utils/StringUtils";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { NetworkResponse } from "../network/NetworkManager";
@@ -21,6 +20,7 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ClientAuthError, ClientAuthErrorMessage } from "../error/ClientAuthError";
 import { ServerError } from "../error/ServerError";
 import { TimeUtils } from "../utils/TimeUtils";
+import { KeyManager } from "../crypto/KeyManager";
 
 /**
  * OAuth2.0 refresh token client
@@ -185,9 +185,9 @@ export class RefreshTokenClient extends BaseClient {
         }
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
-            const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
-
-            parameterBuilder.addPopToken(await popTokenGenerator.generateCnf(request));
+            const keyManager = new KeyManager(this.cryptoUtils);
+            const cnfString = await keyManager.generateCnf(request);
+            parameterBuilder.addPopToken(cnfString);
         }
 
         if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {

@@ -21,12 +21,12 @@ import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorization
 import { AccountEntity } from "../cache/entities/AccountEntity";
 import { CommonEndSessionRequest } from "../request/CommonEndSessionRequest";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload";
 import { TimeUtils } from "../utils/TimeUtils";
 import { TokenClaims } from "../account/TokenClaims";
 import { AccountInfo } from "../account/AccountInfo";
+import { KeyManager } from "../crypto/KeyManager";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -206,8 +206,8 @@ export class AuthorizationCodeClient extends BaseClient {
         parameterBuilder.addClientInfo();
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
-            const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
-            const cnfString = await popTokenGenerator.generateCnf(request);
+            const keyManager = new KeyManager(this.cryptoUtils);
+            const cnfString = await keyManager.generateCnf(request);
             parameterBuilder.addPopToken(cnfString);
         }
 

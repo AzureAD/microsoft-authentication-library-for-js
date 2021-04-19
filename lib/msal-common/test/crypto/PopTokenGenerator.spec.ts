@@ -55,23 +55,11 @@ describe("PopTokenGenerator Unit Tests", () => {
         },
         async signJwt(): Promise<string> {
             return "";
+        },
+        async getAsymmetricPublicKey(): Promise<string> {
+            return TEST_POP_VALUES.KID;
         }
     };
-
-    describe("generateCnf", () => {
-        const testRequest = {
-            authority: TEST_CONFIG.validAuthority,
-            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            correlationId: TEST_CONFIG.CORRELATION_ID,
-            resourceRequestMethod:"POST",
-            resourceRequestUrl: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS
-        };
-        it("Generates the req_cnf correctly", async () => {
-            const popTokenGenerator = new PopTokenGenerator(cryptoInterface);
-            const req_cnf = await popTokenGenerator.generateCnf(testRequest);
-            expect(req_cnf).to.be.eq(TEST_POP_VALUES.ENCODED_REQ_CNF);
-        });
-    });
 
     describe("signPopToken", () => {
         let popTokenGenerator: PopTokenGenerator;
