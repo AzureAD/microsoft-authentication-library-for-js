@@ -1,6 +1,6 @@
-# Initialization of MSAL Angular
+# Initialization of MSAL Angular v2
 
-Before using MSAL.js, [register an application in Azure AD](https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app) to get your `clientId`.
+Before using `@azure/msal-angular`, [register an application in Azure AD](https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app) to get your `clientId`.
 
 In this document:
 - [Initialization of MSAL](#initialization-of-msal-angular)
@@ -14,7 +14,7 @@ In this document:
 
 ## Include and initialize the MSAL module in your app module
 
-Import MsalModule into app.module.ts. To initialize MSAL module you are required to pass the clientId of your application which you can get from the application registration.
+Import `MsalModule` into app.module.ts. To initialize MSAL module you are required to pass the clientId of your application which you can get from the application registration.
 
 ```js
 @NgModule({
@@ -33,6 +33,12 @@ export class AppModule {}
 
 You can add authentication to secure specific routes in your application by just adding `canActivate: [MsalGuard]` to your route definition. It can be added at the parent or child routes. When a user visits these routes, the library will prompt the user to authenticate.
 
+**Note:** While the `MsalGuard` is done with best effort, it is a convenience feature intended to improve the user experience and, as such, should not be relied upon for security. Attackers can potentially get around client-side guards, and you should ensure that the server does not return any data the user should not access.
+
+You may also need a route guard that addresses specific needs. We encourage you to write your own guard if `MsalGuard` does not meet all those needs.
+
+See this example of a route defined with the `MsalGuard`:
+
 ```js
   {
     path: 'profile',
@@ -41,7 +47,7 @@ You can add authentication to secure specific routes in your application by just
   },
 ```
 
-As of `@azure/msal-angular@2`, `canActivateChild` and `canLoad` have also been added to the guard, and can be added to your route definitions. You can see these used in our sample application [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app-routing.module.ts), as well as below: 
+As of MSAL Angular v2, `canActivateChild` and `canLoad` have also been added to the guard, and can be added to your route definitions. You can see these used in our sample application [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app-routing.module.ts), as well as below: 
 
 ```js
   {
@@ -67,7 +73,7 @@ As of `@azure/msal-angular@2`, `canActivateChild` and `canLoad` have also been a
 
 ## Get tokens for Web API calls
 
-MSAL Angular allows you to add an Http interceptor (`MsalInterceptor`) in your `app.module.ts` as follows. MsalInterceptor will obtain tokens and add them to all your Http requests in API calls based on the `protectedResourceMap`.
+`@azure/msal-angular` allows you to add an Http interceptor (`MsalInterceptor`) in your `app.module.ts` as follows. The `MsalInterceptor` will obtain tokens and add them to all your Http requests in API calls based on the `protectedResourceMap`.
 
 ```js
 @NgModule({
@@ -99,11 +105,13 @@ MSAL Angular allows you to add an Http interceptor (`MsalInterceptor`) in your `
 export class AppModule {}
 ```
 
-Using MsalInterceptor is optional and you can write your own interceptor if you choose to. Alternatively, you can also explicitly acquire tokens using the acquireToken APIs.
-
-As of `@azure/msal-angular@2`, `protectedResourceMap` supports using `*` for wildcards. `unprotectedResources` is deprecated and no longer an option for configuration. Instead, setting a scope value of `null` on a resource will prevent it from getting tokens.
+As of MSAL Angular v2, `protectedResourceMap` supports using `*` for wildcards. `unprotectedResources` is deprecated and no longer an option for configuration. Instead, setting a scope value of `null` on a resource will prevent it from getting tokens.
 
 **Note:** When using wildcards, if multiple matching entries are found in the `protectedResourceMap`, the first match found will be used (based on the order of the `protectedResourceMap`).
+
+Using the `MsalInterceptor` is optional. You may wish to explicitly acquire tokens using the acquireToken APIs instead.
+
+Please note that the `MsalInterceptor` is provided for your convenience and may not fit all use cases. We encourage you to write your own interceptor if you have specific needs that are not addressed by the `MsalInterceptor`. 
 
 ## Subscribe to event callbacks
 
@@ -157,4 +165,4 @@ ngOnDestroy(): void {
 
 # Next Steps
 
-You are ready to use MSAL Angular's [public APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/public-apis.md)!
+You are ready to use `@azure/msal-angular` [public APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/public-apis.md)!

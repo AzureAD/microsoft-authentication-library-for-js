@@ -3,13 +3,14 @@ import sinon from "sinon";
 import { BrowserStorage } from "../src/cache/BrowserStorage";
 import { AuthCache } from "../src/cache/AuthCache";
 import { Constants, AuthError } from "../src";
-import { TemporaryCacheKeys, PersistentCacheKeys } from "../src/utils/Constants";
+import { TemporaryCacheKeys, PersistentCacheKeys, ErrorCacheKeys } from "../src/utils/Constants";
 import { AccessTokenKey } from "../src/cache/AccessTokenKey";
 import { AccessTokenValue } from "../src/cache/AccessTokenValue";
 import { Account } from "../src/Account";
 import { AuthErrorMessage } from "../src/error/AuthError";
 import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../src/error/ClientConfigurationError";
 import { RequestUtils } from "../src/utils/RequestUtils";
+import { TEST_TOKENS } from "./TestConstants";
 
 describe("CacheStorage.ts Class - Session Storage", function () {
     const TEST_KEY = "test_key";
@@ -148,7 +149,7 @@ describe("CacheStorage.ts Class - Session Storage", function () {
         it("tests setItemCookie works", function () {
             let idTokenNonceString = "idTokenNonce";
             cacheStorage.setItemCookie(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM_GUID`, idTokenNonceString);
-            expect(document.cookie).to.include(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM_GUID`);
+            expect(document.cookie).to.include(encodeURIComponent(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM_GUID`));
             expect(document.cookie).to.include(idTokenNonceString);
             cacheStorage.clearItemCookie(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM_GUID`);
         });
@@ -306,6 +307,28 @@ describe("CacheStorage.ts Class - Session Storage", function () {
             expect(msalCacheStorage.getItem(`${AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.RENEW_STATUS, TEST_STATE)}`)).to.be.null;
         });
 
-        it.skip("tests that resetCacheItems only deletes instance-specific cache items");
+        it("migrateCacheEntries only migrates entries if id_token aud matches current clientId", function () {
+            let idTokenKey = `${Constants.cachePrefix}.${PersistentCacheKeys.IDTOKEN}`;
+            let clientInfoKey = `${Constants.cachePrefix}.${PersistentCacheKeys.CLIENT_INFO}`;
+            let errorKey = `${Constants.cachePrefix}.${ErrorCacheKeys.ERROR}`;
+            let errorDescKey = `${Constants.cachePrefix}.${ErrorCacheKeys.ERROR_DESC}`;
+
+            window.sessionStorage.setItem(idTokenKey, TEST_TOKENS.IDTOKEN_V2);
+            window.sessionStorage.setItem(clientInfoKey, "clientInfo");
+            window.sessionStorage.setItem(errorKey, "error");
+            window.sessionStorage.setItem(errorDescKey, "error");
+
+            msalCacheStorage = new AuthCache(MSAL_CLIENT_ID,SESSION_STORAGE, true);
+
+            expect(msalCacheStorage.getItem(idTokenKey)).to.be.eq(TEST_TOKENS.IDTOKEN_V2);
+            expect(msalCacheStorage.getItem(clientInfoKey)).to.be.eq("clientInfo");
+            expect(msalCacheStorage.getItem(errorKey)).to.be.eq("error");
+            expect(msalCacheStorage.getItem(errorDescKey)).to.be.eq("error");
+
+            expect(msalCacheStorage.getItem(PersistentCacheKeys.CLIENT_INFO)).to.be.null;
+            expect(msalCacheStorage.getItem(PersistentCacheKeys.IDTOKEN)).to.be.null;
+            expect(msalCacheStorage.getItem(ErrorCacheKeys.ERROR)).to.be.null;
+            expect(msalCacheStorage.getItem(ErrorCacheKeys.ERROR_DESC)).to.be.null;
+        });
     });
 });

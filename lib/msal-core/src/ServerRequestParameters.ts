@@ -11,7 +11,7 @@ import { Account } from "./Account";
 import { SSOTypes, Constants, PromptState, ResponseTypes } from "./utils/Constants";
 import { StringUtils } from "./utils/StringUtils";
 import { ScopeSet } from "./ScopeSet";
-import { name as libraryVersion } from "./packageMetadata";
+import { version as libraryVersion } from "./packageMetadata";
 
 /**
  * Nonce: OIDC Nonce definition: https://openid.net/specs/openid-connect-core-1_0.html#IDToken

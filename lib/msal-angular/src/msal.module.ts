@@ -12,9 +12,10 @@ import { MsalGuard } from "./msal.guard";
 import { MsalBroadcastService } from "./msal.broadcast.service";
 import { MsalService } from "./msal.service";
 import { MSAL_INSTANCE , MSAL_GUARD_CONFIG, MSAL_INTERCEPTOR_CONFIG } from "./constants";
+import { MsalRedirectComponent } from "./msal.redirect.component";
 
 @NgModule({
-    declarations: [],
+    declarations: [MsalRedirectComponent],
     imports: [
         CommonModule
     ],

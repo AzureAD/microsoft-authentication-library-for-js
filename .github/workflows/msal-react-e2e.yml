@@ -14,6 +14,7 @@ on:
       - 'lib/msal-browser/**/*' 
       - 'lib/msal-common/**/*'
       - 'samples/msal-react-samples/**/*'
+      - 'samples/e2eTestUtils/**/*'
       - '!**.md'
       - '.github/workflows/msal-react-e2e.yml'
 
@@ -30,6 +31,11 @@ jobs:
           - 'nextjs-sample'
 
     steps:
+    - name: Cancel Previous Runs
+      uses: styfle/cancel-workflow-action@0.8.0
+      with:
+        access_token: ${{ github.token }}
+        
     - uses: actions/checkout@v2
 
     - name: Use Node.js

@@ -73,7 +73,7 @@ export class BrowserStorage {// Singleton
      * @param expires
      */
     setItemCookie(cName: string, cValue: string, expires?: number): void {
-        let cookieStr = cName + "=" + cValue + ";path=/;";
+        let cookieStr = encodeURIComponent(cName) + "=" + encodeURIComponent(cValue) + ";path=/;";
         if (expires) {
             const expireTime = this.getCookieExpirationTime(expires);
             cookieStr += "expires=" + expireTime + ";";
@@ -87,7 +87,7 @@ export class BrowserStorage {// Singleton
      * @param cName
      */
     getItemCookie(cName: string): string {
-        const name = cName + "=";
+        const name = encodeURIComponent(cName) + "=";
         const ca = document.cookie.split(";");
         for (let i = 0; i < ca.length; i++) {
             let c = ca[i];
@@ -95,7 +95,7 @@ export class BrowserStorage {// Singleton
                 c = c.substring(1);
             }
             if (c.indexOf(name) === 0) {
-                return c.substring(name.length, c.length);
+                return decodeURIComponent(c.substring(name.length, c.length));
             }
         }
         return "";

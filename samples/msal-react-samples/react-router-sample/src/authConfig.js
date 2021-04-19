@@ -1,3 +1,4 @@
+import { LogLevel } from "@azure/msal-browser";
 // Browser check variables
 // If you support IE, our recommendation is that you sign-in using Redirect APIs
 // If you as a developer are testing using Edge InPrivate mode, please add "isEdge" to the if check
@@ -13,12 +14,38 @@ const isFirefox = firefox > 0; // Only needed if you need to support the redirec
 // Config object to be passed to Msal on creation
 export const msalConfig = {
     auth: {
-        clientId: "0a61c279-646b-4055-a5f1-1c3da7f70f18",
+        clientId: "3fba556e-5d4a-48e3-8e1a-fd57c12cb82e",
+        authority: "https://login.windows-ppe.net/common",
         redirectUri: "/",
         postLogoutRedirectUri: "/"
     },
     cache: {
         storeAuthStateInCookie: isIE || isEdge || isFirefox
+    },
+    system: {
+        loggerOptions: {
+            loggerCallback: (level, message, containsPii) => {
+                if (containsPii) {	
+                    return;	
+                }
+                switch (level) {	
+                    case LogLevel.Error:	
+                        console.error(message);	
+                        return;	
+                    case LogLevel.Info:	
+                        console.info(message);	
+                        return;	
+                    case LogLevel.Verbose:	
+                        console.debug(message);	
+                        return;	
+                    case LogLevel.Warning:	
+                        console.warn(message);	
+                        return;	
+                    default:
+                        return;
+                }
+            }
+        }
     }
 };
 
@@ -29,5 +56,5 @@ export const loginRequest = {
 
 // Add here the endpoints for MS Graph API services you would like to use.
 export const graphConfig = {
-    graphMeEndpoint: "https://graph.microsoft.com/v1.0/me"
+    graphMeEndpoint: "https://graph.microsoft-ppe.com/v1.0/me"
 };

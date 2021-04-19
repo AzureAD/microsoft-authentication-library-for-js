@@ -1,27 +1,5 @@
-import { Screenshot } from "../../../../../e2eTestUtils/TestUtils";
+import { Screenshot, enterCredentials } from "../../../../../e2eTestUtils/TestUtils";
 import { Page } from "puppeteer";
-
-export async function enterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
-    await page.waitForNavigation({ waitUntil: "networkidle0"});
-    await page.waitForSelector("#i0116");
-    await screenshot.takeScreenshot(page, "loginPage");
-    await page.type("#i0116", username);
-    await page.click("#idSIButton9");
-    await page.waitForSelector("#idA_PWD_ForgotPassword");
-    await screenshot.takeScreenshot(page, "pwdInputPage");
-    await page.type("#i0118", accountPwd);
-    await page.click("#idSIButton9");
-    try {
-        await page.waitForSelector('#KmsiCheckboxField', {timeout: 1000});
-        await screenshot.takeScreenshot(page, "kmsiPage");
-        await Promise.all([
-            page.click("#idSIButton9"),
-            page.waitForNavigation({ waitUntil: "networkidle0"})
-        ]);
-    } catch (e) {
-        return;
-    }
-}
 
 export async function b2cAadPpeEnterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
     await page.waitForSelector("#MSIDLAB4_AzureAD");
@@ -47,7 +25,14 @@ export async function clickLoginRedirect(screenshot: Screenshot, page: Page): Pr
     await page.click("#SignIn");
     await screenshot.takeScreenshot(page, "signInClicked");
     // Click Sign In With Redirect
-    await page.click("#loginRedirect");
+    await page.click("#redirect");
+}
+
+export async function clickLogoutRedirect(screenshot: Screenshot, page: Page): Promise<void> {
+    await page.click("#SignIn");
+    await screenshot.takeScreenshot(page, "signOutClicked");
+    // Click Sign Out With Redirect
+    await page.click("#redirect");
 }
 
 export async function clickLoginPopup(screenshot: Screenshot, page: Page): Promise<[Page, Promise<void>]> {
@@ -58,7 +43,20 @@ export async function clickLoginPopup(screenshot: Screenshot, page: Page): Promi
     await screenshot.takeScreenshot(page, "signInClicked");
     // Click Sign In With Popup
     const newPopupWindowPromise = new Promise<Page>(resolve => page.once("popup", resolve));
-    await page.click("#loginPopup");
+    await page.click("#popup");
+    const popupPage = await newPopupWindowPromise;
+    const popupWindowClosed = new Promise<void>(resolve => popupPage.once("close", resolve));
+
+    return [popupPage, popupWindowClosed];
+}
+
+export async function clickLogoutPopup(screenshot: Screenshot, page: Page): Promise<[Page, Promise<void>]> {
+
+    await page.click("#SignIn");
+    await screenshot.takeScreenshot(page, "signOutClicked");
+    // Click Sign Out With Popup
+    const newPopupWindowPromise = new Promise<Page>(resolve => page.once("popup", resolve));
+    await page.click("#popup");
     const popupPage = await newPopupWindowPromise;
     const popupWindowClosed = new Promise<void>(resolve => popupPage.once("close", resolve));
 
@@ -69,7 +67,6 @@ export async function waitForReturnToApp(screenshot: Screenshot, page: Page, pop
     if (popupPage && popupWindowClosed) {
         // Wait until popup window closes and see that we are logged in
         await popupWindowClosed;
-        await page.waitFor(500);
     }
 
     // Wait for token acquisition

@@ -2,7 +2,7 @@ import { Component } from "react";
 
 // Msal imports
 import { MsalAuthenticationTemplate, MsalContext } from "@azure/msal-react";
-import { InteractionType } from "@azure/msal-browser";
+import { InteractionType, InteractionStatus } from "@azure/msal-browser";
 import { loginRequest } from "../authConfig";
 
 // Sample app imports
@@ -32,13 +32,8 @@ class ProfileContent extends Component {
     }
 
     componentDidMount() {
-        if (this.context.accounts[0] && this.context.inProgress === "none") {
-            this.context.instance.acquireTokenSilent({
-                ...loginRequest,
-                account: this.context.accounts[0]
-            }).then((response) => {
-                callMsGraph(response.accessToken).then(response => this.setState({graphData: response}));
-            });
+        if (!this.state.graphData && this.context.inProgress === InteractionStatus.None) {
+            callMsGraph().then(response => this.setState({graphData: response}));
         }
     }
   

@@ -8,8 +8,8 @@ import { AuthToken } from "../account/AuthToken";
 import { TokenClaims } from "../account/TokenClaims";
 import { TimeUtils } from "../utils/TimeUtils";
 import { UrlString } from "../url/UrlString";
-import { IUri } from "../url/IUri";
 import { ClientAuthError } from "../error/ClientAuthError";
+import { BaseAuthRequest } from "../request/BaseAuthRequest";
 
 /**
  * See eSTS docs for more info.
@@ -36,8 +36,8 @@ export class PopTokenGenerator {
         this.cryptoUtils = cryptoUtils;
     }
 
-    async generateCnf(resourceRequestMethod: string, resourceRequestUri: string): Promise<string> {
-        const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint(resourceRequestMethod, resourceRequestUri);
+    async generateCnf(request: BaseAuthRequest): Promise<string> {
+        const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint(request);
         const reqCnf: ReqCnf = {
             kid: kidThumbprint,
             xms_ksl: KeyLocation.SW
@@ -45,10 +45,14 @@ export class PopTokenGenerator {
         return this.cryptoUtils.base64Encode(JSON.stringify(reqCnf));
     }
 
-    async signPopToken(accessToken: string, resourceRequestMethod: string, resourceRequestUri: string): Promise<string> {
+    async signPopToken(accessToken: string, request: BaseAuthRequest): Promise<string> {
         const tokenClaims: TokenClaims | null = AuthToken.extractTokenClaims(accessToken, this.cryptoUtils);
-        const resourceUrlString: UrlString = new UrlString(resourceRequestUri);
-        const resourceUrlComponents: IUri = resourceUrlString.getUrlComponents();
+
+        // Deconstruct request to extract SHR parameters
+        const { resourceRequestMethod, resourceRequestUri, shrClaims } = request;
+
+        const resourceUrlString = (resourceRequestUri) ? new UrlString(resourceRequestUri) : undefined;
+        const resourceUrlComponents = resourceUrlString?.getUrlComponents();
 
         if (!tokenClaims?.cnf?.kid) {
             throw ClientAuthError.createTokenClaimsRequiredError();
@@ -56,12 +60,13 @@ export class PopTokenGenerator {
 
         return await this.cryptoUtils.signJwt({
             at: accessToken,
-            ts: `${TimeUtils.nowSeconds()}`,
-            m: resourceRequestMethod.toUpperCase(),
-            u: resourceUrlComponents.HostNameAndPort || "",
+            ts: TimeUtils.nowSeconds(),
+            m: resourceRequestMethod?.toUpperCase(),
+            u: resourceUrlComponents?.HostNameAndPort,
             nonce: this.cryptoUtils.createNewGuid(),
-            p: resourceUrlComponents.AbsolutePath,
-            q: [[], resourceUrlComponents.QueryString],
+            p: resourceUrlComponents?.AbsolutePath,
+            q: (resourceUrlComponents?.QueryString) ? [[], resourceUrlComponents.QueryString] : undefined,
+            client_claims: shrClaims || undefined
         }, tokenClaims.cnf.kid);
     }
 }

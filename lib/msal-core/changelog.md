@@ -1,8 +1,32 @@
 # Change Log - msal
 
-This log was last generated on Tue, 09 Feb 2021 01:48:22 GMT and should not be manually modified.
+This log was last generated on Wed, 31 Mar 2021 22:25:57 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.4.9
+
+Wed, 31 Mar 2021 22:25:57 GMT
+
+### Patches
+
+- Fix token cache for /consumers authority #3327 (thomas.norling@microsoft.com)
+
+## 1.4.8
+
+Mon, 15 Mar 2021 23:45:17 GMT
+
+### Patches
+
+- Dont migrate tokens for different clientId #3188 (thomas.norling@microsoft.com)
+
+## 1.4.7
+
+Wed, 03 Mar 2021 21:47:05 GMT
+
+### Patches
+
+- Fix lib version on request (#3080)  (thomas.norling@microsoft.com)
 
 ## 1.4.6
 
