@@ -41,11 +41,11 @@ export class DatabaseStorage<T>{
         return new Promise((resolve, reject) => {
             // TODO: Add timeouts?
             const openDB = window.indexedDB.open(this.dbName, this.version);
-            openDB.addEventListener("upgradeneeded", (e: any) => {
+            openDB.addEventListener("upgradeneeded", (e: IDBVersionChangeEvent) => {
                 const event = e as IDBOpenOnUpgradeNeededEvent;
                 event.target.result.createObjectStore(this.tableName);
             });
-            openDB.addEventListener("success", (e: any) => {
+            openDB.addEventListener("success", (e: Event) => {
                 const event = e as IDBOpenDBRequestEvent;
                 this.db = event.target.result;
                 this.dbOpen = true;
@@ -75,7 +75,7 @@ export class DatabaseStorage<T>{
 
             const objectStore = transaction.objectStore(this.tableName);
             const dbGet = objectStore.get(key);
-            dbGet.addEventListener("success", (e: any) => {
+            dbGet.addEventListener("success", (e: Event) => {
                 const event = e as IDBRequestEvent;
                 resolve(event.target.result);
             });
@@ -93,7 +93,7 @@ export class DatabaseStorage<T>{
             await this.open();
         }
 
-        return new Promise<T>((resolve: any, reject: any) => {
+        return new Promise<T>((resolve: Function, reject: Function) => {
             // TODO: Add timeouts?
             if (!this.db) {
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
@@ -103,7 +103,7 @@ export class DatabaseStorage<T>{
             const objectStore = transaction.objectStore(this.tableName);
 
             const dbPut = objectStore.put(payload, key);
-            dbPut.addEventListener("success", (e: any) => {
+            dbPut.addEventListener("success", (e: Event) => {
                 const event = e as IDBRequestEvent;
                 resolve(event.target.result);
             });
