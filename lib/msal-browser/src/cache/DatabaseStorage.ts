@@ -120,7 +120,7 @@ export class DatabaseStorage<T>{
             await this.open();
         }
 
-        return new Promise<boolean>((resolve, reject) => {
+        return new Promise<boolean>((resolve: Function, reject: Function) => {
             if (!this.db) {
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
             }
@@ -131,7 +131,7 @@ export class DatabaseStorage<T>{
 
             const dbDelete = objectStore.delete(key);
 
-            dbDelete.addEventListener("success", (e: any) => {
+            dbDelete.addEventListener("success", (e: Event) => {
                 const event = e as IDBRequestEvent;
                 resolve(event.target.result === undefined);
             });
