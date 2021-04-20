@@ -149,7 +149,7 @@ describe("CacheStorage.ts Class - Session Storage", function () {
         it("tests setItemCookie works", function () {
             let idTokenNonceString = "idTokenNonce";
             cacheStorage.setItemCookie(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM_GUID`, idTokenNonceString);
-            expect(document.cookie).to.include(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM_GUID`);
+            expect(document.cookie).to.include(encodeURIComponent(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM_GUID`));
             expect(document.cookie).to.include(idTokenNonceString);
             cacheStorage.clearItemCookie(`${TemporaryCacheKeys.NONCE_IDTOKEN}|RANDOM_GUID`);
         });

@@ -1,0 +1,43 @@
+#!/bin/bash
+
+LIB_DIR="lib"
+COVER_DIR=$LIB_DIR"-cov"
+
+if [ -z $ADAL_COV_INTERACTIVE ]; then
+	REPORTER="JSON-cov"
+	COVERAGE_FILENAME="cov.json"
+else
+	REPORTER="HTML-cov"
+	COVERAGE_FILENAME="cov.html"
+fi
+
+if [ -d lib-cov ]; then
+	rm -r $COVER_DIR
+fi
+
+echo "Instrumenting..."
+jscoverage lib lib-cov
+if [ $? -ne 0 ]; then
+	echo "jscoverage failed"
+	exit 1
+fi
+
+echo "Running tests..."
+export ADAL_COV="TRUE"
+mocha -R $REPORTER --ui tdd test > $COVER_DIR/$COVERAGE_FILENAME
+if [ $? -ne 0 ]; then
+	echo "mocha test run failed"
+	exit 1
+fi
+
+unset ADAL_COV
+
+UNAME=`uname`
+if [ "$UNAME" = "Darwin" ]; then
+	IS_MAC="true"
+fi
+
+if [[ $ADAL_COV_INTERACTIVE && $IS_MAC ]]; then
+	echo "Starting safari..."
+	open -a safari.app $COVER_DIR/$COVERAGE_FILENAME
+fi

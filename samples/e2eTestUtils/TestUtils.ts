@@ -1,5 +1,5 @@
-import fs from "fs";
-import puppeteer from "puppeteer";
+import * as fs from "fs";
+import{ Page, HTTPResponse } from "puppeteer";
 import { LabConfig } from "./LabConfig";
 import { LabClient } from "./LabClient";
 
@@ -13,7 +13,7 @@ export class Screenshot {
         createFolder(this.folderName);
     }
 
-    async takeScreenshot(page: puppeteer.Page, screenshotName: string): Promise<void> {
+    async takeScreenshot(page: Page, screenshotName: string): Promise<void> {
         await page.screenshot({ path: `${this.folderName}/${++this.screenshotNum}_${screenshotName}.png` });
     }
 }
@@ -43,4 +43,38 @@ export async function setupCredentials(labConfig: LabConfig, labClient: LabClien
     return [username, accountPwd];
 }
 
+export async function enterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
+    await Promise.all([
+        page.waitForNavigation({ waitUntil: "networkidle0" }),
+        page.waitForSelector("#i0116")
+    ]);
+    await screenshot.takeScreenshot(page, "loginPage");
+    await page.type("#i0116", username);
+    await Promise.all([
+        page.click("#idSIButton9"),
+        page.waitForNavigation({ waitUntil: "networkidle0" })
+    ]);
+    await page.waitForSelector("#idA_PWD_ForgotPassword");
+    await screenshot.takeScreenshot(page, "pwdInputPage");
+    await page.type("#i0118", accountPwd);
+    await Promise.all([
+        page.click("#idSIButton9"),
 
+        // Wait either for another navigation to Keep me signed in page or back to redirectUri
+        Promise.race([
+            page.waitForNavigation({ waitUntil: "networkidle0" }),
+            page.waitForResponse((response: HTTPResponse) => response.url().startsWith("http://localhost"), { timeout: 0 })
+        ])
+    ]);
+
+    if (page.url().startsWith("http://localhost")) {
+        return;
+    }
+
+    await page.waitForSelector('#KmsiCheckboxField', {timeout: 1000});
+    await screenshot.takeScreenshot(page, "kmsiPage");
+    await Promise.all([
+        page.waitForResponse((response: HTTPResponse) => response.url().startsWith("http://localhost")),
+        page.click('#idSIButton9')
+    ]);
+}

@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "details added to load dynamic configurations using APP_INITIALIZER",
+  "packageName": "@azure/msal-angular",
+  "email": "itvinay12@gmail.com",
+  "dependentChangeType": "none"
+}

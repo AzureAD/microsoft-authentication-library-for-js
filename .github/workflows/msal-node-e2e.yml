@@ -13,6 +13,7 @@ on:
       - 'lib/msal-node/**/*' 
       - 'lib/msal-common/**/*'
       - 'samples/msal-node-samples/**/*'
+      - 'samples/e2eTestUtils/**/*'
       - '!**.md'
       - '.github/workflows/msal-node-e2e.yml'
 

@@ -60,6 +60,21 @@ function signOut() {
     myMSALObj.logoutRedirect(logoutRequest);
 }
 
+async function getPopToken() {
+    const currentAcc = myMSALObj.getAccountByUsername(username);
+    if (currentAcc) {
+        return getTokenPopup(popTokenRequest, currentAcc).then(response => {
+            const popToken = response.accessToken;
+            if (popToken) {
+                showPopTokenAcquired();
+                return popToken;
+            }
+        }).catch(error => {
+            console.log(error);
+        });
+    }
+}
+
 async function getTokenPopup(request, account) {
     request.account = account;
     return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {

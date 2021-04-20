@@ -7,6 +7,10 @@ import { CredentialEntity } from "./CredentialEntity";
 import { CredentialType, AuthenticationScheme } from "../../utils/Constants";
 import { TimeUtils } from "../../utils/TimeUtils";
 import { StringUtils } from "../../utils/StringUtils";
+import { ICrypto } from "../../crypto/ICrypto";
+import { TokenClaims } from "../../account/TokenClaims";
+import { AuthToken } from "../../account/AuthToken";
+import { ClientAuthError } from "../../error/ClientAuthError";
 
 /**
  * ACCESS_TOKEN Credential Type
@@ -62,6 +66,8 @@ export class AccessTokenEntity extends CredentialEntity {
         scopes: string,
         expiresOn: number,
         extExpiresOn: number,
+        cryptoUtils: ICrypto,
+        refreshOn?: number,
         tokenType?: string,
         oboAssertion?: string
     ): AccessTokenEntity {
@@ -80,6 +86,9 @@ export class AccessTokenEntity extends CredentialEntity {
          */
         atEntity.expiresOn = expiresOn.toString();
         atEntity.extendedExpiresOn = extExpiresOn.toString();
+        if (refreshOn) {
+            atEntity.refreshOn = refreshOn.toString();
+        }
 
         atEntity.environment = environment;
         atEntity.clientId = clientId;
@@ -88,6 +97,18 @@ export class AccessTokenEntity extends CredentialEntity {
         atEntity.oboAssertion = oboAssertion;
 
         atEntity.tokenType = StringUtils.isEmpty(tokenType) ? AuthenticationScheme.BEARER : tokenType;
+
+        // Create Access Token With AuthScheme instead of regular access token
+        if (atEntity.tokenType === AuthenticationScheme.POP) {
+            atEntity.credentialType = CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME;
+            // Make sure keyId is present and add it to credential
+            const tokenClaims: TokenClaims | null = AuthToken.extractTokenClaims(accessToken, cryptoUtils);
+            if (!tokenClaims?.cnf?.kid) {
+                throw ClientAuthError.createTokenClaimsRequiredError();
+            }
+            atEntity.keyId = tokenClaims.cnf.kid;
+        }
+
         return atEntity;
     }
 
@@ -109,7 +130,7 @@ export class AccessTokenEntity extends CredentialEntity {
             entity.hasOwnProperty("clientId") &&
             entity.hasOwnProperty("secret") &&
             entity.hasOwnProperty("target") &&
-            entity["credentialType"] === CredentialType.ACCESS_TOKEN
+            (entity["credentialType"] === CredentialType.ACCESS_TOKEN || entity["credentialType"] === CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME)
         );
     }
 }
