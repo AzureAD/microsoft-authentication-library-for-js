@@ -12,10 +12,11 @@ import {
     TEST_TOKENS,
     TEST_DATA_CLIENT_INFO,
     ID_TOKEN_CLAIMS,
-    AUTHENTICATION_RESULT_WITH_FOCI
+    AUTHENTICATION_RESULT_WITH_FOCI,
+    CORS_SIMPLE_REQUEST_HEADERS
 } from "../utils/StringConstants";
 import { BaseClient} from "../../src/client/BaseClient";
-import { AADServerParamKeys, GrantType, Constants, CredentialType, AuthenticationScheme } from "../../src/utils/Constants";
+import { AADServerParamKeys, GrantType, Constants, CredentialType, AuthenticationScheme, ThrottlingConstants } from "../../src/utils/Constants";
 import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils";
 import { Authority } from "../../src/authority/Authority";
 import { RefreshTokenClient } from "../../src/client/RefreshTokenClient";
@@ -129,7 +130,6 @@ describe("RefreshTokenClient unit tests", () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon.stub(Authority.prototype, "getPreferredCache").returns("login.windows.net");
             AUTHENTICATION_RESULT.body.client_info = TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-            sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
             sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
             sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
 
@@ -145,7 +145,33 @@ describe("RefreshTokenClient unit tests", () => {
             sinon.restore();
         });
 
+        it("Does not add headers that do not qualify for a simple request", (done) => {
+            // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
+            sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").callsFake((tokenEndpoint: string, queryString: string, headers: Record<string, string>) => {
+                const headerNames = Object.keys(headers);
+                headerNames.forEach((name) => {
+                    expect(CORS_SIMPLE_REQUEST_HEADERS).contains(name.toLowerCase());
+                });
+    
+                done();
+                return AUTHENTICATION_RESULT;
+            });
+
+            const client = new RefreshTokenClient(config);
+            const refreshTokenRequest: RefreshTokenRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
+                claims: TEST_CONFIG.CLAIMS,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+            };
+
+            client.acquireToken(refreshTokenRequest);
+        });
+
         it("acquires a token", async () => {
+            sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = sinon.spy(RefreshTokenClient.prototype, <any>"createTokenRequestBody");
             const client = new RefreshTokenClient(config);
             const refreshTokenRequest: RefreshTokenRequest = {
@@ -176,9 +202,15 @@ describe("RefreshTokenClient unit tests", () => {
             await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`);
             await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`);
             await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`);
+            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`);
+            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`);
+            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`);
+            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`);
+            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`);
         });
 
         it("acquireTokenByRefreshToken refreshes a token", async () => {
+            sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
             const silentFlowRequest: SilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 account: testAccount,
