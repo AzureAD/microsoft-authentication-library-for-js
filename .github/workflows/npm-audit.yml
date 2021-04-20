@@ -36,7 +36,6 @@ jobs:
             - msal-browser
             - msal-node
             - msal-angular
-            - msal-angularjs
             - msal-react
   
     steps:
