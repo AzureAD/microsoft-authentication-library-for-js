@@ -326,7 +326,7 @@ export class AuthCache extends BrowserStorage {// Singleton
      * @param accountId
      * @param state
      */
-    public static generateAcquireTokenAccountKey(accountId: any, state: string): string {
+    public static generateAcquireTokenAccountKey(accountId: string, state: string): string {
         const stateId = RequestUtils.parseLibraryState(state).id;
         return `${TemporaryCacheKeys.ACQUIRE_TOKEN_ACCOUNT}${Constants.resourceDelimiter}${accountId}${Constants.resourceDelimiter}${stateId}`;
     }
