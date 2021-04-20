@@ -7,7 +7,7 @@ adal-node:
 msal-angular:
   - lib/msal-angular/**/*
 angularjs:
-  - lib/msal-angularjs/**/*
+  - maintenance/msal-angularjs/**/*
 msal@1.x:
   - lib/msal-core/**/*
 msal-common:
