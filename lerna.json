@@ -17,7 +17,9 @@
             "msal",
             "@azure/msal-browser",
             "@azure/msal-common",
-            "@azure/msal-node"
+            "@azure/msal-node",
+            "@azure/msal-react",
+            "@azure/msal-angular"
         ],
         "stream": true
     }

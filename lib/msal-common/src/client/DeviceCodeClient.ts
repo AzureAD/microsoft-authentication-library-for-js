@@ -221,6 +221,12 @@ export class DeviceCodeClient extends BaseClient {
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         requestParameters.addCorrelationId(correlationId);
         requestParameters.addClientInfo();
+        requestParameters.addLibraryInfo(this.config.libraryInfo);
+        requestParameters.addThrottling();
+        
+        if (this.serverTelemetryManager) {
+            requestParameters.addServerTelemetry(this.serverTelemetryManager);
+        }
 
         if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             requestParameters.addClaims(request.claims, this.config.authOptions.clientCapabilities);
