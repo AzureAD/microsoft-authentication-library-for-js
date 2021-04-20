@@ -1,6 +1,6 @@
 # Roadmap
 
-The MSAL.js team schedules work on quarterly basis. The roadmap below provides a subset of the team's quarterly commitments for past and upcoming quarters. 
+The MSAL.js team schedules work on a quarterly basis. The roadmap below provides a subset of the team's quarterly commitments for past and upcoming quarters. 
 
 ## Glossary
 
