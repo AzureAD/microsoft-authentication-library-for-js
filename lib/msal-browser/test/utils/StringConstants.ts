@@ -24,6 +24,7 @@ export const TEST_URIS = {
     TEST_AUTH_ENDPT: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
     TEST_END_SESSION_ENDPOINT: "https://login.microsoftonline.com/common/oauth2/v2.0/logout",
     TEST_AUTH_ENDPT_WITH_PARAMS: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?param1=value1&param2=value2",
+    TEST_RESOURCE_ENDPT_WITH_PARAMS: "https://localhost:8081/endpoint?param1=value1&param2=value2",
 };
 
 // Test MSAL config params
@@ -43,6 +44,7 @@ export const TEST_CONFIG = {
     TOKEN_TYPE_BEARER: "Bearer",
     TOKEN_TYPE_POP: "pop",
     DEFAULT_SCOPES: ["openid", "profile"],
+    DEFAULT_GRAPH_SCOPE: ["User.Read"],
     CORRELATION_ID: RANDOM_TEST_GUID,
     SID: "session-id",
     OID: "test-oid",
@@ -201,3 +203,25 @@ export const testNavUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/
 export const testNavUrlNoRequest = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${encodeURIComponent(`${TEST_CONFIG.MSAL_CLIENT_ID}`)}&scope=openid%20profile%20offline_access&redirect_uri=https%3A%2F%2Flocalhost%3A8081%2Findex.html&client-request-id=${encodeURIComponent(`${RANDOM_TEST_GUID}`)}&response_mode=fragment&response_type=code&x-client-SKU=msal.js.browser&x-client-VER=${version}&x-client-OS=&x-client-CPU=&client_info=1&code_challenge=JsjesZmxJwehdhNY9kvyr0QOeSMEvryY_EHZo3BKrqg&code_challenge_method=S256&nonce=${encodeURIComponent(`${RANDOM_TEST_GUID}`)}&state=`;
 
 export const testLogoutUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/logout?post_logout_redirect_uri=${encodeURIComponent(`${TEST_URIS.TEST_REDIR_URI}`)}`;
+
+// Crypto Key Usage sets
+export const KEY_USAGES = {
+    AT_BINDING: {
+        KEYPAIR: ["sign", "verify"],
+        PRIVATE_KEY: ["sign"]
+    },
+    RT_BINDING: {
+        KEYPAIR: ["encrypt", "decrypt"],
+        PRIVATE_KEY: ["decrypt"]
+    }
+};
+
+// Cryptographic Constants
+export const BROWSER_CRYPTO = {
+    PKCS1_V15_KEYGEN_ALG: "RSASSA-PKCS1-v1_5",
+    RSA_OAEP: "RSA-OAEP",
+    AES_GCM: "AES-GCM",
+    DIRECT: "dir",
+    S256_HASH_ALG: "SHA-256",
+    MODULUS_LENGTH: 2048
+};

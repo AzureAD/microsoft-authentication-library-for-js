@@ -63,7 +63,9 @@ export class CryptoOps implements ICrypto {
         this._atBindingKeyOptions = {
             keyGenAlgorithmOptions: {
                 name: BROWSER_CRYPTO.PKCS1_V15_KEYGEN_ALG,
-                hash: BROWSER_CRYPTO.S256_HASH_ALG,
+                hash: {
+                    name: BROWSER_CRYPTO.S256_HASH_ALG
+                },
                 modulusLength: BROWSER_CRYPTO.MODULUS_LENGTH,
                 publicExponent: PUBLIC_EXPONENT
             },
@@ -74,7 +76,9 @@ export class CryptoOps implements ICrypto {
         this._rtBindingKeyOptions = {
             keyGenAlgorithmOptions: {     
                 name: BROWSER_CRYPTO.RSA_OAEP,
-                hash: BROWSER_CRYPTO.S256_HASH_ALG,
+                hash: {
+                    name: BROWSER_CRYPTO.S256_HASH_ALG
+                },
                 modulusLength: BROWSER_CRYPTO.MODULUS_LENGTH,
                 publicExponent: PUBLIC_EXPONENT
             },
@@ -128,7 +132,7 @@ export class CryptoOps implements ICrypto {
             default:
                 keyOptions = this._atBindingKeyOptions;
         }
-
+        
         // Generate Keypair
         const keyPair = await this.browserCrypto.generateKeyPair(keyOptions, CryptoOps.EXTRACTABLE);
 
@@ -149,7 +153,7 @@ export class CryptoOps implements ICrypto {
         // Generate Thumbprint for Private Key
         const privateKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.privateKey);
         // Re-import private key to make it unextractable
-        const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importJwk(privateKeyJwk, false, ["sign"]);
+        const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importJwk(keyOptions, privateKeyJwk, false, keyOptions.privateKeyUsage);
 
         // Store Keypair data in keystore
         this.cache.put(publicJwkHash, {
@@ -193,7 +197,7 @@ export class CryptoOps implements ICrypto {
 
         // Sign token
         const tokenBuffer = BrowserStringUtils.stringToArrayBuffer(tokenString);
-        const signatureBuffer = await this.browserCrypto.sign(cachedKeyPair.privateKey, tokenBuffer);
+        const signatureBuffer = await this.browserCrypto.sign(this._atBindingKeyOptions, cachedKeyPair.privateKey, tokenBuffer);
         const encodedSignature = this.b64Encode.urlEncodeArr(new Uint8Array(signatureBuffer));
 
         return `${tokenString}.${encodedSignature}`;

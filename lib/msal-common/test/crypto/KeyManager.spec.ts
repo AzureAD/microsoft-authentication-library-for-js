@@ -4,7 +4,7 @@ import sinon from "sinon";
 import chaiAsPromised from "chai-as-promised";
 const expect = chai.expect;
 chai.use(chaiAsPromised);
-import { ICrypto, PkceCodes, Logger } from "../../src";
+import { ICrypto, PkceCodes, Logger, AuthenticationScheme } from "../../src";
 import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
 import { KeyManager } from "../../src/crypto/KeyManager";
 
@@ -66,9 +66,11 @@ describe("KeyManager Unit Tests", () => {
             authority: TEST_CONFIG.validAuthority,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             correlationId: TEST_CONFIG.CORRELATION_ID,
+            authenticationScheme: AuthenticationScheme.POP,
             resourceRequestMethod:"POST",
             resourceRequestUrl: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS
         };
+
         it("Generates the req_cnf correctly", async () => {
             const keyManager = new KeyManager(cryptoInterface);
             const req_cnf = await keyManager.generateCnf(testRequest);
