@@ -344,7 +344,7 @@ export class RequestParameterBuilder {
      * add server telemetry fields
      * @param serverTelemetryManager 
      */
-    addServerTelemetry(serverTelemetryManager: ServerTelemetryManager) {
+    addServerTelemetry(serverTelemetryManager: ServerTelemetryManager): void {
         this.parameters.set(AADServerParamKeys.X_CLIENT_CURR_TELEM, serverTelemetryManager.generateCurrentRequestHeaderValue());
         this.parameters.set(AADServerParamKeys.X_CLIENT_LAST_TELEM, serverTelemetryManager.generateLastRequestHeaderValue());
     }
@@ -352,7 +352,7 @@ export class RequestParameterBuilder {
     /**
      * Adds parameter that indicates to the server that throttling is supported
      */
-    addThrottling() {
+    addThrottling(): void {
         this.parameters.set(AADServerParamKeys.X_MS_LIB_CAPABILITY, ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE);
     }
 
