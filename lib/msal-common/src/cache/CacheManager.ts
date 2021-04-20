@@ -22,7 +22,6 @@ import { ThrottlingEntity } from "./entities/ThrottlingEntity";
 import { AuthToken } from "../account/AuthToken";
 import { ICrypto } from "../crypto/ICrypto";
 import { AuthorityMetadataEntity } from "./entities/AuthorityMetadataEntity";
-import { TokenClaims } from "../account/TokenClaims";
 import { Logger } from "../logger/Logger";
 
 /**
@@ -561,8 +560,8 @@ export abstract class CacheManager implements ICacheManager {
 
         // Remove Token Binding Key from key store for Auth Scheme Credentials
         if (credential.credentialType.toLowerCase() === CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase()) {
-            const tokenClaims: TokenClaims | null = AuthToken.extractTokenClaims(credential.secret, this.cryptoImpl);
-            const kid = tokenClaims?.cnf?.kid;
+            const accessTokenWithAuthSchemeEntity = credential as AccessTokenEntity;
+            const kid = accessTokenWithAuthSchemeEntity.keyId;
 
             if (kid) {
                 this.cryptoImpl.removeTokenBindingKey(kid).catch((error) => {
