@@ -110,4 +110,32 @@ export class DatabaseStorage<T>{
             dbPut.addEventListener("error", e => reject(e));
         });
     }
+
+    /**
+     * Removes item from IndexedDB under given key
+     * @param key
+     */
+    async delete(key: string): Promise<boolean> {
+        if (!this.dbOpen) {
+            await this.open();
+        }
+
+        return new Promise<boolean>((resolve, reject) => {
+            if (!this.db) {
+                return reject(BrowserAuthError.createDatabaseNotOpenError());
+            }
+
+            const transaction = this.db.transaction([this.tableName], "readwrite");
+
+            const objectStore = transaction.objectStore(this.tableName);
+
+            const dbDelete = objectStore.delete(key);
+
+            dbDelete.addEventListener("success", (e: any) => {
+                const event = e as IDBRequestEvent;
+                resolve(event.target.result === undefined);
+            });
+            dbDelete.addEventListener("error", e => reject(e));
+        });
+    }
 }
