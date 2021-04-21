@@ -17,7 +17,7 @@ export class TrustedAuthority {
      * @param validateAuthority 
      * @param knownAuthorities 
      */
-    public static setTrustedAuthoritiesFromConfig(validateAuthority: boolean, knownAuthorities: Array<string>){
+    public static setTrustedAuthoritiesFromConfig(validateAuthority: boolean, knownAuthorities: Array<string>): void{
         if (validateAuthority && !this.getTrustedHostList().length){
             knownAuthorities.forEach(function(authority) {
                 TrustedAuthority.TrustedHostList.push(authority.toLowerCase());
@@ -30,7 +30,7 @@ export class TrustedAuthority {
      * @param telemetryManager 
      * @param correlationId 
      */
-    private static async getAliases(authorityToVerify: string, telemetryManager: TelemetryManager, correlationId?: string): Promise<Array<any>> {
+    private static async getAliases(authorityToVerify: string, telemetryManager: TelemetryManager, correlationId?: string): Promise<Array<object>> {
         const client: XhrClient = new XhrClient();
 
         const httpMethod = NetworkRequestType.GET;
@@ -40,7 +40,7 @@ export class TrustedAuthority {
             .then((response: XhrResponse) => {
                 httpEvent.httpResponseStatus = response.statusCode;
                 telemetryManager.stopEvent(httpEvent);
-                return response.body.metadata;
+                return response.body["metadata"];
             })
             .catch(err => {
                 httpEvent.serverErrorCode = err;
@@ -56,8 +56,8 @@ export class TrustedAuthority {
      */
     public static async setTrustedAuthoritiesFromNetwork(authorityToVerify: string, telemetryManager: TelemetryManager, correlationId?: string): Promise<void> {
         const metadata = await this.getAliases(authorityToVerify, telemetryManager, correlationId);
-        metadata.forEach(function(entry: any){
-            const authorities: Array<string> = entry.aliases;
+        metadata.forEach(function(entry: object){
+            const authorities: Array<string> = entry["aliases"];
             authorities.forEach(function(authority: string) {
                 TrustedAuthority.TrustedHostList.push(authority.toLowerCase());
             });

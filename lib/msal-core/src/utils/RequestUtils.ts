@@ -81,7 +81,7 @@ export class RequestUtils {
      * Utility to test if valid prompt value is passed in the request
      * @param request
      */
-    static validatePromptParameter (prompt: string) {
+    static validatePromptParameter (prompt: string): void {
         if(prompt) {
             if ([PromptState.LOGIN, PromptState.SELECT_ACCOUNT, PromptState.CONSENT, PromptState.NONE].indexOf(prompt) < 0) {
                 throw ClientConfigurationError.createInvalidPromptError(prompt);
@@ -121,7 +121,7 @@ export class RequestUtils {
      * TODO: More validation will be added when the server team tells us how they have actually implemented claims
      * @param claimsRequest
      */
-    static validateClaimsRequest(claimsRequest: string) {
+    static validateClaimsRequest(claimsRequest: string): void {
         if (!claimsRequest) {
             return;
         }
