@@ -29,7 +29,7 @@ export type AuthenticationParameters = {
     onRedirectNavigate?: ((url: string) => void | boolean)
 };
 
-export function validateClaimsRequest(request: AuthenticationParameters) {
+export function validateClaimsRequest(request: AuthenticationParameters): void {
     if (!request.claimsRequest) {
         return;
     }

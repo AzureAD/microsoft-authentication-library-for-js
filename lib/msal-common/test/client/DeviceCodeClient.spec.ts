@@ -17,10 +17,11 @@ import {
     TEST_CONFIG,
     TEST_DATA_CLIENT_INFO,
     TEST_URIS,
-    TEST_POP_VALUES
+    TEST_POP_VALUES,
+    CORS_SIMPLE_REQUEST_HEADERS
 } from "../utils/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
-import { AADServerParamKeys, GrantType } from "../../src/utils/Constants";
+import { AADServerParamKeys, GrantType, ThrottlingConstants } from "../../src/utils/Constants";
 import { ClientTestUtils } from "./ClientTestUtils";
 
 describe("DeviceCodeClient unit tests", async () => {
@@ -94,6 +95,28 @@ describe("DeviceCodeClient unit tests", async () => {
     });
 
     describe("Acquire a token", async () => {
+        it("Does not add headers that do not qualify for a simple request", (done) => {
+            // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
+            sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
+            sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint").callsFake((tokenEndpoint: string, queryString: string, headers: Record<string, string>) => {
+                const headerNames = Object.keys(headers);
+                headerNames.forEach((name) => {
+                    expect(CORS_SIMPLE_REQUEST_HEADERS).contains(name.toLowerCase());
+                });
+    
+                done();
+                return AUTHENTICATION_RESULT;
+            });
+
+            let deviceCodeResponse = null;
+            const request: DeviceCodeRequest = {
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                deviceCodeCallback: (response) => deviceCodeResponse = response
+            };
+
+            const client = new DeviceCodeClient(config);
+            client.acquireToken(request);
+        }).timeout(6000);
 
         it("Acquires a token successfully", async () => {
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
@@ -123,6 +146,11 @@ describe("DeviceCodeClient unit tests", async () => {
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID));
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(encodeURIComponent(GrantType.DEVICE_CODE_GRANT));
             expect(createTokenRequestBodySpy.returnValues[0]).to.contain(DEVICE_CODE_RESPONSE.deviceCode);
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`);
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`);
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`);
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`);
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`);
 
         }).timeout(6000);
 

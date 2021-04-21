@@ -457,3 +457,12 @@ export const CACHE_MOCKS = {
         username: "mocked_username"
     },
 };
+
+export const CORS_SIMPLE_REQUEST_HEADERS = [
+    "connection", 
+    "user-agent", 
+    "accept", 
+    "accept-language", 
+    "content-language", 
+    "content-type"
+]

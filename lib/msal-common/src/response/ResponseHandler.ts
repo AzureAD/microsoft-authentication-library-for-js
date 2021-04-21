@@ -96,7 +96,7 @@ export class ResponseHandler {
             }
 
             const errString = `${serverResponse.error_codes} - [${serverResponse.timestamp}]: ${serverResponse.error_description} - Correlation ID: ${serverResponse.correlation_id} - Trace ID: ${serverResponse.trace_id}`;
-            throw new ServerError(serverResponse.error, errString);
+            throw new ServerError(serverResponse.error, errString, serverResponse.suberror);
         }
     }
 
