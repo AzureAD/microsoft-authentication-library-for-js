@@ -40,7 +40,7 @@ export class TrustedAuthority {
             .then((response: XhrResponse) => {
                 httpEvent.httpResponseStatus = response.statusCode;
                 telemetryManager.stopEvent(httpEvent);
-                return response.body.metadata;
+                return response.body["metadata"];
             })
             .catch(err => {
                 httpEvent.serverErrorCode = err;
