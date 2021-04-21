@@ -23,7 +23,11 @@ app.use(express.urlencoded({ extended: false }));
 
 app.use(express.static(path.join(__dirname, './public')));
 
-app.use(session({ secret: 'your-secret', resave: false, saveUninitialized: false }));
+/**
+ * Using express-session middleware. Be sure to familiarize yourself with available options
+ * and set the desired options. Visit: https://www.npmjs.com/package/express-session
+ */
+app.use(session({ secret: 'ENTER_YOUR_SECRET_HERE', resave: false, saveUninitialized: false }));
 
 app.use(router);
 

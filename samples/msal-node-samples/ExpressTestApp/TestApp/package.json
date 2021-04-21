@@ -1,13 +1,14 @@
 {
-  "name": "msal-node-tutorial-call-graph",
+  "name": "express-test-app",
   "version": "1.0.0",
   "description": "A Node.js & Express web app calling Microsoft Graph API using MSAL Node",
+  "private": true,
   "main": "app.js",
   "scripts": {
     "start": "node App/app.js",
     "dev": "nodemon App/app.js"
   },
-  "author": "derisen",
+  "author": "",
   "license": "MIT",
   "dependencies": {
     "axios": "^0.21.0",

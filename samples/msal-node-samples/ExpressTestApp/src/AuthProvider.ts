@@ -7,10 +7,10 @@ import {
     InteractionRequiredAuthError
 } from '@azure/msal-common';
 
-import { 
-    ConfidentialClientApplication, 
-    Configuration, 
-    AccountInfo, 
+import {
+    ConfidentialClientApplication,
+    Configuration,
+    AccountInfo,
     ICachePlugin,
     CryptoProvider,
 } from '@azure/msal-node';
@@ -18,15 +18,13 @@ import {
 import { ConfigurationUtils } from './ConfigurationUtils';
 import { TokenValidator } from './TokenValidator';
 
-import { 
+import {
     AppSettings,
-    Resource, 
-    State,
+    Resource,
 } from './Types';
 
 import {
     ErrorMessages,
-    ErrorCodes
 } from './Errors';
 
 import * as constants from './Constants';
@@ -54,7 +52,7 @@ export class AuthProvider {
     cryptoProvider: CryptoProvider;
     tokenValidator: TokenValidator;
     msalClient: ConfidentialClientApplication;
-    
+
     /**
      * @param {JSON} appSettings 
      * @param {Object} cache: cachePlugin
@@ -62,10 +60,9 @@ export class AuthProvider {
     constructor(appSettings: AppSettings, cache: ICachePlugin = null) {
         ConfigurationUtils.validateAppSettings(appSettings);
 
-        this.cryptoProvider =  new CryptoProvider();
+        this.cryptoProvider = new CryptoProvider();
 
         this.appSettings = appSettings;
-        
         this.msalConfig = ConfigurationUtils.getMsalConfiguration(appSettings, cache);
         this.tokenValidator = new TokenValidator(this.appSettings, this.msalConfig);
         this.msalClient = new ConfidentialClientApplication(this.msalConfig);
@@ -78,13 +75,13 @@ export class AuthProvider {
      * @param {Object} req: express request object
      * @param {Object} res: express response object
      */
-    signIn = async(req, res): Promise<any> => {
+    signIn = async (req, res): Promise<any> => {
 
         /** 
          * Request Configuration
          * We manipulate these three request objects below 
          * to acquire a token with the appropriate claims
-         */        
+         */
 
         if (!req.session['authCodeRequest']) {
             req.session.authCodeRequest = {
@@ -110,52 +107,24 @@ export class AuthProvider {
         // random GUID for csrf check 
         req.session.nonce = this.cryptoProvider.createNewGuid();
 
-        // state in context
-        const state = Object.keys(req.session.authCodeRequest.state).length !== 0 ? 
-            JSON.parse(this.cryptoProvider.base64Decode(req.session.authCodeRequest.state)) as State: null;
-            this.cryptoProvider.base64Decode
-
-        /**
-         * We check here what this sign-in is for. In B2C scenarios, a sign-in 
-         * can be for initiating the password reset user-flow. 
-         */
-        if (state && state.stage === constants.AppStages.RESET_PASSWORD) {
-            const state = this.cryptoProvider.base64Encode(
-                JSON.stringify({
-                    stage: constants.AppStages.RESET_PASSWORD,
-                    path: req.route.path,
-                    nonce: req.session.nonce
-                }));
-    
-            // if coming for password reset, set the authority to resetPassword
-            this.getAuthCode(
-                this.appSettings.policies.resetPassword.authority, 
-                Object.values(constants.OIDCScopes), 
-                state, 
-                this.appSettings.settings.redirectUri,
-                req,
-                res
-                );
-
-        } else {
-            // sign-in as usual
-            const state = this.cryptoProvider.base64Encode(
+        // sign-in as usual
+        const state = this.cryptoProvider.base64Encode(
                 JSON.stringify({
                     stage: constants.AppStages.SIGN_IN,
                     path: req.route.path,
                     nonce: req.session.nonce
-                }));
-
-            // get url to sign user in (and consent to scopes needed for application)
-            this.getAuthCode(
-                this.msalConfig.auth.authority, 
-                Object.values(constants.OIDCScopes), 
-                state, 
-                this.appSettings.settings.redirectUri,
-                req, 
-                res
+                })
             );
-        }
+
+        // get url to sign user in (and consent to scopes needed for application)
+        this.getAuthCode(
+            this.msalConfig.auth.authority,
+            Object.values(constants.OIDCScopes),
+            state,
+            this.appSettings.settings.redirectUri,
+            req,
+            res
+        );
     };
 
     /**
@@ -164,7 +133,7 @@ export class AuthProvider {
      * @param {Object} res: express response object
      * @param {Function} next: express next 
      */
-    signOut = async(req, res): Promise<any> => {
+    signOut = async (req, res): Promise<any> => {
 
         /**
          * Construct a logout URI and redirect the user to end the 
@@ -175,26 +144,25 @@ export class AuthProvider {
         const logoutURI = `${this.msalConfig.auth.authority}/oauth2/v2.0/logout?post_logout_redirect_uri=${this.appSettings.settings.postLogoutRedirectUri}`;
 
         req.session.isAuthenticated = false;
-        
+
         req.session.destroy(() => {
             res.redirect(logoutURI);
         });
     }
-    
+
     /**
      * Middleware that handles redirect depending on request state
-     * There are basically 3 stages: sign-in, acquire token
-     * and password reset user-flows for B2C scenarios
+     * There are basically 2 stages: sign-in and acquire token
      * @param {Object} req: express request object
      * @param {Object} res: express response object
      */
-    handleRedirect = async(req, res): Promise<any> => {
+    handleRedirect = async (req, res): Promise<any> => {
 
         const state = JSON.parse(this.cryptoProvider.base64Decode(req.query.state));
 
         // check if nonce matches
         if (state.nonce === req.session.nonce) {
-            
+
             switch (state.stage) {
 
                 case constants.AppStages.SIGN_IN: {
@@ -211,7 +179,7 @@ export class AuthProvider {
                         console.log("\nResponse: \n:", tokenResponse);
 
                         if (this.tokenValidator.validateIdToken(tokenResponse.idTokenClaims)) {
-                                    
+
                             req.session.homeAccountId = tokenResponse.account.homeAccountId;
 
                             // assign session variables
@@ -225,32 +193,6 @@ export class AuthProvider {
                         }
                     } catch (error) {
                         console.log(error);
-
-                        if (req.query.error) {
-
-                            /**
-                             * When the user selects "forgot my password" on the sign-in page, B2C service will throw an error.
-                             * We are to catch this error and redirect the user to login again with the resetPassword authority.
-                             * For more information, visit: https://docs.microsoft.com/azure/active-directory-b2c/user-flow-overview#linking-user-flows
-                             */
-                            if (JSON.stringify(req.query.error_description).includes(ErrorCodes[90118])) {
-
-                                req.session.nonce = this.cryptoProvider.createNewGuid();
-
-                                const newState = this.cryptoProvider.base64Encode(
-                                    JSON.stringify({
-                                        stage: constants.AppStages.RESET_PASSWORD,
-                                        path: req.route.path,
-                                        nonce: req.session.nonce
-                                    }));
-
-                                req.session.authCodeRequest.state = newState;
-                                req.session.authCodeRequest.authority = this.appSettings.policies.resetPassword.authority;
-
-                                // redirect to sign in page again with resetPassword authority
-                                return res.redirect(state.path);
-                            } 
-                        }
                         res.status(500).send(error);
                     }
                     break;
@@ -259,7 +201,7 @@ export class AuthProvider {
                 case constants.AppStages.ACQUIRE_TOKEN: {
                     // get the name of the resource associated with scope
                     const resourceName = this.getResourceName(state.path);
-                    
+
                     const tokenRequest = {
                         code: req.query.code,
                         scopes: this.appSettings.resources[resourceName].scopes, // scopes for resourceName
@@ -280,22 +222,6 @@ export class AuthProvider {
                     break;
                 }
 
-                case constants.AppStages.RESET_PASSWORD: {
-                    // once the password is reset, redirect the user to login again with the new password
-                    req.session.nonce = this.cryptoProvider.createNewGuid();
-                    
-                    const newState = this.cryptoProvider.base64Encode(
-                        JSON.stringify({
-                            stage: constants.AppStages.SIGN_IN,
-                            path: req.route.path,
-                            nonce: req.session.nonce
-                        }));
-
-                    req.session.authCodeRequest.state = newState;
-
-                    res.redirect(state.path);
-                    break;
-                }
                 default:
                     res.status(500).send(ErrorMessages.CANNOT_DETERMINE_APP_STAGE);
                     break;
@@ -312,14 +238,14 @@ export class AuthProvider {
      * @param {Object} res: express response object
      * @param {Function} next: express next 
      */
-    getToken = async(req, res, next): Promise<any> => {
+    getToken = async (req, res, next): Promise<any> => {
 
         // get scopes for token request
         const scopes = (<Resource>Object.values(this.appSettings.resources)
             .find((resource: Resource) => resource.callingPageRoute === req.route.path)).scopes;
 
         const resourceName = this.getResourceName(req.route.path);
-        
+
         if (!req.session[resourceName]) {
             req.session[resourceName] = {
                 accessToken: null,
@@ -333,7 +259,7 @@ export class AuthProvider {
 
             try {
                 account = await this.msalClient.getTokenCache().getAccountByHomeId(req.session.homeAccountId);
-                            
+
                 if (!account) {
                     throw new Error(ErrorMessages.INTERACTION_REQUIRED);
                 }
@@ -358,32 +284,33 @@ export class AuthProvider {
                 console.log(ErrorMessages.TOKEN_NOT_FOUND);
                 throw new InteractionRequiredAuthError(ErrorMessages.INTERACTION_REQUIRED);
             }
-            
+
             req.session[resourceName].accessToken = tokenResponse.accessToken;
             return next();
 
         } catch (error) {
             // in case there are no cached tokens, initiate an interactive call
             if (error instanceof InteractionRequiredAuthError) {
-                
+
                 const state = this.cryptoProvider.base64Encode(
-                JSON.stringify({
-                    stage: constants.AppStages.ACQUIRE_TOKEN,
-                    path: req.route.path,
-                    nonce: req.session.nonce
-                }));
+                    JSON.stringify({
+                        stage: constants.AppStages.ACQUIRE_TOKEN,
+                        path: req.route.path,
+                        nonce: req.session.nonce
+                    })
+                );
 
                 // initiate the first leg of auth code grant to get token
                 this.getAuthCode(
-                    this.msalConfig.auth.authority, 
-                    scopes, 
-                    state, 
+                    this.msalConfig.auth.authority,
+                    scopes,
+                    state,
                     this.appSettings.settings.redirectUri,
-                    req, 
+                    req,
                     res
-                    );
+                );
             }
-        }  
+        }
     }
 
     // ============== GUARD ===============
@@ -394,7 +321,7 @@ export class AuthProvider {
      * @param {Object} res: express response object
      * @param {Function} next: express next 
      */
-    isAuthenticated = (req, res, next): Promise<any> => {  
+    isAuthenticated = (req, res, next): Promise<any> => {
         if (req.session) {
             if (!req.session.isAuthenticated) {
                 return res.status(401).send(ErrorMessages.NOT_PERMITTED);
@@ -402,7 +329,7 @@ export class AuthProvider {
             next();
         } else {
             return res.status(401).send(ErrorMessages.NOT_PERMITTED);
-        }   
+        }
     }
 
     /**
@@ -412,14 +339,14 @@ export class AuthProvider {
      * @param {Object} res: express response object
      * @param {Function} next: express next 
      */
-    isAuthorized = async(req, res, next): Promise<any> => {
+    isAuthorized = async (req, res, next): Promise<any> => {
 
         const accessToken = req.headers.authorization.split(' ')[1];
 
         if (req.headers.authorization) {
             if (!(await this.tokenValidator.validateAccessToken(accessToken, req.route.path))) {
                 return res.status(401).send(ErrorMessages.NOT_PERMITTED);
-            } 
+            }
 
             next();
         } else {
@@ -438,8 +365,8 @@ export class AuthProvider {
      * @param {Object} req: express request object
      * @param {Object} res: express response object
      */
-    private getAuthCode = async(authority: string, scopes: string[], state: string, redirect: string, req, res): Promise<any> => {
-        
+    private getAuthCode = async (authority: string, scopes: string[], state: string, redirect: string, req, res): Promise<any> => {
+
         // prepare the request
         req.session.authCodeRequest.authority = authority;
         req.session.authCodeRequest.scopes = scopes;
@@ -452,7 +379,7 @@ export class AuthProvider {
         try {
             const response = await this.msalClient.getAuthCodeUrl(req.session.authCodeRequest);
             return res.redirect(response);
-        } catch(error) {
+        } catch (error) {
             console.log(JSON.stringify(error));
             return res.status(500).send(error);
         }

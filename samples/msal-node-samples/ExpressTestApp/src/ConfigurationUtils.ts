@@ -23,24 +23,24 @@ export class ConfigurationUtils {
      */
     static validateAppSettings = (config: AppSettings) => {
 
-        if (!config.credentials.clientId) {
-            throw new Error("error: no clientId provided");
+        if (!config.credentials.clientId || config.credentials.clientId === "Enter_the_Application_Id_Here") {
+            throw new Error("No clientId provided!");
         }
 
-        if (!config.credentials.tenantId) {
-            throw new Error("error: no tenantId provided"); 
+        if (!config.credentials.tenantId || config.credentials.tenantId === "Enter_the_Tenant_Info_Here") {
+            throw new Error("No tenantId provided!"); 
         }
 
-        if (!config.credentials.clientSecret) {
-            throw new Error("error: no clientSecret provided"); 
+        if (!config.credentials.clientSecret || config.credentials.clientSecret === "Enter_the_Client_Secret_Here") {
+            throw new Error("No clientSecret provided!"); 
         }
 
         if (!config.settings.homePageRoute) {
-            throw new Error("error: no homePageRoute provided"); 
+            throw new Error("No homePageRoute provided!"); 
         }
 
         if (!config.settings.postLogoutRedirectUri) {
-            throw new Error("error: no postLogoutRedirectUri provided"); 
+            throw new Error("No postLogoutRedirectUri provided!"); 
         }
     };
 

@@ -6,7 +6,14 @@ The wrapper handles authentication with both **Azure AD** and **Azure AD B2C**. 
 
 ## Usage
 
-Initialize the wrapper by providing a settings file in JSON (see: [appSettings.json](./TestApp/appSettings.json)). The file looks like the following:
+Start by building the wrapper:
+
+```console
+    cd ExpressTestApp
+    npm run build
+```
+
+Then, initialize the wrapper by providing a settings file in JSON (see: [appSettings.json](./TestApp/appSettings.json)). The file looks like the following:
 
 ```JSON
 {
@@ -23,14 +30,14 @@ Initialize the wrapper by providing a settings file in JSON (see: [appSettings.j
 }
 ```
 
-Add the API endpoints you would like to call under **resources**:
+Add the web API endpoints you would like to call under **resources**:
 
 ```JSON
 {
     // ...
     "resources": {
         "graphAPI": {
-            "callingPageRoute": "/resource1",
+            "callingPageRoute": "/profile",
             "endpoint": "https://graph.microsoft.com/v1.0/me",
             "scopes": ["user.read"]
         },
@@ -46,9 +53,6 @@ If you are authenticating with **Azure AD B2C**, user-flows and/or policies shou
     "policies": {
         "signUpSignIn": {
             "authority": "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_susi"
-        },
-        "resetPassword": {
-            "authority": "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_reset"
         },
         "authorityDomain": "fabrikamb2c.b2clogin.com"  
     }
