@@ -14,7 +14,7 @@ import { ICrypto } from "./ICrypto";
  *      - sw: software storage
  *      - uhw: hardware storage
  */
- type ReqCnf = {
+type ReqCnf = {
     kid: string;
     xms_ksl: KeyLocation;
 };
