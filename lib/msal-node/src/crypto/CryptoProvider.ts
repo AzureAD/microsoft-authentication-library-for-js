@@ -65,4 +65,13 @@ export class CryptoProvider implements ICrypto {
     signJwt(): Promise<string> {
         throw new Error("Method not implemented.");
     }
+
+    /**
+     * Returns the public key from an asymmetric key pair stored in IndexedDB based on the
+     * public key thumbprint parameter
+     * @param keyThumbprint
+     */
+    getAsymmetricPublicKey(): Promise<string> {
+        throw new Error("Method not implemented.");
+    }
 }
