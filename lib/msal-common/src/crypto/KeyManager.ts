@@ -14,9 +14,13 @@ import { ICrypto } from "./ICrypto";
  *      - sw: software storage
  *      - uhw: hardware storage
  */
-type ReqCnf = {
+export type ReqCnf = {
     kid: string;
     xms_ksl: KeyLocation;
+};
+
+export type StkJwkThumbprint = {
+    kid: string;
 };
 
 enum KeyLocation {
