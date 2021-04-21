@@ -30,7 +30,7 @@ export class AuthorityMetadataEntity {
      * @param metadata 
      * @param fromNetwork 
      */
-    updateCloudDiscoveryMetadata(metadata: CloudDiscoveryMetadata, fromNetwork: boolean) {
+    updateCloudDiscoveryMetadata(metadata: CloudDiscoveryMetadata, fromNetwork: boolean): void {
         this.aliases = metadata.aliases;
         this.preferred_cache = metadata.preferred_cache;
         this.preferred_network = metadata.preferred_network;
@@ -42,7 +42,7 @@ export class AuthorityMetadataEntity {
      * @param metadata 
      * @param fromNetwork 
      */
-    updateEndpointMetadata(metadata: OpenIdConfigResponse, fromNetwork: boolean) {
+    updateEndpointMetadata(metadata: OpenIdConfigResponse, fromNetwork: boolean): void {
         this.authorization_endpoint = metadata.authorization_endpoint;
         this.token_endpoint = metadata.token_endpoint;
         this.end_session_endpoint = metadata.end_session_endpoint;
@@ -54,14 +54,14 @@ export class AuthorityMetadataEntity {
      * Save the authority that was used to create this cache entry
      * @param authority 
      */
-    updateCanonicalAuthority(authority: string) {
+    updateCanonicalAuthority(authority: string): void {
         this.canonical_authority = authority;
     }
 
     /**
      * Reset the exiresAt value
      */
-    resetExpiresAt() {
+    resetExpiresAt(): void {
         this.expiresAt = TimeUtils.nowSeconds() + AUTHORITY_METADATA_CONSTANTS.REFRESH_TIME_SECONDS;
     }
 
