@@ -40,7 +40,6 @@ import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { BaseClient } from "../../src/client/BaseClient";
 import { AADServerParamKeys, PromptValue, ResponseMode, SSOTypes, AuthenticationScheme, ThrottlingConstants } from "../../src/utils/Constants";
 import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils";
-import { version } from "../../src/packageMetadata";
 
 describe("AuthorizationCodeClient unit tests", () => {
     afterEach(() => {
@@ -74,7 +73,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
                 codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER
+                authenticationScheme: AuthenticationScheme.BEARER,
+                stkJwk: TEST_POP_VALUES.KID
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl).to.contain(Constants.DEFAULT_AUTHORITY);
@@ -86,6 +86,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(ResponseMode.QUERY)}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(TEST_CONFIG.TEST_CHALLENGE)}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE_METHOD}=${encodeURIComponent(Constants.S256_CODE_CHALLENGE_METHOD)}`);
+            expect(loginUrl).to.contain(`${AADServerParamKeys.STK_JWK}=${encodeURIComponent(TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT)}`);
         });
 
         it("Creates an authorization url passing in optional parameters", async () => {
@@ -109,7 +110,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 claims: TEST_CONFIG.CLAIMS,
                 nonce: TEST_CONFIG.NONCE,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER
+                authenticationScheme: AuthenticationScheme.BEARER,
+                stkJwk: TEST_POP_VALUES.KID
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl).to.contain(TEST_CONFIG.validAuthority);
@@ -127,6 +129,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(loginUrl).to.contain(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_CONFIG.LOGIN_HINT)}`);
             expect(loginUrl).to.contain(`${SSOTypes.DOMAIN_HINT}=${encodeURIComponent(TEST_CONFIG.DOMAIN_HINT)}`);
             expect(loginUrl).to.contain(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`);
+            expect(loginUrl).to.contain(`${AADServerParamKeys.STK_JWK}=${encodeURIComponent(TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT)}`);
         });
 
         it("Prefers sid over loginHint if both provided and prompt=None", async () => {
@@ -145,7 +148,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT
+                responseMode: ResponseMode.FRAGMENT,
+                stkJwk: TEST_POP_VALUES.KID
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl).to.not.contain(`${SSOTypes.LOGIN_HINT}=`);
@@ -168,7 +172,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT
+                responseMode: ResponseMode.FRAGMENT,
+                stkJwk: TEST_POP_VALUES.KID
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl).to.contain(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_CONFIG.LOGIN_HINT)}`);
@@ -182,7 +187,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
-            const authCodeUrlRequest: AuthorizationUrlRequest = {
+            const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 prompt: PromptValue.LOGIN,
@@ -190,7 +195,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT
+                responseMode: ResponseMode.FRAGMENT,
+                stkJwk: TEST_POP_VALUES.KID
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl).to.not.contain(`${SSOTypes.LOGIN_HINT}=`);
@@ -212,7 +218,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT
+                responseMode: ResponseMode.FRAGMENT,
+                stkJwk: TEST_POP_VALUES.KID
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl).to.contain(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_CONFIG.LOGIN_HINT)}`);
@@ -250,7 +257,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT
+                responseMode: ResponseMode.FRAGMENT,
+                stkJwk: TEST_POP_VALUES.KID
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl).to.contain(`${SSOTypes.SID}=${encodeURIComponent(testTokenClaims.sid)}`);
@@ -287,7 +295,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT
+                responseMode: ResponseMode.FRAGMENT,
+                stkJwk: TEST_POP_VALUES.KID
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl).to.not.contain(`${SSOTypes.SID}=`);
@@ -322,7 +331,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT
+                responseMode: ResponseMode.FRAGMENT,
+                stkJwk: TEST_POP_VALUES.KID
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl).to.contain(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_CONFIG.LOGIN_HINT)}`);
@@ -343,7 +353,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT
+                responseMode: ResponseMode.FRAGMENT,
+                stkJwk: TEST_POP_VALUES.KID
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl).to.contain(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_ACCOUNT_INFO.username)}`);
@@ -357,7 +368,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
-            const authCodeUrlRequest: AuthorizationUrlRequest = {
+            const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 account: TEST_ACCOUNT_INFO,
@@ -365,7 +376,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT
+                responseMode: ResponseMode.FRAGMENT,
+                stkJwk: TEST_POP_VALUES.KID
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl).to.not.contain(`${SSOTypes.LOGIN_HINT}=`);
@@ -379,7 +391,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
-            const authCodeUrlRequest: AuthorizationUrlRequest = {
+            const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 loginHint: "testaccount@microsoft.com",
@@ -387,7 +399,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT
+                responseMode: ResponseMode.FRAGMENT,
+                stkJwk: TEST_POP_VALUES.KID
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl).to.not.contain(`${SSOTypes.LOGIN_HINT}=`);
@@ -401,7 +414,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
-            const authCodeUrlRequest: AuthorizationUrlRequest = {
+            const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 sid: "testsid",
@@ -409,7 +422,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT
+                responseMode: ResponseMode.FRAGMENT,
+                stkJwk: TEST_POP_VALUES.KID
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
             expect(loginUrl).to.not.contain(`${SSOTypes.LOGIN_HINT}=`);
@@ -433,7 +447,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
                 authority: TEST_CONFIG.validAuthority,
-                responseMode: ResponseMode.FRAGMENT
+                responseMode: ResponseMode.FRAGMENT,
+                stkJwk: TEST_POP_VALUES.KID
             };
 
             const loginUrl = await client.getAuthCodeUrl(loginRequest);
@@ -546,7 +561,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 code: null,
                 correlationId: RANDOM_TEST_GUID,
                 authenticationScheme: AuthenticationScheme.BEARER,
-                authority: TEST_CONFIG.validAuthority
+                authority: TEST_CONFIG.validAuthority,
+                stkJwk: TEST_POP_VALUES.KID
             };
             await expect(client.acquireToken(codeRequest, null)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
             expect(config.storageInterface.getKeys().length).to.be.eq(1);
@@ -621,7 +637,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER
+                authenticationScheme: AuthenticationScheme.BEARER,
+                stkJwk: TEST_POP_VALUES.KID
             };
 
             await client.acquireToken(authCodeRequest, {
@@ -692,7 +709,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER
+                authenticationScheme: AuthenticationScheme.BEARER,
+                stkJwk: TEST_POP_VALUES.KID
             };
 
             const authenticationResult = await client.acquireToken(authCodeRequest, {
@@ -716,6 +734,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`);
             await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`);
             await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`);
+            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.STK_JWK}=${TEST_POP_VALUES.ENCODED_STK_JWK_THUMBPRINT}`);
         });
 
         it("Adds tokenQueryParameters to the /token request", (done) => {
@@ -736,6 +755,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     claims: TEST_CONFIG.CLAIMS,
                     correlationId: RANDOM_TEST_GUID,
                     authenticationScheme: AuthenticationScheme.BEARER,
+                    stkJwk: TEST_POP_VALUES.KID,
                     tokenQueryParameters: {
                         testParam: "testValue"
                     }
@@ -826,7 +846,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 resourceRequestMethod: "POST",
                 resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
                 claims: TEST_CONFIG.CLAIMS,
-                correlationId: RANDOM_TEST_GUID
+                correlationId: RANDOM_TEST_GUID,
+                stkJwk: TEST_POP_VALUES.KID
             };
 
             const authenticationResult = await client.acquireToken(authCodeRequest, {
@@ -848,6 +869,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.POP}`);
             await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.REQ_CNF}=${encodeURIComponent(TEST_POP_VALUES.ENCODED_REQ_CNF)}`);
             await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`);
+            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.STK_JWK}=${TEST_POP_VALUES.ENCODED_STK_JWK_THUMBPRINT}`);
         });
 
         it("properly handles expiration timestamps as strings", async () => {
@@ -916,7 +938,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER
+                authenticationScheme: AuthenticationScheme.BEARER,
+                stkJwk: TEST_POP_VALUES.KID
             };
 
             const authenticationResult = await client.acquireToken(authCodeRequest, {
@@ -994,7 +1017,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 codeVerifier: TEST_CONFIG.TEST_VERIFIER,
                 claims: TEST_CONFIG.CLAIMS,
                 correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER
+                authenticationScheme: AuthenticationScheme.BEARER,
+                stkJwk: TEST_POP_VALUES.KID
             };
 
             const authenticationResult = await client.acquireToken(authCodeRequest, {
