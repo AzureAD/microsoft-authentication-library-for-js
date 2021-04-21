@@ -11,14 +11,15 @@ import {
     TEST_CONFIG,
     TEST_TOKENS,
     TEST_DATA_CLIENT_INFO,
-    TEST_URIS
+    TEST_URIS,
+    CORS_SIMPLE_REQUEST_HEADERS
 } from "../utils/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
-import { AADServerParamKeys, GrantType, Constants } from "../../src/utils/Constants";
-import { ClientTestUtils } from "./ClientTestUtils";
+import { AADServerParamKeys, GrantType, Constants, AuthenticationScheme, ThrottlingConstants } from "../../src/utils/Constants";
+import { ClientTestUtils, mockCrypto } from "./ClientTestUtils";
 import { Authority } from "../../src/authority/Authority";
 import { OnBehalfOfClient } from "../../src/client/OnBehalfOfClient";
-import { OnBehalfOfRequest } from "../../src/request/OnBehalfOfRequest";
+import { CommonOnBehalfOfRequest } from "../../src/request/CommonOnBehalfOfRequest";
 import { AuthToken } from "../../src/account/AuthToken";
 import { TimeUtils } from "../../src/utils/TimeUtils";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
@@ -91,6 +92,29 @@ describe("OnBehalfOf unit tests", () => {
         });
     });
 
+    it("Does not add headers that do not qualify for a simple request", (done) => {
+        // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
+        sinon.stub(OnBehalfOfClient.prototype, <any>"getCachedAuthenticationResult").resolves(null);
+        sinon.stub(OnBehalfOfClient.prototype, <any>"executePostToTokenEndpoint").callsFake((tokenEndpoint: string, queryString: string, headers: Record<string, string>) => {
+            const headerNames = Object.keys(headers);
+            headerNames.forEach((name) => {
+                expect(CORS_SIMPLE_REQUEST_HEADERS).contains(name.toLowerCase());
+            });
+
+            done();
+            return AUTHENTICATION_RESULT_DEFAULT_SCOPES;
+        });
+        
+        const client = new OnBehalfOfClient(config);
+        const onBehalfOfRequest: CommonOnBehalfOfRequest = {
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            oboAssertion: TEST_TOKENS.ACCESS_TOKEN,
+            skipCache: false
+        };
+
+        client.acquireToken(onBehalfOfRequest);
+    });
+
     it("acquires a token, no token in the cache", async () => {
 
         sinon.stub(OnBehalfOfClient.prototype, <any>"getCachedAuthenticationResult").resolves(null);
@@ -99,7 +123,7 @@ describe("OnBehalfOf unit tests", () => {
         const createTokenRequestBodySpy = sinon.spy(OnBehalfOfClient.prototype, <any>"createTokenRequestBody");
 
         const client = new OnBehalfOfClient(config);
-        const onBehalfOfRequest: OnBehalfOfRequest = {
+        const onBehalfOfRequest: CommonOnBehalfOfRequest = {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             oboAssertion: TEST_TOKENS.ACCESS_TOKEN,
             skipCache: false
@@ -120,13 +144,18 @@ describe("OnBehalfOf unit tests", () => {
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.REQUESTED_TOKEN_USE}=${AADServerParamKeys.ON_BEHALF_OF}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.OBO_ASSERTION}=${TEST_TOKENS.ACCESS_TOKEN}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`);
     });
 
     it("acquires a token, returns token from cache", async () => {
 
         // mock access token
         const expectedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "", "login.windows.net", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
+            "", "login.windows.net", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, undefined, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
 
         sinon.stub(OnBehalfOfClient.prototype, <any>"readAccessTokenFromCache").returns(expectedAtEntity);
         sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
@@ -144,7 +173,7 @@ describe("OnBehalfOf unit tests", () => {
         sinon.stub(OnBehalfOfClient.prototype, <any>"readAccountFromCache").returns(expectedAccountEntity);
 
         const client = new OnBehalfOfClient(config);
-        const onBehalfOfRequest: OnBehalfOfRequest = {
+        const onBehalfOfRequest: CommonOnBehalfOfRequest = {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             oboAssertion: TEST_TOKENS.ACCESS_TOKEN
         };
@@ -169,7 +198,7 @@ describe("OnBehalfOf unit tests", () => {
         const createTokenRequestBodySpy = sinon.spy(OnBehalfOfClient.prototype, <any>"createTokenRequestBody");
 
         const client = new OnBehalfOfClient(config);
-        const onBehalfOfRequest: OnBehalfOfRequest = {
+        const onBehalfOfRequest: CommonOnBehalfOfRequest = {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             oboAssertion: TEST_TOKENS.ACCESS_TOKEN,
             skipCache: true
@@ -194,10 +223,10 @@ describe("OnBehalfOf unit tests", () => {
 
     it("Multiple access tokens matched, exception thrown", async () => {
         const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
+            "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, undefined, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
 
         const mockedAtEntity2: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
+            "", "login.microsoftonline.com", "an_access_token", config.authOptions.clientId, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, undefined, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
 
         const mockedCredentialCache: CredentialCache = {
             accessTokens: {
@@ -211,7 +240,7 @@ describe("OnBehalfOf unit tests", () => {
         sinon.stub(CacheManager.prototype, <any>"getCredentialsFilteredBy").returns(mockedCredentialCache);
 
         const client = new OnBehalfOfClient(config);
-        const onBehalfOfRequest: OnBehalfOfRequest = {
+        const onBehalfOfRequest: CommonOnBehalfOfRequest = {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             oboAssertion: TEST_TOKENS.ACCESS_TOKEN
         };

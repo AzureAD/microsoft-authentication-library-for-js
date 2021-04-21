@@ -187,6 +187,15 @@ export class AuthorizationCodeClient extends BaseClient {
         // add code: user set, not validated
         parameterBuilder.addAuthorizationCode(request.code);
 
+        // Add library metadata
+        parameterBuilder.addLibraryInfo(this.config.libraryInfo);
+
+        parameterBuilder.addThrottling();
+        
+        if (this.serverTelemetryManager) {
+            parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
+        }
+
         // add code_verifier if passed
         if (request.codeVerifier) {
             parameterBuilder.addCodeVerifier(request.codeVerifier);
@@ -205,9 +214,9 @@ export class AuthorizationCodeClient extends BaseClient {
         parameterBuilder.addGrantType(GrantType.AUTHORIZATION_CODE_GRANT);
         parameterBuilder.addClientInfo();
 
-        if (request.authenticationScheme === AuthenticationScheme.POP && !!request.resourceRequestMethod && !!request.resourceRequestUri) {
+        if (request.authenticationScheme === AuthenticationScheme.POP) {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
-            const cnfString = await popTokenGenerator.generateCnf(request.resourceRequestMethod, request.resourceRequestUri);
+            const cnfString = await popTokenGenerator.generateCnf(request);
             parameterBuilder.addPopToken(cnfString);
         }
 

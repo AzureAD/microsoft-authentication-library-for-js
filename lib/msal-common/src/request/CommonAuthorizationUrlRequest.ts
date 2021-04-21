@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ResponseMode, AuthenticationScheme } from "../utils/Constants";
+import { ResponseMode } from "../utils/Constants";
 import { StringDict } from "../utils/MsalTypes";
 import { BaseAuthRequest } from "./BaseAuthRequest";
 import { AccountInfo } from "../account/AccountInfo";
@@ -11,7 +11,6 @@ import { AccountInfo } from "../account/AccountInfo";
 /**
  * Request object passed by user to retrieve a Code from the server (first leg of authorization code grant flow)
  *
- * - authenticationScheme       - The type of token retrieved. Defaults to "Bearer". Can also be type "pop".
  * - scopes                     - Array of scopes the application is requesting access to.
  * - claims                     - A stringified claims request which will be added to all /authorize and /token calls
  * - authority                  - Url of the authority which the application acquires tokens from.
@@ -38,7 +37,6 @@ import { AccountInfo } from "../account/AccountInfo";
  * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
  */
 export type CommonAuthorizationUrlRequest = BaseAuthRequest & {
-    authenticationScheme: AuthenticationScheme;
     redirectUri: string;
     responseMode: ResponseMode;
     account?: AccountInfo;
