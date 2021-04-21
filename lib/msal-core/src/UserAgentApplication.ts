@@ -154,7 +154,7 @@ export class UserAgentApplication {
      * @param {string} authority
      */
     // If the developer passes an authority, create an instance
-    public set authority(val) {
+    public set authority(val: string) {
         this.authorityInstance = AuthorityFactory.CreateInstance(val, this.config.auth.validateAuthority);
     }
 
@@ -274,12 +274,12 @@ export class UserAgentApplication {
      * Public API to verify if the URL contains the hash with known properties
      * @param hash
      */
-    public urlContainsHash(hash: string) {
+    public urlContainsHash(hash: string): boolean {
         this.logger.verbose("UrlContainsHash has been called");
         return UrlUtils.urlContainsHash(hash);
     }
 
-    private authResponseHandler(interactionType: InteractionType, response: AuthResponse, resolve?: any) : void {
+    private authResponseHandler(interactionType: InteractionType, response: AuthResponse, resolve?: Function) : void {
         this.logger.verbose("AuthResponseHandler has been called");
 
         if (interactionType === Constants.interactionTypeRedirect) {
@@ -299,7 +299,7 @@ export class UserAgentApplication {
         }
     }
 
-    private authErrorHandler(interactionType: InteractionType, authErr: AuthError, response: AuthResponse, reject?: any) : void {
+    private authErrorHandler(interactionType: InteractionType, authErr: AuthError, response: AuthResponse, reject?: Function) : void {
         this.logger.verbose("AuthErrorHandler has been called");
 
         // set interaction_status to complete
@@ -418,7 +418,7 @@ export class UserAgentApplication {
      *
      * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
      */
-    private acquireTokenInteractive(interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: any, reject?: any): void {
+    private acquireTokenInteractive(interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: Function, reject?: Function): void {
         this.logger.verbose("AcquireTokenInteractive has been called");
 
         // block the request if made from the hidden iframe
@@ -509,7 +509,7 @@ export class UserAgentApplication {
      * Helper function to acquireToken
      *
      */
-    private async acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: any, reject?: any): Promise<void> {
+    private async acquireTokenHelper(account: Account, interactionType: InteractionType, isLoginCall: boolean, request: AuthenticationParameters, resolve?: Function, reject?: Function): Promise<void> {
         this.logger.verbose("AcquireTokenHelper has been called");
         this.logger.verbose(`Interaction type: ${interactionType}. isLoginCall: ${isLoginCall}`);
 
@@ -1110,7 +1110,7 @@ export class UserAgentApplication {
      *
      * @param accessToken
      */
-    protected clearCacheForScope(accessToken: string) {
+    protected clearCacheForScope(accessToken: string): void {
         this.logger.verbose("Clearing access token from cache");
         const accessTokenItems = this.cacheStorage.getAllAccessTokens(Constants.clientId, Constants.homeAccountIdentifier);
         for (let i = 0; i < accessTokenItems.length; i++) {
@@ -1290,11 +1290,11 @@ export class UserAgentApplication {
         }
         if (parameters.hasOwnProperty(ServerHashParamKeys.STATE)) {
             this.logger.verbose("Hash contains state. Creating stateInfo object");
-            const parsedState = RequestUtils.parseLibraryState(parameters.state);
+            const parsedState = RequestUtils.parseLibraryState(parameters["state"]);
 
             stateResponse = {
                 requestType: Constants.unknown,
-                state: parameters.state,
+                state: parameters["state"],
                 timestamp: parsedState.ts,
                 method: parsedState.method,
                 stateMatch: false
@@ -1517,7 +1517,7 @@ export class UserAgentApplication {
      * Check if ADAL id_token exists and return if exists.
      *
      */
-    private extractADALIdToken(): any {
+    private extractADALIdToken(): object {
         this.logger.verbose("ExtractADALIdToken has been called");
         const adalIdToken = this.cacheStorage.getItem(Constants.adalIdToken);
         return (!StringUtils.isEmpty(adalIdToken)) ? TokenUtils.extractIdToken(adalIdToken) : null;
@@ -1623,7 +1623,7 @@ export class UserAgentApplication {
      * @param idTokenObj ID Token object from which the ID token's expiration is extracted
      */
     /* tslint:disable:no-string-literal */
-    private saveIdToken(response: AuthResponse, authority: string, parameters: any, clientInfo: ClientInfo, idTokenObj: IdToken): AuthResponse {
+    private saveIdToken(response: AuthResponse, authority: string, parameters: object, clientInfo: ClientInfo, idTokenObj: IdToken): AuthResponse {
         this.logger.verbose("SaveIdToken has been called");
         const idTokenResponse = { ...response };
 
@@ -1651,7 +1651,7 @@ export class UserAgentApplication {
      * @param clientInfo Client Info object that is used to generate the homeAccountIdentifier
      */
     /* tslint:disable:no-string-literal */
-    private saveAccessToken(response: AuthResponse, authority: string, parameters: any, clientInfo: ClientInfo): AuthResponse {
+    private saveAccessToken(response: AuthResponse, authority: string, parameters: object, clientInfo: ClientInfo): AuthResponse {
         this.logger.verbose("SaveAccessToken has been called");
         const accessTokenResponse = { ...response };
 
@@ -1748,10 +1748,8 @@ export class UserAgentApplication {
                 acquireTokenAccountKey = AuthCache.generateAcquireTokenAccountKey(accountId, stateInfo.state);
             }
 
-            const {
-                [ServerHashParamKeys.ERROR]: hashErr,
-                [ServerHashParamKeys.ERROR_DESCRIPTION]: hashErrDesc
-            } = hashParams;
+            const hashErr = hashParams[ServerHashParamKeys.ERROR];
+            const hashErrDesc = hashParams[ServerHashParamKeys.ERROR_DESCRIPTION];
             if (InteractionRequiredAuthError.isInteractionRequiredError(hashErr) ||
         InteractionRequiredAuthError.isInteractionRequiredError(hashErrDesc)) {
                 error = new InteractionRequiredAuthError(hashParams[ServerHashParamKeys.ERROR], hashParams[ServerHashParamKeys.ERROR_DESCRIPTION]);
@@ -1994,7 +1992,7 @@ export class UserAgentApplication {
      * @returns {string} scope.
      * @ignore
      */
-    getAccountState (state: string) {
+    getAccountState (state: string): string {
         if (state) {
             const splitIndex = state.indexOf(Constants.resourceDelimiter);
             if (splitIndex > -1 && splitIndex + 1 < state.length) {
@@ -2161,7 +2159,7 @@ export class UserAgentApplication {
      *
      * @param loginInProgress
      */
-    protected setInteractionInProgress(inProgress: boolean) {
+    protected setInteractionInProgress(inProgress: boolean): void {
         if (inProgress) {
             this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
         } else {
@@ -2175,7 +2173,7 @@ export class UserAgentApplication {
      *
      * @param loginInProgress
      */
-    protected setloginInProgress(loginInProgress : boolean) {
+    protected setloginInProgress(loginInProgress : boolean): void {
         this.setInteractionInProgress(loginInProgress);
     }
 
@@ -2195,7 +2193,7 @@ export class UserAgentApplication {
      *
      * @param acquireTokenInProgress
      */
-    protected setAcquireTokenInProgress(acquireTokenInProgress : boolean) {
+    protected setAcquireTokenInProgress(acquireTokenInProgress : boolean): void {
         this.setInteractionInProgress(acquireTokenInProgress);
     }
 
@@ -2205,7 +2203,7 @@ export class UserAgentApplication {
      *
      * returns the logger handle
      */
-    getLogger() {
+    getLogger(): Logger {
         return this.logger;
     }
 
@@ -2213,7 +2211,7 @@ export class UserAgentApplication {
      * Sets the logger callback.
      * @param logger Logger callback
      */
-    setLogger(logger: Logger) {
+    setLogger(logger: Logger): void {
         this.logger = logger;
     }
 
@@ -2343,7 +2341,7 @@ export class UserAgentApplication {
      * @hidden
      * @ignore
      */
-    private getAccountId(account: Account): any {
+    private getAccountId(account: Account): string {
         // return `${account.accountIdentifier}` + Constants.resourceDelimiter + `${account.homeAccountIdentifier}`;
         let accountId: string;
         if (!StringUtils.isEmpty(account.homeAccountIdentifier)) {
