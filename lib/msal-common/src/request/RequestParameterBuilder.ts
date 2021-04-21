@@ -372,6 +372,16 @@ export class RequestParameterBuilder {
     }
 
     /**
+     * Add stk_jwk public key to query params
+     * @param stkJwk
+     */
+    addStkJwk(stkJwk: string): void {
+        if(!StringUtils.isEmpty(stkJwk)) {
+            this.parameters.set(AADServerParamKeys.STK_JWK, encodeURIComponent(stkJwk));
+        }
+    }
+
+    /**
      * Utility to create a URL from the params map
      */
     createQueryString(): string {
