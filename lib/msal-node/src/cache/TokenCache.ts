@@ -190,7 +190,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      * @param oldState - cache before changes
      * @param newState - updated cache
      */
-    private mergeUpdates(oldState: any, newState: any): JsonCache {
+    private mergeUpdates(oldState: object, newState: object): JsonCache {
         Object.keys(newState).forEach((newKey: string) => {
             const newValue = newState[newKey];
 
@@ -214,7 +214,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
             }
         });
 
-        return oldState;
+        return oldState as JsonCache;
     }
 
     /**

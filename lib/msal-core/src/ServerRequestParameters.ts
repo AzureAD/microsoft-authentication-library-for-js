@@ -134,7 +134,7 @@ export class ServerRequestParameters {
      * @param loginHint
      */
     // TODO: check how this behaves when domain_hint only is sent in extraparameters and idToken has no upn.
-    private constructUnifiedCacheQueryParameter(request: AuthenticationParameters, idTokenObject: any): StringDict {
+    private constructUnifiedCacheQueryParameter(request: AuthenticationParameters, idTokenObject: object): StringDict {
 
         // preference order: account > sid > login_hint
         let ssoType;
@@ -168,7 +168,7 @@ export class ServerRequestParameters {
         else if (idTokenObject) {
             if (idTokenObject.hasOwnProperty(Constants.upn)) {
                 ssoType = SSOTypes.ID_TOKEN;
-                ssoData = idTokenObject.upn;
+                ssoData = idTokenObject["upn"];
             }
         }
 
@@ -275,8 +275,8 @@ export class ServerRequestParameters {
      * Check to see if there are SSO params set in the Request
      * @param request
      */
-    static isSSOParam(request: AuthenticationParameters) {
-        return request && (request.account || request.sid || request.loginHint);
+    static isSSOParam(request: AuthenticationParameters): boolean {
+        return !!(request && (request.account || request.sid || request.loginHint));
     }
 
     /**
@@ -285,7 +285,7 @@ export class ServerRequestParameters {
      * @param scopes Array<string>: AuthenticationRequest scopes configuration
      * @param loginScopesOnly boolean: True if the scopes array ONLY contains the clientId or any combination of OIDC scopes, without resource scopes
      */
-    static determineResponseType(accountsMatch: boolean, scopes: Array<string>) {
+    static determineResponseType(accountsMatch: boolean, scopes: Array<string>): string {
         // Supports getting an id_token by sending in clientId as only scope or OIDC scopes as only scopes
         if (ScopeSet.onlyContainsOidcScopes(scopes)) {
             return ResponseTypes.id_token;

@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Update and fix eslint rules",
+  "packageName": "@azure/msal-node",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "none"
+}
