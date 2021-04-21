@@ -26,7 +26,6 @@ import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload";
 import { TimeUtils } from "../utils/TimeUtils";
 import { TokenClaims } from "../account/TokenClaims";
 import { AccountInfo } from "../account/AccountInfo";
-import { KeyManager } from "../crypto/KeyManager";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -215,9 +214,13 @@ export class AuthorizationCodeClient extends BaseClient {
         parameterBuilder.addClientInfo();
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
-            const keyManager = new KeyManager(this.cryptoUtils);
-            const cnfString = await keyManager.generateCnf(request);
+            const cnfString = await this.keyManager.generateCnf(request);
             parameterBuilder.addPopToken(cnfString);
+        }
+
+        if (request.stkJwk) {
+            const stkJwk = await this.keyManager.retrieveAsymmetricPublicKey(request.stkJwk);
+            parameterBuilder.addStkJwk(stkJwk);
         }
 
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();

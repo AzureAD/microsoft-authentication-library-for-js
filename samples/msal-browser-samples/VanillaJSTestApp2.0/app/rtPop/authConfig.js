@@ -38,9 +38,15 @@ const extraQueryParams = {
     dc: "ESTS-PUB-WUS2-AZ1-TEST1"
 };
 
+const tokenQueryParams = {
+    slice: "TestSlice&dc=ESTS-PUB-WUS2-AZ1-TEST1"
+}
+
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
 const loginRequest = {
-    scopes: ["User.Read"]
+    scopes: ["User.Read"],
+    extraQueryParameters: extraQueryParams,
+    tokenQueryParameters: tokenQueryParams
 };
 
 // Add here the endpoints for MS Graph API services you would like to use.
