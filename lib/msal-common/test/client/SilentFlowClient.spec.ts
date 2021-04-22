@@ -137,7 +137,6 @@ describe("SilentFlowClient unit tests", () => {
             expect(response.idTokenClaims).to.deep.eq(ID_TOKEN_CLAIMS);
             expect(response.accessToken).to.deep.eq(testAccessTokenEntity.secret);
             expect(response.state).to.be.empty;
-            console.log();
         });
 
         it("acquireCachedToken() looks up Bearer token when AuthenticationScheme is not set in request", async () => {
