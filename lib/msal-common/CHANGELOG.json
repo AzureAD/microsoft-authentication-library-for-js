@@ -2,6 +2,47 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Thu, 22 Apr 2021 23:26:08 GMT",
+      "tag": "@azure/msal-common_v4.2.1",
+      "version": "4.2.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix typing for expiresOn field (#2994)",
+            "author": "prkanher@microsoft.com",
+            "commit": "4f8a29cab324838993d91fda4b0ba57f731fcd1a",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Move /token headers to POST body to avoid OPTIONS request (#3094)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "f62f0cdf923c9ee4b36943d2a3a7dc618903d30f",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Change \"ts\" type from string to number in SignedHttpRequest #3474",
+            "author": "prkanher@microsoft.com",
+            "commit": "8f39845452845b47a0bdce41a92c3185d352c7c7",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Add .browserslistrc #3471",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "04c6d659d4dc76183ef9043075d3b6cacc450c9b",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Update and fix eslint rules",
+            "author": "janutter@microsoft.com",
+            "commit": "70debe58239b6a6fdf4e533a8a1ee057257846a8",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 14 Apr 2021 18:39:53 GMT",
       "tag": "@azure/msal-common_v4.2.0",
       "version": "4.2.0",
