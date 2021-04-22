@@ -111,8 +111,6 @@ msal.loginRedirect({
 
 Read more [here](https://docs.microsoft.com/en-us/azure/active-directory-b2c/authorization-code-flow#2-get-an-access-token)
 
-Note: Currently there is a known issue where the B2C service responds with the scope "/" which prevents MSAL caching from working properly when requesting clientId as a scope. Currently option 2 is the recommended approach to ensure caching works. Track issue [#2451](#2451) for a resolution to this issue.
-
 2. Expose your own custom scope on your app registration and request this scope:
 
 ```javascript
