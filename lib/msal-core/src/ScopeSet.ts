@@ -35,7 +35,7 @@ export class ScopeSet {
     static containsScope(cachedScopes: Array<string>, scopes: Array<string>): boolean {
         const convertedCachedScopes = this.trimAndConvertArrayToLowerCase([...cachedScopes]);
         const requestScopes = this.trimAndConvertArrayToLowerCase([...scopes]);
-        return requestScopes.every((value: any): boolean => convertedCachedScopes.indexOf(value.toString().toLowerCase()) >= 0);
+        return requestScopes.every((value: string): boolean => convertedCachedScopes.indexOf(value.toString().toLowerCase()) >= 0);
     }
 
     /**

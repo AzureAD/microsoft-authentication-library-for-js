@@ -94,6 +94,30 @@ describe('MsalGuard', () => {
       });
   });
 
+  it("returns false if page contains known successful response", (done) => {
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
+        //@ts-ignore
+        of("test")
+    );
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
+        homeAccountId: "test",
+        localAccountId: "test",
+        environment: "test",
+        tenantId: "test",
+        username: "test"
+      }]);
+  
+    guard.canActivate(routeMock, {
+        ...routeStateMock,
+        url: "/#code=test"
+    })
+    .subscribe(result => {
+        expect(result).toBeFalse();
+        done();
+    });
+  });
+
   it("returns true for a logged in user", (done) => {
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
