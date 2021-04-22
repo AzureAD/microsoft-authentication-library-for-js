@@ -1,8 +1,19 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Wed, 14 Apr 2021 18:39:53 GMT and should not be manually modified.
+This log was last generated on Thu, 22 Apr 2021 23:26:08 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 4.2.1
+
+Thu, 22 Apr 2021 23:26:08 GMT
+
+### Patches
+
+- Fix typing for expiresOn field (#2994) (prkanher@microsoft.com)
+- Move /token headers to POST body to avoid OPTIONS request (#3094) (thomas.norling@microsoft.com)
+- Change "ts" type from string to number in SignedHttpRequest #3474 (prkanher@microsoft.com)
+- Add .browserslistrc #3471 (thomas.norling@microsoft.com)
 
 ## 4.2.0
 
