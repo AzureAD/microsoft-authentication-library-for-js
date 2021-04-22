@@ -68,6 +68,7 @@ export { CommonUsernamePasswordRequest } from "./request/CommonUsernamePasswordR
 export { AuthenticationResult } from "./response/AuthenticationResult";
 export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload";
 export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse";
+export { ServerAuthorizationTokenResponse } from "./response/ServerAuthorizationTokenResponse";
 export { DeviceCodeResponse } from "./response/DeviceCodeResponse";
 // Logger Callback
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";
