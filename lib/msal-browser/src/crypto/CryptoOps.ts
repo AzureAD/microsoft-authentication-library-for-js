@@ -11,9 +11,10 @@ import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
 import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { BROWSER_CRYPTO, CryptoKeyTypes, KEY_FORMAT_JWK, KEY_USAGES } from "../utils/BrowserConstants";
+import { BROWSER_CRYPTO, CryptoKeyTypes, KEY_FORMAT_JWK, KEY_USAGES, KEY_DERIVATION_SIZES } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import {JsonWebEncryption} from "./JsonWebEncryption";
+import { KeyDerivation } from "./KeyDerivation";
 
 // Public Exponent used in Key Generation
 const PUBLIC_EXPONENT: Uint8Array = new Uint8Array([0x01, 0x00, 0x01]);
@@ -241,7 +242,16 @@ export class CryptoOps implements ICrypto {
 
                 const sessionKeyUsages = KEY_USAGES.RT_BINDING.PRIVATE_KEY as KeyUsage[];
                 const contentEncryptionKey = await sessionKeyJwe.unwrap(sessionTransportKeypair.privateKey, sessionKeyUsages);
-
+               
+                const kdf = new KeyDerivation(
+                    contentEncryptionKey,
+                    KEY_DERIVATION_SIZES.DERIVED_KEY_LENGTH,
+                    KEY_DERIVATION_SIZES.PRF_OUTPUT_LENGTH,
+                    KEY_DERIVATION_SIZES.COUNTER_LENGTH
+                );
+            
+                const decryptionKey = await kdf.computeKDFInCounterMode(responseJwe.header.ctx, KEY_DERIVATION_LABELS.DECRYPTION);
+                console.log(decryptionKey);
                 return null;
             } else {
                 throw BrowserAuthError.createMissingStkKidError();
