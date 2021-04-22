@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants } from "@azure/msal-common";
+import { OIDC_DEFAULT_SCOPES } from "@azure/msal-common";
 import { PopupRequest } from "../request/PopupRequest";
 import { RedirectRequest } from "../request/RedirectRequest";
 
@@ -27,6 +27,10 @@ export const BrowserConstants = {
      * Default popup window height
      */
     POPUP_HEIGHT: 600,
+    /**
+     * Name of the popup window starts with
+     */
+    POPUP_NAME_PREFIX: "msal",
     /**
      * Default popup monitor poll interval in milliseconds
      */
@@ -81,7 +85,8 @@ export enum ApiId {
     acquireTokenSilent_authCode = 864,
     handleRedirectPromise = 865,
     acquireTokenSilent_silentFlow = 61,
-    logout = 961
+    logout = 961,
+    logoutPopup = 962
 }
 
 /*
@@ -129,7 +134,7 @@ export enum InteractionStatus {
 }
 
 export const DEFAULT_REQUEST: RedirectRequest|PopupRequest = {
-    scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE]
+    scopes: OIDC_DEFAULT_SCOPES
 };
 
 /**

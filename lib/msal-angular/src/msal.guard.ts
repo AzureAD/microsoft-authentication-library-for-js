@@ -12,6 +12,7 @@ import { MsalGuardConfiguration } from "./msal.guard.config";
 import { MSAL_GUARD_CONFIG } from "./constants";
 import { concatMap, catchError, map } from "rxjs/operators";
 import { Observable, of } from "rxjs";
+import { MsalBroadcastService } from "./msal.broadcast.service";
 
 @Injectable()
 export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
@@ -19,10 +20,14 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
 
     constructor(
         @Inject(MSAL_GUARD_CONFIG) private msalGuardConfig: MsalGuardConfiguration,
+        private msalBroadcastService: MsalBroadcastService,
         private authService: MsalService,
         private location: Location,
         private router: Router
-    ) { }
+    ) { 
+        // Subscribing so events in MsalGuard will set inProgress$ observable
+        this.msalBroadcastService.inProgress$.subscribe();
+    }
 
     /**
      * Parses url string to UrlTree
@@ -63,10 +68,13 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
      * Interactively prompt the user to login
      * @param url Path of the requested page
      */
-    private loginInteractively(url: string): Observable<boolean> {
+    private loginInteractively(state: RouterStateSnapshot): Observable<boolean> {
+        const authRequest = typeof this.msalGuardConfig.authRequest === "function"
+            ? this.msalGuardConfig.authRequest(this.authService, state)
+            : { ...this.msalGuardConfig.authRequest };
         if (this.msalGuardConfig.interactionType === InteractionType.Popup) {
             this.authService.getLogger().verbose("Guard - logging in by popup");
-            return this.authService.loginPopup({ ...this.msalGuardConfig.authRequest } as PopupRequest)
+            return this.authService.loginPopup(authRequest as PopupRequest)
                 .pipe(
                     map((response: AuthenticationResult) => {
                         this.authService.getLogger().verbose("Guard - login by popup successful, can activate, setting active account");
@@ -77,12 +85,14 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
         }
 
         this.authService.getLogger().verbose("Guard - logging in by redirect");
-        const redirectStartPage = this.getDestinationUrl(url);
-        this.authService.loginRedirect({
+        const redirectStartPage = this.getDestinationUrl(state.url);
+        return this.authService.loginRedirect({
             redirectStartPage,
-            ...this.msalGuardConfig.authRequest
-        } as RedirectRequest);
-        return of(false);
+            ...authRequest
+        } as RedirectRequest)
+            .pipe(
+                map(() => false)
+            );
     }
 
     /**
@@ -118,13 +128,22 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
                     if (!this.authService.instance.getAllAccounts().length) {
                         if (state) {
                             this.authService.getLogger().verbose("Guard - no accounts retrieved, log in required to activate");
-                            return this.loginInteractively(state.url);
+                            return this.loginInteractively(state);
                         } 
                         this.authService.getLogger().verbose("Guard - no accounts retrieved, no state, cannot load");
                         return of(false);
                     }
-                    this.authService.getLogger().verbose("Guard - account retrieved, can activate or load");
+
+                    this.authService.getLogger().verbose("Guard - at least 1 account exists, can activate or load");
+
+                    // Prevent navigating the app to /#code=
+                    if (state && state.url.indexOf("#") > -1 && state.url.indexOf("code=") > -1) {
+                        this.authService.getLogger().info("Guard - Hash contains known code response, stopping navigation.");
+                        return of(false);
+                    }
+
                     return of(true);
+
                 }),
                 catchError(() => {
                     this.authService.getLogger().verbose("Guard - error while logging in, unable to activate");
@@ -156,5 +175,4 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
         // @ts-ignore
         return this.activateHelper();
     }
-
 }

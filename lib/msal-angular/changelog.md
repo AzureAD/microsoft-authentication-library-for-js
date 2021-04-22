@@ -1,8 +1,71 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Tue, 02 Feb 2021 01:56:47 GMT and should not be manually modified.
+This log was last generated on Wed, 14 Apr 2021 18:39:53 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.0.0-beta.4
+
+Wed, 14 Apr 2021 18:39:53 GMT
+
+### Changes
+
+- fix(Msal-Angular): Dynamic interceptor authority (1292510+svrooij@users.noreply.github.com)
+
+## 2.0.0-beta.3
+
+Wed, 31 Mar 2021 22:25:57 GMT
+
+### Changes
+
+- Update MsalInterceptor types and getScopesForEndpoint with query and relative paths #3307 (joarroyo@microsoft.com)
+
+## 2.0.0-beta.2
+
+Wed, 24 Mar 2021 22:55:46 GMT
+
+### Changes
+
+- Add support for logoutPopup API #3044 (thomas.norling@microsoft.com)
+- Add MsalCustomNavigationClient, updates samples and docs #3174 (joarroyo@microsoft.com)
+- Update MsalGuard and _inProgress subject #3269 (joarroyo@microsoft.com)
+- Update MSAL Service handleRedirectObservable hash handling #3243 (joarroyo@microsoft.com)
+
+## 2.0.0-beta.1
+
+Mon, 15 Mar 2021 23:45:17 GMT
+
+### Changes
+
+- fix: #3149 - Msal Redirect Component was not part of the Module (rchinnakampalli@worldbankgroup.org)
+
+## 2.0.0-beta.0
+
+Wed, 03 Mar 2021 21:47:05 GMT
+
+### Changes
+
+- Fix BroadcastService logging to use msal-angular version, update samples versions, profile, and links (#3015) (joarroyo@microsoft.com)
+- Add FAQ.md and active accounts in sample (#2977) (joarroyo@microsoft.com)
+- Update msal-angular preinstall script to force npm-force-resolutions version (#3074) (joarroyo@microsoft.com)
+
+## 2.0.0-alpha.6
+
+Thu, 18 Feb 2021 00:34:32 GMT
+
+### Changes
+
+- Await loginRedirect in MSAL Guard to prevent race conditions (janutter@microsoft.com)
+
+## 2.0.0-alpha.5
+
+Tue, 09 Feb 2021 01:48:22 GMT
+
+### Changes
+
+- Msal-angular typedocs and instrumentation (#2863) (joarroyo@microsoft.com)
+- Fix version.json import errors (#2993) (thomas.norling@microsoft.com)
+- Update ssoSilent and cors-api documentation (#2971) (joarroyo@microsoft.com)
 
 ## 2.0.0-alpha.4
 

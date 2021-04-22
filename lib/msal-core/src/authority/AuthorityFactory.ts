@@ -21,11 +21,11 @@ export class AuthorityFactory {
         return metadata;
     }
 
-    public static getMetadata(authorityUrl: string) {
+    public static getMetadata(authorityUrl: string): ITenantDiscoveryResponse {
         return this.metadataMap.get(authorityUrl);
     }
 
-    public static saveMetadataFromConfig(authorityUrl: string, authorityMetadataJson: string) {
+    public static saveMetadataFromConfig(authorityUrl: string, authorityMetadataJson: string): void {
         try {
             if (authorityMetadataJson) {
                 const parsedMetadata = JSON.parse(authorityMetadataJson) as OpenIdConfiguration;

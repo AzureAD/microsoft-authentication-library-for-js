@@ -5,8 +5,16 @@
 
 import { AccountCache, IdTokenCache, AccessTokenCache, RefreshTokenCache, AppMetadataCache, ValidCacheType } from "@azure/msal-common";
 
+/**
+ * Key value store for in-memory cache
+ * @public
+ */
 export type CacheKVStore = Record<string, ValidCacheType>;
 
+/**
+ * Cache format read from the cache blob provided to the configuration during app instantiation
+ * @public
+ */
 export type JsonCache = {
     Account: Record<string, SerializedAccountEntity>;
     IdToken: Record<string, SerializedIdTokenEntity>;
@@ -15,6 +23,10 @@ export type JsonCache = {
     AppMetadata: Record<string, SerializedAppMetadataEntity>;
 };
 
+/**
+ * Intermittent type to handle in-memory data objects with defined types
+ * @public
+ */
 export type InMemoryCache = {
     accounts: AccountCache;
     idTokens: IdTokenCache;
@@ -23,6 +35,10 @@ export type InMemoryCache = {
     appMetadata: AppMetadataCache;
 };
 
+/**
+ * Account type
+ * @public
+ */
 export type SerializedAccountEntity = {
     home_account_id: string;
     environment: string;
@@ -36,6 +52,10 @@ export type SerializedAccountEntity = {
     last_modification_app?: string;
 };
 
+/**
+ * Idtoken credential type
+ * @public
+ */
 export type SerializedIdTokenEntity = {
     home_account_id: string;
     environment: string;
@@ -45,6 +65,10 @@ export type SerializedIdTokenEntity = {
     realm: string;
 };
 
+/**
+ * Access token credential type
+ * @public
+ */
 export type SerializedAccessTokenEntity = {
     home_account_id: string;
     environment: string;
@@ -61,6 +85,10 @@ export type SerializedAccessTokenEntity = {
     token_type?: string;
 };
 
+/**
+ * Refresh token credential type
+ * @public
+ */
 export type SerializedRefreshTokenEntity = {
     home_account_id: string;
     environment: string;
@@ -72,6 +100,10 @@ export type SerializedRefreshTokenEntity = {
     realm?: string;
 };
 
+/**
+ * AppMetadata type
+ * @public
+ */
 export type SerializedAppMetadataEntity = {
     client_id: string;
     environment: string;

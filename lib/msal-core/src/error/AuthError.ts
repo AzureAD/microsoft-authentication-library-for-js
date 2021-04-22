@@ -31,11 +31,11 @@ export class AuthError extends Error {
         this.name = "AuthError";
     }
 
-    static createUnexpectedError(errDesc: string) {
+    static createUnexpectedError(errDesc: string): AuthError {
         return new AuthError(AuthErrorMessage.unexpectedError.code, `${AuthErrorMessage.unexpectedError.desc}: ${errDesc}`);
     }
 
-    static createNoWindowObjectError(errDesc: string) {
+    static createNoWindowObjectError(errDesc: string): AuthError {
         return new AuthError(AuthErrorMessage.noWindowObjectError.code, `${AuthErrorMessage.noWindowObjectError.desc} ${errDesc}`);
     }
 }

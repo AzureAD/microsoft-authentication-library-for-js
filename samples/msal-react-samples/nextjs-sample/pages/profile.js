@@ -1,5 +1,5 @@
-import { MsalAuthenticationTemplate, useMsal, useAccount } from "@azure/msal-react";
-import { InteractionType } from "@azure/msal-browser";
+import { MsalAuthenticationTemplate, useMsal } from "@azure/msal-react";
+import { InteractionStatus, InteractionType } from "@azure/msal-browser";
 import { loginRequest } from "../src/authConfig";
 import React, { useEffect, useState } from "react";
 import { ProfileData } from "../src/ProfileData";
@@ -8,24 +8,14 @@ import Paper from "@material-ui/core/Paper";
 import { Typography } from "@material-ui/core";
 
 const ProfileContent = () => {
-    const { instance, accounts } = useMsal();
-    const account = useAccount(accounts[0] || {});
+    const { inProgress } = useMsal();
     const [graphData, setGraphData] = useState(null);
-  
-    function requestProfileData() {
-        instance.acquireTokenSilent({
-            ...loginRequest,
-            account: account
-        }).then((response) => {
-            callMsGraph(response.accessToken).then(response => setGraphData(response));
-        });
-    }
 
     useEffect(() => {
-        if (account) {
-            requestProfileData();
+        if (!graphData && inProgress === InteractionStatus.None) {
+            callMsGraph().then(response => setGraphData(response));
         }
-    }, [account]);
+    }, [inProgress, graphData]);
   
     return (
         <Paper>
@@ -49,7 +39,7 @@ export default function Profile() {
 
     return (
         <MsalAuthenticationTemplate 
-            interactionType={InteractionType.Popup} 
+            interactionType={InteractionType.Redirect} 
             authenticationRequest={authRequest} 
             errorComponent={ErrorComponent} 
             loadingComponent={Loading}

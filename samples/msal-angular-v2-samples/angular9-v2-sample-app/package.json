@@ -7,7 +7,9 @@
     "build": "ng build",
     "test": "ng test",
     "lint": "ng lint",
-    "e2e": "jest"
+    "e2e": "jest",
+    "install:local": "npm install ../../../lib/msal-angular/dist ../../../lib/msal-browser",
+    "install:published": "npm install @azure/msal-angular@latest @azure/msal-browser@latest"
   },
   "private": true,
   "dependencies": {
@@ -21,8 +23,8 @@
     "@angular/platform-browser": "~9.0.0",
     "@angular/platform-browser-dynamic": "~9.0.0",
     "@angular/router": "~9.0.0",
-    "@azure/msal-angular": "^2.0.0-alpha.4",
-    "@azure/msal-browser": "^2.11.0",
+    "@azure/msal-angular": "^2.0.0-beta.4",
+    "@azure/msal-browser": "^2.14.0",
     "rxjs": "~6.5.4",
     "tslib": "^1.10.0",
     "zone.js": "~0.10.2"

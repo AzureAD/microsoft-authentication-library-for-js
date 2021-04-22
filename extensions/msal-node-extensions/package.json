@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-node-extensions",
-  "version": "1.0.0-alpha.4",
+  "version": "1.0.0-alpha.6",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -39,7 +39,7 @@
   "dependencies": {
     "@azure/msal-common": "^1.7.2",
     "bindings": "^1.5.0",
-    "keytar": "7.0.0",
+    "keytar": "^7.6.0",
     "nan": "^2.13.2"
   },
   "devDependencies": {

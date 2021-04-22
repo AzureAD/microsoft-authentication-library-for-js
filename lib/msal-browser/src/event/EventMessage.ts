@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, AuthError, EndSessionRequest } from "@azure/msal-common";
+import { AuthenticationResult, AuthError } from "@azure/msal-common";
 import { EventType } from "./EventType";
 import { InteractionStatus, InteractionType } from "../utils/BrowserConstants";
-import { PopupRequest, RedirectRequest, SilentRequest, SsoSilentRequest } from "..";
+import { PopupRequest, RedirectRequest, SilentRequest, SsoSilentRequest, EndSessionRequest } from "..";
 
 export type EventMessage = {
     eventType: EventType;
@@ -16,7 +16,11 @@ export type EventMessage = {
     timestamp: number;
 };
 
-export type EventPayload = PopupRequest | RedirectRequest | SilentRequest | SsoSilentRequest | EndSessionRequest | AuthenticationResult | null;
+export type PopupEvent = {
+    popupWindow: Window;
+};
+
+export type EventPayload = PopupRequest | RedirectRequest | SilentRequest | SsoSilentRequest | EndSessionRequest | AuthenticationResult | PopupEvent | null;
 
 export type EventError = AuthError | Error | null;
 
@@ -26,7 +30,7 @@ export class EventMessageUtils {
 
     /**
      * Gets interaction status from event message
-     * @param message 
+     * @param message
      */
     static getInteractionStatusFromEvent(message: EventMessage): InteractionStatus|null {
         switch (message.eventType) {
@@ -48,7 +52,7 @@ export class EventMessageUtils {
             case EventType.HANDLE_REDIRECT_END:
             case EventType.LOGIN_FAILURE:
             case EventType.SSO_SILENT_FAILURE:
-            case EventType.LOGOUT_FAILURE:
+            case EventType.LOGOUT_END:
                 return InteractionStatus.None;
             case EventType.ACQUIRE_TOKEN_SUCCESS:
             case EventType.ACQUIRE_TOKEN_FAILURE:

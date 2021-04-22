@@ -2,6 +2,124 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Wed, 14 Apr 2021 18:39:53 GMT",
+      "tag": "@azure/msal-node_v1.0.2",
+      "version": "1.0.2",
+      "comments": {
+        "none": [
+          {
+            "comment": "key vault sample",
+            "author": "dogan.erisen@gmail.com",
+            "commit": "f707b4ba807ceb4df1f4cc6a6a9b8bb7eb0109a3",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Add Node.js version support in FAQ(#3290)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "42fb1e77077b397be38e924a16361bb512833d1e",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "[msal-node] fix broken links",
+            "author": "dogan.erisen@gmail.com",
+            "commit": "e6c8b7871480e25d9f1ab51a057dd8f16eaff02a",
+            "package": "@azure/msal-node"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "feat: fix the device code cancellation flag",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "74f2dfce8804e25035cd3ba21d195530a3fba450",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Add support for AccessToken_With_AuthScheme credential type #3426",
+            "author": "hectormgdev@gmail.com",
+            "commit": "c35e120dd8af5dda03b2480cf559cf226fb2fc21",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 03 Mar 2021 17:04:22 GMT",
+      "tag": "@azure/msal-node_v1.0.0",
+      "version": "1.0.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "adding docs and samples for using certificates and key vault",
+            "author": "dogan.erisen@gmail.com",
+            "commit": "f707b4ba807ceb4df1f4cc6a6a9b8bb7eb0109a3",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 18 Feb 2021 00:34:32 GMT",
+      "tag": "@azure/msal-node_v1.0.0",
+      "version": "1.0.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "update msal-node landing page & samples page",
+            "author": "dogan.erisen@gmail.com",
+            "commit": "c6de840d684291617012cfe444bc5759645076ea",
+            "package": "@azure/msal-node"
+          }
+        ],
+        "prerelease": [
+          {
+            "comment": "ADD FAQs (#3038)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "20f94c3970fb14c7508aa7b61ba80e1639c50605",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Update node version support in package.json(#2998)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "09f9a00784c40b3d2ca8a60ceef7fcefe47dd215",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 09 Feb 2021 01:48:22 GMT",
+      "tag": "@azure/msal-node_v1.0.0-beta.6",
+      "version": "1.0.0-beta.6",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Fix version.json import errors (#2993)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6dc3bc9e2148bc53b181d9f079f6e11e0159620b",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Ignore OIDC scopes during cache lookup or replacement (#2969)",
+            "author": "prkanher@microsoft.com",
+            "commit": "b113b562ffc33ad44b8d98417753db397256aadf",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Set the validateStatus locally than globally for `axios` (#2959)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "55617cb8bc5289c29fd4357a16605b6720195cbc",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Add API Extractor for msal-node",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "01747296efdf08eefe585930097d9bbbf6b00789",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 02 Feb 2021 01:56:47 GMT",
       "tag": "@azure/msal-node_v1.0.0-beta.5",
       "version": "1.0.0-beta.5",

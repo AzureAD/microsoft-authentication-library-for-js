@@ -10,23 +10,23 @@ import {
     AuthenticationResult,
     Authority,
     AuthorityFactory,
-    Constants,
     BaseAuthRequest,
     SilentFlowClient,
     Logger,
     ServerTelemetryManager,
     ServerTelemetryRequest,
-    SilentFlowRequest as CommonSilentFlowRequest,
-    RefreshTokenRequest as CommonRefreshTokenRequest,
-    AuthorizationCodeRequest as CommonAuthorizationCodeRequest,
-    AuthorizationUrlRequest as CommonAuthorizationUrlRequest,
+    CommonSilentFlowRequest,
+    CommonRefreshTokenRequest,
+    CommonAuthorizationCodeRequest,
+    CommonAuthorizationUrlRequest,
     AuthenticationScheme,
     ResponseMode,
-    AuthorityOptions
+    AuthorityOptions,
+    OIDC_DEFAULT_SCOPES
 } from "@azure/msal-common";
 import { Configuration, buildAppConfiguration } from "../config/Configuration";
 import { CryptoProvider } from "../crypto/CryptoProvider";
-import { Storage } from "../cache/Storage";
+import { NodeStorage } from "../cache/NodeStorage";
 import { Constants as NodeConstants, ApiId } from "../utils/Constants";
 import { TokenCache } from "../cache/TokenCache";
 import { ClientAssertion } from "./ClientAssertion";
@@ -34,16 +34,36 @@ import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { SilentFlowRequest } from "../request/SilentFlowRequest";
-import { version, name } from "../version.json";
+import { version, name } from "../packageMetadata";
 
+/**
+ * Base abstract class for all ClientApplications - public and confidential
+ * @public
+ */
 export abstract class ClientApplication {
-    private readonly cryptoProvider: CryptoProvider;
-    protected storage: Storage;
-    private tokenCache: TokenCache;
-    protected logger: Logger;
-    protected config: Configuration;
 
+    private readonly cryptoProvider: CryptoProvider;
+    private tokenCache: TokenCache;
+
+    /**
+     * Platform storage object
+     */
+    protected storage: NodeStorage;
+    /**
+     * Logger object to log the application flow
+     */
+    protected logger: Logger;
+    /**
+     * Platform configuration initialized by the application
+     */
+    protected config: Configuration;
+    /**
+     * Client assertion passed by the user for confidential client flows
+     */
     protected clientAssertion: ClientAssertion;
+    /**
+     * Client secret passed by the user for confidential client flows
+     */
     protected clientSecret: string;
 
     /**
@@ -53,7 +73,7 @@ export abstract class ClientApplication {
         this.config = buildAppConfiguration(configuration);
         this.cryptoProvider = new CryptoProvider();
         this.logger = new Logger(this.config.system!.loggerOptions!, name, version);
-        this.storage = new Storage(this.logger, this.config.auth.clientId, this.cryptoProvider);
+        this.storage = new NodeStorage(this.logger, this.config.auth.clientId, this.cryptoProvider);
         this.tokenCache = new TokenCache(
             this.storage,
             this.logger,
@@ -200,12 +220,17 @@ export abstract class ClientApplication {
 
     /**
      * Replaces the default logger set in configurations with new Logger with new configurations
-     * @param logger Logger instance
+     * @param logger - Logger instance
      */
     setLogger(logger: Logger): void {
         this.logger = logger;
     }
 
+    /**
+     * Builds the common configuration to be passed to the common component based on the platform configurarion
+     * @param authority - user passed authority in configuration
+     * @param serverTelemetryManager - initializes servertelemetry if passed
+     */
     protected async buildOauthClientConfiguration(authority: string, serverTelemetryManager?: ServerTelemetryManager): Promise<ClientConfiguration> {
         this.logger.verbose("buildOauthClientConfiguration called");
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
@@ -252,19 +277,31 @@ export abstract class ClientApplication {
 
     /**
      * Generates a request with the default scopes & generates a correlationId.
-     * @param authRequest
+     * @param authRequest - BaseAuthRequest for initialization
      */
     protected initializeBaseRequest(authRequest: Partial<BaseAuthRequest>): BaseAuthRequest {
         this.logger.verbose("initializeRequestScopes called");
+        // Default authenticationScheme to Bearer, log that POP isn't supported yet
+        if (authRequest.authenticationScheme && authRequest.authenticationScheme === AuthenticationScheme.POP) {
+            this.logger.verbose("Authentication Scheme 'pop' is not supported yet, setting Authentication Scheme to 'Bearer' for request");
+        }
+
+        authRequest.authenticationScheme = AuthenticationScheme.BEARER;
 
         return {
             ...authRequest,
-            scopes: [...((authRequest && authRequest.scopes) || []), Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE],
+            scopes: [...((authRequest && authRequest.scopes) || []), ...OIDC_DEFAULT_SCOPES],
             correlationId: authRequest && authRequest.correlationId || this.cryptoProvider.createNewGuid(),
             authority: authRequest.authority || this.config.auth.authority!
         };
     }
 
+    /**
+     * Initializes the server telemetry payload
+     * @param apiId - Id for a specific request
+     * @param correlationId - GUID
+     * @param forceRefresh - boolean to indicate network call
+     */
     protected initializeServerTelemetryManager(apiId: number, correlationId: string, forceRefresh?: boolean): ServerTelemetryManager {
         const telemetryPayload: ServerTelemetryRequest = {
             clientId: this.config.auth.clientId,
@@ -279,7 +316,7 @@ export abstract class ClientApplication {
     /**
      * Create authority instance. If authority not passed in request, default to authority set on the application
      * object. If no authority set in application object, then default to common authority.
-     * @param authorityString
+     * @param authorityString - authority from user configuration
      */
     private async createAuthority(authorityString: string): Promise<Authority> {
         this.logger.verbose("createAuthority called");

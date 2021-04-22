@@ -5,7 +5,7 @@
 
 import { DeviceCodeResponse, ServerDeviceCodeResponse } from "../response/DeviceCodeResponse";
 import { BaseClient } from "./BaseClient";
-import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
+import { CommonDeviceCodeRequest } from "../request/CommonDeviceCodeRequest";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { Constants, GrantType } from "../utils/Constants";
@@ -31,7 +31,7 @@ export class DeviceCodeClient extends BaseClient {
      * polls token endpoint to exchange device code for tokens
      * @param request
      */
-    public async acquireToken(request: DeviceCodeRequest): Promise<AuthenticationResult | null> {
+    public async acquireToken(request: CommonDeviceCodeRequest): Promise<AuthenticationResult | null> {
         const deviceCodeResponse: DeviceCodeResponse = await this.getDeviceCode(request);
         request.deviceCodeCallback(deviceCodeResponse);
         const reqTimestamp = TimeUtils.nowSeconds();
@@ -54,8 +54,7 @@ export class DeviceCodeClient extends BaseClient {
             response,
             this.authority,
             reqTimestamp,
-            request.resourceRequestMethod,
-            request.resourceRequestUri
+            request
         );
     }
 
@@ -63,7 +62,7 @@ export class DeviceCodeClient extends BaseClient {
      * Creates device code request and executes http GET
      * @param request
      */
-    private async getDeviceCode(request: DeviceCodeRequest): Promise<DeviceCodeResponse> {
+    private async getDeviceCode(request: CommonDeviceCodeRequest): Promise<DeviceCodeResponse> {
         const queryString = this.createQueryString(request);
         const headers = this.createDefaultTokenRequestHeaders();
         const thumbprint: RequestThumbprint = {
@@ -117,7 +116,7 @@ export class DeviceCodeClient extends BaseClient {
     /**
      * Create device code endpoint query parameters and returns string
      */
-    private createQueryString(request: DeviceCodeRequest): string {
+    private createQueryString(request: CommonDeviceCodeRequest): string {
 
         const parameterBuilder: RequestParameterBuilder = new RequestParameterBuilder();
 
@@ -138,13 +137,13 @@ export class DeviceCodeClient extends BaseClient {
      * @param deviceCodeResponse
      */
     private async acquireTokenWithDeviceCode(
-        request: DeviceCodeRequest,
+        request: CommonDeviceCodeRequest,
         deviceCodeResponse: DeviceCodeResponse): Promise<ServerAuthorizationTokenResponse> {
 
         const requestBody = this.createTokenRequestBody(request, deviceCodeResponse);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
 
-        const userSpecifiedTimeout = request.timeout ? TimeUtils.nowSeconds() + request.timeout : undefined; 
+        const userSpecifiedTimeout = request.timeout ? TimeUtils.nowSeconds() + request.timeout : undefined;
         const deviceCodeExpirationTime = TimeUtils.nowSeconds() + deviceCodeResponse.expiresIn;
         const pollingIntervalMilli = deviceCodeResponse.interval * 1000;
 
@@ -164,12 +163,12 @@ export class DeviceCodeClient extends BaseClient {
 
                     } else if (userSpecifiedTimeout && userSpecifiedTimeout < deviceCodeExpirationTime && TimeUtils.nowSeconds() > userSpecifiedTimeout) {
 
-                        this.logger.error(`User defined timeout for device code polling reached. The timeout was set for ${userSpecifiedTimeout}`);   
+                        this.logger.error(`User defined timeout for device code polling reached. The timeout was set for ${userSpecifiedTimeout}`);
                         clearInterval(intervalId);
                         reject(ClientAuthError.createUserTimeoutReachedError());
 
                     } else if (TimeUtils.nowSeconds() > deviceCodeExpirationTime) {
-                        
+
                         if (userSpecifiedTimeout) {
                             this.logger.verbose(`User specified timeout ignored as the device code has expired before the timeout elapsed. The user specified timeout was set for ${userSpecifiedTimeout}`);
                         }
@@ -211,7 +210,7 @@ export class DeviceCodeClient extends BaseClient {
      * @param request
      * @param deviceCodeResponse
      */
-    private createTokenRequestBody(request: DeviceCodeRequest, deviceCodeResponse: DeviceCodeResponse): string {
+    private createTokenRequestBody(request: CommonDeviceCodeRequest, deviceCodeResponse: DeviceCodeResponse): string {
 
         const requestParameters: RequestParameterBuilder = new RequestParameterBuilder();
 
@@ -222,6 +221,12 @@ export class DeviceCodeClient extends BaseClient {
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         requestParameters.addCorrelationId(correlationId);
         requestParameters.addClientInfo();
+        requestParameters.addLibraryInfo(this.config.libraryInfo);
+        requestParameters.addThrottling();
+        
+        if (this.serverTelemetryManager) {
+            requestParameters.addServerTelemetry(this.serverTelemetryManager);
+        }
 
         if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             requestParameters.addClaims(request.claims, this.config.authOptions.clientCapabilities);

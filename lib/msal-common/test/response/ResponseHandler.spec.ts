@@ -8,7 +8,7 @@ import { Authority } from "../../src/authority/Authority";
 import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { ClientTestUtils } from "../client/ClientTestUtils";
-import { AccountEntity, ClientAuthError, ClientAuthErrorMessage, InteractionRequiredAuthError, ServerError, AuthToken, AuthError, TokenClaims, AuthenticationScheme, ProtocolMode, Logger, LogLevel, AuthorityOptions, TimeUtils } from "../../src";
+import { AccountEntity, ClientAuthError, ClientAuthErrorMessage, InteractionRequiredAuthError, ServerError, AuthToken, AuthError, TokenClaims, AuthenticationScheme, ProtocolMode, Logger, LogLevel, AuthorityOptions, TimeUtils, BaseAuthRequest } from "../../src";
 import { ServerAuthorizationCodeResponse } from "../../src/response/ServerAuthorizationCodeResponse";
 import { MockStorageClass } from "../client/ClientTestUtils";
 
@@ -106,11 +106,16 @@ describe("ResponseHandler.ts", () => {
     describe("generateCacheRecord", async () => {
         it("throws invalid cache environment error", async () => {
             preferredCacheStub.returns("");
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"]
+            };
             const testResponse: ServerAuthorizationTokenResponse = {...AUTHENTICATION_RESULT.body};
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
             try {
                 const timestamp = TimeUtils.nowSeconds();
-                const tokenResp = await responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp);
+                const tokenResp = await responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp, testRequest);
                 expect(tokenResp).to.be.undefined;
             } catch(e) {
                 if (e instanceof AuthError) {
@@ -124,12 +129,17 @@ describe("ResponseHandler.ts", () => {
         });
 
         it("doesn't create AccessTokenEntity if access_token not in response", (done) => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"]
+            };
             const testResponse: ServerAuthorizationTokenResponse = {...AUTHENTICATION_RESULT.body};
             testResponse.access_token = null;
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
 
-            sinon.stub(ResponseHandler, "generateAuthenticationResult").callsFake((cryptoObj, authority, cacheRecord, idTokenObj, fromTokenCache, stateString, resourceReqMethod, resourceReqUri) => {
+            sinon.stub(ResponseHandler, "generateAuthenticationResult").callsFake((cryptoObj, authority, cacheRecord, request, idTokenObj, fromTokenCache, stateString) => {
                 expect(authority).to.be.eq(testAuthority);
                 expect(cacheRecord.idToken).to.not.be.null;
                 expect(cacheRecord.accessToken).to.be.null;
@@ -138,10 +148,15 @@ describe("ResponseHandler.ts", () => {
                 return null;
             });
             const timestamp = TimeUtils.nowSeconds();
-            responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp);
+            responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp, testRequest);
         });
 
         it("doesn't create RefreshTokenEntity if refresh_token not in response", (done) => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"]
+            };
             const testResponse: ServerAuthorizationTokenResponse = {...AUTHENTICATION_RESULT.body};
             testResponse.refresh_token = null;
 
@@ -157,10 +172,15 @@ describe("ResponseHandler.ts", () => {
             });
 
             const timestamp = TimeUtils.nowSeconds();
-            responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp);
+            responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp, testRequest);
         });
 
         it("create CacheRecord with all token entities", (done) => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"]
+            };
             const testResponse: ServerAuthorizationTokenResponse = {...AUTHENTICATION_RESULT.body};
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
@@ -175,7 +195,7 @@ describe("ResponseHandler.ts", () => {
             });
 
             const timestamp = TimeUtils.nowSeconds();
-            responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp);
+            responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp, testRequest);
         });
     });
 
@@ -183,24 +203,40 @@ describe("ResponseHandler.ts", () => {
         it("throws error if access_token not in cacheRecord", async () => {
             const testResponse: ServerAuthorizationTokenResponse = {...AUTHENTICATION_RESULT.body};
             testResponse.access_token = undefined;
-
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"]
+            };
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
             const timestamp = TimeUtils.nowSeconds();
-            await expect(responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp)).rejectedWith(ClientAuthErrorMessage.accessTokenEntityNullError.desc);
+            await expect(responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp, testRequest)).rejectedWith(ClientAuthErrorMessage.accessTokenEntityNullError.desc);
         });
 
         it("sets default values if refresh_token not in cacheRecord", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"]
+            };
             const testResponse: ServerAuthorizationTokenResponse = {...AUTHENTICATION_RESULT.body};
             testResponse.refresh_token = undefined;
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
             const timestamp = TimeUtils.nowSeconds();
-            const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp);
+            const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp, testRequest);
 
             expect(result.familyId).to.be.eq("");
         });
 
         it("sets default values for access token using PoP scheme", async () => {
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"],
+                resourceRequestMethod: "POST",
+                resourceRequestUri: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS
+            };
             const testResponse: ServerAuthorizationTokenResponse = { ...POP_AUTHENTICATION_RESULT.body };
             claimsStub.callsFake((encodedToken: string, crypto: ICrypto): TokenClaims => {
                 switch (encodedToken) {
@@ -219,7 +255,7 @@ describe("ResponseHandler.ts", () => {
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
             const timestamp = TimeUtils.nowSeconds();
-            const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp, "POST", TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS);
+            const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp, testRequest);
 
             expect(result.tokenType).to.be.eq(AuthenticationScheme.POP);
             expect(result.accessToken).to.be.eq(signedJwt);

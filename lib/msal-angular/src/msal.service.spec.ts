@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { AuthenticationResult, AuthError, InteractionType, PublicClientApplication, SilentRequest } from '@azure/msal-browser';
+import { AuthenticationResult, AuthError, InteractionType, Logger, PublicClientApplication, SilentRequest } from '@azure/msal-browser';
 import { MsalModule, MsalBroadcastService, MsalService } from './public-api';
 
 let authService: MsalService;
@@ -98,6 +98,42 @@ describe('MsalService', () => {
 
       expect(PublicClientApplication.prototype.loginRedirect).toHaveBeenCalled();
     });
+  });
+
+  describe("logout", () => {
+    it("calls logout on msalService", async () => {
+      spyOn(PublicClientApplication.prototype, "logout").and.returnValue((
+        new Promise((resolve) => {
+          resolve();
+        })
+      ));
+      await authService.logout();
+      expect(PublicClientApplication.prototype.logout).toHaveBeenCalled();
+    })
+  });
+
+  describe("logoutPopup", () => {
+    it("calls logoutPopup on msalService", async () => {
+      spyOn(PublicClientApplication.prototype, "logoutPopup").and.returnValue((
+        new Promise((resolve) => {
+          resolve();
+        })
+      ));
+      await authService.logoutPopup();
+      expect(PublicClientApplication.prototype.logoutPopup).toHaveBeenCalled();
+    })
+  });
+
+  describe("logoutRedirect", () => {
+    it("calls logoutRedirect on msalService", async () => {
+      spyOn(PublicClientApplication.prototype, "logoutRedirect").and.returnValue((
+        new Promise((resolve) => {
+          resolve();
+        })
+      ));
+      await authService.logoutRedirect();
+      expect(PublicClientApplication.prototype.logoutRedirect).toHaveBeenCalled();
+    })
   });
 
   describe("ssoSilent", () => {
@@ -312,6 +348,36 @@ describe('MsalService', () => {
         });
     });
 
+    it("called with hash", (done) => {
+      const sampleAccessToken = {
+        accessToken: "123abc"
+      };
+
+      const hash = '#/test';
+
+      spyOn(PublicClientApplication.prototype, "handleRedirectPromise").and.returnValue((
+        new Promise((resolve) => {
+          //@ts-ignore
+          resolve(sampleAccessToken);
+        })
+      ));
+
+      authService.handleRedirectObservable(hash)
+        .subscribe((response: AuthenticationResult) => {
+          expect(response.accessToken).toBe(sampleAccessToken.accessToken);
+          expect(PublicClientApplication.prototype.handleRedirectPromise).toHaveBeenCalledWith(hash);
+          done();
+        });
+    });
+
   });
+
+  describe("setLogger", () => {
+    it("works", () => {
+      spyOn(PublicClientApplication.prototype, "setLogger");
+      authService.setLogger(new Logger({}));
+      expect(PublicClientApplication.prototype.setLogger).toHaveBeenCalled();
+    })
+  })
 
 });

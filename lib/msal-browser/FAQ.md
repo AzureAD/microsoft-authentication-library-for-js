@@ -24,6 +24,7 @@
 1. [What is the difference between sessionStorage and localStorage?](#what-is-the-difference-between-sessionstorage-and-localstorage)
 1. [What are the possible configuration options?](#what-are-the-possible-configuration-options)
 1. [Where is the authority string on Azure AD Portal?](#where-is-the-authority-domain-string-on-azure-ad-portal)
+1. [What should I set my redirectUri to?](#what-should-i-set-my-redirecturi-to)
 1. [Why is fragment the only valid field for responseMode in msal-browser?](#why-is-fragment-the-only-valid-field-for-responsemode-in-msal-browser)
 
 **[Tokens](#Tokens)**
@@ -58,15 +59,34 @@
 
 ## What browsers are supported by MSAL.js?
 
-MSAL.js has been tested with the following browsers:
+MSAL.js has been tested and supports the last 2 stable and supported versions of the following browsers:
 
-IE 11, Edge, Chrome, Firefox and Safari
+- Chrome
+- Edge (Chromium)
+- Firefox
+- Safari
+- Opera
 
-Keep these steps in mind when [using MSAL.js with IE](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Using-msal.js-with-Internet-Explorer).
+MSAL.js has also been tested and supports the following browsers with Promise polyfills (not included):
 
-There are certain known issues and mitigations documented for Safari, IE and Edge. Please check out:
-* [Known issues on IE and Edge](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Known-issues-on-IE-and-Edge-Browser)
-* [Known issue on Safari](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Known-issue-on-Safari)
+- IE 11
+- Edge (Legacy)
+
+Keep [these steps](./docs/internet-explorer.md) in mind when using MSAL.js with IE or Edge Legacy. Support for these browsers will be dropped in the next major version of `@azure/msal-browser` (v3).
+
+MSAL.js also supports the following environments:
+
+- WebViews
+- Chromium Extensions
+- Office Add-ins
+- Teams Applications
+
+### Known Issues with Certain Browsers
+
+There are certain known issues and mitigations documented for the following browsers:
+
+- [Browsers that block 3rd Party Cookies (i.e. Safari, Chrome Incognito, Firefox Private)](https://docs.microsoft.com/azure/active-directory/develop/reference-third-party-cookies-spas)
+- [IE 11 and Edge Legacy](./docs/internet-explorer.md)
 
 ## I am moving from MSAL.js 1.x to MSAL.js to 2.x. What should I know?
 
@@ -131,6 +151,23 @@ For MSAL.js 2.x, please review [this document](https://github.com/AzureAD/micros
 ## Where is the `authority` domain string on Azure AD Portal?
 
 The `authority` string that you need to supplant to MSAL app configuration is not explicitly listed among the **Endpoint** links on `Azure Portal/AzureAD/App Registration/Overview` page. It is simply the domain part of a `/token` or `/authorize` endpoint, followed by the tenant name or ID e.g. `https://login.microsoftonline.com/common`.
+
+## What should I set my `redirectUri` to?
+
+When you attempt to authenticate MSAL will navigate to your IDP's sign in page either in the current window, a popup window or a hidden iframe depending on whether you used a redirect, popup or silent API respectively. When authentication is complete the IDP will redirect the window to the `redirectUri` specified in the request with the authentication response in the url hash. You can use any page in your application as your `redirectUri` but there are some additional considerations you should be aware of depending on which API you are using. All pages used as a `redirectUri` **must** be registered as a Reply Url of type "SPA" on your app registration.
+
+### RedirectUri for popup and silent flows
+
+When using popup and silent APIs we recommend setting the `redirectUri` to a blank page, a page that does not implement MSAL, or a page that does not itself require a user be authenticated. This will help prevent potential issues as well as improve performance. If your application is only using popup and silent APIs you can set this on the `PublicClientApplication` config. If your application also needs to support redirect APIs you can set the `redirectUri` on a per request basis.
+
+### RedirectUri for redirect flows
+
+When using the redirect APIs you **must** set your `redirectUri` to a page that implements MSAL and that page must also invoke `handleRedirectPromise` in order to process the response. If using `msal-react` or `msal-angular`, `handleRedirectPromise` may be invoked by default, please refer to the docs for those libraries for more specific guidance.
+
+Additional notes:
+
+* If the page that you use as your `redirectUri` requires authentication and automatically invokes a login API, you should ensure that `handleRedirectPromise` has resolved and a user is not signed in **before** invoking the login API.
+* If the page that invokes `loginRedirect` is **different** than your `redirectUri` you will first be redirected to the `redirectUri` then back to the original page. You should invoke `handleRedirectPromise` on both the `redirectUri` **and** the original page. If this is undesired and you would like to stay on the `redirectUri` you can set `navigateToLoginRequestUrl` to `false` in the `PublicClientApplication` config.
 
 ## Why is `fragment` the only valid field for `responseMode` in `msal-browser`?
 

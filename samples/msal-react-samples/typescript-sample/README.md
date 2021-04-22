@@ -9,7 +9,7 @@ This sample was bootstrapped with [Create React App](https://github.com/facebook
 
 ### Pre-requisites
 
-- Ensure [all pre-requisites](../../../lib/msal-react/README.md#prerequisites) have been completed to run msal-react.
+- Ensure [all pre-requisites](../../../lib/msal-react/README.md#prerequisites) have been completed to run `@azure/msal-react`.
 - Install node.js if needed (<https://nodejs.org/en/>).
 
 ### Configure the application
@@ -17,7 +17,7 @@ This sample was bootstrapped with [Create React App](https://github.com/facebook
 - Open `./src/authConfig.ts` in an editor.
 - Replace client id with the Application (client) ID from the portal registration, or use the currently configured lab registration.
   - Optionally, you may replace any of the other parameters, or you can remove them and use the default values.
-- If you are using this sample on it's own (without local builds of `msal-react` and `msal-browser`) you will also need to update the `package.json` file to specify the versions of `@azure/msal-react`, `@azure/msal-browser`, `react` and `react-dom` you would like to use.
+- If you are using this sample on it's own (without local builds of `@azure/msal-react` and `@azure/msal-browser`) you will also need to update the `package.json` file to specify the versions of `@azure/msal-react`, `@azure/msal-browser`, `react` and `react-dom` you would like to use.
 
 #### Install npm dependencies for sample
 
