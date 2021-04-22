@@ -32,7 +32,6 @@ export class NodeStorage extends CacheManager {
 
     constructor(logger: Logger, clientId: string, cryptoImpl: ICrypto) {
         super(clientId, cryptoImpl, logger);
-        this.logger = logger;
     }
 
     /**
