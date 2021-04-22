@@ -565,7 +565,7 @@ export abstract class CacheManager implements ICacheManager {
 
             if (kid) {
                 this.cryptoImpl.removeTokenBindingKey(kid).catch((error) => {
-                    this.logger.verbose(`Crypto Keypair was not removed from key store: ${error}`);
+                    this.logger.error(`Crypto Keypair was not removed from key store: ${error}`);
                 });
             }
         }
