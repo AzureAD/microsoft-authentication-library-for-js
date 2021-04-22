@@ -36,7 +36,7 @@ const KEY_ALGORITHM_MAP: StringDict = {
 
 export class JsonWebEncryption {
     private base64Decode: Base64Decode;
-    private header: JoseHeader;
+    public header: JoseHeader;
     private encryptedKey: string;
     private initializationVector: string;
     private ciphertext: string;
