@@ -10,19 +10,21 @@ import {
     AuthorizationCodeRequest,
     AuthorizationUrlRequest,
     AuthenticationResult,
-    SilentFlowRequest } from "@azure/msal-node";
+    SilentFlowRequest, 
+    CryptoProvider} from "@azure/msal-node";
 import { AuthCodeListener } from "./AuthCodeListener";
 import { cachePlugin } from "./CachePlugin";
 import { BrowserWindow } from "electron";
 import { CustomFileProtocolListener } from "./CustomFileProtocol";
 
-const CUSTOM_FILE_PROTOCOL_NAME = "msal";
+// Change this to load the desired MSAL Client Configuration
+import * as APP_CONFIG from "./config/customConfig.json";
+
+// Redirect URL registered in Azure PPE Lab App
+const CUSTOM_FILE_PROTOCOL_NAME = APP_CONFIG.fileProtocol.name;
 
 const MSAL_CONFIG: Configuration = {
-    auth: {
-        clientId: "89e61572-2f96-47ba-b571-9d8c8f96b69d",
-        authority: "https://login.microsoftonline.com/5d97b14d-c396-4aee-b524-c86d33e9b660",
-    },
+    auth: APP_CONFIG.authOptions,
     cache: {
         cachePlugin
     },
@@ -32,7 +34,7 @@ const MSAL_CONFIG: Configuration = {
                 console.log(message);
             },
             piiLoggingEnabled: false,
-            logLevel: LogLevel.Verbose,
+            logLevel: LogLevel.Info,
         }
     }
 };
@@ -46,7 +48,6 @@ export default class AuthProvider {
     private silentProfileRequest: SilentFlowRequest;
     private silentMailRequest: SilentFlowRequest;
     private authCodeListener: AuthCodeListener;
-
     constructor() {
         this.clientApplication = new PublicClientApplication(MSAL_CONFIG);
         this.account = null;
@@ -61,24 +62,18 @@ export default class AuthProvider {
      * Initialize request objects used by this AuthModule.
      */
     private setRequestObjects(): void {
-        const requestScopes =  ['openid', 'profile', 'User.Read'];
-        const redirectUri = "msal://redirect";
 
         const baseSilentRequest = {
             account: null, 
             forceRefresh: false
         };
 
-        this.authCodeUrlParams = {
-            scopes: requestScopes,
-            redirectUri: redirectUri
-        };
+        this.authCodeUrlParams = APP_CONFIG.request.authCodeUrlParameters;
 
         this.authCodeRequest = {
-            scopes: requestScopes,
-            redirectUri: redirectUri,
+            ...APP_CONFIG.request.authCodeRequest,
             code: null
-        }
+        };
 
         this.silentProfileRequest = {
             ...baseSilentRequest,
@@ -117,20 +112,39 @@ export default class AuthProvider {
         try {
             return await this.clientApplication.acquireTokenSilent(tokenRequest);
         } catch (error) {
-            console.log("Silent token acquisition failed, acquiring token using redirect");
+            console.log("Silent token acquisition failed, acquiring token using pop up");
             const authCodeRequest = {...this.authCodeUrlParams, ...tokenRequest };
             return await this.getTokenInteractive(authWindow, authCodeRequest);
         }
     }
 
     async getTokenInteractive(authWindow: BrowserWindow, tokenRequest: AuthorizationUrlRequest ): Promise<AuthenticationResult> {
-        const authCodeUrlParams = { ...this.authCodeUrlParams, scopes: tokenRequest.scopes };
+        // Generate PKCE Challenge and Verifier before request
+        const cryptoProvider = new CryptoProvider();
+        const { challenge, verifier } = await cryptoProvider.generatePkceCodes();
+
+        // Add PKCE params to Auth Code URL request
+        const authCodeUrlParams = { 
+            ...this.authCodeUrlParams,
+            scopes: tokenRequest.scopes,
+            codeChallenge: challenge,
+            codeChallengeMethod: "S256" 
+        };
+
+        // Get Auth Code URL
         const authCodeUrl = await this.clientApplication.getAuthCodeUrl(authCodeUrlParams);
+
+        // Set up custom file protocol to listen for redirect response
         this.authCodeListener = new CustomFileProtocolListener(CUSTOM_FILE_PROTOCOL_NAME);
         this.authCodeListener.start();
         const authCode = await this.listenForAuthCode(authCodeUrl, authWindow);
-        const authResult = await this.clientApplication.acquireTokenByCode({ ...this.authCodeRequest, scopes: tokenRequest.scopes, code: authCode});
-        return authResult;
+
+        // Use Authorization Code and PKCE Code verifier to make token request
+        return await this.clientApplication.acquireTokenByCode({
+            ...this.authCodeRequest,
+            code: authCode,
+            codeVerifier: verifier
+        });
     }
 
     async login(authWindow: BrowserWindow): Promise<AccountInfo> {
@@ -157,13 +171,11 @@ export default class AuthProvider {
         authWindow.loadURL(navigateUrl);
         return new Promise((resolve, reject) => {
             authWindow.webContents.on('will-redirect', (event, responseUrl) => {
-                try {
                     const parsedUrl = new URL(responseUrl);
                     const authCode = parsedUrl.searchParams.get('code');
-                    resolve(authCode);
-                } catch (err) {
-                    reject(err);
-                }
+                    if (authCode) {
+                        resolve(authCode);
+                    }
             });
         });
     }

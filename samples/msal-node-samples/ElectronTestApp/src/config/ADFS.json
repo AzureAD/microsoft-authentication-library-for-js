@@ -1,0 +1,22 @@
+{
+    "authOptions":
+    {
+        "clientId": "c3f3b506-8ca9-4c23-acda-035ee2c9d960",
+        "authority": "https://login.microsoftonline.com/common"  
+    },
+    "request":
+    {
+        "authCodeUrlParameters": {
+            "scopes": ["user.read"],
+            "redirectUri": "msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0://auth"
+        },
+        "authCodeRequest": {
+            "redirectUri": "msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0://auth",
+            "scopes": ["user.read"]
+        }
+    },
+    "resourceApi":
+    {
+        "endpoint": "https://graph.microsoft.com/v1.0/me"
+    }
+}
