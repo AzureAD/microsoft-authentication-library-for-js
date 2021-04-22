@@ -38,7 +38,7 @@ describe("CacheManager.ts test cases", () => {
         sinon.restore();
     });
 
-    it("save account", () => {
+    it("save account", async () => {
         const ac = new AccountEntity();
         ac.homeAccountId = "someUid.someUtid";
         ac.environment = "login.microsoftonline.com";
@@ -51,12 +51,12 @@ describe("CacheManager.ts test cases", () => {
         const accountKey = ac.generateAccountKey();
         const cacheRecord = new CacheRecord();
         cacheRecord.account = ac;
-        mockCache.cacheManager.saveCacheRecord(cacheRecord);
+        await mockCache.cacheManager.saveCacheRecord(cacheRecord);
         const mockCacheAccount = mockCache.cacheManager.getAccount(accountKey)
         expect(mockCacheAccount.homeAccountId).to.eql("someUid.someUtid");
     });
 
-    it("save accessToken", () => {
+    it("save accessToken", async () => {
         const at = new AccessTokenEntity();
         Object.assign(at, {
             homeAccountId: "someUid.someUtid",
@@ -75,14 +75,14 @@ describe("CacheManager.ts test cases", () => {
         const atKey = at.generateCredentialKey();
         const cacheRecord = new CacheRecord();
         cacheRecord.accessToken = at;
-        mockCache.cacheManager.saveCacheRecord(cacheRecord);
+        await mockCache.cacheManager.saveCacheRecord(cacheRecord);
         const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(atKey)
         expect(mockCacheAT.homeAccountId).to.eql("someUid.someUtid");
         expect(mockCacheAT.credentialType).to.eql(CredentialType.ACCESS_TOKEN);
         expect(mockCacheAT.tokenType).to.eql(AuthenticationScheme.BEARER);
     });
 
-    it("save accessToken with Auth Scheme (pop)", () => {
+    it("save accessToken with Auth Scheme (pop)", async () => {
         const at = new AccessTokenEntity();
         Object.assign(at, {
             homeAccountId: "someUid.someUtid",
@@ -102,7 +102,7 @@ describe("CacheManager.ts test cases", () => {
         const atKey = at.generateCredentialKey();
         const cacheRecord = new CacheRecord();
         cacheRecord.accessToken = at;
-        mockCache.cacheManager.saveCacheRecord(cacheRecord);
+        await mockCache.cacheManager.saveCacheRecord(cacheRecord);
         const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(atKey);
         expect(mockCacheAT.homeAccountId).to.eql("someUid.someUtid");
         expect(mockCacheAT.credentialType).to.eql(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
@@ -110,7 +110,7 @@ describe("CacheManager.ts test cases", () => {
         expect(mockCacheAT.keyId).to.not.be.undefined;
     });
 
-    it("getAccount", () => {
+    it("getAccount", async () => {
         const ac = new AccountEntity();
         ac.homeAccountId = "someUid.someUtid";
         ac.environment = "login.microsoftonline.com";
@@ -123,13 +123,13 @@ describe("CacheManager.ts test cases", () => {
         const accountKey = ac.generateAccountKey();
         const cacheRecord = new CacheRecord();
         cacheRecord.account = ac;
-        mockCache.cacheManager.saveCacheRecord(cacheRecord);
+        await mockCache.cacheManager.saveCacheRecord(cacheRecord);
 
         expect(mockCache.cacheManager.getAccount(accountKey).homeAccountId).to.eql("someUid.someUtid");
         expect(mockCache.cacheManager.getAccount("")).to.be.null;
     });
 
-    it("getAccessTokenCredential (Bearer)", () => {
+    it("getAccessTokenCredential (Bearer)", async () => {
         const accessTokenEntity = new AccessTokenEntity();
         accessTokenEntity.homeAccountId = "someUid.someUtid";
         accessTokenEntity.environment = "login.microsoftonline.com";
@@ -141,12 +141,12 @@ describe("CacheManager.ts test cases", () => {
         const credKey = accessTokenEntity.generateCredentialKey();
         const cacheRecord = new CacheRecord();
         cacheRecord.accessToken = accessTokenEntity;
-        mockCache.cacheManager.saveCacheRecord(cacheRecord);
+        await mockCache.cacheManager.saveCacheRecord(cacheRecord);
         expect(mockCache.cacheManager.getAccessTokenCredential(credKey).homeAccountId).to.eql("someUid.someUtid");
         expect(mockCache.cacheManager.getAccessTokenCredential(credKey).credentialType).to.eql(CredentialType.ACCESS_TOKEN);
     });
 
-    it("getAccessTokenCredential (POP)", () => {
+    it("getAccessTokenCredential (POP)", async () => {
         const accessTokenEntity = new AccessTokenEntity();
         accessTokenEntity.homeAccountId = "someUid.someUtid";
         accessTokenEntity.environment = "login.microsoftonline.com";
@@ -158,7 +158,7 @@ describe("CacheManager.ts test cases", () => {
         const credKey = accessTokenEntity.generateCredentialKey();
         const cacheRecord = new CacheRecord();
         cacheRecord.accessToken = accessTokenEntity;
-        mockCache.cacheManager.saveCacheRecord(cacheRecord);
+        await mockCache.cacheManager.saveCacheRecord(cacheRecord);
         expect(mockCache.cacheManager.getAccessTokenCredential(credKey).homeAccountId).to.eql("someUid.someUtid");
         expect(mockCache.cacheManager.getAccessTokenCredential(credKey).credentialType).to.eql(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
 
@@ -341,7 +341,7 @@ describe("CacheManager.ts test cases", () => {
         expect(mockCache.cacheManager.getAppMetadata("appmetadata-login.microsoftonline.com-mock_client_id_1")).to.be.undefined;
     });
 
-    it("removeAllAccounts", () => {
+    it("removeAllAccounts", async () => {
         const ac = new AccountEntity();
         ac.homeAccountId = "someUid.someUtid";
         ac.environment = "login.microsoftonline.com";
@@ -353,21 +353,21 @@ describe("CacheManager.ts test cases", () => {
 
         const cacheRecord = new CacheRecord();
         cacheRecord.account = ac;
-        mockCache.cacheManager.saveCacheRecord(cacheRecord);
+        await mockCache.cacheManager.saveCacheRecord(cacheRecord);
 
-        mockCache.cacheManager.removeAllAccounts();
+        await mockCache.cacheManager.removeAllAccounts();
 
         // Only app metadata remaining
         expect(mockCache.cacheManager.getKeys().length === 1).to.be.true;
     });
 
-    it("removeAccount", () => {
+    it("removeAccount", async () => {
         expect(mockCache.cacheManager.getAccount("uid.utid-login.microsoftonline.com-microsoft")).to.not.be.null;
-        mockCache.cacheManager.removeAccount("uid.utid-login.microsoftonline.com-microsoft");
+        await mockCache.cacheManager.removeAccount("uid.utid-login.microsoftonline.com-microsoft");
         expect(mockCache.cacheManager.getAccount("uid.utid-login.microsoftonline.com-microsoft")).to.be.null;
     });
 
-    it("removeCredential", () => {
+    it("removeCredential", async () => {
         const at = new AccessTokenEntity();
         Object.assign(at, {
             homeAccountId: "someUid.someUtid",
@@ -382,12 +382,12 @@ describe("CacheManager.ts test cases", () => {
             extendedExpiresOn: "4600",
         });
 
-        mockCache.cacheManager.removeCredential(at);
+        await mockCache.cacheManager.removeCredential(at);
         const atKey = at.generateCredentialKey();
         expect(mockCache.cacheManager.getAccount(atKey)).to.be.null;
     });
 
-    it("removes token binding key when removeCredential is called for an AccessToken_With_AuthScheme credential", () =>{
+    it("removes token binding key when removeCredential is called for an AccessToken_With_AuthScheme credential", async () =>{
         const atWithAuthScheme = new AccessTokenEntity();
         const atWithAuthSchemeData = {
             environment: "login.microsoftonline.com",
@@ -408,7 +408,7 @@ describe("CacheManager.ts test cases", () => {
 
         Object.assign(atWithAuthScheme, atWithAuthSchemeData);
 
-        mockCache.cacheManager.removeCredential(atWithAuthScheme);
+        await mockCache.cacheManager.removeCredential(atWithAuthScheme);
         const atKey = atWithAuthScheme.generateCredentialKey();
         expect(mockCache.cacheManager.getAccount(atKey)).to.be.null;
         expect(removeTokenBindingKeySpy.getCall(0).args[0]).to.eq(atWithAuthSchemeData.keyId);
