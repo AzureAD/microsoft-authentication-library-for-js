@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { BaseAuthRequest, ICrypto, PkceCodes, SignedHttpRequest } from "@azure/msal-common";
+import { BaseAuthRequest, ICrypto, PkceCodes, SignedHttpRequest, ServerAuthorizationTokenResponse } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
@@ -12,6 +12,8 @@ import { BrowserCrypto } from "./BrowserCrypto";
 import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { BROWSER_CRYPTO, CryptoKeyTypes, KEY_FORMAT_JWK, KEY_USAGES } from "../utils/BrowserConstants";
+import { BrowserAuthError } from "../error/BrowserAuthError";
+import {JsonWebEncryption} from "./JsonWebEncryption";
 
 // Public Exponent used in Key Generation
 const PUBLIC_EXPONENT: Uint8Array = new Uint8Array([0x01, 0x00, 0x01]);
@@ -43,7 +45,6 @@ export class CryptoOps implements ICrypto {
     private _atBindingKeyOptions: CryptoKeyOptions;
     private _rtBindingKeyOptions: CryptoKeyOptions;
 
-    private static POP_KEY_USAGES: Array<KeyUsage> = ["sign", "verify"];
     private static EXTRACTABLE: boolean = true;
 
     private static DB_VERSION = 1;
@@ -214,5 +215,39 @@ export class CryptoOps implements ICrypto {
         // Get public key as JWK
         const publicKeyJwk = await this.browserCrypto.exportJwk(cachedKeyPair.publicKey);
         return BrowserCrypto.getJwkString(publicKeyJwk);
+    }
+
+    /**
+     * Returns the decrypted server token response
+     * @param boundServerTokenResponse 
+     * @param request 
+     */
+    async decryptBoundTokenResponse(
+        boundServerTokenResponse: ServerAuthorizationTokenResponse,
+        request: BaseAuthRequest): Promise<ServerAuthorizationTokenResponse | null> {
+        
+        const { session_key_jwe, response_jwe } = boundServerTokenResponse;
+
+        if (session_key_jwe && response_jwe) {
+            const kid = request.stkJwk;
+
+            if (kid) {
+                // Retrieve Session Transport KeyPair from Key Store
+                const sessionTransportKeypair: CachedKeyPair = await this.cache.get(kid);
+                // Deserialize session_key_jwe
+                const sessionKeyJwe = new JsonWebEncryption(session_key_jwe);
+                // Deserialize response_jwe
+                const responseJwe = new JsonWebEncryption(response_jwe);
+
+                const sessionKeyUsages = KEY_USAGES.RT_BINDING.PRIVATE_KEY as KeyUsage[];
+                const contentEncryptionKey = await sessionKeyJwe.unwrap(sessionTransportKeypair.privateKey, sessionKeyUsages);
+
+                return null;
+            } else {
+                throw BrowserAuthError.createMissingStkKidError();
+            }
+        }
+
+        return null;
     }
 }
