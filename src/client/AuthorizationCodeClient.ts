@@ -4,11 +4,11 @@
  */
 
 import { BaseClient } from "./BaseClient";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
-import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
+import { CommonAuthorizationUrlRequest } from "../request/CommonAuthorizationUrlRequest";
+import { CommonAuthorizationCodeRequest } from "../request/CommonAuthorizationCodeRequest";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { GrantType, AuthenticationScheme } from "../utils/Constants";
+import { GrantType, AuthenticationScheme, PromptValue } from "../utils/Constants";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { NetworkResponse } from "../network/NetworkManager";
@@ -19,12 +19,14 @@ import { ClientAuthError } from "../error/ClientAuthError";
 import { UrlString } from "../url/UrlString";
 import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorizationCodeResponse";
 import { AccountEntity } from "../cache/entities/AccountEntity";
-import { EndSessionRequest } from "../request/EndSessionRequest";
+import { CommonEndSessionRequest } from "../request/CommonEndSessionRequest";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload";
 import { TimeUtils } from "../utils/TimeUtils";
+import { TokenClaims } from "../account/TokenClaims";
+import { AccountInfo } from "../account/AccountInfo";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -45,7 +47,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * acquireToken(AuthorizationCodeRequest)
      * @param request
      */
-    async getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string> {
+    async getAuthCodeUrl(request: CommonAuthorizationUrlRequest): Promise<string> {
         const queryString = this.createAuthCodeUrlQueryString(request);
         return `${this.authority.authorizationEndpoint}?${queryString}`;
     }
@@ -55,7 +57,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * authorization_code_grant
      * @param request
      */
-    async acquireToken(request: AuthorizationCodeRequest, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult> {
+    async acquireToken(request: CommonAuthorizationCodeRequest, authCodePayload?: AuthorizationCodePayload): Promise<AuthenticationResult> {
         this.logger.info("in acquireToken call");
         if (!request || StringUtils.isEmpty(request.code)) {
             throw ClientAuthError.createTokenRequestCannotBeMadeError();
@@ -75,7 +77,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        return await responseHandler.handleServerTokenResponse(response.body, this.authority, reqTimestamp, request.resourceRequestMethod, request.resourceRequestUri, authCodePayload);
+        return await responseHandler.handleServerTokenResponse(response.body, this.authority, reqTimestamp, request, authCodePayload);
     }
 
     /**
@@ -112,7 +114,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * Default behaviour is to redirect the user to `window.location.href`.
      * @param authorityUri
      */
-    getLogoutUri(logoutRequest: EndSessionRequest): string {
+    getLogoutUri(logoutRequest: CommonEndSessionRequest): string {
         // Throw error if logoutRequest is null/undefined
         if (!logoutRequest) {
             throw ClientConfigurationError.createEmptyLogoutRequestError();
@@ -137,7 +139,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param authority
      * @param request
      */
-    private async executeTokenRequest(authority: Authority, request: AuthorizationCodeRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+    private async executeTokenRequest(authority: Authority, request: CommonAuthorizationCodeRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
@@ -145,16 +147,33 @@ export class AuthorizationCodeClient extends BaseClient {
         };
 
         const requestBody = await this.createTokenRequestBody(request);
+        const queryParameters = this.createTokenQueryParameters(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
 
-        return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
+        const endpoint = StringUtils.isEmpty(queryParameters) ? authority.tokenEndpoint : `${authority.tokenEndpoint}?${queryParameters}`;
+
+        return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
+    }
+
+    /**
+     * Creates query string for the /token request
+     * @param request 
+     */
+    private createTokenQueryParameters(request: CommonAuthorizationCodeRequest): string {
+        const parameterBuilder = new RequestParameterBuilder();
+
+        if (request.tokenQueryParameters) {
+            parameterBuilder.addExtraQueryParameters(request.tokenQueryParameters);
+        }
+
+        return parameterBuilder.createQueryString();
     }
 
     /**
      * Generates a map for all the params to be sent to the service
      * @param request
      */
-    private async createTokenRequestBody(request: AuthorizationCodeRequest): Promise<string> {
+    private async createTokenRequestBody(request: CommonAuthorizationCodeRequest): Promise<string> {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -167,6 +186,15 @@ export class AuthorizationCodeClient extends BaseClient {
 
         // add code: user set, not validated
         parameterBuilder.addAuthorizationCode(request.code);
+
+        // Add library metadata
+        parameterBuilder.addLibraryInfo(this.config.libraryInfo);
+
+        parameterBuilder.addThrottling();
+        
+        if (this.serverTelemetryManager) {
+            parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
+        }
 
         // add code_verifier if passed
         if (request.codeVerifier) {
@@ -186,9 +214,9 @@ export class AuthorizationCodeClient extends BaseClient {
         parameterBuilder.addGrantType(GrantType.AUTHORIZATION_CODE_GRANT);
         parameterBuilder.addClientInfo();
 
-        if (request.authenticationScheme === AuthenticationScheme.POP && !!request.resourceRequestMethod && !!request.resourceRequestUri) {
+        if (request.authenticationScheme === AuthenticationScheme.POP) {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
-            const cnfString = await popTokenGenerator.generateCnf(request.resourceRequestMethod, request.resourceRequestUri);
+            const cnfString = await popTokenGenerator.generateCnf(request);
             parameterBuilder.addPopToken(cnfString);
         }
 
@@ -206,7 +234,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * This API validates the `AuthorizationCodeUrlRequest` and creates a URL
      * @param request
      */
-    private createAuthCodeUrlQueryString(request: AuthorizationUrlRequest): string {
+    private createAuthCodeUrlQueryString(request: CommonAuthorizationUrlRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -246,12 +274,33 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         // Add sid or loginHint with preference for sid -> loginHint -> username of AccountInfo object
-        if (request.sid) {
-            parameterBuilder.addSid(request.sid);
-        } else if (request.loginHint) {
-            parameterBuilder.addLoginHint(request.loginHint);
-        } else if (request.account && request.account.username) {
-            parameterBuilder.addLoginHint(request.account.username);
+        if (request.prompt !== PromptValue.SELECT_ACCOUNT) {
+            // AAD will throw if prompt=select_account is passed with an account hint
+            if (request.sid && request.prompt === PromptValue.NONE) {
+                // SessionID is only used in silent calls
+                this.logger.verbose("createAuthCodeUrlQueryString: Prompt is none, adding sid from request");
+                parameterBuilder.addSid(request.sid);
+            } else if (request.account) {
+                const accountSid = this.extractAccountSid(request.account);
+                // If account and loginHint are provided, we will check account first for sid before adding loginHint
+                if (accountSid && request.prompt === PromptValue.NONE) {
+                    // SessionId is only used in silent calls
+                    this.logger.verbose("createAuthCodeUrlQueryString: Prompt is none, adding sid from account");
+                    parameterBuilder.addSid(accountSid);
+                } else if (request.loginHint) {
+                    this.logger.verbose("createAuthCodeUrlQueryString: Adding login_hint from request");
+                    parameterBuilder.addLoginHint(request.loginHint);
+                } else if (request.account.username) {
+                    // Fallback to account username if provided
+                    this.logger.verbose("createAuthCodeUrlQueryString: Adding login_hint from account");
+                    parameterBuilder.addLoginHint(request.account.username);
+                }
+            } else if (request.loginHint) {
+                this.logger.verbose("createAuthCodeUrlQueryString: No account, adding login_hint from request");
+                parameterBuilder.addLoginHint(request.loginHint);
+            }
+        } else {
+            this.logger.verbose("createAuthCodeUrlQueryString: Prompt is select_account, ignoring account hints");
         }
 
         if (request.nonce) {
@@ -277,7 +326,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * This API validates the `EndSessionRequest` and creates a URL
      * @param request
      */
-    private createLogoutUrlQueryString(request: EndSessionRequest): string {
+    private createLogoutUrlQueryString(request: CommonEndSessionRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         if (request.postLogoutRedirectUri) {
@@ -293,5 +342,17 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         return parameterBuilder.createQueryString();
+    }
+
+    /**
+     * Helper to get sid from account. Returns null if idTokenClaims are not present or sid is not present.
+     * @param account 
+     */
+    private extractAccountSid(account: AccountInfo): string | null {
+        if (account.idTokenClaims) {
+            const tokenClaims = account.idTokenClaims as TokenClaims;
+            return tokenClaims.sid || null;
+        }
+        return null;
     }
 }

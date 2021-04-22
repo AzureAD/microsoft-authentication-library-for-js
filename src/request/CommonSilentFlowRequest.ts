@@ -5,6 +5,7 @@
 
 import { AccountInfo } from "../account/AccountInfo";
 import { BaseAuthRequest } from "./BaseAuthRequest";
+import { StringDict } from "../utils/MsalTypes";
 
 /**
  * SilentFlow parameters passed by the user to retrieve credentials silently
@@ -17,7 +18,8 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  * - resourceRequestMethod      - HTTP Request type used to request data from the resource (i.e. "GET", "POST", etc.).  Used for proof-of-possession flows.
  * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
  */
-export type SilentFlowRequest = BaseAuthRequest & {
+export type CommonSilentFlowRequest = BaseAuthRequest & {
     account: AccountInfo;
     forceRefresh: boolean;
+    tokenQueryParameters?: StringDict;
 };
