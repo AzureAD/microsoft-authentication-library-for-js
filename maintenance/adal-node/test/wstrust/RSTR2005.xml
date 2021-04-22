@@ -1,0 +1,89 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<s:Envelope xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:a="http://www.w3.org/2005/08/addressing" xmlns:u="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+  <s:Header>
+    <a:Action s:mustUnderstand="1">http://schemas.xmlsoap.org/ws/2005/02/trust/RSTR/Issue</a:Action>
+    <o:Security s:mustUnderstand="1" xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+      <u:Timestamp u:Id="_0">
+        <u:Created>2015-07-31T05:45:47.269Z</u:Created>
+        <u:Expires>2015-07-31T05:50:47.269Z</u:Expires>
+      </u:Timestamp>
+    </o:Security>
+  </s:Header>
+  <s:Body>
+    <t:RequestSecurityTokenResponse xmlns:t="http://schemas.xmlsoap.org/ws/2005/02/trust">
+      <t:Lifetime>
+        <wsu:Created xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">2015-07-31T05:45:47.269Z</wsu:Created>
+        <wsu:Expires xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">2015-07-31T06:45:47.269Z</wsu:Expires>
+      </t:Lifetime>
+      <wsp:AppliesTo xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy">
+        <wsa:EndpointReference xmlns:wsa="http://www.w3.org/2005/08/addressing">
+          <wsa:Address>urn:federation:MicrosoftOnline</wsa:Address>
+        </wsa:EndpointReference>
+      </wsp:AppliesTo>
+      <t:RequestedSecurityToken>
+        <saml:Assertion MajorVersion="1" MinorVersion="1" AssertionID="_f8ce7751-1854-4c97-bb4e-5393d730bb46" Issuer="http://sts.usystech.net/adfs/services/trust" IssueInstant="2015-07-31T05:45:47.269Z" xmlns:saml="urn:oasis:names:tc:SAML:1.0:assertion">
+          <saml:Conditions NotBefore="2015-07-31T05:45:47.269Z" NotOnOrAfter="2015-07-31T06:45:47.269Z">
+            <saml:AudienceRestrictionCondition>
+              <saml:Audience>urn:federation:MicrosoftOnline</saml:Audience>
+            </saml:AudienceRestrictionCondition>
+          </saml:Conditions>
+          <saml:AttributeStatement>
+            <saml:Subject>
+              <saml:NameIdentifier Format="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified">y7TujD6J60uo1eFddnNJ1g==</saml:NameIdentifier>
+              <saml:SubjectConfirmation>
+                <saml:ConfirmationMethod>urn:oasis:names:tc:SAML:1.0:cm:bearer</saml:ConfirmationMethod>
+              </saml:SubjectConfirmation>
+            </saml:Subject>
+            <saml:Attribute AttributeName="UPN" AttributeNamespace="http://schemas.xmlsoap.org/claims">
+              <saml:AttributeValue>weji@usystech.net</saml:AttributeValue>
+            </saml:Attribute>
+            <saml:Attribute AttributeName="ImmutableID" AttributeNamespace="http://schemas.microsoft.com/LiveID/Federation/2008/05">
+              <saml:AttributeValue>y7TujD6J60uo1eFddnNJ1g==</saml:AttributeValue>
+            </saml:Attribute>
+          </saml:AttributeStatement>
+          <saml:AuthenticationStatement AuthenticationMethod="urn:oasis:names:tc:SAML:1.0:am:password" AuthenticationInstant="2015-07-31T05:45:47.126Z">
+            <saml:Subject>
+              <saml:NameIdentifier Format="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified">y7TujD6J60uo1eFddnNJ1g==</saml:NameIdentifier>
+              <saml:SubjectConfirmation>
+                <saml:ConfirmationMethod>urn:oasis:names:tc:SAML:1.0:cm:bearer</saml:ConfirmationMethod>
+              </saml:SubjectConfirmation>
+            </saml:Subject>
+          </saml:AuthenticationStatement>
+          <ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+            <ds:SignedInfo>
+              <ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+              <ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+              <ds:Reference URI="#_f8ce7751-1854-4c97-bb4e-5393d730bb46">
+                <ds:Transforms>
+                  <ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+                  <ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+                </ds:Transforms>
+                <ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+                <ds:DigestValue>wLymjwk2I6HRIg/CqXSTgV5krZI=</ds:DigestValue>
+              </ds:Reference>
+            </ds:SignedInfo>
+            <ds:SignatureValue>JF/mUjzlwpYoSSYIqxWRHPxKv3dzYI6b9p+P9cQQwkPQPgrNNY7ty7KC9z31jYK5RYDE8bE7ycE0nCQsAutQGwIeLrYwboKKoNghPzfqxZmreE/IWJ1I0Fub4K/TqgD0DRe8Bll+KMAtQYqcGqOhAPgSNLe1DGX4fs9w30JxSpCYZzXREhDzf274az820me1pmQ2lDW+WlZzaydJ7oDXvAALSL7jQpyzkim3ajoidxnzM35P4arc5coqoTf4xjVMpTcCgqM2wOynRvPM//jKDWHVUrC95uA6fOVY8yAg/qxNHBmZaXxopMDDSG6Rcl1v/Mjsu2waTdqgGuL8FpunIQ==</ds:SignatureValue>
+            <KeyInfo xmlns="http://www.w3.org/2000/09/xmldsig#">
+              <X509Data>
+                <X509Certificate>MIIC3DCCAcSgAwIBAgIQN/oe+zrJYaJIOwe4vG7QIDANBgkqhkiG9w0BAQsFADAqMSgwJgYDVQQDEx9BREZTIFNpZ25pbmcgLSBzdHMudXN5c3RlY2gubmV0MB4XDTE1MDMwODAwMjQ0N1oXDTE2MDMwNzAwMjQ0N1owKjEoMCYGA1UEAxMfQURGUyBTaWduaW5nIC0gc3RzLnVzeXN0ZWNoLm5ldDCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAMQrDuLjMDqnFKLKUMilA6jBFYvWnn9dIVvuwmohNyNC/NNimad4nHZXx/IdY6SqHcxdt4tY2rXJj9rOt8cPm82Cvgu2i+buxoHxIQUKehRUUKNtjEqtlYODDz+p/fpleIZuZYZwzKX7qsw+ALELSn1C1moi1wOd30P2sCSsRHY093cNJHhqmBPMocRkqXPWXJtRwV3aOkV0JFUu+UPB5OwAGkaw6HygUR4t+t3AFwUdFAKhtgyNT3DRCyntH9+JFx8S7iSRXuumn7HVAndBpysqCwZS1/iQo5tTRr604aCdJSFBhMD/M+K5z1CjGdIRiaoFRuQz+/RBND9VC5kEX8cCAwEAATANBgkqhkiG9w0BAQsFAAOCAQEADU99Uy1elK77RfUGliVCwUNyKBVBUe5++25H4YKzvadtCEAZPtXL6pNG4TGMrPp/ICeGFAckGIF9HrZKV+CnG85v9cyjdb7Ejr5yYc6qRjy1KJi2C2W6wDOoX+FGEmytgyliMsR1+3+O/MalYmCmTf2cxLqLfWZrcrr6nXNlrFtmSOSuUMUCOzaKrlQozcg23327dbhEp7DdLuz8bVh8mbk4lVYYzdPkc7fWn+9pcvoWHKlSQjT/MY2/5puukp5J8QeUa8M/Y8K4r7lEfc+AGmFUP7yFxmLNqnfonxNthbdSJPlofXL3KxqXpEgRw3V8HmhGZPVFdiCyMFNbt35WZA==</X509Certificate>
+              </X509Data>
+            </KeyInfo>
+          </ds:Signature>
+        </saml:Assertion>
+      </t:RequestedSecurityToken>
+      <t:RequestedAttachedReference>
+        <o:SecurityTokenReference k:TokenType="http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV1.1" xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" xmlns:k="http://docs.oasis-open.org/wss/oasis-wss-wssecurity-secext-1.1.xsd">
+          <o:KeyIdentifier ValueType="http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.0#SAMLAssertionID">_f8ce7751-1854-4c97-bb4e-5393d730bb46</o:KeyIdentifier>
+        </o:SecurityTokenReference>
+      </t:RequestedAttachedReference>
+      <t:RequestedUnattachedReference>
+        <o:SecurityTokenReference k:TokenType="http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV1.1" xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd" xmlns:k="http://docs.oasis-open.org/wss/oasis-wss-wssecurity-secext-1.1.xsd">
+          <o:KeyIdentifier ValueType="http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.0#SAMLAssertionID">_f8ce7751-1854-4c97-bb4e-5393d730bb46</o:KeyIdentifier>
+        </o:SecurityTokenReference>
+      </t:RequestedUnattachedReference>
+      <t:TokenType>urn:oasis:names:tc:SAML:1.0:assertion</t:TokenType>
+      <t:RequestType>http://schemas.xmlsoap.org/ws/2005/02/trust/Issue</t:RequestType>
+      <t:KeyType>http://schemas.xmlsoap.org/ws/2005/05/identity/NoProofKey</t:KeyType>
+    </t:RequestSecurityTokenResponse>
+  </s:Body>
+</s:Envelope>

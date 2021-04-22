@@ -281,6 +281,12 @@ export abstract class ClientApplication {
      */
     protected initializeBaseRequest(authRequest: Partial<BaseAuthRequest>): BaseAuthRequest {
         this.logger.verbose("initializeRequestScopes called");
+        // Default authenticationScheme to Bearer, log that POP isn't supported yet
+        if (authRequest.authenticationScheme && authRequest.authenticationScheme === AuthenticationScheme.POP) {
+            this.logger.verbose("Authentication Scheme 'pop' is not supported yet, setting Authentication Scheme to 'Bearer' for request");
+        }
+
+        authRequest.authenticationScheme = AuthenticationScheme.BEARER;
 
         return {
             ...authRequest,

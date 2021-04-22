@@ -1,0 +1,33 @@
+projects/*
+targets/*
+
+# Visual Studio #
+*.suo
+*.user
+/obj/
+/bin/
+.ntvs_analysis.dat
+
+# Node #
+test/recordings/
+node_modules/
+npm-debug.log
+azure_error
+checkstyle-result.xml
+test-result.xml
+lib-cov/
+out/
+
+# Mac OS #
+.DS_Store
+.DS_Store?
+
+# Windows #
+Thumbs.db
+
+# WebStorm #
+.idea/
+
+# TS #
+test/**/*.js
+*.js.map

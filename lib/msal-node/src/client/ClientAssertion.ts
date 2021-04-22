@@ -55,7 +55,7 @@ export class ClientAssertion {
      * @param issuer - iss claim
      * @param jwtAudience - aud claim
      */
-    public getJwt(cryptoProvider: CryptoProvider, issuer: string, jwtAudience: string) {
+    public getJwt(cryptoProvider: CryptoProvider, issuer: string, jwtAudience: string): string {
         // if assertion was created from certificate, check if jwt is expired and create new one.
         if (this.privateKey && this.thumbprint) {
 
