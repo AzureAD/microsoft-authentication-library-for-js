@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Wed, 14 Apr 2021 18:39:53 GMT and should not be manually modified.
+This log was last generated on Thu, 22 Apr 2021 23:26:08 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.0.0-beta.5
+
+Thu, 22 Apr 2021 23:26:08 GMT
+
+### Changes
+
+- Prevent MSAL Guard from navigating app to url with code hash #3506 (janutter@microsoft.com)
+- Add .browserslistrc #3471 (thomas.norling@microsoft.com)
 
 ## 2.0.0-beta.4
 
