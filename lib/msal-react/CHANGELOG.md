@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-react
 
-This log was last generated on Wed, 24 Mar 2021 22:55:46 GMT and should not be manually modified.
+This log was last generated on Thu, 22 Apr 2021 23:26:08 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-beta.2
+
+Thu, 22 Apr 2021 23:26:08 GMT
+
+### Changes
+
+- Add .browserslistrc #3471 (thomas.norling@microsoft.com)
 
 ## 1.0.0-beta.1
 

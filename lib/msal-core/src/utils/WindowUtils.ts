@@ -240,7 +240,7 @@ export class WindowUtils {
      * Removes a hidden iframe from the page.
      * @ignore
      */
-    static removeHiddenIframe(iframe: HTMLIFrameElement) {
+    static removeHiddenIframe(iframe: HTMLIFrameElement): void {
         if (document.body === iframe.parentNode) {
             document.body.removeChild(iframe);
         }
@@ -315,7 +315,7 @@ export class WindowUtils {
      *
      * blocks any login/acquireToken calls to reload from within a hidden iframe (generated for silent calls)
      */
-    static blockReloadInHiddenIframes() {
+    static blockReloadInHiddenIframes(): void {
         // return an error if called from the hidden iframe created by the msal js silent calls
         if (UrlUtils.urlContainsHash(window.location.hash) && WindowUtils.isInIframe()) {
             throw ClientAuthError.createBlockTokenRequestsInHiddenIframeError();
@@ -326,7 +326,7 @@ export class WindowUtils {
      *
      * @param cacheStorage
      */
-    static checkIfBackButtonIsPressed(cacheStorage: AuthCache) {
+    static checkIfBackButtonIsPressed(cacheStorage: AuthCache): void {
         const redirectCache = cacheStorage.getItem(TemporaryCacheKeys.REDIRECT_REQUEST);
 
         // if redirect request is set and there is no hash
@@ -341,7 +341,7 @@ export class WindowUtils {
     /**
      * Removes url fragment from browser url
      */
-    static clearUrlFragment() {
+    static clearUrlFragment(): void {
         // Office.js sets history.replaceState to null
         if (typeof history.replaceState === "function") {
             // Full removes "#" from url
