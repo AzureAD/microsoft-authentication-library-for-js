@@ -44,6 +44,11 @@ export interface ICrypto {
      * @param request
      */
     getPublicKeyThumbprint(request: BaseAuthRequest): Promise<string>;
+    /**
+     * Removes cryptographic keypair from key store matching the keyId passed in
+     * @param kid 
+     */
+    removeTokenBindingKey(kid: string): Promise<boolean>;
     /** 
      * Returns a signed proof-of-possession token with a given acces token that contains a cnf claim with the required kid.
      * @param accessToken 
@@ -69,6 +74,10 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
         throw AuthError.createUnexpectedError(notImplErr);
     },
     async getPublicKeyThumbprint(): Promise<string> {
+        const notImplErr = "Crypto interface - getPublicKeyThumbprint() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async removeTokenBindingKey(): Promise<boolean> {
         const notImplErr = "Crypto interface - getPublicKeyThumbprint() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
     },

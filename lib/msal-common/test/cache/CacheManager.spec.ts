@@ -387,6 +387,33 @@ describe("CacheManager.ts test cases", () => {
         expect(mockCache.cacheManager.getAccount(atKey)).to.be.null;
     });
 
+    it("removes token binding key when removeCredential is called for an AccessToken_With_AuthScheme credential", () =>{
+        const atWithAuthScheme = new AccessTokenEntity();
+        const atWithAuthSchemeData = {
+            environment: "login.microsoftonline.com",
+            credentialType: "AccessToken_With_AuthScheme",
+            secret: "an access token",
+            realm: "microsoft",
+            target: "scope1 scope2 scope3",
+            clientId: "mock_client_id",
+            cachedAt: "1000",
+            homeAccountId: "uid.utid",
+            extendedExpiresOn: "4600",
+            expiresOn: "4600",
+            keyId: "V6N_HMPagNpYS_wxM14X73q3eWzbTr9Z31RyHkIcN0Y",
+            tokenType: "pop"
+        };
+
+        const removeTokenBindingKeySpy = sinon.spy(mockCrypto, "removeTokenBindingKey");
+
+        Object.assign(atWithAuthScheme, atWithAuthSchemeData);
+
+        mockCache.cacheManager.removeCredential(atWithAuthScheme);
+        const atKey = atWithAuthScheme.generateCredentialKey();
+        expect(mockCache.cacheManager.getAccount(atKey)).to.be.null;
+        expect(removeTokenBindingKeySpy.getCall(0).args[0]).to.eq(atWithAuthSchemeData.keyId);
+    })
+
     it("readAccessTokenFromCache matches multiple tokens, throws error", () => {
         const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             "uid.utid", "login.microsoftonline.com", "an_access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, 500, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);

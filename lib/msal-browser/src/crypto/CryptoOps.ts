@@ -106,7 +106,7 @@ export class CryptoOps implements ICrypto {
         const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importJwk(privateKeyJwk, false, ["sign"]);
 
         // Store Keypair data in keystore
-        this.cache.put(publicJwkHash, {
+        await this.cache.put(publicJwkHash, {
             privateKey: unextractablePrivateKey,
             publicKey: keyPair.publicKey,
             requestMethod: request.resourceRequestMethod,
@@ -114,6 +114,14 @@ export class CryptoOps implements ICrypto {
         });
 
         return publicJwkHash;
+    }
+
+    /**
+     * Removes cryptographic keypair from key store matching the keyId passed in
+     * @param kid 
+     */
+    async removeTokenBindingKey(kid: string): Promise<boolean> {
+        return this.cache.delete(kid);
     }
 
     /**

@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Remove token binding key from key store when refreshing pop token #3500",
+  "packageName": "@azure/msal-browser",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}

@@ -27,12 +27,11 @@ import { InMemoryCache, JsonCache, CacheKVStore } from "./serializer/SerializerT
  */
 export class NodeStorage extends CacheManager {
     // Cache configuration, either set by user or default values.
-    private logger: Logger;
     private cache: CacheKVStore = {};
     private changeEmitters: Array<Function> = [];
 
     constructor(logger: Logger, clientId: string, cryptoImpl: ICrypto) {
-        super(clientId, cryptoImpl);
+        super(clientId, cryptoImpl, logger);
         this.logger = logger;
     }
 
