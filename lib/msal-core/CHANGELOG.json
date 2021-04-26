@@ -2,6 +2,35 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Thu, 22 Apr 2021 23:26:08 GMT",
+      "tag": "msal_v1.4.10",
+      "version": "1.4.10",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update and fix eslint rules",
+            "author": "janutter@microsoft.com",
+            "commit": "70debe58239b6a6fdf4e533a8a1ee057257846a8",
+            "package": "msal"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Encode control characters in cookies set by MSAL.js v1 #3469",
+            "author": "janutter@microsoft.com",
+            "commit": "80e40e83c0e3709fce6ae0534138c930dfdacaa5",
+            "package": "msal"
+          },
+          {
+            "comment": "Add .browserslistrc #3471",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "04c6d659d4dc76183ef9043075d3b6cacc450c9b",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 14 Apr 2021 18:39:53 GMT",
       "tag": "msal_v1.4.9",
       "version": "1.4.9",

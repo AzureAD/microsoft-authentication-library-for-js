@@ -137,6 +137,15 @@ describe("BrowserCacheManager tests", () => {
             expect(window.sessionStorage.getItem(msalCacheKey2)).to.be.eq(cacheVal);
         });
 
+        it("getTemporaryCache falls back to local storage if not found in session/memory storage", () => {
+            const testTempItemKey = "test-temp-item-key";
+            const testTempItemValue = "test-temp-item-value";
+            window.localStorage.setItem(testTempItemKey, testTempItemValue);
+            cacheConfig.cacheLocation = BrowserCacheLocation.LocalStorage;
+            browserLocalStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
+            expect(browserLocalStorage.getTemporaryCache(testTempItemKey)).equals(testTempItemValue);
+        })
+
         it("setItem", () => {
             window.sessionStorage.setItem(msalCacheKey, cacheVal);
             window.localStorage.setItem(msalCacheKey2, cacheVal);

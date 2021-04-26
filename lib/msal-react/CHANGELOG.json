@@ -2,6 +2,29 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Thu, 22 Apr 2021 23:26:08 GMT",
+      "tag": "@azure/msal-react_v1.0.0-beta.2",
+      "version": "1.0.0-beta.2",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update msal-react package-lock.json",
+            "author": "janutter@microsoft.com",
+            "commit": "e5aa3546084fdbd40a77b4bd6eae667d91481620",
+            "package": "@azure/msal-react"
+          }
+        ],
+        "prerelease": [
+          {
+            "comment": "Add .browserslistrc #3471",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "04c6d659d4dc76183ef9043075d3b6cacc450c9b",
+            "package": "@azure/msal-react"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 24 Mar 2021 22:55:46 GMT",
       "tag": "@azure/msal-react_v1.0.0-beta.1",
       "version": "1.0.0-beta.1",
