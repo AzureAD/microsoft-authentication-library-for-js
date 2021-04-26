@@ -135,6 +135,13 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
                     }
 
                     this.authService.getLogger().verbose("Guard - at least 1 account exists, can activate or load");
+
+                    // Prevent navigating the app to /#code=
+                    if (state && state.url.indexOf("#") > -1 && state.url.indexOf("code=") > -1) {
+                        this.authService.getLogger().info("Guard - Hash contains known code response, stopping navigation.");
+                        return of(false);
+                    }
+
                     return of(true);
 
                 }),

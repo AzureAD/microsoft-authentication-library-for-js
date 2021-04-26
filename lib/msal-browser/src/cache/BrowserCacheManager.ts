@@ -420,6 +420,14 @@ export class BrowserCacheManager extends CacheManager {
 
         const value = this.temporaryCacheStorage.getItem(key);
         if (!value) {
+            // If temp cache item not found in session/memory, check local storage for items set by old versions
+            if (this.cacheConfig.cacheLocation === BrowserCacheLocation.LocalStorage) {
+                const item = this.browserStorage.getItem(key);
+                if (item) {
+                    this.logger.verbose("BrowserCacheManager.getTemporaryCache: Temporary cache item found in local storage");
+                    return item;
+                }
+            }
             return null;
         }
         return value;
