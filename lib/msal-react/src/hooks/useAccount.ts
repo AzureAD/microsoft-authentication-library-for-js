@@ -46,7 +46,7 @@ export function useAccount(accountIdentifiers: AccountIdentifiers): AccountInfo 
         if (!AccountEntity.accountInfoIsEqual(account, currentAccount, true)) {
             setAccount(currentAccount);
         }
-    }, [inProgress, accountIdentifiers, instance]);
+    }, [inProgress, accountIdentifiers, instance, account]);
 
     return account;
 }
