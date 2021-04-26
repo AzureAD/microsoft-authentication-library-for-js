@@ -74,6 +74,10 @@ export class JsonWebEncryption {
         return data;
     }
 
+    get protectedHeader(): JoseHeader {
+        return this.header;
+    }
+
     /**
      * Unwrapping a JWE encrypted key is done in two steps:
      *  1. Decrypt the base64Url decode encrypted key component using the algorithm
