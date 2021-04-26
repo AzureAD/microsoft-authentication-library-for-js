@@ -511,7 +511,7 @@ describe("AccountEntity.ts Unit Tests", () => {
             expect(AccountEntity.accountInfoIsEqual(acc1, acc7, true)).to.be.true;
             acc8.idTokenClaims = {};
             expect(AccountEntity.accountInfoIsEqual(acc1, acc8, false)).to.be.true;
-            expect(AccountEntity.accountInfoIsEqual(acc1, acc8, true)).to.be.true;
+            expect(AccountEntity.accountInfoIsEqual(acc1, acc8, true)).to.be.false;
         });
 
         it("returns false if an account info object is invalid", () => {
