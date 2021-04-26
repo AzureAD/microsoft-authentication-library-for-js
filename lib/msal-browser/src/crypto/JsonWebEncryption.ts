@@ -11,7 +11,9 @@ import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 
 export type JoseHeader = {
     alg: string,
-    enc: string
+    enc: string,
+    ctx: string,
+    label: string
 };
 
 export type UnwrappingAlgorithmPair = {
@@ -36,7 +38,7 @@ const KEY_ALGORITHM_MAP: StringDict = {
 
 export class JsonWebEncryption {
     private base64Decode: Base64Decode;
-    public header: JoseHeader;
+    private header: JoseHeader;
     private encryptedKey: string;
     private initializationVector: string;
     private ciphertext: string;
@@ -52,6 +54,10 @@ export class JsonWebEncryption {
         this.initializationVector = this.base64Decode.base64URLdecode(jweComponents[2]);
         this.ciphertext = this.base64Decode.base64URLdecode(jweComponents[3]);
         this.authenticationTag = this.base64Decode.base64URLdecode(jweComponents[4]);
+    }
+
+    get protectedHeader(): JoseHeader {
+        return this.header;
     }
 
     /**

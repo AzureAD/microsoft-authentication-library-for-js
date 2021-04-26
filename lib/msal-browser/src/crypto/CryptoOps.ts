@@ -11,7 +11,7 @@ import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
 import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { BROWSER_CRYPTO, CryptoKeyTypes, KEY_FORMAT_JWK, KEY_USAGES, KEY_DERIVATION_SIZES } from "../utils/BrowserConstants";
+import { BROWSER_CRYPTO, CryptoKeyTypes, KEY_FORMAT_JWK, KEY_USAGES, KEY_DERIVATION_SIZES, KEY_DERIVATION_LABELS } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import {JsonWebEncryption} from "./JsonWebEncryption";
 import { KeyDerivation } from "./KeyDerivation";
@@ -250,7 +250,7 @@ export class CryptoOps implements ICrypto {
                     KEY_DERIVATION_SIZES.COUNTER_LENGTH
                 );
             
-                const decryptionKey = await kdf.computeKDFInCounterMode(responseJwe.header.ctx, KEY_DERIVATION_LABELS.DECRYPTION);
+                const decryptionKey = await kdf.computeKDFInCounterMode(responseJwe.protectedHeader.ctx, KEY_DERIVATION_LABELS.DECRYPTION);
                 console.log(decryptionKey);
                 return null;
             } else {
