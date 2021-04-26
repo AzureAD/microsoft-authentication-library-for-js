@@ -53,8 +53,8 @@
     "zone.js": "~0.10.3"
   },
   "peerDependencies": {
-    "@angular/common": "9 - 11",
-    "@angular/core": "9 - 11",
+    "@angular/common": "9 - 12",
+    "@angular/core": "9 - 12",
     "@azure/msal-browser": "^2.14.1",
     "rxjs": "^6.0.0"
   },
