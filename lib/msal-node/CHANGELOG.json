@@ -2,6 +2,35 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Thu, 22 Apr 2021 23:26:08 GMT",
+      "tag": "@azure/msal-node_v1.0.3",
+      "version": "1.0.3",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update and fix eslint rules",
+            "author": "janutter@microsoft.com",
+            "commit": "70debe58239b6a6fdf4e533a8a1ee057257846a8",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Run npm audit for PRs",
+            "author": "janutter@microsoft.com",
+            "commit": "b3c5bcf2101cbe92edca972c53d64343f775dcc9",
+            "package": "@azure/msal-node"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Add .browserslistrc #3471",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "04c6d659d4dc76183ef9043075d3b6cacc450c9b",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 14 Apr 2021 18:39:53 GMT",
       "tag": "@azure/msal-node_v1.0.2",
       "version": "1.0.2",

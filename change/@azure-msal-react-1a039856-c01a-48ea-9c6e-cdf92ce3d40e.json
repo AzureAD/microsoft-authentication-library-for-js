@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Add .browserslistrc #3471",
-  "packageName": "@azure/msal-react",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
