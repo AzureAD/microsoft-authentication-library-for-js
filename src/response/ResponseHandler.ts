@@ -96,7 +96,7 @@ export class ResponseHandler {
             }
 
             const errString = `${serverResponse.error_codes} - [${serverResponse.timestamp}]: ${serverResponse.error_description} - Correlation ID: ${serverResponse.correlation_id} - Trace ID: ${serverResponse.trace_id}`;
-            throw new ServerError(serverResponse.error, errString);
+            throw new ServerError(serverResponse.error, errString, serverResponse.suberror);
         }
     }
 
@@ -305,7 +305,7 @@ export class ResponseHandler {
         requestState?: RequestStateObject): Promise<AuthenticationResult> {
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
-        let expiresOn: Date | null = null;
+        let expiresOn: Date;
         let extExpiresOn: Date | undefined;
         let familyId: string = Constants.EMPTY_STRING;
         if (cacheRecord.accessToken) {
@@ -318,6 +318,8 @@ export class ResponseHandler {
             responseScopes = ScopeSet.fromString(cacheRecord.accessToken.target).asArray();
             expiresOn = new Date(Number(cacheRecord.accessToken.expiresOn) * 1000);
             extExpiresOn = new Date(Number(cacheRecord.accessToken.extendedExpiresOn) * 1000);
+        } else {
+            throw ClientAuthError.createAccessTokenEntityNullError();
         }
 
         if (cacheRecord.appMetadata) {
