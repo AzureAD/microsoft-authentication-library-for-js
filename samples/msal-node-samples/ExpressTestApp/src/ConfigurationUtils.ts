@@ -35,12 +35,16 @@ export class ConfigurationUtils {
             throw new Error("No clientSecret provided!"); 
         }
 
-        if (!config.settings.homePageRoute) {
-            throw new Error("No homePageRoute provided!"); 
+        if (!config.settings.redirectUri || config.settings.redirectUri === "Enter_the_Redirect_Uri_Here") {
+            throw new Error("No postLogoutRedirectUri provided!"); 
         }
 
-        if (!config.settings.postLogoutRedirectUri) {
+        if (!config.settings.postLogoutRedirectUri || config.settings.postLogoutRedirectUri === "Enter_the_Post_Logout_Redirect_Uri_Here") {
             throw new Error("No postLogoutRedirectUri provided!"); 
+        }
+
+        if (!config.settings.homePageRoute) {
+            throw new Error("No homePageRoute provided!"); 
         }
     };
 
