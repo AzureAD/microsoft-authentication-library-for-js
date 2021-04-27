@@ -61,7 +61,7 @@ function Pages() {
 				instance.removeEventCallback(callbackId);
 			}
 		};
-	}, []);
+	}, [instance]);
 
 	return (
 		<Switch>

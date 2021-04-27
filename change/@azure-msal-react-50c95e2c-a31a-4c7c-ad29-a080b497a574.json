@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Fix extra state update in useAccount hook #3527",
+  "packageName": "@azure/msal-react",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
