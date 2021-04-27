@@ -78,6 +78,18 @@ export class JsonWebEncryption {
         return this.header;
     }
 
+    getAuthenticatedData(str: string): Uint8Array {
+        const length = str.length;
+        const data = new Uint8Array(length);
+
+        /* mapping... */
+        for (let charIndex = 0; charIndex < length; charIndex++) {
+            data[charIndex] = str.charCodeAt(charIndex) & 255;
+        }
+
+        return data;
+    }
+
     /**
      * Unwrapping a JWE encrypted key is done in two steps:
      *  1. Decrypt the base64Url decode encrypted key component using the algorithm
