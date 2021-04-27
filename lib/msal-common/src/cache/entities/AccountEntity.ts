@@ -277,19 +277,31 @@ export class AccountEntity {
     }
 
     /**
-     * Helper function to determine whether 2 accounts are equal
-     * Used to avoid unnecessary state updates
-     * @param arrayA 
-     * @param arrayB 
+     * Helper function to determine whether 2 accountInfo objects represent the same account
+     * @param accountA 
+     * @param accountB 
+     * @param compareClaims - If set to true idTokenClaims will also be compared to determine account equality
      */
-    static accountInfoIsEqual(accountA: AccountInfo | null, accountB: AccountInfo | null): boolean {
+    static accountInfoIsEqual(accountA: AccountInfo | null, accountB: AccountInfo | null, compareClaims?: boolean): boolean {
         if (!accountA || !accountB) {
             return false;
         }
+
+        let claimsMatch = true; // default to true so as to not fail comparison below if compareClaims: false
+        if (compareClaims) {
+            const accountAClaims = (accountA.idTokenClaims || {}) as TokenClaims;
+            const accountBClaims = (accountB.idTokenClaims || {}) as TokenClaims;
+
+            // issued at timestamp and nonce are expected to change each time a new id token is acquired
+            claimsMatch = (accountAClaims.iat === accountBClaims.iat) &&
+            (accountAClaims.nonce === accountBClaims.nonce);
+        }
+
         return (accountA.homeAccountId === accountB.homeAccountId) && 
             (accountA.localAccountId === accountB.localAccountId) &&
             (accountA.username === accountB.username) &&
             (accountA.tenantId === accountB.tenantId) &&
-            (accountA.environment === accountB.environment);
+            (accountA.environment === accountB.environment) &&
+            claimsMatch;
     }
 }

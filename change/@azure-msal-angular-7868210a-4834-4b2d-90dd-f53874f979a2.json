@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Fix msal-angular packge-lock",
-  "packageName": "@azure/msal-angular",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none"
-}
