@@ -4,6 +4,6 @@
  */
 
 module.exports = {
-    displayName: "Device Code AAD",
+    displayName: "Device Code",
     preset: "../../e2eTestUtils/jest-puppeteer-utils/jest-preset-no-setup.js"
 };
