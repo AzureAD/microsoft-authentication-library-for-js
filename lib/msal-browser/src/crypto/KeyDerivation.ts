@@ -5,15 +5,6 @@
 
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 
-/**
- * This class deserializes a string in JWE Compact Serialization format into
- * it's decoded elements. The class also provides the validation, parsing and
- * decryption functionality for the resulting JWE.
- * 
- * See IETF RFC 7516 for the JsonWebEncryption Specification
- * https://tools.ietf.org/html/rfc7516
- */
-
 /*
  * Key Derivation using Pseudorandom Functions in Counter Mode: SP 800-108
  * Spec link: https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-108.pdf
@@ -59,7 +50,6 @@ export class KeyDerivation {
         this.prfOutputLengthInBits = prfOutputLength;
         this.counterLengthInBits = counterLength;
         this.iterationsRequired = this.calculateRequiredIterations();
-
     }
 
     private calculateRequiredIterations(): number {
@@ -73,7 +63,9 @@ export class KeyDerivation {
     }
 
     public async computeKDFInCounterMode(ctx: string, label: string): Promise<ArrayBuffer> {
+        // Encode context
         const ctxBytes = Uint8Array.from(window.atob(ctx), (v) => v.charCodeAt(0));
+        // Encode label
         const labelBytes = BrowserStringUtils.stringToUtf8Arr(label);
         // 4 byte counter + label bytes + 1 byte 0x00 + ctx bytes + 4 byte key length
         const data = new Uint8Array(4 + labelBytes.length + 1 + ctxBytes.length + 4);
@@ -83,7 +75,10 @@ export class KeyDerivation {
         data.set(ctxBytes, labelBytes.length + 4 + 1); // ctx
         data.set([0, 0, 1, 0], data.length - 4); // [L]_2 (key length)
 
-        const derivedKey = await window.crypto.subtle.sign("HMAC", this.derivationKey, data); // PRF
-        return derivedKey;
+        return await this.kdfInCounterMode(data);
+    }
+
+    public async kdfInCounterMode(inputData: Uint8Array): Promise<ArrayBuffer> {
+        return await window.crypto.subtle.sign("HMAC", this.derivationKey, inputData); // PRF
     }
 }
