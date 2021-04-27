@@ -38,7 +38,7 @@ Open `.src/app/b2c-config.ts` in an editor:
 
 ### How to handle B2C user-flows
 
-Implementing B2C user-flows is a matter of initiating authorization requests against the corresponding authorities. Some user-flows are slightly more complex. For example, to initiate the **forgotPassword**, the user first first needs to click on the **forgot my password** link on the Azure sign-in screen, which causes B2C service to respond with an error. We then catch this error, and trigger another sign-in, this time against the `https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_reset` authority (see `.src/app/app-component.ts`).
+Implementing B2C user-flows is a matter of initiating authorization requests against the corresponding authorities. Some user-flows are slightly more complex. For example, to initiate the **forgotPassword**, the user first needs to click on the **forgot my password** link on the Azure sign-in screen, which causes B2C service to respond with an error. We then catch this error, and trigger another sign-in, this time against the `https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_reset` authority (see `.src/app/app-component.ts`).
 
 ## Additional notes
 
