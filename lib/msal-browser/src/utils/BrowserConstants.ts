@@ -162,7 +162,9 @@ export const KEY_USAGES = {
     },
     RT_BINDING: {
         KEYPAIR: ["encrypt", "decrypt"],
-        PRIVATE_KEY: ["decrypt"]
+        PRIVATE_KEY: ["decrypt"],
+        DERIVATION_KEY: ["sign"],
+        SESSION_KEY: ["decrypt"]
     }
 };
 
