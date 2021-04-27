@@ -8,6 +8,7 @@
  */
 export type TokenClaims = {
     iss?: string,
+    iat?: number,
     oid?: string,
     sub?: string,
     tid?: string,
