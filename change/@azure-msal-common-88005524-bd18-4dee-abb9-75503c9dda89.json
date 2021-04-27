@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Add .browserslistrc #3471",
+  "comment": "Add claims comparison to accountInfoIsEqual function #3527",
   "packageName": "@azure/msal-common",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

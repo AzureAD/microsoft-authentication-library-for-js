@@ -174,6 +174,10 @@ export const ClientAuthErrorMessage = {
     noAzureRegionDetected: {
         code: "no_azure_region_detected",
         desc: "No azure region was detected and no fallback was made available"
+    },
+    accessTokenEntityNullError: {
+        code: "access_token_entity_null",
+        desc: "Access token entity is null, please check logs and cache to ensure a valid access token is present."
     }
 };
 
@@ -496,5 +500,12 @@ export class ClientAuthError extends AuthError {
      */
     static createNoAzureRegionDetectedError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.noAzureRegionDetected.code, ClientAuthErrorMessage.noAzureRegionDetected.desc);
+    }
+    
+    /**
+     * Throws error when access token entity is null when handling a response.
+     */
+    static createAccessTokenEntityNullError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.accessTokenEntityNullError.code, ClientAuthErrorMessage.accessTokenEntityNullError.desc);
     }
 }

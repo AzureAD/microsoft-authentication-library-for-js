@@ -101,7 +101,7 @@ export class UrlUtils {
         return this.constructAuthorityUriFromObject(urlObject, pathArray);
     }
 
-    static constructAuthorityUriFromObject(urlObject: IUri, pathArray: string[]) {
+    static constructAuthorityUriFromObject(urlObject: IUri, pathArray: string[]): string {
         return this.CanonicalizeUri(urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/"));
     }
     
@@ -266,7 +266,7 @@ export class UrlUtils {
      * Returns deserialized portion of URL hash
      * @ignore
      */
-    static deserializeHash(urlFragment: string) {
+    static deserializeHash(urlFragment: string): object {
         const hash = UrlUtils.getHashFromUrl(urlFragment);
         return CryptoUtils.deserialize(hash);
     }

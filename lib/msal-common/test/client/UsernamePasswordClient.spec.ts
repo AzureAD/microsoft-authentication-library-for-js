@@ -11,10 +11,11 @@ import {
     TEST_CONFIG,
     TEST_TOKENS,
     TEST_DATA_CLIENT_INFO,
-    TEST_URIS
+    TEST_URIS,
+    CORS_SIMPLE_REQUEST_HEADERS
 } from "../utils/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
-import { AADServerParamKeys, GrantType, Constants, PasswordGrantConstants } from "../../src/utils/Constants";
+import { AADServerParamKeys, GrantType, Constants, PasswordGrantConstants, ThrottlingConstants } from "../../src/utils/Constants";
 import { ClientTestUtils } from "./ClientTestUtils";
 import { Authority } from "../../src/authority/Authority";
 import { UsernamePasswordClient } from "../../src/client/UsernamePasswordClient";
@@ -84,6 +85,28 @@ describe("Username Password unit tests", () => {
         });
     });
 
+    it("Does not add headers that do not qualify for a simple request", (done) => {
+        // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
+        sinon.stub(UsernamePasswordClient.prototype, <any>"executePostToTokenEndpoint").callsFake((tokenEndpoint: string, queryString: string, headers: Record<string, string>) => {
+            const headerNames = Object.keys(headers);
+            headerNames.forEach((name) => {
+                expect(CORS_SIMPLE_REQUEST_HEADERS).contains(name.toLowerCase());
+            });
+
+            done();
+            return AUTHENTICATION_RESULT_DEFAULT_SCOPES;
+        });
+
+        const client = new UsernamePasswordClient(config);
+        const usernamePasswordRequest: UsernamePasswordRequest = {
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            username: "mock_name",
+            password: "mock_password"
+        };
+
+        client.acquireToken(usernamePasswordRequest);
+    });
+
     it("acquires a token", async () => {
         sinon.stub(UsernamePasswordClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT_DEFAULT_SCOPES);
 
@@ -110,5 +133,10 @@ describe("Username Password unit tests", () => {
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.GRANT_TYPE}=${encodeURIComponent(GrantType.RESOURCE_OWNER_PASSWORD_GRANT)}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${PasswordGrantConstants.username}=mock_name`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${PasswordGrantConstants.password}=mock_password`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`);
     });
 });

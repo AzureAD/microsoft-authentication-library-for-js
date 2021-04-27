@@ -17,7 +17,7 @@ export class TokenUtils {
      *
      * @param jwtToken
      */
-    static decodeJwt(jwtToken: string): any {
+    static decodeJwt(jwtToken: string): object {
         if (StringUtils.isEmpty(jwtToken)) {
             return null;
         }
@@ -49,14 +49,14 @@ export class TokenUtils {
      *
      * @param encodedIdToken
      */
-    static extractIdToken(encodedIdToken: string): any {
+    static extractIdToken(encodedIdToken: string): object {
     // id token will be decoded to get the username
         const decodedToken = this.decodeJwt(encodedIdToken);
         if (!decodedToken) {
             return null;
         }
         try {
-            const base64IdToken = decodedToken.JWSPayload;
+            const base64IdToken = decodedToken["JWSPayload"];
             const base64Decoded = CryptoUtils.base64Decode(base64IdToken);
             if (!base64Decoded) {
                 // this._requestContext.logger.info("The returned id_token could not be base64 url safe decoded.");

@@ -163,13 +163,13 @@ export class BrowserCrypto {
      * @param usages 
      */
     private async msCryptoGenerateKey(extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKeyPair> {
-        return new Promise((resolve: any, reject: any) => {
+        return new Promise((resolve: Function, reject: Function) => {
             const msGenerateKey = window["msCrypto"].subtle.generateKey(this._keygenAlgorithmOptions, extractable, usages);
             msGenerateKey.addEventListener("complete", (e: { target: { result: CryptoKeyPair | PromiseLike<CryptoKeyPair>; }; }) => {
                 resolve(e.target.result);
             });
 
-            msGenerateKey.addEventListener("error", (error: any) => {
+            msGenerateKey.addEventListener("error", (error: string) => {
                 reject(error);
             });
         });
@@ -181,7 +181,7 @@ export class BrowserCrypto {
      * @param format 
      */
     private async msCryptoExportJwk(key: CryptoKey): Promise<JsonWebKey> {
-        return new Promise((resolve: any, reject: any) => {
+        return new Promise((resolve: Function, reject: Function) => {
             const msExportKey = window["msCrypto"].subtle.exportKey(KEY_FORMAT_JWK, key);
             msExportKey.addEventListener("complete", (e: { target: { result: ArrayBuffer; }; }) => {
                 const resultBuffer: ArrayBuffer = e.target.result;
@@ -200,7 +200,7 @@ export class BrowserCrypto {
                 }
             });
 
-            msExportKey.addEventListener("error", (error: any) => {
+            msExportKey.addEventListener("error", (error: string) => {
                 reject(error);
             });
         });
@@ -214,13 +214,13 @@ export class BrowserCrypto {
      * @param usages 
      */
     private async msCryptoImportKey(keyBuffer: ArrayBuffer, extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKey> {
-        return new Promise((resolve: any, reject: any) => {
+        return new Promise((resolve: Function, reject: Function) => {
             const msImportKey = window["msCrypto"].subtle.importKey(KEY_FORMAT_JWK, keyBuffer, this._keygenAlgorithmOptions, extractable, usages);
             msImportKey.addEventListener("complete", (e: { target: { result: CryptoKey | PromiseLike<CryptoKey>; }; }) => {
                 resolve(e.target.result);
             });
 
-            msImportKey.addEventListener("error", (error: any) => {
+            msImportKey.addEventListener("error", (error: string) => {
                 reject(error);
             });
         });
@@ -232,13 +232,13 @@ export class BrowserCrypto {
      * @param data 
      */
     private async msCryptoSign(key: CryptoKey, data: ArrayBuffer): Promise<ArrayBuffer> {
-        return new Promise((resolve: any, reject: any) => {
+        return new Promise((resolve: Function, reject: Function) => {
             const msSign = window["msCrypto"].subtle.sign(this._keygenAlgorithmOptions, key, data);
             msSign.addEventListener("complete", (e: { target: { result: ArrayBuffer | PromiseLike<ArrayBuffer>; }; }) => {
                 resolve(e.target.result);
             });
 
-            msSign.addEventListener("error", (error: any) => {
+            msSign.addEventListener("error", (error: string) => {
                 reject(error);
             });
         });
