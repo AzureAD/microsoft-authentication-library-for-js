@@ -1,0 +1,24 @@
+{
+  "name": "express-test-app",
+  "version": "1.0.0",
+  "description": "A Node.js & Express web app calling Microsoft Graph API using MSAL Node",
+  "private": true,
+  "main": "app.js",
+  "scripts": {
+    "start": "node App/app.js",
+    "dev": "nodemon App/app.js"
+  },
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.21.0",
+    "bootstrap": "^4.5.3",
+    "ejs": "^3.0.1",
+    "express": "^4.17.1",
+    "express-session": "^1.17.1",
+    "msal-express-wrapper": "file:../"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.2"
+  }
+}
