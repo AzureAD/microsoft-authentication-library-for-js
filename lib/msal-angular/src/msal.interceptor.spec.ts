@@ -542,6 +542,16 @@ describe('MsalInterceptor', () => {
     }, 200);
   });
 
+  it("does not attach authorization header when request HTTP method is not in protectedResourceMap", done => {
+    httpClient.get("http://applicationC.com").subscribe(response => expect(response).toBeTruthy());
+
+    const request = httpMock.expectOne("http://applicationC.com");
+    request.flush({ data: "test" });
+    expect(request.request.headers.get("Authorization")).toBeUndefined;
+    httpMock.verify();
+    done();
+  });
+
 });
 
 describe("matchScopesToEndpoint unit tests", () => {
