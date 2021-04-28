@@ -23,7 +23,7 @@
   "scripts": {
     "start": "tsdx watch",
     "build": "tsdx build --tsconfig ./tsconfig.build.json",
-    "build:modules:watch": "tsdx watch --verbose",
+    "build:modules:watch": "tsdx watch --verbose --tsconfig ./tsconfig.build.json",
     "test": "tsdx test .*.spec.*",
     "test:watch": "tsdx test .*.spec.* --watch",
     "test:coverage": "tsdx test .*.spec.* --coverage",
