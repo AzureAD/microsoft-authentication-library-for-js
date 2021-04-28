@@ -544,7 +544,7 @@ describe('MsalInterceptor', () => {
 
 });
 
-fdescribe("matchScopesToEndpoint unit tests", () => {
+describe("matchScopesToEndpoint unit tests", () => {
   it("returns scopes when scopes in a string array", () => {
     const protectedResourceMap = MSALInterceptorFactory().protectedResourceMap;
     const endpointArray = ["http://localhost:3000/"];
