@@ -465,11 +465,16 @@ export class Authority {
         globalUrl.validateAsUri();
 
         // Include the query string portion of the url
-        return UrlString.constructAuthorityUriFromObject({
+        const url = UrlString.constructAuthorityUriFromObject({
             ...globalUrl.getUrlComponents(),
             HostNameAndPort: `${region}.login.microsoft.com`,
             QueryString: `${queryString}`
         }).urlString;
+
+        // Add the query string if a query string was provided
+        if (queryString) return `${url}?${queryString}`;
+
+        return url;
     }
 
     /**
