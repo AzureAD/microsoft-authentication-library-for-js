@@ -159,7 +159,7 @@ export class MsalInterceptor implements HttpInterceptor {
             }
 
             methodAndScopesArray.forEach(entry => {
-                if (typeof entry === 'object') {
+                if (typeof entry === "object") {
                     // Entry is object with methods and scopes
                     for (const method in entry) {
                         // Method in protectedResourceMap matches request http method

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { HttpEventType, HttpRequest } from "@angular/common/http";
+import { HttpRequest } from "@angular/common/http";
 import { PopupRequest, RedirectRequest, InteractionType, SilentRequest } from "@azure/msal-browser";
 import { MsalService } from "./msal.service";
 
