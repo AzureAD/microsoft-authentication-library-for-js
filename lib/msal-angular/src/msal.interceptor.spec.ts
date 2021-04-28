@@ -46,7 +46,14 @@ function MSALInterceptorFactory(): MsalInterceptorConfiguration {
       ["http://localhost:3000/", ["base.scope"]],
       ["http://apps.com/tenant?abc", ["query.scope"]],
       ["http://applicationA/slash/", ["custom.scope"]],
-      ["http://applicationB/noSlash", ["custom.scope"]]
+      ["http://applicationB/noSlash", ["custom.scope"]],
+      ["http://applicationC.com", [
+        {"POST": ["write.scope"]}
+      ]],
+      ["http://applicationD.com", [
+        "all.scope",
+        {"GET": ["read.scope"]}
+      ]],
     ]),
     authRequest: testInterceptorConfig.authRequest
   }
@@ -511,6 +518,85 @@ describe('MsalInterceptor', () => {
       httpMock.verify();
       done();
     }, 200);
+  });
+
+  it("attaches authorization header with access token for endpoint with HTTP methods specified", done => {
+    spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
+      new Promise((resolve) => {
+        //@ts-ignore
+        resolve({
+          accessToken: "access-token"
+        });
+      })
+    ));
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
+
+    httpClient.post("http://applicationC.com", {}).subscribe();
+    setTimeout(() => {
+      const request = httpMock.expectOne("http://applicationC.com");
+      request.flush({ data: "test" });
+      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+      httpMock.verify();
+      done();
+    }, 200);
+  });
+
+});
+
+fdescribe("matchScopesToEndpoint unit tests", () => {
+  it("returns scopes when scopes in a string array", () => {
+    const protectedResourceMap = MSALInterceptorFactory().protectedResourceMap;
+    const endpointArray = ["http://localhost:3000/"];
+    const httpMethod = 'GET';
+    const expectedScopes = ["base.scope"];
+
+    expect(MsalInterceptor.matchScopesToEndpoint(protectedResourceMap, endpointArray, httpMethod)).toEqual(expectedScopes);
+  });
+
+  it("returns scopes when scopes in object with HTTP method", () => {
+    const protectedResourceMap = MSALInterceptorFactory().protectedResourceMap;
+    const endpointArray = ["http://applicationC.com"];
+    const httpMethod = 'POST';
+    const expectedScopes = ["write.scope"];
+
+    expect(MsalInterceptor.matchScopesToEndpoint(protectedResourceMap, endpointArray, httpMethod)).toEqual(expectedScopes);
+  });
+
+  it("returns all relevant scopes when scopes in string array and scopes in object with HTTP method for same endpoint", () => {
+    const protectedResourceMap = MSALInterceptorFactory().protectedResourceMap;
+    const endpointArray = ["http://applicationD.com"];
+    const httpMethod = 'GET';
+    const expectedScopes = ["all.scope", "read.scope"];
+
+    expect(MsalInterceptor.matchScopesToEndpoint(protectedResourceMap, endpointArray, httpMethod)).toEqual(expectedScopes);
+  });
+
+  it("does not return scopes if scopes set to null", () => {
+    const protectedResourceMap = MSALInterceptorFactory().protectedResourceMap;
+    const endpointArray = ["http://localhost:3000/unprotect"];
+    const httpMethod = 'GET';
+    const expectedScopes = null;
+
+    expect(MsalInterceptor.matchScopesToEndpoint(protectedResourceMap, endpointArray, httpMethod)).toEqual(expectedScopes);
+  });
+  
+  it("does not return scope if request HTTP method is not found", () => {
+    const protectedResourceMap = MSALInterceptorFactory().protectedResourceMap;
+    const endpointArray = ["http://applicationC.com"];
+    const httpMethod = 'GET';
+    const expectedScopes = null;
+
+    expect(MsalInterceptor.matchScopesToEndpoint(protectedResourceMap, endpointArray, httpMethod)).toEqual(expectedScopes);
+  });
+  
+  it("only returns first set of scopes if multiple matching endpoints", () => {
+    const protectedResourceMap = MSALInterceptorFactory().protectedResourceMap;
+    const endpointArray = ["http://applicationC.com", "http://applicationD.com"];
+    const httpMethod = 'POST';
+    const expectedScopes = ["write.scope"];
+
+    expect(MsalInterceptor.matchScopesToEndpoint(protectedResourceMap, endpointArray, httpMethod)).toEqual(expectedScopes);
   });
 
 });

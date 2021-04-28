@@ -33,7 +33,7 @@ export class MsalInterceptor implements HttpInterceptor {
         }
 
         this.authService.getLogger().verbose("MSAL Interceptor activated");
-        const scopes = this.getScopesForEndpoint(req.url);
+        const scopes = this.getScopesForEndpoint(req.url, req.method);
 
         // If no scopes for endpoint, does not acquire token
         if (!scopes || scopes.length === 0) {
@@ -102,10 +102,11 @@ export class MsalInterceptor implements HttpInterceptor {
     /**
      * Looks up the scopes for the given endpoint from the protectedResourceMap
      * @param endpoint Url of the request
+     * @param endpoint Http method of the request
      * @returns Array of scopes, or null if not found
      *
      */
-    private getScopesForEndpoint(endpoint: string): Array<string>|null {
+    private getScopesForEndpoint(endpoint: string, httpMethod: string): Array<string>|null {
         this.authService.getLogger().verbose("Interceptor - getting scopes for endpoint");
 
         // Ensures endpoints and protected resources compared are normalized
@@ -113,6 +114,7 @@ export class MsalInterceptor implements HttpInterceptor {
 
         const protectedResourcesArray = Array.from(this.msalInterceptorConfig.protectedResourceMap.keys());
 
+        // Endpoints from the protectedResourceMap that match the request endpoint
         const keyMatchesEndpointArray = protectedResourcesArray.filter(key => {
             const normalizedKey = this.location.normalize(key);
             
@@ -129,12 +131,58 @@ export class MsalInterceptor implements HttpInterceptor {
             }
         });
 
-        // Process all protected resources and send the first matched resource
         if (keyMatchesEndpointArray.length > 0) {
-            const keyForEndpoint = keyMatchesEndpointArray[0];
-            if (keyForEndpoint) {
-                return this.msalInterceptorConfig.protectedResourceMap.get(keyForEndpoint);
+            return MsalInterceptor.matchScopesToEndpoint(this.msalInterceptorConfig.protectedResourceMap, keyMatchesEndpointArray, httpMethod);
+        }
+
+        return null;
+    }
+
+    /**
+     * Finds scopes from first matching endpoint with HTTP method that matches request
+     * @param endpointArray 
+     * @param httpMethod 
+     * @returns 
+     */
+    static matchScopesToEndpoint(protectedResourceMap: Map<string, Array<string|object> | null>, endpointArray: string[], httpMethod: string): Array<string>|null {
+        const allMatchedScopes = [];
+
+        // Check each matched endpoint for matching HttpMethod and scopes
+        endpointArray.forEach(matchedEndpoint => {
+            const scopesForEndpoint = [];
+            const methodAndScopesArray = protectedResourceMap.get(matchedEndpoint);
+
+            // Return if resource is unprotected
+            if (methodAndScopesArray === null) {
+                allMatchedScopes.push(null);
+                return;
             }
+
+            methodAndScopesArray.forEach(entry => {
+                if (typeof entry === 'object') {
+                    // Entry is object with methods and scopes
+                    for (const method in entry) {
+                        // Method in protectedResourceMap matches request http method
+                        if (method === httpMethod) {
+                            entry[method].forEach(scope => {
+                                scopesForEndpoint.push(scope);
+                            });
+                        }
+                    }
+                } else {
+                    // Entry is array of scopes, don't check for method
+                    scopesForEndpoint.push(entry);
+                }
+            });
+
+            // Only add to all scopes if scopes for endpoint and method is found
+            if (scopesForEndpoint.length > 0) {
+                allMatchedScopes.push(scopesForEndpoint);
+            }
+        });
+
+        if (allMatchedScopes.length > 0) {
+            return allMatchedScopes[0];
         }
 
         return null;

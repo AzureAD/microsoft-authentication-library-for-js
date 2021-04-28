@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { HttpRequest } from "@angular/common/http";
+import { HttpEventType, HttpRequest } from "@angular/common/http";
 import { PopupRequest, RedirectRequest, InteractionType, SilentRequest } from "@azure/msal-browser";
 import { MsalService } from "./msal.service";
 
@@ -11,6 +11,6 @@ export declare type MsalInterceptorAuthRequest = Omit<PopupRequest, "scopes"> | 
 
 export type MsalInterceptorConfiguration = {
     interactionType: InteractionType.Popup | InteractionType.Redirect;
-    protectedResourceMap: Map<string, Array<string> | null>;
+    protectedResourceMap: Map<string, Array<string|object> | null>;
     authRequest?: MsalInterceptorAuthRequest | ((msalService: MsalService, req: HttpRequest<unknown>, originalAuthRequest: MsalInterceptorAuthRequest) => MsalInterceptorAuthRequest);
 };
