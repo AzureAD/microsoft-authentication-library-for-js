@@ -308,6 +308,7 @@ export class ResponseHandler {
         let expiresOn: Date;
         let extExpiresOn: Date | undefined;
         let familyId: string = Constants.EMPTY_STRING;
+
         if (cacheRecord.accessToken) {
             if (cacheRecord.accessToken.tokenType === AuthenticationScheme.POP) {
                 const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(cryptoObj);
@@ -319,7 +320,7 @@ export class ResponseHandler {
             expiresOn = new Date(Number(cacheRecord.accessToken.expiresOn) * 1000);
             extExpiresOn = new Date(Number(cacheRecord.accessToken.extendedExpiresOn) * 1000);
         } else {
-            throw ClientAuthError.createAccessTokenEntityNullError();
+            expiresOn = new Date(0);
         }
 
         if (cacheRecord.appMetadata) {
