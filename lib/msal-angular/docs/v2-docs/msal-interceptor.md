@@ -144,7 +144,7 @@ Scopes can be specified for a resource in the following ways:
 Other things to note regarding the `protectedResourceMap`:
 
 * **Wildcards**: `protectedResourceMap` supports using `*` for wildcards. When using wildcards, if multiple matching entries are found in the `protectedResourceMap`, the first match found will be used (based on the order of the `protectedResourceMap`). 
-* **Relative paths**: If there are relative resource paths in your application, you may need to provide the relative path in the `protectedResourceMap`.
+* **Relative paths**: If there are relative resource paths in your application, you may need to provide the relative path in the `protectedResourceMap`. This also applies to issues that may arise with ngx-translate. Relative paths should not have a leading slash.
 
 ### Optional authRequest
 
