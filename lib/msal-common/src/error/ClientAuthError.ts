@@ -30,6 +30,10 @@ export const ClientAuthErrorMessage = {
         code: "endpoints_resolution_error",
         desc: "Error: could not resolve endpoints. Please check network and try again."
     },
+    networkError: {
+        code: "network_error",
+        desc: "Network request failed. Please check network trace to determine root cause."
+    },
     unableToGetOpenidConfigError: {
         code: "openid_config_error",
         desc: "Could not retrieve endpoints. Check your authority and verify the .well-known/openid-configuration endpoint returns the required endpoints."
@@ -169,7 +173,11 @@ export const ClientAuthErrorMessage = {
     },
     noAuthorizationCodeFromServer: {
         code: "authorization_code_missing_from_server_response",
-        desc: "Srver response does not contain an authorization code to proceed"
+        desc: "Server response does not contain an authorization code to proceed"
+    },
+    accessTokenEntityNullError: {
+        code: "access_token_entity_null",
+        desc: "Access token entity is null, please check logs and cache to ensure a valid access token is present."
     }
 };
 
@@ -227,6 +235,14 @@ export class ClientAuthError extends AuthError {
     static createEndpointDiscoveryIncompleteError(errDetail: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.endpointResolutionError.code,
             `${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${errDetail}`);
+    }
+
+    /**
+     * Creates an error thrown when the fetch client throws
+     */
+    static createNetworkError(endpoint: string, errDetail: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.networkError.code,
+            `${ClientAuthErrorMessage.networkError.desc} | Fetch client threw: ${errDetail} | Attempted to reach: ${endpoint.split("?")[0]}`);
     }
 
     /**
@@ -377,7 +393,7 @@ export class ClientAuthError extends AuthError {
      * Throws error if device code is expired
      */
     static createDeviceCodeUnknownError(): ClientAuthError {
-      return new ClientAuthError(ClientAuthErrorMessage.DeviceCodeExpired.code, `${ClientAuthErrorMessage.DeviceCodeExpired.desc}`);
+      return new ClientAuthError(ClientAuthErrorMessage.DeviceCodeUnknownError.code, `${ClientAuthErrorMessage.DeviceCodeUnknownError.desc}`);
     }
 
     /**
@@ -484,5 +500,12 @@ export class ClientAuthError extends AuthError {
      */
     static createNoAuthCodeInServerResponseError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.noAuthorizationCodeFromServer.code, ClientAuthErrorMessage.noAuthorizationCodeFromServer.desc);
+    }
+
+    /**
+     * Throws error when access token entity is null when handling a response.
+     */
+    static createAccessTokenEntityNullError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.accessTokenEntityNullError.code, ClientAuthErrorMessage.accessTokenEntityNullError.desc);
     }
 }
