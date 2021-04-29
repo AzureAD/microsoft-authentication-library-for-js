@@ -454,6 +454,16 @@ export class Authority {
     }
 
     /**
+     * Checks whether the provided host is that of a public cloud authority
+     * 
+     * @param authority string
+     * @returns bool
+     */
+    static isPublicCloudAuthority(host: string): boolean {
+        return Constants.KNOWN_PUBLIC_CLOUDS.includes(host);
+    }
+
+    /**
      * Rebuild the authority string with the region
      * 
      * @param host string
@@ -461,13 +471,21 @@ export class Authority {
      */
     static buildRegionalAuthorityString(host: string, region: string, queryString?: string): string {
         // Create and validate a Url string object with the initial authority string
-        const globalUrl = new UrlString(host);
-        globalUrl.validateAsUri();
+        const authorityUrlInstance = new UrlString(host);
+        authorityUrlInstance.validateAsUri();
+
+        const authorityUrlParts = authorityUrlInstance.getUrlComponents();
+
+        let hostNameAndPort= `${region}.${authorityUrlParts.HostNameAndPort}`;
+
+        if (this.isPublicCloudAuthority(authorityUrlParts.HostNameAndPort)) {
+            hostNameAndPort = `${region}.${Constants.REGIONAL_AUTH_PUBLIC_CLOUD_SUFFIX}`;
+        }
 
         // Include the query string portion of the url
         const url = UrlString.constructAuthorityUriFromObject({
-            ...globalUrl.getUrlComponents(),
-            HostNameAndPort: `${region}.login.microsoft.com`,
+            ...authorityUrlInstance.getUrlComponents(),
+            HostNameAndPort: hostNameAndPort,
             QueryString: `${queryString}`
         }).urlString;
 
