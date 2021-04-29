@@ -26,7 +26,7 @@ function MSALInstanceFactory(): IPublicClientApplication {
     system: {
         loggerOptions: {
             loggerCallback: (level, message) => {
-                console.log(message)
+                // console.log(message)
             },
             logLevel: LogLevel.Verbose,
             piiLoggingEnabled: true
