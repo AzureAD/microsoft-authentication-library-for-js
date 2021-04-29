@@ -496,13 +496,6 @@ export class ClientAuthError extends AuthError {
     }
 
     /**
-     * Throws error when no azure region is detected and fallback is provided
-     */
-    static createNoAzureRegionDetectedError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.noAzureRegionDetected.code, ClientAuthErrorMessage.noAzureRegionDetected.desc);
-    }
-    
-    /**
      * Throws error when access token entity is null when handling a response.
      */
     static createAccessTokenEntityNullError(): ClientAuthError {
