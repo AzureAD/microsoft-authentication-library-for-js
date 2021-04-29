@@ -24,7 +24,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [ 10, 12, 14 ]
+        node: [ 10, 12, 14, 16 ]
 
     name: Node ${{ matrix.node }}
 
