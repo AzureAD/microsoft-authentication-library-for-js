@@ -16,7 +16,7 @@ import { MsalService } from "./msal.service";
 import { AccountInfo, AuthenticationResult, BrowserConfigurationAuthError, InteractionType, StringUtils, UrlString } from "@azure/msal-browser";
 import { Injectable, Inject } from "@angular/core";
 import { MSAL_INTERCEPTOR_CONFIG } from "./constants";
-import { MsalInterceptorAuthRequest, MsalInterceptorConfiguration } from "./msal.interceptor.config";
+import { MsalInterceptorAuthRequest, MsalInterceptorConfiguration, HttpMethodScopes } from "./msal.interceptor.config";
 
 @Injectable()
 export class MsalInterceptor implements HttpInterceptor {
@@ -114,8 +114,24 @@ export class MsalInterceptor implements HttpInterceptor {
 
         const protectedResourcesArray = Array.from(this.msalInterceptorConfig.protectedResourceMap.keys());
 
-        // Endpoints from the protectedResourceMap that match the request endpoint
-        const keyMatchesEndpointArray = protectedResourcesArray.filter(key => {
+        const matchingProtectedResources = this.matchResourcesToEndpoint(protectedResourcesArray, normalizedEndpoint);
+
+        if (matchingProtectedResources.length > 0) {
+            return MsalInterceptor.matchScopesToEndpoint(this.msalInterceptorConfig.protectedResourceMap, matchingProtectedResources, httpMethod);
+        }
+
+        return null;
+    }
+
+    /**
+     * Finds resource endpoints that match request endpoint
+     * @param protectedResourcesArray 
+     * @param endpoint 
+     * @param location 
+     * @returns 
+     */
+    private matchResourcesToEndpoint(protectedResourcesEndpoints: string[], endpoint: string): Array<string> {
+        return protectedResourcesEndpoints.filter(key => {
             const normalizedKey = this.location.normalize(key);
             
             // Normalized key should include query strings if applicable
@@ -124,27 +140,22 @@ export class MsalInterceptor implements HttpInterceptor {
 
             // Relative endpoint not applicable, matching endpoint with protected resource. StringUtils.matchPattern accounts for wildcards
             if (relativeNormalizedKey === "" || relativeNormalizedKey === "/*") {
-                return StringUtils.matchPattern(normalizedKey, normalizedEndpoint);
+                return StringUtils.matchPattern(normalizedKey, endpoint);
             } else {
                 // Matching endpoint with both protected resource and relative url of protected resource
-                return StringUtils.matchPattern(normalizedKey, normalizedEndpoint) || StringUtils.matchPattern(relativeNormalizedKey, normalizedEndpoint);
+                return StringUtils.matchPattern(normalizedKey, endpoint) || StringUtils.matchPattern(relativeNormalizedKey, endpoint);
             }
         });
-
-        if (keyMatchesEndpointArray.length > 0) {
-            return MsalInterceptor.matchScopesToEndpoint(this.msalInterceptorConfig.protectedResourceMap, keyMatchesEndpointArray, httpMethod);
-        }
-
-        return null;
     }
 
     /**
      * Finds scopes from first matching endpoint with HTTP method that matches request
-     * @param endpointArray 
-     * @param httpMethod 
+     * @param protectedResourceMap Protected resource map
+     * @param endpointArray Array of resources that match request endpoint
+     * @param httpMethod Http method of the request
      * @returns 
      */
-    static matchScopesToEndpoint(protectedResourceMap: Map<string, Array<string|object> | null>, endpointArray: string[], httpMethod: string): Array<string>|null {
+    static matchScopesToEndpoint(protectedResourceMap: Map<string, Array<string|HttpMethodScopes> | null>, endpointArray: string[], httpMethod: string): Array<string>|null {
         const allMatchedScopes = [];
 
         // Check each matched endpoint for matching HttpMethod and scopes
@@ -159,19 +170,20 @@ export class MsalInterceptor implements HttpInterceptor {
             }
 
             methodAndScopesArray.forEach(entry => {
-                if (typeof entry === "object") {
-                    // Entry is object with methods and scopes
-                    for (const method in entry) {
-                        // Method in protectedResourceMap matches request http method
-                        if (method === httpMethod) {
-                            entry[method].forEach(scope => {
-                                scopesForEndpoint.push(scope);
-                            });
-                        }
-                    }
-                } else {
-                    // Entry is array of scopes, don't check for method
+                // Entry is either array of scopes or HttpMethodScopes object
+                if (typeof entry === "string") {
                     scopesForEndpoint.push(entry);
+                } else {
+                    // Ensure methods being compared are normalized
+                    const normalizedHttpMethod = httpMethod.toLowerCase();
+                    const normalizedMethod = entry.method.toLowerCase();
+
+                    // Method in protectedResourceMap matches request http method
+                    if (normalizedMethod === normalizedHttpMethod) {
+                        entry.scopes.forEach(scope => {
+                            scopesForEndpoint.push(scope);
+                        });
+                    }
                 }
             });
 
@@ -182,6 +194,7 @@ export class MsalInterceptor implements HttpInterceptor {
         });
 
         if (allMatchedScopes.length > 0) {
+            // Returns scopes for first matching endpoint
             return allMatchedScopes[0];
         }
 

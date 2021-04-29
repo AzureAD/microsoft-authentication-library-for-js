@@ -48,12 +48,22 @@ function MSALInterceptorFactory(): MsalInterceptorConfiguration {
       ["http://applicationA/slash/", ["custom.scope"]],
       ["http://applicationB/noSlash", ["custom.scope"]],
       ["http://applicationC.com", [
-        {"POST": ["write.scope"]}
+        {
+          method: "POST",
+          scopes: ["write.scope"]
+        }
       ]],
       ["http://applicationD.com", [
         "all.scope",
-        {"GET": ["read.scope"]}
-      ]],
+        {
+          method: "GET",
+          scopes: ["read.scope"]
+        },
+        {
+          method: "Post",
+          scopes: ["info.scope"]
+        }
+      ]]
     ]),
     authRequest: testInterceptorConfig.authRequest
   }
@@ -605,6 +615,15 @@ describe("matchScopesToEndpoint unit tests", () => {
     const endpointArray = ["http://applicationC.com", "http://applicationD.com"];
     const httpMethod = 'POST';
     const expectedScopes = ["write.scope"];
+
+    expect(MsalInterceptor.matchScopesToEndpoint(protectedResourceMap, endpointArray, httpMethod)).toEqual(expectedScopes);
+  });
+  
+  it("returns scopes regardless of casing of HTTP method in protectedResourceMap", () => {
+    const protectedResourceMap = MSALInterceptorFactory().protectedResourceMap;
+    const endpointArray = ["http://applicationD.com"];
+    const httpMethod = 'POST';
+    const expectedScopes = ["all.scope", "info.scope"];
 
     expect(MsalInterceptor.matchScopesToEndpoint(protectedResourceMap, endpointArray, httpMethod)).toEqual(expectedScopes);
   });
