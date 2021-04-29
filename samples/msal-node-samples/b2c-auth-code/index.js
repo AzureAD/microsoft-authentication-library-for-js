@@ -18,7 +18,7 @@ const confidentialClientConfig = {
     auth: {
         clientId: "e6e1bea3-d98f-4850-ba28-e80ed613cc72", 
         authority: policies.authorities.signUpSignIn.authority, 
-        clientSecret: "wr7Q9R~Gg1Qb9l.3s4Dg8jp7Z6.9M~42K0",
+        clientSecret: "m3V5M1-6EpB2Y0.~2C.huNninwm3RI4~EG",
         knownAuthorities: [policies.authorityDomain], 
         redirectUri: "http://localhost:3000/redirect",
     },
