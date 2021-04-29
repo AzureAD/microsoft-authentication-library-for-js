@@ -16,7 +16,7 @@ import { MsalService } from "./msal.service";
 import { AccountInfo, AuthenticationResult, BrowserConfigurationAuthError, InteractionType, StringUtils, UrlString } from "@azure/msal-browser";
 import { Injectable, Inject } from "@angular/core";
 import { MSAL_INTERCEPTOR_CONFIG } from "./constants";
-import { MsalInterceptorAuthRequest, MsalInterceptorConfiguration, HttpMethodScopes } from "./msal.interceptor.config";
+import { MsalInterceptorAuthRequest, MsalInterceptorConfiguration, ProtectedResourceScopes } from "./msal.interceptor.config";
 
 @Injectable()
 export class MsalInterceptor implements HttpInterceptor {
@@ -155,7 +155,7 @@ export class MsalInterceptor implements HttpInterceptor {
      * @param httpMethod Http method of the request
      * @returns 
      */
-    static matchScopesToEndpoint(protectedResourceMap: Map<string, Array<string|HttpMethodScopes> | null>, endpointArray: string[], httpMethod: string): Array<string>|null {
+    static matchScopesToEndpoint(protectedResourceMap: Map<string, Array<string|ProtectedResourceScopes> | null>, endpointArray: string[], httpMethod: string): Array<string>|null {
         const allMatchedScopes = [];
 
         // Check each matched endpoint for matching HttpMethod and scopes
@@ -170,16 +170,16 @@ export class MsalInterceptor implements HttpInterceptor {
             }
 
             methodAndScopesArray.forEach(entry => {
-                // Entry is either array of scopes or HttpMethodScopes object
+                // Entry is either array of scopes or ProtectedResourceScopes object
                 if (typeof entry === "string") {
                     scopesForEndpoint.push(entry);
                 } else {
                     // Ensure methods being compared are normalized
-                    const normalizedHttpMethod = httpMethod.toLowerCase();
-                    const normalizedMethod = entry.method.toLowerCase();
+                    const normalizedRequestMethod = httpMethod.toLowerCase();
+                    const normalizedResourceMethod = entry.httpMethod.toLowerCase();
 
                     // Method in protectedResourceMap matches request http method
-                    if (normalizedMethod === normalizedHttpMethod) {
+                    if (normalizedResourceMethod === normalizedRequestMethod) {
                         entry.scopes.forEach(scope => {
                             scopesForEndpoint.push(scope);
                         });

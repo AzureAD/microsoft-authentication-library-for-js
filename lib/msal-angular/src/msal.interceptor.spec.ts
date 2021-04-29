@@ -4,8 +4,7 @@ import { HttpClientTestingModule, HttpTestingController } from "@angular/common/
 import { Location } from "@angular/common";
 import { RouterTestingModule } from "@angular/router/testing";
 import { AccountInfo, AuthError, InteractionType, IPublicClientApplication, PublicClientApplication, SilentRequest } from '@azure/msal-browser';
-import { MsalModule, MsalService, MsalInterceptor, MsalBroadcastService } from './public-api';
-import { MsalInterceptorConfiguration } from './msal.interceptor.config';
+import { MsalModule, MsalService, MsalInterceptor, MsalBroadcastService, MsalInterceptorConfiguration, ProtectedResourceScopes } from './public-api';
 
 let interceptor: MsalInterceptor;
 let httpMock: HttpTestingController;
@@ -35,7 +34,7 @@ function MSALInterceptorFactory(): MsalInterceptorConfiguration {
   return {
     //@ts-ignore
     interactionType: testInteractionType,
-    protectedResourceMap: new Map([
+    protectedResourceMap: new Map<string, Array<string|ProtectedResourceScopes> | null>([
       ["https://graph.microsoft.com/v1.0/me", ["user.read"]],
       ["https://myapplication.com/user/*", ["customscope.read"]],
       ["http://localhost:4200/details", ["details.read"]],
@@ -49,18 +48,18 @@ function MSALInterceptorFactory(): MsalInterceptorConfiguration {
       ["http://applicationB/noSlash", ["custom.scope"]],
       ["http://applicationC.com", [
         {
-          method: "POST",
+          httpMethod: "POST",
           scopes: ["write.scope"]
         }
       ]],
       ["http://applicationD.com", [
         "all.scope",
         {
-          method: "GET",
+          httpMethod: "GET",
           scopes: ["read.scope"]
         },
         {
-          method: "Post",
+          httpMethod: "Post",
           scopes: ["info.scope"]
         }
       ]]

@@ -11,11 +11,11 @@ export declare type MsalInterceptorAuthRequest = Omit<PopupRequest, "scopes"> | 
 
 export type MsalInterceptorConfiguration = {
     interactionType: InteractionType.Popup | InteractionType.Redirect;
-    protectedResourceMap: Map<string, Array<string|HttpMethodScopes> | null>;
+    protectedResourceMap: Map<string, Array<string|ProtectedResourceScopes> | null>;
     authRequest?: MsalInterceptorAuthRequest | ((msalService: MsalService, req: HttpRequest<unknown>, originalAuthRequest: MsalInterceptorAuthRequest) => MsalInterceptorAuthRequest);
 };
 
-export type HttpMethodScopes = {
-    method: string,
+export type ProtectedResourceScopes = {
+    httpMethod: string,
     scopes: Array<string>
 };
