@@ -21,8 +21,9 @@
     "msal",
     "oauth"
   ],
-  "main": "./dist/index.js",
-  "module": "./dist/index.es.js",
+  "sideEffects": false,
+  "main": "./dist/index.cjs.js",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
   "engines": {
     "node": ">=0.8.0"
