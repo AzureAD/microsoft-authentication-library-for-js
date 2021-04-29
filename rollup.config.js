@@ -14,17 +14,34 @@ const fileHeader = `${libraryHeader}\n${useStrictHeader}`;
 
 export default [
     {
+        // for es build
+        input: "src/index.ts",
+        preserveModules: true,
+        output: {
+            dir: "dist",
+            preserveModulesRoot: "src",
+            format: "es",
+            banner: fileHeader,
+            sourcemap: "inline",
+        },
+        external: [
+            ...Object.keys(pkg.dependencies || {}),
+            ...Object.keys(pkg.peerDependencies || {})
+        ],
+        plugins: [
+            typescript({
+                typescript: require("typescript"),
+                tsconfig: "tsconfig.build.json"
+            }),
+            json()
+        ]
+    },
+    {
         input: "src/index.ts",
         output: [
             {
                 file: pkg.main,
                 format: "cjs",
-                banner: fileHeader,
-                sourcemap: "inline"
-            },
-            {
-                file: pkg.module,
-                format: "es",
                 banner: fileHeader,
                 sourcemap: "inline"
             },
