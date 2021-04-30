@@ -451,6 +451,31 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
+     * Gets internal cache item with given key.
+     * @param key
+     */
+     getMemoryCache(cacheKey: string): string | null {
+        const key = this.generateCacheKey(cacheKey);
+
+        const value = this.internalStorage.getItem(key);
+        if (!value) {
+            return null;
+        }
+        return value;
+    }
+
+    /**
+     * Sets the internal cache item with the key and value given. Internal storage is cleared on page reload.
+     * @param key
+     * @param value
+     */
+    setMemoryCache(cacheKey: string, value: string): void {
+        const key = this.generateCacheKey(cacheKey);
+
+        this.internalStorage.setItem(key, value);
+    }
+
+    /**
      * Removes the cache item with the given key.
      * Will also clear the cookie item if storeAuthStateInCookie is set to true.
      * @param key
@@ -462,6 +487,15 @@ export class BrowserCacheManager extends CacheManager {
             this.logger.verbose("BrowserCacheManager.removeItem: storeAuthStateInCookie is true, clearing item cookie");
             this.clearItemCookie(key);
         }
+        return true;
+    }
+
+    /**
+     * Removes a cache item fom internal memory storage with the given key.
+     * @param key 
+     */
+     removeMemoryItem(key: string): boolean {
+        this.internalStorage.removeItem(key);
         return true;
     }
 
@@ -481,6 +515,10 @@ export class BrowserCacheManager extends CacheManager {
             ...this.browserStorage.getKeys(),
             ...this.temporaryCacheStorage.getKeys()
         ];
+    }
+
+    getMemoryKeys(): string[] {
+        return this.internalStorage.getKeys();
     }
 
     /**
@@ -645,6 +683,75 @@ export class BrowserCacheManager extends CacheManager {
         } = ProtocolUtils.parseRequestState(this.cryptoImpl, stateString);
         return this.generateCacheKey(`${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`);
     } 
+
+    /**
+     * Generates key used to store response objects.
+     * Thumbprint has the following format: "broker.response.<embedded-app-origin>.<request-thumbprint>"
+     * @param responseThumbprint 
+     */
+     generateBrokerResponseKey(responseThumbprint: string): string {
+        return `${MemoryCacheKeys.BROKER_RESPONSE}.${responseThumbprint}`;
+    }
+
+    /**
+     * Searches through saved broker response keys for a given origin and retrieves the first one.
+     * Then looks up the saved broker responses in memory and returns if found.
+     * Will log an error if more than one is found.
+     * @param messageOrigin 
+     */
+    getBrokerResponseByOrigin(messageOrigin: string): string | null {
+        // Filter cache keys that match the messageOrigin.
+        const memCacheKeys = this.getMemoryKeys();
+        const embeddedAppKey = `${MemoryCacheKeys.BROKER_RESPONSE}.${messageOrigin}`;
+        const cachedResponseKeys = memCacheKeys.filter((cacheKey) => cacheKey.indexOf(embeddedAppKey));
+        // Return null if no cache keys found.
+        if (cachedResponseKeys.length <= 0) {
+            return null;
+        }
+        // Log error if more than one cache key found.
+        if (cachedResponseKeys.length > 1) {
+            this.logger.error("Too many responses found for the origin, sending back the first one found. You may need to call login/acquireTokenPopup/Silent() again.");
+        }
+        // Retrieve first found cache key, retrieve response from memory cache.
+        return this.getBrokerResponse(cachedResponseKeys[0]);
+    }
+
+    /**
+     * Generates key from thumbprint and looks up brokered response.
+     * @param responseThumbprint 
+     */
+    getBrokerResponseByThumbprint(reqThumbprint: RequestThumbprint, embeddedAppOrigin: string): string | null {
+        // Create cache key and lookup relevant item in memory cache.
+        const responseThumbprint = `${embeddedAppOrigin}.${this.cryptoImpl.base64Encode(JSON.stringify(reqThumbprint))}`;
+        const responseCacheKey = `${MemoryCacheKeys.BROKER_RESPONSE}.${responseThumbprint}`;
+        return this.getBrokerResponse(responseCacheKey);
+    }
+
+    /**
+     * Looks up the saved broker responses in memory cache and returns if found.
+     * @param cacheKey 
+     */
+    private getBrokerResponse(cacheKey: string): string | null {
+        const cachedResponse = this.getMemoryCache(cacheKey);
+        if (cachedResponse) {
+            // Remove from memory cache before returning.
+            this.removeMemoryItem(cacheKey);
+            return cachedResponse;
+        }
+        // Return null if no cachedResponse found.
+        return null;
+    }
+
+    /**
+     * Sets the cacheKey for and stores the authority information in cache
+     * @param state
+     * @param authority
+     */
+    setAuthorityCache(authority: string, state: string): void {
+        // Cache authorityKey
+        const authorityCacheKey = this.generateAuthorityKey(state);
+        this.setItem(authorityCacheKey, authority);
+    }
 
     /**
      * Gets the cached authority based on the cached state. Returns empty if no cached state found.

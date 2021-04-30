@@ -7,7 +7,7 @@ import { CryptoOps } from "../crypto/CryptoOps";
 import { Authority, StringUtils, UrlString, ServerAuthorizationCodeResponse, CommonAuthorizationCodeRequest, AuthorizationCodeClient, PromptValue, ServerError, InteractionRequiredAuthError, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, AuthenticationScheme, CommonSilentFlowRequest, CommonEndSessionRequest, AccountEntity, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthorityOptions } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
-import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, BrowserCacheLocation, WrapperSKU } from "../utils/BrowserConstants";
+import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, BrowserCacheLocation, WrapperSKU, DEFAULT_REQUEST } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserStateObject, BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
@@ -27,6 +27,7 @@ import { PopupUtils } from "../utils/PopupUtils";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NavigationOptions } from "../navigation/NavigationOptions";
+import { SilentRequest } from "../request/SilentRequest";
 
 export abstract class ClientApplication {
 
@@ -52,7 +53,7 @@ export abstract class ClientApplication {
     protected isBrowserEnvironment: boolean;
 
     // Sets the account to use if no account info is given
-    private activeLocalAccountId: string | null;
+    protected activeLocalAccountId: string | null;
 
     // Set the SKU and Version for wrapper library if applicable
     private wrapperSKU: string | undefined;
@@ -350,6 +351,20 @@ export abstract class ClientApplication {
     }
 
     /**
+     * Use when initiating the login process by redirecting the user's browser to the authorization endpoint. This function redirects the page, so
+     * any code that follows this function will not execute.
+     *
+     * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
+     * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
+     *
+     * @param request
+     */
+     async loginRedirect(request?: RedirectRequest): Promise<void> {
+        this.logger.verbose("loginRedirect called");
+        return this.acquireTokenRedirect(request || DEFAULT_REQUEST);
+    }
+
+    /**
      * Use when you want to obtain an access_token for your API by redirecting the user's browser window to the authorization endpoint. This function redirects
      * the page, so any code that follows this function will not execute.
      *
@@ -372,8 +387,20 @@ export abstract class ClientApplication {
         }
 
         const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Redirect);
-        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect, validRequest.correlationId);
+        this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority);
+        return this.acquireTokenRedirectAsync(validRequest, request.redirectStartPage, request.onRedirectNavigate);
+    }
 
+    /**
+     * Helper which obtains an access_token for an API via redirecting the user's browser.
+     * 
+     * @param validRequest 
+     * @param userRedirectStartPage 
+     * @param userOnRedirectNavigate 
+     */
+    protected async acquireTokenRedirectAsync(validRequest: AuthorizationUrlRequest, userRedirectStartPage?: string, userOnRedirectNavigate?: (url: string) => void | boolean): Promise<void> {
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect, validRequest.correlationId);
+        const isLoggedIn = this.getAllAccounts().length > 0;
         try {
             // Create auth code request and generate PKCE params
             const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
@@ -387,14 +414,14 @@ export abstract class ClientApplication {
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
 
-            const redirectStartPage = this.getRedirectStartPage(request.redirectStartPage);
+            const redirectStartPage = this.getRedirectStartPage(userRedirectStartPage);
 
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
             return interactionHandler.initiateAuthRequest(navigateUrl, {
                 navigationClient: this.navigationClient,
                 redirectTimeout: this.config.system.redirectNavigationTimeout,
                 redirectStartPage: redirectStartPage,
-                onRedirectNavigate: request.onRedirectNavigate
+                onRedirectNavigate: userOnRedirectNavigate
             });
         } catch (e) {
             // If logged in, emit acquire token events
@@ -415,6 +442,18 @@ export abstract class ClientApplication {
     // #region Popup Flow
 
     /**
+     * Use when initiating the login process via opening a popup window in the user's browser
+     *
+     * @param request
+     *
+     * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
+     */
+     loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
+        this.logger.verbose("loginPopup called");
+        return this.acquireTokenPopup(request || DEFAULT_REQUEST);
+    }
+
+    /**
      * Use when you want to obtain an access_token for your API via opening a popup window in the user's browser
      *
      * @param request
@@ -422,27 +461,26 @@ export abstract class ClientApplication {
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
-        let validRequest: AuthorizationUrlRequest;
         try {
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
             this.logger.verbose("acquireTokenPopup called");
-            validRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
+            const validRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
+            this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority);
+            const popupName = PopupUtils.generatePopupName(this.config.auth.clientId, validRequest);
+
+            // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
+            if (this.config.system.asyncPopups) {
+                this.logger.verbose("asyncPopups set to true, acquiring token");
+                return this.acquireTokenPopupAsync(validRequest, popupName);
+            } else {
+                // asyncPopups flag is set to false. Opens popup before acquiring token.
+                this.logger.verbose("asyncPopup set to false, opening popup before acquiring token");
+                const popup = PopupUtils.openSizedPopup("about:blank", popupName);
+                return this.acquireTokenPopupAsync(validRequest, popupName, popup);
+            }
         } catch (e) {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
-        }
-
-        const popupName = PopupUtils.generatePopupName(this.config.auth.clientId, validRequest);
-
-        // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
-        if (this.config.system.asyncPopups) {
-            this.logger.verbose("asyncPopups set to true, acquiring token");
-            return this.acquireTokenPopupAsync(validRequest, popupName);
-        } else {
-            // asyncPopups flag is set to false. Opens popup before acquiring token.
-            this.logger.verbose("asyncPopup set to false, opening popup before acquiring token");
-            const popup = PopupUtils.openSizedPopup("about:blank", popupName);
-            return this.acquireTokenPopupAsync(validRequest, popupName, popup);
         }
     }
 
@@ -454,7 +492,7 @@ export abstract class ClientApplication {
      *
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
-    private async acquireTokenPopupAsync(validRequest: AuthorizationUrlRequest, popupName: string, popup?: Window|null): Promise<AuthenticationResult> {
+    protected async acquireTokenPopupAsync(validRequest: AuthorizationUrlRequest, popupName: string, popup?: Window|null): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenPopupAsync called");
         // If logged in, emit acquire token events
         const loggedInAccounts = this.getAllAccounts();
@@ -576,8 +614,9 @@ export abstract class ClientApplication {
             prompt: PromptValue.NONE
         }, InteractionType.Silent);
 
+        this.browserStorage.updateCacheEntries(silentRequest.state, silentRequest.nonce, silentRequest.authority);
         const serverTelemetryManager = this.initializeServerTelemetryManager(apiId, silentRequest.correlationId);
-
+        
         try {
             // Create auth code request and generate PKCE params
             const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
@@ -639,7 +678,7 @@ export abstract class ClientApplication {
      * @param navigateUrl
      * @param userRequestScopes
      */
-    private async silentTokenHelper(navigateUrl: string, authCodeRequest: CommonAuthorizationCodeRequest, authClient: AuthorizationCodeClient): Promise<AuthenticationResult> {
+    protected async silentTokenHelper(navigateUrl: string, authCodeRequest: CommonAuthorizationCodeRequest, authClient: AuthorizationCodeClient): Promise<AuthenticationResult> {
         // Create silent handler
         const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.config.system.navigateFrameWait);
         // Get the frame handle for the silent request
@@ -650,6 +689,45 @@ export abstract class ClientApplication {
 
         // Handle response from hash string
         return silentHandler.handleCodeResponse(hash, state, authClient.authority, this.networkClient);
+    }
+
+    /**
+     * Silently acquire an access token for a given set of scopes. Will use cached token if available, otherwise will attempt to acquire a new token from the network via refresh token.
+     *
+     * @param {@link (SilentRequest:type)}
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
+     */
+     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
+        this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
+        this.logger.verbose("acquireTokenSilent called");
+        const account = request.account || this.getActiveAccount();
+        if (!account) {
+            throw BrowserAuthError.createNoAccountError();
+        }
+        const silentRequest: CommonSilentFlowRequest = {
+            ...request,
+            ...this.initializeBaseRequest(request),
+            account: account,
+            forceRefresh: request.forceRefresh || false
+        };
+        this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
+        try {
+            // Telemetry manager only used to increment cacheHits here
+            const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);
+            const silentAuthClient = await this.createSilentFlowClient(serverTelemetryManager, silentRequest.authority);
+            const cachedToken = await silentAuthClient.acquireCachedToken(silentRequest);
+            this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, cachedToken);
+            return cachedToken;
+        } catch (e) {
+            try {
+                const tokenRenewalResult = await this.acquireTokenByRefreshToken(silentRequest);
+                this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, tokenRenewalResult);
+                return tokenRenewalResult;
+            } catch (tokenRenewalError) {
+                this.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
+                throw tokenRenewalError;
+            }
+        }
     }
 
     // #endregion
@@ -948,7 +1026,7 @@ export abstract class ClientApplication {
      * Used to get a discovered version of the default authority.
      * @param requestAuthority
      */
-    async getDiscoveredAuthority(requestAuthority?: string): Promise<Authority> {
+    protected async getDiscoveredAuthority(requestAuthority?: string): Promise<Authority> {
         this.logger.verbose("getDiscoveredAuthority called");
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode,
@@ -1184,8 +1262,6 @@ export abstract class ClientApplication {
                 }
             }
         }
-
-        this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
 
         return validatedRequest;
     }

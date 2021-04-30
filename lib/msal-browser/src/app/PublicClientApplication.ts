@@ -3,22 +3,18 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, CommonSilentFlowRequest } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
-import { DEFAULT_REQUEST, ApiId, InteractionType } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
-import { RedirectRequest } from "../request/RedirectRequest";
-import { PopupRequest } from "../request/PopupRequest";
 import { ClientApplication } from "./ClientApplication";
-import { SilentRequest } from "../request/SilentRequest";
-import { EventType } from "../event/EventType";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { ExperimentalClientApplication } from "./ExperimentalClientApplication";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
  * to obtain JWT tokens as described in the OAuth 2.0 Authorization Code Flow with PKCE specification.
  */
 export class PublicClientApplication extends ClientApplication implements IPublicClientApplication {
+
+    experimental?: ExperimentalClientApplication
 
     /**
      * @constructor
@@ -43,70 +39,23 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     constructor(configuration: Configuration) {
         super(configuration);
+
+        this.checkExperimentalConfig(configuration);
     }
 
     /**
-     * Use when initiating the login process by redirecting the user's browser to the authorization endpoint. This function redirects the page, so
-     * any code that follows this function will not execute.
-     *
-     * IMPORTANT: It is NOT recommended to have code that is dependent on the resolution of the Promise. This function will navigate away from the current
-     * browser window. It currently returns a Promise in order to reflect the asynchronous nature of the code running in this function.
-     *
-     * @param request
+     * 
+     * @param userConfig 
      */
-    async loginRedirect(request?: RedirectRequest): Promise<void> {
-        this.logger.verbose("loginRedirect called");
-        return this.acquireTokenRedirect(request || DEFAULT_REQUEST);
-    }
-
-    /**
-     * Use when initiating the login process via opening a popup window in the user's browser
-     *
-     * @param request
-     *
-     * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
-     */
-    loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
-        this.logger.verbose("loginPopup called");
-        return this.acquireTokenPopup(request || DEFAULT_REQUEST);
-    }
-
-    /**
-     * Silently acquire an access token for a given set of scopes. Will use cached token if available, otherwise will attempt to acquire a new token from the network via refresh token.
-     *
-     * @param {@link (SilentRequest:type)}
-     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
-     */
-    async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
-        this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
-        this.logger.verbose("acquireTokenSilent called");
-        const account = request.account || this.getActiveAccount();
-        if (!account) {
-            throw BrowserAuthError.createNoAccountError();
-        }
-        const silentRequest: CommonSilentFlowRequest = {
-            ...request,
-            ...this.initializeBaseRequest(request),
-            account: account,
-            forceRefresh: request.forceRefresh || false
-        };
-        this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
-        try {
-            // Telemetry manager only used to increment cacheHits here
-            const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);
-            const silentAuthClient = await this.createSilentFlowClient(serverTelemetryManager, silentRequest.authority);
-            const cachedToken = await silentAuthClient.acquireCachedToken(silentRequest);
-            this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, cachedToken);
-            return cachedToken;
-        } catch (e) {
-            try {
-                const tokenRenewalResult = await this.acquireTokenByRefreshToken(silentRequest);
-                this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, tokenRenewalResult);
-                return tokenRenewalResult;
-            } catch (tokenRenewalError) {
-                this.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
-                throw tokenRenewalError;
+     private checkExperimentalConfig(userConfig: Configuration): void {
+        if (userConfig.experimental) {
+            this.logger.warning("Experimental features are subject to changes or removal without warning.");
+            if (!userConfig.experimental.enable) {
+                this.logger.warning("Experimental features were detected but the experimental API was not enabled. Please set 'enable' to true in the configuration object.");
+                return;
             }
+            
+            this.experimental = new ExperimentalClientApplication(this.config, this);
         }
     }
 }
