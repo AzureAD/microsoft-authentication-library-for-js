@@ -4,8 +4,6 @@
  */
 
 import typescript from "rollup-plugin-typescript2";
-import { terser } from "rollup-plugin-terser";
-import json from "@rollup/plugin-json";
 import pkg from "./package.json";
 
 const libraryHeader = `/*! ${pkg.name} v${pkg.version} ${new Date().toISOString().split("T")[0]} */`;
@@ -16,13 +14,17 @@ export default [
     {
         // for es build
         input: "src/index.ts",
-        preserveModules: true,
         output: {
             dir: "dist",
-            preserveModulesRoot: "src",
             format: "es",
+            preserveModules: true,
+            preserveModulesRoot: "src",
             banner: fileHeader,
-            sourcemap: "inline",
+            sourcemap: true,
+        },
+        treeshake: {
+            moduleSideEffects: false,
+            propertyReadSideEffects: false
         },
         external: [
             ...Object.keys(pkg.dependencies || {}),
@@ -32,8 +34,7 @@ export default [
             typescript({
                 typescript: require("typescript"),
                 tsconfig: "tsconfig.build.json"
-            }),
-            json()
+            })
         ]
     },
     {
@@ -43,37 +44,6 @@ export default [
                 file: pkg.main,
                 format: "cjs",
                 banner: fileHeader,
-                sourcemap: "inline"
-            },
-            {
-                file: "./lib/msal-common.js",
-                format: "umd",
-                name: "msalCommon",
-                banner: fileHeader,
-                sourcemap: "inline"
-            }
-        ],
-        external: [
-            ...Object.keys(pkg.dependencies || {}),
-            ...Object.keys(pkg.peerDependencies || {})
-        ],
-        plugins: [
-            typescript({
-                typescript: require("typescript"),
-                tsconfig: "tsconfig.build.json"
-            }),
-            json()
-        ]
-    },
-    // Minified version of msal
-    {
-        input: "src/index.ts",
-        output: [
-            {
-                file: "./lib/msal-common.min.js",
-                format: "umd",
-                name: "msalCommon",
-                banner: useStrictHeader,
                 sourcemap: true
             }
         ],
@@ -85,12 +55,6 @@ export default [
             typescript({
                 typescript: require("typescript"),
                 tsconfig: "tsconfig.build.json"
-            }),
-            json(),
-            terser({
-                output: {
-                    preamble: libraryHeader
-                }
             })
         ]
     }
