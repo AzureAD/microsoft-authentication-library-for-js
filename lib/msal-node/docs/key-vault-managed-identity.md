@@ -109,7 +109,7 @@ For an implementation, see the code sample: [auth-code-key-vault](../../../sampl
 >
 > const secretClient = new keyvaultSecret.SecretClient(KVUri, credential);
 > const secretResponse = await secretClient.getSecret(CERTIFICATE_NAME).catch(err => console.log(err));
-> convertPFX(secretResponse.value) // pkcs12/pfx formatted certificate + private key combination to pem
+> convertPFX(secretResponse.value) // pkcs12/pfx formatted certificate + private key combination
 >
 > /**
 > * @param {string} pfx: a certificate in pkcs12 format
