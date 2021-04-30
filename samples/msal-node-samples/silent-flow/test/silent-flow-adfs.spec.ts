@@ -34,7 +34,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 const config = require("../config/ADFS.json");
 
 describe("Silent Flow ADFS 2019 Tests", () => {
-    jest.setTimeout(20000);
+    jest.setTimeout(30000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
