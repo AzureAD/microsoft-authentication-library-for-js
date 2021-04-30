@@ -3,10 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import resolve from "rollup-plugin-node-resolve";
+import { nodeResolve } from "@rollup/plugin-node-resolve";
 import typescript from "rollup-plugin-typescript2";
 import { terser } from "rollup-plugin-terser";
-import json from "rollup-plugin-json";
 import pkg from "./package.json";
 
 const libraryHeader = `/*! ${pkg.name} v${pkg.version} ${new Date().toISOString().split("T")[0]} */`;
@@ -17,20 +16,27 @@ export default [
     {
         // for es build
         input: "src/index.ts",
-        preserveModules: true,
         output: {
             dir: "dist",
+            preserveModules: true,
             preserveModulesRoot: "src",
             format: "es",
             banner: fileHeader,
             sourcemap: true,
         },
+        treeshake: {
+            moduleSideEffects: false,
+            propertyReadSideEffects: false
+        },
+        external: [
+            ...Object.keys(pkg.dependencies || {}),
+            ...Object.keys(pkg.peerDependencies || {})
+        ],
         plugins: [
             typescript({
                 typescript: require("typescript"),
                 tsconfig: "tsconfig.build.json"
-            }),
-            json()
+            })
         ]
     },
     {
@@ -52,19 +58,18 @@ export default [
             }
         ],
         plugins: [
-            resolve({
+            nodeResolve({
                 browser: true,
-                only: ["@azure/msal-common"]
+                resolveOnly: ["@azure/msal-common", "tslib"]
             }),
             typescript({
                 typescript: require("typescript"),
                 tsconfig: "tsconfig.build.json"
-            }),
-            json()
+            })
         ]
     },
     {
-        //Minified version of msal
+        // Minified version of msal
         input: "src/index.ts",
         output: [
             {
@@ -76,9 +81,9 @@ export default [
             }
         ],
         plugins: [
-            resolve({
+            nodeResolve({
                 browser: true,
-                only: ["@azure/msal-common"]
+                resolveOnly: ["@azure/msal-common", "tslib"]
             }),
             typescript({
                 typescript: require("typescript"),
@@ -88,8 +93,7 @@ export default [
                 output: {
                     preamble: libraryHeader
                 }
-            }),
-            json()
+            })
         ]
     }
 ];
