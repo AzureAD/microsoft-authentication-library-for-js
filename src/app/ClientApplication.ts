@@ -513,7 +513,11 @@ export abstract class ClientApplication {
                 this.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Popup, null, e);
             }
             
-            popup?.close(); // Close the synchronous popup if an error is thrown before the window unload event is registered
+            if (popup) {
+                // Close the synchronous popup if an error is thrown before the window unload event is registered
+                popup.close();
+            }
+
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequestByState(validRequest.state);
             throw e;
@@ -810,7 +814,11 @@ export abstract class ClientApplication {
             }
 
         } catch (e) {
-            popup?.close(); // Close the synchronous popup if an error is thrown before the window unload event is registered
+            if (popup) {
+                // Close the synchronous popup if an error is thrown before the window unload event is registered
+                popup.close();
+            }
+            
             this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY));
             this.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Popup, null, e);
             serverTelemetryManager.cacheFailedRequest(e);
