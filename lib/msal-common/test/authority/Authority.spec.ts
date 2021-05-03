@@ -589,6 +589,30 @@ describe("Authority.ts Class Unit Tests", () => {
                 });
             });
 
+            it("throws untrustedAuthority error if host is not part of knownAuthorities, cloudDiscoveryMetadata and instance discovery network call doesn't return metadata", (done) => {
+                const authorityOptions: AuthorityOptions = {
+                    protocolMode: ProtocolMode.AAD,
+                    knownAuthorities: [],
+                    cloudDiscoveryMetadata: "",
+                    authorityMetadata: ""
+                };
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                    return {
+                        body: { 
+                            error: "This endpoint does not exist"
+                        }
+                    };
+                };
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
+    
+                authority.resolveEndpointsAsync().catch(e => {
+                    expect(e).to.be.instanceOf(ClientConfigurationError);
+                    expect(e.errorMessage).to.equal(ClientConfigurationErrorMessage.untrustedAuthority.desc);
+                    expect(e.errorCode).to.equal(ClientConfigurationErrorMessage.untrustedAuthority.code);
+                    done();
+                });
+            });
+
             it("getPreferredCache throws error if discovery is not complete", () => {
                 expect(() => authority.getPreferredCache()).to.throw(ClientAuthErrorMessage.endpointResolutionError.desc);
             });
