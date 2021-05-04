@@ -195,7 +195,7 @@ export class MsalInterceptor implements HttpInterceptor {
 
         if (allMatchedScopes.length > 0) {
             if (allMatchedScopes.length > 1) {
-               this.authService.getLogger().warning("Interceptor - More than 1 matching scopes for endpoint found.");
+                this.authService.getLogger().warning("Interceptor - More than 1 matching scopes for endpoint found.");
             }
             // Returns scopes for first matching endpoint
             return allMatchedScopes[0];
