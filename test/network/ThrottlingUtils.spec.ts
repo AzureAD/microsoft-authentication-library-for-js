@@ -12,7 +12,7 @@ import { NetworkResponse } from "../../src/network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 import { MockStorageClass }  from "../client/ClientTestUtils";
 import { ServerError } from "../../src";
-import { THUMBPRINT, THROTTLING_ENTITY, TEST_CONFIG } from "../utils/StringConstants";
+import { THUMBPRINT, THROTTLING_ENTITY, TEST_CONFIG } from "../test_kit/StringConstants";
 
 describe("ThrottlingUtils", () => {
     describe("generateThrottlingStorageKey", () => {

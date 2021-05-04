@@ -14,7 +14,7 @@ import {
     ID_TOKEN_CLAIMS,
     TEST_URIS,
     TEST_TOKENS,
-} from "../utils/StringConstants";
+} from "../test_kit/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import { AuthenticationScheme, Constants, CredentialType } from "../../src/utils/Constants";
 import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils";

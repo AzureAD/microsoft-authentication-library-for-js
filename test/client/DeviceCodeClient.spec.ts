@@ -19,7 +19,7 @@ import {
     TEST_URIS,
     TEST_POP_VALUES,
     CORS_SIMPLE_REQUEST_HEADERS
-} from "../utils/StringConstants";
+} from "../test_kit/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import { AADServerParamKeys, GrantType, ThrottlingConstants } from "../../src/utils/Constants";
 import { ClientTestUtils } from "./ClientTestUtils";

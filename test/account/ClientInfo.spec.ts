@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { buildClientInfo } from "../../src/account/ClientInfo";
-import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_POP_VALUES } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_POP_VALUES } from "../test_kit/StringConstants";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
 import sinon from "sinon";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../src";
@@ -56,7 +56,9 @@ describe("ClientInfo.ts Class Unit Tests", () => {
         });
 
         it("Throws error if clientInfo is null or empty", () => {
+            // @ts-ignore
             expect(() => buildClientInfo(null, cryptoInterface)).to.throw(ClientAuthErrorMessage.clientInfoEmptyError.desc);
+            // @ts-ignore
             expect(() => buildClientInfo(null, cryptoInterface)).to.throw(ClientAuthError);
 
             expect(() => buildClientInfo("", cryptoInterface)).to.throw(ClientAuthErrorMessage.clientInfoEmptyError.desc);
