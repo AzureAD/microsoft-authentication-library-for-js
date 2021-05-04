@@ -7,7 +7,7 @@ import "mocha";
 import { expect } from "chai";
 import { ThrottlingEntity } from "../../../src/cache/entities/ThrottlingEntity";
 import { ThrottlingConstants, Separators } from "../../../src/utils/Constants";
-import { TEST_CONFIG } from "../../utils/StringConstants";
+import { TEST_CONFIG } from "../../test_kit/StringConstants";
 
 describe("ThrottlingEntity", () => {
     describe("isThrottlingEntity", () => {

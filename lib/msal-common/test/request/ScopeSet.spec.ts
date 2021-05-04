@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { ScopeSet } from "../../src/request/ScopeSet";
-import { TEST_CONFIG } from "../utils/StringConstants";
+import { TEST_CONFIG } from "../test_kit/StringConstants";
 import { ClientConfigurationError, ClientConfigurationErrorMessage, Constants, ClientAuthError, ClientAuthErrorMessage } from "../../src";
 import sinon from "sinon";
 import { OIDC_DEFAULT_SCOPES, OIDC_SCOPES } from "../../src/utils/Constants";

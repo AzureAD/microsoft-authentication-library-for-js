@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { StringUtils } from "../../src/utils/StringUtils";
-import { TEST_TOKENS } from "./StringConstants";
+import { TEST_TOKENS } from "../test_kit/StringConstants";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { AuthError } from "../../src/error/AuthError";
 import { IdToken } from "../../src";
