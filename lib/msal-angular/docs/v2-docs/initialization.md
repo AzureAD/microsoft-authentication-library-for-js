@@ -73,7 +73,7 @@ As of MSAL Angular v2, `canActivateChild` and `canLoad` have also been added to 
 
 ## Get tokens for Web API calls
 
-`@azure/msal-angular` allows you to add an Http interceptor (`MsalInterceptor`) in your `app.module.ts` as follows. The `MsalInterceptor` will obtain tokens and add them to all your Http requests in API calls based on the `protectedResourceMap`.
+`@azure/msal-angular` allows you to add an Http interceptor (`MsalInterceptor`) in your `app.module.ts` as follows. The `MsalInterceptor` will obtain tokens and add them to all your Http requests in API calls based on the `protectedResourceMap`. See our [MsalInterceptor doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/msal-interceptor.md) for more details on configuration and use.
 
 ```js
 @NgModule({
@@ -104,10 +104,6 @@ As of MSAL Angular v2, `canActivateChild` and `canLoad` have also been added to 
 })
 export class AppModule {}
 ```
-
-As of MSAL Angular v2, `protectedResourceMap` supports using `*` for wildcards. `unprotectedResources` is deprecated and no longer an option for configuration. Instead, setting a scope value of `null` on a resource will prevent it from getting tokens.
-
-**Note:** When using wildcards, if multiple matching entries are found in the `protectedResourceMap`, the first match found will be used (based on the order of the `protectedResourceMap`).
 
 Using the `MsalInterceptor` is optional. You may wish to explicitly acquire tokens using the acquireToken APIs instead.
 
