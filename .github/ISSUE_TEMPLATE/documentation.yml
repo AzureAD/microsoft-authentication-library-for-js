@@ -21,9 +21,9 @@ body:
     label: Core Library
     multiple: true
     options: 
-      - "@azure/msal or msal"
-      - "@azure/msal-browser"
+      - "@azure/msal-browser (v2)"
       - "@azure/msal-node"
+      - "@azure/msal or msal (v1)"
       - "passport-azure-ad"
       - "adal-node"
       - "adal.js"
@@ -35,6 +35,7 @@ body:
     options:
       - "@azure/msal-angular"
       - "@azure/msal-react"
+      - "@azure/msal-node-extensions"
       - "adal-angular"
       - "Not Applicable"
   validations:
