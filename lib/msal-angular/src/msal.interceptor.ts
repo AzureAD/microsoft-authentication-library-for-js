@@ -117,7 +117,7 @@ export class MsalInterceptor implements HttpInterceptor {
         const matchingProtectedResources = this.matchResourcesToEndpoint(protectedResourcesArray, normalizedEndpoint);
 
         if (matchingProtectedResources.length > 0) {
-            return MsalInterceptor.matchScopesToEndpoint(this.msalInterceptorConfig.protectedResourceMap, matchingProtectedResources, httpMethod);
+            return this.matchScopesToEndpoint(this.msalInterceptorConfig.protectedResourceMap, matchingProtectedResources, httpMethod);
         }
 
         return null;
@@ -155,7 +155,7 @@ export class MsalInterceptor implements HttpInterceptor {
      * @param httpMethod Http method of the request
      * @returns 
      */
-    static matchScopesToEndpoint(protectedResourceMap: Map<string, Array<string|ProtectedResourceScopes> | null>, endpointArray: string[], httpMethod: string): Array<string>|null {
+    private matchScopesToEndpoint(protectedResourceMap: Map<string, Array<string|ProtectedResourceScopes> | null>, endpointArray: string[], httpMethod: string): Array<string>|null {
         const allMatchedScopes = [];
 
         // Check each matched endpoint for matching HttpMethod and scopes
@@ -194,6 +194,9 @@ export class MsalInterceptor implements HttpInterceptor {
         });
 
         if (allMatchedScopes.length > 0) {
+            if (allMatchedScopes.length > 1) {
+               this.authService.getLogger().warning("Interceptor - More than 1 matching scopes for endpoint found.");
+            }
             // Returns scopes for first matching endpoint
             return allMatchedScopes[0];
         }
