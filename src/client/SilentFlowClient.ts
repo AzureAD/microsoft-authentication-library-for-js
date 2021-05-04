@@ -15,7 +15,7 @@ import { ClientAuthError, ClientAuthErrorMessage } from "../error/ClientAuthErro
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { CacheRecord } from "../cache/entities/CacheRecord";
-import { AuthenticationScheme } from "../utils/Constants";
+import { AuthenticationScheme, Constants } from "../utils/Constants";
 
 export class SilentFlowClient extends BaseClient {
 
@@ -61,7 +61,7 @@ export class SilentFlowClient extends BaseClient {
         const cacheRecord = this.cacheManager.readCacheRecord(request.account, this.config.authOptions.clientId, requestScopes, environment, authScheme);
 
         if (request.forceRefresh || 
-            request.claims || 
+            (request.claims && request.claims !== Constants.EMPTY_OBJECT_STRING) || 
             !cacheRecord.accessToken || 
             TimeUtils.isTokenExpired(cacheRecord.accessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds) ||
             (cacheRecord.accessToken.refreshOn && TimeUtils.isTokenExpired(cacheRecord.accessToken.refreshOn, 0))) {

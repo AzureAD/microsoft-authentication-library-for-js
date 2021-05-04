@@ -526,9 +526,6 @@ describe("CacheManager.ts test cases", () => {
 
     it("readRefreshTokenFromCache Error", () => {
         const refreshToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, CACHE_MOCKS.MOCK_ACCOUNT_INFO, true);
-        if (!refreshToken) {
-            throw TestError.createTestSetupError("refreshToken does not have a value");
-        }
         expect(refreshToken).to.equal(null);
     });
 
