@@ -3,5 +3,5 @@
   "comment": "Reduce logs in BrowserCacheManager",
   "packageName": "@azure/msal-browser",
   "email": "janutter@microsoft.com",
-  "dependentChangeType": "patch"
+  "dependentChangeType": "none"
 }
