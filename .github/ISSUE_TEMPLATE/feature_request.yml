@@ -7,9 +7,9 @@ body:
     label: Core Library
     multiple: true
     options: 
-      - "@azure/msal-browser (v2)"
-      - "@azure/msal-node"
-      - "@azure/msal or msal (v1)"
+      - "MSAL.js v2 (@azure/msal-browser)"
+      - "MSAL.js v1 (@azure/msal or msal)"
+      - "MSAL Node (@azure/msal-node)"
       - "passport-azure-ad"
       - "adal-node"
       - "adal.js"
@@ -21,9 +21,9 @@ body:
     label: Wrapper Library
     multiple: true
     options:
-      - "@azure/msal-angular"
-      - "@azure/msal-react"
-      - "@azure/msal-node-extensions"
+      - "MSAL Angular (@azure/msal-angular)"
+      - "MSAL React (@azure/msal-react)"
+      - "MSAL Node Extensions (@azure/msal-node-extensions)"
       - "adal-angular"
       - "Not Applicable"
   validations:
