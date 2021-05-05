@@ -139,7 +139,10 @@ export class WindowUtils {
                 if (href && UrlUtils.urlContainsHash(href)) {
                     logger.verbose("monitorPopupForHash found url in hash");
                     clearInterval(intervalId);
-                    resolve(contentWindow.location.hash);
+                    const hash = contentWindow.location.hash;
+                    contentWindow.location.hash = "";
+                    contentWindow.history.replaceState(null, null, `${contentWindow.location.pathname}${contentWindow.location.search}`);
+                    resolve(hash);
                 } else if (ticks > maxTicks) {
                     logger.error("monitorPopupForHash unable to find hash in url, timing out");
                     logger.errorPii(`monitorPopupForHash polling timed out for url: ${urlNavigate}`);
@@ -345,6 +348,7 @@ export class WindowUtils {
         // Office.js sets history.replaceState to null
         if (typeof history.replaceState === "function") {
             // Full removes "#" from url
+            window.location.replace(`${window.location.pathname}${window.location.search}`);
             history.replaceState(null, null, `${window.location.pathname}${window.location.search}`);
         } else {
             window.location.hash = "";
