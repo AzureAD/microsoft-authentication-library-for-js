@@ -29,6 +29,7 @@ jobs:
         sample:
           - 'react-router-sample'
           - 'nextjs-sample'
+          - 'gatsby-sample'
 
     steps:
     - name: Cancel Previous Runs
