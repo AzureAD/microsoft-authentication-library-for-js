@@ -10,6 +10,7 @@
 
 **[Configuration](#configuration)**
 
+1. [What is the difference between `@azure/msal-angular` v2 and v1?](#what-is-the-difference-between-azuremsal-angular-v2-and-v1)
 1. [How do I add tokens to API calls?](#how-do-i-add-tokens-to-api-calls)
 1. [How do I use my app with path/hash location strategy?](#how-do-i-use-my-app-with-pathhash-location-strategy)
 
@@ -35,7 +36,7 @@ Please see [here](https://github.com/AzureAD/microsoft-authentication-library-fo
 
 ### What versions of Angular are supported?
 
-Msal Angular currently supports Angular 9, 10, and 11.
+Msal Angular currently supports Angular 9, 10, 11, and 12.
 
 ### Does `@azure/msal-angular` support Server Side Rendering?
 
@@ -46,6 +47,10 @@ Yes, server side rendering is supported through Angular universal. See our doc [
 Yes, `@azure/msal-angular` does support IE 11. More information can on configuration can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/ie-support.md).
 
 ## Configuration
+
+### What is the difference between `@azure/msal-angular` v2 and v1?
+
+Please see our [upgrade guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/v1-v2-upgrade-guide.md) for information on the differences between `@azure/msal-angular` v1 and v2, as well changes to watch out for when upgrading.
 
 ### How do I add tokens to API calls?
 
@@ -62,7 +67,7 @@ Please note that the `MsalInterceptor` is optional. You may wish to explicitly a
 
 ### How do I use my app with path/hash location strategy?
 
-`@azure/msal-angular` supports both the `PathLocationStrategy` and `HashLocationStrategy`, can be configured in the `app-routing.module.ts` of your app. `PathLocationStrategy` is demonstrated in our [Angular 10 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular10-sample-app), while `HashLocationStrategy` is demonstrated in our [Angular 11 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-sample-app). See the [Angular docs](https://angular.io/guide/router#locationstrategy-and-browser-url-styles) for more details on routing strategies. 
+`@azure/msal-angular` supports both the `PathLocationStrategy` and `HashLocationStrategy`, which can be configured in the `app-routing.module.ts` of your app. See our [samples list](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples) for the routing strategy demonstrated by each sample. See the [Angular docs](https://angular.io/guide/router#locationstrategy-and-browser-url-styles) for more details on routing strategies. 
 
 See [below](#how-do-i-log-users-in-when-they-hit-the-application) for additional considerations for each strategy if you are wanting to log users in on page load.
 

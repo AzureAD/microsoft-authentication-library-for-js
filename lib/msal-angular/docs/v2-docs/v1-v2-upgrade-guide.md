@@ -1,6 +1,6 @@
 # Upgrading from MSAL Angular v1 to v2
 
-MSAL Angular v2 brings our Angular wrapper up-to-date with the latest version of MSAL common, and with out-of-the-box support for modern versions of Angular (9 - 11) and rxjs (6).
+MSAL Angular v2 brings our Angular wrapper up-to-date with the latest version of MSAL common, and with out-of-the-box support for modern versions of Angular (9 - 12) and rxjs (6).
 
 This guide will demonstrate changes needed to migrate an existing application from `@azure/msal-angular` v1 to v2.
 
@@ -69,6 +69,6 @@ Steps:
 
 ## Samples
 
-We have put together basic sample applications for Angular 9, 10, and 11. These samples demonstrate basic configuration and usage, and will be improved and added to incrementally. 
+We have put together basic sample applications for Angular 9, 10, 11, and 12. These samples demonstrate basic configuration and usage, and will be improved and added to incrementally. 
 
 See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/README.md) for a list of the MSAL Angular v2 samples and the features demonstrated.

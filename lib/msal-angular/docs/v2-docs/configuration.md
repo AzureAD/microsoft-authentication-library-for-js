@@ -36,11 +36,11 @@ The `MsalModule` class contains a static method that can be called in your `app.
 
 ```typescript
 import { MsalModule, MsalService, MsalGuard, MsalInterceptor } from "@azure/msal-angular";
-import { IPublicClientApplication, PublicClientApplication, InteractionType, BrowserCacheLocation } from "@azure/msal-browser";
+import { PublicClientApplication, InteractionType, BrowserCacheLocation } from "@azure/msal-browser";
 
 @NgModule({
     imports: [
-        MsalModule.forRoot({ // MSAL Configuration
+        MsalModule.forRoot( new PublicClientApplication({ // MSAL Configuration
             auth: {
                 clientId: "clientid",
                 authority: "https://login.microsoftonline.com/common/",
@@ -51,7 +51,7 @@ import { IPublicClientApplication, PublicClientApplication, InteractionType, Bro
             cache: {
                 cacheLocation : BrowserCacheLocation.LocalStorage,
                 storeAuthStateInCookie: true, // set to true for IE 11
-            }
+            },
             system: {
                 loggerOptions: {
                     loggerCallback: () => {},
@@ -497,7 +497,7 @@ export class AppModule { }
 }
 ```
 
-## MsalGuard - dynamic auth request
+### MsalGuard - Dynamic auth request
 
 The **MsalGuard** also allows you to dynamically change the **authRequest** at runtime. This allow you to pick a different authority for a route, or to dynamically add scopes based on the **RouterStateSnapshot**.
 
