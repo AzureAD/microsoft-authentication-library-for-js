@@ -6,46 +6,46 @@ The wrapper handles authentication with both **Azure AD** and **Azure AD B2C**. 
 
 ## Usage
 
-Start by building the wrapper:
+1. Start by building the wrapper:
 
-```console
-    cd ExpressTestApp
-    npm run build
-```
+    ```console
+        cd ExpressTestApp
+        npm run build
+    ```
 
-Then, initialize the wrapper by providing a settings file in JSON (see: [appSettings.json](./TestApp/appSettings.json)). The file looks like the following:
+2. Then, initialize the wrapper by providing a settings file in JSON (see: [appSettings.json](./TestApp/appSettings.json)). The file looks like the following:
 
-```JSON
-{
-    "credentials": {
-        "clientId": "CLIENT_ID",
-        "tenantId": "TENANT_ID",
-        "clientSecret": "CLIENT_SECRET"
-    },
-    "settings": {
-        "homePageRoute": "/home",
-        "redirectUri": "http://localhost:4000/redirect",
-        "postLogoutRedirectUri": "http://localhost:4000"
-    }
-}
-```
-
-Add the web API endpoints you would like to call under **resources**:
-
-```JSON
-{
-    // ...
-    "resources": {
-        "graphAPI": {
-            "callingPageRoute": "/profile",
-            "endpoint": "https://graph.microsoft.com/v1.0/me",
-            "scopes": ["user.read"]
+    ```JSON
+    {
+        "credentials": {
+            "clientId": "CLIENT_ID",
+            "tenantId": "TENANT_ID",
+            "clientSecret": "CLIENT_SECRET"
         },
+        "settings": {
+            "homePageRoute": "/home",
+            "redirectUri": "http://localhost:4000/redirect",
+            "postLogoutRedirectUri": "http://localhost:4000"
+        }
     }
-}
-```
+    ```
 
-If you are authenticating with **Azure AD B2C**, user-flows and/or policies should be provided as well:
+3. Add the web API endpoints you would like to call under **resources**:
+
+    ```JSON
+    {
+        // ...
+        "resources": {
+            "graphAPI": {
+                "callingPageRoute": "/profile",
+                "endpoint": "https://graph.microsoft.com/v1.0/me",
+                "scopes": ["user.read"]
+            },
+        }
+    }
+    ```
+
+4. If you are authenticating with **Azure AD B2C**, user-flows and/or policies should be provided as well:
 
 ```JSON
 {
@@ -58,6 +58,17 @@ If you are authenticating with **Azure AD B2C**, user-flows and/or policies shou
     }
 }
 ```
+5. Install and run the sample website. 
+
+    ```bash
+    cd TestApp && \
+        npm install && \
+        npm start
+    ```
+
+6. Open a browser at `http://localhost:4000`.
+
+## Integration with the Express.js authentication wrapper
 
 To initialize the wrapper, import it and supply the settings file and an (optional) persistent cache as below:
 

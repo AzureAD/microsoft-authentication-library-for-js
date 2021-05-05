@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add Node 16 to msal-node supported versions",
+  "packageName": "@azure/msal-node",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "patch"
+}

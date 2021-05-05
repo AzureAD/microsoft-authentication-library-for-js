@@ -29,14 +29,6 @@ Previously, `@azure/msal-angular` accepted two configuration objects via `MsalMo
 
 See the [updated sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular10-sample-app/src/app/app.module.ts) for an example of how to pass these configuration objects.
 
-### Protected resources
-
-* `protectedResourceMap` has been moved to the `MsalInterceptorConfiguration` object, and can be passed as `Map<string, Array<string>>`. `MsalAngularConfiguration` has been deprecated and no longer works. See the [updated samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular10-sample-app/src/app/app.module.ts) for usage.
-* `protectedResourceMap` supports using `*` for wildcards, instead of using minimatch as a dependency. When using wildcards, if multiple matching entries are found in the `protectedResourceMap`, the first match found will be used (based on the order of the `protectedResourceMap`). 
-* Putting the root domain in the `protectedResourceMap` to protect all routes is no longer supported. Please use wildcard matching instead.
-* Setting a scope value of `null` on a resource will prevent it from getting tokens. Note that the order in `protectedResourceMap` matters, so null resource should be put before any similar base urls or wildcards.
-* **Note:** If there are relative resource paths in your application, you may need to provide the relative path in the `protectedResourceMap`.
-
 ### Logger
 
 * The `logger` is now set through configurations for the MSAL instance, under `system.loggerOptions`, which include a `loggerCallback`, `piiLoggingEnabled` and `logLevel`, instead of an instance of a `logger`. The `logger` can also be set dynamically by using `MsalService.setLogger()`. See the [`logger documentation`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/logging.md) for more information and [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular10-sample-app/src/app/app.module.ts) for usage.
@@ -46,6 +38,9 @@ See the [updated sample](https://github.com/AzureAD/microsoft-authentication-lib
 * The `acquireToken` and `login` methods now take different request objects as parameters. See the [msal.service.ts](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/msal.service.ts) for details.
 * Broadcast events now emit an `EventMessage` object, instead of just strings. See the [Angular sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular10-sample-app/src/app/app.component.ts) for an example of how to implement.
 * Applications using `Redirect` methods should import the `MsalRedirectComponent` and bootstrap along with `AppComponent` in their app.component.ts, which will handle all redirects. Applications are unable to do this should implement the `handleRedirectObservable` method (and have it run on every page load), which will capture the result of redirect operations. See the [redirect documentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/redirects.md) for more details.
+
+### MSAL Interceptor
+* Please our [MsalInterceptor doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/msal-interceptor.md) for more details on configuring the current `MsalInterceptor`, and differences between v1 and v2.
 
 ### MSAL Guard
 

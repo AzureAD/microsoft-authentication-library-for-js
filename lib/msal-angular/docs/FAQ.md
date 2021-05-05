@@ -54,14 +54,12 @@ Please see our [upgrade guide](https://github.com/AzureAD/microsoft-authenticati
 
 ### How do I add tokens to API calls?
 
-`@azure/msal-angular` provides the `MsalInterceptor` for obtaining tokens and adding them to HTTP requests. The `protectedResourceMap` is part of the `MsalInterceptorConfiguration` object, and can be configured with endpoints and scopes, passed as `Map<string, Array<string>>`.
+`@azure/msal-angular` provides the `MsalInterceptor` for obtaining tokens and adding them to HTTP requests. You may find the following links helpful:
 
-Things to note about the `protectedResourceMap`:
-- Using `*` for wildcards is supported, but the first match will be used. Hence, the order of resources in the `protectedResourceMap` matters.
-- Passing a `null` scope ensures that no tokens are obtained for the particular endpoint. You can pass null to make sure an endpoint is unprotected.
-- Relative paths may need to be used if relative paths are used in your application. This also applies to issues that may arise with `ngx-translate`. Relative paths should not have a leading slash.
-
-See our [initialization doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/initialization.md#get-tokens-for-web-api-calls) for more information on setting this up, our [upgrade guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/v1-v2-upgrade-guide.md#protected-resources) for differences to MSAL Angular v1, and our [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/5cc21a95a389c31a0d5e74d37ff297931aeee479/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app.module.ts#L47) for examples of usage.
+* [MsalInterceptor doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/msal-interceptor.md) for details on configuration and use
+* [Initialization doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/initialization.md#get-tokens-for-web-api-calls) for basic set up
+* [Configuration doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/configuration.md) for different ways to configure MSAL
+* [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/5cc21a95a389c31a0d5e74d37ff297931aeee479/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app.module.ts#L47) for examples of usage
 
 Please note that the `MsalInterceptor` is optional. You may wish to explicitly acquire tokens using the acquireToken APIs instead. The `MsalInterceptor` is provided for your convenience and may not fit all use cases. We encourage you to write your own interceptor if you have specific needs that are not addressed by the `MsalInterceptor`. 
 
