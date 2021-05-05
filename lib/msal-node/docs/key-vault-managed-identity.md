@@ -17,7 +17,7 @@ Now you can import your certificate to Key Vault. **Azure Key Vault** expects ce
 * *.pem* file format contains one or more X509 certificate files.
 * *.pfx* file format is an archive file format for storing several cryptographic objects in a single file i.e. server certificate (issued for your domain), a matching private key, and may optionally include an intermediate CA.
 
-> :lightbulb: If you don't have any certificates at hand, you can use Azure Key Vault to generate it for you. It will have the additional benefits of assigning partner Certificate Authority and automating certificate rotation. For more information, see [Quickstart: Generate a certificate with Azure Key Vault using the Azure portal](https://docs.microsoft.com/azure/key-vault/certificates/quick-create-portal)
+> :bulb: If you don't have any certificates at hand, you can use Azure Key Vault to generate it for you. It will have the additional benefits of assigning partner Certificate Authority and automating certificate rotation. For more information, see [Quickstart: Generate a certificate with Azure Key Vault using the Azure portal](https://docs.microsoft.com/azure/key-vault/certificates/quick-create-portal)
 
 We will combine our public and private key into a single *.pem* file, and upload this file to Key Vault. For conversion, we will use **OpenSSL**. Type the following in a terminal:
 
@@ -59,7 +59,7 @@ For alternative ways of importing, see: [Tutorial: Import a certificate in Azure
 
 Using [Azure Key Vault JavaScript SDK](https://docs.microsoft.com/javascript/api/overview/azure/keyvault-certificates-readme?view=azure-node-latest), we can fetch the certificate we've uploaded in the previous step. During development, Azure **Key Vault JavaScript SDK** grabs the required access token from the local environment using VS Code's context, via [@azure/identity](https://docs.microsoft.com/javascript/api/overview/azure/identity-readme?view=azure-node-latest) package. To do this, you'll need to be signed in to Azure.
 
-First, [download and install](https://docs.microsoft.com/cli/azure/install-azure-cli) **Azure CLI**. This should add **Azure CLI** to system path. Re-launch VS Code and **Azure CLI** should be available in VS Code [integrated terminal](https://code.visualstudio.com/docs/editor/integrated-terminal). Then, type the following to sign-in.
+First, [download and install](https://docs.microsoft.com/cli/azure/install-azure-cli) **Azure CLI**. This should add **Azure CLI** to system path. Re-launch VS Code and **Azure CLI** should be available in VS Code [integrated terminal](https://code.visualstudio.com/docs/editor/integrated-terminal). Then, type the following to sign-in:
 
 ```console
 az login --tenant YOUR_TENANT_ID
@@ -68,67 +68,11 @@ az login --tenant YOUR_TENANT_ID
 Once authenticated, [@azure/identity](https://docs.microsoft.com/javascript/api/overview/azure/identity-readme?view=azure-node-latest) package can access the Azure Key Vault as shown below:
 
 ```JavaScript
-function msalApp(thumbprint, privateKey) {
 
-    // Before running the sample, you will need to replace the values in the config
-    const config = {
-        auth: {
-            clientId: "ENTER_CLIENT_ID",
-            authority: "https://login.microsoftonline.com/ENTER_TENANT_ID",
-            clientCertificate: {
-                thumbprint: thumbprint,
-                privateKey: privateKey,
-            }
-        },
-        system: {
-            loggerOptions: {
-                loggerCallback(loglevel, message, containsPii) {
-                    console.log(message);
-                },
-                piiLoggingEnabled: false,
-                logLevel: msal.LogLevel.Verbose,
-            }
-        }
-    };
-
-    // Create msal application object
-    const cca = new msal.ConfidentialClientApplication(config);
-
-    // Create Express App and Routes
-    const app = express();
-
-    app.get('/', (req, res) => {
-        const authCodeUrlParameters = {
-            scopes: ["user.read"],
-            redirectUri: REDIRECT_URI,
-        };
-
-        // get url to sign user in and consent to scopes needed for application
-        cca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
-            res.redirect(response);
-        }).catch((error) => console.log(JSON.stringify(error)));
-    });
-
-    app.get('/redirect', (req, res) => {
-        const tokenRequest = {
-            code: req.query.code,
-            scopes: ["user.read"],
-            redirectUri: REDIRECT_URI,
-        };
-
-        cca.acquireTokenByCode(tokenRequest).then((response) => {
-            console.log("\nResponse: \n:", response);
-            res.status(200).send('Congratulations! You have signed in successfully');
-        }).catch((error) => {
-            console.log(error);
-            res.status(500).send(error);
-        });
-    });
-
-    app.listen(SERVER_PORT, () => {
-        console.log(`Msal Node Auth Code Sample app listening on port ${SERVER_PORT}!`)
-    });
-}
+// Initialize Azure SDKs
+const credential = new identity.DefaultAzureCredential();
+const certClient = new keyvaultCert.CertificateClient(KVUri, credential);
+const secretClient = new keyvaultSecret.SecretClient(KVUri, credential);
 
 async function main() {
 
@@ -150,6 +94,59 @@ main();
 ```
 
 For an implementation, see the code sample: [auth-code-key-vault](../../../samples/msal-node-samples/auth-code-key-vault).
+
+> :information_source: Converting `PKCS12/PFX` to `PEM`
+>
+> In most circumstances, Azure Key Vault can export certificates and private keys in `pem` format (see: [Export stored certificates](https://docs.microsoft.com/azure/key-vault/certificates/how-to-export-certificate?tabs=azure-cli#export-stored-certificates)), if **Content Type** was chosen as `pem` during certificate generation (see: [Create a certificate in Key Vault](https://docs.microsoft.com/azure/key-vault/certificates/tutorial-rotate-certificates#create-a-certificate-in-key-vault)). If for some reason this is not the case, OpenSSL can be used for conversions:
+>
+> ```bash
+> openssl pkcs12 -in certificate.pfx -out certificate.pem
+> ```
+>
+> If the conversion needs to happen programmatically, then you may have to rely on a 3rd party package, as Node.js offers no native method for this. For instance, using a popular TLS implementation like [node-forge](https://www.npmjs.com/package/node-forge), you can do:
+>
+> ```javascript
+>
+> const secretClient = new keyvaultSecret.SecretClient(KVUri, credential);
+> const secretResponse = await secretClient.getSecret(CERTIFICATE_NAME).catch(err => console.log(err));
+> convertPFX(secretResponse.value) // pkcs12/pfx formatted certificate + private key combination
+>
+> /**
+> * @param {string} pfx: a certificate in pkcs12 format
+> * @param {string} passphrase: passphrase used to encrypt pfx file
+> * @returns {Object}
+> */
+> function convertPFX(pfx, passphrase = null) {
+>
+>    const asn = forge.asn1.fromDer(forge.util.decode64(pfx));   
+>    const p12 = forge.pkcs12.pkcs12FromAsn1(asn, true, passphrase);
+>
+>    // Retrieve key data
+>    const keyData = p12.getBags({ bagType: forge.pki.oids.pkcs8ShroudedKeyBag })[forge.pki.oids.pkcs8ShroudedKeyBag]
+>        .concat(p12.getBags({ bagType: forge.pki.oids.keyBag })[forge.pki.oids.keyBag]);
+>
+>    // Retrieve certificate data
+>    const certBags = p12.getBags({ bagType: forge.pki.oids.certBag })[forge.pki.oids.certBag];
+>    const certificate = forge.pki.certificateToPem(certBags[0].cert)
+>
+>    // Convert a Forge private key to an ASN.1 RSAPrivateKey
+>    const rsaPrivateKey = forge.pki.privateKeyToAsn1(keyData[0].key);
+>
+>    // Wrap an RSAPrivateKey ASN.1 object in a PKCS#8 ASN.1 PrivateKeyInfo
+>    const privateKeyInfo = forge.pki.wrapRsaPrivateKey(rsaPrivateKey);
+>
+>    // Convert a PKCS#8 ASN.1 PrivateKeyInfo to PEM
+>    const privateKey = forge.pki.privateKeyInfoToPem(privateKeyInfo);
+>
+>    console.log("Converted certificate: \n", certificate);
+>    console.log("Converted key: \n", privateKey);
+>
+>    return {
+>        certificate: certificate,
+>        key: privateKey
+>    };
+> }
+> ```
 
 ## Using Azure Managed Identity
 
@@ -213,7 +210,7 @@ Finally, you need to add environment variables to the App Service where you depl
     1. **KEY_VAULT_NAME**: the name of the key vault you've created, e.g. `node-test-vault`
     1. **CERTIFICATE_NAME**: the name of the certificate you specified when importing it to key vault, e.g. `ExampleCert`
 
-Wait for a few minutes for your changes to **App Service** to take effect. You should then be able to visit your published website and sign-in accordingly.
+Wait for a few minutes for your changes on **App Service** to take effect. You should then be able to visit your published website and sign-in accordingly.
 
 ## More Information
 
