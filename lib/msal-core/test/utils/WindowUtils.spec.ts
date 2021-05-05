@@ -7,7 +7,7 @@ import { ClientAuthError } from "../../src/error/ClientAuthError";
 import { Logger, UrlUtils } from "../../src";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { RequestUtils } from "../../src/utils/RequestUtils";
-import sinon, { replace } from "sinon";
+import sinon from "sinon";
 import { AuthCache } from "../../src/cache/AuthCache";
 
 const logger = new Logger(() => {});
