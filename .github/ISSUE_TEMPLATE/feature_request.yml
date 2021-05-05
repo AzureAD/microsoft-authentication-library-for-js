@@ -10,9 +10,9 @@ body:
       - "MSAL.js v2 (@azure/msal-browser)"
       - "MSAL.js v1 (@azure/msal or msal)"
       - "MSAL Node (@azure/msal-node)"
-      - "passport-azure-ad"
-      - "adal-node"
-      - "adal.js"
+      - "Passport Azure AD (passport-azure-ad)"
+      - "ADAL Node (adal-node)"
+      - "ADAL.js (adal.js)"
   validations:
     required: true
 
@@ -24,7 +24,7 @@ body:
       - "MSAL Angular (@azure/msal-angular)"
       - "MSAL React (@azure/msal-react)"
       - "MSAL Node Extensions (@azure/msal-node-extensions)"
-      - "adal-angular"
+      - "ADAL Angular (adal-angular)"
       - "Not Applicable"
   validations:
     required: true
