@@ -7,6 +7,10 @@ on:
   pull_request:
     branches:  
       - dev
+    paths:
+      - 'lib/**/*'
+      - '!**.md'
+      - '.github/workflows/npm-audit.yml'
   push:
     branches:
       - 'master'
