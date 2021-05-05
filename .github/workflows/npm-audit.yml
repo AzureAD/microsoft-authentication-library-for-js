@@ -9,6 +9,8 @@ on:
       - dev
     paths:
       - 'lib/**/*'
+      - 'extensions/**/*'
+      - '**/package-lock.json'
       - '!**.md'
       - '.github/workflows/npm-audit.yml'
   push:
