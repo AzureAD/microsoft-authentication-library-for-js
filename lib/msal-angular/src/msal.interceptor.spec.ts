@@ -36,6 +36,7 @@ function MSALInterceptorFactory(): MsalInterceptorConfiguration {
     interactionType: testInteractionType,
     protectedResourceMap: new Map<string, Array<string|ProtectedResourceScopes> | null>([
       ["https://graph.microsoft.com/v1.0/me", ["user.read"]],
+      ["relative/me", ["relative.scope"]],
       ["https://myapplication.com/user/*", ["customscope.read"]],
       ["https://*.myapplication.com/*", ["mail.read"]],
       ["https://api.test.com", ["default.scope1"]],
@@ -514,12 +515,12 @@ describe('MsalInterceptor', () => {
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
-    httpClient.get("/v1.0/me").subscribe();
+    httpClient.get("relative/me").subscribe();
     setTimeout(() => {
-      const request = httpMock.expectOne("/v1.0/me");
+      const request = httpMock.expectOne("relative/me");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
-      expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["user.read"]});
+      expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["relative.scope"]});
       httpMock.verify();
       done();
     }, 200);
