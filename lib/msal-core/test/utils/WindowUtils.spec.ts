@@ -7,7 +7,7 @@ import { ClientAuthError } from "../../src/error/ClientAuthError";
 import { Logger, UrlUtils } from "../../src";
 import { BrowserStorage } from "../../src/cache/BrowserStorage";
 import { RequestUtils } from "../../src/utils/RequestUtils";
-import sinon from "sinon";
+import sinon, { replace } from "sinon";
 import { AuthCache } from "../../src/cache/AuthCache";
 
 const logger = new Logger(() => {});
@@ -98,7 +98,8 @@ describe("WindowUtils", () => {
                 contentWindow: {
                     location: {
                         href: "http://localhost",
-                        hash: ""
+                        hash: "",
+                        replace: () => { return }
                     }
                 }
             };
@@ -116,6 +117,9 @@ describe("WindowUtils", () => {
                     location: {
                         href: "http://localhost",
                         hash: ""
+                    },
+                    history: {
+                        replaceState: () => { return }
                     }
                 }
             };

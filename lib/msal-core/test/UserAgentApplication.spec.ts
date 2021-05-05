@@ -2074,7 +2074,8 @@ describe("UserAgentApplication.ts Class", function () {
             
             delete window.location;
             window.location = {
-                ...oldWindowLocation
+                ...oldWindowLocation,
+                replace: () => { return }
             };
         });
 
@@ -2119,7 +2120,8 @@ describe("UserAgentApplication.ts Class", function () {
                         console.error(e);
                     }
                 },
-                href: "http://localhost:8081/"
+                href: "http://localhost:8081/",
+                replace: () => { return }
             };
 
             sinon.stub(window, "parent").returns(window);
@@ -2148,7 +2150,8 @@ describe("UserAgentApplication.ts Class", function () {
                         console.error(e);
                     }
                 },
-                href: "http://localhost:8081/"
+                href: "http://localhost:8081/",
+                replace: () => { return }
             };
 
             sinon.stub(window, "parent").returns(window);
@@ -2177,7 +2180,8 @@ describe("UserAgentApplication.ts Class", function () {
                         console.error(e);
                     }
                 },
-                href: "http://localhost:8081/"
+                href: "http://localhost:8081/",
+                replace: () => { return }
             };
 
             sinon.stub(window, "parent").returns(window);
