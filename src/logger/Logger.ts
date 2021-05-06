@@ -82,10 +82,30 @@ export class Logger {
             return;
         }
         const timestamp = new Date().toUTCString();
-        const logHeader: string = StringUtils.isEmpty(this.correlationId) ? `[${timestamp}] : ` : `[${timestamp}] : [${this.correlationId}]`;
+
+        // Only allow correlationID in logs if pii is enabled. Priority goes to customer-entered correlationId.
+        let logHeader: string;
+        if (options.correlationId && this.piiLoggingEnabled) {
+            logHeader = `[${timestamp}] : [${options.correlationId}]`;
+            this.correlationId = options.correlationId; // Want to replace existing correlation Id with customer entered one?
+        } else if (!StringUtils.isEmpty(this.correlationId) && this.piiLoggingEnabled) {
+            logHeader = `[${timestamp}] : [${this.correlationId}]`;
+        } else {
+            logHeader = `[${timestamp}]`;
+        }
+
         const log = `${logHeader} : ${this.packageName}@${this.packageVersion} : ${LogLevel[options.logLevel]} - ${logMessage}`;
         // debug(`msal:${LogLevel[options.logLevel]}${options.containsPii ? "-Pii": ""}${options.context ? `:${options.context}` : ""}`)(logMessage);
         this.executeCallback(options.logLevel, log, options.containsPii || false);
+    }
+
+    /**
+     * Add correlation ID to existing logger instance
+     * @param logger 
+     * @param correlationId 
+     */
+    addCorrelationId(correlationId: string): void {
+        this.correlationId = correlationId;
     }
 
     /**
