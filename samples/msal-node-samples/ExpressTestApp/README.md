@@ -6,12 +6,15 @@ The wrapper handles authentication with both **Azure AD** and **Azure AD B2C**. 
 
 ## Usage
 
-1. Start by building the wrapper:
+1. Start by installing dependencies and building the wrapper. 
+
+    Open a bash terminal in the `./microsoft-authentication-library-for-js/samples/msal-node-samples/ExpressTestApp` directory:
 
     ```console
-        cd ExpressTestApp
-        npm run build
+    npm install && run build
     ```
+
+    This creates the `./dist` directory for the wrapper, which is called by the web app. 
 
 2. Then, initialize the wrapper by providing a settings file in JSON (see: [appSettings.json](./TestApp/appSettings.json)). The file looks like the following:
 
@@ -30,7 +33,9 @@ The wrapper handles authentication with both **Azure AD** and **Azure AD B2C**. 
     }
     ```
 
-3. Add the web API endpoints you would like to call under **resources**:
+3. If your registered Active Directory Application has a different **Web Redirect URI**, you need to add this redirectUri, `http://localhost:4000/redirect`, to your list in the Azure portal while you are developing locally.
+
+4. Add the web API endpoints you would like to call under **resources**:
 
     ```JSON
     {
@@ -45,7 +50,7 @@ The wrapper handles authentication with both **Azure AD** and **Azure AD B2C**. 
     }
     ```
 
-4. If you are authenticating with **Azure AD B2C**, user-flows and/or policies should be provided as well:
+5. If you are authenticating with **Azure AD B2C**, user-flows and/or policies should be provided as well:
 
 ```JSON
 {
@@ -58,7 +63,7 @@ The wrapper handles authentication with both **Azure AD** and **Azure AD B2C**. 
     }
 }
 ```
-5. Install and run the sample website. 
+6. Install and run the sample website. 
 
     ```bash
     cd TestApp && \
@@ -66,7 +71,7 @@ The wrapper handles authentication with both **Azure AD** and **Azure AD B2C**. 
         npm start
     ```
 
-6. Open a browser at `http://localhost:4000`.
+7. Open a browser at `http://localhost:4000`.
 
 ## Integration with the Express.js authentication wrapper
 
