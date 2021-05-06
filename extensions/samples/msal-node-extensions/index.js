@@ -21,7 +21,8 @@ createPersistence().then((filePersistence) => {
         }
     };
 
-    if (filePersistence.verifyPersistence()) {
+    const persistenceVerified = await filePersistence.verifyPersistence();
+    if (persistenceVerified) {
         console.log("Persistence verified...");
         publicClientConfig.cache = {
             cachePlugin: new extensions.PersistenceCachePlugin(filePersistence)
