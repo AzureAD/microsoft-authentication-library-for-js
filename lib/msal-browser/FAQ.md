@@ -7,6 +7,7 @@
 1. [I am moving from MSAL.js 1.x to MSAL.js to 2.x. What should I know?](#i-am-moving-from-msaljs-1x-to-msaljs-to-2x-what-should-i-know)
 1. [Does this library work for iframed applications?](#does-this-library-work-for-iframed-applications)
 1. [Will MSAL 2.x support B2C?](#will-msal-2x-support-b2c)
+1. [Is MSAL.js 2.x compatibile with Azure App Proxy](#is-msaljs-2x-compatible-with-azure-app-proxy)
 
 **[Authentication](#Authentication)**
 
@@ -98,7 +99,11 @@ We are currently working on support for iframed applications as well as solution
 
 ## Will MSAL 2.x support B2C?
 
-MSAL.js v2 supports B2C of October 2020. 
+MSAL.js v2 supports B2C of October 2020.
+
+## Is MSAL.js 2.x compatible with Azure App Proxy?
+
+Unfortunately, at this time MSAL.js 2.x is not compatible with [Azure App Proxy](https://docs.microsoft.com/azure/active-directory/app-proxy/application-proxy). Single-page applications will need to use MSAL.js 1.x as a workaround. We will post an update when this incompatibility has been fixed. See [this issue](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/3420) for more information.
 
 # Authentication
 
