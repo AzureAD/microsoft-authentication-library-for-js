@@ -6,7 +6,7 @@
 import { INetworkModule } from "../network/INetworkModule";
 import { NetworkResponse } from "../network/NetworkManager";
 import { IMDSBadResponse } from "../response/IMDSBadResponse";
-import { Constants } from "../utils/Constants";
+import { Constants, ResponseCodes } from "../utils/Constants";
 
 export class RegionDiscovery {
     // Network interface to make requests with.
@@ -31,11 +31,11 @@ export class RegionDiscovery {
         if (!autodetectedRegionName) {
             try {
                 const response = await this.getRegionFromIMDS(Constants.IMDS_VERSION);
-                if (response.status === 200) {
+                if (response.status === ResponseCodes.httpSuccess) {
                     autodetectedRegionName = response.body;
                 } 
                 
-                if (response.status === 400) {
+                if (response.status === ResponseCodes.httpBadRequest) {
                     const latestIMDSVersion = await this.getCurrentVersion();
                     if (!latestIMDSVersion) {
                         return null;
