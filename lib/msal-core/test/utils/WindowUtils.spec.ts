@@ -98,8 +98,7 @@ describe("WindowUtils", () => {
                 contentWindow: {
                     location: {
                         href: "http://localhost",
-                        hash: "",
-                        replace: () => { return }
+                        hash: ""
                     }
                 }
             };
@@ -275,7 +274,7 @@ describe("WindowUtils", () => {
     describe("clearUrlFragment", () => {
         it("clearHash() clears the window hash", () => {
             window.location.hash = "thisIsAHash";
-            WindowUtils.clearUrlFragment();
+            WindowUtils.clearUrlFragment(window);
             expect(window.location.href.includes("#thisIsAHash")).to.be.false;
         });
     
@@ -285,7 +284,7 @@ describe("WindowUtils", () => {
             history.replaceState = null;
     
             window.location.hash = "thisIsAHash";
-            WindowUtils.clearUrlFragment();
+            WindowUtils.clearUrlFragment(window);
             expect(window.location.href.includes("#thisIsAHash")).to.be.false;
             
             history.replaceState = oldReplaceState;
