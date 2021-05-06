@@ -31,6 +31,7 @@ jobs:
           - 'angular10-sample-app'
           - 'angular11-b2c-sample'
           - 'angular11-sample-app'
+          - 'angular12-sample-app'
 
     steps:
     - name: Cancel Previous Runs

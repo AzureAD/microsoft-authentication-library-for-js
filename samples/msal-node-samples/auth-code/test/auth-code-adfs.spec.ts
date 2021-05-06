@@ -24,7 +24,11 @@ let username: string;
 let accountPwd: string;
 
 describe('Auth Code ADFS PPE Tests', () => {
+<<<<<<< HEAD
     jest.setTimeout(15000);
+=======
+    jest.setTimeout(30000);
+>>>>>>> dev
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;

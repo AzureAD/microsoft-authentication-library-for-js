@@ -122,6 +122,9 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
             this.loginFailedRoute = this.parseUrl(this.msalGuardConfig.loginFailedRoute);
         }
 
+        // Capture current path before it gets changed by handleRedirectObservable
+        const currentPath = this.location.path(true);
+
         return this.authService.handleRedirectObservable()
             .pipe(
                 concatMap(() => {
@@ -136,17 +139,25 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
 
                     this.authService.getLogger().verbose("Guard - at least 1 account exists, can activate or load");
 
-                    // Prevent navigating the app to /#code=
-                    if (state && state.url.indexOf("#") > -1 && state.url.indexOf("code=") > -1) {
+                    // Prevent navigating the app to /#code= or /code=
+                    if (state && currentPath.indexOf("code=")> -1) {
                         this.authService.getLogger().info("Guard - Hash contains known code response, stopping navigation.");
-                        return of(false);
+                        
+                        // Path routing (navigate to current path without hash)
+                        if (currentPath.indexOf("#") > -1) {
+                            return of(this.parseUrl(this.location.path()));
+                        }
+                        
+                        // Hash routing (navigate to root path)
+                        return of(this.parseUrl(""));
                     }
 
                     return of(true);
 
                 }),
-                catchError(() => {
-                    this.authService.getLogger().verbose("Guard - error while logging in, unable to activate");
+                catchError((error: Error) => {
+                    this.authService.getLogger().error("Guard - error while logging in, unable to activate");
+                    this.authService.getLogger().errorPii(`Guard - error: ${error.message}`);
                     /**
                      * If a loginFailedRoute is set, checks to see if Angular 10+ is used and state is passed in before returning route
                      * Apps using Angular 9 will receive of(false) in canLoad interface, as it does not support UrlTree return types

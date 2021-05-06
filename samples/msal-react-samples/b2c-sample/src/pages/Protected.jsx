@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 // Msal imports
 import { MsalAuthenticationTemplate, useMsal, useAccount } from "@azure/msal-react";
-import { InteractionType } from "@azure/msal-browser";
+import { InteractionType, InteractionStatus } from "@azure/msal-browser";
 import { loginRequest } from "../authConfig";
 
 // Sample app imports
@@ -19,7 +19,7 @@ const ProtectedContent = () => {
     const [atsResponse, setAtsResponse] = useState(null);
 
     useEffect(() => {
-        if (account && inProgress === "none") {
+        if (!atsResponse && account && inProgress === InteractionStatus.None) {
             instance.acquireTokenSilent({
                 ...loginRequest,
                 account: account
@@ -27,7 +27,7 @@ const ProtectedContent = () => {
                 setAtsResponse(response);
             });
         }
-    }, [account, inProgress, instance]);
+    }, [account, inProgress, instance, atsResponse]);
 
     return (
         <Paper>

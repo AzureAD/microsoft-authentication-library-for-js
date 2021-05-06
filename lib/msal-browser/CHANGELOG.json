@@ -2,6 +2,53 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Thu, 22 Apr 2021 23:26:08 GMT",
+      "tag": "@azure/msal-browser_v2.14.1",
+      "version": "2.14.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "Documentation Updates #3499",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "366ec6a251e099a45ad83c380aa22e4dff7b4a9e",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Run npm audit for PRs",
+            "author": "janutter@microsoft.com",
+            "commit": "b3c5bcf2101cbe92edca972c53d64343f775dcc9",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update and fix eslint rules",
+            "author": "janutter@microsoft.com",
+            "commit": "70debe58239b6a6fdf4e533a8a1ee057257846a8",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "resource-and-scopes doc correction",
+            "author": "dogan.erisen@gmail.com",
+            "commit": "8e24069543f421d38a3612382691fb86fbe20178",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Add .browserslistrc #3471",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "04c6d659d4dc76183ef9043075d3b6cacc450c9b",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Look for temp cache items in local storage as fallback #3509",
+            "author": "janutter@microsoft.com",
+            "commit": "01b835a2bdbc90557aa357fadae37f6bbe817ebc",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 14 Apr 2021 18:39:53 GMT",
       "tag": "@azure/msal-browser_v2.14.0",
       "version": "2.14.0",

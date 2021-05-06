@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Prevent UnauthenticatedTemplate from rendering children while processing redirect response #3552",
+  "packageName": "@azure/msal-react",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}

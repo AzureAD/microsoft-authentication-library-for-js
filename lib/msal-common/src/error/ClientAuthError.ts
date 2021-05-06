@@ -169,7 +169,7 @@ export const ClientAuthErrorMessage = {
     },
     noAuthorizationCodeFromServer: {
         code: "authorization_code_missing_from_server_response",
-        desc: "Srver response does not contain an authorization code to proceed"
+        desc: "Server response does not contain an authorization code to proceed"
     }
 };
 

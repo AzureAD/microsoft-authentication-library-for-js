@@ -683,7 +683,7 @@ export abstract class ClientApplication {
             // create logout string and navigate user window to logout. Auth module will clear cache.
             const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
             
-            if (!validLogoutRequest.account || AccountEntity.accountInfoIsEqual(validLogoutRequest.account, this.getActiveAccount())) {
+            if (!validLogoutRequest.account || AccountEntity.accountInfoIsEqual(validLogoutRequest.account, this.getActiveAccount(), false)) {
                 this.logger.verbose("Setting active account to null");
                 this.setActiveAccount(null);
             }
@@ -771,7 +771,7 @@ export abstract class ClientApplication {
 
             // create logout string and navigate user window to logout. Auth module will clear cache.
             const logoutUri: string = authClient.getLogoutUri(validRequest);
-            if (!validRequest.account || AccountEntity.accountInfoIsEqual(validRequest.account, this.getActiveAccount())) {
+            if (!validRequest.account || AccountEntity.accountInfoIsEqual(validRequest.account, this.getActiveAccount(), false)) {
                 this.logger.verbose("Setting active account to null");
                 this.setActiveAccount(null);
             }
