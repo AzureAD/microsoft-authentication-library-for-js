@@ -6,17 +6,19 @@ The wrapper handles authentication with both **Azure AD** and **Azure AD B2C**. 
 
 ## Usage
 
-1. Start by installing dependencies and building the wrapper. 
+1. Open this directory in VSCode. 
 
-    Open a bash terminal in the `./microsoft-authentication-library-for-js/samples/msal-node-samples/ExpressTestApp` directory:
+2. Open an integrated terminal and run the following command:
 
     ```console
-    npm install && run build
+    npm install
     ```
 
-    This creates the `./dist` directory for the wrapper, which is called by the web app. 
+    This command also runs a post install command to build the wrapper, which creates the `./dist` directory for the wrapper. 
 
-2. Then, initialize the wrapper by providing a settings file in JSON (see: [appSettings.json](./TestApp/appSettings.json)). The file looks like the following:
+    This post install command also installs dependencies for the web app in the TestApp directory. The web app uses the wrapper to encapsulate the Azure authentication logic.
+
+3. Then, initialize the wrapper by providing a settings file in JSON (see: [appSettings.json](./TestApp/appSettings.json)). The file looks like the following:
 
     ```JSON
     {
@@ -33,9 +35,9 @@ The wrapper handles authentication with both **Azure AD** and **Azure AD B2C**. 
     }
     ```
 
-3. If your registered Active Directory Application has a different **Web Redirect URI**, you need to add this redirectUri, `http://localhost:4000/redirect`, to your list in the Azure portal while you are developing locally.
+4. If your registered Active Directory Application has a different **Web Redirect URI**, you need to add this redirectUri, `http://localhost:4000/redirect`, to your list in the Azure portal to correctly redirect when running the app locally.
 
-4. Add the web API endpoints you would like to call under **resources**:
+5. Add the web API endpoints you would like to call under **resources**:
 
     ```JSON
     {
@@ -50,7 +52,7 @@ The wrapper handles authentication with both **Azure AD** and **Azure AD B2C**. 
     }
     ```
 
-5. If you are authenticating with **Azure AD B2C**, user-flows and/or policies should be provided as well:
+6. If you are authenticating with **Azure AD B2C**, user-flows and/or policies should be provided as well:
 
 ```JSON
 {
@@ -63,17 +65,15 @@ The wrapper handles authentication with both **Azure AD** and **Azure AD B2C**. 
     }
 }
 ```
-6. Install and run the sample website. 
+7. Run the project. 
 
     ```bash
-    cd TestApp && \
-        npm install && \
-        npm start
+    npm start
     ```
 
-7. Open a browser at `http://localhost:4000`.
+8. Open a browser at `http://localhost:4000`.
 
-## Integration with the Express.js authentication wrapper
+## Understanding the integration between Express.js and the authentication wrapper
 
 To initialize the wrapper, import it and supply the settings file and an (optional) persistent cache as below:
 

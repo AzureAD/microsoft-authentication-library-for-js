@@ -6,8 +6,10 @@
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
+    "postinstall": "npm run build && cd TestApp && npm install && cd ..",
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "cd TestApp && npm start"
   },
   "author": "",
   "license": "MIT",
