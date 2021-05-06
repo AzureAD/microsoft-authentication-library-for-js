@@ -341,3 +341,11 @@ export enum PasswordGrantConstants {
     username = "username",
     password = "password"
 }
+
+/**
+ * Response codes
+ */
+export enum  ResponseCodes {
+    httpSuccess = 200,
+    httpBadRequest = 400
+}
