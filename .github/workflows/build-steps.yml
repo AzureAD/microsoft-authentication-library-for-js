@@ -9,11 +9,10 @@ on:
       - 'dev'
       - 'master'
   pull_request:
-    paths-ignore:
-      - '**.md'
-      - '**/.vscode/*.json'
-      - 'samples/**'
-      - 'change/**'
+    paths:
+      - 'lib/**/*'
+      - '!**.md'
+      - '.github/workflows/build-steps.yml'
 
 jobs:
 
