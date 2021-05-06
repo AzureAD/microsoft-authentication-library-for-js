@@ -16,5 +16,5 @@ import { AzureRegion } from "../authority/AzureRegion";
  */
 export type CommonClientCredentialRequest = BaseAuthRequest & {
     skipCache?: boolean;
-    preferredAzureRegion?: AzureRegion;
+    azureRegion?: AzureRegion;
 };
