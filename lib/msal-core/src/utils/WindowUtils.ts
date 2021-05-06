@@ -344,13 +344,11 @@ export class WindowUtils {
      * Removes url fragment from browser url
      */
     static clearUrlFragment(contentWindow: Window): void {
+        contentWindow.location.hash = "";
         // Office.js sets history.replaceState to null
         if (typeof history.replaceState === "function") {
             // Full removes "#" from url
-            contentWindow.location.hash = "";
             contentWindow.history.replaceState(null, null, `${contentWindow.location.pathname}${contentWindow.location.search}`);
-        } else {
-            contentWindow.location.hash = "";
         }
     }
 }
