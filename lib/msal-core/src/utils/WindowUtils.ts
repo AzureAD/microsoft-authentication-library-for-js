@@ -140,8 +140,7 @@ export class WindowUtils {
                     logger.verbose("monitorPopupForHash found url in hash");
                     clearInterval(intervalId);
                     const hash = contentWindow.location.hash;
-                    contentWindow.location.hash = "";
-                    contentWindow.history.replaceState(null, null, `${contentWindow.location.pathname}${contentWindow.location.search}`);
+                    WindowUtils.clearUrlFragment(contentWindow);
                     resolve(hash);
                 } else if (ticks > maxTicks) {
                     logger.error("monitorPopupForHash unable to find hash in url, timing out");
@@ -344,14 +343,14 @@ export class WindowUtils {
     /**
      * Removes url fragment from browser url
      */
-    static clearUrlFragment(): void {
+    static clearUrlFragment(contentWindow: Window): void {
         // Office.js sets history.replaceState to null
         if (typeof history.replaceState === "function") {
             // Full removes "#" from url
-            window.location.replace(`${window.location.pathname}${window.location.search}`);
-            history.replaceState(null, null, `${window.location.pathname}${window.location.search}`);
+            contentWindow.location.hash = "";
+            contentWindow.history.replaceState(null, null, `${contentWindow.location.pathname}${contentWindow.location.search}`);
         } else {
-            window.location.hash = "";
+            contentWindow.location.hash = "";
         }
     }
 }
