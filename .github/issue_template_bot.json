@@ -30,6 +30,9 @@
                 "msal-react": {
                     "searchStrings": ["@azure/msal-react"]
                 },
+                "msal-node-extensions": {
+                    "searchStrings": ["@azure/msal-node-extensions"]
+                },
                 "adal-angular": {
                     "searchStrings": ["adal-angular"]
                 }
