@@ -346,7 +346,7 @@ export class WindowUtils {
     static clearUrlFragment(contentWindow: Window): void {
         contentWindow.location.hash = "";
         // Office.js sets history.replaceState to null
-        if (typeof history.replaceState === "function") {
+        if (typeof contentWindow.history.replaceState === "function") {
             // Full removes "#" from url
             contentWindow.history.replaceState(null, null, `${contentWindow.location.pathname}${contentWindow.location.search}`);
         }
