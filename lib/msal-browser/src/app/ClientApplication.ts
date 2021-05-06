@@ -340,7 +340,7 @@ export abstract class ClientApplication {
             }
 
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority);
-            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, cachedRequest, this.browserCrypto);
+            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, cachedRequest, this.browserCrypto, this.logger);
             return await interactionHandler.handleCodeResponse(hash, state, authClient.authority, this.networkClient, this.config.auth.clientId);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
@@ -382,7 +382,7 @@ export abstract class ClientApplication {
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority);
 
             // Create redirect interaction handler.
-            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, authCodeRequest, this.browserCrypto);
+            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, authCodeRequest, this.browserCrypto, this.logger);
 
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
@@ -477,7 +477,7 @@ export abstract class ClientApplication {
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
 
             // Create popup interaction handler.
-            const interactionHandler = new PopupHandler(authClient, this.browserStorage, authCodeRequest);
+            const interactionHandler = new PopupHandler(authClient, this.browserStorage, authCodeRequest, this.logger);
 
             // Show the UI once the url has been created. Get the window handle for the popup.
             const popupParameters: PopupParams = {
@@ -641,7 +641,7 @@ export abstract class ClientApplication {
      */
     private async silentTokenHelper(navigateUrl: string, authCodeRequest: CommonAuthorizationCodeRequest, authClient: AuthorizationCodeClient): Promise<AuthenticationResult> {
         // Create silent handler
-        const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.config.system.navigateFrameWait);
+        const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.config.system.navigateFrameWait, this.logger);
         // Get the frame handle for the silent request
         const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl);
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
@@ -1099,6 +1099,9 @@ export abstract class ClientApplication {
 
         const scopes = [...((request && request.scopes) || [])];
         const correlationId = (request && request.correlationId) || this.browserCrypto.createNewGuid();
+
+        // Ensures log messages for each request can be tracked by the correlationId
+        this.logger.addCorrelationId(correlationId);
 
         // Set authenticationScheme to BEARER if not explicitly set in the request
         if (!request.authenticationScheme) {

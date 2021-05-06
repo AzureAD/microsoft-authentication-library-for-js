@@ -223,6 +223,9 @@ export class AuthorizationCodeClient extends BaseClient {
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);
 
+        // Add correlationId to msal-common logger instance
+        this.logger.addCorrelationId(correlationId);
+
         if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
@@ -248,6 +251,9 @@ export class AuthorizationCodeClient extends BaseClient {
         // generate the correlationId if not set by the user and add
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);
+
+        // Add correlationId to msal-common logger instance
+        this.logger.addCorrelationId(correlationId);
 
         // add response_mode. If not passed in it defaults to query.
         parameterBuilder.addResponseMode(request.responseMode);
