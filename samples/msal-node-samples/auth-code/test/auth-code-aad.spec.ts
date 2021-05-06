@@ -32,11 +32,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 const config = require("../config/AAD.json");
 
 describe("Auth Code AAD PPE Tests", () => {
-<<<<<<< HEAD
-    jest.setTimeout(15000);
-=======
     jest.setTimeout(30000);
->>>>>>> dev
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
