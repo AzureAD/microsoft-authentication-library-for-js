@@ -194,14 +194,15 @@ export class BrowserCacheManager extends CacheManager {
      * @param idTokenKey
      */
     getIdTokenCredential(idTokenKey: string): IdTokenEntity | null {
-        this.logger.verbose("BrowserCacheManager.getIdTokenCredential called");
         const value = this.getItem(idTokenKey);
         if (!value) {
+            this.logger.verbose("BrowserCacheManager.getIdTokenCredential: called, no cache hit");
             return null;
         }
 
         const parsedIdToken = this.validateAndParseJson(value);
         if (!parsedIdToken || !IdTokenEntity.isIdTokenEntity(parsedIdToken)) {
+            this.logger.verbose("BrowserCacheManager.getIdTokenCredential: called, no cache hit");
             return null;
         }
 
@@ -224,13 +225,14 @@ export class BrowserCacheManager extends CacheManager {
      * @param key
      */
     getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity | null {
-        this.logger.verbose("BrowserCacheManager.getAccessTokenCredential called");
         const value = this.getItem(accessTokenKey);
         if (!value) {
+            this.logger.verbose("BrowserCacheManager.getAccessTokenCredential: called, no cache hit");
             return null;
         }
         const parsedAccessToken = this.validateAndParseJson(value);
         if (!parsedAccessToken || !AccessTokenEntity.isAccessTokenEntity(parsedAccessToken)) {
+            this.logger.verbose("BrowserCacheManager.getAccessTokenCredential: called, no cache hit");
             return null;
         }
 
@@ -253,13 +255,14 @@ export class BrowserCacheManager extends CacheManager {
      * @param refreshTokenKey
      */
     getRefreshTokenCredential(refreshTokenKey: string): RefreshTokenEntity | null {
-        this.logger.verbose("BrowserCacheManager.getRefreshTokenCredential called");
         const value = this.getItem(refreshTokenKey);
         if (!value) {
+            this.logger.verbose("BrowserCacheManager.getRefreshTokenCredential: called, no cache hit");
             return null;
         }
         const parsedRefreshToken = this.validateAndParseJson(value);
         if (!parsedRefreshToken || !RefreshTokenEntity.isRefreshTokenEntity(parsedRefreshToken)) {
+            this.logger.verbose("BrowserCacheManager.getRefreshTokenCredential: called, no cache hit");
             return null;
         }
 
@@ -282,14 +285,15 @@ export class BrowserCacheManager extends CacheManager {
      * @param appMetadataKey
      */
     getAppMetadata(appMetadataKey: string): AppMetadataEntity | null {
-        this.logger.verbose("BrowserCacheManager.getAppMetadata called");
         const value = this.getItem(appMetadataKey);
         if (!value) {
+            this.logger.verbose("BrowserCacheManager.getAppMetadata: called, no cache hit");
             return null;
         }
 
         const parsedMetadata = this.validateAndParseJson(value);
         if (!parsedMetadata || !AppMetadataEntity.isAppMetadataEntity(appMetadataKey, parsedMetadata)) {
+            this.logger.verbose("BrowserCacheManager.getAppMetadata: called, no cache hit");
             return null;
         }
 
@@ -312,13 +316,14 @@ export class BrowserCacheManager extends CacheManager {
      * @param serverTelemetryKey
      */
     getServerTelemetry(serverTelemetryKey: string): ServerTelemetryEntity | null {
-        this.logger.verbose("BrowserCacheManager.getServerTelemetry called");
         const value = this.getItem(serverTelemetryKey);
         if (!value) {
+            this.logger.verbose("BrowserCacheManager.getServerTelemetry: called, no cache hit");
             return null;
         }
         const parsedMetadata = this.validateAndParseJson(value);
         if (!parsedMetadata || !ServerTelemetryEntity.isServerTelemetryEntity(serverTelemetryKey, parsedMetadata)) {
+            this.logger.verbose("BrowserCacheManager.getServerTelemetry: called, no cache hit");
             return null;
         }
 
@@ -340,9 +345,9 @@ export class BrowserCacheManager extends CacheManager {
      *
      */
     getAuthorityMetadata(key: string) : AuthorityMetadataEntity | null {
-        this.logger.verbose("BrowserCacheManager.getAuthorityMetadata called");
         const value = this.internalStorage.getItem(key);
         if (!value) {
+            this.logger.verbose("BrowserCacheManager.getAuthorityMetadata: called, no cache hit");
             return null;
         }
         const parsedMetadata = this.validateAndParseJson(value);
@@ -377,14 +382,15 @@ export class BrowserCacheManager extends CacheManager {
      * @param throttlingCacheKey
      */
     getThrottlingCache(throttlingCacheKey: string): ThrottlingEntity | null {
-        this.logger.verbose("BrowserCacheManager.getThrottlingCache called");
         const value = this.getItem(throttlingCacheKey);
         if (!value) {
+            this.logger.verbose("BrowserCacheManager.getThrottlingCache: called, no cache hit");
             return null;
         }
 
         const parsedThrottlingCache = this.validateAndParseJson(value);
         if (!parsedThrottlingCache || !ThrottlingEntity.isThrottlingEntity(throttlingCacheKey, parsedThrottlingCache)) {
+            this.logger.verbose("BrowserCacheManager.getThrottlingCache: called, no cache hit");
             return null;
         }
 
@@ -404,16 +410,15 @@ export class BrowserCacheManager extends CacheManager {
 
     /**
      * Gets cache item with given key.
-     * Will retrieve frm cookies if storeAuthStateInCookie is set to true.
+     * Will retrieve from cookies if storeAuthStateInCookie is set to true.
      * @param key
      */
     getTemporaryCache(cacheKey: string, generateKey?: boolean): string | null {
-        this.logger.verbose("BrowserCacheManager.getTemporaryCache called");
         const key = generateKey ? this.generateCacheKey(cacheKey) : cacheKey;
         if (this.cacheConfig.storeAuthStateInCookie) {
-            this.logger.verbose("BrowserCacheManager.getTemporaryCache: storeAuthStateInCookies set to true, retrieving from cookies");
             const itemCookie = this.getItemCookie(key);
             if (itemCookie) {
+                this.logger.verbose("BrowserCacheManager.getTemporaryCache: storeAuthStateInCookies set to true, retrieving from cookies");
                 return itemCookie;
             }
         }
@@ -428,8 +433,10 @@ export class BrowserCacheManager extends CacheManager {
                     return item;
                 }
             }
+            this.logger.verbose("BrowserCacheManager.getTemporaryCache: No cache item found in local storage");
             return null;
         }
+        this.logger.verbose("BrowserCacheManager.getTemporaryCache: Temporary cache item returned");
         return value;
     }
 
