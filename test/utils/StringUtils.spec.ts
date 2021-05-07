@@ -2,7 +2,6 @@ import { StringUtils } from "../../src/utils/StringUtils";
 import { TEST_TOKENS } from "./StringConstants";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { AuthError } from "../../src/error/AuthError";
-import { IdToken } from "../../src";
 
 describe("StringUtils.ts Class Unit Tests", () => {
     
@@ -17,65 +16,58 @@ describe("StringUtils.ts Class Unit Tests", () => {
         });
     });
 
-    it("decodeJwt throws error when given a null token string", () => {
-        let err: ClientAuthError;
-
+    it("decodeJwt throws error when given a null token string", (done) => {
         try {
-            let decodedJwt = StringUtils.decodeAuthToken(null);
-        } catch (e) {
-            err = e;
-        }
-
-        expect(err instanceof ClientAuthError).toBe(true);
-        expect(err instanceof AuthError).toBe(true);
-        expect(err instanceof Error).toBe(true);
-        expect(err.errorCode).toBe(ClientAuthErrorMessage.nullOrEmptyToken.code);
-        expect(err.errorMessage).toEqual(expect.arrayContaining([ClientAuthErrorMessage.nullOrEmptyToken.desc]));
-        expect(err.message).toEqual(expect.arrayContaining([ClientAuthErrorMessage.nullOrEmptyToken.desc]));
-        expect(err.name).toBe("ClientAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["StringUtils.spec.ts"]));
+            // @ts-ignore
+            StringUtils.decodeAuthToken(null);
+        } catch (err) {
+            expect(err instanceof ClientAuthError).toBe(true);
+            expect(err instanceof AuthError).toBe(true);
+            expect(err instanceof Error).toBe(true);
+            expect(err.errorCode).toBe(ClientAuthErrorMessage.nullOrEmptyToken.code);
+            expect(err.errorMessage).toContain(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            expect(err.message).toContain(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            expect(err.name).toBe("ClientAuthError");
+            expect(err.stack).toContain("StringUtils.spec.ts");
+            done();
+        }        
     });
 
-    it("decodeJwt throws error when given a empty token string", () => {
-        let err: ClientAuthError;
-
+    it("decodeJwt throws error when given a empty token string", (done) => {
         try {
-            let decodedJwt = StringUtils.decodeAuthToken("");
-        } catch (e) {
-            err = e;
+            StringUtils.decodeAuthToken("");
+        } catch (err) {
+            expect(err instanceof ClientAuthError).toBe(true);
+            expect(err instanceof AuthError).toBe(true);
+            expect(err instanceof Error).toBe(true);
+            expect(err.errorCode).toBe(ClientAuthErrorMessage.nullOrEmptyToken.code);
+            expect(err.errorMessage).toContain(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            expect(err.message).toContain(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            expect(err.name).toBe("ClientAuthError");
+            expect(err.stack).toContain("StringUtils.spec.ts");
+            done();
         }
-
-        expect(err instanceof ClientAuthError).toBe(true);
-        expect(err instanceof AuthError).toBe(true);
-        expect(err instanceof Error).toBe(true);
-        expect(err.errorCode).toBe(ClientAuthErrorMessage.nullOrEmptyToken.code);
-        expect(err.errorMessage).toEqual(expect.arrayContaining([ClientAuthErrorMessage.nullOrEmptyToken.desc]));
-        expect(err.message).toEqual(expect.arrayContaining([ClientAuthErrorMessage.nullOrEmptyToken.desc]));
-        expect(err.name).toBe("ClientAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["StringUtils.spec.ts"]));
     });
 
-    it("decodeJwt throws error when given a malformed token string", () => {
-        let err: ClientAuthError;
-
+    it("decodeJwt throws error when given a malformed token string", (done) => {
         try {
-            let decodedJwt = StringUtils.decodeAuthToken(TEST_TOKENS.SAMPLE_MALFORMED_JWT);
-        } catch (e) {
-            err = e;
+            StringUtils.decodeAuthToken(TEST_TOKENS.SAMPLE_MALFORMED_JWT);
+        } catch (err) {
+            expect(err instanceof ClientAuthError).toBe(true);
+            expect(err instanceof AuthError).toBe(true);
+            expect(err instanceof Error).toBe(true);
+            expect(err.errorCode).toBe(ClientAuthErrorMessage.tokenParsingError.code);
+            expect(err.errorMessage).toContain(ClientAuthErrorMessage.tokenParsingError.desc);
+            expect(err.message).toContain(ClientAuthErrorMessage.tokenParsingError.desc);
+            expect(err.name).toBe("ClientAuthError");
+            expect(err.stack).toContain("StringUtils.spec.ts");
+            done();
         }
-
-        expect(err instanceof ClientAuthError).toBe(true);
-        expect(err instanceof AuthError).toBe(true);
-        expect(err instanceof Error).toBe(true);
-        expect(err.errorCode).toBe(ClientAuthErrorMessage.tokenParsingError.code);
-        expect(err.errorMessage).toEqual(expect.arrayContaining([ClientAuthErrorMessage.tokenParsingError.desc]));
-        expect(err.message).toEqual(expect.arrayContaining([ClientAuthErrorMessage.tokenParsingError.desc]));
-        expect(err.name).toBe("ClientAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["StringUtils.spec.ts"]));
     });
 
     it("isEmpty correctly identifies empty strings", () => {
         expect(StringUtils.isEmpty(undefined)).toBe(true);
+        // @ts-ignore
         expect(StringUtils.isEmpty(null)).toBe(true);
         expect(StringUtils.isEmpty("")).toBe(true);
         expect(StringUtils.isEmpty("Non-empty string")).toBe(false);
@@ -140,6 +132,7 @@ describe("StringUtils.ts Class Unit Tests", () => {
         });
 
         it("returns null on error", () => {
+            // @ts-ignore
             const parsedValNull = StringUtils.jsonParseHelper(null);
             const parsedValEmptyString = StringUtils.jsonParseHelper("");
             expect(parsedValNull).toBeNull();
