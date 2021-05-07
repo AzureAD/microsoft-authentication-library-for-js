@@ -3,13 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import * as Mocha from "mocha";
 import { ServerTelemetryManager, AuthError, ServerTelemetryRequest, ServerTelemetryEntity } from "../../src";
 import { TEST_CONFIG } from "../utils/StringConstants";
 import sinon from "sinon";
-import { MockStorageClass } from "../client/ClientTestUtils";
+import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
 
-const testCacheManager = new MockStorageClass();
+const testCacheManager = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
 const testApiCode = 9999999;
 const testError = "interaction_required";
 const testCorrelationId = "this-is-a-test-correlationId";
@@ -209,21 +208,21 @@ describe("ServerTelemetryManager.ts", () => {
     describe("maxErrorsToSend tests", () => {
         it("maxErrorsToSend returns a number smaller than length of error array when size limit reached", () => {
             const failures = {
-                failedRequests: [],
-                errors: [],
+                failedRequests: [] as string[],
+                errors: [] as string[],
                 cacheHits: 0
             };
     
             let dataSize = 0;
             while (dataSize < 4000) {
-                failures.failedRequests.push(testApiCode, testCorrelationId);
-                failures.errors.push(testError);
+                failures.failedRequests.push(`${testApiCode}`, testCorrelationId);
+                failures.errors.push(`${testError}`);
                 dataSize += testApiCode.toString().length + testCorrelationId.toString().length + testError.length;
             }
             // Add a couple more to go over max size
-            failures.failedRequests.push(testApiCode, testCorrelationId);
+            failures.failedRequests.push(`${testApiCode}`, testCorrelationId);
             failures.errors.push(testError);
-            failures.failedRequests.push(testApiCode, testCorrelationId);
+            failures.failedRequests.push(`${testApiCode}`, testCorrelationId);
             failures.errors.push(testError);
     
             expect(ServerTelemetryManager.maxErrorsToSend(failures)).toBeLessThan(failures.errors.length);
@@ -236,6 +235,7 @@ describe("ServerTelemetryManager.ts", () => {
                 cacheHits: 0
             };
     
+            // @ts-ignore
             expect(ServerTelemetryManager.maxErrorsToSend(failures)).toBe(2);
         });
     });
