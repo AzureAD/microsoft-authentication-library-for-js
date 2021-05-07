@@ -1,5 +1,4 @@
 import * as Mocha from "mocha";
-import { expect } from "chai";
 import sinon from "sinon";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 import { ResponseHandler } from "../../src/response/ResponseHandler";
@@ -116,12 +115,12 @@ describe("ResponseHandler.ts", () => {
             try {
                 const timestamp = TimeUtils.nowSeconds();
                 const tokenResp = await responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp, testRequest);
-                expect(tokenResp).to.be.undefined;
+                expect(tokenResp).toBeUndefined();
             } catch(e) {
                 if (e instanceof AuthError) {
-                    expect(e).to.be.instanceOf(ClientAuthError);
-                    expect(e.errorCode).to.be.eq(ClientAuthErrorMessage.invalidCacheEnvironment.code);
-                    expect(e.errorMessage).to.be.eq(ClientAuthErrorMessage.invalidCacheEnvironment.desc);
+                    expect(e).toBeInstanceOf(ClientAuthError);
+                    expect(e.errorCode).toBe(ClientAuthErrorMessage.invalidCacheEnvironment.code);
+                    expect(e.errorMessage).toBe(ClientAuthErrorMessage.invalidCacheEnvironment.desc);
                 } else {
                     throw e;
                 }
@@ -140,10 +139,10 @@ describe("ResponseHandler.ts", () => {
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
 
             sinon.stub(ResponseHandler, "generateAuthenticationResult").callsFake((cryptoObj, authority, cacheRecord, request, idTokenObj, fromTokenCache, stateString) => {
-                expect(authority).to.be.eq(testAuthority);
-                expect(cacheRecord.idToken).to.not.be.null;
-                expect(cacheRecord.accessToken).to.be.null;
-                expect(cacheRecord.refreshToken).to.not.be.null;
+                expect(authority).toBe(testAuthority);
+                expect(cacheRecord.idToken).not.toBeNull();
+                expect(cacheRecord.accessToken).toBeNull();
+                expect(cacheRecord.refreshToken).not.toBeNull();
                 done();
                 return null;
             });
@@ -163,10 +162,10 @@ describe("ResponseHandler.ts", () => {
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
 
             sinon.stub(ResponseHandler, "generateAuthenticationResult").callsFake((cryptoObj, authority, cacheRecord, idTokenObj, fromTokenCache, stateString, resourceReqMethod, resourceReqUri) => {
-                expect(authority).to.be.eq(testAuthority);
-                expect(cacheRecord.idToken).to.not.be.null;
-                expect(cacheRecord.accessToken).to.not.be.null;
-                expect(cacheRecord.refreshToken).to.be.null;
+                expect(authority).toBe(testAuthority);
+                expect(cacheRecord.idToken).not.toBeNull();
+                expect(cacheRecord.accessToken).not.toBeNull();
+                expect(cacheRecord.refreshToken).toBeNull();
                 done();
                 return null;
             });
@@ -186,10 +185,10 @@ describe("ResponseHandler.ts", () => {
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
 
             sinon.stub(ResponseHandler, "generateAuthenticationResult").callsFake((cryptoObj, authority, cacheRecord, idTokenObj, fromTokenCache, stateString, resourceReqMethod, resourceReqUri) => {
-                expect(authority).to.be.eq(testAuthority);
-                expect(cacheRecord.idToken).to.not.be.null;
-                expect(cacheRecord.accessToken).to.not.be.null;
-                expect(cacheRecord.refreshToken).to.not.be.null;
+                expect(authority).toBe(testAuthority);
+                expect(cacheRecord.idToken).not.toBeNull();
+                expect(cacheRecord.accessToken).not.toBeNull();
+                expect(cacheRecord.refreshToken).not.toBeNull();
                 done();
                 return null;
             });
@@ -213,7 +212,7 @@ describe("ResponseHandler.ts", () => {
             const timestamp = TimeUtils.nowSeconds();
             const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp, testRequest);
 
-            expect(result.familyId).to.be.eq("");
+            expect(result.familyId).toBe("");
         });
 
         it("sets default values for access token using PoP scheme", async () => {
@@ -244,8 +243,8 @@ describe("ResponseHandler.ts", () => {
             const timestamp = TimeUtils.nowSeconds();
             const result = await responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp, testRequest);
 
-            expect(result.tokenType).to.be.eq(AuthenticationScheme.POP);
-            expect(result.accessToken).to.be.eq(signedJwt);
+            expect(result.tokenType).toBe(AuthenticationScheme.POP);
+            expect(result.accessToken).toBe(signedJwt);
         });
     });
 
@@ -267,8 +266,8 @@ describe("ResponseHandler.ts", () => {
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(testServerCodeResponse, "differentState", cryptoInterface);
             } catch (e) {
-                expect(e).to.be.instanceOf(ClientAuthError);
-                expect(stateMismatchSpy.calledOnce).to.be.true;
+                expect(e).toBeInstanceOf(ClientAuthError);
+                expect(stateMismatchSpy.calledOnce).toBe(true);
                 done();
             }
         });
@@ -283,7 +282,7 @@ describe("ResponseHandler.ts", () => {
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
             responseHandler.validateServerAuthorizationCodeResponse(testServerCodeResponse, TEST_STATE_VALUES.URI_ENCODED_LIB_STATE, cryptoInterface);
-            expect(stateMismatchSpy.notCalled).to.be.true;
+            expect(stateMismatchSpy.notCalled).toBe(true);
         });
 
         it("Does not throw state mismatch error when Uri encoded characters have different casing", () => {
@@ -297,7 +296,7 @@ describe("ResponseHandler.ts", () => {
             const testAltState = "eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyfQ%3d%3d";
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
             responseHandler.validateServerAuthorizationCodeResponse(testServerCodeResponse, testAltState, cryptoInterface);
-            expect(stateMismatchSpy.notCalled).to.be.true;
+            expect(stateMismatchSpy.notCalled).toBe(true);
         });
 
         it("throws interactionRequiredError", (done) => {
@@ -312,7 +311,7 @@ describe("ResponseHandler.ts", () => {
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(testServerCodeResponse, TEST_STATE_VALUES.URI_ENCODED_LIB_STATE, cryptoInterface);
             } catch (e) {
-                expect(e).to.be.instanceOf(InteractionRequiredAuthError);
+                expect(e).toBeInstanceOf(InteractionRequiredAuthError);
                 done();
             }
         });
@@ -329,7 +328,7 @@ describe("ResponseHandler.ts", () => {
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(testServerCodeResponse, TEST_STATE_VALUES.URI_ENCODED_LIB_STATE, cryptoInterface);
             } catch (e) {
-                expect(e).to.be.instanceOf(ServerError);
+                expect(e).toBeInstanceOf(ServerError);
                 done();
             }
         });
@@ -346,7 +345,7 @@ describe("ResponseHandler.ts", () => {
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(testServerCodeResponse, TEST_STATE_VALUES.URI_ENCODED_LIB_STATE, cryptoInterface);
             } catch (e) {
-                expect(e).to.be.instanceOf(ServerError);
+                expect(e).toBeInstanceOf(ServerError);
                 done();
             }
 
@@ -364,7 +363,7 @@ describe("ResponseHandler.ts", () => {
             try {
                 responseHandler.validateServerAuthorizationCodeResponse(testServerCodeResponse, TEST_STATE_VALUES.URI_ENCODED_LIB_STATE, cryptoInterface);
             } catch (e) {
-                expect(e).to.be.instanceOf(ServerError);
+                expect(e).toBeInstanceOf(ServerError);
                 done();
             }
 
@@ -381,8 +380,8 @@ describe("ResponseHandler.ts", () => {
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
             responseHandler.validateServerAuthorizationCodeResponse(testServerCodeResponse, TEST_STATE_VALUES.URI_ENCODED_LIB_STATE, cryptoInterface);
-            expect(buildClientInfoSpy.calledOnce).to.be.true;
-            expect(buildClientInfoSpy.calledWith(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO)).to.be.true;
+            expect(buildClientInfoSpy.calledOnce).toBe(true);
+            expect(buildClientInfoSpy.calledWith(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO)).toBe(true);
         });
 
         it("does not call buildClientInfo if clientInfo not in response", () => {
@@ -395,7 +394,7 @@ describe("ResponseHandler.ts", () => {
 
             const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
             responseHandler.validateServerAuthorizationCodeResponse(testServerCodeResponse, TEST_STATE_VALUES.URI_ENCODED_LIB_STATE, cryptoInterface);
-            expect(buildClientInfoSpy.notCalled).to.be.true;
+            expect(buildClientInfoSpy.notCalled).toBe(true);
         });
     });
 });

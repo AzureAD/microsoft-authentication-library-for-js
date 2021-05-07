@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import sinon from "sinon";
 import {
     Authority,
@@ -88,9 +87,9 @@ describe("DeviceCodeClient unit tests", async () => {
 
         it("creates a DeviceCodeClient", async () => {
             const client = new DeviceCodeClient(config);
-            expect(client).to.be.not.null;
-            expect(client instanceof DeviceCodeClient).to.be.true;
-            expect(client instanceof BaseClient).to.be.true;
+            expect(client).not.toBeNull();
+            expect(client instanceof DeviceCodeClient).toBe(true);
+            expect(client instanceof BaseClient).toBe(true);
         });
     });
 
@@ -101,7 +100,7 @@ describe("DeviceCodeClient unit tests", async () => {
             sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint").callsFake((tokenEndpoint: string, queryString: string, headers: Record<string, string>) => {
                 const headerNames = Object.keys(headers);
                 headerNames.forEach((name) => {
-                    expect(CORS_SIMPLE_REQUEST_HEADERS).contains(name.toLowerCase());
+                    expect(CORS_SIMPLE_REQUEST_HEADERS).toEqual(expect.arrayContaining([name.toLowerCase()]));
                 });
     
                 done();
@@ -135,22 +134,38 @@ describe("DeviceCodeClient unit tests", async () => {
             const authenticationResult = await client.acquireToken(request);
 
             // Check that device code url is correct
-            expect(queryStringSpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
-            expect(queryStringSpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
+            expect(queryStringSpy.returnValues[0]).toEqual(expect.arrayContaining([
+                `${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
+            ]));
+            expect(queryStringSpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`])
+            );
 
             // Check that deviceCodeCallback was called with the right arguments
-            expect(deviceCodeResponse).to.deep.eq(DEVICE_CODE_RESPONSE);
+            expect(deviceCodeResponse).toEqual(DEVICE_CODE_RESPONSE);
 
             // expect(JSON.parse(authenticationResult)).to.deep.eq(AUTHENTICATION_RESULT.body);
-            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
-            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID));
-            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(encodeURIComponent(GrantType.DEVICE_CODE_GRANT));
-            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(DEVICE_CODE_RESPONSE.deviceCode);
-            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`);
-            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`);
-            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`);
-            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`);
-            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`);
+            expect(createTokenRequestBodySpy.returnValues[0]).toEqual(expect.arrayContaining([
+                `${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
+            ]));
+            expect(createTokenRequestBodySpy.returnValues[0]).toEqual(expect.arrayContaining([encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)]));
+            expect(createTokenRequestBodySpy.returnValues[0]).toEqual(expect.arrayContaining([encodeURIComponent(GrantType.DEVICE_CODE_GRANT)]));
+            expect(createTokenRequestBodySpy.returnValues[0]).toEqual(expect.arrayContaining([DEVICE_CODE_RESPONSE.deviceCode]));
+            expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`])
+            );
+            expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`])
+            );
+            expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`])
+            );
+            expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`])
+            );
+            expect(createTokenRequestBodySpy.returnValues[0]).toEqual(expect.arrayContaining([
+                `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
+            ]));
 
         }).timeout(6000);
 
@@ -217,7 +232,7 @@ describe("DeviceCodeClient unit tests", async () => {
 
             const client = new DeviceCodeClient(config);
             await expect(client.acquireToken(request)).to.be.rejectedWith(`${ClientAuthErrorMessage.userTimeoutReached.desc}`);
-            await expect(tokenRequestStub.callCount).to.equal(1);
+            await expect(tokenRequestStub.callCount).toBe(1);
         }).timeout(15000);
     });
 });
