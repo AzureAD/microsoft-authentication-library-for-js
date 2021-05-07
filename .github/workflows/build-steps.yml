@@ -14,6 +14,10 @@ on:
       - '!**.md'
       - '.github/workflows/build-steps.yml'
 
+concurrency:
+  group: ci-${{github.ref}}
+  cancel-in-progress: true
+
 jobs:
 
   build-test:
@@ -33,11 +37,6 @@ jobs:
             - msal-react
   
     steps:
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.8.0
-      with:
-        access_token: ${{ github.token }}
-
     - uses: actions/checkout@v2
 
     - name: Use Node.js
