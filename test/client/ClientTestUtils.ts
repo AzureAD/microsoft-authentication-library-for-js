@@ -166,10 +166,10 @@ export class ClientTestUtils {
 
         const mockHttpClient = {
             sendGetRequestAsync<T>(): T {
-                return null;
+                return {} as T;
             },
             sendPostRequestAsync<T>(): T {
-                return null;
+                return {} as T;
             }
         };
 
