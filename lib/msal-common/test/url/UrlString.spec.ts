@@ -16,7 +16,9 @@ describe("UrlString.ts Class Unit Tests", () => {
     });
 
     it("constructor throws error if uri is empty or null", () => {
+        // @ts-ignore
         expect(() => new UrlString(null)).toThrowError(ClientConfigurationErrorMessage.urlEmptyError.desc);
+        // @ts-ignore
         expect(() => new UrlString(null)).toThrowError(ClientConfigurationError);
 
         expect(() => new UrlString("")).toThrowError(ClientConfigurationErrorMessage.urlEmptyError.desc);
@@ -45,24 +47,24 @@ describe("UrlString.ts Class Unit Tests", () => {
     it("validateAsUri validates any valid URI", () => {
         const insecureUrlString = "https://example.com/";
         let urlObj = new UrlString(insecureUrlString);
-        expect(() => urlObj.validateAsUri()).to.not.throw;
+        expect(() => urlObj.validateAsUri()).not.toThrow();
     });
 
     it("urlRemoveQueryStringParameter removes required path components",() => {
         let urlObj1 = new UrlString(TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS1);
-        expect(urlObj1.urlString).toEqual(expect.arrayContaining(["param1=value1"]));
+        expect(urlObj1.urlString).toContain("param1=value1");
         urlObj1.urlRemoveQueryStringParameter("param1");
-        expect(urlObj1.urlString).toEqual(expect.not.arrayContaining(["param1=value1"]));
+        expect(urlObj1.urlString).not.toContain("param1=value1");
 
         let urlObj2 = new UrlString(TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS2);
-        expect(urlObj2.urlString).toEqual(expect.arrayContaining(["param1=value1"]));
-        expect(urlObj2.urlString).toEqual(expect.arrayContaining(["param2=value2"]));
+        expect(urlObj2.urlString).toContain("param1=value1");
+        expect(urlObj2.urlString).toContain("param2=value2");
         urlObj2.urlRemoveQueryStringParameter("param2");
-        expect(urlObj2.urlString).toEqual(expect.arrayContaining(["param1=value1"]));
-        expect(urlObj2.urlString).toEqual(expect.not.arrayContaining(["param2=value2"]));
+        expect(urlObj2.urlString).toContain("param1=value1");
+        expect(urlObj2.urlString).not.toContain("param2=value2");
         urlObj2.urlRemoveQueryStringParameter("param1");
-        expect(urlObj2.urlString).toEqual(expect.not.arrayContaining(["param1=value1"]));
-        expect(urlObj2.urlString).toEqual(expect.not.arrayContaining(["param2=value2"]));
+        expect(urlObj2.urlString).not.toContain("param1=value1");
+        expect(urlObj2.urlString).not.toContain("param2=value2");
     });
 
     it("removes hash from url provided", () => {
@@ -82,31 +84,31 @@ describe("UrlString.ts Class Unit Tests", () => {
     it("replaceTenantPath correctly replaces common with tenant id", () => {
         let urlObj = new UrlString(TEST_URIS.TEST_AUTH_ENDPT);
         const sampleTenantId = "sample-tenant-id";
-        expect(urlObj.urlString).toEqual(expect.arrayContaining(["common"]));
-        expect(urlObj.urlString).toEqual(expect.not.arrayContaining([sampleTenantId]));
+        expect(urlObj.urlString).toContain("common");
+        expect(urlObj.urlString).not.toContain(sampleTenantId);
         const newUrlObj = urlObj.replaceTenantPath(sampleTenantId);
-        expect(newUrlObj.urlString).toEqual(expect.not.arrayContaining(["common"]));
-        expect(newUrlObj.urlString).toEqual(expect.arrayContaining([sampleTenantId]));
+        expect(newUrlObj.urlString).not.toContain("common");
+        expect(newUrlObj.urlString).toContain(sampleTenantId);
     });
 
     it("replaceTenantPath correctly replaces organizations with tenant id", () => {
         let urlObj = new UrlString(TEST_URIS.TEST_AUTH_ENDPT_ORGS);
         const sampleTenantId = "sample-tenant-id";
-        expect(urlObj.urlString).toEqual(expect.arrayContaining(["organizations"]));
-        expect(urlObj.urlString).toEqual(expect.not.arrayContaining([sampleTenantId]));
+        expect(urlObj.urlString).toContain("organizations");
+        expect(urlObj.urlString).not.toContain(sampleTenantId);
         const newUrlObj = urlObj.replaceTenantPath(sampleTenantId);
-        expect(newUrlObj.urlString).toEqual(expect.not.arrayContaining(["organizations"]));
-        expect(newUrlObj.urlString).toEqual(expect.arrayContaining([sampleTenantId]));
+        expect(newUrlObj.urlString).not.toContain("organizations");
+        expect(newUrlObj.urlString).toContain(sampleTenantId);
     });
 
     it("replaceTenantPath returns the same url if path does not contain common or organizations", () => {
         let urlObj = new UrlString(TEST_URIS.TEST_AUTH_ENDPT_TENANT_ID);
         const sampleTenantId2 = "sample-tenant-id-2";
-        expect(urlObj.urlString).toEqual(expect.arrayContaining(["sample-tenantid"]));
-        expect(urlObj.urlString).toEqual(expect.not.arrayContaining([sampleTenantId2]));
+        expect(urlObj.urlString).toContain("sample-tenantid");
+        expect(urlObj.urlString).not.toContain(sampleTenantId2);
         const newUrlObj = urlObj.replaceTenantPath(sampleTenantId2);
-        expect(newUrlObj.urlString).toEqual(expect.arrayContaining(["sample-tenantid"]));
-        expect(newUrlObj.urlString).toEqual(expect.not.arrayContaining([sampleTenantId2]));
+        expect(newUrlObj.urlString).toContain("sample-tenantid");
+        expect(newUrlObj.urlString).not.toContain(sampleTenantId2);
     });
 
     it("getHash returns the anchor part of the URL correctly, or nothing if there is no anchor", () => {
