@@ -67,7 +67,7 @@ describe("AuthToken.ts Class Unit Tests", () => {
     });
 
     afterEach(() => {
-        jest.clearAllMocks();
+        jest.restoreAllMocks();
     });
 
     describe("Constructor", () => {

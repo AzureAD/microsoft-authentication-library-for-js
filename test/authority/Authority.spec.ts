@@ -1,4 +1,3 @@
-import sinon from "sinon";
 import { Authority } from "../../src/authority/Authority";
 import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { Constants } from "../../src/utils/Constants";
@@ -28,7 +27,7 @@ describe("Authority.ts Class Unit Tests", () => {
         mockStorage = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
     });
     afterEach(() => {
-        sinon.restore();
+        jest.restoreAllMocks();
     });
 
     describe("Constructor", () => {
@@ -36,9 +35,11 @@ describe("Authority.ts Class Unit Tests", () => {
         it("Creates canonical authority uri based on given uri (and normalizes with '/')", () => {
             const networkInterface: INetworkModule = {
                 sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                    // @ts-ignore
                     return null;
                 },
                 sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                    // @ts-ignore
                     return null;
                 }
             };
@@ -49,9 +50,11 @@ describe("Authority.ts Class Unit Tests", () => {
         it("Throws error if URI is not in valid format", () => {
             const networkInterface: INetworkModule = {
                 sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                    // @ts-ignore
                     return null;
                 },
                 sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                    // @ts-ignore
                     return null;
                 }
             };
@@ -65,9 +68,11 @@ describe("Authority.ts Class Unit Tests", () => {
     describe("Getters and setters", () => {
         const networkInterface: INetworkModule = {
             sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                // @ts-ignore
                 return null;
             },
             sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                // @ts-ignore
                 return null;
             }
         };
@@ -112,7 +117,7 @@ describe("Authority.ts Class Unit Tests", () => {
         describe("OAuth Endpoints", () => {
 
             beforeEach(async () => {
-                sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+                jest.spyOn(Authority.prototype, <any>"getEndpointMetadataFromNetwork").mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
                 await authority.resolveEndpointsAsync();
             });
 
@@ -148,11 +153,11 @@ describe("Authority.ts Class Unit Tests", () => {
             });
 
             it("Returns endpoints for different b2c policy than what is cached", async () => {
-                sinon.restore();
+                jest.clearAllMocks();
                 const signInPolicy = "b2c_1_sisopolicy";
                 const resetPolicy = "b2c_1_password_reset";
                 const baseAuthority = "https://login.microsoftonline.com/tfp/msidlabb2c.onmicrosoft.com/";
-                sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(B2C_OPENID_CONFIG_RESPONSE.body);
+                jest.spyOn(Authority.prototype, <any>"getEndpointMetadataFromNetwork").mockResolvedValue(B2C_OPENID_CONFIG_RESPONSE.body);
 
                 authority = new Authority(`${baseAuthority}${signInPolicy}`, networkInterface, mockStorage, authorityOptions);
                 await authority.resolveEndpointsAsync();
@@ -179,9 +184,11 @@ describe("Authority.ts Class Unit Tests", () => {
 
         const networkInterface: INetworkModule = {
             sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                // @ts-ignore
                 return null;
             },
             sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                // @ts-ignore
                 return null;
             }
         };
@@ -195,7 +202,7 @@ describe("Authority.ts Class Unit Tests", () => {
         });
 
         it("discoveryComplete returns true if resolveEndpointsAsync resolves successfully", async () => {
-            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            jest.spyOn(Authority.prototype, <any>"getEndpointMetadataFromNetwork").mockResolvedValue(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             await authority.resolveEndpointsAsync();
             expect(authority.discoveryComplete()).toBe(true);
         });
@@ -299,7 +306,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 value.updateCanonicalAuthority(Constants.DEFAULT_AUTHORITY);
                 mockStorage.setAuthorityMetadata(key, value);
 
-                sinon.stub(AuthorityMetadataEntity.prototype, "isExpired").returns(true);
+                jest.spyOn(AuthorityMetadataEntity.prototype, "isExpired").mockReturnValue(true);
 
                 networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
                     return DEFAULT_OPENID_CONFIG_RESPONSE;
@@ -374,9 +381,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
                 authority.resolveEndpointsAsync().catch(e => {
                     expect(e).toBeInstanceOf(ClientAuthError);
-                    expect(e.errorMessage).toEqual(
-                        expect.arrayContaining([ClientAuthErrorMessage.unableToGetOpenidConfigError.desc])
-                    );
+                    expect(e.errorMessage.includes(ClientAuthErrorMessage.unableToGetOpenidConfigError.desc)).toBe(true);
                     done();
                 });
             });
@@ -397,7 +402,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 await authority.resolveEndpointsAsync();
                 expect(authority.isAlias(Constants.DEFAULT_AUTHORITY_HOST)).toBe(true);
                 expect(authority.getPreferredCache()).toBe(Constants.DEFAULT_AUTHORITY_HOST);
-                expect(authority.canonicalAuthority).toEqual(expect.arrayContaining([Constants.DEFAULT_AUTHORITY_HOST]));
+                expect(authority.canonicalAuthority.includes(Constants.DEFAULT_AUTHORITY_HOST)).toBe(true);
 
                 // Test that the metadata is cached
                 const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
@@ -405,7 +410,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 if (!cachedAuthorityMetadata) {
                     throw Error("Cached AuthorityMetadata should not be null!");
                 } else {
-                    expect(cachedAuthorityMetadata.aliases).toEqual(expect.arrayContaining([Constants.DEFAULT_AUTHORITY_HOST]));
+                    expect(cachedAuthorityMetadata.aliases).toContain(Constants.DEFAULT_AUTHORITY_HOST);
                     expect(cachedAuthorityMetadata.preferred_cache).toBe(Constants.DEFAULT_AUTHORITY_HOST);
                     expect(cachedAuthorityMetadata.preferred_network).toBe(Constants.DEFAULT_AUTHORITY_HOST);
                     expect(cachedAuthorityMetadata.aliasesFromNetwork).toBe(false);
@@ -429,7 +434,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 expect(authority.isAlias("login.windows.net")).toBe(true);
                 expect(authority.isAlias("sts.windows.net")).toBe(true);
                 expect(authority.getPreferredCache()).toBe("sts.windows.net");
-                expect(authority.canonicalAuthority).toEqual(expect.arrayContaining(["login.windows.net"]));
+                expect(authority.canonicalAuthority.includes("login.windows.net")).toBe(true);
 
                 // Test that the metadata is cached
                 const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-sts.windows.net`;
@@ -437,9 +442,9 @@ describe("Authority.ts Class Unit Tests", () => {
                 if (!cachedAuthorityMetadata) {
                     throw Error("Cached AuthorityMetadata should not be null!");
                 } else {
-                    expect(cachedAuthorityMetadata.aliases).toEqual(expect.arrayContaining(["login.microsoftonline.com"]));
-                    expect(cachedAuthorityMetadata.aliases).toEqual(expect.arrayContaining(["login.windows.net"]));
-                    expect(cachedAuthorityMetadata.aliases).toEqual(expect.arrayContaining(["sts.windows.net"]));
+                    expect(cachedAuthorityMetadata.aliases).toContain("login.microsoftonline.com");
+                    expect(cachedAuthorityMetadata.aliases).toContain("login.windows.net");
+                    expect(cachedAuthorityMetadata.aliases).toContain("sts.windows.net");
                     expect(cachedAuthorityMetadata.preferred_cache).toBe("sts.windows.net");
                     expect(cachedAuthorityMetadata.preferred_network).toBe("login.windows.net");
                     expect(cachedAuthorityMetadata.aliasesFromNetwork).toBe(false);
@@ -459,7 +464,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 value.updateCloudDiscoveryMetadata(DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0], true);
                 value.updateCanonicalAuthority(Constants.DEFAULT_AUTHORITY);
                 mockStorage.setAuthorityMetadata(key, value);
-                sinon.stub(Authority.prototype, <any>"updateEndpointMetadata").resolves("cache");
+                jest.spyOn(Authority.prototype, <any>"updateEndpointMetadata").mockResolvedValue("cache");
                 authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
     
                 await authority.resolveEndpointsAsync();
@@ -467,16 +472,16 @@ describe("Authority.ts Class Unit Tests", () => {
                 expect(authority.isAlias("login.windows.net")).toBe(true);
                 expect(authority.isAlias("sts.windows.net")).toBe(true);
                 expect(authority.getPreferredCache()).toBe("sts.windows.net");
-                expect(authority.canonicalAuthority).toEqual(expect.arrayContaining(["login.windows.net"]));
+                expect(authority.canonicalAuthority.includes("login.windows.net")).toBe(true);
 
                 // Test that the metadata is cached
                 const cachedAuthorityMetadata = mockStorage.getAuthorityMetadata(key);
                 if (!cachedAuthorityMetadata) {
                     throw Error("Cached AuthorityMetadata should not be null!");
                 } else {
-                    expect(cachedAuthorityMetadata.aliases).toEqual(expect.arrayContaining(["login.microsoftonline.com"]));
-                    expect(cachedAuthorityMetadata.aliases).toEqual(expect.arrayContaining(["login.windows.net"]));
-                    expect(cachedAuthorityMetadata.aliases).toEqual(expect.arrayContaining(["sts.windows.net"]));
+                    expect(cachedAuthorityMetadata.aliases).toContain("login.microsoftonline.com");
+                    expect(cachedAuthorityMetadata.aliases).toContain("login.windows.net");
+                    expect(cachedAuthorityMetadata.aliases).toContain("sts.windows.net");
                     expect(cachedAuthorityMetadata.preferred_cache).toBe("sts.windows.net");
                     expect(cachedAuthorityMetadata.preferred_network).toBe("login.windows.net");
                     expect(cachedAuthorityMetadata.aliasesFromNetwork).toBe(true);
@@ -496,8 +501,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 value.updateCloudDiscoveryMetadata(DEFAULT_TENANT_DISCOVERY_RESPONSE.body.metadata[0], true);
                 value.updateCanonicalAuthority(Constants.DEFAULT_AUTHORITY);
                 mockStorage.setAuthorityMetadata(key, value);
-                sinon.stub(AuthorityMetadataEntity.prototype, "isExpired").returns(true);
-                sinon.stub(Authority.prototype, <any>"updateEndpointMetadata").resolves("cache");
+                jest.spyOn(AuthorityMetadataEntity.prototype, "isExpired").mockReturnValue(true);
+                jest.spyOn(Authority.prototype, <any>"updateEndpointMetadata").mockResolvedValue("cache");
 
                 networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
                     return DEFAULT_TENANT_DISCOVERY_RESPONSE;
@@ -509,16 +514,16 @@ describe("Authority.ts Class Unit Tests", () => {
                 expect(authority.isAlias("login.windows.net")).toBe(true);
                 expect(authority.isAlias("sts.windows.net")).toBe(true);
                 expect(authority.getPreferredCache()).toBe("sts.windows.net");
-                expect(authority.canonicalAuthority).toEqual(expect.arrayContaining(["login.windows.net"]));
+                expect(authority.canonicalAuthority.includes("login.windows.net")).toBe(true);
 
                 // Test that the metadata is cached
                 const cachedAuthorityMetadata = mockStorage.getAuthorityMetadata(key);
                 if (!cachedAuthorityMetadata) {
                     throw Error("Cached AuthorityMetadata should not be null!");
                 } else {
-                    expect(cachedAuthorityMetadata.aliases).toEqual(expect.arrayContaining(["login.microsoftonline.com"]));
-                    expect(cachedAuthorityMetadata.aliases).toEqual(expect.arrayContaining(["login.windows.net"]));
-                    expect(cachedAuthorityMetadata.aliases).toEqual(expect.arrayContaining(["sts.windows.net"]));
+                    expect(cachedAuthorityMetadata.aliases).toContain("login.microsoftonline.com");
+                    expect(cachedAuthorityMetadata.aliases).toContain("login.windows.net");
+                    expect(cachedAuthorityMetadata.aliases).toContain("sts.windows.net");
                     expect(cachedAuthorityMetadata.preferred_cache).toBe("sts.windows.net");
                     expect(cachedAuthorityMetadata.preferred_network).toBe("login.windows.net");
                     expect(cachedAuthorityMetadata.aliasesFromNetwork).toBe(true);
@@ -535,7 +540,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
                     return DEFAULT_TENANT_DISCOVERY_RESPONSE;
                 };
-                sinon.stub(Authority.prototype, <any>"updateEndpointMetadata").resolves("cache");
+                jest.spyOn(Authority.prototype, <any>"updateEndpointMetadata").mockResolvedValue("cache");
                 authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
     
                 await authority.resolveEndpointsAsync();
@@ -543,7 +548,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 expect(authority.isAlias("login.windows.net")).toBe(true);
                 expect(authority.isAlias("sts.windows.net")).toBe(true);
                 expect(authority.getPreferredCache()).toBe("sts.windows.net");
-                expect(authority.canonicalAuthority).toEqual(expect.arrayContaining(["login.windows.net"]));
+                expect(authority.canonicalAuthority.includes("login.windows.net")).toBe(true);
 
                 // Test that the metadata is cached
                 const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-sts.windows.net`;
@@ -551,9 +556,9 @@ describe("Authority.ts Class Unit Tests", () => {
                 if (!cachedAuthorityMetadata) {
                     throw Error("Cached AuthorityMetadata should not be null!");
                 } else {
-                    expect(cachedAuthorityMetadata.aliases).toEqual(expect.arrayContaining(["login.microsoftonline.com"]));
-                    expect(cachedAuthorityMetadata.aliases).toEqual(expect.arrayContaining(["login.windows.net"]));
-                    expect(cachedAuthorityMetadata.aliases).toEqual(expect.arrayContaining(["sts.windows.net"]));
+                    expect(cachedAuthorityMetadata.aliases).toContain("login.microsoftonline.com");
+                    expect(cachedAuthorityMetadata.aliases).toContain("login.windows.net");
+                    expect(cachedAuthorityMetadata.aliases).toContain("sts.windows.net");
                     expect(cachedAuthorityMetadata.preferred_cache).toBe("sts.windows.net");
                     expect(cachedAuthorityMetadata.preferred_network).toBe("login.windows.net");
                     expect(cachedAuthorityMetadata.aliasesFromNetwork).toBe(true);
@@ -570,13 +575,13 @@ describe("Authority.ts Class Unit Tests", () => {
                 networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
                     return DEFAULT_TENANT_DISCOVERY_RESPONSE;
                 };
-                sinon.stub(Authority.prototype, <any>"updateEndpointMetadata").resolves("cache");
+                jest.spyOn(Authority.prototype, <any>"updateEndpointMetadata").mockResolvedValue("cache");
                 authority = new Authority("https://custom-domain.microsoft.com", networkInterface, mockStorage, authorityOptions);
     
                 await authority.resolveEndpointsAsync();
                 expect(authority.isAlias("custom-domain.microsoft.com")).toBe(true);
                 expect(authority.getPreferredCache()).toBe("custom-domain.microsoft.com");
-                expect(authority.canonicalAuthority).toEqual(expect.arrayContaining(["custom-domain.microsoft.com"]));
+                expect(authority.canonicalAuthority.includes("custom-domain.microsoft.com"));
 
                 // Test that the metadata is cached
                 const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-custom-domain.microsoft.com`;
@@ -584,7 +589,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 if (!cachedAuthorityMetadata) {
                     throw Error("Cached AuthorityMetadata should not be null!");
                 } else {
-                    expect(cachedAuthorityMetadata.aliases).toEqual(expect.arrayContaining(["custom-domain.microsoft.com"]));
+                    expect(cachedAuthorityMetadata.aliases).toContain("custom-domain.microsoft.com");
                     expect(cachedAuthorityMetadata.preferred_cache).toBe("custom-domain.microsoft.com");
                     expect(cachedAuthorityMetadata.preferred_network).toBe("custom-domain.microsoft.com");
                     expect(cachedAuthorityMetadata.aliasesFromNetwork).toBe(true);
@@ -635,7 +640,8 @@ describe("Authority.ts Class Unit Tests", () => {
             const authorityUrl = "https://login.microsoftonline.com/adfs/"
             let endpoint = "";
             authority = new Authority(authorityUrl, networkInterface, mockStorage, authorityOptions);
-            sinon.stub(networkInterface, <any>"sendGetRequestAsync").callsFake((openIdConfigEndpoint) => {
+            jest.spyOn(networkInterface, <any>"sendGetRequestAsync").mockImplementation((openIdConfigEndpoint) => {
+                // @ts-ignore
                 endpoint = openIdConfigEndpoint;
                 return DEFAULT_OPENID_CONFIG_RESPONSE;
             });
@@ -654,7 +660,8 @@ describe("Authority.ts Class Unit Tests", () => {
                 authorityMetadata: ""
             }
             authority = new Authority(authorityUrl, networkInterface, mockStorage, options);
-            sinon.stub(networkInterface, <any>"sendGetRequestAsync").callsFake((openIdConfigEndpoint) => {
+            jest.spyOn(networkInterface, <any>"sendGetRequestAsync").mockImplementation((openIdConfigEndpoint) => {
+                // @ts-ignore
                 endpoint = openIdConfigEndpoint;
                 return DEFAULT_OPENID_CONFIG_RESPONSE;
             });
