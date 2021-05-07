@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Revert expiresOn type to make it nullable #3557",
+  "packageName": "@azure/msal-common",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
