@@ -22,6 +22,7 @@ describe("ThrottlingEntity", () => {
 
         it("Verifies if an object is a ThrottlingEntity when no object is given", () => {
             expect(ThrottlingEntity.isThrottlingEntity(key)).toBe(true);
+            // @ts-ignore
             expect(ThrottlingEntity.isThrottlingEntity(key, null)).toBe(true);
         });
 
@@ -38,6 +39,7 @@ describe("ThrottlingEntity", () => {
             };
             expect(ThrottlingEntity.isThrottlingEntity("asd", throttlingObject)).toBe(false);
             expect(ThrottlingEntity.isThrottlingEntity("", throttlingObject)).toBe(false);
+            // @ts-ignore
             expect(ThrottlingEntity.isThrottlingEntity(null, throttlingObject)).toBe(false);
         });
     });

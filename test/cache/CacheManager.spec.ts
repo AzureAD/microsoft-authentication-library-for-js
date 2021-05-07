@@ -3,7 +3,7 @@ import { AccountEntity } from "../../src/cache/entities/AccountEntity";
 import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity";
 import { CacheRecord } from "../../src/cache/entities/CacheRecord";
 import { AccountFilter, CredentialFilter } from "../../src/cache/utils/CacheTypes";
-import sinon, { mock } from "sinon";
+import sinon from "sinon";
 import { ScopeSet } from "../../src/request/ScopeSet";
 import {
     TEST_CONFIG,
@@ -13,7 +13,7 @@ import {
 import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { AccountInfo } from "../../src/account/AccountInfo";
 import { MockCache } from "./MockCache";
-import { AuthorityMetadataEntity, CacheManager } from "../../src";
+import { AuthorityMetadataEntity, CacheManager, AppMetadataEntity, IdTokenEntity, RefreshTokenEntity } from "../../src";
 import { mockCrypto } from "../client/ClientTestUtils";
 
 describe("CacheManager.ts test cases", () => {
@@ -51,7 +51,7 @@ describe("CacheManager.ts test cases", () => {
         const cacheRecord = new CacheRecord();
         cacheRecord.account = ac;
         mockCache.cacheManager.saveCacheRecord(cacheRecord);
-        const mockCacheAccount = mockCache.cacheManager.getAccount(accountKey)
+        const mockCacheAccount = mockCache.cacheManager.getAccount(accountKey) as AccountEntity;
         expect(mockCacheAccount.homeAccountId).toEqual("someUid.someUtid");
     });
 
@@ -75,7 +75,7 @@ describe("CacheManager.ts test cases", () => {
         const cacheRecord = new CacheRecord();
         cacheRecord.accessToken = at;
         mockCache.cacheManager.saveCacheRecord(cacheRecord);
-        const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(atKey)
+        const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(atKey) as AccessTokenEntity;
         expect(mockCacheAT.homeAccountId).toEqual("someUid.someUtid");
         expect(mockCacheAT.credentialType).toEqual(CredentialType.ACCESS_TOKEN);
         expect(mockCacheAT.tokenType).toEqual(AuthenticationScheme.BEARER);
@@ -102,7 +102,7 @@ describe("CacheManager.ts test cases", () => {
         const cacheRecord = new CacheRecord();
         cacheRecord.accessToken = at;
         mockCache.cacheManager.saveCacheRecord(cacheRecord);
-        const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(atKey);
+        const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(atKey) as AccessTokenEntity;
         expect(mockCacheAT.homeAccountId).toEqual("someUid.someUtid");
         expect(mockCacheAT.credentialType).toEqual(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
         expect(mockCacheAT.tokenType).toEqual(AuthenticationScheme.POP);
@@ -124,7 +124,8 @@ describe("CacheManager.ts test cases", () => {
         cacheRecord.account = ac;
         mockCache.cacheManager.saveCacheRecord(cacheRecord);
 
-        expect(mockCache.cacheManager.getAccount(accountKey).homeAccountId).toEqual("someUid.someUtid");
+        const cacheAccount = mockCache.cacheManager.getAccount(accountKey) as AccountEntity;
+        expect(cacheAccount.homeAccountId).toEqual("someUid.someUtid");
         expect(mockCache.cacheManager.getAccount("")).toBeNull();
     });
 
@@ -141,8 +142,10 @@ describe("CacheManager.ts test cases", () => {
         const cacheRecord = new CacheRecord();
         cacheRecord.accessToken = accessTokenEntity;
         mockCache.cacheManager.saveCacheRecord(cacheRecord);
-        expect(mockCache.cacheManager.getAccessTokenCredential(credKey).homeAccountId).toEqual("someUid.someUtid");
-        expect(mockCache.cacheManager.getAccessTokenCredential(credKey).credentialType).toEqual(CredentialType.ACCESS_TOKEN);
+
+        const cachedAccessToken = mockCache.cacheManager.getAccessTokenCredential(credKey) as AccessTokenEntity;
+        expect(cachedAccessToken.homeAccountId).toEqual("someUid.someUtid");
+        expect(cachedAccessToken.credentialType).toEqual(CredentialType.ACCESS_TOKEN);
     });
 
     it("getAccessTokenCredential (POP)", () => {
@@ -158,8 +161,10 @@ describe("CacheManager.ts test cases", () => {
         const cacheRecord = new CacheRecord();
         cacheRecord.accessToken = accessTokenEntity;
         mockCache.cacheManager.saveCacheRecord(cacheRecord);
-        expect(mockCache.cacheManager.getAccessTokenCredential(credKey).homeAccountId).toEqual("someUid.someUtid");
-        expect(mockCache.cacheManager.getAccessTokenCredential(credKey).credentialType).toEqual(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
+
+        const cachedAccessToken = mockCache.cacheManager.getAccessTokenCredential(credKey) as AccessTokenEntity;
+        expect(cachedAccessToken.homeAccountId).toEqual("someUid.someUtid");
+        expect(cachedAccessToken.credentialType).toEqual(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
 
     });
 
@@ -325,12 +330,12 @@ describe("CacheManager.ts test cases", () => {
 
     it("getAppMetadata and readAppMetadataFromCache", () => {
         const appMetadataKey = "appmetadata-login.microsoftonline.com-mock_client_id_1";
-        const appMetadata = mockCache.cacheManager.getAppMetadata(appMetadataKey);
+        const appMetadata = mockCache.cacheManager.getAppMetadata(appMetadataKey) as AppMetadataEntity;
 
         expect(appMetadata.clientId).toEqual(CACHE_MOCKS.MOCK_CLIENT_ID_1);
         expect(appMetadata.environment).toEqual(CACHE_MOCKS.MOCK_ACCOUNT_INFO.environment);
 
-        const cachedAppMetadata = mockCache.cacheManager.readAppMetadataFromCache(CACHE_MOCKS.MOCK_ACCOUNT_INFO.environment, CACHE_MOCKS.MOCK_CLIENT_ID_1);
+        const cachedAppMetadata = mockCache.cacheManager.readAppMetadataFromCache(CACHE_MOCKS.MOCK_ACCOUNT_INFO.environment, CACHE_MOCKS.MOCK_CLIENT_ID_1) as AppMetadataEntity;
         expect(cachedAppMetadata.clientId).toEqual(CACHE_MOCKS.MOCK_CLIENT_ID_1);
         expect(cachedAppMetadata.environment).toEqual(CACHE_MOCKS.MOCK_ACCOUNT_INFO.environment);
     });
@@ -410,6 +415,7 @@ describe("CacheManager.ts test cases", () => {
 
         const mockedAccountInfo: AccountInfo = {
             homeAccountId: "uid.utid",
+            localAccountId: "uid",
             environment: "login.microsoftonline.com",
             tenantId: TEST_CONFIG.TENANT,
             username: "John Doe"
@@ -441,6 +447,7 @@ describe("CacheManager.ts test cases", () => {
 
         const mockedAccountInfo: AccountInfo = {
             homeAccountId: "uid.utid",
+            localAccountId: "uid",
             environment: "login.microsoftonline.com",
             tenantId: TEST_CONFIG.TENANT,
             username: "John Doe"
@@ -473,6 +480,7 @@ describe("CacheManager.ts test cases", () => {
 
         const mockedAccountInfo: AccountInfo = {
             homeAccountId: "uid.utid",
+            localAccountId: "uid",
             environment: "login.microsoftonline.com",
             tenantId: TEST_CONFIG.TENANT,
             username: "John Doe"
@@ -482,12 +490,12 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("readIdTokenFromCache", () => {
-        const idToken = mockCache.cacheManager.readIdTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, CACHE_MOCKS.MOCK_ACCOUNT_INFO);
+        const idToken = mockCache.cacheManager.readIdTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, CACHE_MOCKS.MOCK_ACCOUNT_INFO) as IdTokenEntity;
         expect(idToken.clientId).toBe(CACHE_MOCKS.MOCK_CLIENT_ID);
     });
 
     it("readRefreshTokenFromCache", () => {
-        const refreshToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, CACHE_MOCKS.MOCK_ACCOUNT_INFO, false);
+        const refreshToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, CACHE_MOCKS.MOCK_ACCOUNT_INFO, false) as RefreshTokenEntity;
         expect(refreshToken.clientId).toBe(CACHE_MOCKS.MOCK_CLIENT_ID_1);
     });
 
@@ -497,7 +505,7 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("readRefreshTokenFromCache with familyId", () => {
-        const refreshToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, CACHE_MOCKS.MOCK_ACCOUNT_INFO, true);
+        const refreshToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, CACHE_MOCKS.MOCK_ACCOUNT_INFO, true) as RefreshTokenEntity;
         expect(refreshToken.clientId).toBe(CACHE_MOCKS.MOCK_CLIENT_ID_1);
     });
 
@@ -514,12 +522,13 @@ describe("CacheManager.ts test cases", () => {
         });
         const mockedAccountInfo: AccountInfo = {
             homeAccountId: "uid.utid",
+            localAccountId: "uid",
             environment: "login.windows.net",
             tenantId: "mocked_tid",
             username: "mocked_username"
         };
 
-        const cachedToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, false);
+        const cachedToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, false) as RefreshTokenEntity;
         expect(cachedToken.homeAccountId).toBe("uid.utid");
         expect(cachedToken.environment).toBe("login.microsoftonline.com");
     });
