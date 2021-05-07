@@ -23,6 +23,7 @@ describe("AuthorityMetadataEntity.ts Unit Tests", () => {
     });
 
     it("Verify an object is not a AuthorityMetadataEntity", () => {
+        // @ts-ignore
         expect(AuthorityMetadataEntity.isAuthorityMetadataEntity(key, null)).toBe(false);
         expect(AuthorityMetadataEntity.isAuthorityMetadataEntity(key, {})).toBe(false);
         expect(AuthorityMetadataEntity.isAuthorityMetadataEntity("not-a-real-key", testObj)).toBe(false);
