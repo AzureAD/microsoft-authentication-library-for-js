@@ -494,11 +494,4 @@ export class ClientAuthError extends AuthError {
     static createNoAuthCodeInServerResponseError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.noAuthorizationCodeFromServer.code, ClientAuthErrorMessage.noAuthorizationCodeFromServer.desc);
     }
-
-    /**
-     * Throws error when access token entity is null when handling a response.
-     */
-    static createAccessTokenEntityNullError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.accessTokenEntityNullError.code, ClientAuthErrorMessage.accessTokenEntityNullError.desc);
-    }
 }
