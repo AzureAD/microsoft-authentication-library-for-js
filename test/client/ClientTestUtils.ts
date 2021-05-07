@@ -166,9 +166,11 @@ export class ClientTestUtils {
 
         const mockHttpClient = {
             sendGetRequestAsync<T>(): T {
+                // @ts-ignore
                 return null;
             },
             sendPostRequestAsync<T>(): T {
+                // @ts-ignore
                 return null;
             }
         };
