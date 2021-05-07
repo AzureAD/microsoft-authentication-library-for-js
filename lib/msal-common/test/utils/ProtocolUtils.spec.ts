@@ -21,7 +21,7 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
             base64Decode(input: string): string {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                        TEST_POP_VALUES.DECODED_REQ_CNF;
+                        return TEST_POP_VALUES.DECODED_REQ_CNF;
                     case encodedLibState:
                         return decodedLibState;
                     default:
@@ -31,7 +31,7 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
             base64Encode(input: string): string {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
-                        TEST_POP_VALUES.ENCODED_REQ_CNF;
+                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
                     case `${decodedLibState}`:
                         return encodedLibState;
                     default:
@@ -68,7 +68,9 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
     });
 
     it("setRequestState throws error if no crypto object is passed to it", () => {
+        // @ts-ignore
         expect(() => ProtocolUtils.setRequestState(null, userState)).toThrowError(ClientAuthError);
+        // @ts-ignore
         expect(() => ProtocolUtils.setRequestState(null, userState)).toThrowError(ClientAuthErrorMessage.noCryptoObj.desc);
     });
 
@@ -76,7 +78,9 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
         expect(() => ProtocolUtils.parseRequestState(cryptoInterface, "")).toThrowError(ClientAuthError);
         expect(() => ProtocolUtils.parseRequestState(cryptoInterface, "")).toThrowError(ClientAuthErrorMessage.invalidStateError.desc);
 
+        // @ts-ignore
         expect(() => ProtocolUtils.parseRequestState(cryptoInterface, null)).toThrowError(ClientAuthError);
+        // @ts-ignore
         expect(() => ProtocolUtils.parseRequestState(cryptoInterface, null)).toThrowError(ClientAuthErrorMessage.invalidStateError.desc);
     });
 
