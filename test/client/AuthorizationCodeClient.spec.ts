@@ -53,9 +53,9 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
-            expect(client).to.be.not.null;
-            expect(client instanceof AuthorizationCodeClient).to.be.true;
-            expect(client instanceof BaseClient).to.be.true;
+            expect(client).not.toBeNull();
+            expect(client instanceof AuthorizationCodeClient).toBe(true);
+            expect(client instanceof BaseClient).toBe(true);
         });
     });
 
@@ -77,15 +77,31 @@ describe("AuthorizationCodeClient unit tests", () => {
                 authenticationScheme: AuthenticationScheme.BEARER
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
-            expect(loginUrl).to.contain(Constants.DEFAULT_AUTHORITY);
-            expect(loginUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
-            expect(loginUrl).to.contain(`${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIRECT_URI_LOCALHOST)}`);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(ResponseMode.QUERY)}`);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(TEST_CONFIG.TEST_CHALLENGE)}`);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE_METHOD}=${encodeURIComponent(Constants.S256_CODE_CHALLENGE_METHOD)}`);
+            expect(loginUrl).toEqual(expect.arrayContaining([Constants.DEFAULT_AUTHORITY]));
+            expect(loginUrl).toEqual(expect.arrayContaining([
+                DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common")
+            ]));
+            expect(loginUrl).toEqual(expect.arrayContaining([
+                `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
+            ]));
+            expect(loginUrl).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`])
+            );
+            expect(loginUrl).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`])
+            );
+            expect(loginUrl).toEqual(expect.arrayContaining([
+                `${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIRECT_URI_LOCALHOST)}`
+            ]));
+            expect(loginUrl).toEqual(expect.arrayContaining([
+                `${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(ResponseMode.QUERY)}`
+            ]));
+            expect(loginUrl).toEqual(expect.arrayContaining([
+                `${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(TEST_CONFIG.TEST_CHALLENGE)}`
+            ]));
+            expect(loginUrl).toEqual(expect.arrayContaining([
+                `${AADServerParamKeys.CODE_CHALLENGE_METHOD}=${encodeURIComponent(Constants.S256_CODE_CHALLENGE_METHOD)}`
+            ]));
         });
 
         it("Creates an authorization url passing in optional parameters", async () => {
@@ -112,21 +128,49 @@ describe("AuthorizationCodeClient unit tests", () => {
                 authenticationScheme: AuthenticationScheme.BEARER
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
-            expect(loginUrl).to.contain(TEST_CONFIG.validAuthority);
-            expect(loginUrl).to.contain(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
-            expect(loginUrl).to.contain(`${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIRECT_URI_LOCALHOST)}`);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(ResponseMode.FORM_POST)}`);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.STATE}=${encodeURIComponent(TEST_CONFIG.STATE)}`);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.PROMPT}=${PromptValue.LOGIN}`);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.NONCE}=${encodeURIComponent(TEST_CONFIG.NONCE)}`);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(TEST_CONFIG.TEST_CHALLENGE)}`);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE_METHOD}=${encodeURIComponent(TEST_CONFIG.CODE_CHALLENGE_METHOD)}`);
-            expect(loginUrl).to.contain(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_CONFIG.LOGIN_HINT)}`);
-            expect(loginUrl).to.contain(`${SSOTypes.DOMAIN_HINT}=${encodeURIComponent(TEST_CONFIG.DOMAIN_HINT)}`);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`);
+            expect(loginUrl).toEqual(expect.arrayContaining([TEST_CONFIG.validAuthority]));
+            expect(loginUrl).toEqual(expect.arrayContaining([
+                DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common")
+            ]));
+            expect(loginUrl).toEqual(expect.arrayContaining([
+                `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
+            ]));
+            expect(loginUrl).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`])
+            );
+            expect(loginUrl).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`])
+            );
+            expect(loginUrl).toEqual(expect.arrayContaining([
+                `${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIRECT_URI_LOCALHOST)}`
+            ]));
+            expect(loginUrl).toEqual(expect.arrayContaining([
+                `${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(ResponseMode.FORM_POST)}`
+            ]));
+            expect(loginUrl).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.STATE}=${encodeURIComponent(TEST_CONFIG.STATE)}`])
+            );
+            expect(loginUrl).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.PROMPT}=${PromptValue.LOGIN}`])
+            );
+            expect(loginUrl).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.NONCE}=${encodeURIComponent(TEST_CONFIG.NONCE)}`])
+            );
+            expect(loginUrl).toEqual(expect.arrayContaining([
+                `${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(TEST_CONFIG.TEST_CHALLENGE)}`
+            ]));
+            expect(loginUrl).toEqual(expect.arrayContaining([
+                `${AADServerParamKeys.CODE_CHALLENGE_METHOD}=${encodeURIComponent(TEST_CONFIG.CODE_CHALLENGE_METHOD)}`
+            ]));
+            expect(loginUrl).toEqual(
+                expect.arrayContaining([`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_CONFIG.LOGIN_HINT)}`])
+            );
+            expect(loginUrl).toEqual(
+                expect.arrayContaining([`${SSOTypes.DOMAIN_HINT}=${encodeURIComponent(TEST_CONFIG.DOMAIN_HINT)}`])
+            );
+            expect(loginUrl).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`])
+            );
         });
 
         it("Prefers sid over loginHint if both provided and prompt=None", async () => {
@@ -148,8 +192,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 responseMode: ResponseMode.FRAGMENT
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
-            expect(loginUrl).to.not.contain(`${SSOTypes.LOGIN_HINT}=`);
-            expect(loginUrl).to.contain(`${SSOTypes.SID}=${encodeURIComponent(TEST_CONFIG.SID)}`);
+            expect(loginUrl).toEqual(expect.not.arrayContaining([`${SSOTypes.LOGIN_HINT}=`]));
+            expect(loginUrl).toEqual(
+                expect.arrayContaining([`${SSOTypes.SID}=${encodeURIComponent(TEST_CONFIG.SID)}`])
+            );
         });
 
         it("Prefers loginHint over sid if both provided and prompt!=None", async () => {
@@ -171,8 +217,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 responseMode: ResponseMode.FRAGMENT
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
-            expect(loginUrl).to.contain(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_CONFIG.LOGIN_HINT)}`);
-            expect(loginUrl).to.not.contain(`${SSOTypes.SID}=`);
+            expect(loginUrl).toEqual(
+                expect.arrayContaining([`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_CONFIG.LOGIN_HINT)}`])
+            );
+            expect(loginUrl).toEqual(expect.not.arrayContaining([`${SSOTypes.SID}=`]));
         });
 
         it("Ignores sid if prompt!=None", async () => {
@@ -193,8 +241,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 responseMode: ResponseMode.FRAGMENT
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
-            expect(loginUrl).to.not.contain(`${SSOTypes.LOGIN_HINT}=`);
-            expect(loginUrl).to.not.contain(`${SSOTypes.SID}=`);
+            expect(loginUrl).toEqual(expect.not.arrayContaining([`${SSOTypes.LOGIN_HINT}=`]));
+            expect(loginUrl).toEqual(expect.not.arrayContaining([`${SSOTypes.SID}=`]));
         });
 
         it("Prefers loginHint over Account if both provided and account does not have token claims", async () => {
@@ -215,9 +263,13 @@ describe("AuthorizationCodeClient unit tests", () => {
                 responseMode: ResponseMode.FRAGMENT
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
-            expect(loginUrl).to.contain(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_CONFIG.LOGIN_HINT)}`);
-            expect(loginUrl).to.not.contain(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_ACCOUNT_INFO.username)}`);
-            expect(loginUrl).to.not.contain(`${SSOTypes.SID}=`);
+            expect(loginUrl).toEqual(
+                expect.arrayContaining([`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_CONFIG.LOGIN_HINT)}`])
+            );
+            expect(loginUrl).toEqual(expect.not.arrayContaining(
+                [`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_ACCOUNT_INFO.username)}`]
+            ));
+            expect(loginUrl).toEqual(expect.not.arrayContaining([`${SSOTypes.SID}=`]));
         });
 
         it("Uses sid from account if not provided in request and prompt=None, overrides login_hint", async () => {
@@ -253,8 +305,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 responseMode: ResponseMode.FRAGMENT
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
-            expect(loginUrl).to.contain(`${SSOTypes.SID}=${encodeURIComponent(testTokenClaims.sid)}`);
-            expect(loginUrl).to.not.contain(`${SSOTypes.LOGIN_HINT}=`);
+            expect(loginUrl).toEqual(
+                expect.arrayContaining([`${SSOTypes.SID}=${encodeURIComponent(testTokenClaims.sid)}`])
+            );
+            expect(loginUrl).toEqual(expect.not.arrayContaining([`${SSOTypes.LOGIN_HINT}=`]));
         });
 
         it("Uses loginHint instead of sid from account prompt!=None", async () => {
@@ -290,8 +344,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 responseMode: ResponseMode.FRAGMENT
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
-            expect(loginUrl).to.not.contain(`${SSOTypes.SID}=`);
-            expect(loginUrl).to.contain(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_CONFIG.LOGIN_HINT)}`);
+            expect(loginUrl).toEqual(expect.not.arrayContaining([`${SSOTypes.SID}=`]));
+            expect(loginUrl).toEqual(
+                expect.arrayContaining([`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_CONFIG.LOGIN_HINT)}`])
+            );
         });
 
         it("Uses login_hint instead of username if sid is not present in token claims for account or request", async () => {
@@ -325,8 +381,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 responseMode: ResponseMode.FRAGMENT
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
-            expect(loginUrl).to.contain(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_CONFIG.LOGIN_HINT)}`);
-            expect(loginUrl).to.not.contain(`${SSOTypes.SID}=`);
+            expect(loginUrl).toEqual(
+                expect.arrayContaining([`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_CONFIG.LOGIN_HINT)}`])
+            );
+            expect(loginUrl).toEqual(expect.not.arrayContaining([`${SSOTypes.SID}=`]));
         });
 
         it("Sets login_hint to Account.username if login_hint and sid are not provided", async () => {
@@ -346,8 +404,10 @@ describe("AuthorizationCodeClient unit tests", () => {
                 responseMode: ResponseMode.FRAGMENT
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
-            expect(loginUrl).to.contain(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_ACCOUNT_INFO.username)}`);
-            expect(loginUrl).to.not.contain(`${SSOTypes.SID}=`);
+            expect(loginUrl).toEqual(expect.arrayContaining(
+                [`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_ACCOUNT_INFO.username)}`]
+            ));
+            expect(loginUrl).toEqual(expect.not.arrayContaining([`${SSOTypes.SID}=`]));
         });
 
         it("Ignores Account if prompt is select_account", async () => {
@@ -368,8 +428,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 responseMode: ResponseMode.FRAGMENT
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
-            expect(loginUrl).to.not.contain(`${SSOTypes.LOGIN_HINT}=`);
-            expect(loginUrl).to.not.contain(`${SSOTypes.SID}=`);
+            expect(loginUrl).toEqual(expect.not.arrayContaining([`${SSOTypes.LOGIN_HINT}=`]));
+            expect(loginUrl).toEqual(expect.not.arrayContaining([`${SSOTypes.SID}=`]));
         });
 
         it("Ignores loginHint if prompt is select_account", async () => {
@@ -390,8 +450,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 responseMode: ResponseMode.FRAGMENT
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
-            expect(loginUrl).to.not.contain(`${SSOTypes.LOGIN_HINT}=`);
-            expect(loginUrl).to.not.contain(`${SSOTypes.SID}=`);
+            expect(loginUrl).toEqual(expect.not.arrayContaining([`${SSOTypes.LOGIN_HINT}=`]));
+            expect(loginUrl).toEqual(expect.not.arrayContaining([`${SSOTypes.SID}=`]));
         });
 
         it("Ignores sid if prompt is select_account", async () => {
@@ -412,8 +472,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 responseMode: ResponseMode.FRAGMENT
             };
             const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
-            expect(loginUrl).to.not.contain(`${SSOTypes.LOGIN_HINT}=`);
-            expect(loginUrl).to.not.contain(`${SSOTypes.SID}=`);
+            expect(loginUrl).toEqual(expect.not.arrayContaining([`${SSOTypes.LOGIN_HINT}=`]));
+            expect(loginUrl).toEqual(expect.not.arrayContaining([`${SSOTypes.SID}=`]));
         });
 
         it("Creates a login URL with scopes from given token request", async () => {
@@ -437,7 +497,9 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
 
             const loginUrl = await client.getAuthCodeUrl(loginRequest);
-            expect(loginUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${testScope1} ${testScope2}`)}`);
+            expect(loginUrl).toEqual(expect.arrayContaining([
+                `${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${testScope1} ${testScope2}`)}`
+            ]));
         });
     });
 
@@ -471,8 +533,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
             const client: AuthorizationCodeClient = new AuthorizationCodeClient(config);
             const authCodePayload = client.handleFragmentResponse(testSuccessHash, TEST_STATE_VALUES.ENCODED_LIB_STATE);
-            expect(authCodePayload.code).to.be.eq("thisIsATestCode");
-            expect(authCodePayload.state).to.be.eq(TEST_STATE_VALUES.ENCODED_LIB_STATE);
+            expect(authCodePayload.code).toBe("thisIsATestCode");
+            expect(authCodePayload.state).toBe(TEST_STATE_VALUES.ENCODED_LIB_STATE);
         });
 
         it("returns valid server code response when state is encoded twice", async () => {
@@ -503,8 +565,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
             const client: AuthorizationCodeClient = new AuthorizationCodeClient(config);
             const authCodePayload = client.handleFragmentResponse(testSuccessHash, TEST_STATE_VALUES.ENCODED_LIB_STATE);
-            expect(authCodePayload.code).to.be.eq("thisIsATestCode");
-            expect(authCodePayload.state).to.be.eq(TEST_STATE_VALUES.ENCODED_LIB_STATE);
+            expect(authCodePayload.code).toBe("thisIsATestCode");
+            expect(authCodePayload.state).toBe(TEST_STATE_VALUES.ENCODED_LIB_STATE);
         });
 
         it("throws server error when error is in hash", async () => {
@@ -513,13 +575,13 @@ describe("AuthorizationCodeClient unit tests", () => {
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client: AuthorizationCodeClient = new AuthorizationCodeClient(config);
             const cacheStorageMock = config.storageInterface as MockStorageClass;
-            expect(() => client.handleFragmentResponse(testErrorHash, TEST_STATE_VALUES.ENCODED_LIB_STATE)).to.throw("msal error description");
-            expect(cacheStorageMock.getKeys().length).to.be.eq(1);
-            expect(cacheStorageMock.getAuthorityMetadataKeys().length).to.be.eq(1)
+            expect(() => client.handleFragmentResponse(testErrorHash, TEST_STATE_VALUES.ENCODED_LIB_STATE)).toThrowError("msal error description");
+            expect(cacheStorageMock.getKeys().length).toBe(1);
+            expect(cacheStorageMock.getAuthorityMetadataKeys().length).toBe(1)
 
-            expect(() => client.handleFragmentResponse(testErrorHash, TEST_STATE_VALUES.ENCODED_LIB_STATE)).to.throw(ServerError);
-            expect(cacheStorageMock.getKeys().length).to.be.eq(1);
-            expect(cacheStorageMock.getAuthorityMetadataKeys().length).to.be.eq(1)
+            expect(() => client.handleFragmentResponse(testErrorHash, TEST_STATE_VALUES.ENCODED_LIB_STATE)).toThrowError(ServerError);
+            expect(cacheStorageMock.getKeys().length).toBe(1);
+            expect(cacheStorageMock.getAuthorityMetadataKeys().length).toBe(1)
         });
     });
 
@@ -531,8 +593,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             const client = new AuthorizationCodeClient(config);
 
             await expect(client.acquireToken(null, null)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
-            expect(config.storageInterface.getKeys().length).to.be.eq(1);
-            expect(config.storageInterface.getAuthorityMetadataKeys().length).to.be.eq(1);
+            expect(config.storageInterface.getKeys().length).toBe(1);
+            expect(config.storageInterface.getAuthorityMetadataKeys().length).toBe(1);
         });
 
         it("Throws error if code response does not contain authorization code", async () => {
@@ -549,8 +611,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 authority: TEST_CONFIG.validAuthority
             };
             await expect(client.acquireToken(codeRequest, null)).to.be.rejectedWith(ClientAuthErrorMessage.tokenRequestCannotBeMade.desc);
-            expect(config.storageInterface.getKeys().length).to.be.eq(1);
-            expect(config.storageInterface.getAuthorityMetadataKeys().length).to.be.eq(1);
+            expect(config.storageInterface.getKeys().length).toBe(1);
+            expect(config.storageInterface.getAuthorityMetadataKeys().length).toBe(1);
         });
 
         it("Does not add headers that do not qualify for a simple request", async () => {
@@ -560,7 +622,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").callsFake((tokenEndpoint: string, queryString: string, headers: Record<string, string>) => {
                 const headerNames = Object.keys(headers);
                 headerNames.forEach((name) => {
-                    expect(CORS_SIMPLE_REQUEST_HEADERS).contains(name.toLowerCase());
+                    expect(CORS_SIMPLE_REQUEST_HEADERS).toEqual(expect.arrayContaining([name.toLowerCase()]));
                 });
 
                 stubCalled = true;
@@ -630,7 +692,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 state: testState
             });
 
-            expect(stubCalled).to.be.true;
+            expect(stubCalled).toBe(true);
         });
 
         it("Acquires a token successfully", async () => {
@@ -701,27 +763,51 @@ describe("AuthorizationCodeClient unit tests", () => {
                 state: testState
             });
 
-            expect(authenticationResult.accessToken).to.deep.eq(AUTHENTICATION_RESULT.body.access_token);
-            expect((Date.now() + (AUTHENTICATION_RESULT.body.expires_in * 1000)) >= authenticationResult.expiresOn.getMilliseconds()).to.be.true;
-            expect(createTokenRequestBodySpy.calledWith(authCodeRequest)).to.be.ok;
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIRECT_URI_LOCALHOST)}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`);
+            expect(authenticationResult.accessToken).toEqual(AUTHENTICATION_RESULT.body.access_token);
+            expect((Date.now() + (AUTHENTICATION_RESULT.body.expires_in * 1000)) >= authenticationResult.expiresOn.getMilliseconds()).toBe(true);
+            expect(createTokenRequestBodySpy.calledWith(authCodeRequest)).toBeTruthy();
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(expect.arrayContaining([
+                `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
+            ]));
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(expect.arrayContaining([
+                `${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIRECT_URI_LOCALHOST)}`
+            ]));
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(expect.arrayContaining([
+                `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
+            ]));
         });
 
         it("Adds tokenQueryParameters to the /token request", (done) => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").callsFake((url) => {
-                expect(url).to.contain("/token?testParam=testValue")
+                expect(url).toEqual(expect.arrayContaining(["/token?testParam=testValue"]))
                 done();
             });
 
@@ -786,7 +872,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             };
             const signedJwt = "signedJwt";
             config.cryptoInterface.signJwt = async (payload: SignedHttpRequest, kid: string): Promise<string> => {
-                expect(payload.at).to.be.eq(POP_AUTHENTICATION_RESULT.body.access_token);
+                expect(payload.at).toBe(POP_AUTHENTICATION_RESULT.body.access_token);
                 return signedJwt;
             };
             // Set up stubs
@@ -835,19 +921,39 @@ describe("AuthorizationCodeClient unit tests", () => {
                 state: testState
             });
 
-            expect(authenticationResult.accessToken).to.eq(signedJwt);
-            expect((Date.now() + (POP_AUTHENTICATION_RESULT.body.expires_in * 1000)) >= authenticationResult.expiresOn.getMilliseconds()).to.be.true;
-            expect(createTokenRequestBodySpy.calledWith(authCodeRequest)).to.be.ok;
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIRECT_URI_LOCALHOST)}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.POP}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.REQ_CNF}=${encodeURIComponent(TEST_POP_VALUES.ENCODED_REQ_CNF)}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`);
+            expect(authenticationResult.accessToken).toBe(signedJwt);
+            expect((Date.now() + (POP_AUTHENTICATION_RESULT.body.expires_in * 1000)) >= authenticationResult.expiresOn.getMilliseconds()).toBe(true);
+            expect(createTokenRequestBodySpy.calledWith(authCodeRequest)).toBeTruthy();
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(expect.arrayContaining([
+                `${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
+            ]));
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(expect.arrayContaining([
+                `${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIRECT_URI_LOCALHOST)}`
+            ]));
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.POP}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(expect.arrayContaining([
+                `${AADServerParamKeys.REQ_CNF}=${encodeURIComponent(TEST_POP_VALUES.ENCODED_REQ_CNF)}`
+            ]));
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`])
+            );
         });
 
         it("properly handles expiration timestamps as strings", async () => {
@@ -925,7 +1031,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 state: testState
             });
 
-            expect(authenticationResult.expiresOn?.toString()).to.not.equal("Invalid Date");
+            expect(authenticationResult.expiresOn?.toString()).not.toBe("Invalid Date");
         });
 
         it("Saves refresh_in correctly to the cache", async () => {
@@ -1005,9 +1111,9 @@ describe("AuthorizationCodeClient unit tests", () => {
             const accessTokenKey = config.storageInterface?.getKeys().find(value => value.indexOf("accesstoken") >= 0);
             const accessTokenCacheItem = accessTokenKey ? config.storageInterface?.getAccessTokenCredential(accessTokenKey) : null;
 
-            expect(authenticationResult.accessToken).to.deep.eq(AUTHENTICATION_RESULT.body.access_token);
-            expect(authenticationResult.expiresOn && (Date.now() + (AUTHENTICATION_RESULT.body.expires_in * 1000)) >= authenticationResult.expiresOn.getMilliseconds()).to.be.true;
-            expect(createTokenRequestBodySpy.calledWith(authCodeRequest)).to.be.ok;
+            expect(authenticationResult.accessToken).toEqual(AUTHENTICATION_RESULT.body.access_token);
+            expect(authenticationResult.expiresOn && (Date.now() + (AUTHENTICATION_RESULT.body.expires_in * 1000)) >= authenticationResult.expiresOn.getMilliseconds()).toBe(true);
+            expect(createTokenRequestBodySpy.calledWith(authCodeRequest)).toBeTruthy();
             expect(accessTokenCacheItem && accessTokenCacheItem.refreshOn && accessTokenCacheItem.refreshOn === accessTokenCacheItem.cachedAt + authResult.body.refresh_in);
         });
     });
@@ -1029,8 +1135,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             const removeAccountSpy = sinon.stub(MockStorageClass.prototype, "clear").returns();
             const logoutUri = client.getLogoutUri({account: null, correlationId: RANDOM_TEST_GUID});
 
-            expect(removeAccountSpy.calledOnce).to.be.true;
-            expect(logoutUri).to.be.eq(`${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common")}?${AADServerParamKeys.CLIENT_REQUEST_ID}=${RANDOM_TEST_GUID}`);
+            expect(removeAccountSpy.calledOnce).toBe(true);
+            expect(logoutUri).toBe(
+                `${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common")}?${AADServerParamKeys.CLIENT_REQUEST_ID}=${RANDOM_TEST_GUID}`
+            );
         });
 
         it("Returns a uri and clears the cache of relevant account info", async () => {
@@ -1048,8 +1156,10 @@ describe("AuthorizationCodeClient unit tests", () => {
             const removeAccountSpy = sinon.stub(CacheManager.prototype, "removeAccount").returns(true);
             const logoutUri = client.getLogoutUri({account: testAccount, correlationId: RANDOM_TEST_GUID});
 
-            expect(removeAccountSpy.calledWith(AccountEntity.generateAccountCacheKey(testAccount))).to.be.true;
-            expect(logoutUri).to.be.eq(`${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common")}?${AADServerParamKeys.CLIENT_REQUEST_ID}=${RANDOM_TEST_GUID}`);
+            expect(removeAccountSpy.calledWith(AccountEntity.generateAccountCacheKey(testAccount))).toBe(true);
+            expect(logoutUri).toBe(
+                `${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common")}?${AADServerParamKeys.CLIENT_REQUEST_ID}=${RANDOM_TEST_GUID}`
+            );
         });
 
         it("Returns a uri with given postLogoutUri and correlationId", async () => {
@@ -1072,9 +1182,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 idTokenHint: "id_token_hint"
             });
 
-            expect(removeAccountSpy.calledWith(AccountEntity.generateAccountCacheKey(testAccount))).to.be.true;
+            expect(removeAccountSpy.calledWith(AccountEntity.generateAccountCacheKey(testAccount))).toBe(true);
             const testLogoutUriWithParams = `${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common")}?${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI)}&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}&${AADServerParamKeys.ID_TOKEN_HINT}=id_token_hint`;
-            expect(logoutUri).to.be.eq(testLogoutUriWithParams);
+            expect(logoutUri).toBe(testLogoutUriWithParams);
         });
     });
 });

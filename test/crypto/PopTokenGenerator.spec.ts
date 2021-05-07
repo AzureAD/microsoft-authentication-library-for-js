@@ -69,7 +69,7 @@ describe("PopTokenGenerator Unit Tests", () => {
         it("Generates the req_cnf correctly", async () => {
             const popTokenGenerator = new PopTokenGenerator(cryptoInterface);
             const req_cnf = await popTokenGenerator.generateCnf(testRequest);
-            expect(req_cnf).to.be.eq(TEST_POP_VALUES.ENCODED_REQ_CNF);
+            expect(req_cnf).toBe(TEST_POP_VALUES.ENCODED_REQ_CNF);
         });
     });
 
@@ -120,7 +120,7 @@ describe("PopTokenGenerator Unit Tests", () => {
 
 
             cryptoInterface.signJwt = (payload: SignedHttpRequest, kid: string): Promise<string> => {
-                expect(kid).to.be.eq(TEST_POP_VALUES.KID);
+                expect(kid).toBe(TEST_POP_VALUES.KID);
                 const expectedPayload = {
                     at: accessToken,
                     ts: currTime,
@@ -132,7 +132,7 @@ describe("PopTokenGenerator Unit Tests", () => {
                     client_claims: shrClaims
                 };
                 
-                expect(payload).to.be.deep.eq(expectedPayload);
+                expect(payload).toEqual(expectedPayload);
                 done();
                 return null;
             };
@@ -145,7 +145,7 @@ describe("PopTokenGenerator Unit Tests", () => {
             const currTime = TimeUtils.nowSeconds();
             const popRequest = { ...testRequest, authenticationScheme: AuthenticationScheme.POP };
             cryptoInterface.signJwt = (payload: SignedHttpRequest, kid: string): Promise<string> => {
-                expect(kid).to.be.eq(TEST_POP_VALUES.KID);
+                expect(kid).toBe(TEST_POP_VALUES.KID);
                 const expectedPayload = {
                     at: accessToken,
                     ts: currTime,
@@ -157,7 +157,7 @@ describe("PopTokenGenerator Unit Tests", () => {
                     client_claims: undefined
                 };
                 
-                expect(payload).to.be.deep.eq(expectedPayload);
+                expect(payload).toEqual(expectedPayload);
                 done();
                 return null;
             };

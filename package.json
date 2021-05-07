@@ -38,8 +38,8 @@
     "clean:coverage": "rimraf ../../.nyc_output/*",
     "lint": "cd ../../ && npm run lint:common",
     "lint:fix": "npm run lint -- -- --fix",
-    "test": "mocha",
-    "test:coverage": "nyc mocha",
+    "test": "jest",
+    "test:coverage": "jest --coverage",
     "test:coverage:only": "npm run clean:coverage && npm run test:coverage",
     "build:modules": "rollup -c",
     "build:modules:watch": "rollup -cw",
@@ -80,6 +80,9 @@
     "typescript": "^3.7.5"
   },
   "dependencies": {
-    "debug": "^4.1.1"
+    "@types/jest": "^26.0.23",
+    "debug": "^4.1.1",
+    "jest": "^26.6.3",
+    "ts-jest": "^26.5.6"
   }
 }

@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { expect } from "chai";
 import sinon from "sinon";
 import {
     AUTHENTICATION_RESULT,
@@ -73,9 +72,9 @@ describe("RefreshTokenClient unit tests", () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new RefreshTokenClient(config);
-            expect(client).to.be.not.null;
-            expect(client instanceof RefreshTokenClient).to.be.true;
-            expect(client instanceof BaseClient).to.be.true;
+            expect(client).not.toBeNull();
+            expect(client instanceof RefreshTokenClient).toBe(true);
+            expect(client instanceof BaseClient).toBe(true);
         });
     });
 
@@ -89,7 +88,7 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("Adds tokenQueryParameters to the /token request", (done) => {
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").callsFake((url) => {
-                expect(url).to.contain("/token?testParam=testValue")
+                expect(url).toEqual(expect.arrayContaining(["/token?testParam=testValue"]))
                 done();
             });
 
@@ -150,7 +149,7 @@ describe("RefreshTokenClient unit tests", () => {
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").callsFake((tokenEndpoint: string, queryString: string, headers: Record<string, string>) => {
                 const headerNames = Object.keys(headers);
                 headerNames.forEach((name) => {
-                    expect(CORS_SIMPLE_REQUEST_HEADERS).contains(name.toLowerCase());
+                    expect(CORS_SIMPLE_REQUEST_HEADERS).toEqual(expect.arrayContaining([name.toLowerCase()]));
                 });
     
                 done();
@@ -186,27 +185,47 @@ describe("RefreshTokenClient unit tests", () => {
             const authResult: AuthenticationResult = await client.acquireToken(refreshTokenRequest);
             const expectedScopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0], "email"];
 
-            expect(authResult.uniqueId).to.deep.eq(ID_TOKEN_CLAIMS.oid);
-            expect(authResult.tenantId).to.deep.eq(ID_TOKEN_CLAIMS.tid);
-            expect(authResult.scopes).to.deep.eq(expectedScopes);
-            expect(authResult.account).to.deep.eq(testAccount);
-            expect(authResult.idToken).to.deep.eq(AUTHENTICATION_RESULT.body.id_token);
-            expect(authResult.idTokenClaims).to.deep.eq(ID_TOKEN_CLAIMS);
-            expect(authResult.accessToken).to.deep.eq(AUTHENTICATION_RESULT.body.access_token);
-            expect(authResult.state).to.be.empty;
-            expect(createTokenRequestBodySpy.calledWith(refreshTokenRequest)).to.be.true;
+            expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
+            expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
+            expect(authResult.scopes).toEqual(expectedScopes);
+            expect(authResult.account).toEqual(testAccount);
+            expect(authResult.idToken).toEqual(AUTHENTICATION_RESULT.body.id_token);
+            expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(authResult.accessToken).toEqual(AUTHENTICATION_RESULT.body.access_token);
+            expect(authResult.state).toHaveLength(0);
+            expect(createTokenRequestBodySpy.calledWith(refreshTokenRequest)).toBe(true);
 
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`);
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(expect.arrayContaining([`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`]));
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(expect.arrayContaining([
+                `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
+            ]));
         });
 
         it("acquireTokenByRefreshToken refreshes a token", async () => {
@@ -227,7 +246,7 @@ describe("RefreshTokenClient unit tests", () => {
             const refreshTokenClientSpy = sinon.stub(RefreshTokenClient.prototype, "acquireToken");
 
             await client.acquireTokenByRefreshToken(silentFlowRequest);
-            expect(refreshTokenClientSpy.calledWith(expectedRefreshRequest)).to.be.true;
+            expect(refreshTokenClientSpy.calledWith(expectedRefreshRequest)).toBe(true);
         });
     });
 
@@ -279,24 +298,34 @@ describe("RefreshTokenClient unit tests", () => {
 
             const authResult: AuthenticationResult = await client.acquireToken(refreshTokenRequest);
             const expectedScopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0], "email"];
-            expect(authResult.uniqueId).to.deep.eq(ID_TOKEN_CLAIMS.oid);
-            expect(authResult.tenantId).to.deep.eq(ID_TOKEN_CLAIMS.tid);
-            expect(authResult.scopes).to.deep.eq(expectedScopes);
-            expect(authResult.account).to.deep.eq(testAccount);
-            expect(authResult.idToken).to.deep.eq(AUTHENTICATION_RESULT_WITH_FOCI.body.id_token);
-            expect(authResult.idTokenClaims).to.deep.eq(ID_TOKEN_CLAIMS);
-            expect(authResult.accessToken).to.deep.eq(AUTHENTICATION_RESULT_WITH_FOCI.body.access_token);
-            expect(authResult.familyId).to.deep.eq(AUTHENTICATION_RESULT_WITH_FOCI.body.foci);
-            expect(authResult.state).to.be.empty;
+            expect(authResult.uniqueId).toEqual(ID_TOKEN_CLAIMS.oid);
+            expect(authResult.tenantId).toEqual(ID_TOKEN_CLAIMS.tid);
+            expect(authResult.scopes).toEqual(expectedScopes);
+            expect(authResult.account).toEqual(testAccount);
+            expect(authResult.idToken).toEqual(AUTHENTICATION_RESULT_WITH_FOCI.body.id_token);
+            expect(authResult.idTokenClaims).toEqual(ID_TOKEN_CLAIMS);
+            expect(authResult.accessToken).toEqual(AUTHENTICATION_RESULT_WITH_FOCI.body.access_token);
+            expect(authResult.familyId).toEqual(AUTHENTICATION_RESULT_WITH_FOCI.body.foci);
+            expect(authResult.state).toHaveLength(0);
 
-            expect(createTokenRequestBodySpy.calledWith(refreshTokenRequest)).to.be.true;
+            expect(createTokenRequestBodySpy.calledWith(refreshTokenRequest)).toBe(true);
 
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`);
-            await expect(createTokenRequestBodySpy.returnValues[0]).to.eventually.contain(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`);
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(expect.arrayContaining([`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`]));
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.REFRESH_TOKEN}=${TEST_TOKENS.REFRESH_TOKEN}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.GRANT_TYPE}=${GrantType.REFRESH_TOKEN_GRANT}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`])
+            );
+            await expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
+                expect.arrayContaining([`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`])
+            );
         });
 
         it("acquireTokenByRefreshToken refreshes a token (FOCI)", async () => {
@@ -316,7 +345,7 @@ describe("RefreshTokenClient unit tests", () => {
             const refreshTokenClientSpy = sinon.stub(RefreshTokenClient.prototype, "acquireToken");
 
             await client.acquireTokenByRefreshToken(silentFlowRequest);
-            expect(refreshTokenClientSpy.calledWith(expectedRefreshRequest)).to.be.true;
+            expect(refreshTokenClientSpy.calledWith(expectedRefreshRequest)).toBe(true);
         });
     });
 

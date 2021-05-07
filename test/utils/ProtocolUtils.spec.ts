@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import { ProtocolUtils } from "../../src/utils/ProtocolUtils";
 import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES } from "./StringConstants";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
@@ -60,34 +59,34 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
 
     it("setRequestState() appends library state to given state", () => {
         const requestState = ProtocolUtils.setRequestState(cryptoInterface, userState);
-        expect(requestState).to.be.eq(testState);
+        expect(requestState).toBe(testState);
     });
 
     it("setRequestState() only creates library state", () => {
         const requestState = ProtocolUtils.setRequestState(cryptoInterface, "");
-        expect(requestState).to.be.eq(encodedLibState);
+        expect(requestState).toBe(encodedLibState);
     });
 
     it("setRequestState throws error if no crypto object is passed to it", () => {
-        expect(() => ProtocolUtils.setRequestState(null, userState)).to.throw(ClientAuthError);
-        expect(() => ProtocolUtils.setRequestState(null, userState)).to.throw(ClientAuthErrorMessage.noCryptoObj.desc);
+        expect(() => ProtocolUtils.setRequestState(null, userState)).toThrowError(ClientAuthError);
+        expect(() => ProtocolUtils.setRequestState(null, userState)).toThrowError(ClientAuthErrorMessage.noCryptoObj.desc);
     });
 
     it("parseRequestState() throws error if given state is null or empty", () => {
-        expect(() => ProtocolUtils.parseRequestState(cryptoInterface, "")).to.throw(ClientAuthError);
-        expect(() => ProtocolUtils.parseRequestState(cryptoInterface, "")).to.throw(ClientAuthErrorMessage.invalidStateError.desc);
+        expect(() => ProtocolUtils.parseRequestState(cryptoInterface, "")).toThrowError(ClientAuthError);
+        expect(() => ProtocolUtils.parseRequestState(cryptoInterface, "")).toThrowError(ClientAuthErrorMessage.invalidStateError.desc);
 
-        expect(() => ProtocolUtils.parseRequestState(cryptoInterface, null)).to.throw(ClientAuthError);
-        expect(() => ProtocolUtils.parseRequestState(cryptoInterface, null)).to.throw(ClientAuthErrorMessage.invalidStateError.desc);
+        expect(() => ProtocolUtils.parseRequestState(cryptoInterface, null)).toThrowError(ClientAuthError);
+        expect(() => ProtocolUtils.parseRequestState(cryptoInterface, null)).toThrowError(ClientAuthErrorMessage.invalidStateError.desc);
     });
 
     it("parseRequestState() returns empty userRequestState if no resource delimiter found in state string", () => {
         const requestState = ProtocolUtils.parseRequestState(cryptoInterface, decodedLibState);
-        expect(requestState.userRequestState).to.be.empty;
+        expect(requestState.userRequestState).toHaveLength(0);
     });
 
     it("parseRequestState() correctly splits the state by the resource delimiter", () => {
         const requestState = ProtocolUtils.parseRequestState(cryptoInterface, testState);
-        expect(requestState.userRequestState).to.be.eq(userState);
+        expect(requestState.userRequestState).toBe(userState);
     });
 });
