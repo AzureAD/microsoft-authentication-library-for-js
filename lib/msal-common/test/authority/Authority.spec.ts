@@ -164,6 +164,55 @@ describe("Authority.ts Class Unit Tests", () => {
         });
     });
 
+    describe.only("Regional authorities", () => {
+        const networkInterface: INetworkModule = {
+            sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                return DEFAULT_OPENID_CONFIG_RESPONSE;
+            },
+            sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                return null;
+            }
+        };
+
+        const authorityOptions = {
+            protocolMode: ProtocolMode.AAD,
+            knownAuthorities: [Constants.DEFAULT_AUTHORITY_HOST],
+            cloudDiscoveryMetadata: "",
+            authorityMetadata: "",
+            azureRegionConfiguration: { azureRegion: "westus2", environmentRegion: undefined }
+        };
+
+        it("discovery endpoint metadata is updated with regional information when the region is provided", async () => {
+                const authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
+                await authority.resolveEndpointsAsync();
+
+                expect(authority.discoveryComplete()).to.be.true;
+                expect(authority.authorizationEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common").replace("login.microsoftonline.com", "westus2.login.microsoft.com"));
+                expect(authority.tokenEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace("{tenant}", "common").replace("login.microsoftonline.com", "westus2.login.microsoft.com"));
+                expect(authority.endSessionEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common").replace("login.microsoftonline.com", "westus2.login.microsoft.com"));
+        });
+
+        it("region provided by the user overrides the region auto-discovered", async () => {
+                const authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, {...authorityOptions, azureRegionConfiguration: { azureRegion: "westus2", environmentRegion: "centralus" }});
+                await authority.resolveEndpointsAsync();
+
+                expect(authority.discoveryComplete()).to.be.true;
+                expect(authority.authorizationEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common").replace("login.microsoftonline.com", "westus2.login.microsoft.com"));
+                expect(authority.tokenEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace("{tenant}", "common").replace("login.microsoftonline.com", "westus2.login.microsoft.com"));
+                expect(authority.endSessionEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common").replace("login.microsoftonline.com", "westus2.login.microsoft.com"));
+        });
+
+        it("auto discovered region only used when the user provides the AUTO_DISCOVER flag", async () => {
+                const authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, {...authorityOptions, azureRegionConfiguration: { azureRegion: Constants.AZURE_REGION_AUTO_DISCOVER_FLAG, environmentRegion: "centralus" }});
+                await authority.resolveEndpointsAsync();
+
+                expect(authority.discoveryComplete()).to.be.true;
+                expect(authority.authorizationEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common").replace("login.microsoftonline.com", "centralus.login.microsoft.com"));
+                expect(authority.tokenEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.token_endpoint.replace("{tenant}", "common").replace("login.microsoftonline.com", "centralus.login.microsoft.com"));
+                expect(authority.endSessionEndpoint).to.be.eq(DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common").replace("login.microsoftonline.com", "centralus.login.microsoft.com"));
+        });
+    })
+    
     describe("Endpoint discovery", () => {
 
         const networkInterface: INetworkModule = {
