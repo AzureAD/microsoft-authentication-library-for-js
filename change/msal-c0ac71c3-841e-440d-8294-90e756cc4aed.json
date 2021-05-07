@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update lodash version in msal-core package-lock #3597",
+  "packageName": "msal",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
