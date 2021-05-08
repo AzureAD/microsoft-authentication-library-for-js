@@ -21,7 +21,7 @@ export class BrowserUtils {
      */
     static clearHash(contentWindow: Window): void {
         // Office.js sets history.replaceState to null
-        contentWindow.location.hash = "";
+        contentWindow.location.hash = Constants.EMPTY_STRING;
         if (typeof contentWindow.history.replaceState === "function") {
             // Full removes "#" from url
             contentWindow.history.replaceState(null, Constants.EMPTY_STRING, `${contentWindow.location.pathname}${contentWindow.location.search}`);
