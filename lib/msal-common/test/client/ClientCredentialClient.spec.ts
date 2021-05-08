@@ -16,14 +16,15 @@ import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity"
 import { TimeUtils } from "../../src/utils/TimeUtils";
 import { CredentialCache } from "../../src/cache/utils/CacheTypes";
 import { CacheManager } from "../../src/cache/CacheManager";
-import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
+import { ClientAuthError } from "../../src/error/ClientAuthError";
+import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 
 describe("ClientCredentialClient unit tests", () => {
     afterEach(() => {
         sinon.restore();
     });
 
-    describe("Constructor", async () => {
+    describe("Constructor", () => {
 
         it("creates a ClientCredentialClient", async () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
@@ -49,7 +50,7 @@ describe("ClientCredentialClient unit tests", () => {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
         };
 
-        const authResult = await client.acquireToken(clientCredentialRequest);
+        const authResult = await client.acquireToken(clientCredentialRequest) as AuthenticationResult;
         const expectedScopes = [TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
         expect(authResult.scopes).toEqual(expectedScopes);
         expect(authResult.accessToken).toEqual(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token);
@@ -57,31 +58,16 @@ describe("ClientCredentialClient unit tests", () => {
 
         expect(createTokenRequestBodySpy.calledWith(clientCredentialRequest)).toBe(true);
 
-        expect(createTokenRequestBodySpy.returnValues[0]).toEqual(expect.arrayContaining([`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`]));
-        expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
-            expect.arrayContaining([`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`])
-        );
-        expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
-            expect.arrayContaining([`${AADServerParamKeys.GRANT_TYPE}=${GrantType.CLIENT_CREDENTIALS_GRANT}`])
-        );
-        expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
-            expect.arrayContaining([`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`])
-        );
-        expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
-            expect.arrayContaining([`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`])
-        );
-        expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
-            expect.arrayContaining([`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`])
-        );
-        expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
-            expect.arrayContaining([`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`])
-        );
-        expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
-            expect.arrayContaining([`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`])
-        );
-        expect(createTokenRequestBodySpy.returnValues[0]).toEqual(expect.arrayContaining([
-            `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
-        ]));
+        const returnVal = await createTokenRequestBodySpy.returnValues[0] as string;
+        expect(returnVal.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.GRANT_TYPE}=${GrantType.CLIENT_CREDENTIALS_GRANT}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`)).toBe(true);
     });
 
     it("Does not add headers that do not qualify for a simple request", async () => {
@@ -127,7 +113,7 @@ describe("ClientCredentialClient unit tests", () => {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
         };
 
-        const authResult = await client.acquireToken(clientCredentialRequest);
+        const authResult = await client.acquireToken(clientCredentialRequest) as AuthenticationResult;
         const expectedScopes = [TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
         expect(authResult.scopes).toEqual(expectedScopes);
         expect(authResult.accessToken).toEqual("an_access_token");
@@ -152,7 +138,7 @@ describe("ClientCredentialClient unit tests", () => {
             skipCache: true
         };
 
-        const authResult = await client.acquireToken(clientCredentialRequest);
+        const authResult = await client.acquireToken(clientCredentialRequest) as AuthenticationResult;
         const expectedScopes = [TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
         expect(authResult.scopes).toEqual(expectedScopes);
         expect(authResult.accessToken).toEqual(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token);
@@ -160,16 +146,11 @@ describe("ClientCredentialClient unit tests", () => {
 
         expect(createTokenRequestBodySpy.calledWith(clientCredentialRequest)).toBe(true);
 
-        expect(createTokenRequestBodySpy.returnValues[0]).toEqual(expect.arrayContaining([`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`]));
-        expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
-            expect.arrayContaining([`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`])
-        );
-        expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
-            expect.arrayContaining([`${AADServerParamKeys.GRANT_TYPE}=${GrantType.CLIENT_CREDENTIALS_GRANT}`])
-        );
-        expect(createTokenRequestBodySpy.returnValues[0]).toEqual(
-            expect.arrayContaining([`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`])
-        );
+        const returnVal = await createTokenRequestBodySpy.returnValues[0] as string;
+        expect(returnVal.includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.GRANT_TYPE}=${GrantType.CLIENT_CREDENTIALS_GRANT}`)).toBe(true);
+        expect(returnVal.includes(`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`)).toBe(true);
     });
 
     it("Multiple access tokens matched, exception thrown", async () => {
@@ -188,7 +169,9 @@ describe("ClientCredentialClient unit tests", () => {
                 "key1": mockedAtEntity,
                 "key2": mockedAtEntity2
             },
+            // @ts-ignore
             refreshTokens: null,
+            // @ts-ignore
             idTokens: null
         }
 
@@ -201,7 +184,7 @@ describe("ClientCredentialClient unit tests", () => {
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
         };
 
-        await expect(client.acquireToken(clientCredentialRequest)).to.be.rejectedWith(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
+        await expect(client.acquireToken(clientCredentialRequest)).rejects.toMatchObject(ClientAuthError.createMultipleMatchingTokensInCacheError());
     });
 
 });
