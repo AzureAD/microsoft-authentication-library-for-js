@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Close popup if error is thrown before popup window navigation occurs #3572",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
