@@ -8,6 +8,10 @@ on:
     branches:  
       - dev
 
+concurrency:
+  group: beachball-${{github.ref}}
+  cancel-in-progress: true
+
 jobs:
   beachball-check:
     runs-on: ubuntu-latest
