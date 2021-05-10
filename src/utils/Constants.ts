@@ -38,8 +38,7 @@ export const Constants = {
     AUTHORIZATION_PENDING: "authorization_pending",
     NOT_DEFINED: "not_defined",
     EMPTY_STRING: "",
-    FORWARD_SLASH: "/",
-    EMPTY_OBJECT_STRING: "{}"
+    FORWARD_SLASH: "/"
 };
 
 export const OIDC_DEFAULT_SCOPES = [
