@@ -1,5 +1,5 @@
 {
-  "type": "none",
+  "type": "patch",
   "comment": "Adjust log messages #3589",
   "packageName": "@azure/msal-browser",
   "email": "joarroyo@microsoft.com",
