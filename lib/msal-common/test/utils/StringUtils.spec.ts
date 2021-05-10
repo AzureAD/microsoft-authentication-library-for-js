@@ -82,6 +82,20 @@ describe("StringUtils.ts Class Unit Tests", () => {
         expect(StringUtils.isEmpty("Non-empty string")).to.be.false;
     });
 
+    it("isEmptyObject correctly identifies empty stringified objects", () => {
+        expect(StringUtils.isEmptyObj(undefined)).to.be.true;
+        expect(StringUtils.isEmptyObj(null)).to.be.true;
+        expect(StringUtils.isEmptyObj("")).to.be.true;
+        expect(StringUtils.isEmptyObj("{}")).to.be.true;
+        expect(StringUtils.isEmptyObj("{ }")).to.be.true;
+        expect(StringUtils.isEmptyObj("{   }")).to.be.true;
+        expect(StringUtils.isEmptyObj("Non-object string")).to.be.true;
+        const exampleObj = {
+            "valid": true
+        };
+        expect(StringUtils.isEmptyObj(JSON.stringify(exampleObj))).to.be.false;
+    });
+
     it("startsWith returns true if given string starts with given substring", () => {
         const testString = "This is a test string";
         const searchString = "This";
