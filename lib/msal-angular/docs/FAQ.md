@@ -118,6 +118,7 @@ Our [Angular 10 sample](https://github.com/AzureAD/microsoft-authentication-libr
 
 For those using the `HashLocationStrategy`, we recommend:
 - Setting the `MsalGuard` on your initial page
+- Not setting the `MsalGuard` on placeholder routes (e.g. `/code`, `/error`)
 - Making sure the `MsalRedirectComponent` is bootstrapped
 - Optionally: adding `MsalGuard` to all your routes if you want all your routes protected
 
