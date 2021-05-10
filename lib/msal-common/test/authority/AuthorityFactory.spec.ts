@@ -2,7 +2,7 @@ import { expect } from "chai";
 import sinon from "sinon";
 import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
-import { TEST_CONFIG } from "../utils/StringConstants";
+import { TEST_CONFIG } from "../test_kit/StringConstants";
 import { Constants } from "../../src/utils/Constants";
 import { ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 import { Authority } from "../../src/authority/Authority";
@@ -18,12 +18,14 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
             url: string,
             options?: NetworkRequestOptions
         ): T {
+            // @ts-ignore
             return null;
         },
         sendPostRequestAsync<T>(
             url: string,
             options?: NetworkRequestOptions
         ): T {
+            // @ts-ignore
             return null;
         }
     };
@@ -48,6 +50,7 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
 
     it("AuthorityFactory returns null if given url is null or empty", () => {
         expect(() => AuthorityFactory.createInstance("", networkInterface, mockStorage, authorityOptions)).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
+        // @ts-ignore
         expect(() => AuthorityFactory.createInstance(null, networkInterface, mockStorage, authorityOptions)).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
     });
 
