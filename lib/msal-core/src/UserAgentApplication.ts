@@ -1232,7 +1232,7 @@ export class UserAgentApplication {
         this.logger.verbose("HandleRedirectAuthenticationResponse has been called");
 
         // clear hash from window
-        WindowUtils.clearUrlFragment();
+        WindowUtils.clearUrlFragment(window);
         this.logger.verbose("Window.location.hash cleared");
 
         // if (window.parent !== window), by using self, window.parent becomes equal to window in getResponseState method specifically
