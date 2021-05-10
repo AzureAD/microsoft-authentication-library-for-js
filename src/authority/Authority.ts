@@ -485,8 +485,7 @@ export class Authority {
         // Include the query string portion of the url
         const url = UrlString.constructAuthorityUriFromObject({
             ...authorityUrlInstance.getUrlComponents(),
-            HostNameAndPort: hostNameAndPort,
-            QueryString: `${queryString}`
+            HostNameAndPort: hostNameAndPort
         }).urlString;
 
         // Add the query string if a query string was provided
