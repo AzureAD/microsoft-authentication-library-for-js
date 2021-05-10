@@ -8,12 +8,25 @@ on:
     branches:  
       - dev
 
+concurrency:
+  group: beachball-${{github.ref}}
+  cancel-in-progress: true
+
 jobs:
   beachball-check:
     runs-on: ubuntu-latest
     env:
       BEACHBALL: 1
     steps:
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        # Will return true if any file is not markdown and any file is in /lib
+        filters: |
+          containsTrackedChanges: 
+            - '!**.md'
+          lib:
+            - 'lib/**/*'
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
@@ -22,4 +35,7 @@ jobs:
       with:
         node-version: ${{ matrix.node-version }}
     - run: npm ci
-    - run: npm run beachball:check
+
+    - name: Run Beachball Check command
+      if: ${{ steps.filter.outputs.lib == 'true' && steps.filter.outputs.containsTrackedChanges == 'true' }}
+      run: npm run beachball:check
