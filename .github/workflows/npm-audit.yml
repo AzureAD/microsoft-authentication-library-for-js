@@ -19,6 +19,10 @@ on:
       - 'npm-audit'
       - 'fix-node-extension-audit'
 
+concurrency:
+  group: audit-${{github.ref}}
+  cancel-in-progress: true
+
 jobs:
   audit-root:
     runs-on: ubuntu-latest
