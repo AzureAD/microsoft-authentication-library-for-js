@@ -24,7 +24,8 @@ export enum LogLevel {
     Error,
     Warning,
     Info,
-    Verbose
+    Verbose,
+    Trace
 }
 
 /**
@@ -180,6 +181,28 @@ export class Logger {
     verbosePii(message: string, correlationId?: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Verbose,
+            containsPii: true,
+            correlationId: correlationId || ""
+        });
+    }
+
+    /**
+     * Logs trace messages.
+     */
+    trace(message: string, correlationId?: string): void {
+        this.logMessage(message, {
+            logLevel: LogLevel.Trace,
+            containsPii: false,
+            correlationId: correlationId || ""
+        });
+    }
+
+    /**
+     * Logs trace messages with PII.
+     */
+    tracePii(message: string, correlationId?: string): void {
+        this.logMessage(message, {
+            logLevel: LogLevel.Trace,
             containsPii: true,
             correlationId: correlationId || ""
         });
