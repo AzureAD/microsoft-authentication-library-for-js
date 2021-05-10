@@ -1,5 +1,5 @@
 {
-  "type": "none",
+  "type": "patch",
   "comment": "Add logLevel Trace to Logger #3589",
   "packageName": "@azure/msal-common",
   "email": "joarroyo@microsoft.com",
