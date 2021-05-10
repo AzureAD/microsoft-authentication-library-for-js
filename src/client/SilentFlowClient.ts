@@ -15,7 +15,7 @@ import { ClientAuthError, ClientAuthErrorMessage } from "../error/ClientAuthErro
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { CacheRecord } from "../cache/entities/CacheRecord";
-import { AuthenticationScheme, Constants } from "../utils/Constants";
+import { AuthenticationScheme } from "../utils/Constants";
 import { StringUtils } from "../utils/StringUtils";
 
 export class SilentFlowClient extends BaseClient {
