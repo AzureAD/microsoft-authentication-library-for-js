@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Properly handle MSAL guard on redirect uri for hash and path routing",
+  "packageName": "@azure/msal-angular",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "patch"
+}

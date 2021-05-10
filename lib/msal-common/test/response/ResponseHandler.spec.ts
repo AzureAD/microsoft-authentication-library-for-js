@@ -200,19 +200,6 @@ describe("ResponseHandler.ts", () => {
     });
 
     describe("generateAuthenticationResult", async () => {
-        it("throws error if access_token not in cacheRecord", async () => {
-            const testResponse: ServerAuthorizationTokenResponse = {...AUTHENTICATION_RESULT.body};
-            testResponse.access_token = undefined;
-            const testRequest: BaseAuthRequest = {
-                authority: testAuthority.canonicalAuthority,
-                correlationId: "CORRELATION_ID",
-                scopes: ["openid", "profile", "User.Read", "email"]
-            };
-            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
-            const timestamp = TimeUtils.nowSeconds();
-            await expect(responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp, testRequest)).rejectedWith(ClientAuthErrorMessage.accessTokenEntityNullError.desc);
-        });
-
         it("sets default values if refresh_token not in cacheRecord", async () => {
             const testRequest: BaseAuthRequest = {
                 authority: testAuthority.canonicalAuthority,
