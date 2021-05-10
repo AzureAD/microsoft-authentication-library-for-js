@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Remove idtoken hash from browser history in msal-core #3587",
+  "packageName": "msal",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}

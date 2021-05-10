@@ -18,6 +18,10 @@ on:
       - '!**.md'
       - '.github/workflows/msal-react-e2e.yml'
 
+concurrency:
+  group: react-e2e-${{github.ref}}
+  cancel-in-progress: true
+
 jobs:
   run-e2e:
     if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
@@ -29,13 +33,9 @@ jobs:
         sample:
           - 'react-router-sample'
           - 'nextjs-sample'
+          - 'gatsby-sample'
 
     steps:
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.8.0
-      with:
-        access_token: ${{ github.token }}
-        
     - uses: actions/checkout@v2
 
     - name: Use Node.js
