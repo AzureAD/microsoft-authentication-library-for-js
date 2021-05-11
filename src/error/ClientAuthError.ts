@@ -174,10 +174,6 @@ export const ClientAuthErrorMessage = {
     noAuthorizationCodeFromServer: {
         code: "authorization_code_missing_from_server_response",
         desc: "Server response does not contain an authorization code to proceed"
-    },
-    accessTokenEntityNullError: {
-        code: "access_token_entity_null",
-        desc: "Access token entity is null, please check logs and cache to ensure a valid access token is present."
     }
 };
 
@@ -500,12 +496,5 @@ export class ClientAuthError extends AuthError {
      */
     static createNoAuthCodeInServerResponseError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.noAuthorizationCodeFromServer.code, ClientAuthErrorMessage.noAuthorizationCodeFromServer.desc);
-    }
-
-    /**
-     * Throws error when access token entity is null when handling a response.
-     */
-    static createAccessTokenEntityNullError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.accessTokenEntityNullError.code, ClientAuthErrorMessage.accessTokenEntityNullError.desc);
     }
 }

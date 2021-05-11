@@ -3,7 +3,7 @@ import { expect } from "chai";
 import sinon from "sinon";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 import { ResponseHandler } from "../../src/response/ResponseHandler";
-import { AUTHENTICATION_RESULT, RANDOM_TEST_GUID, TEST_CONFIG, ID_TOKEN_CLAIMS, TEST_DATA_CLIENT_INFO, TEST_STATE_VALUES, TEST_POP_VALUES, POP_AUTHENTICATION_RESULT, TEST_URIS, DEFAULT_OPENID_CONFIG_RESPONSE } from "../utils/StringConstants";
+import { AUTHENTICATION_RESULT, RANDOM_TEST_GUID, TEST_CONFIG, ID_TOKEN_CLAIMS, TEST_DATA_CLIENT_INFO, TEST_STATE_VALUES, TEST_POP_VALUES, POP_AUTHENTICATION_RESULT, TEST_URIS, DEFAULT_OPENID_CONFIG_RESPONSE } from "../test_kit/StringConstants";
 import { Authority } from "../../src/authority/Authority";
 import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
@@ -200,19 +200,6 @@ describe("ResponseHandler.ts", () => {
     });
 
     describe("generateAuthenticationResult", async () => {
-        it("throws error if access_token not in cacheRecord", async () => {
-            const testResponse: ServerAuthorizationTokenResponse = {...AUTHENTICATION_RESULT.body};
-            testResponse.access_token = undefined;
-            const testRequest: BaseAuthRequest = {
-                authority: testAuthority.canonicalAuthority,
-                correlationId: "CORRELATION_ID",
-                scopes: ["openid", "profile", "User.Read", "email"]
-            };
-            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
-            const timestamp = TimeUtils.nowSeconds();
-            await expect(responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp, testRequest)).rejectedWith(ClientAuthErrorMessage.accessTokenEntityNullError.desc);
-        });
-
         it("sets default values if refresh_token not in cacheRecord", async () => {
             const testRequest: BaseAuthRequest = {
                 authority: testAuthority.canonicalAuthority,
