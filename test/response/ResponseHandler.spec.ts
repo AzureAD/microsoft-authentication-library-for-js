@@ -3,7 +3,7 @@ import { expect } from "chai";
 import sinon from "sinon";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 import { ResponseHandler } from "../../src/response/ResponseHandler";
-import { AUTHENTICATION_RESULT, RANDOM_TEST_GUID, TEST_CONFIG, ID_TOKEN_CLAIMS, TEST_DATA_CLIENT_INFO, TEST_STATE_VALUES, TEST_POP_VALUES, POP_AUTHENTICATION_RESULT, TEST_URIS, DEFAULT_OPENID_CONFIG_RESPONSE } from "../utils/StringConstants";
+import { AUTHENTICATION_RESULT, RANDOM_TEST_GUID, TEST_CONFIG, ID_TOKEN_CLAIMS, TEST_DATA_CLIENT_INFO, TEST_STATE_VALUES, TEST_POP_VALUES, POP_AUTHENTICATION_RESULT, TEST_URIS, DEFAULT_OPENID_CONFIG_RESPONSE } from "../test_kit/StringConstants";
 import { Authority } from "../../src/authority/Authority";
 import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";

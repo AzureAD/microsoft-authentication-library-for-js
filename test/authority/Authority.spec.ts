@@ -10,7 +10,7 @@ import {
     TEST_CONFIG,
     DEFAULT_TENANT_DISCOVERY_RESPONSE,
     B2C_OPENID_CONFIG_RESPONSE
-} from "../utils/StringConstants";
+} from "../test_kit/StringConstants";
 import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../../src/error/ClientConfigurationError";
 import { AuthorityMetadataEntity, AuthorityOptions, ClientAuthError, ClientAuthErrorMessage, ProtocolMode } from "../../src";
 import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
@@ -37,9 +37,11 @@ describe("Authority.ts Class Unit Tests", () => {
         it("Creates canonical authority uri based on given uri (and normalizes with '/')", () => {
             const networkInterface: INetworkModule = {
                 sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                    // @ts-ignore
                     return null;
                 },
                 sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                    // @ts-ignore
                     return null;
                 }
             };
@@ -50,9 +52,11 @@ describe("Authority.ts Class Unit Tests", () => {
         it("Throws error if URI is not in valid format", () => {
             const networkInterface: INetworkModule = {
                 sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                    // @ts-ignore
                     return null;
                 },
                 sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                    // @ts-ignore
                     return null;
                 }
             };
@@ -66,9 +70,11 @@ describe("Authority.ts Class Unit Tests", () => {
     describe("Getters and setters", () => {
         const networkInterface: INetworkModule = {
             sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                // @ts-ignore
                 return null;
             },
             sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                // @ts-ignore
                 return null;
             }
         };
@@ -168,9 +174,11 @@ describe("Authority.ts Class Unit Tests", () => {
 
         const networkInterface: INetworkModule = {
             sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                // @ts-ignore
                 return null;
             },
             sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                // @ts-ignore
                 return null;
             }
         };
