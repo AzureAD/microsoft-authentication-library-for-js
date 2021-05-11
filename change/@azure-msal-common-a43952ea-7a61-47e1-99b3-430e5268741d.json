@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add check for empty object string in claims request parameter #3579",
+  "packageName": "@azure/msal-common",
+  "email": "prkanher@microsoft.com",
+  "dependentChangeType": "patch"
+}

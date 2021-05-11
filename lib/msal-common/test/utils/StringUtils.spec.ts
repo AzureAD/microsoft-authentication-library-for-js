@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { StringUtils } from "../../src/utils/StringUtils";
-import { TEST_TOKENS } from "./StringConstants";
+import { TEST_TOKENS } from "../test_kit/StringConstants";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { AuthError } from "../../src/error/AuthError";
 import { IdToken } from "../../src";
@@ -80,6 +80,20 @@ describe("StringUtils.ts Class Unit Tests", () => {
         expect(StringUtils.isEmpty(null)).to.be.true;
         expect(StringUtils.isEmpty("")).to.be.true;
         expect(StringUtils.isEmpty("Non-empty string")).to.be.false;
+    });
+
+    it("isEmptyObject correctly identifies empty stringified objects", () => {
+        expect(StringUtils.isEmptyObj(undefined)).to.be.true;
+        expect(StringUtils.isEmptyObj(null)).to.be.true;
+        expect(StringUtils.isEmptyObj("")).to.be.true;
+        expect(StringUtils.isEmptyObj("{}")).to.be.true;
+        expect(StringUtils.isEmptyObj("{ }")).to.be.true;
+        expect(StringUtils.isEmptyObj("{   }")).to.be.true;
+        expect(StringUtils.isEmptyObj("Non-object string")).to.be.true;
+        const exampleObj = {
+            "valid": true
+        };
+        expect(StringUtils.isEmptyObj(JSON.stringify(exampleObj))).to.be.false;
     });
 
     it("startsWith returns true if given string starts with given substring", () => {

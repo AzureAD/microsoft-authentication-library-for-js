@@ -5,7 +5,7 @@ import { HeaderNames } from "../../src/utils/Constants";
 import { ClientTestUtils } from "./ClientTestUtils";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import sinon from "sinon";
-import { DEFAULT_OPENID_CONFIG_RESPONSE } from "../utils/StringConstants";
+import { DEFAULT_OPENID_CONFIG_RESPONSE } from "../test_kit/StringConstants";
 
 class TestClient extends BaseClient {
 

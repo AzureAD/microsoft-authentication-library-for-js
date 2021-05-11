@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix double query string when authority endpoints contain query strings #3620",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
