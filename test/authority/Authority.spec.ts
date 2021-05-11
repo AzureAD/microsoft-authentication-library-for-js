@@ -10,7 +10,7 @@ import {
     TEST_CONFIG,
     DEFAULT_TENANT_DISCOVERY_RESPONSE,
     B2C_OPENID_CONFIG_RESPONSE
-} from "../utils/StringConstants";
+} from "../test_kit/StringConstants";
 import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../../src/error/ClientConfigurationError";
 import { AuthorityMetadataEntity, AuthorityOptions, ClientAuthError, ClientAuthErrorMessage, ProtocolMode } from "../../src";
 import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
@@ -37,9 +37,11 @@ describe("Authority.ts Class Unit Tests", () => {
         it("Creates canonical authority uri based on given uri (and normalizes with '/')", () => {
             const networkInterface: INetworkModule = {
                 sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                    // @ts-ignore
                     return null;
                 },
                 sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                    // @ts-ignore
                     return null;
                 }
             };
@@ -50,9 +52,11 @@ describe("Authority.ts Class Unit Tests", () => {
         it("Throws error if URI is not in valid format", () => {
             const networkInterface: INetworkModule = {
                 sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                    // @ts-ignore
                     return null;
                 },
                 sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                    // @ts-ignore
                     return null;
                 }
             };
@@ -66,9 +70,11 @@ describe("Authority.ts Class Unit Tests", () => {
     describe("Getters and setters", () => {
         const networkInterface: INetworkModule = {
             sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                // @ts-ignore
                 return null;
             },
             sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                // @ts-ignore
                 return null;
             }
         };
@@ -247,9 +253,11 @@ describe("Authority.ts Class Unit Tests", () => {
 
         const networkInterface: INetworkModule = {
             sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                // @ts-ignore
                 return null;
             },
             sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                // @ts-ignore
                 return null;
             }
         };
@@ -657,6 +665,30 @@ describe("Authority.ts Class Unit Tests", () => {
                 };
                 networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
                     throw Error("Unable to get response");
+                };
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
+    
+                authority.resolveEndpointsAsync().catch(e => {
+                    expect(e).to.be.instanceOf(ClientConfigurationError);
+                    expect(e.errorMessage).to.equal(ClientConfigurationErrorMessage.untrustedAuthority.desc);
+                    expect(e.errorCode).to.equal(ClientConfigurationErrorMessage.untrustedAuthority.code);
+                    done();
+                });
+            });
+
+            it("throws untrustedAuthority error if host is not part of knownAuthorities, cloudDiscoveryMetadata and instance discovery network call doesn't return metadata", (done) => {
+                const authorityOptions: AuthorityOptions = {
+                    protocolMode: ProtocolMode.AAD,
+                    knownAuthorities: [],
+                    cloudDiscoveryMetadata: "",
+                    authorityMetadata: ""
+                };
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                    return {
+                        body: { 
+                            error: "This endpoint does not exist"
+                        }
+                    };
                 };
                 authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
     

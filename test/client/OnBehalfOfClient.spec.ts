@@ -13,7 +13,7 @@ import {
     TEST_DATA_CLIENT_INFO,
     TEST_URIS,
     CORS_SIMPLE_REQUEST_HEADERS
-} from "../utils/StringConstants";
+} from "../test_kit/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import { AADServerParamKeys, GrantType, Constants, AuthenticationScheme, ThrottlingConstants } from "../../src/utils/Constants";
 import { ClientTestUtils, mockCrypto } from "./ClientTestUtils";
