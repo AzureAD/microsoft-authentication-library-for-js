@@ -6,7 +6,7 @@
 import * as Mocha from "mocha";
 import { expect } from "chai";
 import { ServerTelemetryManager, AuthError, ServerTelemetryRequest, ServerTelemetryEntity } from "../../src";
-import { TEST_CONFIG } from "../utils/StringConstants";
+import { TEST_CONFIG } from "../test_kit/StringConstants";
 import sinon from "sinon";
 import { MockStorageClass } from "../client/ClientTestUtils";
 
