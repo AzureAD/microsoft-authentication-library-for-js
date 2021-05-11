@@ -228,7 +228,7 @@ export class DeviceCodeClient extends BaseClient {
             requestParameters.addServerTelemetry(this.serverTelemetryManager);
         }
 
-        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+        if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             requestParameters.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
         return requestParameters.createQueryString();
