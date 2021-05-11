@@ -383,6 +383,10 @@ export class Authority {
         try {
             const response = await this.networkInterface.sendGetRequestAsync<CloudInstanceDiscoveryResponse>(instanceDiscoveryEndpoint);
             const metadata = isCloudInstanceDiscoveryResponse(response.body) ? response.body.metadata : [];
+            if (metadata.length === 0) {
+                // If no metadata is returned, authority is untrusted
+                return null;
+            }
             match = Authority.getCloudDiscoveryMetadataFromNetworkResponse(metadata, this.hostnameAndPort);
         } catch(e) {
             return null;

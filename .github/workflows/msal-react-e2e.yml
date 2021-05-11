@@ -33,6 +33,7 @@ jobs:
         sample:
           - 'react-router-sample'
           - 'nextjs-sample'
+          - 'gatsby-sample'
 
     steps:
     - uses: actions/checkout@v2
