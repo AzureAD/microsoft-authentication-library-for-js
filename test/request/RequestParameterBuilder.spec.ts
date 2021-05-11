@@ -6,7 +6,7 @@ import {
     TEST_TOKENS,
     DEVICE_CODE_RESPONSE,
     TEST_POP_VALUES
-} from "../utils/StringConstants";
+} from "../test_kit/StringConstants";
 import { RequestParameterBuilder } from "../../src/request/RequestParameterBuilder";
 import { ScopeSet } from "../../src/request/ScopeSet";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src";

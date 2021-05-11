@@ -5,7 +5,7 @@ import {
     ClientAuthErrorMessage,
     Constants,
     DeviceCodeClient,
-    DeviceCodeRequest,
+    CommonDeviceCodeRequest,
     ClientConfiguration,
     AuthToken,
 } from "../../src";
@@ -18,8 +18,9 @@ import {
     TEST_DATA_CLIENT_INFO,
     TEST_URIS,
     TEST_POP_VALUES,
-    CORS_SIMPLE_REQUEST_HEADERS
-} from "../utils/StringConstants";
+    CORS_SIMPLE_REQUEST_HEADERS,
+    RANDOM_TEST_GUID
+} from "../test_kit/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import { AADServerParamKeys, GrantType, ThrottlingConstants } from "../../src/utils/Constants";
 import { ClientTestUtils } from "./ClientTestUtils";
@@ -109,9 +110,11 @@ describe("DeviceCodeClient unit tests", async () => {
             });
 
             let deviceCodeResponse = null;
-            const request: DeviceCodeRequest = {
+            const request: CommonDeviceCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY, 
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
-                deviceCodeCallback: (response) => deviceCodeResponse = response
+                deviceCodeCallback: (response) => deviceCodeResponse = response,
+                correlationId: RANDOM_TEST_GUID
             };
 
             const client = new DeviceCodeClient(config);
@@ -126,9 +129,11 @@ describe("DeviceCodeClient unit tests", async () => {
             const createTokenRequestBodySpy = sinon.spy(DeviceCodeClient.prototype, <any>"createTokenRequestBody");
 
             let deviceCodeResponse = null;
-            const request: DeviceCodeRequest = {
+            const request: CommonDeviceCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
-                deviceCodeCallback: (response) => deviceCodeResponse = response
+                deviceCodeCallback: (response) => deviceCodeResponse = response,
+                correlationId: RANDOM_TEST_GUID
             };
 
             const client = new DeviceCodeClient(config);
@@ -154,6 +159,84 @@ describe("DeviceCodeClient unit tests", async () => {
 
         }).timeout(6000);
 
+        it("Adds claims to request", async () => {
+            sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
+            sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
+
+            const queryStringSpy = sinon.spy(DeviceCodeClient.prototype, <any>"createQueryString");
+            const createTokenRequestBodySpy = sinon.spy(DeviceCodeClient.prototype, <any>"createTokenRequestBody");
+
+            let deviceCodeResponse = null;
+            const request: CommonDeviceCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                claims: TEST_CONFIG.CLAIMS,
+                deviceCodeCallback: (response) => deviceCodeResponse = response,
+                correlationId: RANDOM_TEST_GUID
+            };
+
+            const client = new DeviceCodeClient(config);
+            const authenticationResult = await client.acquireToken(request);
+
+            // Check that device code url is correct
+            expect(queryStringSpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
+            expect(queryStringSpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
+
+            // Check that deviceCodeCallback was called with the right arguments
+            expect(deviceCodeResponse).to.deep.eq(DEVICE_CODE_RESPONSE);
+
+            // expect(JSON.parse(authenticationResult)).to.deep.eq(AUTHENTICATION_RESULT.body);
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID));
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(encodeURIComponent(GrantType.DEVICE_CODE_GRANT));
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(DEVICE_CODE_RESPONSE.deviceCode);
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`);
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`);
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`);
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`);
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`);
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`);
+        }).timeout(6000);
+
+        it("Does not add claims to request if empty object passed", async () => {
+            sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
+            sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
+
+            const queryStringSpy = sinon.spy(DeviceCodeClient.prototype, <any>"createQueryString");
+            const createTokenRequestBodySpy = sinon.spy(DeviceCodeClient.prototype, <any>"createTokenRequestBody");
+
+            let deviceCodeResponse = null;
+            const request: CommonDeviceCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                claims: "{ }",
+                deviceCodeCallback: (response) => deviceCodeResponse = response,
+                correlationId: RANDOM_TEST_GUID
+            };
+
+            const client = new DeviceCodeClient(config);
+            const authenticationResult = await client.acquireToken(request);
+
+            // Check that device code url is correct
+            expect(queryStringSpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
+            expect(queryStringSpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
+
+            // Check that deviceCodeCallback was called with the right arguments
+            expect(deviceCodeResponse).to.deep.eq(DEVICE_CODE_RESPONSE);
+
+            // expect(JSON.parse(authenticationResult)).to.deep.eq(AUTHENTICATION_RESULT.body);
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID));
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(encodeURIComponent(GrantType.DEVICE_CODE_GRANT));
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(DEVICE_CODE_RESPONSE.deviceCode);
+            expect(createTokenRequestBodySpy.returnValues[0]).to.not.contain(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`);
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`);
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`);
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`);
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`);
+            expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`);
+        }).timeout(6000);
+
         it("Acquires a token successfully after authorization_pending error", async () => {
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
             const tokenRequestStub = sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint");
@@ -162,9 +245,11 @@ describe("DeviceCodeClient unit tests", async () => {
             tokenRequestStub.onSecondCall().resolves(AUTHENTICATION_RESULT);
 
             let deviceCodeResponse = null;
-            const request: DeviceCodeRequest = {
+            const request: CommonDeviceCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
-                deviceCodeCallback: (response) => deviceCodeResponse = response
+                deviceCodeCallback: (response) => deviceCodeResponse = response,
+                correlationId: RANDOM_TEST_GUID
             };
 
             const client = new DeviceCodeClient(config);
@@ -179,9 +264,11 @@ describe("DeviceCodeClient unit tests", async () => {
             sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
 
             let deviceCodeResponse = null;
-            const request: DeviceCodeRequest = {
+            const request: CommonDeviceCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 deviceCodeCallback: (response) => deviceCodeResponse = response,
+                correlationId: RANDOM_TEST_GUID
             };
 
             const client = new DeviceCodeClient(config);
@@ -193,9 +280,11 @@ describe("DeviceCodeClient unit tests", async () => {
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_EXPIRED_RESPONSE);
 
             let deviceCodeResponse = null;
-            const request: DeviceCodeRequest = {
+            const request: CommonDeviceCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 deviceCodeCallback: (response) => deviceCodeResponse = response,
+                correlationId: RANDOM_TEST_GUID
             };
 
             const client = new DeviceCodeClient(config);
@@ -209,9 +298,11 @@ describe("DeviceCodeClient unit tests", async () => {
             .onFirstCall().resolves(AUTHORIZATION_PENDING_RESPONSE)
 
             let deviceCodeResponse = null;
-            const request: DeviceCodeRequest = {
+            const request: CommonDeviceCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 deviceCodeCallback: (response) => deviceCodeResponse = response,
+                correlationId: RANDOM_TEST_GUID,
                 timeout: DEVICE_CODE_RESPONSE.interval, // Setting a timeout equal to the interval polling time to allow for one call to the token endpoint 
             };
 
