@@ -10,12 +10,14 @@ import {
     TEST_CONFIG,
     TEST_TOKENS,
     CACHE_MOCKS,
-} from "../utils/StringConstants";
+    TEST_ACCOUNT_INFO,
+} from "../test_kit/StringConstants";
 import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { AccountInfo } from "../../src/account/AccountInfo";
 import { MockCache } from "./MockCache";
 import { AuthorityMetadataEntity, CacheManager } from "../../src";
 import { mockCrypto } from "../client/ClientTestUtils";
+import { TestError } from "../test_kit/TestErrors";
 
 describe("CacheManager.ts test cases", () => {
     let mockCache = new MockCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, mockCrypto);
@@ -52,7 +54,10 @@ describe("CacheManager.ts test cases", () => {
         const cacheRecord = new CacheRecord();
         cacheRecord.account = ac;
         mockCache.cacheManager.saveCacheRecord(cacheRecord);
-        const mockCacheAccount = mockCache.cacheManager.getAccount(accountKey)
+        const mockCacheAccount = mockCache.cacheManager.getAccount(accountKey);
+        if (!mockCacheAccount) {
+            throw TestError.createTestSetupError("mockCacheAccount does not have a value");
+        }
         expect(mockCacheAccount.homeAccountId).to.eql("someUid.someUtid");
     });
 
@@ -76,7 +81,10 @@ describe("CacheManager.ts test cases", () => {
         const cacheRecord = new CacheRecord();
         cacheRecord.accessToken = at;
         mockCache.cacheManager.saveCacheRecord(cacheRecord);
-        const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(atKey)
+        const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(atKey);
+        if (!mockCacheAT) {
+            throw TestError.createTestSetupError("mockCacheAT does not have a value");
+        }
         expect(mockCacheAT.homeAccountId).to.eql("someUid.someUtid");
         expect(mockCacheAT.credentialType).to.eql(CredentialType.ACCESS_TOKEN);
         expect(mockCacheAT.tokenType).to.eql(AuthenticationScheme.BEARER);
@@ -104,6 +112,9 @@ describe("CacheManager.ts test cases", () => {
         cacheRecord.accessToken = at;
         mockCache.cacheManager.saveCacheRecord(cacheRecord);
         const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(atKey);
+        if (!mockCacheAT) {
+            throw TestError.createTestSetupError("mockCacheAT does not have a value");
+        }
         expect(mockCacheAT.homeAccountId).to.eql("someUid.someUtid");
         expect(mockCacheAT.credentialType).to.eql(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
         expect(mockCacheAT.tokenType).to.eql(AuthenticationScheme.POP);
@@ -124,7 +135,7 @@ describe("CacheManager.ts test cases", () => {
         const cacheRecord = new CacheRecord();
         cacheRecord.account = ac;
         mockCache.cacheManager.saveCacheRecord(cacheRecord);
-
+        // @ts-ignore
         expect(mockCache.cacheManager.getAccount(accountKey).homeAccountId).to.eql("someUid.someUtid");
         expect(mockCache.cacheManager.getAccount("")).to.be.null;
     });
@@ -142,7 +153,9 @@ describe("CacheManager.ts test cases", () => {
         const cacheRecord = new CacheRecord();
         cacheRecord.accessToken = accessTokenEntity;
         mockCache.cacheManager.saveCacheRecord(cacheRecord);
+        // @ts-ignore
         expect(mockCache.cacheManager.getAccessTokenCredential(credKey).homeAccountId).to.eql("someUid.someUtid");
+        // @ts-ignore
         expect(mockCache.cacheManager.getAccessTokenCredential(credKey).credentialType).to.eql(CredentialType.ACCESS_TOKEN);
     });
 
@@ -159,7 +172,9 @@ describe("CacheManager.ts test cases", () => {
         const cacheRecord = new CacheRecord();
         cacheRecord.accessToken = accessTokenEntity;
         mockCache.cacheManager.saveCacheRecord(cacheRecord);
+        // @ts-ignore
         expect(mockCache.cacheManager.getAccessTokenCredential(credKey).homeAccountId).to.eql("someUid.someUtid");
+        // @ts-ignore
         expect(mockCache.cacheManager.getAccessTokenCredential(credKey).credentialType).to.eql(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
 
     });
@@ -327,11 +342,16 @@ describe("CacheManager.ts test cases", () => {
     it("getAppMetadata and readAppMetadataFromCache", () => {
         const appMetadataKey = "appmetadata-login.microsoftonline.com-mock_client_id_1";
         const appMetadata = mockCache.cacheManager.getAppMetadata(appMetadataKey);
-
+        if (!appMetadata) {
+            throw TestError.createTestSetupError("appMetadata does not have a value");
+        }
         expect(appMetadata.clientId).to.eql(CACHE_MOCKS.MOCK_CLIENT_ID_1);
         expect(appMetadata.environment).to.eql(CACHE_MOCKS.MOCK_ACCOUNT_INFO.environment);
 
         const cachedAppMetadata = mockCache.cacheManager.readAppMetadataFromCache(CACHE_MOCKS.MOCK_ACCOUNT_INFO.environment, CACHE_MOCKS.MOCK_CLIENT_ID_1);
+        if (!cachedAppMetadata) {
+            throw TestError.createTestSetupError("appMetadata does not have a value");
+        }
         expect(cachedAppMetadata.clientId).to.eql(CACHE_MOCKS.MOCK_CLIENT_ID_1);
         expect(cachedAppMetadata.environment).to.eql(CACHE_MOCKS.MOCK_ACCOUNT_INFO.environment);
     });
@@ -412,9 +432,13 @@ describe("CacheManager.ts test cases", () => {
         const mockedAccountInfo: AccountInfo = {
             homeAccountId: "uid.utid",
             environment: "login.microsoftonline.com",
+            localAccountId: TEST_ACCOUNT_INFO.localAccountId,
             tenantId: TEST_CONFIG.TENANT,
             username: "John Doe"
         };
+        if (!mockedAccountInfo) {
+            throw TestError.createTestSetupError("mockedAccountInfo does not have a value");
+        }
         expect(() => mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, new ScopeSet(["user.read"]), AuthenticationScheme.BEARER)).to.throw(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
     });
 
@@ -443,6 +467,7 @@ describe("CacheManager.ts test cases", () => {
         const mockedAccountInfo: AccountInfo = {
             homeAccountId: "uid.utid",
             environment: "login.microsoftonline.com",
+            localAccountId: TEST_ACCOUNT_INFO.localAccountId,
             tenantId: TEST_CONFIG.TENANT,
             username: "John Doe"
         };
@@ -475,6 +500,7 @@ describe("CacheManager.ts test cases", () => {
         const mockedAccountInfo: AccountInfo = {
             homeAccountId: "uid.utid",
             environment: "login.microsoftonline.com",
+            localAccountId: TEST_ACCOUNT_INFO.localAccountId,
             tenantId: TEST_CONFIG.TENANT,
             username: "John Doe"
         };
@@ -484,11 +510,17 @@ describe("CacheManager.ts test cases", () => {
 
     it("readIdTokenFromCache", () => {
         const idToken = mockCache.cacheManager.readIdTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, CACHE_MOCKS.MOCK_ACCOUNT_INFO);
+        if (!idToken) {
+            throw TestError.createTestSetupError("idToken does not have a value");
+        }
         expect(idToken.clientId).to.equal(CACHE_MOCKS.MOCK_CLIENT_ID);
     });
 
     it("readRefreshTokenFromCache", () => {
         const refreshToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, CACHE_MOCKS.MOCK_ACCOUNT_INFO, false);
+        if (!refreshToken) {
+            throw TestError.createTestSetupError("refreshToken does not have a value");
+        }
         expect(refreshToken.clientId).to.equal(CACHE_MOCKS.MOCK_CLIENT_ID_1);
     });
 
@@ -499,6 +531,9 @@ describe("CacheManager.ts test cases", () => {
 
     it("readRefreshTokenFromCache with familyId", () => {
         const refreshToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, CACHE_MOCKS.MOCK_ACCOUNT_INFO, true);
+        if (!refreshToken) {
+            throw TestError.createTestSetupError("refreshToken does not have a value");
+        }
         expect(refreshToken.clientId).to.equal(CACHE_MOCKS.MOCK_CLIENT_ID_1);
     });
 
@@ -516,11 +551,15 @@ describe("CacheManager.ts test cases", () => {
         const mockedAccountInfo: AccountInfo = {
             homeAccountId: "uid.utid",
             environment: "login.windows.net",
+            localAccountId: TEST_ACCOUNT_INFO.localAccountId,
             tenantId: "mocked_tid",
             username: "mocked_username"
         };
 
         const cachedToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, false);
+        if (!cachedToken) {
+            throw TestError.createTestSetupError("refreshToken does not have a value");
+        }
         expect(cachedToken.homeAccountId).to.equal("uid.utid");
         expect(cachedToken.environment).to.equal("login.microsoftonline.com");
     });

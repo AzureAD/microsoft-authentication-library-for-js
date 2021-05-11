@@ -30,7 +30,7 @@ export type AuthenticationResult = {
     idTokenClaims: object;
     accessToken: string;
     fromCache: boolean;
-    expiresOn: Date;
+    expiresOn: Date | null;
     tokenType: string;
     extExpiresOn?: Date;
     state?: string;

@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { AuthToken } from "../../src/account/AuthToken";
-import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES } from "../test_kit/StringConstants";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
 import sinon from "sinon";
 import { ClientAuthErrorMessage, ClientAuthError, StringUtils } from "../../src";
@@ -77,8 +77,9 @@ describe("AuthToken.ts Class Unit Tests", () => {
         it("Throws error if rawIdToken is null or empty", () => {
             expect(() => new AuthToken("", cryptoInterface)).to.throw(ClientAuthErrorMessage.nullOrEmptyToken.desc);
             expect(() => new AuthToken("", cryptoInterface)).to.throw(ClientAuthError);
-
+            // @ts-ignore
             expect(() => new AuthToken(null, cryptoInterface)).to.throw(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            // @ts-ignore
             expect(() => new AuthToken(null, cryptoInterface)).to.throw(ClientAuthError);
         });
 
@@ -97,11 +98,14 @@ describe("AuthToken.ts Class Unit Tests", () => {
             expect(() => AuthToken.extractTokenClaims("", cryptoInterface)).to.throw(ClientAuthErrorMessage.nullOrEmptyToken.desc);
             expect(() => AuthToken.extractTokenClaims("", cryptoInterface)).to.throw(ClientAuthError);
 
+            // @ts-ignore
             expect(() => AuthToken.extractTokenClaims(null, cryptoInterface)).to.throw(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            // @ts-ignore
             expect(() => AuthToken.extractTokenClaims(null, cryptoInterface)).to.throw(ClientAuthError);
         });
 
         it("throws if decodeJwt returns null", () => {
+            // @ts-ignore
             sinon.stub(StringUtils, "decodeAuthToken").returns(null);
             expect(() => AuthToken.extractTokenClaims(TEST_TOKENS.IDTOKEN_V2, cryptoInterface)).to.throw(ClientAuthErrorMessage.tokenParsingError.desc);
         });
