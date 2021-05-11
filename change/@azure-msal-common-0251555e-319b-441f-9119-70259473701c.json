@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "change msal-browser/msal-common to preserveModules to enable treeshaking #3300",
+  "packageName": "@azure/msal-common",
+  "email": "oo.thomas96@gmail.com",
+  "dependentChangeType": "patch"
+}

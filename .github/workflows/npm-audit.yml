@@ -7,11 +7,21 @@ on:
   pull_request:
     branches:  
       - dev
+    paths:
+      - 'lib/**/*'
+      - 'extensions/**/*'
+      - '**/package-lock.json'
+      - '!**.md'
+      - '.github/workflows/npm-audit.yml'
   push:
     branches:
       - 'master'
       - 'npm-audit'
       - 'fix-node-extension-audit'
+
+concurrency:
+  group: audit-${{github.ref}}
+  cancel-in-progress: true
 
 jobs:
   audit-root:
