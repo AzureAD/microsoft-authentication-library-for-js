@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { TEST_URIS, TEST_HASHES } from "../utils/StringConstants";
+import { TEST_URIS, TEST_HASHES } from "../test_kit/StringConstants";
 import { UrlString } from "../../src/url/UrlString";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 import { IUri } from "../../src/url/IUri";
