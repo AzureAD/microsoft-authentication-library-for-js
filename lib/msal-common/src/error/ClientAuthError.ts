@@ -393,7 +393,7 @@ export class ClientAuthError extends AuthError {
      * Throws error if device code is expired
      */
     static createDeviceCodeUnknownError(): ClientAuthError {
-      return new ClientAuthError(ClientAuthErrorMessage.DeviceCodeUnknownError.code, `${ClientAuthErrorMessage.DeviceCodeUnknownError.desc}`);
+        return new ClientAuthError(ClientAuthErrorMessage.DeviceCodeUnknownError.code, `${ClientAuthErrorMessage.DeviceCodeUnknownError.desc}`);
     }
 
     /**
