@@ -6,7 +6,7 @@ import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { LogLevel } from "../../src/logger/Logger";
 import { Constants } from "../../src";
 import { version } from "../../src/packageMetadata";
-import {TEST_CONFIG, TEST_POP_VALUES} from "../utils/StringConstants";
+import {TEST_CONFIG, TEST_POP_VALUES} from "../test_kit/StringConstants";
 import { MockStorageClass } from "../client/ClientTestUtils";
 import { MockCache } from "../cache/entities/cacheConstants";
 

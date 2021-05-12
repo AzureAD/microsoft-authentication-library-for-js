@@ -9,6 +9,10 @@ name: Labeler
 on: 
 - pull_request
 
+concurrency:
+  group: labeler-${{github.ref}}
+  cancel-in-progress: true
+
 jobs:
   label:
     runs-on: ubuntu-latest

@@ -1,5 +1,5 @@
 import { expect } from "chai";
-import { TEST_URIS, TEST_HASHES } from "../utils/StringConstants";
+import { TEST_URIS, TEST_HASHES } from "../test_kit/StringConstants";
 import { UrlString } from "../../src/url/UrlString";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 import { IUri } from "../../src/url/IUri";
@@ -60,6 +60,14 @@ describe("UrlString.ts Class Unit Tests", () => {
         urlObj2.urlRemoveQueryStringParameter("param1");
         expect(urlObj2.urlString).to.not.contain("param1=value1");
         expect(urlObj2.urlString).to.not.contain("param2=value2");
+    });
+
+    it("appendQueryString appends the provided query string", () => {
+        const baseUrl = "https://localhost/";
+        const queryString = "param1=value1&param2=value2";
+        expect(UrlString.appendQueryString(baseUrl, queryString)).to.equal(`${baseUrl}?${queryString}`);
+        expect(UrlString.appendQueryString(`${baseUrl}?param3=value3`, queryString)).to.equal(`${baseUrl}?param3=value3&${queryString}`);
+        expect(UrlString.appendQueryString(baseUrl, "")).to.equal(baseUrl);
     });
 
     it("removes hash from url provided", () => {

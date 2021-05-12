@@ -73,6 +73,8 @@ export { BrokeredAuthorizationCodeRequest } from "./request/broker/BrokeredAutho
 export { BrokeredAuthorizationUrlRequest } from "./request/broker/BrokeredAuthorizationUrlRequest";
 export { BrokeredRefreshTokenRequest } from "./request/broker/BrokeredRefreshTokenRequest";
 export { BrokeredSilentFlowRequest } from "./request/broker/BrokeredSilentFlowRequest";
+export { AzureRegion } from "./authority/AzureRegion";
+export { AzureRegionConfiguration } from "./authority/AzureRegionConfiguration";
 export { AuthenticationResult } from "./response/AuthenticationResult";
 export { BrokerAuthenticationResult } from "./response/BrokerAuthenticationResult";
 export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload";

@@ -10,9 +10,7 @@ This sample demonstrates a [public client application](https://docs.microsoft.co
 
 1. using [OIDC Connect protocol](https://docs.microsoft.com/azure/active-directory-b2c/openid-connect) to implement standard B2C [user-flows](https://docs.microsoft.com/azure/active-directory-b2c/user-flow-overview) to:
 
-- sign-in/sign-up a user
-- reset/recover a user password
-- edit a user profile
+- sign-up/sign-in a user (with password reset/recovery)
 
 2. using [authorization code grant](https://docs.microsoft.com/azure/active-directory-b2c/authorization-code-flow) to acquire an [Access Token](https://docs.microsoft.com/azure/active-directory-b2c/tokens-overview) and call a [protected web API](https://docs.microsoft.com/azure/active-directory-b2c/add-web-api-application?tabs=app-reg-ga) (also on Azure AD B2C)
 
@@ -34,12 +32,6 @@ const b2cPolicies = {
         signUpSignIn: {
             authority: "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_susi",
         },
-        resetPassword: {
-            authority: "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_reset",
-        },
-        editProfile: {
-            authority: "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_edit_profile"
-        }
     },
     authorityDomain: "fabrikamb2c.b2clogin.com"
 }
@@ -91,7 +83,7 @@ const PKCE_CODES = {
 };
 ```
 
-Implementing B2C user-flows is a matter of initiating token requests against the corresponding authorities. Some user-flows are slightly more complex. For example, to initiate the **password-reset**, the user first needs to click on the **forgot my password** link on the Azure sign-in screen, which causes B2C service to respond with an error. We then catch this error, and trigger another sign-in, this time against the "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_reset" authority.
+Implementing B2C user-flows is a matter of initiating authorization requests against the corresponding authorities. This sample demonstrates the [sign-up/sign-in](https://docs.microsoft.com/azure/active-directory-b2c/add-sign-up-and-sign-in-policy?pivots=b2c-user-flow) user-flow with [self-service password reset](https://docs.microsoft.com/azure/active-directory-b2c/add-password-reset-policy?pivots=b2c-user-flow#self-service-password-reset-recommended).
 
 In order to keep track of these *flows*, we create some global objects and manipulate these in the rest of the application.
 
@@ -101,7 +93,6 @@ In order to keep track of these *flows*, we create some global objects and manip
 const APP_STATES = {
     SIGN_IN: "sign_in",
     CALL_API: "call_api",
-    PASSWORD_RESET: "password_reset",
 }
 
 const authCodeRequest = {
@@ -128,13 +119,7 @@ Setup an Express route for initiating the sign-in flow:
 
 ```javascript
 app.get("/signin", (req, res) => {
-    if (authCodeRequest.state === APP_STATES.PASSWORD_RESET) {
-        // if coming for password reset, set the authority to password reset
-        getAuthCode(policies.authorities.resetPassword.authority, SCOPES.oidc, APP_STATES.PASSWORD_RESET, res);
-    } else {
-        // else, login as usual with the default authority
-        getAuthCode(policies.authorities.signUpSignIn.authority, SCOPES.oidc, APP_STATES.SIGN_IN, res);
-    }
+    getAuthCode(policies.authorities.signUpSignIn.authority, SCOPES.oidc, APP_STATES.SIGN_IN, res);
 })
 ```
 
@@ -185,19 +170,6 @@ app.get("/redirect", (req, res) => {
                 const templateParams = { showLoginButton: false, username: response.account.username, profile: false };
                 res.render("api", templateParams);
             }).catch((error) => {
-                if (req.query.error) {
-
-                    /**
-                     * When the user selects "forgot my password" on the sign-in page, B2C service will throw an error.
-                     * We are to catch this error and redirect the user to login again with the resetPassword authority.
-                     * For more information, visit: https://docs.microsoft.com/azure/active-directory-b2c/user-flow-overview#linking-user-flows
-                     */
-                    if (JSON.stringify(req.query.error_description).includes("AADB2C90118")) {
-                        authCodeRequest.authority = policies.authorities.resetPassword;
-                        authCodeRequest.state = APP_STATES.PASSWORD_RESET;
-                        return res.redirect('/login');
-                    }
-                }
                 res.status(500).send(error);
             });
 
@@ -225,11 +197,6 @@ app.get("/redirect", (req, res) => {
                 res.status(500).send(error);
             });
 
-    } else if (req.query.state === APP_STATES.PASSWORD_RESET) {
-
-        // once the password is reset, redirect the user to login again with the new password
-        authCodeRequest.state = APP_STATES.SIGN_IN;
-        res.redirect('/login');
     } else {
         res.status(500).send("Unknown");
     }

@@ -7,6 +7,7 @@
 1. [I am moving from MSAL.js 1.x to MSAL.js to 2.x. What should I know?](#i-am-moving-from-msaljs-1x-to-msaljs-to-2x-what-should-i-know)
 1. [Does this library work for iframed applications?](#does-this-library-work-for-iframed-applications)
 1. [Will MSAL 2.x support B2C?](#will-msal-2x-support-b2c)
+1. [Is MSAL.js 2.x compatibile with Azure App Proxy](#is-msaljs-2x-compatible-with-azure-app-proxy)
 
 **[Authentication](#Authentication)**
 
@@ -43,6 +44,7 @@
 **[B2C](#B2C)**
 
 1. [How do I specify which B2C policy/user flow I would like to use?](#how-do-i-specify-which-b2c-policyuser-flow-i-would-like-to-use)
+1. [How do I handle the password-reset user-flow?](#how-do-i-handle-the-password-reset-user-flow)
 1. [Why is getAccountByUsername returning null, even though I'm signed in?](#why-is-getaccountbyusername-returning-null-even-though-im-signed-in)
 1. [I logged out of my application. Why am I not asked for credentials when I try to log back in?](#i-logged-out-of-my-application-why-am-i-not-asked-for-credentials-when-i-try-to-log-back-in)
 1. [Why am I not signed in when returning from an invite link?](#why-am-i-not-signed-in-when-returning-from-an-invite-link)
@@ -98,7 +100,11 @@ We are currently working on support for iframed applications as well as solution
 
 ## Will MSAL 2.x support B2C?
 
-MSAL.js v2 supports B2C of October 2020. 
+MSAL.js v2 supports B2C of October 2020.
+
+## Is MSAL.js 2.x compatible with Azure App Proxy?
+
+Unfortunately, at this time MSAL.js 2.x is not compatible with [Azure App Proxy](https://docs.microsoft.com/azure/active-directory/app-proxy/application-proxy). Single-page applications will need to use MSAL.js 1.x as a workaround. We will post an update when this incompatibility has been fixed. See [this issue](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/3420) for more information.
 
 # Authentication
 
@@ -236,6 +242,33 @@ pca.loginRedirect(request);
 ```
 
 Note: Msal.js does not support providing the user flow as a query parameter e.g. `https://yourApp.b2clogin.com/yourApp.onmicrosoft.com/?p=your_policy`. Please make sure your authority is formatted as shown above.
+
+## How do I handle the password-reset user-flow?
+
+The [new password reset experience](https://docs.microsoft.com/azure/active-directory-b2c/add-password-reset-policy?pivots=b2c-user-flow#self-service-password-reset-recommended) is now part of the sign-up or sign-in policy. When the user selects the **Forgot your password?** link, they are immediately sent to the Forgot Password experience. You don't need a separate policy for password reset anymore.
+
+Our recommendation is to move to the new password reset experience since it simplifies the app state and reduces error handling on the user-end. If for some reason you have to use the legacy password-reset user-flow, you'll have to handle the `AADB2C90118` error code returned from B2C service when a user selects the **Forgot your password?** link:
+
+```javascript
+pca.loginPopup()
+    .then((response) => {
+        // do something with auth response
+    }).catch(error => {     
+        // Error handling
+        if (error.errorMessage) {
+            // Check for forgot password error
+            // Learn more about AAD error codes at https://docs.microsoft.com/en-us/azure/active-directory/develop/reference-aadsts-error-codes
+            if (error.errorMessage.indexOf("AADB2C90118") > -1) {
+                // For password reset, initiate a login request against tenant-specific authority with user-flow string appended
+                pca.loginPopup({
+                    authority: "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/b2c_1_reset"
+                });
+            }
+        }
+    });
+```
+
+For a full implementation, see the sample: [MSAL.js v2 B2C sample](https://github.com/Azure-Samples/ms-identity-javascript-tutorial/tree/main/1-Authentication/2-sign-in-b2c)
 
 ## Why is `getAccountByUsername()` returning null, even though I'm signed in?
 
