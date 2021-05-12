@@ -35,6 +35,7 @@ export class MsalCustomNavigationClient extends NavigationClient {
         // Replaces current state if noHistory flag set to true
         this.authService.getLogger().verbosePii(`MsalCustomNavigationClient - navigating to newUrl: ${newUrl}`);
 
+        // Prevent hash clearing from causing an issue with Client-side navigation after redirect is handled
         if (options.noHistory) {
             window.location.replace(newUrl);
         } else {
