@@ -88,9 +88,10 @@ export const ClientConfigurationErrorMessage = {
  */
 export class ClientConfigurationError extends ClientAuthError {
 
+    static CLIENT_CONFIG_ERROR_NAME: string = "ClientConfigurationError";
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
-        this.name = "ClientConfigurationError";
+        this.name = ClientConfigurationError.CLIENT_CONFIG_ERROR_NAME;
         Object.setPrototypeOf(this, ClientConfigurationError.prototype);
     }
 

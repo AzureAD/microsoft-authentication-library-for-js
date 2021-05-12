@@ -100,7 +100,7 @@ export class RefreshTokenClient extends BaseClient {
      * makes a network call to acquire tokens by exchanging RefreshToken available in userCache; throws if refresh token is not cached
      * @param request
      */
-    private async acquireTokenWithCachedRefreshToken(request: CommonSilentFlowRequest, foci: boolean) {
+    protected async acquireTokenWithCachedRefreshToken(request: CommonSilentFlowRequest, foci: boolean) {
         // fetches family RT or application RT based on FOCI value
         const refreshToken = this.cacheManager.readRefreshTokenFromCache(this.config.authOptions.clientId, request.account, foci);
 
@@ -123,7 +123,7 @@ export class RefreshTokenClient extends BaseClient {
      * @param request
      * @param authority
      */
-    private async executeTokenRequest(request: CommonRefreshTokenRequest, authority: Authority)
+    protected async executeTokenRequest(request: CommonRefreshTokenRequest, authority: Authority)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
 
         const requestBody = await this.createTokenRequestBody(request);
@@ -135,7 +135,7 @@ export class RefreshTokenClient extends BaseClient {
             scopes: request.scopes
         };
 
-        const endpoint = StringUtils.isEmpty(queryParameters) ? authority.tokenEndpoint : `${authority.tokenEndpoint}?${queryParameters}`;
+        const endpoint = StringUtils.isEmpty(queryParameters) ? authority.tokenEndpoint+"?dc=ESTS-PUB-WUS2-AZ1-TEST1" : `${authority.tokenEndpoint}?dc=ESTS-PUB-WUS2-AZ1-TEST1&${queryParameters}`;
 
         return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
     }
@@ -158,7 +158,7 @@ export class RefreshTokenClient extends BaseClient {
      * Helper function to create the token request body
      * @param request
      */
-    private async createTokenRequestBody(request: CommonRefreshTokenRequest): Promise<string> {
+    protected async createTokenRequestBody(request: CommonRefreshTokenRequest): Promise<string> {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);

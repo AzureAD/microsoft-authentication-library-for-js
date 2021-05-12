@@ -32,6 +32,9 @@ import { TokenCacheContext } from "../cache/persistence/TokenCacheContext";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
+import { BrokerAuthenticationResult } from "./BrokerAuthenticationResult";
+import { RequestThumbprint } from "../network/RequestThumbprint";
+import { BrokeredAuthorizationCodeRequest } from "../request/broker/BrokeredAuthorizationCodeRequest";
 
 /**
  * Class that handles response parsing.
@@ -145,7 +148,7 @@ export class ResponseHandler {
                 await this.persistencePlugin.beforeCacheAccess(cacheContext);
             }
             /*
-             * When saving a refreshed tokens to the cache, it is expected that the account that was used is present in the cache.
+             * When saving a tokens acquired by refresh token to the cache, it is expected that the account that was used is present in the cache.
              * If not present, we should return null, as it's the case that another application called removeAccount in between
              * the calls to getAllAccounts and acquireTokenSilent. We should not overwrite that removal.
              */
@@ -167,13 +170,72 @@ export class ResponseHandler {
         return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj);
     }
 
+    async handleBrokeredServerTokenResponse(
+        serverTokenResponse: ServerAuthorizationTokenResponse, 
+        authority: Authority,
+        reqTimestamp: number,
+        request: BrokeredAuthorizationCodeRequest,
+        authCodePayload?: AuthorizationCodePayload,
+        oboAssertion?: string,
+        handlingRefreshTokenResponse?: boolean): Promise<BrokerAuthenticationResult> {
+        
+        let idTokenObj: AuthToken | undefined;
+        if (serverTokenResponse.id_token) {
+            idTokenObj = new AuthToken(serverTokenResponse.id_token || Constants.EMPTY_STRING, this.cryptoObj);
+            // token nonce check (TODO: Add a warning if no nonce is given?)
+            if (authCodePayload && !StringUtils.isEmpty(authCodePayload.nonce)) {
+                if (idTokenObj.claims.nonce !== authCodePayload.nonce) {
+                    throw ClientAuthError.createNonceMismatchError();
+                }
+            }
+        }
+
+        // generate homeAccountId
+        this.homeAccountIdentifier = AccountEntity.generateHomeAccountId(serverTokenResponse.client_info || Constants.EMPTY_STRING, authority.authorityType, this.logger, this.cryptoObj, idTokenObj);
+
+        // save the response tokens
+        let requestStateObj: RequestStateObject | undefined;
+        if (!!authCodePayload && !!authCodePayload.state) {
+            requestStateObj = ProtocolUtils.parseRequestState(this.cryptoObj, authCodePayload.state);
+        }
+
+        const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, reqTimestamp, idTokenObj, request.scopes, oboAssertion, authCodePayload);
+        if (!!cacheRecord.refreshToken) {
+            this.cacheStorage.setRefreshTokenCredential(cacheRecord.refreshToken);
+        }
+
+        cacheRecord.refreshToken = null;
+        const result = await ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj)
+        
+        const reqThumbprint: RequestThumbprint = {
+            authority: authority.canonicalAuthority,
+            clientId: request.embeddedAppClientId,
+            scopes: request.scopes
+        };
+        const responseThumbprint = `${request.redirectUri}.${this.cryptoObj.base64Encode(JSON.stringify(reqThumbprint))}`;
+        
+        return {
+            ...result,
+            tokensToCache: cacheRecord,
+            responseThumbprint: responseThumbprint
+        };
+    }
+
     /**
      * Generates CacheRecord
      * @param serverTokenResponse
      * @param idTokenObj
      * @param authority
      */
-    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, idTokenObj?: AuthToken, requestScopes?: string[], oboAssertion?: string, authCodePayload?: AuthorizationCodePayload): CacheRecord {
+    private generateCacheRecord(
+        serverTokenResponse: ServerAuthorizationTokenResponse, 
+        authority: Authority, 
+        reqTimestamp: number, 
+        idTokenObj?: AuthToken, 
+        requestScopes?: string[], 
+        oboAssertion?: string, 
+        authCodePayload?: AuthorizationCodePayload,
+        embeddedAppClientId?: string): CacheRecord {
         const env = authority.getPreferredCache();
         if (StringUtils.isEmpty(env)) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
@@ -187,7 +249,7 @@ export class ResponseHandler {
                 this.homeAccountIdentifier,
                 env,
                 serverTokenResponse.id_token || Constants.EMPTY_STRING,
-                this.clientId,
+                embeddedAppClientId || this.clientId,
                 idTokenObj.claims.tid || Constants.EMPTY_STRING,
                 oboAssertion
             );

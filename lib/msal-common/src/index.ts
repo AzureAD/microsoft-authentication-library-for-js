@@ -9,6 +9,8 @@
  */
 
 export { AuthorizationCodeClient} from "./client/AuthorizationCodeClient";
+export { BrokerAuthorizationCodeClient } from "./client/broker/BrokerAuthorizationCodeClient";
+export { BrokerRefreshTokenClient } from "./client/broker/BrokerRefreshTokenClient";
 export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { RefreshTokenClient } from "./client/RefreshTokenClient";
 export { ClientCredentialClient } from "./client/ClientCredentialClient";
@@ -67,7 +69,12 @@ export { CommonSilentFlowRequest } from "./request/CommonSilentFlowRequest";
 export { CommonDeviceCodeRequest } from "./request/CommonDeviceCodeRequest";
 export { CommonEndSessionRequest } from "./request/CommonEndSessionRequest";
 export { CommonUsernamePasswordRequest } from "./request/CommonUsernamePasswordRequest";
+export { BrokeredAuthorizationCodeRequest } from "./request/broker/BrokeredAuthorizationCodeRequest";
+export { BrokeredAuthorizationUrlRequest } from "./request/broker/BrokeredAuthorizationUrlRequest";
+export { BrokeredRefreshTokenRequest } from "./request/broker/BrokeredRefreshTokenRequest";
+export { BrokeredSilentFlowRequest } from "./request/broker/BrokeredSilentFlowRequest";
 export { AuthenticationResult } from "./response/AuthenticationResult";
+export { BrokerAuthenticationResult } from "./response/BrokerAuthenticationResult";
 export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload";
 export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse";
 export { DeviceCodeResponse } from "./response/DeviceCodeResponse";
