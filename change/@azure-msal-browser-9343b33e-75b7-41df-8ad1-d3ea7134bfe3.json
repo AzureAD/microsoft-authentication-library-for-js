@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix hash removal from URL and browser history after interactive request #3609",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}

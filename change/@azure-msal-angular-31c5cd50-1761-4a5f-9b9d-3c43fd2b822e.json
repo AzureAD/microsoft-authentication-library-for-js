@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Fix navigation bug when clearing auth code from hash in msal-angular #3609",
-  "packageName": "@azure/msal-angular",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
