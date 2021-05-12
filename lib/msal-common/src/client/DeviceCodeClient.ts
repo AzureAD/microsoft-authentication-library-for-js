@@ -149,6 +149,8 @@ export class DeviceCodeClient extends BaseClient {
 
         /**
          * Breaks the polling with specific conditions.
+         * @param request CommonDeviceCodeRequest
+         * @param deviceCodeResponse DeviceCodeResponse
          */
         const continuePolling = (): boolean => {
             if (request.cancel) {
@@ -169,6 +171,8 @@ export class DeviceCodeClient extends BaseClient {
 
         /**
          * Waits for t number of milliseconds
+         * @param t number
+         * @param value T
          */
         function delay<T>(t: number, value?: T): Promise<T | void> {
             return new Promise((resolve) => setTimeout(() => resolve(value), t));
