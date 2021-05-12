@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "add faq entry for msal node",
+  "packageName": "@azure/msal-node",
+  "email": "dogan.erisen@gmail.com",
+  "dependentChangeType": "none"
+}

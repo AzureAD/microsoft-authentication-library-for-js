@@ -440,6 +440,42 @@ describe("AuthorizationCodeClient unit tests", () => {
             const loginUrl = await client.getAuthCodeUrl(loginRequest);
             expect(loginUrl).to.contain(`${AADServerParamKeys.SCOPE}=${encodeURIComponent(`${testScope1} ${testScope2}`)}`);
         });
+
+        it("Does not append an extra '?' when the authorization endpoint already contains a query string", async () => {
+            // Override with alternate authority openid_config
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves({
+                "token_endpoint": "https://login.windows.net/common/oauth2/v2.0/token?param1=value1",
+                "issuer": "https://login.windows.net/{tenantid}/v2.0",
+                "userinfo_endpoint": "https://graph.microsoft.com/oidc/userinfo",
+                "authorization_endpoint": "https://login.windows.net/common/oauth2/v2.0/authorize?param1=value1",
+                "end_session_endpoint": "https://login.windows.net/common/oauth2/v2.0/logout?param1=value1",
+            });
+
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(config);
+
+            const authCodeUrlRequest: CommonAuthorizationUrlRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                responseMode: ResponseMode.QUERY,
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER
+            };
+            const loginUrl = await client.getAuthCodeUrl(authCodeUrlRequest);
+            expect(loginUrl.split("?").length).to.equal(2);
+            expect(loginUrl).to.contain(`param1=value1`);
+            expect(loginUrl).to.contain(ALTERNATE_OPENID_CONFIG_RESPONSE.body.authorization_endpoint.replace("{tenant}", "common"));
+            expect(loginUrl).to.contain(`${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`);
+            expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`);
+            expect(loginUrl).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
+            expect(loginUrl).to.contain(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIRECT_URI_LOCALHOST)}`);
+            expect(loginUrl).to.contain(`${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(ResponseMode.QUERY)}`);
+            expect(loginUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(TEST_CONFIG.TEST_CHALLENGE)}`);
+            expect(loginUrl).to.contain(`${AADServerParamKeys.CODE_CHALLENGE_METHOD}=${encodeURIComponent(Constants.S256_CODE_CHALLENGE_METHOD)}`);
+        });
     });
 
     describe("handleFragmentResponse()", () => {
