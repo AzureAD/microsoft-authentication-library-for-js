@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "add guidance for pfx to pem conversion",
-  "packageName": "@azure/msal-node",
-  "email": "dogan.erisen@gmail.com",
-  "dependentChangeType": "none"
-}
