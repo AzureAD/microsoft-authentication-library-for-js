@@ -2,6 +2,41 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Wed, 12 May 2021 18:35:03 GMT",
+      "tag": "@azure/msal-react_v1.0.0-beta.3",
+      "version": "1.0.0-beta.3",
+      "comments": {
+        "none": [
+          {
+            "comment": "replace legacy password-reset flow",
+            "author": "dogan.erisen@gmail.com",
+            "commit": "f272ffce86591aeeacd892f3b53e522ebcd19555",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "Regenerate package-lock #3510",
+            "author": "joarroyo@microsoft.com",
+            "commit": "ba0092a452f71a7bc58aaf7acdf94536d66f7493",
+            "package": "@azure/msal-react"
+          }
+        ],
+        "prerelease": [
+          {
+            "comment": "Fix extra state update in useAccount hook #3527",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "878253750fecf12b4a865a5821df20d333ff0134",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "Prevent UnauthenticatedTemplate from rendering children while processing redirect response #3552",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "90afc948d8ab779526679d60433b2d81ea7557bc",
+            "package": "@azure/msal-react"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 22 Apr 2021 23:26:08 GMT",
       "tag": "@azure/msal-react_v1.0.0-beta.2",
       "version": "1.0.0-beta.2",

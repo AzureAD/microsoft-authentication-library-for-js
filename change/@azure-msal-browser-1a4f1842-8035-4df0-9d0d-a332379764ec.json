@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "change msal-browser/msal-common to preserveModules to enable tree-shaking #3300",
-  "packageName": "@azure/msal-browser",
-  "email": "oo.thomas96@gmail.com",
-  "dependentChangeType": "patch"
-}
