@@ -49,7 +49,8 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     async getAuthCodeUrl(request: CommonAuthorizationUrlRequest): Promise<string> {
         const queryString = this.createAuthCodeUrlQueryString(request);
-        return `${this.authority.authorizationEndpoint}?${queryString}`;
+
+        return UrlString.appendQueryString(this.authority.authorizationEndpoint, queryString);
     }
 
     /**
