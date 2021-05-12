@@ -6,7 +6,7 @@
 import { ClientApplication } from "./ClientApplication";
 import { Configuration } from "../config/Configuration";
 import { ClientAssertion } from "./ClientAssertion";
-import { ApiId } from "../utils/Constants";
+import { ApiId , REGION_ENVIRONMENT_VARIABLE } from "../utils/Constants";
 import {
     ClientCredentialClient,
     OnBehalfOfClient,
@@ -14,7 +14,9 @@ import {
     CommonOnBehalfOfRequest,
     AuthenticationResult,
     StringUtils,
-    ClientAuthError } from "@azure/msal-common";
+    ClientAuthError,
+    AzureRegionConfiguration
+} from "@azure/msal-common";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
@@ -59,11 +61,16 @@ export class ConfidentialClientApplication extends ClientApplication implements 
             ...request,
             ...this.initializeBaseRequest(request)
         };
+        const azureRegionConfiguration: AzureRegionConfiguration = {
+            azureRegion: validRequest.azureRegion,
+            environmentRegion: process.env[REGION_ENVIRONMENT_VARIABLE] 
+        };
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByClientCredential, validRequest.correlationId, validRequest.skipCache);
         try {
             const clientCredentialConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
-                serverTelemetryManager
+                serverTelemetryManager,
+                azureRegionConfiguration,
             );
             this.logger.verbose("Auth client config generated");
             const clientCredentialClient = new ClientCredentialClient(clientCredentialConfig);
