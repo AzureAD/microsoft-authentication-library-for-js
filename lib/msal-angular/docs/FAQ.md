@@ -50,7 +50,7 @@ Yes, `@azure/msal-angular` does support IE 11. More information can on configura
 
 ### What is the difference between `@azure/msal-angular` v2 and v1?
 
-Please see our [upgrade guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/v1-v2-upgrade-guide.md) for information on the differences between `@azure/msal-angular` v1 and v2, as well as changes to watch out for when upgrading.
+Please see our [upgrade guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/v1-v2-upgrade-guide.md) for information on the differences between `@azure/msal-angular` v1 and v2, as well changes to watch out for when upgrading.
 
 ### How do I add tokens to API calls?
 
@@ -72,8 +72,11 @@ See [below](#how-do-i-log-users-in-when-they-hit-the-application) for additional
 ## Usage
 
 ### How do I secure routes?
+Please see our [initialization doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/initialization.md#secure-the-routes-in-your-application) for more information about securing routes with the `MsalGuard`.
 
-Please see our [MsalGuard doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/msal-guard.md) for more information about securing routes with the `MsalGuard`.
+Please note that while the `MsalGuard` is done with best effort, it is a convenience feature intended to improve the user experience and, as such, should not be relied upon for security. Attackers can potentially get around client-side guards, and you should ensure that the server does not return any data the user should not access.
+
+You may also need a route guard that addresses specific needs. We encourage you to write your own guard if `MsalGuard` does not meet all those needs.
 
 ### How do I get accounts?
 
@@ -98,7 +101,7 @@ Our [Angular 11](https://github.com/AzureAD/microsoft-authentication-library-for
 
 ### How do I log users in when they hit the application?
 
-To log your users in when they hit the application, without using a login button, **do not** call `login` in the `ngOnInit` in `app.component.ts`, as this can cause looping with redirects. Instead, we recommend setting the `MsalGuard` on your initial page, which will prompt users to log in before they reach other pages in your application. Our additional recommendations depend on your routing strategy below. Please all see our [MsalGuard doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/msal-guard.md) for more information.
+To log your users in when they hit the application, without using a login button, **do not** call `login` in the `ngOnInit` in `app.component.ts`, as this can cause looping with redirects. Instead, we recommend setting the `MsalGuard` on your initial page, which will prompt users to log in before they reach other pages in your application. Our additional recommendations depend on your routing strategy:
 
 #### PathLocationStrategy
 
@@ -109,7 +112,7 @@ For those using the `PathLocationStrategy`, we recommend:
 - Making sure the `MsalRedirectComponent` is bootstrapped
 - Optionally: adding `MsalGuard` to all your routes if you want all your routes protected
 
-Our [Angular 10 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular10-sample-app) demonstrates use of the `PathLocationStrategy`.
+Our [Angular 10 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular10-sample-app) demonstrates use of the `PathRoutingStrategy`.
 
 #### HashLocationStrategy
 
