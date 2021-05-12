@@ -41,13 +41,13 @@ export class UrlString {
         if (url) {
             let lowerCaseUrl = url.toLowerCase();
 
-            if (StringUtils.endsWith(url, "?")) {
-                lowerCaseUrl = url.slice(0, -1);
-            } else if (StringUtils.endsWith(url, "?/")) {
-                lowerCaseUrl = url.slice(0, -2);
+            if (StringUtils.endsWith(lowerCaseUrl, "?")) {
+                lowerCaseUrl = lowerCaseUrl.slice(0, -1);
+            } else if (StringUtils.endsWith(lowerCaseUrl, "?/")) {
+                lowerCaseUrl = lowerCaseUrl.slice(0, -2);
             }
 
-            if (!StringUtils.endsWith(url, "/")) {
+            if (!StringUtils.endsWith(lowerCaseUrl, "/")) {
                 lowerCaseUrl += "/";
             }
 
