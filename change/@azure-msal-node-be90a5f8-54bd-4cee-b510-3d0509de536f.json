@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "add support for regional authorities",
+  "packageName": "@azure/msal-node",
+  "email": "samuelkamau@microsoft.com",
+  "dependentChangeType": "patch"
+}
