@@ -3,13 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, PromptValue, CommonSilentFlowRequest, StringUtils } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, CommonSilentFlowRequest } from "@azure/msal-common";
 import { BrokerClientApplication } from "../broker/client/BrokerClientApplication";
 import { EmbeddedClientApplication } from "../broker/client/EmbeddedClientApplication";
 import { Configuration } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { EventType } from "../event/EventType";
-import { PopupHandler } from "../interaction_handler/PopupHandler";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
@@ -18,6 +17,7 @@ import { ApiId, InteractionType } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { ClientApplication } from "./ClientApplication";
 import { IPublicClientApplication } from "./IPublicClientApplication";
+import { PopupUtils } from "../utils/PopupUtils";
 
 export class ExperimentalClientApplication extends ClientApplication implements IPublicClientApplication {
 
@@ -37,6 +37,8 @@ export class ExperimentalClientApplication extends ClientApplication implements 
         this.ssoSilent.bind(parent);
         this.acquireTokenSilent.bind(parent);
         this.logout.bind(parent);
+        this.logoutPopup.bind(parent);
+        this.logoutRedirect.bind(parent);
         this.getAllAccounts.bind(parent);
         this.getAccountByUsername.bind(parent);
         this.getAccountByHomeId.bind(parent);
@@ -105,14 +107,14 @@ export class ExperimentalClientApplication extends ClientApplication implements 
                 return this.embeddedApp.sendPopupRequest(validRequest);
             }
             this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority);
-            const popupName = PopupHandler.generatePopupName(this.config.auth.clientId, validRequest);
+            const popupName = PopupUtils.generatePopupName(this.config.auth.clientId, validRequest);
 
             // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
             if (this.config.system.asyncPopups) {
                 return this.acquireTokenPopupAsync(validRequest, popupName);
             } else {
                 // asyncPopups flag is set to false. Opens popup before acquiring token.
-                const popup = PopupHandler.openSizedPopup("about:blank", popupName);
+                const popup = PopupUtils.openSizedPopup("about:blank", popupName);
                 return this.acquireTokenPopupAsync(validRequest, popupName, popup);
             }
         } catch (e) {
@@ -142,31 +144,15 @@ export class ExperimentalClientApplication extends ClientApplication implements 
      */
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
+        this.logger.verbose("ssoSilent called");
         this.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
         try {
-            // Check that we have some SSO data
-            if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
-                throw BrowserAuthError.createSilentSSOInsufficientInfoError();
-            }
-
-            // Check that prompt is set to none, throw error if it is set to anything else.
-            if (request.prompt && request.prompt !== PromptValue.NONE) {
-                throw BrowserAuthError.createSilentPromptValueError(request.prompt);
-            }
-
-            // Create silent request
-            const silentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
-                ...request,
-                prompt: PromptValue.NONE
-            }, InteractionType.Silent);
-
             if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
-                return this.embeddedApp.sendSsoSilentRequest(silentRequest);
+                return this.embeddedApp.sendSsoSilentRequest(request);
             }
-
-            this.browserStorage.updateCacheEntries(silentRequest.state, silentRequest.nonce, silentRequest.authority);
-            const silentTokenResult = await this.acquireTokenByIframe(silentRequest);
+            
+            const silentTokenResult = await this.acquireTokenByIframe(request, ApiId.ssoSilent);
             this.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
             return silentTokenResult;
         } catch (e) {
@@ -187,7 +173,7 @@ export class ExperimentalClientApplication extends ClientApplication implements 
         if (!accountObj) {
             throw BrowserAuthError.createNoAccountError();
         }
-        const silentRequest: SilentFlowRequest = {
+        const silentRequest: CommonSilentFlowRequest = {
             ...request,
             ...this.initializeBaseRequest(request),
             account: accountObj,

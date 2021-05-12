@@ -24,19 +24,19 @@ import { EventType } from "../../src/event/EventType";
 import { SilentRequest } from "../../src/request/SilentRequest";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { RedirectRequest } from "../../src/request/RedirectRequest";
-import pkg from "../../package.json";
 import { ExperimentalClientApplication } from "../../src/app/ExperimentalClientApplication";
 import { ClientApplication } from "../../src/app/ClientApplication";
 import { EmbeddedClientApplication } from "../../src/broker/client/EmbeddedClientApplication";
 import { BrokerClientApplication } from "../../src/broker/client/BrokerClientApplication";
-import { NavigationClient, NavigationOptions, EventMessage } from "../../src";
+import { NavigationClient, NavigationOptions, EventMessage, EndSessionPopupRequest } from "../../src";
 import { PopupUtils } from "../../src/utils/PopupUtils";
+import { version } from "../../src/packageMetadata";
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
 const authorityAliases = ["login.microsoftonline.com","login.windows.net","login.microsoft.com","sts.windows.net"];
 
-describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
+describe("ExperimentalClientApplication.ts Class Unit Tests", () => {
     const cacheConfig = {
         cacheLocation: BrowserCacheLocation.SessionStorage,
         storeAuthStateInCookie: false,
@@ -101,11 +101,11 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
             sinon.stub(pca.experimental!, <any>"interactionInProgress").returns(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_ALTERNATE_REDIR_URI);
-            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+            sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).to.be.true;
                 expect(options.timeout).to.be.greaterThan(0);
-                expect(options.apiId).to.be.not.empty;
-                expect(urlNavigate).to.be.eq("https://localhost:8081/");
+                expect(options.apiId).to.be.not.undefined;
+                expect(urlNavigate).to.be.eq(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
                 done();
                 return Promise.resolve(true);
             });
@@ -116,10 +116,10 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
         it("navigates to root and caches hash if navigateToLoginRequestUri is true", (done) => {
             sinon.stub(pca.experimental!, <any>"interactionInProgress").returns(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
-            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+            sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).to.be.true;
                 expect(options.timeout).to.be.greaterThan(0);
-                expect(options.apiId).to.be.not.empty;
+                expect(options.apiId).to.be.not.undefined;
                 expect(urlNavigate).to.be.eq("https://localhost:8081/");
                 expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`)).to.be.eq("https://localhost:8081/");
                 done();
@@ -133,10 +133,10 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
             sinon.stub(pca.experimental!, <any>"interactionInProgress").returns(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, "null");
-            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+            sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).to.be.true;
                 expect(options.timeout).to.be.greaterThan(0);
-                expect(options.apiId).to.be.not.empty;
+                expect(options.apiId).to.be.not.undefined;
                 expect(urlNavigate).to.be.eq("https://localhost:8081/");
                 expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`)).to.be.eq("https://localhost:8081/");
                 done();
@@ -151,11 +151,11 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
             const loginRequestUrl = window.location.href + "?testQueryString=1";
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
-            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+            sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).to.be.true;
                 expect(options.timeout).to.be.greaterThan(0);
-                expect(options.apiId).to.be.not.empty;
-                expect(urlNavigate).to.be.eq("https://localhost:8081/");
+                expect(options.apiId).to.be.not.undefined;
+                expect(urlNavigate).to.be.eq(loginRequestUrl);
                 done();
                 return Promise.resolve(true);
             });
@@ -168,12 +168,12 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
             const loginRequestUrl = window.location.href + "?testQueryString=1#testHash";
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
-            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+            sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).to.be.true;
                 expect(options.timeout).to.be.greaterThan(0);
-                expect(options.apiId).to.be.not.empty;
-                expect(urlNavigate).to.be.eq("https://localhost:8081/");
-                expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`)).to.be.eq("https://localhost:8081/");
+                expect(options.apiId).to.be.not.undefined;
+                expect(urlNavigate).to.be.eq(loginRequestUrl);
+                expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`)).to.be.eq(loginRequestUrl);
                 done();
                 return Promise.resolve(true);
             });
@@ -626,7 +626,7 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
                 expect(tokenResponse?.idToken).to.be.eq(testTokenResponse.idToken);
                 expect(tokenResponse?.idTokenClaims).to.be.contain(testTokenResponse.idTokenClaims);
                 expect(tokenResponse?.accessToken).to.be.eq(testTokenResponse.accessToken);
-                expect(tokenResponse?.expiresOn && testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse.expiresOn.getMilliseconds()).to.be.true;
+                expect(tokenResponse?.expiresOn && tokenResponse?.expiresOn?.getMilliseconds() >= tokenResponse.expiresOn.getMilliseconds()).to.be.true;
                 expect(window.sessionStorage.length).to.be.eq(4);
             });
 
@@ -757,7 +757,7 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
                 expect(tokenResponse?.idToken).to.be.eq(testTokenResponse.idToken);
                 expect(tokenResponse?.idTokenClaims).to.be.contain(testTokenResponse.idTokenClaims);
                 expect(tokenResponse?.accessToken).to.be.eq(testTokenResponse.accessToken);
-                expect(tokenResponse?.expiresOn && testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse.expiresOn.getMilliseconds()).to.be.true;
+                expect(tokenResponse?.expiresOn && tokenResponse.expiresOn.getMilliseconds() >= tokenResponse.expiresOn.getMilliseconds()).to.be.true;
                 expect(window.sessionStorage.length).to.be.eq(4);
                 expect(window.location.hash).to.be.empty;
             });
@@ -853,7 +853,7 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
                 expect(tokenResponse?.idToken).to.be.eq(testTokenResponse.idToken);
                 expect(tokenResponse?.idTokenClaims).to.be.contain(testTokenResponse.idTokenClaims);
                 expect(tokenResponse?.accessToken).to.be.eq(testTokenResponse.accessToken);
-                expect(tokenResponse?.expiresOn && testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse.expiresOn.getMilliseconds()).to.be.true;
+                expect(tokenResponse?.expiresOn && tokenResponse.expiresOn.getMilliseconds() >= tokenResponse.expiresOn.getMilliseconds()).to.be.true;
                 expect(window.sessionStorage.length).to.be.eq(4);
                 expect(window.location.hash).to.be.empty;
             });
@@ -937,9 +937,9 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
                 sinon.stub(TimeUtils, "nowSeconds").returns(TEST_STATE_VALUES.TEST_TIMESTAMP);
                 sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
-                    expect(options.noHistory).to.be.true;
+                    expect(options.noHistory).to.be.false;
                     expect(options.timeout).to.be.greaterThan(0);
-                    expect(options.apiId).to.be.not.empty;
+                    expect(options.apiId).to.be.not.undefined;
                     expect(urlNavigate).to.be.not.empty;
                     return Promise.resolve(true);
                 });
@@ -973,9 +973,9 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
                 sinon.stub(TimeUtils, "nowSeconds").returns(TEST_STATE_VALUES.TEST_TIMESTAMP);
                 sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
-                    expect(options.noHistory).to.be.true;
+                    expect(options.noHistory).to.be.false;
                     expect(options.timeout).to.be.greaterThan(0);
-                    expect(options.apiId).to.be.not.empty;
+                    expect(options.apiId).to.be.not.undefined;
                     expect(urlNavigate).to.be.not.empty;
                     return Promise.resolve(true);
                 });
@@ -1055,10 +1055,10 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
                 sinon.stub(TimeUtils, "nowSeconds").returns(TEST_STATE_VALUES.TEST_TIMESTAMP);
                 sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
-                    expect(options.noHistory).to.be.true;
+                    expect(options.noHistory).to.be.false;
                     expect(options.timeout).to.be.greaterThan(0);
-                    expect(options.apiId).to.be.not.empty;
-                    expect(urlNavigate).to.be.empty;
+                    expect(options.apiId).to.be.not.undefined;
+                    expect(urlNavigate).to.be.not.empty;
                     return Promise.resolve(true);
                 });
                 const emptyRequest: CommonAuthorizationUrlRequest = {
@@ -1112,9 +1112,9 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
                 sinon.stub(TimeUtils, "nowSeconds").returns(TEST_STATE_VALUES.TEST_TIMESTAMP);
                 sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
-                    expect(options.noHistory).to.be.true;
+                    expect(options.noHistory).to.be.false;
                     expect(options.timeout).to.be.greaterThan(0);
-                    expect(options.apiId).to.be.not.empty;
+                    expect(options.apiId).to.be.not.undefined;
                     expect(urlNavigate).to.be.not.empty;
                     return Promise.resolve(true);
                 });
@@ -1182,17 +1182,16 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
             });
 
             it("passes onRedirectNavigate callback", (done) => {
-                const expectedUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=0813e1d1-ad72-46a9-8665-399bba48c201&scope=user.read%20openid%20profile&redirect_uri=https%3A%2F%2Flocalhost%3A8081%2Findex.html&client-request-id=11553a9b-7116-48b1-9d48-f6d4a8ff8371&response_mode=fragment&response_type=code&x-client-SKU=msal.js.browser&x-client-VER=${pkg.version}&x-client-OS=&x-client-CPU=&client_info=1&code_challenge=JsjesZmxJwehdhNY9kvyr0QOeSMEvryY_EHZo3BKrqg&code_challenge_method=S256&nonce=11553a9b-7116-48b1-9d48-f6d4a8ff8371&state=eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsInRzIjoxNTkyODQ2NDgyLCJtZXRhIjp7ImludGVyYWN0aW9uVHlwZSI6InJlZGlyZWN0In19%7CuserState`;
-
                 const onRedirectNavigate = (url: string) => {
-                    expect(url).to.equal(expectedUrl)
+                    expect(url).to.equal(testNavUrl)
                     done();
                 };
 
-                sinon.stub(RedirectHandler.prototype, "initiateAuthRequest").callsFake((navigateUrl: string, {
+                sinon.stub(RedirectHandler.prototype, "initiateAuthRequest").callsFake((navigateUrl, {
                     redirectTimeout: timeout, redirectStartPage, onRedirectNavigate: onRedirectNavigateCb
                 }): Promise<void> => {
-                    expect(navigateUrl).to.eq(expectedUrl);
+                    expect(onRedirectNavigateCb).to.be.eq(onRedirectNavigate);
+                    expect(navigateUrl).to.eq(testNavUrl);
                     onRedirectNavigate(navigateUrl);
                     return Promise.resolve();
                 });
@@ -1201,7 +1200,6 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
                     verifier: TEST_CONFIG.TEST_VERIFIER
                 });
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
-                sinon.stub(TimeUtils, "nowSeconds").returns(TEST_STATE_VALUES.TEST_TIMESTAMP);
                 const loginRequest: RedirectRequest = {
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: ["user.read", "openid", "profile"],
@@ -1230,9 +1228,9 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
                 sinon.stub(TimeUtils, "nowSeconds").returns(TEST_STATE_VALUES.TEST_TIMESTAMP);
                 sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
-                    expect(options.noHistory).to.be.true;
+                    expect(options.noHistory).to.be.false;
                     expect(options.timeout).to.be.greaterThan(0);
-                    expect(options.apiId).to.be.not.empty;
+                    expect(options.apiId).to.be.not.undefined;
                     expect(urlNavigate).to.be.not.empty;
                     return Promise.resolve(true);
                 });
@@ -1263,9 +1261,9 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
                 });
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
                 sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
-                    expect(options.noHistory).to.be.true;
+                    expect(options.noHistory).to.be.false;
                     expect(options.timeout).to.be.greaterThan(0);
-                    expect(options.apiId).to.be.not.empty;
+                    expect(options.apiId).to.be.not.undefined;
                     expect(urlNavigate).to.be.not.empty;
                     return Promise.resolve(true);
                 });
@@ -1345,9 +1343,9 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
                 sinon.stub(TimeUtils, "nowSeconds").returns(TEST_STATE_VALUES.TEST_TIMESTAMP);
                 sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
-                    expect(options.noHistory).to.be.true;
+                    expect(options.noHistory).to.be.false;
                     expect(options.timeout).to.be.greaterThan(0);
-                    expect(options.apiId).to.be.not.empty;
+                    expect(options.apiId).to.be.not.undefined;
                     expect(urlNavigate).to.be.not.empty;
                     return Promise.resolve(true);
                 });
@@ -1402,9 +1400,9 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
                 sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
                 sinon.stub(TimeUtils, "nowSeconds").returns(TEST_STATE_VALUES.TEST_TIMESTAMP);
                 sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
-                    expect(options.noHistory).to.be.true;
+                    expect(options.noHistory).to.be.false;
                     expect(options.timeout).to.be.greaterThan(0);
-                    expect(options.apiId).to.be.not.empty;
+                    expect(options.apiId).to.be.not.undefined;
                     expect(urlNavigate).to.be.not.empty;
                     return Promise.resolve(true);
                 });
@@ -1441,7 +1439,12 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
 
         describe("loginPopup", () => {
             beforeEach(() => {
-                sinon.stub(window, "open").returns(window);
+                const popupWindow = {
+                    ...window,
+                    close: () => {}
+                };
+                // @ts-ignore
+                sinon.stub(window, "open").returns(popupWindow);
             });
 
             afterEach(() => {
@@ -1594,7 +1597,12 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
 
         describe("acquireTokenPopup", () => {
             beforeEach(() => {
-                sinon.stub(window, "open").returns(window);
+                const popupWindow = {
+                    ...window,
+                    close: () => {}
+                };
+                // @ts-ignore
+                sinon.stub(window, "open").returns(popupWindow);
             });
 
             afterEach(() => {
@@ -2124,6 +2132,7 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
                 scopes: ["scope1"],
                 account: testAccount,
                 authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: AuthenticationScheme.BEARER,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false
             };
@@ -2249,23 +2258,95 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
         });
     });
 
-    describe("logout", () => {
+    describe("logoutRedirect", () => {
 
         it("passes logoutUri from authModule to window nav util", (done) => {
             const logoutUriSpy = sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
-                expect(options.noHistory).to.be.true;
-                expect(options.timeout).to.be.greaterThan(0);
-                expect(options.apiId).to.be.not.empty;
                 expect(urlNavigate).to.be.eq(testLogoutUrl);
+                expect(options.noHistory).to.be.false;
+                done();
                 return Promise.resolve(true);
             });
-            pca.experimental?.logout();
+            pca.experimental?.logoutRedirect();
             const validatedLogoutRequest: CommonEndSessionRequest = {
                 correlationId: RANDOM_TEST_GUID,
                 postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
             };
             expect(logoutUriSpy.calledWith(validatedLogoutRequest));
+        });
+
+        it("includes postLogoutRedirectUri if one is passed", (done) => {
+            const postLogoutRedirectUri = "https://localhost:8000/logout";
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(urlNavigate).to.include(`post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`);
+                done();
+                return Promise.resolve(true);
+            });
+            pca.experimental?.logoutRedirect({
+                postLogoutRedirectUri
+            });
+        });
+
+        it("includes postLogoutRedirectUri if one is configured", (done) => {
+            const postLogoutRedirectUri = "https://localhost:8000/logout";
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(urlNavigate).to.include(`post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`);
+                done();
+                return Promise.resolve(true);
+            });
+            
+            const pcaWithPostLogout = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    postLogoutRedirectUri
+                },
+                experimental: {
+                    enable: true
+                }
+            });
+
+            pcaWithPostLogout.experimental?.logoutRedirect();
+        });
+
+        it("doesn't include postLogoutRedirectUri if null is configured", (done) => {
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(urlNavigate).to.not.include(`post_logout_redirect_uri`);
+                done();
+                return Promise.resolve(true);
+            });
+            
+            const pcaWithPostLogout = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    postLogoutRedirectUri: null
+                },
+                experimental: {
+                    enable: true
+                }
+            });
+
+            pcaWithPostLogout.experimental?.logoutRedirect();
+        });
+
+        it("doesnt include postLogoutRedirectUri if null is set on request", (done) => {
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(urlNavigate).to.not.include("post_logout_redirect_uri");
+                done();
+                return Promise.resolve(true);
+            });
+            pca.experimental?.logoutRedirect({
+                postLogoutRedirectUri: null
+            });
+        });
+
+        it("includes postLogoutRedirectUri as current page if none is set on request", (done) => {
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(urlNavigate).to.include(`post_logout_redirect_uri=${encodeURIComponent("https://localhost:8081/index.html")}`);
+                done();
+                return Promise.resolve(true);
+            });
+            pca.experimental?.logoutRedirect();
         });
 
         it("doesnt navigate if onRedirectNavigate returns false", (done) => {
@@ -2275,7 +2356,7 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
                 done();
                 return Promise.resolve(true);
             });
-            pca.experimental?.logout({
+            pca.experimental?.logoutRedirect({
                 onRedirectNavigate: (url) => {
                     expect(url).to.be.eq(testLogoutUrl);
                     done();
@@ -2289,9 +2370,194 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
             expect(logoutUriSpy.calledWith(validatedLogoutRequest));
         });
 
+        it("does navigate if onRedirectNavigate returns true", (done) => {
+            const logoutUriSpy = sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(urlNavigate).to.be.eq(testLogoutUrl);
+                done();
+                return Promise.resolve(true);
+            });
+            pca.experimental?.logoutRedirect({
+                onRedirectNavigate: (url) => {
+                    expect(url).to.be.eq(testLogoutUrl);
+                    return true;
+                }
+            });
+            const validatedLogoutRequest: CommonEndSessionRequest = {
+                correlationId: RANDOM_TEST_GUID,
+                postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
+            };
+            expect(logoutUriSpy.calledWith(validatedLogoutRequest));
+        });
+        
         it("throws an error if inside an iframe", async () => {
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
-            await expect(pca.experimental?.logout()).to.be.rejectedWith(BrowserAuthErrorMessage.redirectInIframeError.desc);
+            await expect(pca.experimental?.logoutRedirect()).to.be.rejectedWith(BrowserAuthErrorMessage.redirectInIframeError.desc);
+        });
+    });
+
+    describe("logoutPopup", () => {
+        beforeEach(() => {
+            const popupWindow = {
+                ...window,
+                close: () => {}
+            };
+            // @ts-ignore
+            sinon.stub(window, "open").returns(popupWindow);
+        });
+
+        afterEach(() => {
+            sinon.restore();
+        });
+
+        it("throws error if interaction is in progress", async () => {
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+
+            await expect(pca.experimental?.logoutPopup()).to.be.rejectedWith(BrowserAuthErrorMessage.interactionInProgress.desc);
+            await expect(pca.experimental?.logoutPopup()).to.be.rejectedWith(BrowserAuthError);
+        });
+
+        it("opens popup window before network request by default", async () => {
+            const popupSpy = sinon.stub(PopupUtils, "openSizedPopup");
+
+            try {
+                await pca.experimental?.logoutPopup();
+            } catch(e) {}
+            expect(popupSpy.getCall(0).args).to.be.length(2);
+        });
+
+        it("opens popups asynchronously if configured", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    asyncPopups: true
+                },
+                experimental: {
+                    enable: true
+                }
+            });
+            sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate, popupName) => {
+                expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).to.be.true;
+                expect(popupName.startsWith(`msal.${TEST_CONFIG.MSAL_CLIENT_ID}`)).to.be.true;
+                done();
+                return null;
+            });
+
+            pca.experimental?.logoutPopup().catch(() => {});
+        });
+
+        it("catches error and cleans cache before rethrowing", async () => {
+            const testError = {
+                errorCode: "create_logout_url_error",
+                errorMessage: "Error in creating a logout url"
+            };
+            sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").throws(testError);
+
+            try {
+                await pca.experimental?.logoutPopup();
+            } catch (e) {
+                // Test that error was cached for telemetry purposes and then thrown
+                expect(window.sessionStorage).to.be.length(1);
+                const failures = window.sessionStorage.getItem(`server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`);
+                const failureObj = JSON.parse(failures || "") as ServerTelemetryEntity;
+                expect(failureObj.failedRequests).to.be.length(2);
+                expect(failureObj.failedRequests[0]).to.eq(ApiId.logoutPopup);
+                expect(failureObj.errors[0]).to.eq(testError.errorCode);
+                expect(e).to.be.eq(testError);
+            }
+        });
+
+        it("includes postLogoutRedirectUri if one is passed", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    asyncPopups: true
+                },
+                experimental: {
+                    enable: true
+                }
+            });
+            sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
+                expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).to.be.true;
+                expect(urlNavigate).to.contain(`post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`);
+                done();
+                throw "Stop Test";
+            });
+
+            const postLogoutRedirectUri = "https://localhost:8000/logout";
+
+            pca.experimental?.logoutPopup({
+                postLogoutRedirectUri
+            }).catch(() => {});
+        });
+
+        it("includes postLogoutRedirectUri if one is configured", (done) => {
+            const postLogoutRedirectUri = "https://localhost:8000/logout";
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    postLogoutRedirectUri
+                },
+                system: {
+                    asyncPopups: true
+                },
+                experimental: {
+                    enable: true
+                }
+            });
+            sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
+                expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).to.be.true;
+                expect(urlNavigate).to.contain(`post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`);
+                done();
+                throw "Stop Test";
+            });
+
+            pca.experimental?.logoutPopup().catch(() => {});
+        });
+
+        it("includes postLogoutRedirectUri as current page if none is set on request", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    asyncPopups: true
+                },
+                experimental: {
+                    enable: true
+                }
+            });
+            sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
+                expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).to.be.true;
+                expect(urlNavigate).to.contain(`post_logout_redirect_uri=${encodeURIComponent(window.location.href)}`);
+                done();
+                throw "Stop Test";
+            });
+
+            pca.experimental?.logoutPopup().catch(() => {});
+        });
+
+        it("redirects main window when logout is complete", (done) => {
+            const popupWindow = {...window};
+            sinon.stub(PopupUtils, "openSizedPopup").returns(popupWindow);
+            sinon.stub(PopupUtils.prototype, "openPopup").returns(popupWindow);
+            sinon.stub(PopupUtils.prototype, "cleanPopup");
+            sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((url, navigationOptions) => {
+                expect(url.endsWith("/home")).to.be.true;
+                expect(navigationOptions.apiId).to.be.eq(ApiId.logoutPopup);
+                done();
+                return Promise.resolve(false);
+            });
+
+            const request: EndSessionPopupRequest = {
+                mainWindowRedirectUri: "/home"
+            };
+
+            pca.experimental?.logoutPopup(request);
         });
     });
 
@@ -2463,12 +2729,14 @@ describe("ExperimentalClientApplciation.ts Class Unit Tests", () => {
                 pca.experimental?.setActiveAccount(testAccountInfo1);
                 sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
                 sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
-                    expect(options.noHistory).to.be.true;
-                    expect(options.timeout).to.be.greaterThan(0);
-                    expect(options.apiId).to.be.not.empty;
                     expect(urlNavigate).to.be.eq(testLogoutUrl);
+                    expect(options.noHistory).to.be.false;
                     return Promise.resolve(true);
                 });
+                const popupWindow = {...window};
+                sinon.stub(PopupUtils.prototype, "openPopup").returns(popupWindow);
+                sinon.stub(PopupUtils, "openSizedPopup").returns(popupWindow);
+                sinon.stub(PopupUtils.prototype, "cleanPopup");
             });
 
             it("Clears active account on logout with no account", async () => {

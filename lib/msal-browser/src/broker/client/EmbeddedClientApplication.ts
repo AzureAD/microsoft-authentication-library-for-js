@@ -15,11 +15,11 @@ import { BrokerRedirectResponse } from "../msg/resp/BrokerRedirectResponse";
 import { BrokerAuthResponse } from "../msg/resp/BrokerAuthResponse";
 import { BrowserAuthError } from "../../error/BrowserAuthError";
 import { SilentRequest } from "../../request/SilentRequest";
-import { version } from "../../../package.json";
 import { BrokerHandleRedirectRequest } from "../msg/req/BrokerHandleRedirectRequest";
 import { BrowserCacheManager } from "../../cache/BrowserCacheManager";
 import { SsoSilentRequest } from "../../request/SsoSilentRequest";
 import { BrokerAuthError } from "../../error/BrokerAuthError";
+import { version } from "../../packageMetadata";
 
 const DEFAULT_MESSAGE_TIMEOUT = 2000;
 const DEFAULT_POPUP_MESSAGE_TIMEOUT = 60000;

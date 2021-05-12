@@ -4,7 +4,7 @@
  */
 
 import { Constants, NetworkResponse } from "@azure/msal-common";
-import { version } from "../../package.json";
+import { version } from "../../src/packageMetadata";
 
 /**
  * This file contains the string constants used by the test classes.
@@ -119,6 +119,8 @@ export const TEST_HASHES = {
 };
 
 export const DEFAULT_TENANT_DISCOVERY_RESPONSE = {
+    headers: {},
+    status: 200,
     body: {
         "tenant_discovery_endpoint": "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
         "api-version": "1.1",

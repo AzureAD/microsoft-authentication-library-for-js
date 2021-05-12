@@ -18,65 +18,58 @@ describe("StringUtils.ts Class Unit Tests", () => {
         });
     });
 
-    it("decodeJwt throws error when given a null token string", () => {
-        let err: ClientAuthError;
-
+    it("decodeJwt throws error when given a null token string", (done) => {
         try {
-            let decodedJwt = StringUtils.decodeAuthToken(null);
-        } catch (e) {
-            err = e;
+            //@ts-ignore
+            StringUtils.decodeAuthToken(null);
+        } catch (err) {
+            expect(err instanceof ClientAuthError).to.be.true;
+            expect(err instanceof AuthError).to.be.true;
+            expect(err instanceof Error).to.be.true;
+            expect(err.errorCode).to.equal(ClientAuthErrorMessage.nullOrEmptyToken.code);
+            expect(err.errorMessage).to.include(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            expect(err.message).to.include(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            expect(err.name).to.equal("ClientAuthError");
+            expect(err.stack).to.include("StringUtils.spec.ts");
+            done();
         }
-
-        expect(err instanceof ClientAuthError).to.be.true;
-        expect(err instanceof AuthError).to.be.true;
-        expect(err instanceof Error).to.be.true;
-        expect(err.errorCode).to.equal(ClientAuthErrorMessage.nullOrEmptyToken.code);
-        expect(err.errorMessage).to.include(ClientAuthErrorMessage.nullOrEmptyToken.desc);
-        expect(err.message).to.include(ClientAuthErrorMessage.nullOrEmptyToken.desc);
-        expect(err.name).to.equal("ClientAuthError");
-        expect(err.stack).to.include("StringUtils.spec.ts");
     });
 
     it("decodeJwt throws error when given a empty token string", () => {
-        let err: ClientAuthError;
-
         try {
-            let decodedJwt = StringUtils.decodeAuthToken("");
-        } catch (e) {
-            err = e;
+            StringUtils.decodeAuthToken("");
+        } catch (err) {
+            expect(err instanceof ClientAuthError).to.be.true;
+            expect(err instanceof AuthError).to.be.true;
+            expect(err instanceof Error).to.be.true;
+            expect(err.errorCode).to.equal(ClientAuthErrorMessage.nullOrEmptyToken.code);
+            expect(err.errorMessage).to.include(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            expect(err.message).to.include(ClientAuthErrorMessage.nullOrEmptyToken.desc);
+            expect(err.name).to.equal("ClientAuthError");
+            expect(err.stack).to.include("StringUtils.spec.ts");
         }
 
-        expect(err instanceof ClientAuthError).to.be.true;
-        expect(err instanceof AuthError).to.be.true;
-        expect(err instanceof Error).to.be.true;
-        expect(err.errorCode).to.equal(ClientAuthErrorMessage.nullOrEmptyToken.code);
-        expect(err.errorMessage).to.include(ClientAuthErrorMessage.nullOrEmptyToken.desc);
-        expect(err.message).to.include(ClientAuthErrorMessage.nullOrEmptyToken.desc);
-        expect(err.name).to.equal("ClientAuthError");
-        expect(err.stack).to.include("StringUtils.spec.ts");
+        
     });
 
     it("decodeJwt throws error when given a malformed token string", () => {
-        let err: ClientAuthError;
-
         try {
-            let decodedJwt = StringUtils.decodeAuthToken(TEST_TOKENS.SAMPLE_MALFORMED_JWT);
-        } catch (e) {
-            err = e;
-        }
-
-        expect(err instanceof ClientAuthError).to.be.true;
-        expect(err instanceof AuthError).to.be.true;
-        expect(err instanceof Error).to.be.true;
-        expect(err.errorCode).to.equal(ClientAuthErrorMessage.tokenParsingError.code);
-        expect(err.errorMessage).to.include(ClientAuthErrorMessage.tokenParsingError.desc);
-        expect(err.message).to.include(ClientAuthErrorMessage.tokenParsingError.desc);
-        expect(err.name).to.equal("ClientAuthError");
-        expect(err.stack).to.include("StringUtils.spec.ts");
+            StringUtils.decodeAuthToken(TEST_TOKENS.SAMPLE_MALFORMED_JWT);
+        } catch (err) {
+            expect(err instanceof ClientAuthError).to.be.true;
+            expect(err instanceof AuthError).to.be.true;
+            expect(err instanceof Error).to.be.true;
+            expect(err.errorCode).to.equal(ClientAuthErrorMessage.tokenParsingError.code);
+            expect(err.errorMessage).to.include(ClientAuthErrorMessage.tokenParsingError.desc);
+            expect(err.message).to.include(ClientAuthErrorMessage.tokenParsingError.desc);
+            expect(err.name).to.equal("ClientAuthError");
+            expect(err.stack).to.include("StringUtils.spec.ts");
+        }        
     });
 
     it("isEmpty correctly identifies empty strings", () => {
         expect(StringUtils.isEmpty(undefined)).to.be.true;
+        // @ts-ignore
         expect(StringUtils.isEmpty(null)).to.be.true;
         expect(StringUtils.isEmpty("")).to.be.true;
         expect(StringUtils.isEmpty("Non-empty string")).to.be.false;
@@ -84,6 +77,7 @@ describe("StringUtils.ts Class Unit Tests", () => {
 
     it("isEmptyObject correctly identifies empty stringified objects", () => {
         expect(StringUtils.isEmptyObj(undefined)).to.be.true;
+        // @ts-ignore
         expect(StringUtils.isEmptyObj(null)).to.be.true;
         expect(StringUtils.isEmptyObj("")).to.be.true;
         expect(StringUtils.isEmptyObj("{}")).to.be.true;
@@ -143,7 +137,10 @@ describe("StringUtils.ts Class Unit Tests", () => {
     });
 
     it("removeEmptyStringsFromArray() removes empty strings from an array", () => {
+        const arr = ["S1", "S2", ""];
+        const expected = ["S1", "S2"];
 
+        expect(StringUtils.removeEmptyStringsFromArray(arr)).to.be.deep.eq(expected);
     });
 
     describe("jsonParseHelper", () => {
@@ -155,6 +152,7 @@ describe("StringUtils.ts Class Unit Tests", () => {
         });
 
         it("returns null on error", () => {
+            // @ts-ignore
             const parsedValNull = StringUtils.jsonParseHelper(null);
             const parsedValEmptyString = StringUtils.jsonParseHelper("");
             expect(parsedValNull).to.be.null;

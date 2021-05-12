@@ -14,13 +14,14 @@ import { PopTokenGenerator } from "../../crypto/PopTokenGenerator";
 import { AuthenticationResult } from "../../response/AuthenticationResult";
 import { BrokeredRefreshTokenRequest } from "../../request/broker/BrokeredRefreshTokenRequest";
 import { BrokeredSilentFlowRequest } from "../../request/broker/BrokeredSilentFlowRequest";
-import { ClientConfigurationError } from "../../error/ClientConfigurationError";
+import { TimeUtils } from "../../utils/TimeUtils";
 
 /**
  * Oauth2.0 Refresh Token client implementing the broker protocol for browsers.
  */
 export class BrokerRefreshTokenClient extends RefreshTokenClient {
     async acquireToken(request: BrokeredRefreshTokenRequest): Promise<AuthenticationResult | BrokerAuthenticationResult> {
+        const reqTimestamp = TimeUtils.nowSeconds();
         const response = await this.executeTokenRequest(request, this.authority);
 
         const responseHandler = new ResponseHandler(
@@ -37,15 +38,22 @@ export class BrokerRefreshTokenClient extends RefreshTokenClient {
             return responseHandler.handleBrokeredServerTokenResponse(
                 response.body,
                 this.authority,
-                request.embeddedAppClientId,
+                reqTimestamp,
+                request,
                 request.embeddedAppRedirectUri,
                 undefined,
-                request.scopes
+                undefined,
+                true
             );
         } else {
             return responseHandler.handleServerTokenResponse(
                 response.body,
                 this.authority,
+                reqTimestamp,
+                request,
+                undefined,
+                undefined,
+                true
             );
         }
     }
@@ -98,11 +106,7 @@ export class BrokerRefreshTokenClient extends RefreshTokenClient {
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
-            if (!request.resourceRequestMethod || !request.resourceRequestUri) {
-                throw ClientConfigurationError.createResourceRequestParametersRequiredError();
-            }
-
-            parameterBuilder.addPopToken(await popTokenGenerator.generateCnf(request.resourceRequestMethod, request.resourceRequestUri));
+            parameterBuilder.addPopToken(await popTokenGenerator.generateCnf(request));
         }
 
         if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
@@ -112,7 +116,6 @@ export class BrokerRefreshTokenClient extends RefreshTokenClient {
         // Add broker params
         parameterBuilder.addBrokerClientId(this.config.authOptions.clientId);
         parameterBuilder.addRedirectUri(request.embeddedAppRedirectUri, this.config.authOptions.clientId);
-
         parameterBuilder.addTestSlice();
 
         return parameterBuilder.createQueryString();

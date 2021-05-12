@@ -9,7 +9,7 @@ import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, testNavUrlNoRequest, DEFAULT_TENANT_DISCOVERY_RESPONSE } from "../utils/StringConstants";
-import { ServerError, Constants, AccountInfo, TokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthToken, PersistentCacheKeys, AuthorizationCodeClient, ResponseMode, AccountEntity, ProtocolUtils, AuthenticationScheme, RefreshTokenClient, Logger, ServerTelemetryEntity, SilentFlowRequest, EndSessionRequest as CommonEndSessionRequest, LogLevel, NetworkResponse, ServerAuthorizationTokenResponse } from "@azure/msal-common";
+import { ServerError, Constants, AccountInfo, TokenClaims, PromptValue, AuthenticationResult, CommonAuthorizationUrlRequest, AuthToken, PersistentCacheKeys, AuthorizationCodeClient, ResponseMode, AccountEntity, ProtocolUtils, AuthenticationScheme, RefreshTokenClient, Logger, ServerTelemetryEntity, CommonEndSessionRequest, LogLevel, NetworkResponse, CommonAuthorizationCodeRequest, OIDC_DEFAULT_SCOPES, CommonSilentFlowRequest } from "@azure/msal-common";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { BrowserConstants, TemporaryCacheKeys, ApiId, InteractionType, BrowserCacheLocation, WrapperSKU } from "../../src/utils/BrowserConstants";
 import { Base64Encode } from "../../src/encode/Base64Encode";
@@ -96,6 +96,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).to.be.true;
                 expect(options.timeout).to.be.greaterThan(0);
+                expect(options.apiId).to.be.not.undefined;
                 expect(urlNavigate).to.be.eq(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
                 done();
                 return Promise.resolve(true);
@@ -110,6 +111,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).to.be.true;
                 expect(options.timeout).to.be.greaterThan(0);
+                expect(options.apiId).to.be.not.undefined;
                 expect(urlNavigate).to.be.eq("https://localhost:8081/");
                 expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`)).to.be.eq("https://localhost:8081/");
                 done();
@@ -126,6 +128,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).to.be.true;
                 expect(options.timeout).to.be.greaterThan(0);
+                expect(options.apiId).to.be.not.undefined;
                 expect(urlNavigate).to.be.eq("https://localhost:8081/");
                 expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`)).to.be.eq("https://localhost:8081/");
                 done();
@@ -143,6 +146,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).to.be.true;
                 expect(options.timeout).to.be.greaterThan(0);
+                expect(options.apiId).to.be.not.undefined;
                 expect(urlNavigate).to.be.eq(loginRequestUrl);
                 done();
                 return Promise.resolve(true);
@@ -159,7 +163,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).to.be.true;
                 expect(options.timeout).to.be.greaterThan(0);
+                expect(options.apiId).to.be.not.undefined;
                 expect(urlNavigate).to.be.eq(loginRequestUrl);
+                expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`)).to.be.eq(loginRequestUrl);
                 done();
                 return Promise.resolve(true);
             });
@@ -490,12 +496,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     account: testAccount,
                     tokenType: AuthenticationScheme.BEARER
                 };
-                sinon.stub(XhrClient.prototype, "sendGetRequestAsync").callsFake((url) => {
+                sinon.stub(XhrClient.prototype, "sendGetRequestAsync").callsFake(async (url): Promise<NetworkResponse<any>> => {
                     if (url.includes("discovery/instance")) {
                         return DEFAULT_TENANT_DISCOVERY_RESPONSE;
                     } else if (url.includes(".well-known/openid-configuration")) {
                         return DEFAULT_OPENID_CONFIG_RESPONSE;
                     }
+                    return testServerTokenResponse;
                 });
                 sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
                 pca = new PublicClientApplication({
@@ -511,7 +518,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(tokenResponse?.idToken).to.be.eq(testTokenResponse.idToken);
                 expect(tokenResponse?.idTokenClaims).to.be.contain(testTokenResponse.idTokenClaims);
                 expect(tokenResponse?.accessToken).to.be.eq(testTokenResponse.accessToken);
-                expect(tokenResponse?.expiresOn && testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse?.expiresOn.getMilliseconds()).to.be.true;
+                expect(tokenResponse?.expiresOn && tokenResponse.expiresOn.getMilliseconds() >= tokenResponse?.expiresOn.getMilliseconds()).to.be.true;
                 expect(window.sessionStorage.length).to.be.eq(4);
             });
 
@@ -581,12 +588,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     account: testAccount,
                     tokenType: AuthenticationScheme.BEARER
                 };
-                sinon.stub(XhrClient.prototype, "sendGetRequestAsync").callsFake((url) => {
+                sinon.stub(XhrClient.prototype, "sendGetRequestAsync").callsFake(async (url): Promise<NetworkResponse<any>> => {
                     if (url.includes("discovery/instance")) {
                         return DEFAULT_TENANT_DISCOVERY_RESPONSE;
                     } else if (url.includes(".well-known/openid-configuration")) {
                         return DEFAULT_OPENID_CONFIG_RESPONSE;
                     }
+                    return testServerTokenResponse;
                 });
                 sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
                 pca = new PublicClientApplication({
@@ -614,7 +622,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(tokenResponse1.idToken).to.be.eq(testTokenResponse.idToken);
                 expect(tokenResponse1.idTokenClaims).to.be.contain(testTokenResponse.idTokenClaims);
                 expect(tokenResponse1.accessToken).to.be.eq(testTokenResponse.accessToken);
-                expect(testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse1.expiresOn.getMilliseconds()).to.be.true;
+                expect(tokenResponse1.expiresOn && tokenResponse1.expiresOn.getMilliseconds() >= tokenResponse1.expiresOn.getMilliseconds()).to.be.true;
                 
                 // Response from second promise
                 expect(tokenResponse2.uniqueId).to.be.eq(testTokenResponse.uniqueId);
@@ -623,7 +631,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(tokenResponse2.idToken).to.be.eq(testTokenResponse.idToken);
                 expect(tokenResponse2.idTokenClaims).to.be.contain(testTokenResponse.idTokenClaims);
                 expect(tokenResponse2.accessToken).to.be.eq(testTokenResponse.accessToken);
-                expect(testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse2.expiresOn.getMilliseconds()).to.be.true;
+                expect(tokenResponse2.expiresOn && tokenResponse2.expiresOn.getMilliseconds() >= tokenResponse2.expiresOn.getMilliseconds()).to.be.true;
 
                 expect(tokenResponse1).to.deep.eq(tokenResponse2);
                 expect(tokenResponse4).to.deep.eq(tokenResponse1);
@@ -735,12 +743,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     tokenType: AuthenticationScheme.BEARER
                 };
 
-                sinon.stub(XhrClient.prototype, "sendGetRequestAsync").callsFake((url) => {
+                sinon.stub(XhrClient.prototype, "sendGetRequestAsync").callsFake(async (url): Promise<NetworkResponse<any>> => {
                     if (url.includes("discovery/instance")) {
                         return DEFAULT_TENANT_DISCOVERY_RESPONSE;
                     } else if (url.includes(".well-known/openid-configuration")) {
                         return DEFAULT_OPENID_CONFIG_RESPONSE;
                     }
+                    return testServerTokenResponse;
                 });
                 sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
                 pca = new PublicClientApplication({
@@ -757,7 +766,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(tokenResponse?.idToken).to.be.eq(testTokenResponse.idToken);
                 expect(tokenResponse?.idTokenClaims).to.be.contain(testTokenResponse.idTokenClaims);
                 expect(tokenResponse?.accessToken).to.be.eq(testTokenResponse.accessToken);
-                expect(tokenResponse?.expiresOn && testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse?.expiresOn.getMilliseconds()).to.be.true;
+                expect(tokenResponse?.expiresOn && tokenResponse.expiresOn.getMilliseconds() >= tokenResponse?.expiresOn.getMilliseconds()).to.be.true;
                 expect(window.sessionStorage.length).to.be.eq(4);
                 expect(window.location.hash).to.be.empty;
             });
@@ -834,12 +843,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     tokenType: AuthenticationScheme.BEARER
                 };
 
-                sinon.stub(XhrClient.prototype, "sendGetRequestAsync").callsFake((url) => {
+                sinon.stub(XhrClient.prototype, "sendGetRequestAsync").callsFake(async (url): Promise<NetworkResponse<any>> => {
                     if (url.includes("discovery/instance")) {
                         return DEFAULT_TENANT_DISCOVERY_RESPONSE;
                     } else if (url.includes(".well-known/openid-configuration")) {
                         return DEFAULT_OPENID_CONFIG_RESPONSE;
                     }
+                    return testServerTokenResponse;
                 });
                 sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
                 pca = new PublicClientApplication({
@@ -948,12 +958,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     tokenType: AuthenticationScheme.BEARER
                 };
 
-                sinon.stub(XhrClient.prototype, "sendGetRequestAsync").callsFake((url) => {
+                sinon.stub(XhrClient.prototype, "sendGetRequestAsync").callsFake(async (url): Promise<NetworkResponse<any>> => {
                     if (url.includes("discovery/instance")) {
                         return DEFAULT_TENANT_DISCOVERY_RESPONSE;
                     } else if (url.includes(".well-known/openid-configuration")) {
                         return DEFAULT_OPENID_CONFIG_RESPONSE;
                     }
+                    return testServerTokenResponse;
                 });
                 sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
                 pca = new PublicClientApplication({
@@ -970,7 +981,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(tokenResponse?.idToken).to.be.eq(testTokenResponse.idToken);
                 expect(tokenResponse?.idTokenClaims).to.be.contain(testTokenResponse.idTokenClaims);
                 expect(tokenResponse?.accessToken).to.be.eq(testTokenResponse.accessToken);
-                expect(tokenResponse?.expiresOn && testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse?.expiresOn.getMilliseconds()).to.be.true;
+                expect(tokenResponse?.expiresOn && tokenResponse.expiresOn.getMilliseconds() >= tokenResponse?.expiresOn.getMilliseconds()).to.be.true;
                 expect(window.sessionStorage.length).to.be.eq(4);
                 expect(window.location.hash).to.be.empty;
             });
@@ -1565,6 +1576,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     ...window,
                     close: () => {}
                 };
+                // @ts-ignore
                 sinon.stub(window, "open").returns(popupWindow);
             });
 
@@ -1717,6 +1729,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     ...window,
                     close: () => {}
                 };
+                // @ts-ignore
                 sinon.stub(window, "open").returns(popupWindow);
             });
 
@@ -2284,7 +2297,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pcaWithPostLogout.logoutRedirect();
         });
 
-        it("doesnt include postLogoutRedirectUri if null is configured", (done) => {
+        it("doesn't include postLogoutRedirectUri if null is configured", (done) => {
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(urlNavigate).to.not.include(`post_logout_redirect_uri`);
                 done();
@@ -2374,6 +2387,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 ...window,
                 close: () => {}
             };
+            // @ts-ignore
             sinon.stub(window, "open").returns(popupWindow);
         });
 

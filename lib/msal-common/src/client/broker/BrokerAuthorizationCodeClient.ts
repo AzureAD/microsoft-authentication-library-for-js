@@ -51,7 +51,7 @@ export class BrokerAuthorizationCodeClient extends AuthorizationCodeClient {
         if (!request.embeddedAppClientId) {
             return await responseHandler.handleServerTokenResponse(response.body, this.authority, reqTimestamp, request, authCodePayload);
         } else {
-            return await responseHandler.handleBrokeredServerTokenResponse(response.body, this.authority, reqTimestamp, request, authCodePayload);
+            return await responseHandler.handleBrokeredServerTokenResponse(response.body, this.authority, reqTimestamp, request, request.redirectUri, authCodePayload);
         }
     }
 

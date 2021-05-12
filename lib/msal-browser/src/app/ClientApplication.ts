@@ -601,7 +601,7 @@ export abstract class ClientApplication {
      * @param request
      * @param apiId - ApiId of the calling function. Used for telemetry.
      */
-    private async acquireTokenByIframe(request: SsoSilentRequest, apiId: ApiId): Promise<AuthenticationResult> {
+    protected async acquireTokenByIframe(request: SsoSilentRequest, apiId: ApiId): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenByIframe called");
         // Check that we have some SSO data
         if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
@@ -759,7 +759,6 @@ export abstract class ClientApplication {
         this.logger.verbose("logoutRedirect called");
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.logout, validLogoutRequest.correlationId);
-
         try {
             this.emitEvent(EventType.LOGOUT_START, InteractionType.Redirect, logoutRequest);
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, logoutRequest && logoutRequest.authority);

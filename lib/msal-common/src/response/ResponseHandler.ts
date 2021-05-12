@@ -35,6 +35,7 @@ import { BaseAuthRequest } from "../request/BaseAuthRequest";
 import { BrokerAuthenticationResult } from "./BrokerAuthenticationResult";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { BrokeredAuthorizationCodeRequest } from "../request/broker/BrokeredAuthorizationCodeRequest";
+import { BrokeredRefreshTokenRequest } from "../request/broker/BrokeredRefreshTokenRequest";
 
 /**
  * Class that handles response parsing.
@@ -174,7 +175,8 @@ export class ResponseHandler {
         serverTokenResponse: ServerAuthorizationTokenResponse, 
         authority: Authority,
         reqTimestamp: number,
-        request: BrokeredAuthorizationCodeRequest,
+        request: BrokeredAuthorizationCodeRequest|BrokeredRefreshTokenRequest,
+        embeddedAppOrigin: string,
         authCodePayload?: AuthorizationCodePayload,
         oboAssertion?: string,
         handlingRefreshTokenResponse?: boolean): Promise<BrokerAuthenticationResult> {
@@ -212,7 +214,7 @@ export class ResponseHandler {
             clientId: request.embeddedAppClientId,
             scopes: request.scopes
         };
-        const responseThumbprint = `${request.redirectUri}.${this.cryptoObj.base64Encode(JSON.stringify(reqThumbprint))}`;
+        const responseThumbprint = `${embeddedAppOrigin}.${this.cryptoObj.base64Encode(JSON.stringify(reqThumbprint))}`;
         
         return {
             ...result,

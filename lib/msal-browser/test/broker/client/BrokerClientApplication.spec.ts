@@ -6,7 +6,7 @@ import { ClientApplication } from "../../../src/app/ClientApplication";
 import { BrokerClientApplication } from "../../../src/broker/client/BrokerClientApplication";
 import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES } from "../../utils/StringConstants";
 
-describe.only("BrokerClientApplication.ts Unit Tests", () => {
+describe("BrokerClientApplication.ts Unit Tests", () => {
 
     describe("Constructor", () => {
 
@@ -89,8 +89,8 @@ describe.only("BrokerClientApplication.ts Unit Tests", () => {
         it("returns cachedResponse if tokensToCache is not set", async () => {
             const testTokenResponse: BrokerAuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
-                uniqueId: testIdTokenClaims.oid,
-                tenantId: testIdTokenClaims.tid,
+                uniqueId: testIdTokenClaims.oid || "",
+                tenantId: testIdTokenClaims.tid || "",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 idToken: testServerTokenResponse.body.id_token,
                 idTokenClaims: testIdTokenClaims,
@@ -113,8 +113,8 @@ describe.only("BrokerClientApplication.ts Unit Tests", () => {
         it("returns null if tokensToCache is provided", async () => {
             const testTokenResponse: BrokerAuthenticationResult = {
                 authority: TEST_CONFIG.validAuthority,
-                uniqueId: testIdTokenClaims.oid,
-                tenantId: testIdTokenClaims.tid,
+                uniqueId: testIdTokenClaims.oid || "",
+                tenantId: testIdTokenClaims.tid || "",
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 idToken: testServerTokenResponse.body.id_token,
                 idTokenClaims: testIdTokenClaims,

@@ -6,7 +6,7 @@
 import { version } from "../../packageMetadata";
 import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerRefreshTokenClient, RefreshTokenClient, ProtocolUtils, ScopeSet, AccountInfo, RequestThumbprint, Constants } from "@azure/msal-common";
 import { BrokerMessage } from "../msg/BrokerMessage";
-import { BrokerMessageType, InteractionType } from "../../utils/BrowserConstants";
+import { BrokerMessageType, InteractionType, ApiId } from "../../utils/BrowserConstants";
 import { Configuration } from "../../config/Configuration";
 import { BrokerHandshakeRequest } from "../msg/req/BrokerHandshakeRequest";
 import { BrokerHandshakeResponse } from "../msg/resp/BrokerHandshakeResponse";
@@ -18,7 +18,7 @@ import { BrokerHandleRedirectRequest } from "../msg/req/BrokerHandleRedirectRequ
 import { BrokerSilentRequest } from "../request/BrokerSilentRequest";
 import { BrokerAuthError } from "../../error/BrokerAuthError";
 import { BrokerPopupRequest } from "../request/BrokerPopupRequest";
-import { BrokerRedirectRequest } from "../request/BrokerRedirectRequst";
+import { BrokerRedirectRequest } from "../request/BrokerRedirectRequest";
 import { BrokerSsoSilentRequest } from "../request/BrokerSsoSilentRequest";
 import { AuthorizationUrlRequest } from "../../request/AuthorizationUrlRequest";
 import { BrokerStateObject } from "../../utils/BrowserProtocolUtils";
@@ -328,7 +328,7 @@ export class BrokerClientApplication extends ClientApplication {
             const brokeredSilentRequest = this.initializeBrokeredRequest(silentRequest, InteractionType.Silent, validMessage.embeddedAppOrigin);
 
             // Call ssoSilent() and send the response back to the embedded application. 
-            const response: BrokerAuthenticationResult = (await this.acquireTokenByIframe(brokeredSilentRequest)) as BrokerAuthenticationResult;
+            const response: BrokerAuthenticationResult = (await this.acquireTokenByIframe(brokeredSilentRequest, ApiId.ssoSilent)) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, response);
             this.logger.info(`Sending auth response`);
             clientPort.postMessage(brokerAuthResponse);

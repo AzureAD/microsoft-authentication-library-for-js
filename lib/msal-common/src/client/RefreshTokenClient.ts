@@ -194,7 +194,6 @@ export class RefreshTokenClient extends BaseClient {
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
-
             parameterBuilder.addPopToken(await popTokenGenerator.generateCnf(request));
         }
 
