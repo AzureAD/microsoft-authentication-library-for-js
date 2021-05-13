@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Wed, 12 May 2021 18:35:03 GMT and should not be manually modified.
+This log was last generated on Thu, 13 May 2021 18:34:08 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.0.0
+
+Thu, 13 May 2021 18:34:08 GMT
+
+### Patches
+
+- Move MSAL Angular v2 and MSAL React to GA (janutter@microsoft.com)
 
 ## 2.0.0-beta.6
 

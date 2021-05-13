@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Enable no-param-reassign lint rule",
-  "packageName": "msal",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none"
-}

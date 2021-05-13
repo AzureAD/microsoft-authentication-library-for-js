@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update packge locks",
-  "packageName": "@azure/msal-angular",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none"
-}
