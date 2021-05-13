@@ -114,7 +114,7 @@ export class RequestParameterBuilder {
      * Adds the CCS (Cache Credential Service) query parameter for account object
      * @param loginHint 
      */
-     addCcsOid(clientInfo: ClientInfo): void {
+    addCcsOid(clientInfo: ClientInfo): void {
         this.parameters.set(HeaderNames.CCS_HEADER, encodeURIComponent(`Oid:${clientInfo.uid}@${clientInfo.utid}`));
     }
 
