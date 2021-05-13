@@ -1,5 +1,5 @@
 {
-  "type": "none",
+  "type": "patch",
   "comment": "Move MSAL Angular v2 and MSAL React to GA",
   "packageName": "@azure/msal-react",
   "email": "janutter@microsoft.com",
