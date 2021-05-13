@@ -2,6 +2,21 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Thu, 13 May 2021 18:34:08 GMT",
+      "tag": "@azure/msal-browser_v2.14.2",
+      "version": "2.14.2",
+      "comments": {
+        "none": [
+          {
+            "comment": "Enable no-param-reassign lint rule",
+            "author": "janutter@microsoft.com",
+            "commit": "e24f5cff944c05ccaecb180fa68814bc89512095",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 12 May 2021 18:35:03 GMT",
       "tag": "@azure/msal-browser_v2.14.2",
       "version": "2.14.2",
