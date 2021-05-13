@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-angular",
-  "version": "2.0.0-beta.6",
+  "version": "2.0.0",
   "scripts": {
     "ng": "ng",
     "start": "ng serve",
