@@ -1,6 +1,6 @@
 # Upgrading from MSAL Angular v1 to v2
 
-MSAL Angular v2 brings our Angular wrapper up-to-date with the latest version of MSAL common, and with out-of-the-box support for modern versions of Angular (9 - 11) and rxjs (6).
+MSAL Angular v2 brings our Angular wrapper up-to-date with the latest version of MSAL common, and with out-of-the-box support for modern versions of Angular (9 - 12) and rxjs (6).
 
 This guide will demonstrate changes needed to migrate an existing application from `@azure/msal-angular` v1 to v2.
 
@@ -24,10 +24,10 @@ npm install @azure/msal-browser @azure/msal-angular@latest
 Previously, `@azure/msal-angular` accepted two configuration objects via `MsalModule.forRoot()`, one for the core library, and one for `@azure/msal-angular`. This has been changed to take in an instance of MSAL, as well as two Angular-specific configuration objects.
 
 1. The first argument is the MSAL instance. This can be provided as a factory which instantiates MSAL, or by passing the instance of MSAL in with configurations. 
-2. The second argument is a [`MsalGuardConfiguration`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/msal.guard.config.ts) object, which specifies the `interactionType` as well as an optional `authRequest` for the type of request. 
+2. The second argument is a [`MsalGuardConfiguration`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/msal.guard.config.ts) object, which specifies the `interactionType` as well as an optional `authRequest` and an optional `loginFailedRoute`. 
 3. The third argument is a [`MsalInterceptorConfiguration`](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/src/msal.interceptor.config.ts) object, which contain the values for `interactionType`, a `protectedResourceMap`, and an optional `authRequest`. `unprotectedResourceMap` has been deprecated. 
 
-See the [updated sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular10-sample-app/src/app/app.module.ts) for an example of how to pass these configuration objects.
+See our [configuration doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/configuration.md) and specific docs for [MsalInterceptor](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/msal-interceptor.md) and [MsalGuard](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/msal-guard.md) for more information. You can also see our [updated samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular10-sample-app/src/app/app.module.ts) for examples of how to pass these configuration objects.
 
 ### Logger
 
@@ -44,8 +44,7 @@ See the [updated sample](https://github.com/AzureAD/microsoft-authentication-lib
 
 ### MSAL Guard
 
-* **Interfaces**: `MsalGuard` now implements `CanActivateChild` and `CanLoad` in addition to `CanActivate`. Example code snippets are provided in our [initialization doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/initialization.md#secure-the-routes-in-your-application) and examples of usage can be found in our sample application [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app-routing.module.ts).
-* **Redirect on failure**: `MsalGuard` configuration now has a `loginFailedRoute` that can be configured. The Guard will redirect to this page if login is required and fails. See the Angular sample for examples of implementing it in the [configuration](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app.module.ts#L48) and [app routing module](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app-routing.module.ts#L40). Note that redirecting on failure is not available for Angular 9 applications that use the `CanLoad` interface due to base type differences.
+* Please our [MsalGuard doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/msal-guard.md) for more details on configuring the current `MsalGuard`, and differences between v1 and v2.
 
 ### Accounts
 
@@ -64,6 +63,6 @@ Steps:
 
 ## Samples
 
-We have put together basic sample applications for Angular 9, 10, and 11. These samples demonstrate basic configuration and usage, and will be improved and added to incrementally. 
+We have put together basic sample applications for Angular 9, 10, 11, and 12. These samples demonstrate basic configuration and usage, and will be improved and added to incrementally. 
 
 See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/README.md) for a list of the MSAL Angular v2 samples and the features demonstrated.
