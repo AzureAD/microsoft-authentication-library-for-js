@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update peer dependencies for msal-angular #3510",
-  "packageName": "@azure/msal-angular",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "none"
-}
