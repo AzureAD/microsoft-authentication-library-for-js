@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Move MSAL Angular v2 and MSAL React to GA",
+  "packageName": "@azure/msal-angular",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "none"
+}
