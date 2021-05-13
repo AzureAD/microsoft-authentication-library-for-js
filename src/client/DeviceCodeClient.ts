@@ -131,6 +131,32 @@ export class DeviceCodeClient extends BaseClient {
     }
 
     /**
+     * Breaks the polling with specific conditions.
+     * @param request CommonDeviceCodeRequest
+     * @param deviceCodeResponse DeviceCodeResponse
+     */
+    private continuePolling(
+        deviceCodeExpirationTime: number,
+        userSpecifiedTimeout?: number,
+        userSpecifiedCancelFlag?: boolean,
+    ): boolean {
+        if (userSpecifiedCancelFlag) {
+            this.logger.error("Token request cancelled by setting DeviceCodeRequest.cancel = true");
+            throw ClientAuthError.createDeviceCodeCancelledError();
+        } else if (userSpecifiedTimeout && userSpecifiedTimeout < deviceCodeExpirationTime && TimeUtils.nowSeconds() > userSpecifiedTimeout) {
+            this.logger.error(`User defined timeout for device code polling reached. The timeout was set for ${userSpecifiedTimeout}`);
+            throw ClientAuthError.createUserTimeoutReachedError();
+        } else if (TimeUtils.nowSeconds() > deviceCodeExpirationTime) {
+            if (userSpecifiedTimeout) {
+                this.logger.verbose(`User specified timeout ignored as the device code has expired before the timeout elapsed. The user specified timeout was set for ${userSpecifiedTimeout}`);
+            }
+            this.logger.error(`Device code expired. Expiration time of device code was ${deviceCodeExpirationTime}`);
+            throw ClientAuthError.createDeviceCodeExpiredError();
+        }
+        return true;
+    }
+
+    /**
      * Creates token request with device code response and polls token endpoint at interval set by the device code
      * response
      * @param request
@@ -147,42 +173,11 @@ export class DeviceCodeClient extends BaseClient {
         const deviceCodeExpirationTime = TimeUtils.nowSeconds() + deviceCodeResponse.expiresIn;
         const pollingIntervalMilli = deviceCodeResponse.interval * 1000;
 
-        /**
-         * Breaks the polling with specific conditions.
-         * @param request CommonDeviceCodeRequest
-         * @param deviceCodeResponse DeviceCodeResponse
-         */
-        const continuePolling = (): boolean => {
-            if (request.cancel) {
-                this.logger.error("Token request cancelled by setting DeviceCodeRequest.cancel = true");
-                throw ClientAuthError.createDeviceCodeCancelledError();
-            } else if (userSpecifiedTimeout && userSpecifiedTimeout < deviceCodeExpirationTime && TimeUtils.nowSeconds() > userSpecifiedTimeout) {
-                this.logger.error(`User defined timeout for device code polling reached. The timeout was set for ${userSpecifiedTimeout}`);
-                throw ClientAuthError.createUserTimeoutReachedError();
-            } else if (TimeUtils.nowSeconds() > deviceCodeExpirationTime) {
-                if (userSpecifiedTimeout) {
-                    this.logger.verbose(`User specified timeout ignored as the device code has expired before the timeout elapsed. The user specified timeout was set for ${userSpecifiedTimeout}`);
-                }
-                this.logger.error(`Device code expired. Expiration time of device code was ${deviceCodeExpirationTime}`);
-                throw ClientAuthError.createDeviceCodeExpiredError();
-            }
-            return true;
-        };
-
-        /**
-         * Waits for t number of milliseconds
-         * @param t number
-         * @param value T
-         */
-        function delay<T>(t: number, value?: T): Promise<T | void> {
-            return new Promise((resolve) => setTimeout(() => resolve(value), t));
-        }
-
         /*
          * Poll token endpoint while (device code is not expired AND operation has not been cancelled by
          * setting CancellationToken.cancel = true). POST request is sent at interval set by pollingIntervalMilli
          */
-        while (continuePolling()) {
+        while (this.continuePolling(deviceCodeExpirationTime, userSpecifiedTimeout, request.cancel)) {
             const thumbprint: RequestThumbprint = {
                 clientId: this.config.authOptions.clientId,
                 authority: request.authority,
@@ -196,10 +191,11 @@ export class DeviceCodeClient extends BaseClient {
 
             if (response.body && response.body.error === Constants.AUTHORIZATION_PENDING) {
                 // user authorization is pending. Sleep for polling interval and try again
-                this.logger.info(response.body.error_description || "no_error_description");
+                this.logger.info(response.body.error_description || "Authorization pending. Continue polling.");
   
-                await delay(pollingIntervalMilli);
+                await TimeUtils.delay(pollingIntervalMilli);
             } else {
+                this.logger.verbose("Authorization completed successfully. Polling stopped.");
                 return response.body;
             }
         }
