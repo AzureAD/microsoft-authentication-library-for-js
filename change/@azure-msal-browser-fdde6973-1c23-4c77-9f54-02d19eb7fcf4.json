@@ -1,7 +1,7 @@
 {
-  "type": "patch",
+  "type": "none",
   "comment": "Enable no-param-reassign lint rule",
   "packageName": "@azure/msal-browser",
   "email": "janutter@microsoft.com",
-  "dependentChangeType": "patch"
+  "dependentChangeType": "none"
 }
