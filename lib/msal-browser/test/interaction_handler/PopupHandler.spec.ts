@@ -208,6 +208,9 @@ describe("PopupHandler.ts Unit Tests", () => {
                     href: "http://localhost/#/code=hello",
                     hash: "#code=hello"
                 },
+                history: {
+                    replaceState: () => { return }
+                },
                 close: () => {}
             };
 

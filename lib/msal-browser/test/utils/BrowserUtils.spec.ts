@@ -23,7 +23,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
 
     it("clearHash() clears the window hash", () => {
         window.location.hash = "thisIsAHash";
-        BrowserUtils.clearHash();
+        BrowserUtils.clearHash(window);
         expect(window.location.href.includes("#thisIsAHash")).to.be.false;
     });
 
@@ -33,7 +33,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         history.replaceState = null;
 
         window.location.hash = "thisIsAHash";
-        BrowserUtils.clearHash();
+        BrowserUtils.clearHash(window);
         expect(window.location.href.includes("#thisIsAHash")).to.be.false;
         
         history.replaceState = oldReplaceState;
@@ -42,7 +42,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
     it("replaceHash replaces the current window hash with the hash from the provided url", () => {
         window.location.hash = "thisIsAHash";
         const url = "http://localhost/#";
-        const testHash = "replacementHash";
+        const testHash = "#replacementHash";
         BrowserUtils.replaceHash(url + testHash);
         expect(window.location.hash).to.be.eq(testHash);
     });
