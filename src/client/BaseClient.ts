@@ -86,7 +86,7 @@ export abstract class BaseClient {
                     case CcsCredentialType.HOME_ACCOUNT_ID:
                         const clientInfo = buildClientInfoFromHomeAccountId(ccsCred.credential);
                         headers[HeaderNames.CCS_HEADER] = `Oid:${clientInfo.uid}@${clientInfo.utid}`;
-                        break
+                        break;
                     case CcsCredentialType.UPN:
                         headers[HeaderNames.CCS_HEADER] = `UPN: ${ccsCred.credential}`;
                         break;
