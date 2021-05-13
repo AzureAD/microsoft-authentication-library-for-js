@@ -3,9 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { StringUtils, CommonAuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient, AuthorityFactory, Authority, INetworkModule, ClientAuthError } from "@azure/msal-common";
+import { StringUtils, CommonAuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient, AuthorityFactory, Authority, INetworkModule, ClientAuthError, CcsCredential } from "@azure/msal-common";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { BrowserAuthError } from "../error/BrowserAuthError";
+import { TemporaryCacheKeys } from "../utils/BrowserConstants";
 
 export type InteractionParams = {};
 
@@ -63,12 +64,24 @@ export abstract class InteractionHandler {
         authCodeResponse.nonce = cachedNonce || undefined;
         authCodeResponse.state = requestState;
 
+        // Add CCS parameters if available
+        const cachedCcsCred = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.CCS_CREDENTIAL, true);
+        if (cachedCcsCred) {
+            this.authCodeRequest.ccsCredential = JSON.parse(cachedCcsCred) as CcsCredential;
+        }
+
         // Acquire token with retrieved code.
         const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, authCodeResponse);
         this.browserStorage.cleanRequestByState(state);
         return tokenResponse;
     }
 
+    /**
+     * Updates authority based on cloudInstanceHostname
+     * @param cloudInstanceHostname 
+     * @param authority 
+     * @param networkModule 
+     */
     protected async updateTokenEndpointAuthority(cloudInstanceHostname: string, authority: Authority, networkModule: INetworkModule): Promise<void> {
         const cloudInstanceAuthorityUri = `https://${cloudInstanceHostname}/${authority.tenant}/`;
         const cloudInstanceAuthority = await AuthorityFactory.createDiscoveredInstance(cloudInstanceAuthorityUri, networkModule, this.browserStorage, authority.options);
