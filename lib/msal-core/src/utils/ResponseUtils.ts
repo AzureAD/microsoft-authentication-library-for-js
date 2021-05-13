@@ -43,7 +43,7 @@ export class ResponseUtils {
     static buildAuthResponse(idToken: IdToken, authResponse: AuthResponse, serverAuthenticationRequest: ServerRequestParameters, account: Account, scopes: Array<string>, accountState: string): AuthResponse {
         switch(serverAuthenticationRequest.responseType) {
             case ResponseTypes.id_token:
-                authResponse = {
+                let idTokenResponse: AuthResponse = {
                     ...authResponse,
                     tokenType: ServerHashParamKeys.ID_TOKEN,
                     account: account,
@@ -51,14 +51,14 @@ export class ResponseUtils {
                     accountState: accountState
                 };
                 
-                authResponse = ResponseUtils.setResponseIdToken(authResponse, idToken);
-                return (authResponse.idToken) ? authResponse : null;
+                idTokenResponse = ResponseUtils.setResponseIdToken(idTokenResponse, idToken);
+                return (idTokenResponse.idToken) ? idTokenResponse : null;
             case ResponseTypes.id_token_token:
-                authResponse = ResponseUtils.setResponseIdToken(authResponse, idToken);
-                return (authResponse && authResponse.accessToken && authResponse.idToken) ? authResponse : null;
+                const idTokeTokenResponse = ResponseUtils.setResponseIdToken(authResponse, idToken);
+                return (idTokeTokenResponse && idTokeTokenResponse.accessToken && idTokeTokenResponse.idToken) ? idTokeTokenResponse : null;
             case ResponseTypes.token:
-                authResponse = ResponseUtils.setResponseIdToken(authResponse, idToken);
-                return authResponse;
+                const tokenResponse = ResponseUtils.setResponseIdToken(authResponse, idToken);
+                return tokenResponse;
             default: 
                 return null;
         }
