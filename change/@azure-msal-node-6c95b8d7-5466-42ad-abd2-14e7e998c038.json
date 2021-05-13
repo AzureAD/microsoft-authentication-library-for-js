@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Update packge locks",
+  "packageName": "@azure/msal-node",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "none"
+}
