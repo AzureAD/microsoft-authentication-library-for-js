@@ -6,6 +6,7 @@
 import { ClientAuthError } from "../error/ClientAuthError";
 import { StringUtils } from "../utils/StringUtils";
 import { ICrypto } from "../crypto/ICrypto";
+import { Separators } from "../utils/Constants";
 
 /**
  * Client info object which consists of two IDs. Need to add more info here.
@@ -31,4 +32,15 @@ export function buildClientInfo(rawClientInfo: string, crypto: ICrypto): ClientI
     } catch (e) {
         throw ClientAuthError.createClientInfoDecodingError(e);
     }
+}
+
+export function buildClientInfoFromHomeAccountId(homeAccountId: string): ClientInfo {
+    const clientInfoParts: string[] = homeAccountId.split(Separators.CLIENT_INFO_SEPARATOR);
+    if (clientInfoParts.length < 2) {
+        throw ClientAuthError.createClientInfoDecodingError("Home account ID was malformed.");
+    }
+    return {
+        uid: clientInfoParts[0],
+        utid: clientInfoParts[1]
+    };
 }

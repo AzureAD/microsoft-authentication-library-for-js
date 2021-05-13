@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, CcsCredential, CcsCredentialType } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -672,7 +672,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param serverAuthenticationRequest
      * @param account
      */
-    updateCacheEntries(state: string, nonce: string, authorityInstance: string): void {
+    updateCacheEntries(state: string, nonce: string, authorityInstance: string, loginHint: string, account: AccountInfo|null): void {
         this.logger.trace("BrowserCacheManager.updateCacheEntries called");
         // Cache the request state
         const stateCacheKey = this.generateStateKey(state);
@@ -685,6 +685,20 @@ export class BrowserCacheManager extends CacheManager {
         // Cache authorityKey
         const authorityCacheKey = this.generateAuthorityKey(state);
         this.setTemporaryCache(authorityCacheKey, authorityInstance, false);
+
+        if (account) {
+            const ccsCredential: CcsCredential = {
+                credential: account.homeAccountId,
+                type: CcsCredentialType.HOME_ACCOUNT_ID
+            };
+            this.setTemporaryCache(TemporaryCacheKeys.CCS_CREDENTIAL, JSON.stringify(ccsCredential), true);
+        } else if (!StringUtils.isEmpty(loginHint)) {
+            const ccsCredential: CcsCredential = {
+                credential: loginHint,
+                type: CcsCredentialType.UPN
+            };
+            this.setTemporaryCache(TemporaryCacheKeys.CCS_CREDENTIAL, JSON.stringify(ccsCredential), true);
+        }
     }
 
     /**
