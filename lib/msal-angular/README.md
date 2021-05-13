@@ -37,7 +37,7 @@ The current `@azure/msal-angular` library improves upon the previous version and
 
 ## Version Support
 
-At a minimum, `@azure/msal-angular` will follow the [support schedule of the main Angular project](https://angular.io/guide/releases#support-policy-and-schedule). We may continue to support certain versions of Angular that are no under Active or LTS support from the main Angular project on a version-by-version basis, as defined below.
+At a minimum, `@azure/msal-angular` will follow the [support schedule of the main Angular project](https://angular.io/guide/releases#support-policy-and-schedule). We may continue to support certain versions of Angular that are not under Active or LTS support from the main Angular project on a version-by-version basis, as defined below.
 
 | MSAL Angular version | MSAL support status     | Supported Angular versions |
 |----------------------|-------------------------|----------------------------|
@@ -62,6 +62,7 @@ MSAL Angular Basics
 1. [Initialization](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/initialization.md)
 1. [Public APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/public-apis.md)
 1. [Using redirects](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/redirects.md)
+1. [Using the MsalGuard](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/msal-guard.md)
 1. [Using the MsalInterceptor](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/msal-interceptor.md)
 1. [Known issues](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-angular/docs/v2-docs/known-issues.md)
 

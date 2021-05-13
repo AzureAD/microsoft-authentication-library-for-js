@@ -7,7 +7,7 @@ In this document:
     - [Include and initialize the MSAL module in your app module](#include-and-initialize-the-msal-module-in-your-app-module)
     - [Secure the routes in your application](#secure-the-routes-in-your-application)
     - [Get tokens for Web API calls](#get-tokens-for-web-api-calls)
-    - [Subscribe to event callbacks](#subscribe-to-event-callbacks)
+    - [Subscribe to events](#subscribe-to-events)
 - [Next Steps](#next-steps)
 
 
@@ -19,7 +19,7 @@ Import `MsalModule` into app.module.ts. To initialize MSAL module you are requir
 ```js
 @NgModule({
     imports: [
-        MsalModule.forRoot({
+        MsalModule.forRoot( new PublicClientApplication({
             auth: {
                 clientId: "Your client ID"
             }
@@ -33,9 +33,7 @@ export class AppModule {}
 
 You can add authentication to secure specific routes in your application by just adding `canActivate: [MsalGuard]` to your route definition. It can be added at the parent or child routes. When a user visits these routes, the library will prompt the user to authenticate.
 
-**Note:** While the `MsalGuard` is done with best effort, it is a convenience feature intended to improve the user experience and, as such, should not be relied upon for security. Attackers can potentially get around client-side guards, and you should ensure that the server does not return any data the user should not access.
-
-You may also need a route guard that addresses specific needs. We encourage you to write your own guard if `MsalGuard` does not meet all those needs.
+See our [`MsalGuard` doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/msal-guard.md) for more details on configuration and considerations, including using additional interfaces.
 
 See this example of a route defined with the `MsalGuard`:
 
@@ -44,30 +42,6 @@ See this example of a route defined with the `MsalGuard`:
     path: 'profile',
     component: ProfileComponent,
     canActivate: [MsalGuard]
-  },
-```
-
-As of MSAL Angular v2, `canActivateChild` and `canLoad` have also been added to the guard, and can be added to your route definitions. You can see these used in our sample application [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app-routing.module.ts), as well as below: 
-
-```js
-  {
-    path: 'profile',
-    canActivateChild: [MsalGuard],
-    children: [
-      {
-        path: '',
-        component: ProfileComponent
-      },
-      {
-        path: 'detail',
-        component: DetailComponent
-      }
-    ]
-  },
-  { 
-    path: 'lazyLoad', 
-    loadChildren: () => import('./lazy/lazy.module').then(m => m.LazyModule),
-    canLoad: [MsalGuard]
   },
 ```
 
@@ -109,15 +83,9 @@ Using the `MsalInterceptor` is optional. You may wish to explicitly acquire toke
 
 Please note that the `MsalInterceptor` is provided for your convenience and may not fit all use cases. We encourage you to write your own interceptor if you have specific needs that are not addressed by the `MsalInterceptor`. 
 
-## Subscribe to event callbacks
+## Subscribe to events
 
-MSAL wrapper provides below callbacks for various operations. For all callbacks, you need to inject BroadcastService as a dependency in your component/service and also implement a `handleRedirectObservable`:
-
-```js
-this.authService.handleRedirectObservable().subscribe({
-    next: (result) => // do something here
-});
-```
+MSAL provides an event system, which emits events related to auth and MSAL, an can be subscribed to as below. To use events, the `MsalBroadcastService` should be added to your constructor in your component/service. 
 
 ### 1. How to subscribe to events
 
