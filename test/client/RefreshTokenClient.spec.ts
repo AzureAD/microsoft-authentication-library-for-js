@@ -20,19 +20,20 @@ import { AADServerParamKeys, GrantType, Constants, CredentialType, Authenticatio
 import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils";
 import { Authority } from "../../src/authority/Authority";
 import { RefreshTokenClient } from "../../src/client/RefreshTokenClient";
-import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
+import { CommonRefreshTokenRequest } from "../../src/request/CommonRefreshTokenRequest";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
 import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { AccountInfo } from "../../src/account/AccountInfo";
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
-import { SilentFlowRequest } from "../../src/request/SilentFlowRequest";
+import { CommonSilentFlowRequest } from "../../src/request/CommonSilentFlowRequest";
 import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 import { AuthToken } from "../../src/account/AuthToken";
 import { SilentFlowClient } from "../../src/client/SilentFlowClient";
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
+import { CcsCredentialType } from "../../src";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
@@ -94,7 +95,7 @@ describe("RefreshTokenClient unit tests", () => {
             });
 
             const client = new RefreshTokenClient(config);
-            const refreshTokenRequest: RefreshTokenRequest = {
+            const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 refreshToken: TEST_TOKENS.REFRESH_TOKEN,
                 claims: TEST_CONFIG.CLAIMS,
@@ -134,10 +135,10 @@ describe("RefreshTokenClient unit tests", () => {
             sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
-            config.storageInterface.setAccount(testAccountEntity);
-            config.storageInterface.setRefreshTokenCredential(testRefreshTokenEntity);
-            config.storageInterface.setRefreshTokenCredential(testFamilyRefreshTokenEntity);
-            config.storageInterface.setAppMetadata(testAppMetadata);
+            config.storageInterface?.setAccount(testAccountEntity);
+            config.storageInterface?.setRefreshTokenCredential(testRefreshTokenEntity);
+            config.storageInterface?.setRefreshTokenCredential(testFamilyRefreshTokenEntity);
+            config.storageInterface?.setAppMetadata(testAppMetadata);
             client = new RefreshTokenClient(config);
         });
 
@@ -158,7 +159,7 @@ describe("RefreshTokenClient unit tests", () => {
             });
 
             const client = new RefreshTokenClient(config);
-            const refreshTokenRequest: RefreshTokenRequest = {
+            const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 refreshToken: TEST_TOKENS.REFRESH_TOKEN,
                 claims: TEST_CONFIG.CLAIMS,
@@ -174,7 +175,7 @@ describe("RefreshTokenClient unit tests", () => {
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = sinon.spy(RefreshTokenClient.prototype, <any>"createTokenRequestBody");
             const client = new RefreshTokenClient(config);
-            const refreshTokenRequest: RefreshTokenRequest = {
+            const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 refreshToken: TEST_TOKENS.REFRESH_TOKEN,
                 claims: TEST_CONFIG.CLAIMS,
@@ -211,7 +212,7 @@ describe("RefreshTokenClient unit tests", () => {
 
         it("acquireTokenByRefreshToken refreshes a token", async () => {
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
-            const silentFlowRequest: SilentFlowRequest = {
+            const silentFlowRequest: CommonSilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 account: testAccount,
                 authority: TEST_CONFIG.validAuthority,
@@ -219,10 +220,14 @@ describe("RefreshTokenClient unit tests", () => {
                 forceRefresh: false
             };
 
-            const expectedRefreshRequest: RefreshTokenRequest = {
+            const expectedRefreshRequest: CommonRefreshTokenRequest = {
                 ...silentFlowRequest,
                 authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-                refreshToken: testRefreshTokenEntity.secret
+                refreshToken: testRefreshTokenEntity.secret,
+                ccsCredential: {
+                    credential: testAccount.homeAccountId,
+                    type: CcsCredentialType.HOME_ACCOUNT_ID
+                }
             };
             const refreshTokenClientSpy = sinon.stub(RefreshTokenClient.prototype, "acquireToken");
 
@@ -234,7 +239,7 @@ describe("RefreshTokenClient unit tests", () => {
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = sinon.spy(RefreshTokenClient.prototype, <any>"createTokenRequestBody");
             const client = new RefreshTokenClient(config);
-            const refreshTokenRequest: RefreshTokenRequest = {
+            const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 refreshToken: TEST_TOKENS.REFRESH_TOKEN,
                 authority: TEST_CONFIG.validAuthority,
@@ -272,7 +277,7 @@ describe("RefreshTokenClient unit tests", () => {
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = sinon.spy(RefreshTokenClient.prototype, <any>"createTokenRequestBody");
             const client = new RefreshTokenClient(config);
-            const refreshTokenRequest: RefreshTokenRequest = {
+            const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 refreshToken: TEST_TOKENS.REFRESH_TOKEN,
                 authority: TEST_CONFIG.validAuthority,
@@ -331,10 +336,10 @@ describe("RefreshTokenClient unit tests", () => {
             sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testFamilyRefreshTokenEntity);
 
             config = await ClientTestUtils.createTestClientConfiguration();
-            config.storageInterface.setAccount(testAccountEntity);
-            config.storageInterface.setRefreshTokenCredential(testRefreshTokenEntity);
-            config.storageInterface.setRefreshTokenCredential(testFamilyRefreshTokenEntity);
-            config.storageInterface.setAppMetadata(testAppMetadata);
+            config.storageInterface?.setAccount(testAccountEntity);
+            config.storageInterface?.setRefreshTokenCredential(testRefreshTokenEntity);
+            config.storageInterface?.setRefreshTokenCredential(testFamilyRefreshTokenEntity);
+            config.storageInterface?.setAppMetadata(testAppMetadata);
             client = new RefreshTokenClient(config);
         });
 
@@ -345,7 +350,7 @@ describe("RefreshTokenClient unit tests", () => {
         it("acquires a token (FOCI)", async () => {
             const createTokenRequestBodySpy = sinon.spy(RefreshTokenClient.prototype, <any>"createTokenRequestBody");
             const client = new RefreshTokenClient(config);
-            const refreshTokenRequest: RefreshTokenRequest = {
+            const refreshTokenRequest: CommonRefreshTokenRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 refreshToken: TEST_TOKENS.REFRESH_TOKEN,
                 claims: TEST_CONFIG.CLAIMS,
@@ -377,7 +382,7 @@ describe("RefreshTokenClient unit tests", () => {
         });
 
         it("acquireTokenByRefreshToken refreshes a token (FOCI)", async () => {
-            const silentFlowRequest: SilentFlowRequest = {
+            const silentFlowRequest: CommonSilentFlowRequest = {
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
                 account: testAccount,
                 authority: TEST_CONFIG.validAuthority,
@@ -385,10 +390,14 @@ describe("RefreshTokenClient unit tests", () => {
                 forceRefresh: false
             };
 
-            const expectedRefreshRequest: RefreshTokenRequest = {
+            const expectedRefreshRequest: CommonRefreshTokenRequest = {
                 ...silentFlowRequest,
                 refreshToken: testRefreshTokenEntity.secret,
-                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                ccsCredential: {
+                    credential: testAccount.homeAccountId,
+                    type: CcsCredentialType.HOME_ACCOUNT_ID
+                }
             };
             const refreshTokenClientSpy = sinon.stub(RefreshTokenClient.prototype, "acquireToken");
 
@@ -405,6 +414,7 @@ describe("RefreshTokenClient unit tests", () => {
             const client = new RefreshTokenClient(config);
             await expect(client.acquireTokenByRefreshToken({
                 scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                // @ts-ignore
                 account: null,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
@@ -416,13 +426,16 @@ describe("RefreshTokenClient unit tests", () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new RefreshTokenClient(config);
+            // @ts-ignore
             await expect(client.acquireTokenByRefreshToken(null)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+            // @ts-ignore
             await expect(client.acquireTokenByRefreshToken(undefined)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
         });
 
         it("Throws error if it does not find token in cache", async () => {
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
                 environment: "login.windows.net",
                 tenantId: "testTenantId",
                 username: "testname@contoso.com"
@@ -437,7 +450,7 @@ describe("RefreshTokenClient unit tests", () => {
             testAccountEntity.authorityType = "MSSTS";
             sinon.stub(MockStorageClass.prototype, "getAccount").returns(testAccountEntity);
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            const tokenRequest: SilentFlowRequest = {
+            const tokenRequest: CommonSilentFlowRequest = {
                 scopes: [testScope2],
                 account: testAccount,
                 authority: TEST_CONFIG.validAuthority,

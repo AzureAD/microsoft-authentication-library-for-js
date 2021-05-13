@@ -27,6 +27,8 @@ import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload";
 import { TimeUtils } from "../utils/TimeUtils";
 import { TokenClaims } from "../account/TokenClaims";
 import { AccountInfo } from "../account/AccountInfo";
+import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
+import { CcsCredentialType } from "../account/CcsCredential";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -149,7 +151,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
         const requestBody = await this.createTokenRequestBody(request);
         const queryParameters = this.createTokenQueryParameters(request);
-        const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
+        const headers: Record<string, string> = this.createTokenRequestHeaders(request.ccsCredential);
 
         const endpoint = StringUtils.isEmpty(queryParameters) ? authority.tokenEndpoint : `${authority.tokenEndpoint}?${queryParameters}`;
 
@@ -228,6 +230,20 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
 
+        if (this.config.systemOptions.preventCorsPreflight) {
+            if (request.ccsCredential) {
+                switch (request.ccsCredential.type) {
+                    case CcsCredentialType.HOME_ACCOUNT_ID:
+                        const clientInfo = buildClientInfoFromHomeAccountId(request.ccsCredential.credential);
+                        parameterBuilder.addCcsOid(clientInfo);
+                        break;
+                    case CcsCredentialType.UPN:
+                        parameterBuilder.addCcsUpn(request.ccsCredential.credential);
+                        break;
+                }
+            }
+        }
+
         return parameterBuilder.createQueryString();
     }
 
@@ -288,17 +304,21 @@ export class AuthorizationCodeClient extends BaseClient {
                     // SessionId is only used in silent calls
                     this.logger.verbose("createAuthCodeUrlQueryString: Prompt is none, adding sid from account");
                     parameterBuilder.addSid(accountSid);
+                    parameterBuilder.addCcsOid(buildClientInfoFromHomeAccountId(request.account.homeAccountId));
                 } else if (request.loginHint) {
                     this.logger.verbose("createAuthCodeUrlQueryString: Adding login_hint from request");
                     parameterBuilder.addLoginHint(request.loginHint);
+                    parameterBuilder.addCcsUpn(request.loginHint);
                 } else if (request.account.username) {
                     // Fallback to account username if provided
                     this.logger.verbose("createAuthCodeUrlQueryString: Adding login_hint from account");
                     parameterBuilder.addLoginHint(request.account.username);
+                    parameterBuilder.addCcsOid(buildClientInfoFromHomeAccountId(request.account.homeAccountId));
                 }
             } else if (request.loginHint) {
                 this.logger.verbose("createAuthCodeUrlQueryString: No account, adding login_hint from request");
                 parameterBuilder.addLoginHint(request.loginHint);
+                parameterBuilder.addCcsUpn(request.loginHint);
             }
         } else {
             this.logger.verbose("createAuthCodeUrlQueryString: Prompt is select_account, ignoring account hints");

@@ -86,30 +86,6 @@ describe("Username Password unit tests", () => {
         });
     });
 
-    it("Does not add headers that do not qualify for a simple request", (done) => {
-        // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
-        sinon.stub(UsernamePasswordClient.prototype, <any>"executePostToTokenEndpoint").callsFake((tokenEndpoint: string, queryString: string, headers: Record<string, string>) => {
-            const headerNames = Object.keys(headers);
-            headerNames.forEach((name) => {
-                expect(CORS_SIMPLE_REQUEST_HEADERS).contains(name.toLowerCase());
-            });
-
-            done();
-            return AUTHENTICATION_RESULT_DEFAULT_SCOPES;
-        });
-
-        const client = new UsernamePasswordClient(config);
-        const usernamePasswordRequest: CommonUsernamePasswordRequest = {
-            authority: Constants.DEFAULT_AUTHORITY,
-            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            username: "mock_name",
-            password: "mock_password",
-            correlationId: RANDOM_TEST_GUID
-        };
-
-        client.acquireToken(usernamePasswordRequest);
-    });
-
     it("acquires a token", async () => {
         sinon.stub(UsernamePasswordClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT_DEFAULT_SCOPES);
 

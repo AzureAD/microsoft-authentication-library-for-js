@@ -4,7 +4,6 @@
  */
 
 import { expect } from "chai";
-import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import {
     AUTHENTICATION_RESULT,
@@ -23,7 +22,7 @@ import { SilentFlowClient } from "../../src/client/SilentFlowClient";
 import { RefreshTokenClient } from "../../src/client/RefreshTokenClient";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { AccountInfo } from "../../src/account/AccountInfo";
-import { CommonSilentFlowRequest, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CacheManager, ClientConfigurationErrorMessage, ClientAuthErrorMessage, TimeUtils, ClientConfiguration, RefreshTokenRequest, ServerTelemetryManager, TokenClaims } from "../../src";
+import { CommonSilentFlowRequest, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CacheManager, ClientConfigurationErrorMessage, ClientAuthErrorMessage, TimeUtils, ClientConfiguration, CommonRefreshTokenRequest, ServerTelemetryManager, TokenClaims, CcsCredentialType } from "../../src";
 import { AuthToken } from "../../src/account/AuthToken";
 import { ScopeSet } from "../../src/request/ScopeSet";
 import { PopTokenGenerator } from "../../src/crypto/PopTokenGenerator";
@@ -293,6 +292,7 @@ describe("SilentFlowClient unit tests", () => {
             const client = new SilentFlowClient(config);
             await expect(client.acquireToken({
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                // @ts-ignore
                 account: null,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
@@ -300,6 +300,7 @@ describe("SilentFlowClient unit tests", () => {
             })).to.be.rejectedWith(ClientAuthErrorMessage.NoAccountInSilentRequest.desc);
             await expect(client.acquireCachedToken({
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                // @ts-ignore
                 account: null,
                 authority: TEST_CONFIG.validAuthority,
                 correlationId: TEST_CONFIG.CORRELATION_ID,
@@ -311,9 +312,13 @@ describe("SilentFlowClient unit tests", () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config);
+            // @ts-ignore
             await expect(client.acquireToken(null)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+            // @ts-ignore
             await expect(client.acquireToken(undefined)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+            // @ts-ignore
             await expect(client.acquireCachedToken(null)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
+            // @ts-ignore
             await expect(client.acquireCachedToken(undefined)).to.be.rejectedWith(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc);
         });
 
@@ -322,6 +327,7 @@ describe("SilentFlowClient unit tests", () => {
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config);
             await expect(client.acquireToken({
+                // @ts-ignore
                 scopes: null,
                 account: testAccount,
                 authority: TEST_CONFIG.validAuthority,
@@ -523,10 +529,14 @@ describe("SilentFlowClient unit tests", () => {
                 forceRefresh: false
             };
 
-            const expectedRefreshRequest: RefreshTokenRequest = {
+            const expectedRefreshRequest: CommonRefreshTokenRequest = {
                 ...silentFlowRequest,
                 refreshToken: testRefreshTokenEntity.secret,
-                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                ccsCredential: {
+                    credential: testAccount.homeAccountId,
+                    type: CcsCredentialType.HOME_ACCOUNT_ID
+                }
             };
 
             sinon.stub(TimeUtils, <any>"isTokenExpired").returns(true);
@@ -542,6 +552,7 @@ describe("SilentFlowClient unit tests", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 apiId: 862,
                 correlationId: "test-correlation-id"
+                // @ts-ignore
             }, null);
             client = new SilentFlowClient(config);
             const telemetryCacheHitSpy = sinon.stub(ServerTelemetryManager.prototype, "incrementCacheHits").returns(1);
@@ -604,10 +615,14 @@ describe("SilentFlowClient unit tests", () => {
                 forceRefresh: false
             };
 
-            const expectedRefreshRequest: RefreshTokenRequest = {
+            const expectedRefreshRequest: CommonRefreshTokenRequest = {
                 ...silentFlowRequest,
                 refreshToken: testRefreshTokenEntity.secret,
-                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                ccsCredential: {
+                    credential: testAccount.homeAccountId,
+                    type: CcsCredentialType.HOME_ACCOUNT_ID
+                }
             };
 
             const refreshTokenSpy = sinon.stub(RefreshTokenClient.prototype, "acquireToken");
