@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Update MsalInterceptor to accept HTTP methods in protectedResourceMap #3546",
-  "packageName": "@azure/msal-angular",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "replace legacy password-reset flow",
-  "packageName": "@azure/msal-browser",
-  "email": "dogan.erisen@gmail.com",
-  "dependentChangeType": "none"
-}

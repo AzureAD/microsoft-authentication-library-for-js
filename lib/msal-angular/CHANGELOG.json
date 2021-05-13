@@ -2,6 +2,53 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Wed, 12 May 2021 18:35:03 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-beta.6",
+      "version": "2.0.0-beta.6",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Fix navigation bug when clearing auth code from hash in msal-angular #3609",
+            "author": "hemoral@microsoft.com",
+            "commit": "a45a8c65a4261c820604db0c3afbe932928b7ace",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update MsalInterceptor to accept HTTP methods in protectedResourceMap #3546",
+            "author": "joarroyo@microsoft.com",
+            "commit": "2de8256047baee8ca46702b2a470fe2dfd7f0947",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Properly handle MSAL guard on redirect uri for hash and path routing",
+            "author": "janutter@microsoft.com",
+            "commit": "ca43850a0a6bac877b7004d3db45d3b28a01625e",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update msal-angular tooling to angular v11 #3584",
+            "author": "joarroyo@microsoft.com",
+            "commit": "ca06366ac7c34e9e48fe67f18fef34dab3fab408",
+            "package": "@azure/msal-angular"
+          }
+        ],
+        "none": [
+          {
+            "comment": "[docs] updates and replacements",
+            "author": "dogan.erisen@gmail.com",
+            "commit": "56a947b117302218a625d365b63e8ad85859125f",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update peer dependencies for msal-angular #3510",
+            "author": "joarroyo@microsoft.com",
+            "commit": "1799e51fcd930dfd166f1136ebe72aa9bcd5c000",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 22 Apr 2021 23:26:08 GMT",
       "tag": "@azure/msal-angular_v2.0.0-beta.5",
       "version": "2.0.0-beta.5",
