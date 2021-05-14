@@ -225,8 +225,8 @@ export class CryptoOps implements ICrypto {
      */
     async decryptBoundTokenResponse(
         boundServerTokenResponse: ServerAuthorizationTokenResponse,
-        request: BaseAuthRequest): Promise<ServerAuthorizationTokenResponse | null> {
-        
+        request: BaseAuthRequest): Promise<ServerAuthorizationTokenResponse> {
+            
         const { session_key_jwe, response_jwe } = boundServerTokenResponse;
 
         if (session_key_jwe && response_jwe) {
@@ -239,10 +239,10 @@ export class CryptoOps implements ICrypto {
                 const sessionKeyJwe = new JsonWebEncryption(session_key_jwe);
                 // Deserialize response_jwe
                 const responseJwe = new JsonWebEncryption(response_jwe);
-
+                
                 const derivationKeyUsage = KEY_USAGES.RT_BINDING.DERIVATION_KEY as KeyUsage[];
                 const contentEncryptionKey = await sessionKeyJwe.unwrap(sessionTransportKeypair.privateKey, derivationKeyUsage);
-                
+
                 // Derive the session key from the content encryption key
                 const kdf = new KeyDerivation(
                     contentEncryptionKey,
@@ -250,20 +250,20 @@ export class CryptoOps implements ICrypto {
                     KEY_DERIVATION_SIZES.PRF_OUTPUT_LENGTH,
                     KEY_DERIVATION_SIZES.COUNTER_LENGTH
                 );
-                const derivedKeyData = await kdf.computeKDFInCounterMode(responseJwe.protectedHeader.ctx, KEY_DERIVATION_LABELS.DECRYPTION);
-                const sessionKeyUsages = KEY_USAGES.RT_BINDING.SESSION_KEY as KeyUsage[];
-                const sessionKeyAlgorithm: AesKeyAlgorithm = { name: "AES-GCM", length: 256 };
-                const sessionKey = await window.crypto.subtle.importKey("raw", derivedKeyData, sessionKeyAlgorithm, false, sessionKeyUsages);
                 
-                if (sessionKey) {
-                    return null;
-                }
-                return null;
+                const derivedKeyData = new Uint8Array(await kdf.computeKDFInCounterMode(responseJwe.protectedHeader.ctx, KEY_DERIVATION_LABELS.DECRYPTION));
+                const sessionKeyUsages = KEY_USAGES.RT_BINDING.SESSION_KEY as KeyUsage[];
+                // @ts-ignore
+                const sessionKeyAlgorithm: AesKeyAlgorithm = { name: "AES-GCM" };
+                const sessionKey = await window.crypto.subtle.importKey("raw", derivedKeyData, sessionKeyAlgorithm, true, sessionKeyUsages);
+                const responseStr = await responseJwe.decrypt(sessionKey);
+                const response: ServerAuthorizationTokenResponse = JSON.parse(responseStr);
+                return response;
             } else {
                 throw BrowserAuthError.createMissingStkKidError();
             }
+        } else {
+            throw new Error("No JWEs");
         }
-
-        return null;
     }
 }
