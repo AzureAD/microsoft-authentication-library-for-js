@@ -194,8 +194,8 @@ export class CryptoOps implements ICrypto {
      */
     async decryptBoundTokenResponse(
         boundServerTokenResponse: ServerAuthorizationTokenResponse,
-        request: BaseAuthRequest): Promise<ServerAuthorizationTokenResponse | null> {
-        
+        request: BaseAuthRequest): Promise<ServerAuthorizationTokenResponse> {
+            
         const { session_key_jwe, response_jwe } = boundServerTokenResponse;
 
         if (session_key_jwe && response_jwe) {
@@ -211,7 +211,7 @@ export class CryptoOps implements ICrypto {
 
                 const derivationKeyUsage = KEY_USAGES.RT_BINDING.DERIVATION_KEY;
                 const contentEncryptionKey = await sessionKeyJwe.unwrap(sessionTransportKeypair.privateKey, derivationKeyUsage);
-                
+
                 // Derive the session key from the content encryption key
                 const kdf = new KeyDerivation(
                     contentEncryptionKey,
@@ -224,16 +224,14 @@ export class CryptoOps implements ICrypto {
                 const sessionKeyUsages = KEY_USAGES.RT_BINDING.SESSION_KEY;
                 const sessionKeyAlgorithm: AesKeyAlgorithm = { name: CryptoAlgorithms.AES_GCM, length: CryptoLengths.DERIVED_KEY };
                 const sessionKey = await window.crypto.subtle.importKey(CryptoKeyFormats.RAW, derivedKeyData, sessionKeyAlgorithm, false, sessionKeyUsages);
-                
-                if (sessionKey) {
-                    return null;
-                }
-                return null;
+                const responseStr = await responseJwe.decrypt(sessionKey);
+                const response: ServerAuthorizationTokenResponse = JSON.parse(responseStr);
+                return response;
             } else {
                 throw BrowserAuthError.createMissingStkKidError();
             }
+        } else {
+            throw new Error("No JWEs");
         }
-
-        return null;
     }
 }
