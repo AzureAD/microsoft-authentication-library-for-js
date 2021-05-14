@@ -1,7 +1,7 @@
 import { expect } from "chai";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 import { ClientAuthError, AuthError } from "../../src";
-import { TEST_CONFIG } from "../utils/StringConstants";
+import { TEST_CONFIG } from "../test_kit/StringConstants";
 
 describe("ClientConfigurationError.ts Class Unit Tests", () => {
 

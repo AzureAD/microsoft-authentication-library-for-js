@@ -1,6 +1,6 @@
 import { expect } from "chai";
 import { ProtocolUtils } from "../../src/utils/ProtocolUtils";
-import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES } from "./StringConstants";
+import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES } from "../test_kit/StringConstants";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { Constants } from "../../src/utils/Constants";
 import sinon from "sinon";

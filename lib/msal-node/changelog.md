@@ -1,8 +1,25 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Wed, 14 Apr 2021 18:39:53 GMT and should not be manually modified.
+This log was last generated on Wed, 12 May 2021 18:35:03 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.1.0
+
+Wed, 12 May 2021 18:35:03 GMT
+
+### Minor changes
+
+- Add Node 16 to msal-node supported versions (janutter@microsoft.com)
+- add support for regional authorities (samuelkamau@microsoft.com)
+
+## 1.0.3
+
+Thu, 22 Apr 2021 23:26:08 GMT
+
+### Patches
+
+- Add .browserslistrc #3471 (thomas.norling@microsoft.com)
 
 ## 1.0.2
 

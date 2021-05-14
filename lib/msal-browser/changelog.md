@@ -1,8 +1,29 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Wed, 14 Apr 2021 18:39:53 GMT and should not be manually modified.
+This log was last generated on Wed, 12 May 2021 18:35:03 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.14.2
+
+Wed, 12 May 2021 18:35:03 GMT
+
+### Patches
+
+- Adjust log messages #3589 (joarroyo@microsoft.com)
+- Fix hash removal from URL and browser history after interactive request #3609 (hemoral@microsoft.com)
+- Update account equality check #3527 (thomas.norling@microsoft.com)
+- Close popup if error is thrown before popup window navigation occurs #3572 (thomas.norling@microsoft.com)
+- change msal-browser/msal-common to preserveModules to enable tree-shaking #3300 (oo.thomas96@gmail.com)
+
+## 2.14.1
+
+Thu, 22 Apr 2021 23:26:08 GMT
+
+### Patches
+
+- Add .browserslistrc #3471 (thomas.norling@microsoft.com)
+- Look for temp cache items in local storage as fallback #3509 (janutter@microsoft.com)
 
 ## 2.14.0
 

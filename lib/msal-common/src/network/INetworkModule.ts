@@ -26,7 +26,7 @@ export interface INetworkModule {
      * @param requestParams
      * @param enableCaching
      */
-    sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): Promise<NetworkResponse<T>>;
+    sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions, cancellationToken?: number): Promise<NetworkResponse<T>>;
 
     /**
      * Interface function for async network "POST" requests. Based on the Fetch standard: https://fetch.spec.whatwg.org/

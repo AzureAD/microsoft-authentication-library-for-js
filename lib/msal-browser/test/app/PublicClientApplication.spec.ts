@@ -8,7 +8,7 @@ import chai, { config } from "chai";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
-import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, testNavUrlNoRequest, TEST_POP_VALUES } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, testNavUrlNoRequest, DEFAULT_TENANT_DISCOVERY_RESPONSE, TEST_POP_VALUES } from "../utils/StringConstants";
 import { ServerError, Constants, AccountInfo, TokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthToken, PersistentCacheKeys, AuthorizationCodeClient, ResponseMode, AccountEntity, ProtocolUtils, AuthenticationScheme, RefreshTokenClient, Logger, ServerTelemetryEntity, SilentFlowRequest, EndSessionRequest as CommonEndSessionRequest, LogLevel, NetworkResponse, ServerAuthorizationTokenResponse } from "@azure/msal-common";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { BrowserConstants, TemporaryCacheKeys, ApiId, InteractionType, BrowserCacheLocation, WrapperSKU } from "../../src/utils/BrowserConstants";
@@ -483,7 +483,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     account: testAccount,
                     tokenType: AuthenticationScheme.BEARER
                 };
-                sinon.stub(XhrClient.prototype, "sendGetRequestAsync").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+                sinon.stub(XhrClient.prototype, "sendGetRequestAsync").callsFake((url) => {
+                    if (url.includes("discovery/instance")) {
+                        return DEFAULT_TENANT_DISCOVERY_RESPONSE;
+                    } else if (url.includes(".well-known/openid-configuration")) {
+                        return DEFAULT_OPENID_CONFIG_RESPONSE;
+                    }
+                });
                 sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
                 pca = new PublicClientApplication({
                     auth: {
@@ -568,7 +574,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     account: testAccount,
                     tokenType: AuthenticationScheme.BEARER
                 };
-                sinon.stub(XhrClient.prototype, "sendGetRequestAsync").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+                sinon.stub(XhrClient.prototype, "sendGetRequestAsync").callsFake((url) => {
+                    if (url.includes("discovery/instance")) {
+                        return DEFAULT_TENANT_DISCOVERY_RESPONSE;
+                    } else if (url.includes(".well-known/openid-configuration")) {
+                        return DEFAULT_OPENID_CONFIG_RESPONSE;
+                    }
+                });
                 sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
                 pca = new PublicClientApplication({
                     auth: {
@@ -716,7 +728,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     tokenType: AuthenticationScheme.BEARER
                 };
 
-                sinon.stub(XhrClient.prototype, "sendGetRequestAsync").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+                sinon.stub(XhrClient.prototype, "sendGetRequestAsync").callsFake((url) => {
+                    if (url.includes("discovery/instance")) {
+                        return DEFAULT_TENANT_DISCOVERY_RESPONSE;
+                    } else if (url.includes(".well-known/openid-configuration")) {
+                        return DEFAULT_OPENID_CONFIG_RESPONSE;
+                    }
+                });
                 sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
                 pca = new PublicClientApplication({
                     auth: {
@@ -809,7 +827,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     tokenType: AuthenticationScheme.BEARER
                 };
 
-                sinon.stub(XhrClient.prototype, "sendGetRequestAsync").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+                sinon.stub(XhrClient.prototype, "sendGetRequestAsync").callsFake((url) => {
+                    if (url.includes("discovery/instance")) {
+                        return DEFAULT_TENANT_DISCOVERY_RESPONSE;
+                    } else if (url.includes(".well-known/openid-configuration")) {
+                        return DEFAULT_OPENID_CONFIG_RESPONSE;
+                    }
+                });
                 sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
                 pca = new PublicClientApplication({
                     auth: {
@@ -917,7 +941,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     tokenType: AuthenticationScheme.BEARER
                 };
 
-                sinon.stub(XhrClient.prototype, "sendGetRequestAsync").resolves(DEFAULT_OPENID_CONFIG_RESPONSE);
+                sinon.stub(XhrClient.prototype, "sendGetRequestAsync").callsFake((url) => {
+                    if (url.includes("discovery/instance")) {
+                        return DEFAULT_TENANT_DISCOVERY_RESPONSE;
+                    } else if (url.includes(".well-known/openid-configuration")) {
+                        return DEFAULT_OPENID_CONFIG_RESPONSE;
+                    }
+                });
                 sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
                 pca = new PublicClientApplication({
                     auth: {
@@ -1531,7 +1561,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         describe("loginPopup", () => {
             beforeEach(() => {
-                sinon.stub(window, "open").returns(window);
+                const popupWindow = {
+                    ...window,
+                    close: () => {}
+                };
+                sinon.stub(window, "open").returns(popupWindow);
                 sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
             });
 
@@ -1641,7 +1675,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         describe("acquireTokenPopup", () => {
             beforeEach(() => {
-                sinon.stub(window, "open").returns(window);
+                const popupWindow = {
+                    ...window,
+                    close: () => {}
+                };
+                sinon.stub(window, "open").returns(popupWindow);
                 sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
             });
 
@@ -2299,7 +2337,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("logoutPopup", () => {
         beforeEach(() => {
-            sinon.stub(window, "open").returns(window);
+            const popupWindow = {
+                ...window,
+                close: () => {}
+            };
+            sinon.stub(window, "open").returns(popupWindow);
         });
 
         afterEach(() => {

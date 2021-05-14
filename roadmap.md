@@ -20,8 +20,8 @@ The MSAL.js team schedules work on a quarterly basis. The roadmap below provides
 
 | Library         | Deliverable                       | Status      | ETA       | Notes                                                        |
 | :-------------- | :-------------------------------- | :---------- | :-------- | :----------------------------------------------------------- |
-| MSAL Angular v2 | General Availability              | In Progress | May 2021  | Stable production release of MSAL Angular wrapper library for MSAL Browser. |
-| MSAL React      | General Availability              | In Progress | May 2021  | Stable production release of MSAL React wrapper library for MSAL Browser. |
+| MSAL Angular v2 | General Availability              | Complete    | May 2021  | Stable production release of MSAL Angular wrapper library for MSAL Browser. |
+| MSAL React      | General Availability              | Complete    | May 2021  | Stable production release of MSAL React wrapper library for MSAL Browser. |
 | MSAL Browser    | Refresh Token Proof-of-possession | In Progress | July 2021 | Cryptographically binds refresh tokens to the browser, helping mitigate replay if tokens are exfiltrated. |
 
 

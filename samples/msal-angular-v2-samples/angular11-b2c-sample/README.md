@@ -38,7 +38,9 @@ Open `.src/app/b2c-config.ts` in an editor:
 
 ### How to handle B2C user-flows
 
-Implementing B2C user-flows is a matter of initiating authorization requests against the corresponding authorities. Some user-flows are slightly more complex. For example, to initiate the **forgotPassword**, the user first first needs to click on the **forgot my password** link on the Azure sign-in screen, which causes B2C service to respond with an error. We then catch this error, and trigger another sign-in, this time against the `https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_reset` authority (see `.src/app/app-component.ts`).
+Implementing B2C user-flows is a matter of initiating authorization requests against the corresponding authorities. This sample demonstrates [sign-up/sign-in](https://docs.microsoft.com/azure/active-directory-b2c/add-sign-up-and-sign-in-policy?pivots=b2c-user-flow) (with [self-service password reset](https://docs.microsoft.com/azure/active-directory-b2c/add-password-reset-policy?pivots=b2c-user-flow#self-service-password-reset-recommended)) and [edit-profile](https://docs.microsoft.com/azure/active-directory-b2c/add-profile-editing-policy?pivots=b2c-user-flow) user-flows.
+
+> For implementing legacy [password-reset](https://docs.microsoft.com/azure/active-directory-b2c/add-password-reset-policy?pivots=b2c-user-flow#password-reset-policy-legacy) user-flow, which is slightly more complex, see the code sample: [Angular SPA using MSAL-Angular v1 on Azure AD B2C](https://github.com/Azure-Samples/active-directory-b2c-javascript-angular-spa).
 
 ## Additional notes
 

@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Prevent MSAL Guard from navigating app to url with code hash #3506",
-  "packageName": "@azure/msal-angular",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "patch"
-}

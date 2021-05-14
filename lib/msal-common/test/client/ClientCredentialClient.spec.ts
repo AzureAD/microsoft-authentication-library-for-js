@@ -6,7 +6,7 @@ import {
     TEST_CONFIG,
     TEST_TOKENS,
     CORS_SIMPLE_REQUEST_HEADERS
-} from "../utils/StringConstants";
+} from "../test_kit/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import { AADServerParamKeys, GrantType, Constants, AuthenticationScheme, ThrottlingConstants } from "../../src/utils/Constants";
 import { ClientTestUtils, mockCrypto } from "./ClientTestUtils";
@@ -67,6 +67,76 @@ describe("ClientCredentialClient unit tests", () => {
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`);
         expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`);
+    });
+
+    it("Adds claims when provided", async () => {
+        sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+        sinon.stub(ClientCredentialClient.prototype, <any>"executePostToTokenEndpoint").resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
+
+        const createTokenRequestBodySpy = sinon.spy(ClientCredentialClient.prototype, <any>"createTokenRequestBody");
+
+        const config = await ClientTestUtils.createTestClientConfiguration();
+        const client = new ClientCredentialClient(config);
+        const clientCredentialRequest: CommonClientCredentialRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            claims: TEST_CONFIG.CLAIMS
+        };
+
+        const authResult = await client.acquireToken(clientCredentialRequest);
+        const expectedScopes = [TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
+        expect(authResult.scopes).to.deep.eq(expectedScopes);
+        expect(authResult.accessToken).to.deep.eq(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token);
+        expect(authResult.state).to.be.empty;
+
+        expect(createTokenRequestBodySpy.calledWith(clientCredentialRequest)).to.be.true;
+
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.GRANT_TYPE}=${GrantType.CLIENT_CREDENTIALS_GRANT}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`);
+    });
+
+    it("Does not add claims when empty object provided", async () => {
+        sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+        sinon.stub(ClientCredentialClient.prototype, <any>"executePostToTokenEndpoint").resolves(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT);
+
+        const createTokenRequestBodySpy = sinon.spy(ClientCredentialClient.prototype, <any>"createTokenRequestBody");
+
+        const config = await ClientTestUtils.createTestClientConfiguration();
+        const client = new ClientCredentialClient(config);
+        const clientCredentialRequest: CommonClientCredentialRequest = {
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            claims: "{}"
+        };
+
+        const authResult = await client.acquireToken(clientCredentialRequest);
+        const expectedScopes = [TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
+        expect(authResult.scopes).to.deep.eq(expectedScopes);
+        expect(authResult.accessToken).to.deep.eq(CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT.body.access_token);
+        expect(authResult.state).to.be.empty;
+
+        expect(createTokenRequestBodySpy.calledWith(clientCredentialRequest)).to.be.true;
+
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.GRANT_TYPE}=${GrantType.CLIENT_CREDENTIALS_GRANT}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.not.contain(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`);
     });
 
     it("Does not add headers that do not qualify for a simple request", async () => {

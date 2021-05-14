@@ -36,8 +36,8 @@ export class ScopeSet {
      * @param scopesRequired
      */
     static fromString(inputScopeString: string): ScopeSet {
-        inputScopeString = inputScopeString || "";
-        const inputScopes: Array<string> = inputScopeString.split(" ");
+        const scopeString = inputScopeString || "";
+        const inputScopes: Array<string> = scopeString.split(" ");
         return new ScopeSet(inputScopes);
     }
 

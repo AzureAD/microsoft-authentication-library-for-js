@@ -345,6 +345,7 @@ export class ResponseHandler {
         let expiresOn: Date | null = null;
         let extExpiresOn: Date | undefined;
         let familyId: string = Constants.EMPTY_STRING;
+
         if (cacheRecord.accessToken) {
             if (cacheRecord.accessToken.tokenType === AuthenticationScheme.POP) {
                 const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(cryptoObj);

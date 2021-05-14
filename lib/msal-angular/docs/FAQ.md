@@ -10,6 +10,7 @@
 
 **[Configuration](#configuration)**
 
+1. [What is the difference between `@azure/msal-angular` v2 and v1?](#what-is-the-difference-between-azuremsal-angular-v2-and-v1)
 1. [How do I add tokens to API calls?](#how-do-i-add-tokens-to-api-calls)
 1. [How do I use my app with path/hash location strategy?](#how-do-i-use-my-app-with-pathhash-location-strategy)
 
@@ -35,7 +36,7 @@ Please see [here](https://github.com/AzureAD/microsoft-authentication-library-fo
 
 ### What versions of Angular are supported?
 
-Msal Angular currently supports Angular 9, 10, and 11.
+Msal Angular currently supports Angular 9, 10, 11, and 12.
 
 ### Does `@azure/msal-angular` support Server Side Rendering?
 
@@ -47,33 +48,32 @@ Yes, `@azure/msal-angular` does support IE 11. More information can on configura
 
 ## Configuration
 
+### What is the difference between `@azure/msal-angular` v2 and v1?
+
+Please see our [upgrade guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/v1-v2-upgrade-guide.md) for information on the differences between `@azure/msal-angular` v1 and v2, as well as changes to watch out for when upgrading.
+
 ### How do I add tokens to API calls?
 
-`@azure/msal-angular` provides the `MsalInterceptor` for obtaining tokens and adding them to HTTP requests. The `protectedResourceMap` is part of the `MsalInterceptorConfiguration` object, and can be configured with endpoints and scopes, passed as `Map<string, Array<string>>`.
+`@azure/msal-angular` provides the `MsalInterceptor` for obtaining tokens and adding them to HTTP requests. You may find the following links helpful:
 
-Things to note about the `protectedResourceMap`:
-- Using `*` for wildcards is supported, but the first match will be used. Hence, the order of resources in the `protectedResourceMap` matters.
-- Passing a `null` scope ensures that no tokens are obtained for the particular endpoint. You can pass null to make sure an endpoint is unprotected.
-- Relative paths may need to be used if relative paths are used in your application. This also applies to issues that may arise with `ngx-translate`. Relative paths should not have a leading slash.
-
-See our [initialization doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/initialization.md#get-tokens-for-web-api-calls) for more information on setting this up, our [upgrade guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/v1-v2-upgrade-guide.md#protected-resources) for differences to MSAL Angular v1, and our [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/5cc21a95a389c31a0d5e74d37ff297931aeee479/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app.module.ts#L47) for examples of usage.
+* [MsalInterceptor doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/msal-interceptor.md) for details on configuration and use
+* [Initialization doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/initialization.md#get-tokens-for-web-api-calls) for basic set up
+* [Configuration doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/configuration.md) for different ways to configure MSAL
+* [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/5cc21a95a389c31a0d5e74d37ff297931aeee479/samples/msal-angular-v2-samples/angular11-sample-app/src/app/app.module.ts#L47) for examples of usage
 
 Please note that the `MsalInterceptor` is optional. You may wish to explicitly acquire tokens using the acquireToken APIs instead. The `MsalInterceptor` is provided for your convenience and may not fit all use cases. We encourage you to write your own interceptor if you have specific needs that are not addressed by the `MsalInterceptor`. 
 
 ### How do I use my app with path/hash location strategy?
 
-`@azure/msal-angular` supports both the `PathLocationStrategy` and `HashLocationStrategy`, can be configured in the `app-routing.module.ts` of your app. `PathLocationStrategy` is demonstrated in our [Angular 10 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular10-sample-app), while `HashLocationStrategy` is demonstrated in our [Angular 11 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-sample-app). See the [Angular docs](https://angular.io/guide/router#locationstrategy-and-browser-url-styles) for more details on routing strategies. 
+`@azure/msal-angular` supports both the `PathLocationStrategy` and `HashLocationStrategy`, which can be configured in the `app-routing.module.ts` of your app. See our [samples list](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples) for the routing strategy demonstrated by each sample. See the [Angular docs](https://angular.io/guide/router#locationstrategy-and-browser-url-styles) for more details on routing strategies. 
 
 See [below](#how-do-i-log-users-in-when-they-hit-the-application) for additional considerations for each strategy if you are wanting to log users in on page load.
 
 ## Usage
 
 ### How do I secure routes?
-Please see our [initialization doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/initialization.md#secure-the-routes-in-your-application) for more information about securing routes with the `MsalGuard`.
 
-Please note that while the `MsalGuard` is done with best effort, it is a convenience feature intended to improve the user experience and, as such, should not be relied upon for security. Attackers can potentially get around client-side guards, and you should ensure that the server does not return any data the user should not access.
-
-You may also need a route guard that addresses specific needs. We encourage you to write your own guard if `MsalGuard` does not meet all those needs.
+Please see our [MsalGuard doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/msal-guard.md) for more information about securing routes with the `MsalGuard`.
 
 ### How do I get accounts?
 
@@ -98,7 +98,7 @@ Our [Angular 11](https://github.com/AzureAD/microsoft-authentication-library-for
 
 ### How do I log users in when they hit the application?
 
-To log your users in when they hit the application, without using a login button, **do not** call `login` in the `ngOnInit` in `app.component.ts`, as this can cause looping with redirects. Instead, we recommend setting the `MsalGuard` on your initial page, which will prompt users to log in before they reach other pages in your application. Our additional recommendations depend on your routing strategy:
+To log your users in when they hit the application, without using a login button, **do not** call `login` in the `ngOnInit` in `app.component.ts`, as this can cause looping with redirects. Instead, we recommend setting the `MsalGuard` on your initial page, which will prompt users to log in before they reach other pages in your application. Our additional recommendations depend on your routing strategy below. Please all see our [MsalGuard doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/msal-guard.md) for more information.
 
 #### PathLocationStrategy
 
@@ -109,12 +109,13 @@ For those using the `PathLocationStrategy`, we recommend:
 - Making sure the `MsalRedirectComponent` is bootstrapped
 - Optionally: adding `MsalGuard` to all your routes if you want all your routes protected
 
-Our [Angular 10 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular10-sample-app) demonstrates use of the `PathRoutingStrategy`.
+Our [Angular 10 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular10-sample-app) demonstrates use of the `PathLocationStrategy`.
 
 #### HashLocationStrategy
 
 For those using the `HashLocationStrategy`, we recommend:
 - Setting the `MsalGuard` on your initial page
+- Not setting the `MsalGuard` on placeholder routes (e.g. `/code`, `/error`)
 - Making sure the `MsalRedirectComponent` is bootstrapped
 - Optionally: adding `MsalGuard` to all your routes if you want all your routes protected
 

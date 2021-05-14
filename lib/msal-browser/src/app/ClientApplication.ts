@@ -210,7 +210,7 @@ export abstract class ClientApplication {
         let state: string;
         try {
             state = this.validateAndExtractStateFromHash(responseHash, InteractionType.Redirect);
-            BrowserUtils.clearHash();
+            BrowserUtils.clearHash(window);
             this.logger.verbose("State extracted from hash");
         } catch (e) {
             this.logger.info(`handleRedirectPromise was unable to extract state due to: ${e}`);
@@ -512,6 +512,11 @@ export abstract class ClientApplication {
             } else {
                 this.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Popup, null, e);
             }
+            
+            if (popup) {
+                // Close the synchronous popup if an error is thrown before the window unload event is registered
+                popup.close();
+            }
 
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequestByState(validRequest.state);
@@ -683,7 +688,7 @@ export abstract class ClientApplication {
             // create logout string and navigate user window to logout. Auth module will clear cache.
             const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
             
-            if (!validLogoutRequest.account || AccountEntity.accountInfoIsEqual(validLogoutRequest.account, this.getActiveAccount())) {
+            if (!validLogoutRequest.account || AccountEntity.accountInfoIsEqual(validLogoutRequest.account, this.getActiveAccount(), false)) {
                 this.logger.verbose("Setting active account to null");
                 this.setActiveAccount(null);
             }
@@ -771,7 +776,7 @@ export abstract class ClientApplication {
 
             // create logout string and navigate user window to logout. Auth module will clear cache.
             const logoutUri: string = authClient.getLogoutUri(validRequest);
-            if (!validRequest.account || AccountEntity.accountInfoIsEqual(validRequest.account, this.getActiveAccount())) {
+            if (!validRequest.account || AccountEntity.accountInfoIsEqual(validRequest.account, this.getActiveAccount(), false)) {
                 this.logger.verbose("Setting active account to null");
                 this.setActiveAccount(null);
             }
@@ -809,6 +814,11 @@ export abstract class ClientApplication {
             }
 
         } catch (e) {
+            if (popup) {
+                // Close the synchronous popup if an error is thrown before the window unload event is registered
+                popup.close();
+            }
+            
             this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY));
             this.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Popup, null, e);
             serverTelemetryManager.cacheFailedRequest(e);

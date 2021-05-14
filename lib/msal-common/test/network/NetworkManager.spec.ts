@@ -12,7 +12,7 @@ import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAutho
 import { MockStorageClass }  from "../client/ClientTestUtils";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { ServerError } from "../../src/error/ServerError";
-import { AUTHENTICATION_RESULT, NETWORK_REQUEST_OPTIONS, THUMBPRINT, THROTTLING_ENTITY, DEFAULT_NETWORK_IMPLEMENTATION } from "../utils/StringConstants";
+import { AUTHENTICATION_RESULT, NETWORK_REQUEST_OPTIONS, THUMBPRINT, THROTTLING_ENTITY, DEFAULT_NETWORK_IMPLEMENTATION } from "../test_kit/StringConstants";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../src";
 
 describe("NetworkManager", () => {

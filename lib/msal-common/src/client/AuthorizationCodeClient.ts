@@ -48,7 +48,8 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     async getAuthCodeUrl(request: CommonAuthorizationUrlRequest): Promise<string> {
         const queryString = this.createAuthCodeUrlQueryString(request);
-        return `${this.authority.authorizationEndpoint}?${queryString}`;
+
+        return UrlString.appendQueryString(this.authority.authorizationEndpoint, queryString);
     }
 
     /**
@@ -226,7 +227,7 @@ export class AuthorizationCodeClient extends BaseClient {
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);
 
-        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+        if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
 
