@@ -71,6 +71,7 @@
         "multiline-comment-style": [2, "starred-block" ],
         "no-console": 2,
         "no-multiple-empty-lines": [2, { "max": 1 }],
+        "no-param-reassign": 2,
         "no-var": 2,
         "prefer-const": 2,
         "quotes": [2, "double"],

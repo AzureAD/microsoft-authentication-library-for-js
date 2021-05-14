@@ -17,6 +17,10 @@ on:
       - '!**.md'
       - '.github/workflows/msal-node-e2e.yml'
 
+concurrency:
+  group: node-e2e-${{github.ref}}
+  cancel-in-progress: true
+
 jobs:
   run-e2e:
     if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
@@ -24,16 +28,11 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        node: [ 10, 12, 14 ]
+        node: [ 10, 12, 14, 16 ]
 
     name: Node ${{ matrix.node }}
 
     steps:
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.8.0
-      with:
-        access_token: ${{ github.token }}
-        
     - uses: actions/checkout@v2
 
     - name: Use Node.js

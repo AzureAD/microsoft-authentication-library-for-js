@@ -2,6 +2,87 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Thu, 13 May 2021 18:34:08 GMT",
+      "tag": "@azure/msal-react_v1.0.0",
+      "version": "1.0.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Move MSAL Angular v2 and MSAL React to GA",
+            "author": "janutter@microsoft.com",
+            "commit": "40509896e4820db7ec49093a8afc12b151b85a6a",
+            "package": "@azure/msal-react"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Update packge locks",
+            "author": "janutter@microsoft.com",
+            "commit": "a96f88d90512c2f5a0063a05ebe22240001d91be",
+            "package": "@azure/msal-react"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 12 May 2021 18:35:03 GMT",
+      "tag": "@azure/msal-react_v1.0.0-beta.3",
+      "version": "1.0.0-beta.3",
+      "comments": {
+        "none": [
+          {
+            "comment": "replace legacy password-reset flow",
+            "author": "dogan.erisen@gmail.com",
+            "commit": "f272ffce86591aeeacd892f3b53e522ebcd19555",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "Regenerate package-lock #3510",
+            "author": "joarroyo@microsoft.com",
+            "commit": "ba0092a452f71a7bc58aaf7acdf94536d66f7493",
+            "package": "@azure/msal-react"
+          }
+        ],
+        "prerelease": [
+          {
+            "comment": "Fix extra state update in useAccount hook #3527",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "878253750fecf12b4a865a5821df20d333ff0134",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "Prevent UnauthenticatedTemplate from rendering children while processing redirect response #3552",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "90afc948d8ab779526679d60433b2d81ea7557bc",
+            "package": "@azure/msal-react"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 22 Apr 2021 23:26:08 GMT",
+      "tag": "@azure/msal-react_v1.0.0-beta.2",
+      "version": "1.0.0-beta.2",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update msal-react package-lock.json",
+            "author": "janutter@microsoft.com",
+            "commit": "e5aa3546084fdbd40a77b4bd6eae667d91481620",
+            "package": "@azure/msal-react"
+          }
+        ],
+        "prerelease": [
+          {
+            "comment": "Add .browserslistrc #3471",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "04c6d659d4dc76183ef9043075d3b6cacc450c9b",
+            "package": "@azure/msal-react"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 24 Mar 2021 22:55:46 GMT",
       "tag": "@azure/msal-react_v1.0.0-beta.1",
       "version": "1.0.0-beta.1",

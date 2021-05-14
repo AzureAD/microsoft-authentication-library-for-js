@@ -2,6 +2,123 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Thu, 13 May 2021 18:34:08 GMT",
+      "tag": "@azure/msal-angular_v2.0.0",
+      "version": "2.0.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update docs #3586",
+            "author": "joarroyo@microsoft.com",
+            "commit": "85224c634353b49064e41202736896c1c12af2e8",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update packge locks",
+            "author": "janutter@microsoft.com",
+            "commit": "a96f88d90512c2f5a0063a05ebe22240001d91be",
+            "package": "@azure/msal-angular"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Move MSAL Angular v2 and MSAL React to GA",
+            "author": "janutter@microsoft.com",
+            "commit": "40509896e4820db7ec49093a8afc12b151b85a6a",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 12 May 2021 18:35:03 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-beta.6",
+      "version": "2.0.0-beta.6",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Fix navigation bug when clearing auth code from hash in msal-angular #3609",
+            "author": "hemoral@microsoft.com",
+            "commit": "a45a8c65a4261c820604db0c3afbe932928b7ace",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update MsalInterceptor to accept HTTP methods in protectedResourceMap #3546",
+            "author": "joarroyo@microsoft.com",
+            "commit": "2de8256047baee8ca46702b2a470fe2dfd7f0947",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Properly handle MSAL guard on redirect uri for hash and path routing",
+            "author": "janutter@microsoft.com",
+            "commit": "ca43850a0a6bac877b7004d3db45d3b28a01625e",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update msal-angular tooling to angular v11 #3584",
+            "author": "joarroyo@microsoft.com",
+            "commit": "ca06366ac7c34e9e48fe67f18fef34dab3fab408",
+            "package": "@azure/msal-angular"
+          }
+        ],
+        "none": [
+          {
+            "comment": "[docs] updates and replacements",
+            "author": "dogan.erisen@gmail.com",
+            "commit": "56a947b117302218a625d365b63e8ad85859125f",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update peer dependencies for msal-angular #3510",
+            "author": "joarroyo@microsoft.com",
+            "commit": "1799e51fcd930dfd166f1136ebe72aa9bcd5c000",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 22 Apr 2021 23:26:08 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-beta.5",
+      "version": "2.0.0-beta.5",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Prevent MSAL Guard from navigating app to url with code hash #3506",
+            "author": "janutter@microsoft.com",
+            "commit": "06904071267f726ecb5501d2b75ec71c751cb097",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Add .browserslistrc #3471",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "04c6d659d4dc76183ef9043075d3b6cacc450c9b",
+            "package": "@azure/msal-angular"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Fix msal-angular packge-lock",
+            "author": "janutter@microsoft.com",
+            "commit": "41483305debd20a1345262bd0167f1bef64dfd65",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update and fix eslint rules",
+            "author": "janutter@microsoft.com",
+            "commit": "70debe58239b6a6fdf4e533a8a1ee057257846a8",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "details added to load dynamic configurations using APP_INITIALIZER",
+            "author": "itvinay12@gmail.com",
+            "commit": "d22605301e23a65e28513678a10ab8136f149e80",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 14 Apr 2021 18:39:53 GMT",
       "tag": "@azure/msal-angular_v2.0.0-beta.4",
       "version": "2.0.0-beta.4",

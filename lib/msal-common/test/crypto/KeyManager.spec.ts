@@ -4,8 +4,8 @@ import sinon from "sinon";
 import chaiAsPromised from "chai-as-promised";
 const expect = chai.expect;
 chai.use(chaiAsPromised);
-import { ICrypto, PkceCodes, Logger, AuthenticationScheme } from "../../src";
-import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
+import { ICrypto, PkceCodes, AuthenticationScheme } from "../../src";
+import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS } from "../test_kit/StringConstants";
 import { KeyManager } from "../../src/crypto/KeyManager";
 
 describe("KeyManager Unit Tests", () => {

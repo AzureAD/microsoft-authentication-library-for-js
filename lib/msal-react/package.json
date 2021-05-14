@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-react",
-  "version": "1.0.0-beta.1",
+  "version": "1.0.0",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -23,7 +23,7 @@
   "scripts": {
     "start": "tsdx watch",
     "build": "tsdx build --tsconfig ./tsconfig.build.json",
-    "build:modules:watch": "tsdx watch --verbose",
+    "build:modules:watch": "tsdx watch --verbose --tsconfig ./tsconfig.build.json",
     "test": "tsdx test .*.spec.*",
     "test:watch": "tsdx test .*.spec.* --watch",
     "test:coverage": "tsdx test .*.spec.* --coverage",
@@ -35,12 +35,12 @@
     "prepack": "npm run build:all"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^2.13.0",
+    "@azure/msal-browser": "^2.14.2",
     "react": "^16.13.0 || ^17"
   },
   "module": "dist/msal-react.esm.js",
   "devDependencies": {
-    "@azure/msal-browser": "^2.13.0",
+    "@azure/msal-browser": "^2.14.2",
     "@testing-library/jest-dom": "^5.11.5",
     "@testing-library/react": "^11.2.3",
     "@types/jest": "^26.0.15",

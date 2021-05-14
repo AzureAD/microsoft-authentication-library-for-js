@@ -138,7 +138,7 @@ describe("CryptoOps.ts Unit Tests", () => {
          */
         const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
         expect(generateKeyPairSpy.calledWith(AT_BINDING_KEY_OPTIONS, true));
-        expect(generateKeyPairSpy.getCall(0).args[0].keyGenAlgorithmOptions.name).to.eq(AT_BINDING_KEY_OPTIONS.keyGenAlgorithmOptions.name);
+        expect(generateKeyPairSpy.getCall(0).args[0].keyGenAlgorithmOptions.name.toLowerCase()).to.eq(AT_BINDING_KEY_OPTIONS.keyGenAlgorithmOptions.name.toLowerCase());
         expect(exportJwkSpy.calledWith((await generateKeyPairSpy.returnValues[0]).publicKey));
         expect(regExp.test(pkThumbprint)).to.be.true;
         expect(dbStorage[pkThumbprint]).to.be.not.empty;
