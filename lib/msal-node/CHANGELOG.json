@@ -2,6 +2,97 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Thu, 13 May 2021 18:34:08 GMT",
+      "tag": "@azure/msal-node_v1.1.0",
+      "version": "1.1.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update packge locks",
+            "author": "janutter@microsoft.com",
+            "commit": "a96f88d90512c2f5a0063a05ebe22240001d91be",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 12 May 2021 18:35:03 GMT",
+      "tag": "@azure/msal-node_v1.1.0",
+      "version": "1.1.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add Node 16 to msal-node supported versions",
+            "author": "janutter@microsoft.com",
+            "commit": "3998b0de71ca3a78b4ee68de2f31bef8b17e5cb8",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "add support for regional authorities",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "8baa387b34162b1bc96e341d7ad7158debd4b99d",
+            "package": "@azure/msal-node"
+          }
+        ],
+        "none": [
+          {
+            "comment": "[docs] updates and replacements",
+            "author": "dogan.erisen@gmail.com",
+            "commit": "56a947b117302218a625d365b63e8ad85859125f",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "add faq entry for msal node",
+            "author": "dogan.erisen@gmail.com",
+            "commit": "a90b0dc77e25a7f64d8833ad155f9247289eca95",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "add guidance for pfx to pem conversion",
+            "author": "dogan.erisen@gmail.com",
+            "commit": "ebee07ce04f850cf29b601a04f28fc6f09d3edd9",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Regenerate package-lock #3510",
+            "author": "joarroyo@microsoft.com",
+            "commit": "ba0092a452f71a7bc58aaf7acdf94536d66f7493",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 22 Apr 2021 23:26:08 GMT",
+      "tag": "@azure/msal-node_v1.0.3",
+      "version": "1.0.3",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update and fix eslint rules",
+            "author": "janutter@microsoft.com",
+            "commit": "70debe58239b6a6fdf4e533a8a1ee057257846a8",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Run npm audit for PRs",
+            "author": "janutter@microsoft.com",
+            "commit": "b3c5bcf2101cbe92edca972c53d64343f775dcc9",
+            "package": "@azure/msal-node"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Add .browserslistrc #3471",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "04c6d659d4dc76183ef9043075d3b6cacc450c9b",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 14 Apr 2021 18:39:53 GMT",
       "tag": "@azure/msal-node_v1.0.2",
       "version": "1.0.2",

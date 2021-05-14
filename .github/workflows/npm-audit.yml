@@ -7,10 +7,21 @@ on:
   pull_request:
     branches:  
       - dev
+    paths:
+      - 'lib/**/*'
+      - 'extensions/**/*'
+      - '**/package-lock.json'
+      - '!**.md'
+      - '.github/workflows/npm-audit.yml'
   push:
     branches:
       - 'master'
       - 'npm-audit'
+      - 'fix-node-extension-audit'
+
+concurrency:
+  group: audit-${{github.ref}}
+  cancel-in-progress: true
 
 jobs:
   audit-root:
@@ -23,6 +34,19 @@ jobs:
       uses: actions/setup-node@v1
 
     - name: npm audit (root)
+      run: npm audit --production
+
+  audit-extensions:
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Use Node.js
+      uses: actions/setup-node@v1
+
+    - name: npm audit (node-extensions)
+      working-directory: extensions/msal-node-extensions
       run: npm audit --production
 
   audit-lib:

@@ -2,6 +2,65 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Thu, 13 May 2021 18:34:08 GMT",
+      "tag": "msal_v1.4.11",
+      "version": "1.4.11",
+      "comments": {
+        "none": [
+          {
+            "comment": "Enable no-param-reassign lint rule",
+            "author": "janutter@microsoft.com",
+            "commit": "e24f5cff944c05ccaecb180fa68814bc89512095",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 12 May 2021 18:35:03 GMT",
+      "tag": "msal_v1.4.11",
+      "version": "1.4.11",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Remove idtoken hash from browser history in msal-core #3587",
+            "author": "hemoral@microsoft.com",
+            "commit": "6a7a5c78af41887d5ac969ee2743f8a8668e5c6e",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 22 Apr 2021 23:26:08 GMT",
+      "tag": "msal_v1.4.10",
+      "version": "1.4.10",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update and fix eslint rules",
+            "author": "janutter@microsoft.com",
+            "commit": "70debe58239b6a6fdf4e533a8a1ee057257846a8",
+            "package": "msal"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Encode control characters in cookies set by MSAL.js v1 #3469",
+            "author": "janutter@microsoft.com",
+            "commit": "80e40e83c0e3709fce6ae0534138c930dfdacaa5",
+            "package": "msal"
+          },
+          {
+            "comment": "Add .browserslistrc #3471",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "04c6d659d4dc76183ef9043075d3b6cacc450c9b",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 14 Apr 2021 18:39:53 GMT",
       "tag": "msal_v1.4.9",
       "version": "1.4.9",

@@ -9,6 +9,7 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { PopupUtils } from "../utils/PopupUtils";
+import { BrowserUtils } from "../utils/BrowserUtils";
 
 export type PopupParams = InteractionParams & {
     popup?: Window|null;
@@ -56,6 +57,7 @@ export class PopupHandler extends InteractionHandler {
     monitorPopupForHash(popupWindow: Window): Promise<string> {
         return this.popupUtils.monitorPopupForSameOrigin(popupWindow).then(() => {
             const contentHash = popupWindow.location.hash;
+            BrowserUtils.clearHash(popupWindow);
             this.popupUtils.cleanPopup(popupWindow);
 
             if (!contentHash) {

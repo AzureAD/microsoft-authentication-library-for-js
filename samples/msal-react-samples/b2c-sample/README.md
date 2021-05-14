@@ -5,6 +5,10 @@
 This developer sample is used to run basic B2C use cases for the MSAL library. You can also alter the configuration in `./src/authConfig.js` to execute other behaviors.
 This sample was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+### How to handle B2C user-flows
+
+Implementing B2C user-flows is a matter of initiating authorization requests against the corresponding authorities. This sample demonstrates the [sign-up/sign-in](https://docs.microsoft.com/azure/active-directory-b2c/add-sign-up-and-sign-in-policy?pivots=b2c-user-flow) user-flow with [self-service password reset](https://docs.microsoft.com/azure/active-directory-b2c/add-password-reset-policy?pivots=b2c-user-flow#self-service-password-reset-recommended).
+
 ## Notable files and what they demonstrate
 
 1. `./src/App.js` - Shows implementation of `MsalProvider`, all children will have access to `@azure/msal-react` context, hooks and components. Also shows how to handle password reset.

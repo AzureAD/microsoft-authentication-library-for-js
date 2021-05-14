@@ -17,6 +17,7 @@ import { AuthorityMetadataEntity } from "../cache/entities/AuthorityMetadataEnti
 import { AuthorityOptions } from "./AuthorityOptions";
 import { CloudInstanceDiscoveryResponse, isCloudInstanceDiscoveryResponse } from "./CloudInstanceDiscoveryResponse";
 import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
+import { RegionDiscovery } from "./RegionDiscovery";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
@@ -36,6 +37,8 @@ export class Authority {
     private authorityOptions: AuthorityOptions;
     // Authority metadata
     private metadata: AuthorityMetadataEntity;
+    // Region discovery service
+    private regionDiscovery: RegionDiscovery;
 
     constructor(authority: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions) {
         this.canonicalAuthority = authority;
@@ -43,6 +46,7 @@ export class Authority {
         this.networkInterface = networkInterface;
         this.cacheManager = cacheManager;
         this.authorityOptions = authorityOptions;
+        this.regionDiscovery = new RegionDiscovery(networkInterface);
     }
 
     // See above for AuthorityType
@@ -257,6 +261,19 @@ export class Authority {
 
         metadata = await this.getEndpointMetadataFromNetwork();
         if (metadata) {
+            // If the user prefers to use an azure region replace the global endpoints with regional information.
+            if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
+                const autodetectedRegionName = await this.regionDiscovery.detectRegion(this.authorityOptions.azureRegionConfiguration.environmentRegion);
+
+                const azureRegion = this.authorityOptions.azureRegionConfiguration.azureRegion === Constants.AZURE_REGION_AUTO_DISCOVER_FLAG 
+                    ? autodetectedRegionName 
+                    : this.authorityOptions.azureRegionConfiguration.azureRegion;
+
+                if (azureRegion) {
+                    metadata = Authority.replaceWithRegionalInformation(metadata, azureRegion);
+                }
+            }
+
             metadataEntity.updateEndpointMetadata(metadata, true);
             return AuthorityMetadataSource.NETWORK;
         } else {
@@ -366,6 +383,10 @@ export class Authority {
         try {
             const response = await this.networkInterface.sendGetRequestAsync<CloudInstanceDiscoveryResponse>(instanceDiscoveryEndpoint);
             const metadata = isCloudInstanceDiscoveryResponse(response.body) ? response.body.metadata : [];
+            if (metadata.length === 0) {
+                // If no metadata is returned, authority is untrusted
+                return null;
+            }
             match = Authority.getCloudDiscoveryMetadataFromNetworkResponse(metadata, this.hostnameAndPort);
         } catch(e) {
             return null;
@@ -434,5 +455,61 @@ export class Authority {
      */
     isAlias(host: string): boolean {
         return this.metadata.aliases.indexOf(host) > -1;
+    }
+
+    /**
+     * Checks whether the provided host is that of a public cloud authority
+     * 
+     * @param authority string
+     * @returns bool
+     */
+    static isPublicCloudAuthority(host: string): boolean {
+        return Constants.KNOWN_PUBLIC_CLOUDS.includes(host);
+    }
+
+    /**
+     * Rebuild the authority string with the region
+     * 
+     * @param host string
+     * @param region string 
+     */
+    static buildRegionalAuthorityString(host: string, region: string, queryString?: string): string {
+        // Create and validate a Url string object with the initial authority string
+        const authorityUrlInstance = new UrlString(host);
+        authorityUrlInstance.validateAsUri();
+
+        const authorityUrlParts = authorityUrlInstance.getUrlComponents();
+
+        let hostNameAndPort= `${region}.${authorityUrlParts.HostNameAndPort}`;
+
+        if (this.isPublicCloudAuthority(authorityUrlParts.HostNameAndPort)) {
+            hostNameAndPort = `${region}.${Constants.REGIONAL_AUTH_PUBLIC_CLOUD_SUFFIX}`;
+        }
+
+        // Include the query string portion of the url
+        const url = UrlString.constructAuthorityUriFromObject({
+            ...authorityUrlInstance.getUrlComponents(),
+            HostNameAndPort: hostNameAndPort
+        }).urlString;
+
+        // Add the query string if a query string was provided
+        if (queryString) return `${url}?${queryString}`;
+
+        return url;
+    }
+
+    /**
+     * Replace the endpoints in the metadata object with their regional equivalents.
+     * 
+     * @param metadata OpenIdConfigResponse
+     * @param azureRegion string
+     */
+    static replaceWithRegionalInformation(metadata: OpenIdConfigResponse, azureRegion: string): OpenIdConfigResponse {
+        metadata.authorization_endpoint = Authority.buildRegionalAuthorityString(metadata.authorization_endpoint, azureRegion);
+        // TODO: Enquire on whether we should leave the query string or remove it before releasing the feature
+        metadata.token_endpoint = Authority.buildRegionalAuthorityString(metadata.token_endpoint, azureRegion, "allowestsrnonmsi=true");
+        metadata.end_session_endpoint = Authority.buildRegionalAuthorityString(metadata.end_session_endpoint, azureRegion);
+        
+        return metadata;
     }
 }

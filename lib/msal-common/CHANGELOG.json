@@ -2,6 +2,129 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Thu, 13 May 2021 18:34:08 GMT",
+      "tag": "@azure/msal-common_v4.3.0",
+      "version": "4.3.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Enable no-param-reassign lint rule",
+            "author": "janutter@microsoft.com",
+            "commit": "e24f5cff944c05ccaecb180fa68814bc89512095",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 12 May 2021 18:35:03 GMT",
+      "tag": "@azure/msal-common_v4.3.0",
+      "version": "4.3.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix double query string when authority endpoints contain query strings #3620",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "32aa15fd13d1c1d9219dc7c486427a2c2bb686cc",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "change msal-browser/msal-common to preserveModules to enable treeshaking #3300",
+            "author": "oo.thomas96@gmail.com",
+            "commit": "065f107fff0e2dd37d9c8cee2fd6808988bb4038",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Revert expiresOn type to make it nullable #3557",
+            "author": "hemoral@microsoft.com",
+            "commit": "971e30f44c76b6c29546e80e69b3f881624808d8",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Add logLevel Trace to Logger #3589",
+            "author": "joarroyo@microsoft.com",
+            "commit": "a214d520cc07c0113f3dfacb2344448d37458f42",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Throw untrustedAuthority error if discovery endpoint returns error in response body #3572",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "1ddbb1bec251759959be5d5962e44d9c6537ce7c",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Add claims comparison to accountInfoIsEqual function #3527",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "878253750fecf12b4a865a5821df20d333ff0134",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Add check for empty object string in claims request parameter #3579",
+            "author": "prkanher@microsoft.com",
+            "commit": "eeddb7ad13387c77973d8d728e1b87fd2e9feca4",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Regenerate package-lock #3510",
+            "author": "joarroyo@microsoft.com",
+            "commit": "ba0092a452f71a7bc58aaf7acdf94536d66f7493",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "add support for regional authorities",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "8baa387b34162b1bc96e341d7ad7158debd4b99d",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 22 Apr 2021 23:26:08 GMT",
+      "tag": "@azure/msal-common_v4.2.1",
+      "version": "4.2.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix typing for expiresOn field (#2994)",
+            "author": "prkanher@microsoft.com",
+            "commit": "4f8a29cab324838993d91fda4b0ba57f731fcd1a",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Move /token headers to POST body to avoid OPTIONS request (#3094)",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "f62f0cdf923c9ee4b36943d2a3a7dc618903d30f",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Change ts type from string to number in SignedHttpRequest #3474",
+            "author": "prkanher@microsoft.com",
+            "commit": "8f39845452845b47a0bdce41a92c3185d352c7c7",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Add .browserslistrc #3471",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "04c6d659d4dc76183ef9043075d3b6cacc450c9b",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Update and fix eslint rules",
+            "author": "janutter@microsoft.com",
+            "commit": "70debe58239b6a6fdf4e533a8a1ee057257846a8",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 14 Apr 2021 18:39:53 GMT",
       "tag": "@azure/msal-common_v4.2.0",
       "version": "4.2.0",

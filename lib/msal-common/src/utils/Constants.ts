@@ -38,7 +38,13 @@ export const Constants = {
     AUTHORIZATION_PENDING: "authorization_pending",
     NOT_DEFINED: "not_defined",
     EMPTY_STRING: "",
-    FORWARD_SLASH: "/"
+    FORWARD_SLASH: "/",
+    IMDS_ENDPOINT: "http://169.254.169.254/metadata/instance/compute/location",
+    IMDS_VERSION: "2020-06-01",
+    IMDS_TIMEOUT: 2000,
+    AZURE_REGION_AUTO_DISCOVER_FLAG: "AUTO_DISCOVER",
+    REGIONAL_AUTH_PUBLIC_CLOUD_SUFFIX: "login.microsoft.com",
+    KNOWN_PUBLIC_CLOUDS: ["login.microsoftonline.com", "login.windows.net", "login.microsoft.com", "sts.windows.net"]
 };
 
 export const OIDC_DEFAULT_SCOPES = [
@@ -345,3 +351,10 @@ export enum CryptoKeyTypes {
     stk_jwk = "stk_jwk"
 }
 
+/**
+ * Response codes
+ */
+export enum  ResponseCodes {
+    httpSuccess = 200,
+    httpBadRequest = 400
+}

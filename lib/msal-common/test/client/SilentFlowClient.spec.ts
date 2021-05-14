@@ -14,7 +14,7 @@ import {
     ID_TOKEN_CLAIMS,
     TEST_URIS,
     TEST_TOKENS,
-} from "../utils/StringConstants";
+} from "../test_kit/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import { AuthenticationScheme, Constants, CredentialType } from "../../src/utils/Constants";
 import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils";
@@ -137,7 +137,6 @@ describe("SilentFlowClient unit tests", () => {
             expect(response.idTokenClaims).to.deep.eq(ID_TOKEN_CLAIMS);
             expect(response.accessToken).to.deep.eq(testAccessTokenEntity.secret);
             expect(response.state).to.be.empty;
-            console.log();
         });
 
         it("acquireCachedToken() looks up Bearer token when AuthenticationScheme is not set in request", async () => {
@@ -249,6 +248,40 @@ describe("SilentFlowClient unit tests", () => {
             expect(response.accessToken).to.deep.eq(testAccessTokenWithAuthSchemeEntity.secret);
             expect(response.state).to.be.empty;
             expect(readCacheRecordSpy.calledWith(testAccount, config.authOptions.clientId, new ScopeSet(silentFlowRequest.scopes), silentFlowRequest.authority, AuthenticationScheme.POP));
+        });
+
+        it("acquireCachedToken does not throw when given empty object string for claims", async () => {
+            const testScopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, ...TEST_CONFIG.DEFAULT_GRAPH_SCOPE];
+            testAccessTokenEntity.target = testScopes.join(" ");
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
+            sinon.stub(CacheManager.prototype, "readAccountFromCache").returns(testAccountEntity);
+            sinon.stub(CacheManager.prototype, "readIdTokenFromCache").returns(testIdToken);
+            sinon.stub(CacheManager.prototype, "readAccessTokenFromCache").returns(testAccessTokenEntity);
+            sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
+            const config = await ClientTestUtils.createTestClientConfiguration();
+            const client = new SilentFlowClient(config);
+            sinon.stub(TimeUtils, <any>"isTokenExpired").returns(false);
+
+            const silentFlowRequest: CommonSilentFlowRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+                claims: "{}"
+            };
+
+            const response = await client.acquireCachedToken(silentFlowRequest);
+            expect(response.authority).to.be.eq(`${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}/`);
+            expect(response.uniqueId).to.deep.eq(ID_TOKEN_CLAIMS.oid);
+            expect(response.tenantId).to.deep.eq(ID_TOKEN_CLAIMS.tid);
+            expect(response.scopes).to.deep.eq(testScopes);
+            expect(response.account).to.deep.eq(testAccount);
+            expect(response.idToken).to.deep.eq(testIdToken.secret);
+            expect(response.idTokenClaims).to.deep.eq(ID_TOKEN_CLAIMS);
+            expect(response.accessToken).to.deep.eq(testAccessTokenEntity.secret);
+            expect(response.state).to.be.empty;
         });
     });
 
