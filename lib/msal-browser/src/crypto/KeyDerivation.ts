@@ -5,15 +5,6 @@
 
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 
-/**
- * This class deserializes a string in JWE Compact Serialization format into
- * it's decoded elements. The class also provides the validation, parsing and
- * decryption functionality for the resulting JWE.
- * 
- * See IETF RFC 7516 for the JsonWebEncryption Specification
- * https://tools.ietf.org/html/rfc7516
- */
-
 /*
  * Key Derivation using Pseudorandom Functions in Counter Mode: SP 800-108
  * Spec link: https://nvlpubs.nist.gov/nistpubs/Legacy/SP/nistspecialpublication800-108.pdf

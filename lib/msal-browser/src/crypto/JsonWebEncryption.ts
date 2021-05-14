@@ -100,30 +100,6 @@ export class JsonWebEncryption {
             keyUsages);
     }
 
-    async decrypt(decryptionKey: CryptoKey): Promise<string> {
-        const cipherText = BrowserStringUtils.stringToArrayBuffer(this.ciphertext);
-        const iv = BrowserStringUtils.stringToArrayBuffer(this.initializationVector);
-        const additionalData = this.authenticatedData;
-        console.log(this.ciphertext);
-        console.log(this.authenticationTag);
-        console.log("AD:", additionalData);
-        const authenticationTag = BrowserStringUtils.stringToArrayBuffer(this.authenticationTag);
-
-        const aesGcmParams: AesGcmParams = {
-            name: "AES-GCM",
-            iv:  iv,
-            additionalData: additionalData,
-            tagLength: authenticationTag.byteLength * 8
-        };
-        console.log("CT:", cipherText);
-        console.log("AESGCMParams: ", aesGcmParams);
-        const responseBuffer = window.crypto.subtle.decrypt(aesGcmParams, decryptionKey, cipherText);
-        console.log("Response buffer: ", responseBuffer);
-        const responseString = BrowserStringUtils.utf8ArrToString(new Uint8Array(await responseBuffer));
-        console.log(responseString);
-        return JSON.parse(responseString);
-    }
-
     private parseJweProtectedHeader(encodedHeader: string): JoseHeader {
         const decodedHeader = this.base64Decode.base64URLdecode(encodedHeader);
         try {
