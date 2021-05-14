@@ -41,13 +41,11 @@ export class JsonWebEncryption {
     private initializationVector: string;
     private ciphertext: string;
     private authenticationTag: string;
-    private authenticatedData: Uint8Array;
     private unwrappingAlgorithms: UnwrappingAlgorithmPair;
 
     constructor(rawJwe: string) {
         const jweComponents = rawJwe.split(".");
         this.header = this.parseJweProtectedHeader(jweComponents[0]);
-        this.authenticatedData = this.getAuthenticatedData(jweComponents[0]);
         this.unwrappingAlgorithms = this.setUnwrappingAlgorithms();
         this.encryptedKey = this.decodeElement(jweComponents[1]);
         this.initializationVector = this.decodeElement(jweComponents[2]);
@@ -57,18 +55,6 @@ export class JsonWebEncryption {
     
     get protectedHeader(): JoseHeader {
         return this.header;
-    }
-
-    getAuthenticatedData(str: string): Uint8Array {
-        const length = str.length;
-        const data = new Uint8Array(length);
-
-        /* mapping... */
-        for (let charIndex = 0; charIndex < length; charIndex++) {
-            data[charIndex] = str.charCodeAt(charIndex) & 255;
-        }
-
-        return data;
     }
 
     /**
