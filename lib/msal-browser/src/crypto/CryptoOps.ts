@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { BaseAuthRequest, ICrypto, PkceCodes, SignedHttpRequest, ServerAuthorizationTokenResponse } from "@azure/msal-common";
+import { BaseAuthRequest, ICrypto, PkceCodes, SignedHttpRequest, ServerAuthorizationTokenResponse, BoundServerAuthorizationTokenResponse } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
@@ -193,7 +193,7 @@ export class CryptoOps implements ICrypto {
      * @param request 
      */
     async decryptBoundTokenResponse(
-        boundServerTokenResponse: ServerAuthorizationTokenResponse,
+        boundServerTokenResponse: BoundServerAuthorizationTokenResponse,
         request: BaseAuthRequest): Promise<ServerAuthorizationTokenResponse> {
             
         const { session_key_jwe, response_jwe } = boundServerTokenResponse;
@@ -231,7 +231,7 @@ export class CryptoOps implements ICrypto {
                 throw BrowserAuthError.createMissingStkKidError();
             }
         } else {
-            throw new Error("No JWEs");
+            throw BrowserAuthError.createMissingStkKidError();
         }
     }
 }
