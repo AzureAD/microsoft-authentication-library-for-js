@@ -178,8 +178,7 @@ export class ResponseHandler {
         request: BrokeredAuthorizationCodeRequest|BrokeredRefreshTokenRequest,
         embeddedAppOrigin: string,
         authCodePayload?: AuthorizationCodePayload,
-        oboAssertion?: string,
-        handlingRefreshTokenResponse?: boolean): Promise<BrokerAuthenticationResult> {
+        oboAssertion?: string): Promise<BrokerAuthenticationResult> {
         
         let idTokenObj: AuthToken | undefined;
         if (serverTokenResponse.id_token) {
@@ -207,7 +206,7 @@ export class ResponseHandler {
         }
 
         cacheRecord.refreshToken = null;
-        const result = await ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj)
+        const result = await ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj);
         
         const reqThumbprint: RequestThumbprint = {
             authority: authority.canonicalAuthority,
