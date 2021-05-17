@@ -591,6 +591,7 @@ export class BrowserCacheManager extends CacheManager {
         const cookieList = document.cookie.split(";");
         cookieList.forEach((cookie: string): void => {
             while (cookie.charAt(0) === " ") {
+                // eslint-disable-next-line no-param-reassign
                 cookie = cookie.substring(1);
             }
             if (cookie.indexOf(cookiePrefix) === 0) {
