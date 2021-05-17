@@ -40,10 +40,7 @@ export class BrokerRefreshTokenClient extends RefreshTokenClient {
                 this.authority,
                 reqTimestamp,
                 request,
-                request.embeddedAppRedirectUri,
-                undefined,
-                undefined,
-                true
+                request.embeddedAppRedirectUri
             );
         } else {
             return responseHandler.handleServerTokenResponse(
