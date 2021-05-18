@@ -1,4 +1,4 @@
-import sinon from "sinon";
+import sinon, { SinonFakeXMLHttpRequest } from "sinon";
 import { XhrClient } from "../../src/network/XhrClient";
 import { HTTP_REQUEST_TYPE } from "../../src/utils/BrowserConstants";
 import { Constants, NetworkRequestOptions } from "@azure/msal-common";
@@ -64,7 +64,7 @@ describe("XhrClient.ts Unit Tests", () => {
             const headerSpy = sinon.spy(XhrClient.prototype, <any>"setXhrHeaders");
 
             xhrClient.sendPostRequestAsync(targetUri, requestOptions);
-            expect(headerSpy.args[0]).toEqual(expect.arrayContaining([requestOptions]));
+            expect(headerSpy.args[0].includes(requestOptions)).toBe(true);
         });
     });
 
@@ -85,15 +85,13 @@ describe("XhrClient.ts Unit Tests", () => {
                 await xhrClient.sendGetRequestAsync<any>(targetUri);
             } catch (e) {
                 expect(e).toBeInstanceOf(BrowserAuthError);
-                expect(e.errorMessage).toEqual(
-                    expect.arrayContaining([BrowserAuthErrorMessage.httpMethodNotImplementedError.desc])
-                );
+                expect(e.errorMessage.includes(BrowserAuthErrorMessage.httpMethodNotImplementedError.desc)).toBe(true);
             }
         });
 
         it("throws error if xhr post returns non-200 status", (done) => {
             const xhr = sinon.useFakeXMLHttpRequest();
-            let testRequest;
+            let testRequest: SinonFakeXMLHttpRequest;
             xhr.onCreate = function(xhrRequest) {
                 testRequest = xhrRequest;
             };
@@ -105,15 +103,15 @@ describe("XhrClient.ts Unit Tests", () => {
             xhrClient.sendPostRequestAsync<any>(targetUri, requestOptions).catch(e => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e.errorCode).toBe(BrowserAuthErrorMessage.postRequestFailed.code);
-                expect(e.errorMessage).toEqual(expect.arrayContaining(["Failed with status 16"]));
+                expect(e.errorMessage.includes("Failed with status 16")).toBe(true);
                 done();
             });
-            testRequest.respond(16);
+            testRequest!.respond(16, {}, "");
         });
 
         it("throws error if xhr get returns non-200 status", (done) => {
             const xhr = sinon.useFakeXMLHttpRequest();
-            let testRequest;
+            let testRequest: SinonFakeXMLHttpRequest;
             xhr.onCreate = function(xhrRequest) {
                 testRequest = xhrRequest;
             };
@@ -122,15 +120,15 @@ describe("XhrClient.ts Unit Tests", () => {
             xhrClient.sendGetRequestAsync<any>(targetUri).catch(e => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e.errorCode).toBe(BrowserAuthErrorMessage.getRequestFailed.code);
-                expect(e.errorMessage).toEqual(expect.arrayContaining(["Failed with status 16"]));
+                expect(e.errorMessage.includes("Failed with status 16")).toBe(true);
                 done();
             });
-            testRequest.respond(16);
+            testRequest!.respond(16, {}, "");
         });
 
         it("throws error if xhr request cannot parse response", (done) => {
             const xhr = sinon.useFakeXMLHttpRequest();
-            let testRequest;
+            let testRequest: SinonFakeXMLHttpRequest;
             xhr.onCreate = function(xhrRequest) {
                 testRequest = xhrRequest;
             };
@@ -144,12 +142,12 @@ describe("XhrClient.ts Unit Tests", () => {
                 expect(e.errorCode).toBe(BrowserAuthErrorMessage.failedToParseNetworkResponse.code);
                 done();
             });
-            testRequest.respond(200, { 'Content-Type': 'text/json' }, "thisIsNotJSON");
+            testRequest!.respond(200, { 'Content-Type': 'text/json' }, "thisIsNotJSON");
         });
 
         it("throws error if xhr post errors", (done) => {
             const xhr = sinon.useFakeXMLHttpRequest();
-            let testRequest;
+            let testRequest: SinonFakeXMLHttpRequest;
             xhr.onCreate = function(xhrRequest) {
                 testRequest = xhrRequest;
             };
@@ -161,15 +159,15 @@ describe("XhrClient.ts Unit Tests", () => {
             xhrClient.sendPostRequestAsync<any>(targetUri, requestOptions).catch(e => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e.errorCode).toBe(BrowserAuthErrorMessage.postRequestFailed.code);
-                expect(e.errorMessage).toEqual(expect.arrayContaining(["Failed with status 0"]));
+                expect(e.errorMessage.includes("Failed with status 0")).toBe(true);
                 done();
             });
-            testRequest.error();
+            testRequest!.error();
         });
 
         it("throws error if xhr get errors", (done) => {
             const xhr = sinon.useFakeXMLHttpRequest();
-            let testRequest;
+            let testRequest: SinonFakeXMLHttpRequest;
             xhr.onCreate = function(xhrRequest) {
                 testRequest = xhrRequest;
             };
@@ -178,15 +176,15 @@ describe("XhrClient.ts Unit Tests", () => {
             xhrClient.sendGetRequestAsync<any>(targetUri).catch(e => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e.errorCode).toBe(BrowserAuthErrorMessage.getRequestFailed.code);
-                expect(e.errorMessage).toEqual(expect.arrayContaining(["Failed with status 0"]));
+                expect(e.errorMessage.includes("Failed with status 0")).toBe(true);
                 done();
             });
-            testRequest.error();
+            testRequest!.error();
         });
 
         it("throws error if xhr errors and network is unavailable", (done) => {
             const xhr = sinon.useFakeXMLHttpRequest();
-            let testRequest;
+            let testRequest: SinonFakeXMLHttpRequest;
             xhr.onCreate = function(xhrRequest) {
                 testRequest = xhrRequest;
             };
@@ -196,6 +194,7 @@ describe("XhrClient.ts Unit Tests", () => {
             };
 
             const oldWindow = window;
+            //@ts-ignore
             window = {
                 ...oldWindow, 
                 navigator: {
@@ -210,7 +209,7 @@ describe("XhrClient.ts Unit Tests", () => {
                 window = oldWindow;
                 done();
             });
-            testRequest.error(0);
+            testRequest!.error();
         });
     });
 });

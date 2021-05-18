@@ -27,6 +27,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
     it(
         "extractBrowserRequestState() returns an null if given interaction type is null or empty",
         () => {
+            //@ts-ignore
             const requestState1 = BrowserProtocolUtils.extractBrowserRequestState(cryptoInterface, null);
             expect(requestState1).toBeNull();
             
@@ -38,12 +39,12 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
     it(
         "extractBrowserRequestState() returns a valid platform state string",
         () => {
-            const redirectState = ProtocolUtils.setRequestState(cryptoInterface, null, browserRedirectRequestState);
-            const popupState = ProtocolUtils.setRequestState(cryptoInterface, null, browserPopupRequestState);
+            const redirectState = ProtocolUtils.setRequestState(cryptoInterface, undefined, browserRedirectRequestState);
+            const popupState = ProtocolUtils.setRequestState(cryptoInterface, undefined, browserPopupRequestState);
             const redirectPlatformState = BrowserProtocolUtils.extractBrowserRequestState(cryptoInterface, redirectState);
-            expect(redirectPlatformState.interactionType).toBe(InteractionType.Redirect);
+            expect(redirectPlatformState!.interactionType).toBe(InteractionType.Redirect);
             const popupPlatformState = BrowserProtocolUtils.extractBrowserRequestState(cryptoInterface, popupState);
-            expect(popupPlatformState.interactionType).toBe(InteractionType.Popup);
+            expect(popupPlatformState!.interactionType).toBe(InteractionType.Popup);
         }
     );
 
