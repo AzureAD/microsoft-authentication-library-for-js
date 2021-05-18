@@ -2,6 +2,21 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Thu, 13 May 2021 18:34:08 GMT",
+      "tag": "msal_v1.4.11",
+      "version": "1.4.11",
+      "comments": {
+        "none": [
+          {
+            "comment": "Enable no-param-reassign lint rule",
+            "author": "janutter@microsoft.com",
+            "commit": "e24f5cff944c05ccaecb180fa68814bc89512095",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 12 May 2021 18:35:03 GMT",
       "tag": "msal_v1.4.11",
       "version": "1.4.11",

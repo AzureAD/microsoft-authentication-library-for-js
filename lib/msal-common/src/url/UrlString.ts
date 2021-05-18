@@ -39,17 +39,19 @@ export class UrlString {
      */
     static canonicalizeUri(url: string): string {
         if (url) {
-            url = url.toLowerCase();
+            let lowerCaseUrl = url.toLowerCase();
 
-            if (StringUtils.endsWith(url, "?")) {
-                url = url.slice(0, -1);
-            } else if (StringUtils.endsWith(url, "?/")) {
-                url = url.slice(0, -2);
+            if (StringUtils.endsWith(lowerCaseUrl, "?")) {
+                lowerCaseUrl = lowerCaseUrl.slice(0, -1);
+            } else if (StringUtils.endsWith(lowerCaseUrl, "?/")) {
+                lowerCaseUrl = lowerCaseUrl.slice(0, -2);
             }
 
-            if (!StringUtils.endsWith(url, "/")) {
-                url += "/";
+            if (!StringUtils.endsWith(lowerCaseUrl, "/")) {
+                lowerCaseUrl += "/";
             }
+
+            return lowerCaseUrl;
         }
 
         return url;

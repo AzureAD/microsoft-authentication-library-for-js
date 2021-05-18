@@ -20,7 +20,7 @@ This sample comes with a pre-registered application for demo purposes. If you wo
 
 ### Configure the application
 
-Open `./src/app/app.modules.ts` in an editor:
+Open `./src/app/app.module.ts` in an editor:
 
 - Replace `clientId` with the Application (client) ID from the portal registration, or use the currently configured lab registration.
   - Optionally, you may replace any of the other parameters, or you can remove them and use the default values.
