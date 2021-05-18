@@ -9,7 +9,7 @@ import { RequestThumbprint } from "../../src/network/RequestThumbprint";
 import { ThrottlingEntity } from "../../src/cache/entities/ThrottlingEntity";
 import { NetworkResponse } from "../../src/network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
-import { MockStorageClass }  from "../client/ClientTestUtils";
+import { MockStorageClass, mockCrypto }  from "../client/ClientTestUtils";
 import { ServerError } from "../../src";
 import { THUMBPRINT, THROTTLING_ENTITY, TEST_CONFIG } from "../test_kit/StringConstants";
 
@@ -32,7 +32,7 @@ describe("ThrottlingUtils", () => {
         it("checks the cache and throws an error", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const thumbprintValue: ThrottlingEntity = THROTTLING_ENTITY;
-            const cache = new MockStorageClass();
+            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
             const removeItemStub = sinon.stub(cache, "removeItem");
             sinon.stub(cache, "getThrottlingCache").callsFake(() => thumbprintValue);
             sinon.stub(Date, "now").callsFake(() => 1);
@@ -48,7 +48,7 @@ describe("ThrottlingUtils", () => {
         it("checks the cache and removes an item", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const thumbprintValue: ThrottlingEntity = THROTTLING_ENTITY;
-            const cache = new MockStorageClass();
+            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
             const removeItemStub = sinon.stub(cache, "removeItem");
             sinon.stub(cache, "getThrottlingCache").callsFake(() => thumbprintValue);
             sinon.stub(Date, "now").callsFake(() => 10);
@@ -56,19 +56,19 @@ describe("ThrottlingUtils", () => {
             ThrottlingUtils.preProcess(cache, thumbprint);
             sinon.assert.callCount(removeItemStub, 1);
 
-            expect(() => ThrottlingUtils.preProcess(cache, thumbprint)).to.not.throw;
+            expect(() => ThrottlingUtils.preProcess(cache, thumbprint)).not.toThrow();
         });
 
         it("checks the cache and does nothing with no match", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
-            const cache = new MockStorageClass();
+            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
             const removeItemStub = sinon.stub(cache, "removeItem");
             sinon.stub(cache, "getThrottlingCache").callsFake(() => null);
 
             ThrottlingUtils.preProcess(cache, thumbprint);
             sinon.assert.callCount(removeItemStub, 0);
 
-            expect(() => ThrottlingUtils.preProcess(cache, thumbprint)).to.not.throw;
+            expect(() => ThrottlingUtils.preProcess(cache, thumbprint)).not.toThrow();
         });
     });
 
@@ -84,7 +84,7 @@ describe("ThrottlingUtils", () => {
                 body: { },
                 status: 429
             };
-            const cache = new MockStorageClass();
+            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
             const setItemStub = sinon.stub(cache, "setThrottlingCache");
 
             ThrottlingUtils.postProcess(cache, thumbprint, res);
@@ -98,7 +98,7 @@ describe("ThrottlingUtils", () => {
                 body: { },
                 status: 200
             };
-            const cache = new MockStorageClass();
+            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
             const setItemStub = sinon.stub(cache, "setThrottlingCache");
 
             ThrottlingUtils.postProcess(cache, thumbprint, res);
@@ -194,11 +194,11 @@ describe("ThrottlingUtils", () => {
     });
 
     describe("calculateThrottleTime", () => {
-        before(() => {
+        beforeAll(() => {
             sinon.stub(Date, "now").callsFake(() => 5000);
         });
 
-        after(() => {
+        afterAll(() => {
             sinon.restore();
         });
 
@@ -210,6 +210,7 @@ describe("ThrottlingUtils", () => {
         it("calculates with the default time given a bad number", () => {
             const time1 = ThrottlingUtils.calculateThrottleTime(-1);
             const time2 = ThrottlingUtils.calculateThrottleTime(0);
+            //@ts-ignore
             const time3 = ThrottlingUtils.calculateThrottleTime(null);
 
             // Based on Constants.DEFAULT_THROTTLE_TIME_SECONDS
@@ -227,12 +228,12 @@ describe("ThrottlingUtils", () => {
     });
 
     describe("removeThrottle", () =>  {
-        after(() => {
+        afterAll(() => {
             sinon.restore();
         });
 
         it("removes the entry from storage and returns true", () => {
-            const cache = new MockStorageClass();
+            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
             const removeItemStub = sinon.stub(cache, "removeItem").returns(true);
             const clientId = TEST_CONFIG.MSAL_CLIENT_ID;
             const authority = TEST_CONFIG.validAuthority;
@@ -245,7 +246,7 @@ describe("ThrottlingUtils", () => {
         });
 
         it("doesn't find an entry and returns false", () => {
-            const cache = new MockStorageClass();
+            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
             const removeItemStub = sinon.stub(cache, "removeItem").returns(false);
             const clientId = TEST_CONFIG.MSAL_CLIENT_ID;
             const authority = TEST_CONFIG.validAuthority;
