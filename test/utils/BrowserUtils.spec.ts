@@ -15,7 +15,9 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
     const oldWindow: Window & typeof globalThis = window;
     afterEach(() => {
         window = oldWindow;
+        //@ts-ignore
         window.Headers = undefined;
+        //@ts-ignore
         window.fetch = undefined;
         sinon.restore();
     });
@@ -29,6 +31,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
     it("clearHash() clears the window hash (office addin)", () => {
         // Office.js sets replaceState to null: https://github.com/OfficeDev/office-js/issues/429
         const oldReplaceState = history.replaceState;
+        //@ts-ignore
         history.replaceState = null;
 
         window.location.hash = "thisIsAHash";
@@ -74,6 +77,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
 
     it("getBrowserNetworkClient() returns fetch client if available", () => {
         window.fetch = (input: RequestInfo, init?: RequestInit): Promise<Response> => {
+            //@ts-ignore
             return null;
         };
         // @ts-ignore
@@ -103,6 +107,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         });
 
         it("doesnt throw when not inside an iframe", () => {
+            sinon.stub(BrowserUtils, "isInIframe").returns(false);
             BrowserUtils.blockRedirectInIframe(InteractionType.Redirect, false);
         });
     })

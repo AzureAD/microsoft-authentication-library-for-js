@@ -4,7 +4,7 @@
  */
 
 import { Constants, NetworkResponse } from "@azure/msal-common";
-import { version } from "../../package.json";
+import { version } from "../../src/packageMetadata";
 
 /**
  * This file contains the string constants used by the test classes.
