@@ -220,4 +220,39 @@ describe("UrlString.ts Class Unit Tests", () => {
             expect(UrlString.getAbsoluteUrl("/testPath", basePath)).to.eq(expectedUrl);
         });
     });
+
+    describe("canonicalizeUri tests", () => {
+        it("returns empty string if passed", () => {
+            const url = "";
+
+            const canonicalUrl = UrlString.canonicalizeUri(url);
+
+            expect(canonicalUrl).to.equal(url);
+        });
+
+        it ("handles ?", () => {
+            let url = "https://contoso.com/?";
+
+            const canonicalUrl = UrlString.canonicalizeUri(url);
+
+            expect(canonicalUrl).to.equal("https://contoso.com/");
+        });
+
+        it ("handles ?/", () => {
+            let url = "https://contoso.com/?/";
+
+            const canonicalUrl = UrlString.canonicalizeUri(url);
+
+            expect(canonicalUrl).to.equal("https://contoso.com/");
+        });
+
+        it("maintains original casing of original url", () => {
+            let url = "https://contoso.com/PATH";
+
+            const canonicalUrl = UrlString.canonicalizeUri(url);
+
+            expect(url).to.equal("https://contoso.com/PATH");
+            expect(canonicalUrl).to.equal("https://contoso.com/path/");
+        })
+    });
 });
