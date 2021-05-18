@@ -1,6 +1,6 @@
 import { ServerTelemetryEntity } from "../../../src/cache/entities/ServerTelemetryEntity";
 import { SERVER_TELEM_CONSTANTS, Separators } from "../../../src/utils/Constants";
-import { TEST_CONFIG } from "../../utils/StringConstants";
+import { TEST_CONFIG } from "../../test_kit/StringConstants";
 
 describe("ServerTelemetryEntity.ts Unit Tests", () => {
 

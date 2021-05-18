@@ -4,7 +4,7 @@
  */
 
 import { ServerTelemetryManager, AuthError, ServerTelemetryRequest, ServerTelemetryEntity } from "../../src";
-import { TEST_CONFIG } from "../utils/StringConstants";
+import { TEST_CONFIG } from "../test_kit/StringConstants";
 import sinon from "sinon";
 import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
 

@@ -8,13 +8,14 @@ import { ScopeSet } from "../../src/request/ScopeSet";
 import {
     TEST_CONFIG,
     TEST_TOKENS,
-    CACHE_MOCKS,
-} from "../utils/StringConstants";
+    CACHE_MOCKS
+} from "../test_kit/StringConstants";
 import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { AccountInfo } from "../../src/account/AccountInfo";
 import { MockCache } from "./MockCache";
 import { AuthorityMetadataEntity, CacheManager, AppMetadataEntity, IdTokenEntity, RefreshTokenEntity } from "../../src";
 import { mockCrypto } from "../client/ClientTestUtils";
+import { TestError } from "../test_kit/TestErrors";
 
 describe("CacheManager.ts test cases", () => {
     let mockCache = new MockCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, mockCrypto);
@@ -52,6 +53,9 @@ describe("CacheManager.ts test cases", () => {
         cacheRecord.account = ac;
         mockCache.cacheManager.saveCacheRecord(cacheRecord);
         const mockCacheAccount = mockCache.cacheManager.getAccount(accountKey) as AccountEntity;
+        if (!mockCacheAccount) {
+            throw TestError.createTestSetupError("mockCacheAccount does not have a value");
+        }
         expect(mockCacheAccount.homeAccountId).toEqual("someUid.someUtid");
     });
 
@@ -75,7 +79,11 @@ describe("CacheManager.ts test cases", () => {
         const cacheRecord = new CacheRecord();
         cacheRecord.accessToken = at;
         mockCache.cacheManager.saveCacheRecord(cacheRecord);
+
         const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(atKey) as AccessTokenEntity;
+        if (!mockCacheAT) {
+            throw TestError.createTestSetupError("mockCacheAT does not have a value");
+        }
         expect(mockCacheAT.homeAccountId).toEqual("someUid.someUtid");
         expect(mockCacheAT.credentialType).toEqual(CredentialType.ACCESS_TOKEN);
         expect(mockCacheAT.tokenType).toEqual(AuthenticationScheme.BEARER);
@@ -103,6 +111,9 @@ describe("CacheManager.ts test cases", () => {
         cacheRecord.accessToken = at;
         mockCache.cacheManager.saveCacheRecord(cacheRecord);
         const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(atKey) as AccessTokenEntity;
+        if (!mockCacheAT) {
+            throw TestError.createTestSetupError("mockCacheAT does not have a value");
+        }
         expect(mockCacheAT.homeAccountId).toEqual("someUid.someUtid");
         expect(mockCacheAT.credentialType).toEqual(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
         expect(mockCacheAT.tokenType).toEqual(AuthenticationScheme.POP);
@@ -331,11 +342,17 @@ describe("CacheManager.ts test cases", () => {
     it("getAppMetadata and readAppMetadataFromCache", () => {
         const appMetadataKey = "appmetadata-login.microsoftonline.com-mock_client_id_1";
         const appMetadata = mockCache.cacheManager.getAppMetadata(appMetadataKey) as AppMetadataEntity;
+        if (!appMetadata) {
+            throw TestError.createTestSetupError("appMetadata does not have a value");
+        }
 
         expect(appMetadata.clientId).toEqual(CACHE_MOCKS.MOCK_CLIENT_ID_1);
         expect(appMetadata.environment).toEqual(CACHE_MOCKS.MOCK_ACCOUNT_INFO.environment);
 
         const cachedAppMetadata = mockCache.cacheManager.readAppMetadataFromCache(CACHE_MOCKS.MOCK_ACCOUNT_INFO.environment, CACHE_MOCKS.MOCK_CLIENT_ID_1) as AppMetadataEntity;
+        if (!cachedAppMetadata) {
+            throw TestError.createTestSetupError("appMetadata does not have a value");
+        }
         expect(cachedAppMetadata.clientId).toEqual(CACHE_MOCKS.MOCK_CLIENT_ID_1);
         expect(cachedAppMetadata.environment).toEqual(CACHE_MOCKS.MOCK_ACCOUNT_INFO.environment);
     });
@@ -420,6 +437,9 @@ describe("CacheManager.ts test cases", () => {
             tenantId: TEST_CONFIG.TENANT,
             username: "John Doe"
         };
+        if (!mockedAccountInfo) {
+            throw TestError.createTestSetupError("mockedAccountInfo does not have a value");
+        }
         expect(() => mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, new ScopeSet(["user.read"]), AuthenticationScheme.BEARER)).toThrowError(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
     });
 
@@ -491,11 +511,17 @@ describe("CacheManager.ts test cases", () => {
 
     it("readIdTokenFromCache", () => {
         const idToken = mockCache.cacheManager.readIdTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, CACHE_MOCKS.MOCK_ACCOUNT_INFO) as IdTokenEntity;
+        if (!idToken) {
+            throw TestError.createTestSetupError("idToken does not have a value");
+        }
         expect(idToken.clientId).toBe(CACHE_MOCKS.MOCK_CLIENT_ID);
     });
 
     it("readRefreshTokenFromCache", () => {
         const refreshToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, CACHE_MOCKS.MOCK_ACCOUNT_INFO, false) as RefreshTokenEntity;
+        if (!refreshToken) {
+            throw TestError.createTestSetupError("refreshToken does not have a value");
+        }
         expect(refreshToken.clientId).toBe(CACHE_MOCKS.MOCK_CLIENT_ID_1);
     });
 
@@ -506,6 +532,9 @@ describe("CacheManager.ts test cases", () => {
 
     it("readRefreshTokenFromCache with familyId", () => {
         const refreshToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, CACHE_MOCKS.MOCK_ACCOUNT_INFO, true) as RefreshTokenEntity;
+        if (!refreshToken) {
+            throw TestError.createTestSetupError("refreshToken does not have a value");
+        }
         expect(refreshToken.clientId).toBe(CACHE_MOCKS.MOCK_CLIENT_ID_1);
     });
 
@@ -529,6 +558,9 @@ describe("CacheManager.ts test cases", () => {
         };
 
         const cachedToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, false) as RefreshTokenEntity;
+        if (!cachedToken) {
+            throw TestError.createTestSetupError("refreshToken does not have a value");
+        }
         expect(cachedToken.homeAccountId).toBe("uid.utid");
         expect(cachedToken.environment).toBe("login.microsoftonline.com");
     });

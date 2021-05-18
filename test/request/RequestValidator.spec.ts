@@ -4,7 +4,7 @@ import {
 
 import { PromptValue } from "../../src/utils/Constants";
 import { RequestValidator } from "../../src/request/RequestValidator";
-import {TEST_CONFIG} from "../utils/StringConstants";
+import {TEST_CONFIG} from "../test_kit/StringConstants";
 
 describe("RequestValidator unit tests", () => {
 
