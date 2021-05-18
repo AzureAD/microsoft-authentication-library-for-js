@@ -70,9 +70,9 @@ describe("UrlString.ts Class Unit Tests", () => {
     it("appendQueryString appends the provided query string", () => {
         const baseUrl = "https://localhost/";
         const queryString = "param1=value1&param2=value2";
-        expect(UrlString.appendQueryString(baseUrl, queryString)).to.equal(`${baseUrl}?${queryString}`);
-        expect(UrlString.appendQueryString(`${baseUrl}?param3=value3`, queryString)).to.equal(`${baseUrl}?param3=value3&${queryString}`);
-        expect(UrlString.appendQueryString(baseUrl, "")).to.equal(baseUrl);
+        expect(UrlString.appendQueryString(baseUrl, queryString)).toEqual(`${baseUrl}?${queryString}`);
+        expect(UrlString.appendQueryString(`${baseUrl}?param3=value3`, queryString)).toEqual(`${baseUrl}?param3=value3&${queryString}`);
+        expect(UrlString.appendQueryString(baseUrl, "")).toEqual(baseUrl);
     });
 
     it("removes hash from url provided", () => {
@@ -232,7 +232,7 @@ describe("UrlString.ts Class Unit Tests", () => {
 
             const canonicalUrl = UrlString.canonicalizeUri(url);
 
-            expect(canonicalUrl).to.equal(url);
+            expect(canonicalUrl).toEqual(url);
         });
 
         it ("handles ?", () => {
@@ -240,7 +240,7 @@ describe("UrlString.ts Class Unit Tests", () => {
 
             const canonicalUrl = UrlString.canonicalizeUri(url);
 
-            expect(canonicalUrl).to.equal("https://contoso.com/");
+            expect(canonicalUrl).toEqual("https://contoso.com/");
         });
 
         it ("handles ?/", () => {
@@ -248,7 +248,7 @@ describe("UrlString.ts Class Unit Tests", () => {
 
             const canonicalUrl = UrlString.canonicalizeUri(url);
 
-            expect(canonicalUrl).to.equal("https://contoso.com/");
+            expect(canonicalUrl).toEqual("https://contoso.com/");
         });
 
         it("maintains original casing of original url", () => {
@@ -256,8 +256,8 @@ describe("UrlString.ts Class Unit Tests", () => {
 
             const canonicalUrl = UrlString.canonicalizeUri(url);
 
-            expect(url).to.equal("https://contoso.com/PATH");
-            expect(canonicalUrl).to.equal("https://contoso.com/path/");
+            expect(url).toEqual("https://contoso.com/PATH");
+            expect(canonicalUrl).toEqual("https://contoso.com/path/");
         })
     });
 });
