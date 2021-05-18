@@ -454,7 +454,6 @@ export const CACHE_MOCKS = {
         homeAccountId: "uid.utid",
         localAccountId: "uid",
         environment: "login.microsoftonline.com",
-        localAccountId: "uid.utid",
         tenantId: "microsoft",
         username: "mocked_username"
     },
