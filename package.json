@@ -86,7 +86,7 @@
     "rollup-plugin-typescript2": "^0.29.0",
     "shx": "^0.3.2",
     "sinon": "^7.5.0",
-    "ssri": "^8.0.0",
+    "ssri": "^8.0.1",
     "tslib": "^1.10.0",
     "tslint": "^5.20.0",
     "typescript": "^3.8.3"
