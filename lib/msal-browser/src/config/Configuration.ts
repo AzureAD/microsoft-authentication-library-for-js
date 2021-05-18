@@ -58,7 +58,7 @@ export type CacheOptions = {
  * Broker Options
  * 
  */
- export type BrokerOptions = {
+export type BrokerOptions = {
     actAsBroker?: boolean;
     preferredInteractionType: InteractionType.Popup | InteractionType.Redirect | InteractionType.None | null;
     allowBrokering?: boolean;

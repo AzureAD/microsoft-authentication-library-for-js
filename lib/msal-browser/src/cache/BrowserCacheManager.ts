@@ -461,7 +461,7 @@ export class BrowserCacheManager extends CacheManager {
      * Gets internal cache item with given key.
      * @param key
      */
-     getMemoryCache(cacheKey: string): string | null {
+    getMemoryCache(cacheKey: string): string | null {
         const key = this.generateCacheKey(cacheKey);
 
         const value = this.internalStorage.getItem(key);
@@ -501,7 +501,7 @@ export class BrowserCacheManager extends CacheManager {
      * Removes a cache item fom internal memory storage with the given key.
      * @param key 
      */
-     removeMemoryItem(key: string): boolean {
+    removeMemoryItem(key: string): boolean {
         this.internalStorage.removeItem(key);
         return true;
     }
@@ -697,7 +697,7 @@ export class BrowserCacheManager extends CacheManager {
      * Thumbprint has the following format: "broker.response.<embedded-app-origin>.<request-thumbprint>"
      * @param responseThumbprint 
      */
-     generateBrokerResponseKey(responseThumbprint: string): string {
+    generateBrokerResponseKey(responseThumbprint: string): string {
         return `${MemoryCacheKeys.BROKER_RESPONSE}.${responseThumbprint}`;
     }
 

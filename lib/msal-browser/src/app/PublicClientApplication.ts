@@ -14,7 +14,7 @@ import { ExperimentalClientApplication } from "./ExperimentalClientApplication";
  */
 export class PublicClientApplication extends ClientApplication implements IPublicClientApplication {
 
-    experimental?: ExperimentalClientApplication
+    experimental?: ExperimentalClientApplication;
 
     /**
      * @constructor
@@ -47,7 +47,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * 
      * @param userConfig 
      */
-     private checkExperimentalConfig(userConfig: Configuration): void {
+    private checkExperimentalConfig(userConfig: Configuration): void {
         if (userConfig.experimental) {
             this.logger.warning("Experimental features are subject to changes or removal without warning.");
             if (!userConfig.experimental.enable) {

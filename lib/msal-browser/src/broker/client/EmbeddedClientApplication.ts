@@ -132,7 +132,7 @@ export class EmbeddedClientApplication {
         await this.preflightBrokerRequest();
         const brokerHandleRedirectRequest = new BrokerHandleRedirectRequest(this.clientId, this.version);
 
-        const brokerRedirectResponse = await this.messageBroker<MessageEvent>(brokerHandleRedirectRequest, DEFAULT_MESSAGE_TIMEOUT);
+        const brokerRedirectResponse = await this.messageBroker(brokerHandleRedirectRequest, DEFAULT_MESSAGE_TIMEOUT);
         return BrokerAuthResponse.processBrokerResponseMessage(brokerRedirectResponse, this.browserStorage);
     }
 
@@ -159,14 +159,14 @@ export class EmbeddedClientApplication {
      */
     private async sendRequest(request: PopupRequest|RedirectRequest|SsoSilentRequest, interactionType: InteractionType, timeoutMs: number): Promise<MessageEvent> {
         const brokerRequest = new BrokerAuthRequest(this.clientId, interactionType, request, Constants.EMPTY_STRING);
-        return this.messageBroker<MessageEvent>(brokerRequest, timeoutMs);
+        return this.messageBroker(brokerRequest, timeoutMs);
     }
 
     /**
      * Send handshake request helper.
      */
     private async sendHandshakeRequest(): Promise<BrokerHandshakeResponse> {
-        return new Promise<BrokerHandshakeResponse>((resolve: any, reject: any) => {
+        return new Promise<BrokerHandshakeResponse>((resolve, reject) => {
             const timeoutId = setTimeout(() => {
                 this.logger.warning("Broker handshake timed out");
                 window.removeEventListener("message", onHandshakeResponse);
@@ -205,8 +205,8 @@ export class EmbeddedClientApplication {
      * @param payload 
      * @param timeoutMs 
      */
-    private async messageBroker<T>(payload: any, timeoutMs: number = DEFAULT_MESSAGE_TIMEOUT): Promise<T> {
-        return new Promise<T>((resolve: any, reject: any) => {
+    private async messageBroker(payload: BrokerAuthRequest|BrokerHandleRedirectRequest, timeoutMs: number = DEFAULT_MESSAGE_TIMEOUT): Promise<MessageEvent> {
+        return new Promise((resolve, reject) => {
             const timeoutId = setTimeout(() => {
                 reject(BrowserAuthError.createMessageBrokerTimeoutError());
             }, timeoutMs);

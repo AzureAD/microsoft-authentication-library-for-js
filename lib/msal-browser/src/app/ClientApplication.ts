@@ -359,7 +359,7 @@ export abstract class ClientApplication {
      *
      * @param request
      */
-     async loginRedirect(request?: RedirectRequest): Promise<void> {
+    async loginRedirect(request?: RedirectRequest): Promise<void> {
         this.logger.verbose("loginRedirect called");
         return this.acquireTokenRedirect(request || DEFAULT_REQUEST);
     }
@@ -448,7 +448,7 @@ export abstract class ClientApplication {
      *
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
-     loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
+    loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
         this.logger.verbose("loginPopup called");
         return this.acquireTokenPopup(request || DEFAULT_REQUEST);
     }
@@ -702,7 +702,7 @@ export abstract class ClientApplication {
      * @param {@link (SilentRequest:type)}
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
+    async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.verbose("acquireTokenSilent called");
         const account = request.account || this.getActiveAccount();
