@@ -41,9 +41,9 @@ describe("Logger.ts Class Unit Tests", () => {
             const logger = new Logger(loggerOptions);
             const loggerClone = logger.clone("msal-common", "2.0.0");
             loggerClone.info("Message");
-            expect(logStore[LogLevel.Info]).toEqual(expect.arrayContaining(["msal-common"]));
-            expect(logStore[LogLevel.Info]).toEqual(expect.arrayContaining(["2.0.0"]));
-            expect(logStore[LogLevel.Info]).toEqual(expect.arrayContaining(["msal-common@2.0.0"]));
+            expect(logStore[LogLevel.Info].includes("msal-common")).toBe(true);
+            expect(logStore[LogLevel.Info].includes("2.0.0")).toBe(true);
+            expect(logStore[LogLevel.Info].includes("msal-common@2.0.0")).toBe(true);
         });
     });
 
@@ -59,9 +59,9 @@ describe("Logger.ts Class Unit Tests", () => {
             const logger = new Logger(loggerOptions);
             const loggerClone = logger.clone("msal-common", "2.0.0");
             loggerClone.info("Message");
-            expect(logStore[LogLevel.Info]).toEqual(expect.arrayContaining(["msal-common"]));
-            expect(logStore[LogLevel.Info]).toEqual(expect.arrayContaining(["2.0.0"]));
-            expect(logStore[LogLevel.Info]).toEqual(expect.arrayContaining(["msal-common@2.0.0"]));
+            expect(logStore[LogLevel.Info].includes("msal-common")).toBe(true);
+            expect(logStore[LogLevel.Info].includes("2.0.0")).toBe(true);
+            expect(logStore[LogLevel.Info].includes("msal-common@2.0.0")).toBe(true);
         });
     });
 
