@@ -4,7 +4,6 @@
  */
 
 import chai from "chai";
-import "mocha";
 import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthenticationResult, AuthorizationCodeClient, AuthenticationScheme, ProtocolMode, Logger, Authority, ClientConfiguration, AuthorizationCodePayload } from "@azure/msal-common";

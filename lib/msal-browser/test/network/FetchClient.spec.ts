@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import { FetchClient } from "../../src/network/FetchClient";
 import sinon from "sinon";
 
