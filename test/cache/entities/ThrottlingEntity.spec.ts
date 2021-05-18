@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import "mocha";
 import { ThrottlingEntity } from "../../../src/cache/entities/ThrottlingEntity";
 import { ThrottlingConstants, Separators } from "../../../src/utils/Constants";
 import { TEST_CONFIG } from "../../test_kit/StringConstants";
