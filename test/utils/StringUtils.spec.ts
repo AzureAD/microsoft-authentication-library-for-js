@@ -74,17 +74,18 @@ describe("StringUtils.ts Class Unit Tests", () => {
     });
 
     it("isEmptyObject correctly identifies empty stringified objects", () => {
-        expect(StringUtils.isEmptyObj(undefined)).to.be.true;
-        expect(StringUtils.isEmptyObj(null)).to.be.true;
-        expect(StringUtils.isEmptyObj("")).to.be.true;
-        expect(StringUtils.isEmptyObj("{}")).to.be.true;
-        expect(StringUtils.isEmptyObj("{ }")).to.be.true;
-        expect(StringUtils.isEmptyObj("{   }")).to.be.true;
-        expect(StringUtils.isEmptyObj("Non-object string")).to.be.true;
+        expect(StringUtils.isEmptyObj(undefined)).toBe(true);
+        // @ts-ignore
+        expect(StringUtils.isEmptyObj(null)).toBe(true);
+        expect(StringUtils.isEmptyObj("")).toBe(true);
+        expect(StringUtils.isEmptyObj("{}")).toBe(true);
+        expect(StringUtils.isEmptyObj("{ }")).toBe(true);
+        expect(StringUtils.isEmptyObj("{   }")).toBe(true);
+        expect(StringUtils.isEmptyObj("Non-object string")).toBe(true);
         const exampleObj = {
             "valid": true
         };
-        expect(StringUtils.isEmptyObj(JSON.stringify(exampleObj))).to.be.false;
+        expect(StringUtils.isEmptyObj(JSON.stringify(exampleObj))).toBe(false);
     });
 
     it("startsWith returns true if given string starts with given substring", () => {
