@@ -146,7 +146,7 @@ describe("ResponseHandler.ts", () => {
         sinon.restore();
     });
 
-    describe("generateCacheRecord", async () => {
+    describe("generateCacheRecord", () => {
         it("throws invalid cache environment error", async () => {
             preferredCacheStub.returns("");
             const testRequest: BaseAuthRequest = {
@@ -284,7 +284,7 @@ describe("ResponseHandler.ts", () => {
         });
     });
 
-    describe("generateAuthenticationResult", async () => {
+    describe("generateAuthenticationResult", () => {
         it("sets default values if refresh_token not in cacheRecord", async () => {
             const testRequest: BaseAuthRequest = {
                 authority: testAuthority.canonicalAuthority,
