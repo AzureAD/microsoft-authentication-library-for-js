@@ -3,8 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { expect } from "chai";
-import "mocha";
 import chaiAsPromised from "chai-as-promised";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import {
@@ -162,8 +160,8 @@ describe("InteractionHandler.ts Unit Tests", () => {
     it("Constructor", () => {
         const interactionHandler = new TestInteractionHandler(authCodeModule, browserStorage);
 
-        expect(interactionHandler instanceof TestInteractionHandler).to.be.true;
-        expect(interactionHandler instanceof InteractionHandler).to.be.true;
+        expect(interactionHandler instanceof TestInteractionHandler).toBe(true);
+        expect(interactionHandler instanceof InteractionHandler).toBe(true);
     });
 
     describe("handleCodeResponse()", () => {
@@ -178,69 +176,72 @@ describe("InteractionHandler.ts Unit Tests", () => {
         });
         
         // TODO: Need to improve this test
-        it("successfully uses a new authority if cloud_instance_host_name is different", async () => {
-            const idTokenClaims = {
-                "ver": "2.0",
-                "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
-                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
-                "exp": "1536361411",
-                "name": "Abe Lincoln",
-                "preferred_username": "AbeLi@microsoft.com",
-                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
-                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
-                "nonce": "123523"
-            };
+        it(
+            "successfully uses a new authority if cloud_instance_host_name is different",
+            async () => {
+                const idTokenClaims = {
+                    "ver": "2.0",
+                    "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                    "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                    "exp": "1536361411",
+                    "name": "Abe Lincoln",
+                    "preferred_username": "AbeLi@microsoft.com",
+                    "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                    "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                    "nonce": "123523"
+                };
 
-            const testCodeResponse: AuthorizationCodePayload = {
-                code: "authcode",
-                nonce: idTokenClaims.nonce,
-                state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
-                cloud_instance_host_name: "contoso.com"
-            };
+                const testCodeResponse: AuthorizationCodePayload = {
+                    code: "authcode",
+                    nonce: idTokenClaims.nonce,
+                    state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                    cloud_instance_host_name: "contoso.com"
+                };
 
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                environment: "login.windows.net",
-                tenantId: idTokenClaims.tid,
-                username: idTokenClaims.preferred_username,
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID
-            };
-            const testTokenResponse: AuthenticationResult = {
-                authority: authorityInstance.canonicalAuthority,
-                accessToken: TEST_TOKENS.ACCESS_TOKEN,
-                idToken: TEST_TOKENS.IDTOKEN_V2,
-                fromCache: false,
-                scopes: ["scope1", "scope2"],
-                account: testAccount,
-                expiresOn: new Date(Date.now() + (TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000)),
-                idTokenClaims: idTokenClaims,
-                tenantId: idTokenClaims.tid,
-                uniqueId: idTokenClaims.oid,
-                state: "testState",
-                tokenType: AuthenticationScheme.BEARER
-            };
-            browserStorage.setTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT), TEST_STATE_VALUES.TEST_STATE_REDIRECT);
-            browserStorage.setTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT), idTokenClaims.nonce);
-            sinon.stub(AuthorizationCodeClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
-            sinon.stub(Authority.prototype, "isAlias").returns(false);
-            const authorityOptions: AuthorityOptions = {
-                protocolMode: ProtocolMode.AAD,
-                knownAuthorities: ["www.contoso.com"],
-                cloudDiscoveryMetadata: "",
-                authorityMetadata: ""
+                const testAccount: AccountInfo = {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    environment: "login.windows.net",
+                    tenantId: idTokenClaims.tid,
+                    username: idTokenClaims.preferred_username,
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID
+                };
+                const testTokenResponse: AuthenticationResult = {
+                    authority: authorityInstance.canonicalAuthority,
+                    accessToken: TEST_TOKENS.ACCESS_TOKEN,
+                    idToken: TEST_TOKENS.IDTOKEN_V2,
+                    fromCache: false,
+                    scopes: ["scope1", "scope2"],
+                    account: testAccount,
+                    expiresOn: new Date(Date.now() + (TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000)),
+                    idTokenClaims: idTokenClaims,
+                    tenantId: idTokenClaims.tid,
+                    uniqueId: idTokenClaims.oid,
+                    state: "testState",
+                    tokenType: AuthenticationScheme.BEARER
+                };
+                browserStorage.setTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT), TEST_STATE_VALUES.TEST_STATE_REDIRECT);
+                browserStorage.setTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT), idTokenClaims.nonce);
+                sinon.stub(AuthorizationCodeClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
+                sinon.stub(Authority.prototype, "isAlias").returns(false);
+                const authorityOptions: AuthorityOptions = {
+                    protocolMode: ProtocolMode.AAD,
+                    knownAuthorities: ["www.contoso.com"],
+                    cloudDiscoveryMetadata: "",
+                    authorityMetadata: ""
+                }
+                const authority = new Authority("https://www.contoso.com/common/", networkInterface, browserStorage, authorityOptions);
+                sinon.stub(AuthorityFactory, "createDiscoveredInstance").resolves(authority);
+                sinon.stub(Authority.prototype, "discoveryComplete").returns(true);
+                const updateAuthoritySpy = sinon.spy(AuthorizationCodeClient.prototype, "updateAuthority");
+                const acquireTokenSpy = sinon.stub(AuthorizationCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
+                const interactionHandler = new TestInteractionHandler(authCodeModule, browserStorage);
+                await interactionHandler.initiateAuthRequest("testNavUrl");
+                const tokenResponse = await interactionHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT, TEST_STATE_VALUES.TEST_STATE_REDIRECT, authorityInstance, authConfig.networkInterface);
+                expect(updateAuthoritySpy.calledWith(authority)).toBe(true);
+                expect(tokenResponse).toEqual(testTokenResponse);
+                expect(acquireTokenSpy.calledWith(testAuthCodeRequest, testCodeResponse)).toBe(true);
+                expect(acquireTokenSpy.threw()).toBe(false);
             }
-            const authority = new Authority("https://www.contoso.com/common/", networkInterface, browserStorage, authorityOptions);
-            sinon.stub(AuthorityFactory, "createDiscoveredInstance").resolves(authority);
-            sinon.stub(Authority.prototype, "discoveryComplete").returns(true);
-            const updateAuthoritySpy = sinon.spy(AuthorizationCodeClient.prototype, "updateAuthority");
-            const acquireTokenSpy = sinon.stub(AuthorizationCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
-            const interactionHandler = new TestInteractionHandler(authCodeModule, browserStorage);
-            await interactionHandler.initiateAuthRequest("testNavUrl");
-            const tokenResponse = await interactionHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT, TEST_STATE_VALUES.TEST_STATE_REDIRECT, authorityInstance, authConfig.networkInterface);
-            expect(updateAuthoritySpy.calledWith(authority)).to.be.true;
-            expect(tokenResponse).to.deep.eq(testTokenResponse);
-            expect(acquireTokenSpy.calledWith(testAuthCodeRequest, testCodeResponse)).to.be.true;
-            expect(acquireTokenSpy.threw()).to.be.false;
-        });
+        );
     });
 });

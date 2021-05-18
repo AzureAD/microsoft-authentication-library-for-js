@@ -4,7 +4,6 @@
  */
 
 import chai from "chai";
-import "mocha";
 import chaiAsPromised from "chai-as-promised";
 import { PkceCodes, NetworkRequestOptions, LogLevel, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthorizationCodeClient, ProtocolMode, Logger, AuthenticationScheme } from "@azure/msal-common";
 import sinon from "sinon";
@@ -153,24 +152,30 @@ describe("SilentHandler.ts Unit Tests", () => {
             await expect(silentHandler.initiateAuthRequest(null)).to.be.rejectedWith(BrowserAuthError);
         });
 
-        it("Creates a frame asynchronously when created with default timeout", async () => {
-            const silentHandler = new SilentHandler(authCodeModule, browserStorage, defaultTokenRequest, DEFAULT_IFRAME_TIMEOUT_MS);
-            const loadFrameSyncSpy = sinon.spy(silentHandler, <any>"loadFrameSync");
-            const loadFrameSpy = sinon.spy(silentHandler, <any>"loadFrame");
-            const authFrame = await silentHandler.initiateAuthRequest(testNavUrl);
-            expect(loadFrameSpy.called).to.be.true;
-            expect(authFrame instanceof HTMLIFrameElement).to.be.true;
-        }).timeout(DEFAULT_IFRAME_TIMEOUT_MS + 1000);
+        it(
+            "Creates a frame asynchronously when created with default timeout",
+            async () => {
+                const silentHandler = new SilentHandler(authCodeModule, browserStorage, defaultTokenRequest, DEFAULT_IFRAME_TIMEOUT_MS);
+                const loadFrameSyncSpy = sinon.spy(silentHandler, <any>"loadFrameSync");
+                const loadFrameSpy = sinon.spy(silentHandler, <any>"loadFrame");
+                const authFrame = await silentHandler.initiateAuthRequest(testNavUrl);
+                expect(loadFrameSpy.called).to.be.true;
+                expect(authFrame instanceof HTMLIFrameElement).to.be.true;
+            }
+        ).timeout(DEFAULT_IFRAME_TIMEOUT_MS + 1000);
 
-        it("Creates a frame synchronously when created with a timeout of 0", async () => {
-            const silentHandler = new SilentHandler(authCodeModule, browserStorage, defaultTokenRequest, 0);
-            const loadFrameSyncSpy = sinon.spy(silentHandler, <any>"loadFrameSync");
-            const loadFrameSpy = sinon.spy(silentHandler, <any>"loadFrame");
-            const authFrame = await silentHandler.initiateAuthRequest(testNavUrl);
-            expect(loadFrameSyncSpy.calledOnce).to.be.true;
-            expect(loadFrameSpy.called).to.be.false;
-            expect(authFrame instanceof HTMLIFrameElement).to.be.true;
-        });
+        it(
+            "Creates a frame synchronously when created with a timeout of 0",
+            async () => {
+                const silentHandler = new SilentHandler(authCodeModule, browserStorage, defaultTokenRequest, 0);
+                const loadFrameSyncSpy = sinon.spy(silentHandler, <any>"loadFrameSync");
+                const loadFrameSpy = sinon.spy(silentHandler, <any>"loadFrame");
+                const authFrame = await silentHandler.initiateAuthRequest(testNavUrl);
+                expect(loadFrameSyncSpy.calledOnce).to.be.true;
+                expect(loadFrameSpy.called).to.be.false;
+                expect(authFrame instanceof HTMLIFrameElement).to.be.true;
+            }
+        );
     });
 
     describe("monitorIframeForHash", () => {
@@ -190,7 +195,7 @@ describe("SilentHandler.ts Unit Tests", () => {
                 });
         });
 
-        it("times out when event loop is suspended", function(done) {
+        it("times out when event loop is suspended", done => {
             this.timeout(5000);
 
             const iframe = {

@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import "mocha";
 import chai from "chai";
 import chaiAsPromised from "chai-as-promised";
 import { stubbedPublicClientApplication } from "../../src/app/IPublicClientApplication";

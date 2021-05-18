@@ -134,28 +134,34 @@ describe("PopupUtils Tests", () => {
             expect(popupName).to.equal("msal.client-id.scope1-scope2.https://login.microsoftonline.com/common.correlation-id");
         });
 
-        it("generateLogoutPopupName generates expected name when account passed in", () => {
-            const testAccount: AccountInfo = {
-                homeAccountId: "homeAccountId",
-                localAccountId: "localAccountId",
-                environment: "environment",
-                tenantId: "tenant",
-                username: "user"
-            };
-            const popupName = PopupUtils.generateLogoutPopupName("client-id", {
-                account: testAccount,
-                correlationId: "correlation-id"
-            });
+        it(
+            "generateLogoutPopupName generates expected name when account passed in",
+            () => {
+                const testAccount: AccountInfo = {
+                    homeAccountId: "homeAccountId",
+                    localAccountId: "localAccountId",
+                    environment: "environment",
+                    tenantId: "tenant",
+                    username: "user"
+                };
+                const popupName = PopupUtils.generateLogoutPopupName("client-id", {
+                    account: testAccount,
+                    correlationId: "correlation-id"
+                });
 
-            expect(popupName).to.equal("msal.client-id.homeAccountId.correlation-id");
-        });
+                expect(popupName).to.equal("msal.client-id.homeAccountId.correlation-id");
+            }
+        );
 
-        it("generateLogoutPopupName generates expected name when account not passed in", () => {
-            const popupName = PopupUtils.generateLogoutPopupName("client-id", {
-                correlationId: "correlation-id"
-            });
+        it(
+            "generateLogoutPopupName generates expected name when account not passed in",
+            () => {
+                const popupName = PopupUtils.generateLogoutPopupName("client-id", {
+                    correlationId: "correlation-id"
+                });
 
-            expect(popupName).to.equal("msal.client-id.undefined.correlation-id");
-        });
+                expect(popupName).to.equal("msal.client-id.undefined.correlation-id");
+            }
+        );
     });
 });

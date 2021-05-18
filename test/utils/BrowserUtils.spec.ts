@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { expect } from "chai";
 import sinon from "sinon";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { TEST_URIS } from "./StringConstants";
@@ -24,7 +23,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
     it("clearHash() clears the window hash", () => {
         window.location.hash = "thisIsAHash";
         BrowserUtils.clearHash(window);
-        expect(window.location.href.includes("#thisIsAHash")).to.be.false;
+        expect(window.location.href.includes("#thisIsAHash")).toBe(false);
     });
 
     it("clearHash() clears the window hash (office addin)", () => {
@@ -34,34 +33,43 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
 
         window.location.hash = "thisIsAHash";
         BrowserUtils.clearHash(window);
-        expect(window.location.href.includes("#thisIsAHash")).to.be.false;
+        expect(window.location.href.includes("#thisIsAHash")).toBe(false);
         
         history.replaceState = oldReplaceState;
     });
 
-    it("replaceHash replaces the current window hash with the hash from the provided url", () => {
-        window.location.hash = "thisIsAHash";
-        const url = "http://localhost/#";
-        const testHash = "#replacementHash";
-        BrowserUtils.replaceHash(url + testHash);
-        expect(window.location.hash).to.be.eq(testHash);
-    });
+    it(
+        "replaceHash replaces the current window hash with the hash from the provided url",
+        () => {
+            window.location.hash = "thisIsAHash";
+            const url = "http://localhost/#";
+            const testHash = "#replacementHash";
+            BrowserUtils.replaceHash(url + testHash);
+            expect(window.location.hash).toBe(testHash);
+        }
+    );
 
-    it("replaceHash clears the current window hash when provided url does not have hash", () => {
-        window.location.hash = "thisIsAHash";
-        const url = "http://localhost/";
-        BrowserUtils.replaceHash(url);
-        expect(window.location.hash).to.be.eq("");
-    });
+    it(
+        "replaceHash clears the current window hash when provided url does not have hash",
+        () => {
+            window.location.hash = "thisIsAHash";
+            const url = "http://localhost/";
+            BrowserUtils.replaceHash(url);
+            expect(window.location.hash).toBe("");
+        }
+    );
     
-    it("isInIframe() returns false if window parent is not the same as the current window", () => {
-        expect(BrowserUtils.isInIframe()).to.be.false;
-        sinon.stub(window, "parent").value(null);
-        expect(BrowserUtils.isInIframe()).to.be.true;
-    });
+    it(
+        "isInIframe() returns false if window parent is not the same as the current window",
+        () => {
+            expect(BrowserUtils.isInIframe()).toBe(false);
+            sinon.stub(window, "parent").value(null);
+            expect(BrowserUtils.isInIframe()).toBe(true);
+        }
+    );
 
     it("getCurrentUri() returns current location uri of browser", () => {
-        expect(BrowserUtils.getCurrentUri()).to.be.eq(TEST_URIS.TEST_REDIR_URI);
+        expect(BrowserUtils.getCurrentUri()).toBe(TEST_URIS.TEST_REDIR_URI);
     });
 
     it("getBrowserNetworkClient() returns fetch client if available", () => {
@@ -71,11 +79,11 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         // @ts-ignore
         window.Headers = () => {};
 
-        expect(BrowserUtils.getBrowserNetworkClient() instanceof FetchClient).to.be.true;
+        expect(BrowserUtils.getBrowserNetworkClient() instanceof FetchClient).toBe(true);
     });
 
     it("getBrowserNetworkClient() returns xhr client if available", () => {
-        expect(BrowserUtils.getBrowserNetworkClient() instanceof XhrClient).to.be.true;
+        expect(BrowserUtils.getBrowserNetworkClient() instanceof XhrClient).toBe(true);
     });
 
     describe("blockRedirectInIframe", () => {
@@ -84,7 +92,7 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
             try {
                 BrowserUtils.blockRedirectInIframe(InteractionType.Redirect, false);
             } catch (e) {
-                expect(e.errorCode).to.equal(BrowserAuthErrorMessage.redirectInIframeError.code);
+                expect(e.errorCode).toBe(BrowserAuthErrorMessage.redirectInIframeError.code);
                 done();
             }
         });

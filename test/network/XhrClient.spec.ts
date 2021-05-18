@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import sinon from "sinon";
 import { XhrClient } from "../../src/network/XhrClient";
 import { HTTP_REQUEST_TYPE } from "../../src/utils/BrowserConstants";
@@ -21,12 +20,12 @@ describe("XhrClient.ts Unit Tests", () => {
         it("sends a get request as expected", () => {
             const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
             sinon.stub(XMLHttpRequest.prototype, "open").callsFake((method: string, url: string, async: boolean) => {
-                expect(method).to.be.eq(HTTP_REQUEST_TYPE.GET);
-                expect(url).to.be.eq(targetUri);
-                expect(async).to.be.true;
+                expect(method).toBe(HTTP_REQUEST_TYPE.GET);
+                expect(url).toBe(targetUri);
+                expect(async).toBe(true);
             });
             sinon.stub(XMLHttpRequest.prototype, "send").callsFake((body) => {
-                expect(body).to.be.undefined;
+                expect(body).toBeUndefined();
             });
 
             xhrClient.sendGetRequestAsync(targetUri);
@@ -41,12 +40,12 @@ describe("XhrClient.ts Unit Tests", () => {
                 body: "thisIsAPostBody"
             };
             sinon.stub(XMLHttpRequest.prototype, "open").callsFake((method: string, url: string, async: boolean) => {
-                expect(method).to.be.eq(HTTP_REQUEST_TYPE.POST);
-                expect(url).to.be.eq(targetUri);
-                expect(async).to.be.true;
+                expect(method).toBe(HTTP_REQUEST_TYPE.POST);
+                expect(url).toBe(targetUri);
+                expect(async).toBe(true);
             });
             sinon.stub(XMLHttpRequest.prototype, "send").callsFake((body) => {
-                expect(body).to.be.eq(requestOptions.body);
+                expect(body).toBe(requestOptions.body);
             });
 
             xhrClient.sendPostRequestAsync(targetUri, requestOptions);
@@ -60,12 +59,12 @@ describe("XhrClient.ts Unit Tests", () => {
                 headers: reqHeaders
             };
             sinon.stub(XMLHttpRequest.prototype, "send").callsFake((body) => {
-                expect(body).to.be.eq(requestOptions.body);
+                expect(body).toBe(requestOptions.body);
             });
             const headerSpy = sinon.spy(XhrClient.prototype, <any>"setXhrHeaders");
 
             xhrClient.sendPostRequestAsync(targetUri, requestOptions);
-            expect(headerSpy.args[0]).to.contain(requestOptions);
+            expect(headerSpy.args[0]).toEqual(expect.arrayContaining([requestOptions]));
         });
     });
 
@@ -74,9 +73,9 @@ describe("XhrClient.ts Unit Tests", () => {
         it("throws error if called with an unrecognized request type", async () => {
             const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
             sinon.stub(XMLHttpRequest.prototype, "open").callsFake((method: string, url: string, async: boolean) => {
-                expect(method).to.be.eq("NOTATYPE");
-                expect(url).to.be.eq(targetUri);
-                expect(async).to.be.true;
+                expect(method).toBe("NOTATYPE");
+                expect(url).toBe(targetUri);
+                expect(async).toBe(true);
                 sinon.restore();
             });
 
@@ -85,8 +84,10 @@ describe("XhrClient.ts Unit Tests", () => {
             try {
                 await xhrClient.sendGetRequestAsync<any>(targetUri);
             } catch (e) {
-                expect(e).to.be.instanceOf(BrowserAuthError);
-                expect(e.errorMessage).to.contain(BrowserAuthErrorMessage.httpMethodNotImplementedError.desc);
+                expect(e).toBeInstanceOf(BrowserAuthError);
+                expect(e.errorMessage).toEqual(
+                    expect.arrayContaining([BrowserAuthErrorMessage.httpMethodNotImplementedError.desc])
+                );
             }
         });
 
@@ -102,9 +103,9 @@ describe("XhrClient.ts Unit Tests", () => {
             };
 
             xhrClient.sendPostRequestAsync<any>(targetUri, requestOptions).catch(e => {
-                expect(e).to.be.instanceOf(BrowserAuthError);
-                expect(e.errorCode).to.be.eq(BrowserAuthErrorMessage.postRequestFailed.code);
-                expect(e.errorMessage).to.contain("Failed with status 16");
+                expect(e).toBeInstanceOf(BrowserAuthError);
+                expect(e.errorCode).toBe(BrowserAuthErrorMessage.postRequestFailed.code);
+                expect(e.errorMessage).toEqual(expect.arrayContaining(["Failed with status 16"]));
                 done();
             });
             testRequest.respond(16);
@@ -119,9 +120,9 @@ describe("XhrClient.ts Unit Tests", () => {
             const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
 
             xhrClient.sendGetRequestAsync<any>(targetUri).catch(e => {
-                expect(e).to.be.instanceOf(BrowserAuthError);
-                expect(e.errorCode).to.be.eq(BrowserAuthErrorMessage.getRequestFailed.code);
-                expect(e.errorMessage).to.contain("Failed with status 16");
+                expect(e).toBeInstanceOf(BrowserAuthError);
+                expect(e.errorCode).toBe(BrowserAuthErrorMessage.getRequestFailed.code);
+                expect(e.errorMessage).toEqual(expect.arrayContaining(["Failed with status 16"]));
                 done();
             });
             testRequest.respond(16);
@@ -139,8 +140,8 @@ describe("XhrClient.ts Unit Tests", () => {
             };
 
             xhrClient.sendPostRequestAsync<any>(targetUri, requestOptions).catch(e => {
-                expect(e).to.be.instanceOf(BrowserAuthError);
-                expect(e.errorCode).to.be.eq(BrowserAuthErrorMessage.failedToParseNetworkResponse.code);
+                expect(e).toBeInstanceOf(BrowserAuthError);
+                expect(e.errorCode).toBe(BrowserAuthErrorMessage.failedToParseNetworkResponse.code);
                 done();
             });
             testRequest.respond(200, { 'Content-Type': 'text/json' }, "thisIsNotJSON");
@@ -158,9 +159,9 @@ describe("XhrClient.ts Unit Tests", () => {
             };
 
             xhrClient.sendPostRequestAsync<any>(targetUri, requestOptions).catch(e => {
-                expect(e).to.be.instanceOf(BrowserAuthError);
-                expect(e.errorCode).to.be.eq(BrowserAuthErrorMessage.postRequestFailed.code);
-                expect(e.errorMessage).to.contain("Failed with status 0");
+                expect(e).toBeInstanceOf(BrowserAuthError);
+                expect(e.errorCode).toBe(BrowserAuthErrorMessage.postRequestFailed.code);
+                expect(e.errorMessage).toEqual(expect.arrayContaining(["Failed with status 0"]));
                 done();
             });
             testRequest.error();
@@ -175,9 +176,9 @@ describe("XhrClient.ts Unit Tests", () => {
             const targetUri = `${Constants.DEFAULT_AUTHORITY}/`;
 
             xhrClient.sendGetRequestAsync<any>(targetUri).catch(e => {
-                expect(e).to.be.instanceOf(BrowserAuthError);
-                expect(e.errorCode).to.be.eq(BrowserAuthErrorMessage.getRequestFailed.code);
-                expect(e.errorMessage).to.contain("Failed with status 0");
+                expect(e).toBeInstanceOf(BrowserAuthError);
+                expect(e.errorCode).toBe(BrowserAuthErrorMessage.getRequestFailed.code);
+                expect(e.errorMessage).toEqual(expect.arrayContaining(["Failed with status 0"]));
                 done();
             });
             testRequest.error();
@@ -204,8 +205,8 @@ describe("XhrClient.ts Unit Tests", () => {
             }
 
             xhrClient.sendPostRequestAsync<any>(targetUri, requestOptions).catch(e => {
-                expect(e).to.be.instanceOf(BrowserAuthError);
-                expect(e.errorCode).to.be.eq(BrowserAuthErrorMessage.noNetworkConnectivity.code);
+                expect(e).toBeInstanceOf(BrowserAuthError);
+                expect(e.errorCode).toBe(BrowserAuthErrorMessage.noNetworkConnectivity.code);
                 window = oldWindow;
                 done();
             });

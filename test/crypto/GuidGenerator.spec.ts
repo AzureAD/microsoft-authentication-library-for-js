@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import sinon from "sinon";
 import { RANDOM_TEST_GUID } from "../utils/StringConstants";
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
@@ -18,11 +17,11 @@ describe("GuidGenerator Unit Tests", () => {
     describe("test if a string is GUID", () => {
 
         it("Regular text", () => {
-            expect(GuidGenerator.isGuid("Hello")).to.be.eq(false);
+            expect(GuidGenerator.isGuid("Hello")).toBe(false);
         });
 
         it("GUID", () => {
-            expect(GuidGenerator.isGuid(RANDOM_TEST_GUID)).to.be.eq(true);
+            expect(GuidGenerator.isGuid(RANDOM_TEST_GUID)).toBe(true);
         });
     });
 
@@ -30,13 +29,13 @@ describe("GuidGenerator Unit Tests", () => {
 
         it("Creates a new valid guid with browser crypto", () => {
             const guidGen = new GuidGenerator(browserCrypto);
-            expect(GuidGenerator.isGuid(guidGen.generateGuid())).to.be.eq(true);
+            expect(GuidGenerator.isGuid(guidGen.generateGuid())).toBe(true);
         });
 
         it("Creates a new valid guid when browser crypto throws error", () => {
             sinon.stub(BrowserCrypto.prototype, "getRandomValues").throws("No crypto object available.");
             const guidGen = new GuidGenerator(browserCrypto);
-            expect(GuidGenerator.isGuid(guidGen.generateGuid())).to.be.eq(true);
+            expect(GuidGenerator.isGuid(guidGen.generateGuid())).toBe(true);
         });
     });
 });
