@@ -1,6 +1,6 @@
 import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
-import { TEST_CONFIG } from "../utils/StringConstants";
+import { TEST_CONFIG } from "../test_kit/StringConstants";
 import { Constants } from "../../src/utils/Constants";
 import { ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 import { Authority } from "../../src/authority/Authority";

@@ -1,4 +1,4 @@
-import { TEST_URIS, TEST_HASHES } from "../utils/StringConstants";
+import { TEST_URIS, TEST_HASHES } from "../test_kit/StringConstants";
 import { UrlString } from "../../src/url/UrlString";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 import { IUri } from "../../src/url/IUri";
@@ -65,6 +65,14 @@ describe("UrlString.ts Class Unit Tests", () => {
         urlObj2.urlRemoveQueryStringParameter("param1");
         expect(urlObj2.urlString).not.toContain("param1=value1");
         expect(urlObj2.urlString).not.toContain("param2=value2");
+    });
+
+    it("appendQueryString appends the provided query string", () => {
+        const baseUrl = "https://localhost/";
+        const queryString = "param1=value1&param2=value2";
+        expect(UrlString.appendQueryString(baseUrl, queryString)).to.equal(`${baseUrl}?${queryString}`);
+        expect(UrlString.appendQueryString(`${baseUrl}?param3=value3`, queryString)).to.equal(`${baseUrl}?param3=value3&${queryString}`);
+        expect(UrlString.appendQueryString(baseUrl, "")).to.equal(baseUrl);
     });
 
     it("removes hash from url provided", () => {
@@ -216,5 +224,40 @@ describe("UrlString.ts Class Unit Tests", () => {
             const expectedUrl = "https://localhost:30662/testPath";
             expect(UrlString.getAbsoluteUrl("/testPath", basePath)).toBe(expectedUrl);
         });
+    });
+
+    describe("canonicalizeUri tests", () => {
+        it("returns empty string if passed", () => {
+            const url = "";
+
+            const canonicalUrl = UrlString.canonicalizeUri(url);
+
+            expect(canonicalUrl).to.equal(url);
+        });
+
+        it ("handles ?", () => {
+            let url = "https://contoso.com/?";
+
+            const canonicalUrl = UrlString.canonicalizeUri(url);
+
+            expect(canonicalUrl).to.equal("https://contoso.com/");
+        });
+
+        it ("handles ?/", () => {
+            let url = "https://contoso.com/?/";
+
+            const canonicalUrl = UrlString.canonicalizeUri(url);
+
+            expect(canonicalUrl).to.equal("https://contoso.com/");
+        });
+
+        it("maintains original casing of original url", () => {
+            let url = "https://contoso.com/PATH";
+
+            const canonicalUrl = UrlString.canonicalizeUri(url);
+
+            expect(url).to.equal("https://contoso.com/PATH");
+            expect(canonicalUrl).to.equal("https://contoso.com/path/");
+        })
     });
 });

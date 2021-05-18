@@ -8,19 +8,19 @@ import {
     AUTHENTICATION_RESULT_DEFAULT_SCOPES,
     DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_CONFIG,
-    TEST_TOKENS,
     TEST_DATA_CLIENT_INFO,
     TEST_URIS,
-    CORS_SIMPLE_REQUEST_HEADERS
-} from "../utils/StringConstants";
+    CORS_SIMPLE_REQUEST_HEADERS,
+    RANDOM_TEST_GUID
+} from "../test_kit/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
 import { AADServerParamKeys, GrantType, Constants, PasswordGrantConstants, ThrottlingConstants } from "../../src/utils/Constants";
 import { ClientTestUtils } from "./ClientTestUtils";
 import { Authority } from "../../src/authority/Authority";
 import { UsernamePasswordClient } from "../../src/client/UsernamePasswordClient";
-import { UsernamePasswordRequest } from "../../src/request/UsernamePasswordRequest";
+import { CommonUsernamePasswordRequest } from "../../src/request/CommonUsernamePasswordRequest";
 import { AuthToken } from "../../src/account/AuthToken";
-import { ClientConfiguration } from "../../src";
+import { AuthenticationResult, ClientConfiguration } from "../../src";
 
 describe("Username Password unit tests", () => {
     let config: ClientConfiguration;
@@ -97,10 +97,12 @@ describe("Username Password unit tests", () => {
         });
 
         const client = new UsernamePasswordClient(config);
-        const usernamePasswordRequest: UsernamePasswordRequest = {
+        const usernamePasswordRequest: CommonUsernamePasswordRequest = {
+            authority: Constants.DEFAULT_AUTHORITY,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             username: "mock_name",
-            password: "mock_password"
+            password: "mock_password",
+            correlationId: RANDOM_TEST_GUID
         };
 
         client.acquireToken(usernamePasswordRequest);
@@ -112,13 +114,16 @@ describe("Username Password unit tests", () => {
         const createTokenRequestBodySpy = sinon.spy(UsernamePasswordClient.prototype, <any>"createTokenRequestBody");
 
         const client = new UsernamePasswordClient(config);
-        const usernamePasswordRequest: UsernamePasswordRequest = {
+        const usernamePasswordRequest: CommonUsernamePasswordRequest = {
+            authority: Constants.DEFAULT_AUTHORITY,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             username: "mock_name",
-            password: "mock_password"
+            password: "mock_password",
+            claims: TEST_CONFIG.CLAIMS,
+            correlationId: RANDOM_TEST_GUID
         };
 
-        const authResult = await client.acquireToken(usernamePasswordRequest);
+        const authResult = await client.acquireToken(usernamePasswordRequest) as AuthenticationResult;
         const expectedScopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE, TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
         expect(authResult.scopes).toEqual(expectedScopes);
         expect(authResult.idToken).toEqual(AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.id_token);
@@ -152,6 +157,43 @@ describe("Username Password unit tests", () => {
         );
         expect(createTokenRequestBodySpy.returnValues[0]).toEqual(expect.arrayContaining([
             `${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`
-        ]));
+        ]));           
+    });
+
+    it("Does not include claims if empty object is passed", async () => {
+        sinon.stub(UsernamePasswordClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT_DEFAULT_SCOPES);
+
+        const createTokenRequestBodySpy = sinon.spy(UsernamePasswordClient.prototype, <any>"createTokenRequestBody");
+
+        const client = new UsernamePasswordClient(config);
+        const usernamePasswordRequest: CommonUsernamePasswordRequest = {
+            authority: Constants.DEFAULT_AUTHORITY,
+            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+            username: "mock_name",
+            password: "mock_password",
+            correlationId: RANDOM_TEST_GUID,
+            claims: "{}"
+        };
+
+        const authResult = await client.acquireToken(usernamePasswordRequest);
+        const expectedScopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE, TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
+        expect(authResult.scopes).to.deep.eq(expectedScopes);
+        expect(authResult.idToken).to.deep.eq(AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.id_token);
+        expect(authResult.accessToken).to.deep.eq(AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.access_token);
+        expect(authResult.state).to.be.empty;
+
+        expect(createTokenRequestBodySpy.calledWith(usernamePasswordRequest)).to.be.true;
+
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.GRANT_TYPE}=${encodeURIComponent(GrantType.RESOURCE_OWNER_PASSWORD_GRANT)}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${PasswordGrantConstants.username}=mock_name`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${PasswordGrantConstants.password}=mock_password`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.not.contain(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`);
+        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`);            
     });
 });

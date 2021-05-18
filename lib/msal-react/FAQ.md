@@ -67,7 +67,9 @@ This means the following APIs are off-limits outside the context of `MsalProvide
 
 ### How do I handle the forgot password flow in a react app?
 
-When a user clicks the "forgot password" link on the B2C sign in page, B2C will return a specific error stating that the user would like to reset their password. It is your app's responsibility to catch this error and call login again with your forgot password policy.
+The [new password reset experience](https://docs.microsoft.com/azure/active-directory-b2c/add-password-reset-policy?pivots=b2c-user-flow#self-service-password-reset-recommended) is now part of the sign-up or sign-in policy. When the user selects the **Forgot your password?** link, they are immediately sent to the Forgot Password experience. You don't need a separate policy for password reset anymore.
+
+Our recommendation is to move to the new password reset experience since it simplifies the app state and reduces error handling on the user-end. If for some reason you have to use the legacy forgot password flow, you'll have to handle the `AADB2C90118` error response returned from B2C service when a user selects the **Forgot your password?** link, and call login again with your forgot password policy.
 
 If you're using the `useMsalAuthentication` hook to login you can inspect the error returned and invoke the login callback with a new request object.
 

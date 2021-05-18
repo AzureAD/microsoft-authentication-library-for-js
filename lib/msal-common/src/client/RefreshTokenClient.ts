@@ -21,6 +21,7 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ClientAuthError, ClientAuthErrorMessage } from "../error/ClientAuthError";
 import { ServerError } from "../error/ServerError";
 import { TimeUtils } from "../utils/TimeUtils";
+import { UrlString } from "../url/UrlString";
 
 /**
  * OAuth2.0 refresh token client
@@ -135,8 +136,7 @@ export class RefreshTokenClient extends BaseClient {
             scopes: request.scopes
         };
 
-        const endpoint = StringUtils.isEmpty(queryParameters) ? authority.tokenEndpoint : `${authority.tokenEndpoint}?${queryParameters}`;
-
+        const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParameters);
         return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
     }
 
@@ -198,7 +198,7 @@ export class RefreshTokenClient extends BaseClient {
             parameterBuilder.addPopToken(await popTokenGenerator.generateCnf(request));
         }
 
-        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+        if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
 

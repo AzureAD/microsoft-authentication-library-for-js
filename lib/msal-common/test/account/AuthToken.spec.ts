@@ -1,5 +1,5 @@
 import { AuthToken } from "../../src/account/AuthToken";
-import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES } from "../test_kit/StringConstants";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
 import { ClientAuthErrorMessage, ClientAuthError, StringUtils } from "../../src";
 import { DecodedAuthToken } from "../../src/account/DecodedAuthToken";

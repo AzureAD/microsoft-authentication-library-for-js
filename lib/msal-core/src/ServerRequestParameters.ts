@@ -190,11 +190,12 @@ export class ServerRequestParameters {
      * @param {@link ServerRequestParameters}
      * @ignore
      */
-    private addHintParameters(account: Account, qParams: StringDict): StringDict {
+    private addHintParameters(account: Account, params: StringDict): StringDict {
     /*
      * This is a final check for all queryParams added so far; preference order: sid > login_hint
      * sid cannot be passed along with login_hint or domain_hint, hence we check both are not populated yet in queryParameters
      */
+        let qParams = params;
         if (account && !qParams[SSOTypes.SID]) {
             // sid - populate only if login_hint is not already populated and the account has sid
             const populateSID = !qParams[SSOTypes.LOGIN_HINT] && account.sid && this.promptValue === PromptState.NONE;
@@ -217,10 +218,8 @@ export class ServerRequestParameters {
      * Add SID to extraQueryParameters
      * @param sid
      */
-    private addSSOParameter(ssoType: string, ssoData: string, ssoParam?: StringDict): StringDict {
-        if (!ssoParam) {
-            ssoParam = {};
-        }
+    private addSSOParameter(ssoType: string, ssoData: string, params?: StringDict): StringDict {
+        const ssoParam = params || {};
 
         if (!ssoData) {
             return ssoParam;

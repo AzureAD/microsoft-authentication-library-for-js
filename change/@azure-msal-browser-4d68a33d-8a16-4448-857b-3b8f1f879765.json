@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Add known issues for IE",
-  "packageName": "@azure/msal-browser",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none"
-}

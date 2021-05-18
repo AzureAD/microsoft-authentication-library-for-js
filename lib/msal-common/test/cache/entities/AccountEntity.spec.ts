@@ -5,7 +5,7 @@ import { AuthorityFactory } from "../../../src/authority/AuthorityFactory";
 import { CacheAccountType, Constants } from "../../../src/utils/Constants";
 import { NetworkRequestOptions, INetworkModule } from "../../../src/network/INetworkModule";
 import { ICrypto, PkceCodes } from "../../../src/crypto/ICrypto";
-import { RANDOM_TEST_GUID, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES, PREFERRED_CACHE_ALIAS } from "../../utils/StringConstants";
+import { RANDOM_TEST_GUID, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES, PREFERRED_CACHE_ALIAS } from "../../test_kit/StringConstants";
 import sinon from "sinon";
 import { Authority, AuthorityOptions, AuthorityType, ClientAuthError, ClientAuthErrorMessage, Logger, LogLevel, ProtocolMode } from "../../../src";
 import { MockStorageClass, mockCrypto } from "../../client/ClientTestUtils";

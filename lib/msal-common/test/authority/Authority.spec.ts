@@ -8,7 +8,7 @@ import {
     TEST_CONFIG,
     DEFAULT_TENANT_DISCOVERY_RESPONSE,
     B2C_OPENID_CONFIG_RESPONSE
-} from "../utils/StringConstants";
+} from "../test_kit/StringConstants";
 import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../../src/error/ClientConfigurationError";
 import { AuthorityMetadataEntity, AuthorityOptions, ClientAuthError, ClientAuthErrorMessage, ProtocolMode } from "../../src";
 import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
@@ -180,6 +180,85 @@ describe("Authority.ts Class Unit Tests", () => {
         });
     });
 
+    describe("Regional authorities", () => {
+        const networkInterface: INetworkModule = {
+            sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                return null;
+            },
+            sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                return null;
+            }
+        };
+
+        const authorityOptions = {
+            protocolMode: ProtocolMode.AAD,
+            knownAuthorities: [Constants.DEFAULT_AUTHORITY_HOST],
+            cloudDiscoveryMetadata: "",
+            authorityMetadata: "",
+            azureRegionConfiguration: { azureRegion: "westus2", environmentRegion: undefined }
+        };
+
+        it("discovery endpoint metadata is updated with regional information when the region is provided", async () => {
+                const deepCopyOpenIdResponse = JSON.parse(JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE));
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                    return JSON.parse(JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE));
+                };
+
+                const authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
+                await authority.resolveEndpointsAsync();
+
+                expect(authority.discoveryComplete()).to.be.true;
+                expect(authority.authorizationEndpoint).to.be.eq(`${deepCopyOpenIdResponse.body.authorization_endpoint.replace("{tenant}", "common").replace("login.microsoftonline.com", "westus2.login.microsoft.com")}/`);
+                expect(authority.tokenEndpoint).to.be.eq(`${deepCopyOpenIdResponse.body.token_endpoint.replace("{tenant}", "common").replace("login.microsoftonline.com", "westus2.login.microsoft.com")}/?allowestsrnonmsi=true`);
+                expect(authority.endSessionEndpoint).to.be.eq(`${deepCopyOpenIdResponse.body.end_session_endpoint.replace("{tenant}", "common").replace("login.microsoftonline.com", "westus2.login.microsoft.com")}/`);
+        });
+
+        it("region provided by the user overrides the region auto-discovered", async () => {
+                const deepCopyOpenIdResponse = JSON.parse(JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE));
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                    return JSON.parse(JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE));
+                };
+
+                const authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, {...authorityOptions, azureRegionConfiguration: { azureRegion: "westus2", environmentRegion: "centralus" }});
+                await authority.resolveEndpointsAsync();
+
+                expect(authority.discoveryComplete()).to.be.true;
+                expect(authority.authorizationEndpoint).to.be.eq(`${deepCopyOpenIdResponse.body.authorization_endpoint.replace("{tenant}", "common").replace("login.microsoftonline.com", "westus2.login.microsoft.com")}/`);
+                expect(authority.tokenEndpoint).to.be.eq(`${deepCopyOpenIdResponse.body.token_endpoint.replace("{tenant}", "common").replace("login.microsoftonline.com", "westus2.login.microsoft.com")}/?allowestsrnonmsi=true`);
+                expect(authority.endSessionEndpoint).to.be.eq(`${deepCopyOpenIdResponse.body.end_session_endpoint.replace("{tenant}", "common").replace("login.microsoftonline.com", "westus2.login.microsoft.com")}/`);
+        });
+
+        it("auto discovered region only used when the user provides the AUTO_DISCOVER flag", async () => {
+                const deepCopyOpenIdResponse = JSON.parse(JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE));
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                    return JSON.parse(JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE));
+                };
+
+                const authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, {...authorityOptions, azureRegionConfiguration: { azureRegion: Constants.AZURE_REGION_AUTO_DISCOVER_FLAG, environmentRegion: "centralus" }});
+                await authority.resolveEndpointsAsync();
+
+                expect(authority.discoveryComplete()).to.be.true;
+                expect(authority.authorizationEndpoint).to.be.eq(`${deepCopyOpenIdResponse.body.authorization_endpoint.replace("{tenant}", "common").replace("login.microsoftonline.com", "centralus.login.microsoft.com")}/`);
+                expect(authority.tokenEndpoint).to.be.eq(`${deepCopyOpenIdResponse.body.token_endpoint.replace("{tenant}", "common").replace("login.microsoftonline.com", "centralus.login.microsoft.com")}/?allowestsrnonmsi=true`);
+                expect(authority.endSessionEndpoint).to.be.eq(`${deepCopyOpenIdResponse.body.end_session_endpoint.replace("{tenant}", "common").replace("login.microsoftonline.com", "centralus.login.microsoft.com")}/`);
+        });
+
+        it("fallbacks to the global endpoint when the user provides the AUTO_DISCOVER flag but no region is detected", async () => {
+                const deepCopyOpenIdResponse = JSON.parse(JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE));
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                    return JSON.parse(JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE));
+                };
+
+                const authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, {...authorityOptions, azureRegionConfiguration: { azureRegion: Constants.AZURE_REGION_AUTO_DISCOVER_FLAG, environmentRegion: undefined }});
+                await authority.resolveEndpointsAsync();
+
+                expect(authority.discoveryComplete()).to.be.true;
+                expect(authority.authorizationEndpoint).to.be.eq(deepCopyOpenIdResponse.body.authorization_endpoint.replace("{tenant}", "common"));
+                expect(authority.tokenEndpoint).to.be.eq(deepCopyOpenIdResponse.body.token_endpoint.replace("{tenant}", "common"));
+                expect(authority.endSessionEndpoint).to.be.eq(deepCopyOpenIdResponse.body.end_session_endpoint.replace("{tenant}", "common"));
+        })
+    })
+    
     describe("Endpoint discovery", () => {
 
         const networkInterface: INetworkModule = {
@@ -627,6 +706,30 @@ describe("Authority.ts Class Unit Tests", () => {
                     expect(e).toBeInstanceOf(ClientConfigurationError);
                     expect(e.errorMessage).toBe(ClientConfigurationErrorMessage.untrustedAuthority.desc);
                     expect(e.errorCode).toBe(ClientConfigurationErrorMessage.untrustedAuthority.code);
+                    done();
+                });
+            });
+
+            it("throws untrustedAuthority error if host is not part of knownAuthorities, cloudDiscoveryMetadata and instance discovery network call doesn't return metadata", (done) => {
+                const authorityOptions: AuthorityOptions = {
+                    protocolMode: ProtocolMode.AAD,
+                    knownAuthorities: [],
+                    cloudDiscoveryMetadata: "",
+                    authorityMetadata: ""
+                };
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                    return {
+                        body: { 
+                            error: "This endpoint does not exist"
+                        }
+                    };
+                };
+                authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
+    
+                authority.resolveEndpointsAsync().catch(e => {
+                    expect(e).to.be.instanceOf(ClientConfigurationError);
+                    expect(e.errorMessage).to.equal(ClientConfigurationErrorMessage.untrustedAuthority.desc);
+                    expect(e.errorCode).to.equal(ClientConfigurationErrorMessage.untrustedAuthority.code);
                     done();
                 });
             });
