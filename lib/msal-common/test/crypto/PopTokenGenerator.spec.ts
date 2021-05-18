@@ -1,11 +1,6 @@
-import * as Mocha from "mocha";
-import * as chai from "chai";
 import sinon from "sinon";
-import chaiAsPromised from "chai-as-promised";
-const expect = chai.expect;
-chai.use(chaiAsPromised);
-import { ICrypto, PkceCodes, UrlString, SignedHttpRequest, TimeUtils, IUri, BaseAuthRequest, AuthenticationScheme } from "../../src";
-import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS, TEST_TOKENS } from "../test_kit/StringConstants";
+import { ICrypto, PkceCodes, UrlString, SignedHttpRequest, TimeUtils, BaseAuthRequest, AuthenticationScheme } from "../../src";
+import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS } from "../test_kit/StringConstants";
 import { PopTokenGenerator } from "../../src/crypto/PopTokenGenerator";
 
 describe("PopTokenGenerator Unit Tests", () => {
@@ -74,22 +69,10 @@ describe("PopTokenGenerator Unit Tests", () => {
     });
 
     describe("signPopToken", () => {
-        let popTokenGenerator: PopTokenGenerator;
-        let accessToken: string;
-        let resourceReqMethod: string;
-        let resourceUrl: string;
-        let resourceUrlString: UrlString;
-        let resourceUrlComponents: IUri;
         let currTime: number;
         let testRequest: BaseAuthRequest;
         
-        before(() => {
-            popTokenGenerator = new PopTokenGenerator(cryptoInterface);
-            accessToken = TEST_POP_VALUES.SAMPLE_POP_AT;
-            resourceReqMethod = "POST";
-            resourceUrl = TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS;
-            resourceUrlString = new UrlString(resourceUrl);
-            resourceUrlComponents = resourceUrlString.getUrlComponents();
+        beforeAll(() => {
             currTime = TimeUtils.nowSeconds();
             testRequest = {
                 authority: TEST_CONFIG.validAuthority,
@@ -134,7 +117,7 @@ describe("PopTokenGenerator Unit Tests", () => {
                 
                 expect(payload).toEqual(expectedPayload);
                 done();
-                return null;
+                return Promise.resolve("");
             };
             popTokenGenerator.signPopToken(accessToken, popRequest);
         });
@@ -143,7 +126,6 @@ describe("PopTokenGenerator Unit Tests", () => {
             const popTokenGenerator = new PopTokenGenerator(cryptoInterface);
             const accessToken = TEST_POP_VALUES.SAMPLE_POP_AT;
             const currTime = TimeUtils.nowSeconds();
-            const popRequest = { ...testRequest, authenticationScheme: AuthenticationScheme.POP };
             cryptoInterface.signJwt = (payload: SignedHttpRequest, kid: string): Promise<string> => {
                 expect(kid).toBe(TEST_POP_VALUES.KID);
                 const expectedPayload = {
@@ -159,7 +141,7 @@ describe("PopTokenGenerator Unit Tests", () => {
                 
                 expect(payload).toEqual(expectedPayload);
                 done();
-                return null;
+                return Promise.resolve("");
             };
             popTokenGenerator.signPopToken(accessToken, testRequest);
         });

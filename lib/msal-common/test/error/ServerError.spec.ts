@@ -15,6 +15,6 @@ describe("ServerError.ts Class Unit Tests", () => {
         expect(err.errorMessage).toBe(TEST_ERROR_MSG);
         expect(err.message).toBe(`${TEST_ERROR_CODE}: ${TEST_ERROR_MSG}`);
         expect(err.name).toBe("ServerError");
-        expect(err.stack).toEqual(expect.arrayContaining(["ServerError.spec.ts"]));
+        expect(err.stack?.includes("ServerError.spec.ts")).toBe(true);
     });
 });

@@ -18,7 +18,7 @@ describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
         expect(err.errorMessage).toBe(TEST_ERROR_MSG);
         expect(err.message).toBe(`${TEST_ERROR_CODE}: ${TEST_ERROR_MSG}`);
         expect(err.name).toBe("InteractionRequiredAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["InteractionRequiredAuthError.spec.ts"]));
+        expect(err.stack?.includes("InteractionRequiredAuthError.spec.ts")).toBe(true);
     });
 
     describe("isInteractionRequiredError()", () => {

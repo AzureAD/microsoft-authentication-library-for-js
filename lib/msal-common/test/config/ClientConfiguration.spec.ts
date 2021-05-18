@@ -1,4 +1,4 @@
-import { ClientConfiguration, buildClientConfiguration } from "../../src/config/ClientConfiguration";
+import { CommonClientConfiguration, buildClientConfiguration } from "../../src/config/ClientConfiguration";
 import { PkceCodes } from "../../src/crypto/ICrypto";
 import { AuthError } from "../../src/error/AuthError";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
@@ -6,13 +6,14 @@ import { LogLevel } from "../../src/logger/Logger";
 import { Constants } from "../../src";
 import { version } from "../../src/packageMetadata";
 import {TEST_CONFIG, TEST_POP_VALUES} from "../test_kit/StringConstants";
-import { MockStorageClass } from "../client/ClientTestUtils";
+import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
 import { MockCache } from "../cache/entities/cacheConstants";
 
 describe("ClientConfiguration.ts Class Unit Tests", () => {
 
     it("buildConfiguration assigns default functions", async () => {
-        const emptyConfig: ClientConfiguration = buildClientConfiguration({
+        const emptyConfig: CommonClientConfiguration = buildClientConfiguration({
+            //@ts-ignore
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
@@ -30,8 +31,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         );
         expect(() => emptyConfig.cryptoInterface.base64Encode("test input")).toThrowError(AuthError);
         expect(emptyConfig.cryptoInterface.generatePkceCodes).not.toBeNull();
-        await expect(emptyConfig.cryptoInterface.generatePkceCodes()).to.be.rejectedWith("Unexpected error in authentication.: Crypto interface - generatePkceCodes() has not been implemented");
-        await expect(emptyConfig.cryptoInterface.generatePkceCodes()).to.be.rejectedWith(AuthError);
+        await expect(emptyConfig.cryptoInterface.generatePkceCodes()).rejects.toMatchObject(AuthError.createUnexpectedError("Crypto interface - generatePkceCodes() has not been implemented"))
         // Storage interface checks
         expect(emptyConfig.storageInterface).not.toBeNull();
         expect(emptyConfig.storageInterface.clear).not.toBeNull();
@@ -67,11 +67,11 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         // Network interface checks
         expect(emptyConfig.networkInterface).not.toBeNull();
         expect(emptyConfig.networkInterface.sendGetRequestAsync).not.toBeNull();
-        await expect(emptyConfig.networkInterface.sendGetRequestAsync("", null)).to.be.rejectedWith("Unexpected error in authentication.: Network interface - sendGetRequestAsync() has not been implemented");
-        await expect(emptyConfig.networkInterface.sendGetRequestAsync("", null)).to.be.rejectedWith(AuthError);
+        //@ts-ignore
+        expect(emptyConfig.networkInterface.sendGetRequestAsync("", null)).rejects.toMatchObject(AuthError.createUnexpectedError("Network interface - sendGetRequestAsync() has not been implemented"));
         expect(emptyConfig.networkInterface.sendPostRequestAsync).not.toBeNull();
-        await expect(emptyConfig.networkInterface.sendPostRequestAsync("", null)).to.be.rejectedWith("Unexpected error in authentication.: Network interface - sendPostRequestAsync() has not been implemented");
-        await expect(emptyConfig.networkInterface.sendPostRequestAsync("", null)).to.be.rejectedWith(AuthError);
+        //@ts-ignore
+        await expect(emptyConfig.networkInterface.sendPostRequestAsync("", null)).rejects.toMatchObject(AuthError.createUnexpectedError("Network interface - sendPostRequestAsync() has not been implemented"));
         // Logger options checks
         expect(emptyConfig.loggerOptions).not.toBeNull();
         expect(emptyConfig.loggerOptions.piiLoggingEnabled).toBe(false);
@@ -82,7 +82,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(emptyConfig.libraryInfo.cpu).toHaveLength(0);
     });
 
-    const cacheStorageMock = new MockStorageClass();
+    const cacheStorageMock = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
 
     const testPkceCodes = {
         challenge: "TestChallenge",
@@ -93,10 +93,9 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         testParam: "testValue"
     };
 
-    const testKeySet = ["testKey1", "testKey2"];
-
     it("buildConfiguration correctly assigns new values", async () => {
-        const newConfig: ClientConfiguration = buildClientConfiguration({
+        const newConfig: CommonClientConfiguration = buildClientConfiguration({
+            //@ts-ignore
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             },
@@ -148,7 +147,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(newConfig.cryptoInterface.base64Encode).not.toBeNull();
         expect(newConfig.cryptoInterface.base64Encode("testString")).toBe("testEncodedString");
         expect(newConfig.cryptoInterface.generatePkceCodes).not.toBeNull();
-        await expect(newConfig.cryptoInterface.generatePkceCodes()).toBe(testPkceCodes);
+        expect(newConfig.cryptoInterface.generatePkceCodes()).resolves.toBe(testPkceCodes);
         // Storage interface tests
         expect(newConfig.storageInterface).not.toBeNull();
         expect(newConfig.storageInterface.clear).not.toBeNull();
@@ -166,9 +165,11 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         // Network interface tests
         expect(newConfig.networkInterface).not.toBeNull();
         expect(newConfig.networkInterface.sendGetRequestAsync).not.toBeNull();
-        await expect(newConfig.networkInterface.sendGetRequestAsync("", null)).toBe(testNetworkResult);
+        //@ts-ignore
+        expect(newConfig.networkInterface.sendGetRequestAsync("", null)).resolves.toBe(testNetworkResult);
         expect(newConfig.networkInterface.sendPostRequestAsync).not.toBeNull();
-        await expect(newConfig.networkInterface.sendPostRequestAsync("", null)).toBe(testNetworkResult);
+        //@ts-ignore
+        expect(newConfig.networkInterface.sendPostRequestAsync("", null)).resolves.toBe(testNetworkResult);
         // Logger option tests
         expect(newConfig.loggerOptions).not.toBeNull();
         expect(newConfig.loggerOptions.loggerCallback).not.toBeNull();

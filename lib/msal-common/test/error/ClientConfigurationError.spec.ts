@@ -17,7 +17,7 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
         expect(err.errorMessage).toBe(TEST_ERROR_MSG);
         expect(err.message).toBe(`${TEST_ERROR_CODE}: ${TEST_ERROR_MSG}`);
         expect(err.name).toBe("ClientConfigurationError");
-        expect(err.stack).toEqual(expect.arrayContaining(["ClientConfigurationError.spec.ts"]));
+        expect(err.stack?.includes("ClientConfigurationError.spec.ts")).toBe(true);
     });
 
     it("createRedirectUriEmptyError creates a ClientConfigurationError object", () => {
@@ -28,14 +28,10 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(ClientConfigurationErrorMessage.redirectUriNotSet.code);
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([ClientConfigurationErrorMessage.redirectUriNotSet.desc])
-        );
-        expect(err.message).toEqual(
-            expect.arrayContaining([ClientConfigurationErrorMessage.redirectUriNotSet.desc])
-        );
+        expect(err.errorMessage.includes(ClientConfigurationErrorMessage.redirectUriNotSet.desc)).toBe(true);
+        expect(err.message.includes(ClientConfigurationErrorMessage.redirectUriNotSet.desc)).toBe(true);
         expect(err.name).toBe("ClientConfigurationError");
-        expect(err.stack).toEqual(expect.arrayContaining(["ClientConfigurationError.spec.ts"]));
+        expect(err.stack?.includes("ClientConfigurationError.spec.ts")).toBe(true);
     });
 
     it("createPostLogoutRedirectUriEmptyError creates a ClientConfigurationError object", () => {
@@ -46,14 +42,10 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(ClientConfigurationErrorMessage.postLogoutUriNotSet.code);
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([ClientConfigurationErrorMessage.postLogoutUriNotSet.desc])
-        );
-        expect(err.message).toEqual(
-            expect.arrayContaining([ClientConfigurationErrorMessage.postLogoutUriNotSet.desc])
-        );
+        expect(err.errorMessage.includes(ClientConfigurationErrorMessage.postLogoutUriNotSet.desc)).toBe(true);
+        expect(err.message.includes(ClientConfigurationErrorMessage.postLogoutUriNotSet.desc)).toBe(true);
         expect(err.name).toBe("ClientConfigurationError");
-        expect(err.stack).toEqual(expect.arrayContaining(["ClientConfigurationError.spec.ts"]));
+        expect(err.stack?.includes("ClientConfigurationError.spec.ts")).toBe(true);
     });
 
     it("createClaimsRequestParsingError creates a ClientConfigurationError object", () => {
@@ -64,16 +56,12 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(ClientConfigurationErrorMessage.claimsRequestParsingError.code);
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([ClientConfigurationErrorMessage.claimsRequestParsingError.desc])
-        );
-        expect(err.message).toEqual(
-            expect.arrayContaining([ClientConfigurationErrorMessage.claimsRequestParsingError.desc])
-        );
-        expect(err.errorMessage).toEqual(expect.arrayContaining(["Could not parse claims."]));
-        expect(err.message).toEqual(expect.arrayContaining(["Could not parse claims."]));
+        expect(err.errorMessage.includes(ClientConfigurationErrorMessage.claimsRequestParsingError.desc)).toBe(true);
+        expect(err.message.includes(ClientConfigurationErrorMessage.claimsRequestParsingError.desc)).toBe(true);
+        expect(err.errorMessage.includes("Could not parse claims.")).toBe(true);
+        expect(err.message.includes("Could not parse claims.")).toBe(true);
         expect(err.name).toBe("ClientConfigurationError");
-        expect(err.stack).toEqual(expect.arrayContaining(["ClientConfigurationError.spec.ts"]));
+        expect(err.stack?.includes("ClientConfigurationError.spec.ts")).toBe(true);
     });
 
     it("createInsecureAuthorityUriError creates a ClientConfigurationError object", () => {
@@ -84,14 +72,10 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(ClientConfigurationErrorMessage.authorityUriInsecure.code);
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([ClientConfigurationErrorMessage.authorityUriInsecure.desc])
-        );
-        expect(err.message).toEqual(
-            expect.arrayContaining([ClientConfigurationErrorMessage.authorityUriInsecure.desc])
-        );
+        expect(err.errorMessage.includes(ClientConfigurationErrorMessage.authorityUriInsecure.desc)).toBe(true);
+        expect(err.message.includes(ClientConfigurationErrorMessage.authorityUriInsecure.desc)).toBe(true);
         expect(err.name).toBe("ClientConfigurationError");
-        expect(err.stack).toEqual(expect.arrayContaining(["ClientConfigurationError.spec.ts"]));
+        expect(err.stack?.includes("ClientConfigurationError.spec.ts")).toBe(true);
     });
 
     it("createUrlParseError creates a ClientConfigurationError object", () => {
@@ -102,14 +86,10 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(ClientConfigurationErrorMessage.urlParseError.code);
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([ClientConfigurationErrorMessage.urlParseError.desc])
-        );
-        expect(err.message).toEqual(
-            expect.arrayContaining([ClientConfigurationErrorMessage.urlParseError.desc])
-        );
+        expect(err.errorMessage.includes(ClientConfigurationErrorMessage.urlParseError.desc)).toBe(true);
+        expect(err.message.includes(ClientConfigurationErrorMessage.urlParseError.desc)).toBe(true);
         expect(err.name).toBe("ClientConfigurationError");
-        expect(err.stack).toEqual(expect.arrayContaining(["ClientConfigurationError.spec.ts"]));
+        expect(err.stack?.includes("ClientConfigurationError.spec.ts")).toBe(true);
     });
 
     it("createUrlEmptyError creates a ClientConfigurationError object", () => {
@@ -120,50 +100,24 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(ClientConfigurationErrorMessage.urlEmptyError.code);
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([ClientConfigurationErrorMessage.urlEmptyError.desc])
-        );
-        expect(err.message).toEqual(
-            expect.arrayContaining([ClientConfigurationErrorMessage.urlEmptyError.desc])
-        );
+        expect(err.errorMessage.includes(ClientConfigurationErrorMessage.urlEmptyError.desc)).toBe(true);
+        expect(err.message.includes(ClientConfigurationErrorMessage.urlEmptyError.desc)).toBe(true);
         expect(err.name).toBe("ClientConfigurationError");
-        expect(err.stack).toEqual(expect.arrayContaining(["ClientConfigurationError.spec.ts"]));
-    });
-
-    it("createScopesNonArrayError creates a ClientConfigurationError object", () => {
-        const err: ClientConfigurationError = ClientConfigurationError.createScopesNonArrayError(null);
-
-        expect(err instanceof ClientConfigurationError).toBe(true);
-        expect(err instanceof ClientAuthError).toBe(true);
-        expect(err instanceof AuthError).toBe(true);
-        expect(err instanceof Error).toBe(true);
-        expect(err.errorCode).toBe(ClientConfigurationErrorMessage.nonArrayScopesError.code);
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([ClientConfigurationErrorMessage.nonArrayScopesError.desc])
-        );
-        expect(err.message).toEqual(
-            expect.arrayContaining([ClientConfigurationErrorMessage.nonArrayScopesError.desc])
-        );
-        expect(err.name).toBe("ClientConfigurationError");
-        expect(err.stack).toEqual(expect.arrayContaining(["ClientConfigurationError.spec.ts"]));
+        expect(err.stack?.includes("ClientConfigurationError.spec.ts")).toBe(true);
     });
 
     it("createEmptyScopesArrayError creates a ClientConfigurationError object", () => {
-        const err: ClientConfigurationError = ClientConfigurationError.createEmptyScopesArrayError([]);
+        const err: ClientConfigurationError = ClientConfigurationError.createEmptyScopesArrayError();
 
         expect(err instanceof ClientConfigurationError).toBe(true);
         expect(err instanceof ClientAuthError).toBe(true);
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(ClientConfigurationErrorMessage.emptyScopesError.code);
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([ClientConfigurationErrorMessage.emptyScopesError.desc])
-        );
-        expect(err.message).toEqual(
-            expect.arrayContaining([ClientConfigurationErrorMessage.emptyScopesError.desc])
-        );
+        expect(err.errorMessage.includes(ClientConfigurationErrorMessage.emptyScopesError.desc)).toBe(true);
+        expect(err.message.includes(ClientConfigurationErrorMessage.emptyScopesError.desc)).toBe(true);
         expect(err.name).toBe("ClientConfigurationError");
-        expect(err.stack).toEqual(expect.arrayContaining(["ClientConfigurationError.spec.ts"]));
+        expect(err.stack?.includes("ClientConfigurationError.spec.ts")).toBe(true);
     });
 
     it("createClientIdSingleScopeError creates a ClientConfigurationError object", () => {
@@ -174,14 +128,10 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(ClientConfigurationErrorMessage.clientIdSingleScopeError.code);
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([ClientConfigurationErrorMessage.clientIdSingleScopeError.desc])
-        );
-        expect(err.message).toEqual(
-            expect.arrayContaining([ClientConfigurationErrorMessage.clientIdSingleScopeError.desc])
-        );
+        expect(err.errorMessage.includes(ClientConfigurationErrorMessage.clientIdSingleScopeError.desc)).toBe(true);
+        expect(err.message.includes(ClientConfigurationErrorMessage.clientIdSingleScopeError.desc)).toBe(true);
         expect(err.name).toBe("ClientConfigurationError");
-        expect(err.stack).toEqual(expect.arrayContaining(["ClientConfigurationError.spec.ts"]));
+        expect(err.stack?.includes("ClientConfigurationError.spec.ts")).toBe(true);
     });
 
     it("createInvalidPromptError creates a ClientConfigurationError object", () => {
@@ -192,14 +142,10 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(ClientConfigurationErrorMessage.invalidPrompt.code);
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([ClientConfigurationErrorMessage.invalidPrompt.desc])
-        );
-        expect(err.message).toEqual(
-            expect.arrayContaining([ClientConfigurationErrorMessage.invalidPrompt.desc])
-        );
+        expect(err.errorMessage.includes(ClientConfigurationErrorMessage.invalidPrompt.desc)).toBe(true);
+        expect(err.message.includes(ClientConfigurationErrorMessage.invalidPrompt.desc)).toBe(true);
         expect(err.name).toBe("ClientConfigurationError");
-        expect(err.stack).toEqual(expect.arrayContaining(["ClientConfigurationError.spec.ts"]));
+        expect(err.stack?.includes("ClientConfigurationError.spec.ts")).toBe(true);
     });
 
     it("createEmptyTokenRequestError creates a ClientConfigurationError object", () => {
@@ -210,13 +156,9 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(ClientConfigurationErrorMessage.tokenRequestEmptyError.code);
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([ClientConfigurationErrorMessage.tokenRequestEmptyError.desc])
-        );
-        expect(err.message).toEqual(
-            expect.arrayContaining([ClientConfigurationErrorMessage.tokenRequestEmptyError.desc])
-        );
+        expect(err.errorMessage.includes(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc)).toBe(true);
+        expect(err.message.includes(ClientConfigurationErrorMessage.tokenRequestEmptyError.desc)).toBe(true);
         expect(err.name).toBe("ClientConfigurationError");
-        expect(err.stack).toEqual(expect.arrayContaining(["ClientConfigurationError.spec.ts"]));
+        expect(err.stack?.includes("ClientConfigurationError.spec.ts")).toBe(true);
     });
 });

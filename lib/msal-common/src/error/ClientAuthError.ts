@@ -4,7 +4,6 @@
  */
 
 import { AuthError } from "./AuthError";
-import { ScopeSet } from "../request/ScopeSet";
 
 /**
  * ClientAuthErrorMessage class containing string constants used by error codes and messages.
@@ -371,8 +370,8 @@ export class ClientAuthError extends AuthError {
      * Throws error if ScopeSet is null or undefined.
      * @param givenScopeSet
      */
-    static createEmptyInputScopeSetError(givenScopeSet: ScopeSet): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.emptyInputScopeSetError.code, `${ClientAuthErrorMessage.emptyInputScopeSetError.desc} Given ScopeSet: ${givenScopeSet}`);
+    static createEmptyInputScopeSetError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.emptyInputScopeSetError.code, `${ClientAuthErrorMessage.emptyInputScopeSetError.desc}`);
     }
 
     /**
