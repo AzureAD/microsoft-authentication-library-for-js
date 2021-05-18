@@ -7,7 +7,6 @@ import {
     TEST_POP_VALUES
 } from "../test_kit/StringConstants";
 import { RequestParameterBuilder } from "../../src/request/RequestParameterBuilder";
-import { ScopeSet } from "../../src/request/ScopeSet";
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src";
 import sinon from "sinon";
 
@@ -40,72 +39,32 @@ describe("RequestParameterBuilder unit tests", () => {
         requestParameterBuilder.addSid(TEST_CONFIG.SID);
 
         const requestQueryString = requestParameterBuilder.createQueryString();
-        expect(requestQueryString).toEqual(
-            expect.arrayContaining([`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`])
-        );
-        expect(requestQueryString).toEqual(expect.arrayContaining([
-            `${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(ResponseMode.FORM_POST)}`
-        ]));
-        expect(requestQueryString).toEqual(expect.arrayContaining([
-            `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
-        ]));
-        expect(requestQueryString).toEqual(
-            expect.arrayContaining([`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`])
-        );
-        expect(requestQueryString).toEqual(expect.arrayContaining([
-            `${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIRECT_URI_LOCALHOST)}`
-        ]));
-        expect(requestQueryString).toEqual(
-            expect.arrayContaining([`${SSOTypes.DOMAIN_HINT}=${encodeURIComponent(TEST_CONFIG.DOMAIN_HINT)}`])
-        );
-        expect(requestQueryString).toEqual(
-            expect.arrayContaining([`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_CONFIG.LOGIN_HINT)}`])
-        );
-        expect(requestQueryString).toEqual(
-            expect.arrayContaining([`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`])
-        );
-        expect(requestQueryString).toEqual(expect.arrayContaining([
-            `${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(TEST_CONFIG.CORRELATION_ID)}`
-        ]));
-        expect(requestQueryString).toEqual(
-            expect.arrayContaining([`${AADServerParamKeys.PROMPT}=${PromptValue.SELECT_ACCOUNT}`])
-        );
-        expect(requestQueryString).toEqual(
-            expect.arrayContaining([`${AADServerParamKeys.STATE}=${encodeURIComponent(TEST_CONFIG.STATE)}`])
-        );
-        expect(requestQueryString).toEqual(
-            expect.arrayContaining([`${AADServerParamKeys.NONCE}=${encodeURIComponent(TEST_CONFIG.NONCE)}`])
-        );
-        expect(requestQueryString).toEqual(expect.arrayContaining([
-            `${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(TEST_CONFIG.TEST_CHALLENGE)}`
-        ]));
-        expect(requestQueryString).toEqual(expect.arrayContaining([
-            `${AADServerParamKeys.CODE_CHALLENGE_METHOD}=${encodeURIComponent(TEST_CONFIG.CODE_CHALLENGE_METHOD)}`
-        ]));
-        expect(requestQueryString).toEqual(expect.arrayContaining([
-            `${AADServerParamKeys.CODE}=${encodeURIComponent(TEST_TOKENS.AUTHORIZATION_CODE)}`
-        ]));
-        expect(requestQueryString).toEqual(expect.arrayContaining([
-            `${AADServerParamKeys.DEVICE_CODE}=${encodeURIComponent(DEVICE_CODE_RESPONSE.deviceCode)}`
-        ]));
-        expect(requestQueryString).toEqual(expect.arrayContaining([
-            `${AADServerParamKeys.CODE_VERIFIER}=${encodeURIComponent(TEST_CONFIG.TEST_VERIFIER)}`
-        ]));
-        expect(requestQueryString).toEqual(
-            expect.arrayContaining([`${SSOTypes.SID}=${encodeURIComponent(TEST_CONFIG.SID)}`])
-        );
+        expect(requestQueryString.includes(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`)).toBe(true);
+        expect(requestQueryString.includes(`${AADServerParamKeys.RESPONSE_MODE}=${encodeURIComponent(ResponseMode.FORM_POST)}`)).toBe(true);
+        expect(requestQueryString.includes(`${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`)).toBe(true);
+        expect(requestQueryString.includes(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`)).toBe(true);
+        expect(requestQueryString.includes(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIRECT_URI_LOCALHOST)}`)).toBe(true);
+        expect(requestQueryString.includes(`${SSOTypes.DOMAIN_HINT}=${encodeURIComponent(TEST_CONFIG.DOMAIN_HINT)}`)).toBe(true);
+        expect(requestQueryString.includes(`${SSOTypes.LOGIN_HINT}=${encodeURIComponent(TEST_CONFIG.LOGIN_HINT)}`)).toBe(true);
+        expect(requestQueryString.includes(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`)).toBe(true);
+        expect(requestQueryString.includes(`${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(TEST_CONFIG.CORRELATION_ID)}`)).toBe(true);
+        expect(requestQueryString.includes(`${AADServerParamKeys.PROMPT}=${PromptValue.SELECT_ACCOUNT}`)).toBe(true);
+        expect(requestQueryString.includes(`${AADServerParamKeys.STATE}=${encodeURIComponent(TEST_CONFIG.STATE)}`)).toBe(true);
+        expect(requestQueryString.includes(`${AADServerParamKeys.NONCE}=${encodeURIComponent(TEST_CONFIG.NONCE)}`)).toBe(true);
+        expect(requestQueryString.includes(`${AADServerParamKeys.CODE_CHALLENGE}=${encodeURIComponent(TEST_CONFIG.TEST_CHALLENGE)}`)).toBe(true);
+        expect(requestQueryString.includes(`${AADServerParamKeys.CODE_CHALLENGE_METHOD}=${encodeURIComponent(TEST_CONFIG.CODE_CHALLENGE_METHOD)}`)).toBe(true);
+        expect(requestQueryString.includes(`${AADServerParamKeys.CODE}=${encodeURIComponent(TEST_TOKENS.AUTHORIZATION_CODE)}`)).toBe(true);
+        expect(requestQueryString.includes(`${AADServerParamKeys.DEVICE_CODE}=${encodeURIComponent(DEVICE_CODE_RESPONSE.deviceCode)}`)).toBe(true);
+        expect(requestQueryString.includes(`${AADServerParamKeys.CODE_VERIFIER}=${encodeURIComponent(TEST_CONFIG.TEST_VERIFIER)}`)).toBe(true);
+        expect(requestQueryString.includes(`${SSOTypes.SID}=${encodeURIComponent(TEST_CONFIG.SID)}`)).toBe(true);
     });
 
     it("Adds token type and req_cnf correctly for proof-of-possession tokens", () => {
         const requestParameterBuilder = new RequestParameterBuilder();
         requestParameterBuilder.addPopToken(TEST_POP_VALUES.ENCODED_REQ_CNF);
         const requestQueryString = requestParameterBuilder.createQueryString();
-        expect(requestQueryString).toEqual(
-            expect.arrayContaining([`${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.POP}`])
-        );
-        expect(requestQueryString).toEqual(expect.arrayContaining([
-            `${AADServerParamKeys.REQ_CNF}=${encodeURIComponent(TEST_POP_VALUES.ENCODED_REQ_CNF)}`
-        ]));
+        expect(requestQueryString.includes(`${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.POP}`)).toBe(true);
+        expect(requestQueryString.includes(`${AADServerParamKeys.REQ_CNF}=${encodeURIComponent(TEST_POP_VALUES.ENCODED_REQ_CNF)}`)).toBe(true);
     });
 
     it("Does not add token type or req_cnf if req_cnf is undefined or empty", () => {
@@ -115,6 +74,7 @@ describe("RequestParameterBuilder unit tests", () => {
         expect(Object.keys(requestQueryString)).toHaveLength(0);
         
         const requestParameterBuilder2 = new RequestParameterBuilder();
+        //@ts-ignore
         requestParameterBuilder.addPopToken(undefined);
         const requestQueryString2 = requestParameterBuilder2.createQueryString();
         expect(Object.keys(requestQueryString2)).toHaveLength(0);
@@ -124,37 +84,31 @@ describe("RequestParameterBuilder unit tests", () => {
         let requestParameterBuilder = new RequestParameterBuilder();
         requestParameterBuilder.addScopes(["testScope"]);
         let requestQueryString = requestParameterBuilder.createQueryString();
-        expect(requestQueryString).toEqual(expect.arrayContaining([
-            `${AADServerParamKeys.SCOPE}=testScope%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
-        ]));
+        expect(requestQueryString.includes(`${AADServerParamKeys.SCOPE}=testScope%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`)).toBe(true);
 
         requestParameterBuilder = new RequestParameterBuilder();
         requestParameterBuilder.addScopes([]);
         requestQueryString = requestParameterBuilder.createQueryString();
-        expect(requestQueryString).toEqual(expect.arrayContaining([
-            `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
-        ]));
+        expect(requestQueryString.includes(`${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`)).toBe(true);
 
         requestParameterBuilder = new RequestParameterBuilder();
+        //@ts-ignore
         requestParameterBuilder.addScopes(null);
         requestQueryString = requestParameterBuilder.createQueryString();
-        expect(requestQueryString).toEqual(expect.arrayContaining([
-            `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
-        ]));
+        expect(requestQueryString.includes(`${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`)).toBe(true);
 
         requestParameterBuilder = new RequestParameterBuilder();
+        //@ts-ignore
         requestParameterBuilder.addScopes(undefined);
         requestQueryString = requestParameterBuilder.createQueryString();
-        expect(requestQueryString).toEqual(expect.arrayContaining([
-            `${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`
-        ]));
+        expect(requestQueryString.includes(`${AADServerParamKeys.SCOPE}=${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`)).toBe(true);
     });
 
     it("addScopes does not append oidc scopes if flag set to false", () => {
         const requestParameterBuilder = new RequestParameterBuilder();
         requestParameterBuilder.addScopes(["testScope"], false);
         const requestQueryString = requestParameterBuilder.createQueryString();
-        expect(requestQueryString).toEqual(expect.arrayContaining([`${AADServerParamKeys.SCOPE}=testScope`]));
+        expect(requestQueryString.includes(`${AADServerParamKeys.SCOPE}=testScope`)).toBe(true);
     });
 
     it("addCodeChallengeParams throws invalidCodeChallengeParamsError if codeChallengeMethod empty", () => {

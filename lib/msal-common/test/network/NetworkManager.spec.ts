@@ -8,10 +8,10 @@ import { ThrottlingUtils } from "../../src/network/ThrottlingUtils";
 import { RequestThumbprint } from "../../src/network/RequestThumbprint";
 import { NetworkManager, NetworkResponse } from "../../src/network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
-import { MockStorageClass }  from "../client/ClientTestUtils";
+import { MockStorageClass, mockCrypto }  from "../client/ClientTestUtils";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { ServerError } from "../../src/error/ServerError";
-import { AUTHENTICATION_RESULT, NETWORK_REQUEST_OPTIONS, THUMBPRINT, THROTTLING_ENTITY, DEFAULT_NETWORK_IMPLEMENTATION } from "../test_kit/StringConstants";
+import { AUTHENTICATION_RESULT, NETWORK_REQUEST_OPTIONS, THUMBPRINT, THROTTLING_ENTITY, DEFAULT_NETWORK_IMPLEMENTATION, TEST_CONFIG } from "../test_kit/StringConstants";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../src";
 
 describe("NetworkManager", () => {
@@ -22,7 +22,7 @@ describe("NetworkManager", () => {
 
         it("returns a response", async () => {
             const networkInterface = DEFAULT_NETWORK_IMPLEMENTATION;
-            const cache = new MockStorageClass();
+            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
             const networkManager = new NetworkManager(networkInterface, cache);
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
@@ -48,7 +48,7 @@ describe("NetworkManager", () => {
 
         it("blocks the request if item is found in the cache", async () => {
             const networkInterface = DEFAULT_NETWORK_IMPLEMENTATION;
-            const cache = new MockStorageClass();
+            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
             const networkManager = new NetworkManager(networkInterface, cache);
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
@@ -72,7 +72,7 @@ describe("NetworkManager", () => {
 
         it("passes request through if expired item in cache", async () => {
             const networkInterface = DEFAULT_NETWORK_IMPLEMENTATION;
-            const cache = new MockStorageClass();
+            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
             const networkManager = new NetworkManager(networkInterface, cache);
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
@@ -99,7 +99,7 @@ describe("NetworkManager", () => {
 
         it("creates cache entry on error", async () => {
             const networkInterface = DEFAULT_NETWORK_IMPLEMENTATION;
-            const cache = new MockStorageClass();
+            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
             const networkManager = new NetworkManager(networkInterface, cache);
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
@@ -125,7 +125,7 @@ describe("NetworkManager", () => {
 
         it("throws network error if fetch client fails", (done) => {
             const networkInterface = DEFAULT_NETWORK_IMPLEMENTATION;
-            const cache = new MockStorageClass();
+            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
             const networkManager = new NetworkManager(networkInterface, cache);
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const options: NetworkRequestOptions = NETWORK_REQUEST_OPTIONS;
@@ -135,8 +135,8 @@ describe("NetworkManager", () => {
             networkManager.sendPostRequest<NetworkResponse<ServerAuthorizationTokenResponse>>(thumbprint, "tokenEndpoint", options).catch(e => {
                 expect(e).toBeInstanceOf(ClientAuthError);
                 expect(e.errorCode).toBe(ClientAuthErrorMessage.networkError.code);
-                expect(e.errorMessage).toEqual(expect.arrayContaining(["Fetch failed"]));
-                expect(e.errorMessage).toEqual(expect.arrayContaining(["tokenEndpoint"]));
+                expect(e.errorMessage.includes("Fetch failed")).toBe(true);
+                expect(e.errorMessage.includes("tokenEndpoint")).toBe(true);
                 done();
             });
         });
