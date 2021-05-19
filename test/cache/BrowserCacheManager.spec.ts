@@ -66,7 +66,6 @@ describe("BrowserCacheManager tests", () => {
             const localCache = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             localCache.setItem("key", "value");
             expect(localCache.getItem("key")).toBe("value");
-            jest.restoreAllMocks();
         });
 
         it("Creates a BrowserStorage object that implements the ICacheStorage interface",
