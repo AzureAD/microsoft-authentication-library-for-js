@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import chaiAsPromised from "chai-as-promised";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import {
     PkceCodes,
@@ -11,7 +10,7 @@ import {
     LogLevel,
     AccountInfo,
     AuthorityFactory,
-    AuthorizationCodeRequest,
+    CommonAuthorizationCodeRequest,
     AuthenticationResult,
     AuthorizationCodeClient,
     AuthenticationScheme,
@@ -24,7 +23,7 @@ import {
 } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES, TEST_POP_VALUES, TEST_STATE_VALUES } from "../utils/StringConstants";
-import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
+import { BrowserAuthError } from "../../src/error/BrowserAuthError";
 import sinon from "sinon";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { TestStorageManager } from "../cache/TestStorageManager";
@@ -42,11 +41,12 @@ class TestInteractionHandler extends InteractionHandler {
 
     initiateAuthRequest(requestUrl: string): Window | Promise<HTMLIFrameElement> {
         this.authCodeRequest = testAuthCodeRequest;
+        //@ts-ignore
         return null;
     }
 }
 
-const testAuthCodeRequest: AuthorizationCodeRequest = {
+const testAuthCodeRequest: CommonAuthorizationCodeRequest = {
     authenticationScheme: AuthenticationScheme.BEARER,
     authority: "",
     redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -64,20 +64,12 @@ const testNetworkResult = {
     testParam: "testValue"
 };
 
-const testKeySet = ["testKey1", "testKey2"];
-
 const networkInterface = {
-    sendGetRequestAsync<T>(
-        url: string,
-        options?: NetworkRequestOptions
-    ): T {
-        return null;
+    sendGetRequestAsync<T>(): T {
+        return {} as T;
     },
-    sendPostRequestAsync<T>(
-        url: string,
-        options?: NetworkRequestOptions
-    ): T {
-        return null;
+    sendPostRequestAsync<T>(): T {
+        return {} as T;
     },
 };
 
@@ -117,7 +109,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         };
-        const configObj = buildConfiguration(appConfig);
+        const configObj = buildConfiguration(appConfig, true);
         const authorityOptions: AuthorityOptions = {
             protocolMode: ProtocolMode.AAD,
             knownAuthorities: [configObj.auth.authority],
@@ -149,7 +141,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             }
         };
         authCodeModule = new AuthorizationCodeClient(authConfig);
-        const logger = new Logger(authConfig.loggerOptions);
+        const logger = new Logger(authConfig.loggerOptions!);
         browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, cryptoOpts, logger);
     });
 
@@ -160,19 +152,17 @@ describe("InteractionHandler.ts Unit Tests", () => {
     it("Constructor", () => {
         const interactionHandler = new TestInteractionHandler(authCodeModule, browserStorage);
 
-        expect(interactionHandler instanceof TestInteractionHandler).toBe(true);
-        expect(interactionHandler instanceof InteractionHandler).toBe(true);
+        expect(interactionHandler).toBeInstanceOf(TestInteractionHandler);
+        expect(interactionHandler).toBeInstanceOf(InteractionHandler);
     });
 
     describe("handleCodeResponse()", () => {
 
         it("throws error if given location hash is empty", async () => {
             const interactionHandler = new TestInteractionHandler(authCodeModule, browserStorage);
-            await expect(interactionHandler.handleCodeResponse("", "", authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthErrorMessage.hashEmptyError.desc);
-            await expect(interactionHandler.handleCodeResponse("", "", authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthError);
-
-            await expect(interactionHandler.handleCodeResponse(null, "", authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthErrorMessage.hashEmptyError.desc);
-            await expect(interactionHandler.handleCodeResponse(null, "", authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthError);
+            expect(interactionHandler.handleCodeResponse("", "", authorityInstance, authConfig.networkInterface!)).rejects.toMatchObject(BrowserAuthError.createEmptyHashError(""));
+            //@ts-ignore
+            expect(interactionHandler.handleCodeResponse(null, "", authorityInstance, authConfig.networkInterface)).rejects.toMatchObject(BrowserAuthError.createEmptyHashError(null));
         });
         
         // TODO: Need to improve this test
@@ -236,7 +226,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 const acquireTokenSpy = sinon.stub(AuthorizationCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
                 const interactionHandler = new TestInteractionHandler(authCodeModule, browserStorage);
                 await interactionHandler.initiateAuthRequest("testNavUrl");
-                const tokenResponse = await interactionHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT, TEST_STATE_VALUES.TEST_STATE_REDIRECT, authorityInstance, authConfig.networkInterface);
+                const tokenResponse = await interactionHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT, TEST_STATE_VALUES.TEST_STATE_REDIRECT, authorityInstance, authConfig.networkInterface!);
                 expect(updateAuthoritySpy.calledWith(authority)).toBe(true);
                 expect(tokenResponse).toEqual(testTokenResponse);
                 expect(acquireTokenSpy.calledWith(testAuthCodeRequest, testCodeResponse)).toBe(true);
