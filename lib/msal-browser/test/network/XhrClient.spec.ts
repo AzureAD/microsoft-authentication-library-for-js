@@ -13,6 +13,7 @@ describe("XhrClient.ts Unit Tests", () => {
 
     afterEach(() => {
         sinon.restore();
+        jest.restoreAllMocks();
     });
 
     describe("Get requests", () => {
@@ -193,20 +194,18 @@ describe("XhrClient.ts Unit Tests", () => {
                 body: "thisIsAPostBody"
             };
 
-            const oldWindow = window;
-            //@ts-ignore
-            window = {
-                ...oldWindow, 
-                navigator: {
-                    ...oldWindow.navigator,
+            const oldWindowNavigator = window.navigator;
+            const windowNavigatorSpy = jest.spyOn(window, "navigator", "get");
+            windowNavigatorSpy.mockImplementation(() => {
+                return {
+                    ...oldWindowNavigator,
                     onLine: false
                 }
-            }
+            });
 
             xhrClient.sendPostRequestAsync<any>(targetUri, requestOptions).catch(e => {
                 expect(e).toBeInstanceOf(BrowserAuthError);
                 expect(e.errorCode).toBe(BrowserAuthErrorMessage.noNetworkConnectivity.code);
-                window = oldWindow;
                 done();
             });
             testRequest!.error();
