@@ -9,7 +9,6 @@ import { Configuration, buildConfiguration } from "../../src/config/Configuratio
 import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_HASHES, TEST_TOKEN_LIFETIMES, TEST_POP_VALUES, TEST_STATE_VALUES } from "../utils/StringConstants";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
-import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
@@ -178,7 +177,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             });
         });
 
-        it("doesnt navigate if onRedirectNavigate returns false", done => {
+        it("doesnt navigate if onRedirectNavigate returns false", (done) => {
             let dbStorage = {};
             sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
                 dbStorage = {};
@@ -231,11 +230,11 @@ describe("RedirectHandler.ts Unit Tests", () => {
 
     describe("handleCodeResponse()", () => {
 
-        it("throws error if given hash is empty", async () => {
+        it("throws error if given hash is empty", () => {
             const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserCrypto);
             expect(redirectHandler.handleCodeResponse("", "", authorityInstance, authConfig.networkInterface!)).rejects.toMatchObject(BrowserAuthError.createEmptyHashError(""));
             //@ts-ignore
-            expect(redirectHandler.handleCodeResponse(null, "", authorityInstance, authConfig.networkInterface)).rejects.toMatchObject(BrowserAuthError.createEmptyHashError(""));
+            expect(redirectHandler.handleCodeResponse(null, "", authorityInstance, authConfig.networkInterface!)).rejects.toMatchObject(BrowserAuthError.createEmptyHashError(null));
         });
 
         it("successfully handles response", async () => {
