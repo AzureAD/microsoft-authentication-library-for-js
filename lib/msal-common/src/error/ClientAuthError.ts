@@ -110,6 +110,10 @@ export const ClientAuthErrorMessage = {
         code: "device_code_expired",
         desc: "Device code is expired."
     },
+    DeviceCodeUnknownError: {
+        code: "device_code_unknown_error",
+        desc: "Device code stopped polling for unknown reasons."
+    },
     NoAccountInSilentRequest: {
         code: "no_account_in_silent_request",
         desc: "Please pass an account object, silent flow is not supported without account information"
@@ -386,6 +390,13 @@ export class ClientAuthError extends AuthError {
      */
     static createDeviceCodeExpiredError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.DeviceCodeExpired.code, `${ClientAuthErrorMessage.DeviceCodeExpired.desc}`);
+    }
+
+    /**
+     * Throws error if device code is expired
+     */
+    static createDeviceCodeUnknownError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.DeviceCodeUnknownError.code, `${ClientAuthErrorMessage.DeviceCodeUnknownError.desc}`);
     }
 
     /**

@@ -284,6 +284,7 @@ describe("DeviceCodeClient unit tests", () => {
         it("Throw device code expired exception if device code is expired", async () => {
             jest.setTimeout(6000);
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_EXPIRED_RESPONSE);
+            sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHORIZATION_PENDING_RESPONSE);
 
             const request: CommonDeviceCodeRequest = {
                 authority: TEST_CONFIG.validAuthority,
@@ -308,7 +309,7 @@ describe("DeviceCodeClient unit tests", () => {
                 correlationId: "test-correlationId",
                 scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
                 deviceCodeCallback: () => {},
-                timeout: DEVICE_CODE_RESPONSE.interval, // Setting a timeout equal to the interval polling time to allow for one call to the token endpoint 
+                timeout: DEVICE_CODE_RESPONSE.interval - 1, // Setting a timeout equal to the interval polling time minus one to allow for one call to the token endpoint 
             };
 
             const client = new DeviceCodeClient(config);
