@@ -26,7 +26,7 @@ describe("NavigationClient.ts Unit Tests", () => {
                 window.location = {
                     ...oldWindowLocation,
                     assign: function (url) {
-                        expect(url).toEqual(expect.arrayContaining([TEST_URIS.TEST_LOGOUT_URI]));
+                        expect(url).toBe(TEST_URIS.TEST_LOGOUT_URI);
                         done();
                     }
                 };
@@ -87,7 +87,7 @@ describe("NavigationClient.ts Unit Tests", () => {
                 window.location = {
                     ...oldWindowLocation,
                     assign: function (url) {
-                        expect(url).toEqual(expect.arrayContaining([TEST_URIS.TEST_LOGOUT_URI]));
+                        expect(url).toBe(TEST_URIS.TEST_LOGOUT_URI);
                         done();
                     }
                 };
