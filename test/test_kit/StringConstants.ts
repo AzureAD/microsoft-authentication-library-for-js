@@ -43,7 +43,7 @@ export const ID_TOKEN_CLAIMS = {
     sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
     aud: "6cb04018-a3f5-46a7-b995-940c78f5aef3",
     exp: 1536361411,
-    iat: "1536274711",
+    iat: 1536274711,
     nbf: "1536274711",
     name: "Abe Lincoln",
     preferred_username: "AbeLi@microsoft.com",
@@ -452,8 +452,8 @@ export const CACHE_MOCKS = {
     MOCK_CLIENT_ID_1: "mock_client_id_1",
     MOCK_ACCOUNT_INFO: {
         homeAccountId: "uid.utid",
+        localAccountId: "uid",
         environment: "login.microsoftonline.com",
-        localAccountId: "uid.utid",
         tenantId: "microsoft",
         username: "mocked_username"
     },
