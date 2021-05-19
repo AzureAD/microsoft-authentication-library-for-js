@@ -464,9 +464,9 @@ export class Authority {
      * @returns bool
      */
     static isPublicCloudAuthority(host: string): boolean {
-        Constants.KNOWN_PUBLIC_CLOUDS.forEach(cloud => {
-            if (cloud === host) return true;
-        });
+        for (let index = 0; index < Constants.KNOWN_PUBLIC_CLOUDS.length; index++) {
+            if (Constants.KNOWN_PUBLIC_CLOUDS[index] === host) return true;
+        }
 
         return false;
     }
