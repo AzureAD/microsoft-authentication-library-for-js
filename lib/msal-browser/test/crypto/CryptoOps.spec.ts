@@ -2,7 +2,7 @@ import sinon from "sinon";
 import { CryptoOps, CachedKeyPair } from "../../src/crypto/CryptoOps";
 import { GuidGenerator } from "../../src/crypto/GuidGenerator";
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
-import crypto from "crypto";
+import {createHash} from "crypto";
 import { PkceCodes, BaseAuthRequest } from "@azure/msal-common";
 import { TEST_URIS } from "../utils/StringConstants";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
@@ -72,7 +72,7 @@ describe("CryptoOps.ts Unit Tests", () => {
     it("generatePkceCode() creates a valid Pkce code", async () => {
         sinon.stub(BrowserCrypto.prototype, <any>"getSubtleCryptoDigest").callsFake(async (algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
             expect(algorithm).toBe("SHA-256");
-            return crypto.createHash("SHA256").update(Buffer.from(data)).digest();
+            return createHash("SHA256").update(Buffer.from(data)).digest();
         });
 
         /**
@@ -88,7 +88,7 @@ describe("CryptoOps.ts Unit Tests", () => {
         jest.setTimeout(10000);
         sinon.stub(BrowserCrypto.prototype, <any>"getSubtleCryptoDigest").callsFake(async (algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
             expect(algorithm).toBe("SHA-256");
-            return crypto.createHash("SHA256").update(Buffer.from(data)).digest();
+            return createHash("SHA256").update(Buffer.from(data)).digest();
         });
         const generateKeyPairSpy = sinon.spy(BrowserCrypto.prototype, "generateKeyPair");
         const exportJwkSpy = sinon.spy(BrowserCrypto.prototype, "exportJwk");
