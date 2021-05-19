@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Remove input params from Empty Scopes error constructors #3654",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
