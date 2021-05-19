@@ -78,15 +78,6 @@ export class BrowserConfigurationAuthError extends AuthError {
     }
 
     /**
-     * Creates error thrown when callback object is invalid.
-     * @param callbackObject 
-     */
-    static createInvalidCallbackObjectError(callbackObject: object): BrowserConfigurationAuthError {
-        return new BrowserConfigurationAuthError(BrowserConfigurationAuthErrorMessage.invalidCallbackObject.code,
-            `${BrowserConfigurationAuthErrorMessage.invalidCallbackObject.desc} Given value for callback function: ${callbackObject}`);
-    }
-
-    /**
      * Creates error thrown when redirect callbacks are not set before calling loginRedirect() or acquireTokenRedirect().
      */
     static createRedirectCallbacksNotSetError(): BrowserConfigurationAuthError {
