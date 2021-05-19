@@ -1,6 +1,6 @@
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
-import crypto from "crypto";
 import sinon from "sinon";
+import { createHash } from "crypto";
 import { PkceGenerator } from "../../src/crypto/PkceGenerator";
 import { PkceCodes } from "@azure/msal-common";
 import { NUM_TESTS } from "../utils/StringConstants";
@@ -14,7 +14,7 @@ describe("PkceGenerator.ts Unit Tests", () => {
     it("generateCodes() generates valid pkce codes", async () => {
         sinon.stub(BrowserCrypto.prototype, <any>"getSubtleCryptoDigest").callsFake(async (algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
             expect(algorithm).toBe("SHA-256");
-            return crypto.createHash("SHA256").update(Buffer.from(data)).digest();
+            return createHash("SHA256").update(Buffer.from(data)).digest();
         });
         const browserCrypto = new BrowserCrypto();
 
@@ -33,7 +33,7 @@ describe("PkceGenerator.ts Unit Tests", () => {
     it("generateCodes() generates valid pkce codes with msCrypto", async () => {
         sinon.stub(BrowserCrypto.prototype, <any>"getMSCryptoDigest").callsFake(async (algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
             expect(algorithm).toBe("SHA-256");
-            return crypto.createHash("SHA256").update(Buffer.from(data)).digest();
+            return createHash("SHA256").update(Buffer.from(data)).digest();
         });
         sinon.stub(BrowserCrypto.prototype, <any>"hasIECrypto").returns(true);
         const browserCrypto = new BrowserCrypto();

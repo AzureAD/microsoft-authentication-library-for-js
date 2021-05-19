@@ -3,7 +3,7 @@ import { CryptoOps, CachedKeyPair } from "../../src/crypto/CryptoOps";
 import { GuidGenerator } from "../../src/crypto/GuidGenerator";
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
 import crypto from "crypto";
-import { PkceCodes } from "@azure/msal-common";
+import { PkceCodes, BaseAuthRequest } from "@azure/msal-common";
 import { TEST_URIS } from "../utils/StringConstants";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 
@@ -84,24 +84,22 @@ describe("CryptoOps.ts Unit Tests", () => {
         expect(regExp.test(generatedCodes.verifier)).toBe(true);
     });
 
-    it(
-        "getPublicKeyThumbprint() generates a valid request thumbprint",
-        async () => {
-            sinon.stub(BrowserCrypto.prototype, <any>"getSubtleCryptoDigest").callsFake(async (algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
-                expect(algorithm).toBe("SHA-256");
-                return crypto.createHash("SHA256").update(Buffer.from(data)).digest();
-            });
-            const generateKeyPairSpy = sinon.spy(BrowserCrypto.prototype, "generateKeyPair");
-            const exportJwkSpy = sinon.spy(BrowserCrypto.prototype, "exportJwk");
-            const pkThumbprint = await cryptoObj.getPublicKeyThumbprint("POST", TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS);
-            /**
-             * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
-             */
-            const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
-            expect(generateKeyPairSpy.calledWith(true, ["sign", "verify"]));
-            expect(exportJwkSpy.calledWith((await generateKeyPairSpy.returnValues[0]).publicKey));
-            expect(regExp.test(pkThumbprint)).toBe(true);
-            expect(dbStorage[pkThumbprint]).not.toHaveLength(0);
-        }
-    ).timeout(0);
+    it("getPublicKeyThumbprint() generates a valid request thumbprint", async () => {
+        jest.setTimeout(10000);
+        sinon.stub(BrowserCrypto.prototype, <any>"getSubtleCryptoDigest").callsFake(async (algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
+            expect(algorithm).toBe("SHA-256");
+            return crypto.createHash("SHA256").update(Buffer.from(data)).digest();
+        });
+        const generateKeyPairSpy = sinon.spy(BrowserCrypto.prototype, "generateKeyPair");
+        const exportJwkSpy = sinon.spy(BrowserCrypto.prototype, "exportJwk");
+        const pkThumbprint = await cryptoObj.getPublicKeyThumbprint({resourceRequestMethod: "POST", resourceRequestUri: TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS} as BaseAuthRequest);
+        /**
+         * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
+         */
+        const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
+        expect(generateKeyPairSpy.calledWith(true, ["sign", "verify"]));
+        expect(exportJwkSpy.calledWith((await generateKeyPairSpy.returnValues[0]).publicKey));
+        expect(regExp.test(pkThumbprint)).toBe(true);
+        expect(Object.keys(dbStorage[pkThumbprint])).not.toHaveLength(0);
+    });
 });
