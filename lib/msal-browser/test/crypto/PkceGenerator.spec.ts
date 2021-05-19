@@ -1,5 +1,4 @@
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
-import sinon from "sinon";
 import { createHash } from "crypto";
 import { PkceGenerator } from "../../src/crypto/PkceGenerator";
 import { PkceCodes } from "@azure/msal-common";
@@ -8,13 +7,14 @@ import { NUM_TESTS } from "../utils/StringConstants";
 describe("PkceGenerator.ts Unit Tests", () => {
 
     afterEach(() => {
-        sinon.restore();
+        jest.restoreAllMocks();
     });
 
     it("generateCodes() generates valid pkce codes", async () => {
-        sinon.stub(BrowserCrypto.prototype, <any>"getSubtleCryptoDigest").callsFake(async (algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
+        //@ts-ignore
+        jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
             expect(algorithm).toBe("SHA-256");
-            return createHash("SHA256").update(Buffer.from(data)).digest();
+            return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
         });
         const browserCrypto = new BrowserCrypto();
 
@@ -31,11 +31,12 @@ describe("PkceGenerator.ts Unit Tests", () => {
     });
 
     it("generateCodes() generates valid pkce codes with msCrypto", async () => {
-        sinon.stub(BrowserCrypto.prototype, <any>"getMSCryptoDigest").callsFake(async (algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
+        //@ts-ignore
+        jest.spyOn(BrowserCrypto.prototype as any, "getMSCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
             expect(algorithm).toBe("SHA-256");
-            return createHash("SHA256").update(Buffer.from(data)).digest();
+            return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
         });
-        sinon.stub(BrowserCrypto.prototype, <any>"hasIECrypto").returns(true);
+        jest.spyOn(BrowserCrypto.prototype as any, "hasIECrypto").mockReturnValue(true);
         const browserCrypto = new BrowserCrypto();
 
         const pkceGenerator = new PkceGenerator(browserCrypto);

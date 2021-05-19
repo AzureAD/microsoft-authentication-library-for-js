@@ -1,8 +1,7 @@
-import sinon from "sinon";
 import { CryptoOps, CachedKeyPair } from "../../src/crypto/CryptoOps";
 import { GuidGenerator } from "../../src/crypto/GuidGenerator";
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
-import {createHash} from "crypto";
+import { createHash } from "crypto";
 import { PkceCodes, BaseAuthRequest } from "@azure/msal-common";
 import { TEST_URIS } from "../utils/StringConstants";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
@@ -11,18 +10,18 @@ describe("CryptoOps.ts Unit Tests", () => {
     let cryptoObj: CryptoOps;
     let dbStorage = {};
     beforeEach(() => {
-        sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+        jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(async (): Promise<void> => {
             dbStorage = {};
         });
 
-        sinon.stub(DatabaseStorage.prototype, "put").callsFake(async (key: string, payload: CachedKeyPair): Promise<void> => {
+        jest.spyOn(DatabaseStorage.prototype, "put").mockImplementation(async (key: string, payload: CachedKeyPair): Promise<void> => {
             dbStorage[key] = payload;
         });
         cryptoObj = new CryptoOps();
     });
 
     afterEach(() => {
-        sinon.restore();
+        jest.restoreAllMocks();
     });
 
     it("createNewGuid()", () => {
@@ -70,9 +69,10 @@ describe("CryptoOps.ts Unit Tests", () => {
     });
 
     it("generatePkceCode() creates a valid Pkce code", async () => {
-        sinon.stub(BrowserCrypto.prototype, <any>"getSubtleCryptoDigest").callsFake(async (algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
+        //@ts-ignore
+        jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
             expect(algorithm).toBe("SHA-256");
-            return createHash("SHA256").update(Buffer.from(data)).digest();
+            return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
         });
 
         /**
@@ -86,19 +86,21 @@ describe("CryptoOps.ts Unit Tests", () => {
 
     it("getPublicKeyThumbprint() generates a valid request thumbprint", async () => {
         jest.setTimeout(10000);
-        sinon.stub(BrowserCrypto.prototype, <any>"getSubtleCryptoDigest").callsFake(async (algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
+        //@ts-ignore
+        jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
             expect(algorithm).toBe("SHA-256");
-            return createHash("SHA256").update(Buffer.from(data)).digest();
+            return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
         });
-        const generateKeyPairSpy = sinon.spy(BrowserCrypto.prototype, "generateKeyPair");
-        const exportJwkSpy = sinon.spy(BrowserCrypto.prototype, "exportJwk");
+        const generateKeyPairSpy = jest.spyOn(BrowserCrypto.prototype, "generateKeyPair");
+        const exportJwkSpy = jest.spyOn(BrowserCrypto.prototype, "exportJwk");
         const pkThumbprint = await cryptoObj.getPublicKeyThumbprint({resourceRequestMethod: "POST", resourceRequestUri: TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS} as BaseAuthRequest);
         /**
          * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
          */
         const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
-        expect(generateKeyPairSpy.calledWith(true, ["sign", "verify"]));
-        expect(exportJwkSpy.calledWith((await generateKeyPairSpy.returnValues[0]).publicKey));
+        expect(generateKeyPairSpy).toHaveBeenCalledWith(true, ["sign", "verify"]);
+        const result = await generateKeyPairSpy.mock.results[0].value;
+        expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
         expect(regExp.test(pkThumbprint)).toBe(true);
         expect(Object.keys(dbStorage[pkThumbprint])).not.toHaveLength(0);
     });
