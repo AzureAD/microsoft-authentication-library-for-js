@@ -82,7 +82,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         );
 
         it("navigates and caches hash if navigateToLoginRequestUri is true and interaction type is redirect",
-            (done) => {
+            async () => {
                 sinon.stub(pca, <any>"interactionInProgress").returns(true);
                 window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_ALTERNATE_REDIR_URI);
@@ -90,11 +90,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(options.noHistory).toBeTruthy();
                     expect(options.timeout).toBeGreaterThan(0);
                     expect(urlNavigate).toEqual(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
-                    done();
                     return Promise.resolve(true);
                 });
-                pca.handleRedirectPromise();
-                expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).toEqual(null);
+                await pca.handleRedirectPromise();
+                expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
             }
         );
 
@@ -111,7 +110,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     return Promise.resolve(true);
                 });
                 pca.handleRedirectPromise();
-                expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).toEqual(null);
+                expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
             }
         );
 
@@ -129,7 +128,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     return Promise.resolve(true);
                 });
                 pca.handleRedirectPromise();
-                expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).toEqual(null);
+                expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
             }
         );
 
@@ -147,7 +146,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     return Promise.resolve(true);
                 });
                 pca.handleRedirectPromise();
-                expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).toEqual(null);
+                expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
             }
         );
 
@@ -165,7 +164,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     return Promise.resolve(true);
                 });
                 pca.handleRedirectPromise();
-                expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).toEqual(null);
+                expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
             }
         );
 
@@ -234,192 +233,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 pca.handleRedirectPromise();
             }
         );
-    });
-
-    describe("Non-browser environment", () => {
-        // @ts-ignore
-        let oldWindow;
-
-        beforeEach(() => {
-            // @ts-ignore
-            oldWindow = { ...global.window };
-
-            // @ts-ignore
-            global.window = undefined;
-        });
-
-        afterEach(() => {
-            // @ts-ignore
-            global.window = oldWindow;
-
-            // @ts-ignore
-            global.window.parent = oldWindow;
-        });
-
-        it("Constructor doesnt throw if window is undefined", () => {
-            new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                }
-            });
-        });
-
-        it("acquireTokenSilent throws", (done) => {
-            const instance = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                }
-            });
-
-            instance.acquireTokenSilent({scopes: ["openid"], account: undefined})
-                .catch(error => {
-                    expect(error.errorCode).toEqual(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
-                    done();
-                });
-        });
-
-        it("ssoSilent throws", (done) => {
-            const instance = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                }
-            });
-
-            instance.ssoSilent({})
-                .catch(error => {
-                    expect(error.errorCode).toEqual(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
-                    done();
-                });
-        });
-
-        it("acquireTokenPopup throws", (done) => {
-            const instance = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                }
-            });
-
-            instance.acquireTokenPopup({scopes: ["openid"]}).catch((error) => {
-                expect(error.errorCode).toEqual(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
-                done();
-            });
-        });
-
-        it("acquireTokenRedirect throws", (done) => {
-            const instance = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                }
-            });
-
-            instance.acquireTokenRedirect({scopes: ["openid"]})
-                .catch(error => {
-                    expect(error.errorCode).toEqual(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
-                    done();
-                });
-        });
-
-        it("loginPopup throws", (done) => {
-            const instance = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                }
-            });
-
-            instance.loginPopup({scopes: ["openid"]})
-                .catch(error => {
-                    expect(error.errorCode).toEqual(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
-                    done();
-                });
-        });
-
-        it("loginRedirect throws", (done) => {
-            const instance = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                }
-            });
-
-            instance.loginRedirect({scopes: ["openid"]})
-                .catch(error => {
-                    expect(error.errorCode).toEqual(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
-                    done();
-                });
-        });
-
-        it("logoutRedirect throws", (done) => {
-            const instance = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                }
-            });
-
-            instance.logoutRedirect()
-                .catch(error => {
-                    expect(error.errorCode).toEqual(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
-                    done();
-                });
-        });
-
-        it("logoutPopup throws", (done) => {
-            const instance = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                }
-            });
-
-            instance.logoutPopup()
-                .catch(error => {
-                    expect(error.errorCode).toEqual(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
-                    done();
-                });
-        });
-
-        it("getAllAccounts returns empty array", () => {
-            const instance = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                }
-            });
-
-            const accounts = instance.getAllAccounts();
-            expect(accounts).toEqual([]);
-        });
-
-        it("getAccountByUsername returns null", () => {
-            const instance = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                }
-            });
-
-            const account = instance.getAccountByUsername("example@test.com");
-            expect(account).toEqual(null);
-        });
-
-        it("handleRedirectPromise returns null", (done) => {
-            const instance = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                }
-            });
-
-            instance.handleRedirectPromise().then(result => {
-                expect(result).toBeNull();
-                done();
-            });
-        });
-
-        it("addEventCallback does not throw", (done) => {
-            const instance = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                }
-            });
-
-            expect(() => instance.addEventCallback(() => {})).not.toThrow();
-            done();
-        });
     });
 
     describe("Redirect Flow Unit tests", () => {
@@ -518,7 +331,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(tokenResponse?.tenantId).toEqual(testTokenResponse.tenantId);
                 expect(tokenResponse?.scopes).toEqual(testTokenResponse.scopes);
                 expect(tokenResponse?.idToken).toEqual(testTokenResponse.idToken);
-                expect(tokenResponse?.idTokenClaims).toContain(testTokenResponse.idTokenClaims);
+                expect(tokenResponse?.idTokenClaims).toEqual(expect.objectContaining(testTokenResponse.idTokenClaims));
                 expect(tokenResponse?.accessToken).toEqual(testTokenResponse.accessToken);
                 expect(tokenResponse?.expiresOn && testTokenResponse.expiresOn && testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse.expiresOn.getMilliseconds()).toBeTruthy();
                 expect(window.sessionStorage.length).toEqual(4);
@@ -623,7 +436,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(tokenResponse1.tenantId).toEqual(testTokenResponse.tenantId);
                     expect(tokenResponse1.scopes).toEqual(testTokenResponse.scopes);
                     expect(tokenResponse1.idToken).toEqual(testTokenResponse.idToken);
-                    expect(tokenResponse1.idTokenClaims).toContain(testTokenResponse.idTokenClaims);
+                    expect(tokenResponse1.idTokenClaims).toEqual(expect.objectContaining(testTokenResponse.idTokenClaims));
                     expect(tokenResponse1.accessToken).toEqual(testTokenResponse.accessToken);
                     expect(testTokenResponse.expiresOn && tokenResponse1.expiresOn && testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse1.expiresOn.getMilliseconds()).toBeTruthy();
                     
@@ -632,7 +445,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(tokenResponse2.tenantId).toEqual(testTokenResponse.tenantId);
                     expect(tokenResponse2.scopes).toEqual(testTokenResponse.scopes);
                     expect(tokenResponse2.idToken).toEqual(testTokenResponse.idToken);
-                    expect(tokenResponse2.idTokenClaims).toContain(testTokenResponse.idTokenClaims);
+                    expect(tokenResponse2.idTokenClaims).toEqual(expect.objectContaining(testTokenResponse.idTokenClaims));
                     expect(tokenResponse2.accessToken).toEqual(testTokenResponse.accessToken);
                     expect(testTokenResponse.expiresOn && tokenResponse2.expiresOn && testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse2.expiresOn.getMilliseconds()).toBeTruthy();
 
@@ -768,7 +581,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(tokenResponse?.tenantId).toEqual(testTokenResponse.tenantId);
                     expect(tokenResponse?.scopes).toEqual(testTokenResponse.scopes);
                     expect(tokenResponse?.idToken).toEqual(testTokenResponse.idToken);
-                    expect(tokenResponse?.idTokenClaims).toContain(testTokenResponse.idTokenClaims);
+                    expect(tokenResponse?.idTokenClaims).toEqual(expect.objectContaining(testTokenResponse.idTokenClaims));
                     expect(tokenResponse?.accessToken).toEqual(testTokenResponse.accessToken);
                     expect(testTokenResponse.expiresOn && tokenResponse?.expiresOn && testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse.expiresOn.getMilliseconds()).toBeTruthy();
                     expect(window.sessionStorage.length).toEqual(4);
@@ -885,7 +698,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(tokenResponse.tenantId).toEqual(testTokenResponse.tenantId);
                     expect(tokenResponse.scopes).toEqual(testTokenResponse.scopes);
                     expect(tokenResponse.idToken).toEqual(testTokenResponse.idToken);
-                    expect(tokenResponse.idTokenClaims).toContain(testTokenResponse.idTokenClaims);
+                    expect(tokenResponse.idTokenClaims).toEqual(expect.objectContaining(testTokenResponse.idTokenClaims));
                     expect(tokenResponse.accessToken).toEqual(testTokenResponse.accessToken);
                     expect(testTokenResponse.expiresOn!.getMilliseconds() >= tokenResponse.expiresOn!.getMilliseconds()).toBeTruthy();
                     expect(window.sessionStorage.length).toEqual(4);
@@ -987,7 +800,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(tokenResponse?.tenantId).toEqual(testTokenResponse.tenantId);
                     expect(tokenResponse?.scopes).toEqual(testTokenResponse.scopes);
                     expect(tokenResponse?.idToken).toEqual(testTokenResponse.idToken);
-                    expect(tokenResponse?.idTokenClaims).toContain(testTokenResponse.idTokenClaims);
+                    expect(tokenResponse?.idTokenClaims).toEqual(expect.objectContaining(testTokenResponse.idTokenClaims));
                     expect(tokenResponse?.accessToken).toEqual(testTokenResponse.accessToken);
                     expect(testTokenResponse.expiresOn && tokenResponse?.expiresOn && testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse.expiresOn.getMilliseconds()).toBeTruthy();
                     expect(window.sessionStorage.length).toEqual(4);
@@ -1284,29 +1097,47 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
         });
 
-        describe("acquireTokenRedirect", () => {
+        describe("inside popup", () => {
+            const oldWindowOpener = window.opener;
+            const oldWindowName = window.name;
 
-            it("throws error if called in a popup", (done) => {
-                // @ts-ignore
-                const oldWindow = global.window;
-                // @ts-ignore
-                global.window = {
-                    ...oldWindow,
-                    // @ts-ignore
-                    opener: global.window,
-                    name: "msal.testPopup"
-                }
+            beforeEach(() => {
+                const newWindow = {
+                    ...window
+                };
+                
+                delete window.opener;
+                delete window.name;
+                window.opener = newWindow;
+                window.name = "msal.testPopup"
+            });
+            
+            afterEach(() => {
+                window.name = oldWindowName;
+                window.opener = oldWindowOpener;
+            });
 
+            it("acquireTokenRedirect() throws error if called in a popup", (done) => {
                 sinon.stub(BrowserUtils, "isInIframe").returns(false);
                 pca.acquireTokenRedirect({scopes: ["openid"]}).catch(e => {
                     expect(e).toBeInstanceOf(BrowserAuthError);
                     expect(e.errorCode).toEqual(BrowserAuthErrorMessage.blockAcquireTokenInPopupsError.code);
                     expect(e.errorMessage).toEqual(BrowserAuthErrorMessage.blockAcquireTokenInPopupsError.desc);
-                    // @ts-ignore
-                    global.window = oldWindow;
                     done();
                 });
             });
+
+            it("acquireTokenPopup() throws error if called in a popup", (done) => {
+                pca.acquireTokenPopup({scopes: ["openid"]}).catch(e => {
+                    expect(e).toBeInstanceOf(BrowserAuthError);
+                    expect(e.errorCode).toEqual(BrowserAuthErrorMessage.blockAcquireTokenInPopupsError.code);
+                    expect(e.errorMessage).toEqual(BrowserAuthErrorMessage.blockAcquireTokenInPopupsError.desc);
+                    done();
+                });
+            });
+        });
+
+        describe("acquireTokenRedirect", () => {
 
             it("throws an error if interaction is currently in progress", async () => {
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
@@ -1760,27 +1591,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 window.localStorage.clear();
                 window.sessionStorage.clear();
                 sinon.restore();
-            });
-
-            it("throws error if called in a popup", (done) => {
-                // @ts-ignore
-                const oldWindow = global.window;
-                // @ts-ignore
-                global.window = {
-                    ...oldWindow,
-                    // @ts-ignore
-                    opener: global.window,
-                    name: "msal.testPopup"
-                }
-
-                pca.acquireTokenPopup({scopes: ["openid"]}).catch(e => {
-                    expect(e).toBeInstanceOf(BrowserAuthError);
-                    expect(e.errorCode).toEqual(BrowserAuthErrorMessage.blockAcquireTokenInPopupsError.code);
-                    expect(e.errorMessage).toEqual(BrowserAuthErrorMessage.blockAcquireTokenInPopupsError.desc);
-                    // @ts-ignore
-                    global.window = oldWindow;
-                    done();
-                });
             });
 
             it("throws error if interaction is in progress", async () => {
@@ -2314,7 +2124,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pcaWithPostLogout.logoutRedirect();
         });
 
-        it("doesnt include postLogoutRedirectUri if null is configured", (done) => {
+        it("doesn't include postLogoutRedirectUri if null is configured", (done) => {
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(urlNavigate).not.toContain(`post_logout_redirect_uri`);
                 done();
@@ -2331,11 +2141,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             pcaWithPostLogout.logoutRedirect();
         });
 
-        it(
-            "doesnt include postLogoutRedirectUri if null is set on request",
+        it("doesn't include postLogoutRedirectUri if null is set on request",
             (done) => {
                 sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
-                    expect(urlNavigate).toContain("post_logout_redirect_uri");
+                    expect(urlNavigate).not.toContain("post_logout_redirect_uri");
                     done();
                     return Promise.resolve(true);
                 });
@@ -2345,8 +2154,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             }
         );
 
-        it(
-            "includes postLogoutRedirectUri as current page if none is set on request",
+        it("includes postLogoutRedirectUri as current page if none is set on request",
             (done) => {
                 sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                     expect(urlNavigate).toContain(`post_logout_redirect_uri=${encodeURIComponent("https://localhost:8081/index.html")}`);
