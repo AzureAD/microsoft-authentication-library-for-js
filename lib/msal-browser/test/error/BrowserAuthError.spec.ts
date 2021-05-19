@@ -15,7 +15,7 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err.errorMessage).toBe(TEST_ERROR_MSG);
         expect(err.message).toBe(`${TEST_ERROR_CODE}: ${TEST_ERROR_MSG}`);
         expect(err.name).toBe("BrowserAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["BrowserAuthError.spec.ts"]));
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
     it("createNonBrowserEnvironmentError()", () => {
@@ -25,14 +25,10 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([BrowserAuthErrorMessage.notInBrowserEnvironment.desc])
-        );
-        expect(err.message).toEqual(
-            expect.arrayContaining([BrowserAuthErrorMessage.notInBrowserEnvironment.desc])
-        );
+        expect(err.errorMessage.includes(BrowserAuthErrorMessage.notInBrowserEnvironment.desc)).toBe(true);
+        expect(err.message.includes(BrowserAuthErrorMessage.notInBrowserEnvironment.desc)).toBe(true);
         expect(err.name).toBe("BrowserAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["BrowserAuthError.spec.ts"]));
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
     it("createPkceNotGeneratedError()", () => {
@@ -42,10 +38,10 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(BrowserAuthErrorMessage.pkceNotGenerated.code);
-        expect(err.errorMessage).toEqual(expect.arrayContaining([BrowserAuthErrorMessage.pkceNotGenerated.desc]));
-        expect(err.message).toEqual(expect.arrayContaining([BrowserAuthErrorMessage.pkceNotGenerated.desc]));
+        expect(err.errorMessage?.includes(BrowserAuthErrorMessage.pkceNotGenerated.desc)).toBe(true);
+        expect(err.message?.includes(BrowserAuthErrorMessage.pkceNotGenerated.desc)).toBe(true);
         expect(err.name).toBe("BrowserAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["BrowserAuthError.spec.ts"]));
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
     it("createCryptoNotAvailableError()", () => {
@@ -55,10 +51,10 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(BrowserAuthErrorMessage.cryptoDoesNotExist.code);
-        expect(err.errorMessage).toEqual(expect.arrayContaining([BrowserAuthErrorMessage.cryptoDoesNotExist.desc]));
-        expect(err.message).toEqual(expect.arrayContaining([BrowserAuthErrorMessage.cryptoDoesNotExist.desc]));
+        expect(err.errorMessage?.includes(BrowserAuthErrorMessage.cryptoDoesNotExist.desc)).toBe(true);
+        expect(err.message?.includes(BrowserAuthErrorMessage.cryptoDoesNotExist.desc)).toBe(true);
         expect(err.name).toBe("BrowserAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["BrowserAuthError.spec.ts"]));
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
     it("createHttpMethodNotImplementedError()", () => {
@@ -68,14 +64,10 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(BrowserAuthErrorMessage.httpMethodNotImplementedError.code);
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([BrowserAuthErrorMessage.httpMethodNotImplementedError.desc])
-        );
-        expect(err.message).toEqual(
-            expect.arrayContaining([BrowserAuthErrorMessage.httpMethodNotImplementedError.desc])
-        );
+        expect(err.errorMessage.includes(BrowserAuthErrorMessage.httpMethodNotImplementedError.desc)).toBe(true);
+        expect(err.message.includes(BrowserAuthErrorMessage.httpMethodNotImplementedError.desc)).toBe(true);
         expect(err.name).toBe("BrowserAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["BrowserAuthError.spec.ts"]));
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
     it("createEmptyNavigationUriError()", () => {
@@ -85,14 +77,10 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(BrowserAuthErrorMessage.emptyNavigateUriError.code);
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([BrowserAuthErrorMessage.emptyNavigateUriError.desc])
-        );
-        expect(err.message).toEqual(
-            expect.arrayContaining([BrowserAuthErrorMessage.emptyNavigateUriError.desc])
-        );
+        expect(err.errorMessage.includes(BrowserAuthErrorMessage.emptyNavigateUriError.desc)).toBe(true);
+        expect(err.message.includes(BrowserAuthErrorMessage.emptyNavigateUriError.desc)).toBe(true);
         expect(err.name).toBe("BrowserAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["BrowserAuthError.spec.ts"]));
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
     it("createEmptyHashError()", () => {
@@ -102,10 +90,10 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(BrowserAuthErrorMessage.hashEmptyError.code);
-        expect(err.errorMessage).toEqual(expect.arrayContaining([BrowserAuthErrorMessage.hashEmptyError.desc]));
-        expect(err.message).toEqual(expect.arrayContaining([BrowserAuthErrorMessage.hashEmptyError.desc]));
+        expect(err.errorMessage?.includes(BrowserAuthErrorMessage.hashEmptyError.desc)).toBe(true);
+        expect(err.message?.includes(BrowserAuthErrorMessage.hashEmptyError.desc)).toBe(true);
         expect(err.name).toBe("BrowserAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["BrowserAuthError.spec.ts"]));
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
     it("createInteractionInProgressError()", () => {
@@ -115,14 +103,10 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(BrowserAuthErrorMessage.interactionInProgress.code);
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([BrowserAuthErrorMessage.interactionInProgress.desc])
-        );
-        expect(err.message).toEqual(
-            expect.arrayContaining([BrowserAuthErrorMessage.interactionInProgress.desc])
-        );
+        expect(err.errorMessage.includes(BrowserAuthErrorMessage.interactionInProgress.desc)).toBe(true);
+        expect(err.message.includes(BrowserAuthErrorMessage.interactionInProgress.desc)).toBe(true);
         expect(err.name).toBe("BrowserAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["BrowserAuthError.spec.ts"]));
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
     it("createPopupWindowError()", () => {
@@ -132,10 +116,10 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(BrowserAuthErrorMessage.popUpWindowError.code);
-        expect(err.errorMessage).toEqual(expect.arrayContaining([BrowserAuthErrorMessage.popUpWindowError.desc]));
-        expect(err.message).toEqual(expect.arrayContaining([BrowserAuthErrorMessage.popUpWindowError.desc]));
+        expect(err.errorMessage?.includes(BrowserAuthErrorMessage.popUpWindowError.desc)).toBe(true);
+        expect(err.message?.includes(BrowserAuthErrorMessage.popUpWindowError.desc)).toBe(true);
         expect(err.name).toBe("BrowserAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["BrowserAuthError.spec.ts"]));
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
     it("createPopupWindowError() with error message", () => {
@@ -146,12 +130,12 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(BrowserAuthErrorMessage.popUpWindowError.code);
-        expect(err.errorMessage).toEqual(expect.arrayContaining([BrowserAuthErrorMessage.popUpWindowError.desc]));
-        expect(err.errorMessage).toEqual(expect.arrayContaining([testErrMessage]));
-        expect(err.message).toEqual(expect.arrayContaining([BrowserAuthErrorMessage.popUpWindowError.desc]));
-        expect(err.message).toEqual(expect.arrayContaining([testErrMessage]));
+        expect(err.errorMessage?.includes(BrowserAuthErrorMessage.popUpWindowError.desc)).toBe(true);
+        expect(err.errorMessage?.includes(testErrMessage)).toBe(true);
+        expect(err.message?.includes(BrowserAuthErrorMessage.popUpWindowError.desc)).toBe(true);
+        expect(err.message?.includes(testErrMessage)).toBe(true);
         expect(err.name).toBe("BrowserAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["BrowserAuthError.spec.ts"]));
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
     it("createEmptyWindowCreatedError()", () => {
@@ -161,10 +145,10 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(BrowserAuthErrorMessage.emptyWindowError.code);
-        expect(err.errorMessage).toEqual(expect.arrayContaining([BrowserAuthErrorMessage.emptyWindowError.desc]));
-        expect(err.message).toEqual(expect.arrayContaining([BrowserAuthErrorMessage.emptyWindowError.desc]));
+        expect(err.errorMessage?.includes(BrowserAuthErrorMessage.emptyWindowError.desc)).toBe(true);
+        expect(err.message?.includes(BrowserAuthErrorMessage.emptyWindowError.desc)).toBe(true);
         expect(err.name).toBe("BrowserAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["BrowserAuthError.spec.ts"]));
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
     it("createUserCancelledError()", () => {
@@ -174,10 +158,10 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(BrowserAuthErrorMessage.userCancelledError.code);
-        expect(err.errorMessage).toEqual(expect.arrayContaining([BrowserAuthErrorMessage.userCancelledError.desc]));
-        expect(err.message).toEqual(expect.arrayContaining([BrowserAuthErrorMessage.userCancelledError.desc]));
+        expect(err.errorMessage?.includes(BrowserAuthErrorMessage.userCancelledError.desc)).toBe(true);
+        expect(err.message?.includes(BrowserAuthErrorMessage.userCancelledError.desc)).toBe(true);
         expect(err.name).toBe("BrowserAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["BrowserAuthError.spec.ts"]));
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
     it("createMonitorPopupTimeoutError()", () => {
@@ -187,14 +171,10 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(BrowserAuthErrorMessage.monitorPopupTimeoutError.code);
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([BrowserAuthErrorMessage.monitorPopupTimeoutError.desc])
-        );
-        expect(err.message).toEqual(
-            expect.arrayContaining([BrowserAuthErrorMessage.monitorPopupTimeoutError.desc])
-        );
+        expect(err.errorMessage.includes(BrowserAuthErrorMessage.monitorPopupTimeoutError.desc)).toBe(true);
+        expect(err.message.includes(BrowserAuthErrorMessage.monitorPopupTimeoutError.desc)).toBe(true);
         expect(err.name).toBe("BrowserAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["BrowserAuthError.spec.ts"]));
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
     it("createMonitorIframeTimeoutError()", () => {
@@ -204,14 +184,10 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(BrowserAuthErrorMessage.monitorIframeTimeoutError.code);
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([BrowserAuthErrorMessage.monitorIframeTimeoutError.desc])
-        );
-        expect(err.message).toEqual(
-            expect.arrayContaining([BrowserAuthErrorMessage.monitorIframeTimeoutError.desc])
-        );
+        expect(err.errorMessage.includes(BrowserAuthErrorMessage.monitorIframeTimeoutError.desc)).toBe(true);
+        expect(err.message.includes(BrowserAuthErrorMessage.monitorIframeTimeoutError.desc)).toBe(true);
         expect(err.name).toBe("BrowserAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["BrowserAuthError.spec.ts"]));
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
     it("createRedirectInIframeError()", () => {
@@ -221,14 +197,10 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(BrowserAuthErrorMessage.redirectInIframeError.code);
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([BrowserAuthErrorMessage.redirectInIframeError.desc])
-        );
-        expect(err.message).toEqual(
-            expect.arrayContaining([BrowserAuthErrorMessage.redirectInIframeError.desc])
-        );
+        expect(err.errorMessage.includes(BrowserAuthErrorMessage.redirectInIframeError.desc)).toBe(true);
+        expect(err.message.includes(BrowserAuthErrorMessage.redirectInIframeError.desc)).toBe(true);
         expect(err.name).toBe("BrowserAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["BrowserAuthError.spec.ts"]));
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
     it("createBlockReloadInHiddenIframeError()", () => {
@@ -238,14 +210,10 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(BrowserAuthErrorMessage.blockTokenRequestsInHiddenIframeError.code);
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([BrowserAuthErrorMessage.blockTokenRequestsInHiddenIframeError.desc])
-        );
-        expect(err.message).toEqual(
-            expect.arrayContaining([BrowserAuthErrorMessage.blockTokenRequestsInHiddenIframeError.desc])
-        );
+        expect(err.errorMessage.includes(BrowserAuthErrorMessage.blockTokenRequestsInHiddenIframeError.desc)).toBe(true);
+        expect(err.message.includes(BrowserAuthErrorMessage.blockTokenRequestsInHiddenIframeError.desc)).toBe(true);
         expect(err.name).toBe("BrowserAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["BrowserAuthError.spec.ts"]));
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
     it("createIframeClosedPrematurelyError()", () => {
@@ -255,14 +223,10 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(BrowserAuthErrorMessage.iframeClosedPrematurelyError.code);
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([BrowserAuthErrorMessage.iframeClosedPrematurelyError.desc])
-        );
-        expect(err.message).toEqual(
-            expect.arrayContaining([BrowserAuthErrorMessage.iframeClosedPrematurelyError.desc])
-        );
+        expect(err.errorMessage.includes(BrowserAuthErrorMessage.iframeClosedPrematurelyError.desc)).toBe(true);
+        expect(err.message.includes(BrowserAuthErrorMessage.iframeClosedPrematurelyError.desc)).toBe(true);
         expect(err.name).toBe("BrowserAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["BrowserAuthError.spec.ts"]));
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
     it("createSilentSSOInsufficientInfoError()", () => {
@@ -272,14 +236,10 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(BrowserAuthErrorMessage.silentSSOInsufficientInfoError.code);
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([BrowserAuthErrorMessage.silentSSOInsufficientInfoError.desc])
-        );
-        expect(err.message).toEqual(
-            expect.arrayContaining([BrowserAuthErrorMessage.silentSSOInsufficientInfoError.desc])
-        );
+        expect(err.errorMessage.includes(BrowserAuthErrorMessage.silentSSOInsufficientInfoError.desc)).toBe(true);
+        expect(err.message.includes(BrowserAuthErrorMessage.silentSSOInsufficientInfoError.desc)).toBe(true);
         expect(err.name).toBe("BrowserAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["BrowserAuthError.spec.ts"]));
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
     it("createSilentSSOInsufficientInfoError()", () => {
@@ -290,16 +250,12 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(BrowserAuthErrorMessage.silentPromptValueError.code);
-        expect(err.errorMessage).toEqual(expect.arrayContaining([promptVal]));
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([BrowserAuthErrorMessage.silentPromptValueError.desc])
-        );
-        expect(err.message).toEqual(expect.arrayContaining([promptVal]));
-        expect(err.message).toEqual(
-            expect.arrayContaining([BrowserAuthErrorMessage.silentPromptValueError.desc])
-        );
+        expect(err.errorMessage?.includes(promptVal)).toBe(true);
+        expect(err.errorMessage.includes(BrowserAuthErrorMessage.silentPromptValueError.desc)).toBe(true);
+        expect(err.message?.includes(promptVal)).toBe(true);
+        expect(err.message.includes(BrowserAuthErrorMessage.silentPromptValueError.desc)).toBe(true);
         expect(err.name).toBe("BrowserAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["BrowserAuthError.spec.ts"]));
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 	
     it("createNoTokenRequestCacheError creates a ClientAuthError object", () => {
@@ -309,14 +265,10 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(BrowserAuthErrorMessage.noTokenRequestCacheError.code);
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([BrowserAuthErrorMessage.noTokenRequestCacheError.desc])
-        );
-        expect(err.message).toEqual(
-            expect.arrayContaining([BrowserAuthErrorMessage.noTokenRequestCacheError.desc])
-        );
+        expect(err.errorMessage.includes(BrowserAuthErrorMessage.noTokenRequestCacheError.desc)).toBe(true);
+        expect(err.message.includes(BrowserAuthErrorMessage.noTokenRequestCacheError.desc)).toBe(true);
         expect(err.name).toBe("BrowserAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["BrowserAuthError.spec.ts"]));
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
     it("createInvalidCacheTypeError()", () => {
@@ -326,9 +278,9 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(BrowserAuthErrorMessage.invalidCacheType.code);
-        expect(err.errorMessage).toEqual(expect.arrayContaining([BrowserAuthErrorMessage.invalidCacheType.desc]));
-        expect(err.message).toEqual(expect.arrayContaining([BrowserAuthErrorMessage.invalidCacheType.desc]));
+        expect(err.errorMessage?.includes(BrowserAuthErrorMessage.invalidCacheType.desc)).toBe(true);
+        expect(err.message?.includes(BrowserAuthErrorMessage.invalidCacheType.desc)).toBe(true);
         expect(err.name).toBe("BrowserAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["BrowserAuthError.spec.ts"]));
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 });
