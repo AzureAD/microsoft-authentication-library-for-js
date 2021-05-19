@@ -15,7 +15,7 @@ describe("BrowserConfigurationAuthError Unit Tests", () => {
         expect(err.errorMessage).toBe(TEST_ERROR_MSG);
         expect(err.message).toBe(`${TEST_ERROR_CODE}: ${TEST_ERROR_MSG}`);
         expect(err.name).toBe("BrowserConfigurationAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["BrowserConfigurationAuthError.spec.ts"]));
+        expect(err.stack?.includes("BrowserConfigurationAuthError.spec.ts")).toBe(true);
     });
 
     it("createStorageNotSupportedError()", () => {
@@ -25,31 +25,10 @@ describe("BrowserConfigurationAuthError Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(BrowserConfigurationAuthErrorMessage.storageNotSupportedError.code);
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([BrowserConfigurationAuthErrorMessage.storageNotSupportedError.desc])
-        );
-        expect(err.message).toEqual(
-            expect.arrayContaining([BrowserConfigurationAuthErrorMessage.storageNotSupportedError.desc])
-        );
+        expect(err.errorMessage.includes(BrowserConfigurationAuthErrorMessage.storageNotSupportedError.desc)).toBe(true);
+        expect(err.message.includes(BrowserConfigurationAuthErrorMessage.storageNotSupportedError.desc)).toBe(true);
         expect(err.name).toBe("BrowserConfigurationAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["BrowserConfigurationAuthError.spec.ts"]));
-    });
-
-    it("createInvalidCallbackObjectError()", () => {
-        const err: BrowserConfigurationAuthError = BrowserConfigurationAuthError.createInvalidCallbackObjectError(null);
-
-        expect(err instanceof BrowserConfigurationAuthError).toBe(true);
-        expect(err instanceof AuthError).toBe(true);
-        expect(err instanceof Error).toBe(true);
-        expect(err.errorCode).toBe(BrowserConfigurationAuthErrorMessage.invalidCallbackObject.code);
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([BrowserConfigurationAuthErrorMessage.invalidCallbackObject.desc])
-        );
-        expect(err.message).toEqual(
-            expect.arrayContaining([BrowserConfigurationAuthErrorMessage.invalidCallbackObject.desc])
-        );
-        expect(err.name).toBe("BrowserConfigurationAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["BrowserConfigurationAuthError.spec.ts"]));
+        expect(err.stack?.includes("BrowserConfigurationAuthError.spec.ts")).toBe(true);
     });
 
     it("createRedirectCallbacksNotSetError()", () => {
@@ -59,13 +38,9 @@ describe("BrowserConfigurationAuthError Unit Tests", () => {
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(BrowserConfigurationAuthErrorMessage.noRedirectCallbacksSet.code);
-        expect(err.errorMessage).toEqual(
-            expect.arrayContaining([BrowserConfigurationAuthErrorMessage.noRedirectCallbacksSet.desc])
-        );
-        expect(err.message).toEqual(
-            expect.arrayContaining([BrowserConfigurationAuthErrorMessage.noRedirectCallbacksSet.desc])
-        );
+        expect(err.errorMessage.includes(BrowserConfigurationAuthErrorMessage.noRedirectCallbacksSet.desc)).toBe(true);
+        expect(err.message.includes(BrowserConfigurationAuthErrorMessage.noRedirectCallbacksSet.desc)).toBe(true);
         expect(err.name).toBe("BrowserConfigurationAuthError");
-        expect(err.stack).toEqual(expect.arrayContaining(["BrowserConfigurationAuthError.spec.ts"]));
+        expect(err.stack?.includes("BrowserConfigurationAuthError.spec.ts")).toBe(true);
     });
 });
