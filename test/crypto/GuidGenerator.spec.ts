@@ -1,4 +1,3 @@
-import sinon from "sinon";
 import { RANDOM_TEST_GUID } from "../utils/StringConstants";
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
 import { GuidGenerator } from "../../src/crypto/GuidGenerator";
@@ -11,7 +10,7 @@ describe("GuidGenerator Unit Tests", () => {
     });
 
     afterEach(() => {
-        sinon.restore();
+        jest.restoreAllMocks();
     });
 
     describe("test if a string is GUID", () => {
@@ -33,7 +32,9 @@ describe("GuidGenerator Unit Tests", () => {
         });
 
         it("Creates a new valid guid when browser crypto throws error", () => {
-            sinon.stub(BrowserCrypto.prototype, "getRandomValues").throws("No crypto object available.");
+            jest.spyOn(BrowserCrypto.prototype, "getRandomValues").mockImplementation(() => {
+                throw "No crypto object available.";
+            });
             const guidGen = new GuidGenerator(browserCrypto);
             expect(GuidGenerator.isGuid(guidGen.generateGuid())).toBe(true);
         });
