@@ -146,21 +146,12 @@ export class ClientConfigurationError extends ClientAuthError {
     }
 
     /**
-     * Error thrown when scopes are not an array
-     * @param inputScopes
-     */
-    static createScopesNonArrayError(inputScopes: Array<string>): ClientConfigurationError {
-        return new ClientConfigurationError(ClientConfigurationErrorMessage.nonArrayScopesError.code,
-            `${ClientConfigurationErrorMessage.nonArrayScopesError.desc} Given Scopes: ${inputScopes}`);
-    }
-
-    /**
      * Error thrown when scopes are empty.
      * @param scopesValue
      */
-    static createEmptyScopesArrayError(inputScopes: Array<string>): ClientConfigurationError {
+    static createEmptyScopesArrayError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.emptyScopesError.code,
-            `${ClientConfigurationErrorMessage.emptyScopesError.desc} Given Scopes: ${inputScopes}`);
+            `${ClientConfigurationErrorMessage.emptyScopesError.desc}`);
     }
 
     /**
