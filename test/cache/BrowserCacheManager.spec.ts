@@ -7,7 +7,7 @@ import sinon from "sinon";
 import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_URIS, TEST_STATE_VALUES, DEFAULT_OPENID_CONFIG_RESPONSE } from "../utils/StringConstants";
 import { CacheOptions } from "../../src/config/Configuration";
-import { Constants, PersistentCacheKeys, CommonAuthorizationCodeRequest as AuthorizationCodeRequest, ProtocolUtils, Logger, LogLevel, AuthenticationScheme, AuthorityMetadataEntity, AccountEntity, Authority, StubbedNetworkModule, CacheManager, IdToken, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, CredentialType } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, CommonAuthorizationCodeRequest as AuthorizationCodeRequest, ProtocolUtils, Logger, LogLevel, AuthenticationScheme, AuthorityMetadataEntity, AccountEntity, Authority, StubbedNetworkModule, CacheManager, IdToken, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, CredentialType, ProtocolMode } from "@azure/msal-common";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
@@ -18,7 +18,6 @@ describe("BrowserCacheManager tests", () => {
 
     let cacheConfig: Required<CacheOptions>;
     let logger: Logger;
-    let windowRef: Window & typeof globalThis;
     const browserCrypto = new CryptoOps();
     beforeEach(() => {
         cacheConfig = {
@@ -27,27 +26,21 @@ describe("BrowserCacheManager tests", () => {
             secureCookies: false
         };
         logger = new Logger({
-            loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
-                if (containsPii) {
-                    console.log(`Log level: ${level} Message: ${message}`);
-                }
-            },
+            loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {},
             piiLoggingEnabled: true
         });
-        windowRef = window;
     });
 
     afterEach(() => {
+        jest.restoreAllMocks();
         sinon.restore();
-        window = windowRef;
         window.sessionStorage.clear();
         window.localStorage.clear();
     });
 
     describe("Constructor", () => {
 
-        it(
-            "Falls back to memory storage if cache location string does not match localStorage or sessionStorage",
+        it("Falls back to memory storage if cache location string does not match localStorage or sessionStorage",
             () => {
                 cacheConfig.cacheLocation = "notALocation";
                 const cacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
@@ -60,21 +53,23 @@ describe("BrowserCacheManager tests", () => {
 
         it("Falls back to memory storage if storage is not supported", () => {
             // Test sessionStorage not supported
-            sinon.stub(window, "sessionStorage").value(null);
+            // @ts-ignore
+            jest.spyOn(window, "sessionStorage", "get").mockReturnValue(null);
             const sessionCache = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             sessionCache.setItem("key", "value");
             expect(sessionCache.getItem("key")).toBe("value");
 
             // Test local storage not supported
-            sinon.stub(window, "localStorage").value(null);
+            // @ts-ignore
+            jest.spyOn(window, "localStorage", "get").mockReturnValue(null);
             cacheConfig.cacheLocation = BrowserCacheLocation.LocalStorage;
             const localCache = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
             localCache.setItem("key", "value");
             expect(localCache.getItem("key")).toBe("value");
+            jest.restoreAllMocks();
         });
 
-        it(
-            "Creates a BrowserStorage object that implements the ICacheStorage interface",
+        it("Creates a BrowserStorage object that implements the ICacheStorage interface",
             () => {
                 const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
                 expect(browserStorage.setItem).not.toBeNull();
@@ -120,7 +115,12 @@ describe("BrowserCacheManager tests", () => {
         let msalCacheKey2: string;
         beforeEach(() => {
             browserSessionStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
-            authority = new Authority(TEST_CONFIG.validAuthority, StubbedNetworkModule, browserSessionStorage, {});
+            authority = new Authority(TEST_CONFIG.validAuthority, StubbedNetworkModule, browserSessionStorage, {
+                protocolMode: ProtocolMode.AAD,
+                authorityMetadata: "",
+                cloudDiscoveryMetadata: "",
+                knownAuthorities: []
+            });
             sinon.stub(Authority.prototype, "getPreferredCache").returns("login.microsoftonline.com");
             cacheConfig.cacheLocation = BrowserCacheLocation.LocalStorage;
             browserLocalStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
@@ -340,10 +340,10 @@ describe("BrowserCacheManager tests", () => {
                         browserSessionStorage.setAccessTokenCredential(testAccessTokenWithAuthScheme);
 
                         expect(browserSessionStorage.getAccessTokenCredential(testAccessTokenWithoutAuthScheme.generateCredentialKey())).toEqual(testAccessTokenWithoutAuthScheme);
-                        expect(browserSessionStorage.getAccessTokenCredential(testAccessTokenWithoutAuthScheme.generateCredentialKey()).credentialType).toBe(CredentialType.ACCESS_TOKEN);
+                        expect(browserSessionStorage.getAccessTokenCredential(testAccessTokenWithoutAuthScheme.generateCredentialKey())?.credentialType).toBe(CredentialType.ACCESS_TOKEN);
                         expect(browserSessionStorage.getAccessTokenCredential(testAccessTokenWithoutAuthScheme.generateCredentialKey())).toBeInstanceOf(AccessTokenEntity);
                         expect(browserLocalStorage.getAccessTokenCredential(testAccessTokenWithoutAuthScheme.generateCredentialKey())).toEqual(testAccessTokenWithoutAuthScheme);
-                        expect(browserLocalStorage.getAccessTokenCredential(testAccessTokenWithoutAuthScheme.generateCredentialKey()).credentialType).toBe(CredentialType.ACCESS_TOKEN);
+                        expect(browserLocalStorage.getAccessTokenCredential(testAccessTokenWithoutAuthScheme.generateCredentialKey())?.credentialType).toBe(CredentialType.ACCESS_TOKEN);
                         expect(browserLocalStorage.getAccessTokenCredential(testAccessTokenWithoutAuthScheme.generateCredentialKey())).toBeInstanceOf(AccessTokenEntity);
                     }
                 );
@@ -362,10 +362,10 @@ describe("BrowserCacheManager tests", () => {
                         browserSessionStorage.setAccessTokenCredential(testAccessTokenWithAuthScheme);
 
                         expect(browserSessionStorage.getAccessTokenCredential(testAccessTokenWithAuthScheme.generateCredentialKey())).toEqual(testAccessTokenWithAuthScheme);
-                        expect(browserSessionStorage.getAccessTokenCredential(testAccessTokenWithAuthScheme.generateCredentialKey()).credentialType).toBe(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
+                        expect(browserSessionStorage.getAccessTokenCredential(testAccessTokenWithAuthScheme.generateCredentialKey())?.credentialType).toBe(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
                         expect(browserSessionStorage.getAccessTokenCredential(testAccessTokenWithAuthScheme.generateCredentialKey())).toBeInstanceOf(AccessTokenEntity);
                         expect(browserLocalStorage.getAccessTokenCredential(testAccessTokenWithAuthScheme.generateCredentialKey())).toEqual(testAccessTokenWithAuthScheme);
-                        expect(browserLocalStorage.getAccessTokenCredential(testAccessTokenWithAuthScheme.generateCredentialKey()).credentialType).toBe(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
+                        expect(browserLocalStorage.getAccessTokenCredential(testAccessTokenWithAuthScheme.generateCredentialKey())?.credentialType).toBe(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
                         expect(browserLocalStorage.getAccessTokenCredential(testAccessTokenWithAuthScheme.generateCredentialKey())).toBeInstanceOf(AccessTokenEntity);
                     }
                 )
