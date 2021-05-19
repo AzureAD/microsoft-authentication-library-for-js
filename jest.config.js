@@ -6,7 +6,7 @@
 module.exports = {
     preset: "ts-jest",
     globals: {
-        crypto: require("./test/polyfills/msrcrypto.min")
+        crypto: require("crypto")
     },
     testEnvironmentOptions: {
         url: "https://localhost:8081/index.html"

@@ -5,10 +5,12 @@ import { createHash } from "crypto";
 import { PkceCodes, BaseAuthRequest } from "@azure/msal-common";
 import { TEST_URIS } from "../utils/StringConstants";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
+const msrCrypto = require("../polyfills/msrcrypto.min");
 
 describe("CryptoOps.ts Unit Tests", () => {
     let cryptoObj: CryptoOps;
     let dbStorage = {};
+    let oldWindowCrypto = window.crypto;
     beforeEach(() => {
         jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(async (): Promise<void> => {
             dbStorage = {};
@@ -18,10 +20,19 @@ describe("CryptoOps.ts Unit Tests", () => {
             dbStorage[key] = payload;
         });
         cryptoObj = new CryptoOps();
+
+        oldWindowCrypto = window.crypto;
+        //@ts-ignore
+        window.crypto = {
+            ...oldWindowCrypto,
+            ...msrCrypto
+        }
     });
 
     afterEach(() => {
         jest.restoreAllMocks();
+        //@ts-ignore
+        window.crypto = oldWindowCrypto;
     });
 
     it("createNewGuid()", () => {
