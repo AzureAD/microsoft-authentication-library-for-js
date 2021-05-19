@@ -28,4 +28,13 @@ export class TimeUtils {
         // If current time + offset is greater than token expiration time, then token is expired.
         return (offsetCurrentTimeSec > expirationSec);
     }
+
+    /**
+     * Waits for t number of milliseconds
+     * @param t number
+     * @param value T
+     */
+    static delay<T>(t: number, value?: T): Promise<T | void> {
+        return new Promise((resolve) => setTimeout(() => resolve(value), t));
+    }
 }
