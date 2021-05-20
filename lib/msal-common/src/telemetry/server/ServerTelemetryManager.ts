@@ -3,12 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { SERVER_TELEM_CONSTANTS, Separators, Constants } from "../../utils/Constants";
+import { SERVER_TELEM_CONSTANTS, Separators, Constants, RegionDiscoverySources, RegionDiscoveryOutcomes } from "../../utils/Constants";
 import { CacheManager } from "../../cache/CacheManager";
 import { AuthError } from "../../error/AuthError";
 import { ServerTelemetryRequest } from "./ServerTelemetryRequest";
 import { ServerTelemetryEntity } from "../../cache/entities/ServerTelemetryEntity";
 import { StringUtils } from "../../utils/StringUtils";
+import { RegionDiscoveryMetadata } from "../../authority/RegionDiscoveryMetadata";
 
 export class ServerTelemetryManager {
     private cacheManager: CacheManager;
@@ -18,6 +19,9 @@ export class ServerTelemetryManager {
     private telemetryCacheKey: string;
     private wrapperSKU: String;
     private wrapperVer: String;
+    private regionUsed: string | undefined;
+    private regionSource: RegionDiscoverySources | undefined;
+    private regionOutcome: RegionDiscoveryOutcomes | undefined;
 
     constructor(telemetryRequest: ServerTelemetryRequest, cacheManager: CacheManager) {
         this.cacheManager = cacheManager;
@@ -37,8 +41,10 @@ export class ServerTelemetryManager {
         const forceRefreshInt = this.forceRefresh ? 1 : 0;
         const request = `${this.apiId}${SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR}${forceRefreshInt}`;
         const platformFields = [this.wrapperSKU, this.wrapperVer].join(SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR);
+        const regionDiscoveryFields = this.getRegionDiscoveryFields();
+        const requestWithRegionDiscoveryFields = [request, regionDiscoveryFields].join(SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR);
 
-        return [SERVER_TELEM_CONSTANTS.SCHEMA_VERSION, request, platformFields].join(SERVER_TELEM_CONSTANTS.CATEGORY_SEPARATOR);
+        return [SERVER_TELEM_CONSTANTS.SCHEMA_VERSION, requestWithRegionDiscoveryFields, platformFields].join(SERVER_TELEM_CONSTANTS.CATEGORY_SEPARATOR);
     }
 
     /**
@@ -158,4 +164,72 @@ export class ServerTelemetryManager {
 
         return maxErrors;
     }
+
+    /**
+     * Get the region discovery fields
+     * 
+     * @returns string
+     */
+    getRegionDiscoveryFields(): string {
+        const regionDiscoveryFields: string[] = [];
+
+        regionDiscoveryFields.push(this.regionUsed ? this.regionUsed : "");
+        regionDiscoveryFields.push(this.getRegionSourceValue(this.regionSource));
+        regionDiscoveryFields.push(this.getRegionOutcomeValue(this.regionOutcome));
+
+        return regionDiscoveryFields.join(",");
+    }
+
+    /**
+     * Get the header value for the region source
+     * @param regionSource
+     * @returns string
+     */
+    getRegionSourceValue(regionSource: RegionDiscoverySources | undefined): string {
+        if (!regionSource) return "";
+
+        switch (regionSource) {
+            case RegionDiscoverySources.FAILED_AUTO_DETECTION:
+                return "1";
+            case RegionDiscoverySources.INTERNAL_CACHE:
+                return "2";
+            case RegionDiscoverySources.ENVIRONMENT_VARIABLE:
+                return "3";
+            case RegionDiscoverySources.IMDS:
+                return "4";
+            default:
+                return "0";
+        }
+    }
+
+    getRegionOutcomeValue(regionOutcome: RegionDiscoveryOutcomes | undefined): string {
+        if (!regionOutcome) return "";
+
+        switch (regionOutcome) {
+            case RegionDiscoveryOutcomes.CONFIGURED_MATCHES_DETECTED:
+                return "1";
+            case RegionDiscoveryOutcomes.CONFIGURED_NO_AUTO_DETECTION:
+                return "2";
+            case RegionDiscoveryOutcomes.CONFIGURED_NOT_DETECTED:
+                return "3";
+            case RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_SUCCESSFUL:
+                return "4";
+            case RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_FAILED:
+                return "5";
+            default:
+                return "0";
+        }
+    }  
+
+    /**
+     * Update the region discovery metadata
+     * 
+     * @param regionDiscoveryMetadata
+     * @returns void
+     */
+    updateRegionDiscoveryMetadata(regionDiscoveryMetadata: RegionDiscoveryMetadata): void {
+        this.regionUsed = regionDiscoveryMetadata.region_used;
+        this.regionSource = regionDiscoveryMetadata.region_source;
+        this.regionOutcome = regionDiscoveryMetadata.region_outcome;
+    } 
 }

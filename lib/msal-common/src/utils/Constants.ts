@@ -349,3 +349,24 @@ export enum  ResponseCodes {
     httpSuccess = 200,
     httpBadRequest = 400
 }
+
+/**
+ * Region Discovery Sources
+ */
+export enum RegionDiscoverySources {
+    FAILED_AUTO_DETECTION = "FAILED AUTO DETECTION",
+    INTERNAL_CACHE = "INTERNAL CACHE",
+    ENVIRONMENT_VARIABLE = "ENVIRONMENT VARIABLE",
+    IMDS = "IMDS",
+}
+
+/**
+ * Region Discovery Outcomes
+ */
+export enum RegionDiscoveryOutcomes {
+    CONFIGURED_MATCHES_DETECTED = "Configured by developer and matches auto-detected",
+    CONFIGURED_NO_AUTO_DETECTION = "Configured by developer, cannot be auto-detected",
+    CONFIGURED_NOT_DETECTED = "Configured by developer, does not match auto-detected",
+    AUTO_DETECTION_REQUESTED_SUCCESSFUL = "Auto-detect requested and auto-detection worked",
+    AUTO_DETECTION_REQUESTED_FAILED = "Auto-detect requested and failed, fallback to global"
+}
