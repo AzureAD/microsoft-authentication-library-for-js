@@ -3,9 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import chai from "chai";
 import sinon from "sinon";
-import chaiAsPromised from "chai-as-promised";
 import { PopupUtils } from "../../src/utils/PopupUtils";
 import { AccountInfo, AuthenticationScheme, Logger, LogLevel, ResponseMode } from "@azure/msal-common";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
@@ -13,8 +11,6 @@ import { TEST_CONFIG } from "./StringConstants";
 import { BrowserCacheLocation } from "../../src";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
-chai.use(chaiAsPromised);
-const expect = chai.expect;
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -45,14 +41,14 @@ describe("PopupUtils Tests", () => {
             const windowOpenSpy = sinon.stub(window, "open");
             PopupUtils.openSizedPopup("http://localhost/", "popup");
 
-            expect(windowOpenSpy.calledWith("http://localhost/", "popup")).to.be.true;
+            expect(windowOpenSpy.calledWith("http://localhost/", "popup")).toBe(true);
         });
 
         it("opens a popup with about:blank", () => {
             const windowOpenSpy = sinon.stub(window, "open");
             PopupUtils.openSizedPopup("about:blank", "popup");
 
-            expect(windowOpenSpy.calledWith("about:blank", "popup")).to.be.true;
+            expect(windowOpenSpy.calledWith("about:blank", "popup")).toBe(true);
         });
     });
 
@@ -62,23 +58,25 @@ describe("PopupUtils Tests", () => {
             const popupUtils = new PopupUtils(browserStorage, testLogger);
             const popupWindow: Window = {
                 ...window,
+                //@ts-ignore
                 location: {
                     assign: () => {}
                 },
                 focus: () => {},
                 close: () => {
-                    expect(browserStorage.getTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY)).to.be.null;
+                    expect(browserStorage.getTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY)).toBe(null);
                     done();
                 }
             }
             popupUtils.openPopup("http://localhost", "name", popupWindow);
-            popupUtils.unloadWindow(null);
+            popupUtils.unloadWindow(new Event("test"));
         });
     });
 
     describe("monitorPopupForSameOrigin", () => {
         it("throws if popup is closed", (done) => {
             const popup: Window = {
+                //@ts-ignore
                 location: {
                     href: "about:blank",
                     hash: ""
@@ -89,17 +87,19 @@ describe("PopupUtils Tests", () => {
             const popupUtils = new PopupUtils(browserStorage, testLogger);
             popupUtils.monitorPopupForSameOrigin(popup)
                 .catch((error) => {
-                    expect(error.errorCode).to.equal("user_cancelled");
+                    expect(error.errorCode).toEqual("user_cancelled");
                     done();
                 });
 
             setTimeout(() => {
+                //@ts-ignore
                 popup.closed = true;
             }, 50);
         });
 
         it("resolves when popup is same origin", (done) => {
             const popup: Window = {
+                //@ts-ignore
                 location: {
                     href: "about:blank",
                     hash: ""
@@ -131,31 +131,37 @@ describe("PopupUtils Tests", () => {
                 nonce: "nonce"
             });
 
-            expect(popupName).to.equal("msal.client-id.scope1-scope2.https://login.microsoftonline.com/common.correlation-id");
+            expect(popupName).toEqual("msal.client-id.scope1-scope2.https://login.microsoftonline.com/common.correlation-id");
         });
 
-        it("generateLogoutPopupName generates expected name when account passed in", () => {
-            const testAccount: AccountInfo = {
-                homeAccountId: "homeAccountId",
-                localAccountId: "localAccountId",
-                environment: "environment",
-                tenantId: "tenant",
-                username: "user"
-            };
-            const popupName = PopupUtils.generateLogoutPopupName("client-id", {
-                account: testAccount,
-                correlationId: "correlation-id"
-            });
+        it(
+            "generateLogoutPopupName generates expected name when account passed in",
+            () => {
+                const testAccount: AccountInfo = {
+                    homeAccountId: "homeAccountId",
+                    localAccountId: "localAccountId",
+                    environment: "environment",
+                    tenantId: "tenant",
+                    username: "user"
+                };
+                const popupName = PopupUtils.generateLogoutPopupName("client-id", {
+                    account: testAccount,
+                    correlationId: "correlation-id"
+                });
 
-            expect(popupName).to.equal("msal.client-id.homeAccountId.correlation-id");
-        });
+                expect(popupName).toEqual("msal.client-id.homeAccountId.correlation-id");
+            }
+        );
 
-        it("generateLogoutPopupName generates expected name when account not passed in", () => {
-            const popupName = PopupUtils.generateLogoutPopupName("client-id", {
-                correlationId: "correlation-id"
-            });
+        it(
+            "generateLogoutPopupName generates expected name when account not passed in",
+            () => {
+                const popupName = PopupUtils.generateLogoutPopupName("client-id", {
+                    correlationId: "correlation-id"
+                });
 
-            expect(popupName).to.equal("msal.client-id.undefined.correlation-id");
-        });
+                expect(popupName).toEqual("msal.client-id.undefined.correlation-id");
+            }
+        );
     });
 });
