@@ -6,7 +6,8 @@
 import { INetworkModule } from "../network/INetworkModule";
 import { NetworkResponse } from "../network/NetworkManager";
 import { IMDSBadResponse } from "../response/IMDSBadResponse";
-import { Constants, ResponseCodes } from "../utils/Constants";
+import { Constants, RegionDiscoverySources, ResponseCodes } from "../utils/Constants";
+import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
 
 export class RegionDiscovery {
     // Network interface to make requests with.
@@ -23,7 +24,7 @@ export class RegionDiscovery {
      * 
      * @returns Promise<string | null>
      */
-    public async detectRegion(environmentRegion: string | undefined): Promise<string | null> {
+    public async detectRegion(environmentRegion: string | undefined, regionDiscoveryMetadata: RegionDiscoveryMetadata): Promise<string | null> {
         // Initialize auto detected region with the region from the envrionment 
         let autodetectedRegionName = environmentRegion;
 
@@ -38,6 +39,7 @@ export class RegionDiscovery {
                 if (response.status === ResponseCodes.httpBadRequest) {
                     const latestIMDSVersion = await this.getCurrentVersion();
                     if (!latestIMDSVersion) {
+                        regionDiscoveryMetadata.region_source = RegionDiscoverySources.FAILED_AUTO_DETECTION;
                         return null;
                     }
 
@@ -45,11 +47,18 @@ export class RegionDiscovery {
                     if (response.status === ResponseCodes.httpSuccess) {
                         autodetectedRegionName = response.body;
                     }
-                } 
+                }
+                
+                if (autodetectedRegionName) regionDiscoveryMetadata.region_source = RegionDiscoverySources.IMDS;
             } catch(e) {
+                regionDiscoveryMetadata.region_source = RegionDiscoverySources.FAILED_AUTO_DETECTION;
                 return null;
             } 
+        } else {
+            regionDiscoveryMetadata.region_source = RegionDiscoverySources.ENVIRONMENT_VARIABLE;
         }
+
+        if (!autodetectedRegionName) regionDiscoveryMetadata.region_source = RegionDiscoverySources.FAILED_AUTO_DETECTION;
 
         return autodetectedRegionName || null;
     }
