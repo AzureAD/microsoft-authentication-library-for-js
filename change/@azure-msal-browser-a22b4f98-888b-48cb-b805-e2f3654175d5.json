@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Remove unused error #3657",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "none"
+}
