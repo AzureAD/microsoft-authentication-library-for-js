@@ -1,62 +1,49 @@
-import React, { useState } from "react";
-import { MsalProvider, AuthenticatedTemplate, UnauthenticatedTemplate, useMsal, useAccount } from "@azure/msal-react";
-import { PublicClientApplication } from "@azure/msal-browser";
-import { msalConfig, loginRequest } from "./authConfig";
-import { PageLayout } from "./ui";
-import { ProfileData, callMsGraph } from "./graph";
-import Button from "react-bootstrap/Button";
-import "./styles/App.css";
+import { Switch, Route, useHistory } from "react-router-dom";
+// Material-UI imports
+import Grid from "@material-ui/core/Grid";
 
-const ProfileContent = () => {
-  const { instance, accounts } = useMsal();
-  const account = useAccount(accounts[0] || {});
-  const [graphData, setGraphData] = useState(null);
+// MSAL imports
+import { MsalProvider } from "@azure/msal-react";
+import { IPublicClientApplication } from "@azure/msal-browser";
+import { CustomNavigationClient } from "./utils/NavigationClient";
 
-  function RequestProfileData() {
-      if (account) {
-        instance.acquireTokenSilent({
-            ...loginRequest,
-            account: account
-        }).then((response) => {
-            callMsGraph(response.accessToken).then(response => setGraphData(response));
-        });
-    };
-  }
+// Sample app imports
+import { PageLayout } from "./ui-components/PageLayout";
+import { Home } from "./pages/Home";
+import { Profile } from "./pages/Profile";
 
-  return (
-      <>
-          <h5 className="card-title">Welcome {account ? account.name : "unknown"}</h5>
-          {graphData ? 
-              <ProfileData graphData={graphData} />
-              :
-              <Button variant="secondary" onClick={RequestProfileData}>Request Profile Information</Button>
-          }
-      </>
-  );
+type AppProps = {
+    pca: IPublicClientApplication
 };
 
-const MainContent = () => {    
-  return (
-      <div className="App">
-          <AuthenticatedTemplate>
-              <ProfileContent />
-          </AuthenticatedTemplate>
-
-          <UnauthenticatedTemplate>
-              <h5 className="card-title">Please sign-in to see your profile information.</h5>
-          </UnauthenticatedTemplate>
-      </div>
-  );
-};
-
-export default function App() {
-  const msalInstance = new PublicClientApplication(msalConfig);
-
-  return (
-      <MsalProvider instance={msalInstance}>
-          <PageLayout>
-              <MainContent />
-          </PageLayout>
+function App({ pca }: AppProps) {
+    // The next 3 lines are optional. This is how you configure MSAL to take advantage of the router's navigate functions when MSAL redirects between pages in your app
+    const history = useHistory();
+    const navigationClient = new CustomNavigationClient(history);
+    pca.setNavigationClient(navigationClient);
+  
+    return (
+      <MsalProvider instance={pca}>
+        <PageLayout>
+          <Grid container justify="center">
+            <Pages />
+          </Grid>
+        </PageLayout>
       </MsalProvider>
-  );
+    );
 }
+  
+function Pages() {
+    return (
+        <Switch>
+            <Route path="/profile">
+                <Profile />
+            </Route>
+            <Route path="/">
+                <Home />
+            </Route>
+        </Switch>
+    )
+}
+
+export default App;
