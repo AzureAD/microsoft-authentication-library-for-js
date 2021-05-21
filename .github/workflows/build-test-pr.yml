@@ -2,12 +2,9 @@
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
 name: Run CI
+# Runs CI on Pull Requests for libraries affected by PR
 
 on:
-  push:
-    branches:
-      - 'dev'
-      - 'master'
   pull_request:
     paths:
       - 'lib/**/*'
