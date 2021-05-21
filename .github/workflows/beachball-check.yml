@@ -24,7 +24,7 @@ jobs:
         # Will return true if any file is not markdown and any file is in /lib
         filters: |
           containsTrackedChanges: 
-            - '!**.md'
+            - '**/**.!(md)'
           lib:
             - 'lib/**/*'
     - uses: actions/checkout@v2
