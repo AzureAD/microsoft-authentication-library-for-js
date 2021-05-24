@@ -6,6 +6,7 @@
 import { CredentialEntity } from "./CredentialEntity";
 import { AuthenticationScheme, CredentialType } from "../../utils/Constants";
 import { StringUtils } from "../../utils/StringUtils";
+import { ClientAuthError } from "../../error/ClientAuthError";
 
 /**
  * REFRESH_TOKEN Cache
@@ -29,7 +30,7 @@ import { StringUtils } from "../../utils/StringUtils";
 export class RefreshTokenEntity extends CredentialEntity {
     familyId?: string;
     tokenType?: string;
-    keyId?: string; // for POP and SSH tokenTypes
+    kid?: string; // for Bound Refresh Tokens
 
     /**
      * Create RefreshTokenEntity
@@ -45,7 +46,7 @@ export class RefreshTokenEntity extends CredentialEntity {
         clientId: string,
         familyId?: string,
         oboAssertion?: string,
-        keyId?: string,
+        kid?: string,
         tokenType?: string
     ): RefreshTokenEntity {
         const rtEntity = new RefreshTokenEntity();
@@ -63,13 +64,14 @@ export class RefreshTokenEntity extends CredentialEntity {
 
         rtEntity.tokenType = StringUtils.isEmpty(tokenType) ? AuthenticationScheme.BEARER : tokenType;
 
-        // Create Access Token With AuthScheme instead of regular access token
-        if (rtEntity.tokenType === AuthenticationScheme.BOUND_RT) {
+        // Create Refresh Token With AuthScheme instead of bearer refresh token
+        if (rtEntity.tokenType === AuthenticationScheme.BOUND) {
+            rtEntity.credentialType = CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME;
             // Make sure keyId is present and add it to credential
-            if (!keyId) {
-                throw Error("No STK for bound RT");
+            if (!kid) {
+                throw ClientAuthError.createNoStkKidInServerResponseError();
             }
-            rtEntity.keyId = keyId;
+            rtEntity.kid = kid;
         }
 
         return rtEntity;
@@ -91,7 +93,7 @@ export class RefreshTokenEntity extends CredentialEntity {
             entity.hasOwnProperty("credentialType") &&
             entity.hasOwnProperty("clientId") &&
             entity.hasOwnProperty("secret") &&
-            entity["credentialType"] === CredentialType.REFRESH_TOKEN
+            entity["credentialType"] === CredentialType.REFRESH_TOKEN || entity["credentialType"] === CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME
         );
     }
 }

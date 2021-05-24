@@ -244,6 +244,7 @@ export enum CredentialType {
     ACCESS_TOKEN = "AccessToken",
     ACCESS_TOKEN_WITH_AUTH_SCHEME = "AccessToken_With_AuthScheme",
     REFRESH_TOKEN = "RefreshToken",
+    REFRESH_TOKEN_WITH_AUTH_SCHEME = "RefreshToken_With_AuthScheme"
 }
 
 /**
@@ -314,7 +315,7 @@ export const SERVER_TELEM_CONSTANTS = {
 export enum AuthenticationScheme {
     POP = "pop",
     BEARER = "Bearer",
-    BOUND_RT = "BoundRT"
+    BOUND = "Bound"
 }
 
 /**

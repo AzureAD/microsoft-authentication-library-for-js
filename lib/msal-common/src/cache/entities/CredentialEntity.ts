@@ -110,6 +110,10 @@ export class CredentialEntity {
         } else if (key.indexOf(CredentialType.ID_TOKEN.toLowerCase()) !== -1) {
             return CredentialType.ID_TOKEN;
         } else if (key.indexOf(CredentialType.REFRESH_TOKEN.toLowerCase()) !== -1) {
+            // Perform second search to differentiate between "RefreshToken" and "RefreshToken_With_AuthScheme" credential types
+            if (key.indexOf(CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME.toLowerCase()) !== -1) {
+                return CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME;
+            }
             return CredentialType.REFRESH_TOKEN;
         }
 

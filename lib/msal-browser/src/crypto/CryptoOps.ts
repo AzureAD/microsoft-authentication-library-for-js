@@ -268,7 +268,7 @@ export class CryptoOps implements ICrypto {
             
             return {
                 ...response,
-                stkJwk: kid
+                kid: kid
             };
         } else {
             throw BrowserAuthError.createMissingStkKidError();

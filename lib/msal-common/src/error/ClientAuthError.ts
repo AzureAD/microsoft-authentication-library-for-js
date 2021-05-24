@@ -181,6 +181,10 @@ export const ClientAuthErrorMessage = {
     accessTokenEntityNullError: {
         code: "access_token_entity_null",
         desc: "Access token entity is null, please check logs and cache to ensure a valid access token is present."
+    },
+    noStkKidInServerResponseError: {
+        code: "no_kid_in_server_response",
+        desc: "Could not create RefreshToken_With_AuthScheme credential because the kid was not added to the ServerAuthorizationTokenResponse."
     }
 };
 
@@ -503,5 +507,11 @@ export class ClientAuthError extends AuthError {
      */
     static createNoAuthCodeInServerResponseError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.noAuthorizationCodeFromServer.code, ClientAuthErrorMessage.noAuthorizationCodeFromServer.desc);
+    }
+    /**
+     * Throws error when the stk jwk hash that serves as keyId for STK and Session Key is not found in the ServerAuthorizationTokenResponse parameter
+     */
+    static createNoStkKidInServerResponseError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.noStkKidInServerResponseError.code, ClientAuthErrorMessage.noStkKidInServerResponseError.desc);
     }
 }

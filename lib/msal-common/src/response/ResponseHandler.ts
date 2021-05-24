@@ -280,10 +280,10 @@ export class ResponseHandler {
         // refreshToken
         let cachedRefreshToken: RefreshTokenEntity | null = null;
         if (!StringUtils.isEmpty(serverTokenResponse.refresh_token)) {
-            const stkJwk = serverTokenResponse.stkJwk;
+            const stkJwk = serverTokenResponse.kid;
 
             // Determine if refresh token is bound based on STK JWK presence in server auth response
-            const rtTokenType = (stkJwk) ? AuthenticationScheme.BOUND_RT : AuthenticationScheme.BEARER;
+            const rtTokenType = (stkJwk) ? AuthenticationScheme.BOUND : AuthenticationScheme.BEARER;
 
             cachedRefreshToken = RefreshTokenEntity.createRefreshTokenEntity(
                 this.homeAccountIdentifier,
