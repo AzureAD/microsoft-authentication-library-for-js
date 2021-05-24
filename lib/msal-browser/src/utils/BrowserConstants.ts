@@ -189,3 +189,9 @@ export const KEY_DERIVATION_SIZES = {
     PRF_OUTPUT_LENGTH: 256, // h
     COUNTER_LENGTH: 256 // r
 };
+
+// IndexedDB table names for key storage
+export const DB_TABLE_NAMES = {
+    ASYMMETRIC_KEYS: "asymmetricKeys",
+    SYMMETRIC_KEYS: "symmetricKeys"
+};

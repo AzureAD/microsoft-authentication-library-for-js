@@ -41,6 +41,7 @@ export type ServerAuthorizationTokenResponse = {
     // Bound Refresh Token Response in case of success
     response_jwe?: string;
     session_key_jwe?: string;
+    stkJwk?: string;
     // Error
     error?: string;
     error_description?: string;

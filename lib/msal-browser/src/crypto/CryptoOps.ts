@@ -11,7 +11,7 @@ import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
 import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { BROWSER_CRYPTO, CryptoKeyTypes, KEY_FORMAT_JWK, KEY_USAGES, KEY_DERIVATION_SIZES, KEY_DERIVATION_LABELS } from "../utils/BrowserConstants";
+import { BROWSER_CRYPTO, CryptoKeyTypes, KEY_FORMAT_JWK, KEY_USAGES, KEY_DERIVATION_SIZES, KEY_DERIVATION_LABELS, DB_TABLE_NAMES } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import {JsonWebEncryption} from "./JsonWebEncryption";
 import { KeyDerivation } from "./KeyDerivation";
@@ -50,8 +50,8 @@ export class CryptoOps implements ICrypto {
 
     private static DB_VERSION = 1;
     private static DB_NAME = "msal.db";
-    private static TABLE_NAME =`${CryptoOps.DB_NAME}.keys`;
-    private cache: DatabaseStorage<CachedKeyPair>;
+    private static TABLE_NAMES = [DB_TABLE_NAMES.ASYMMETRIC_KEYS, DB_TABLE_NAMES.SYMMETRIC_KEYS];
+    private cache: DatabaseStorage;
 
     constructor() {
         // Browser crypto needs to be validated first before any other classes can be set.
@@ -60,7 +60,7 @@ export class CryptoOps implements ICrypto {
         this.b64Decode = new Base64Decode();
         this.guidGenerator = new GuidGenerator(this.browserCrypto);
         this.pkceGenerator = new PkceGenerator(this.browserCrypto);
-        this.cache = new DatabaseStorage(CryptoOps.DB_NAME, CryptoOps.TABLE_NAME, CryptoOps.DB_VERSION);
+        this.cache = new DatabaseStorage(CryptoOps.DB_NAME, CryptoOps.TABLE_NAMES, CryptoOps.DB_VERSION);
 
         this._atBindingKeyOptions = {
             keyGenAlgorithmOptions: {
@@ -158,12 +158,16 @@ export class CryptoOps implements ICrypto {
         const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importJwk(keyOptions, privateKeyJwk, false, keyOptions.privateKeyUsage);
 
         // Store Keypair data in keystore
-        this.cache.put(publicJwkHash, {
-            privateKey: unextractablePrivateKey,
-            publicKey: keyPair.publicKey,
-            requestMethod: request.resourceRequestMethod,
-            requestUri: request.resourceRequestUri
-        });
+        this.cache.put<CachedKeyPair>(
+            DB_TABLE_NAMES.ASYMMETRIC_KEYS,
+            publicJwkHash, 
+            {
+                privateKey: unextractablePrivateKey,
+                publicKey: keyPair.publicKey,
+                requestMethod: request.resourceRequestMethod,
+                requestUri: request.resourceRequestUri
+            }
+        );
 
         return publicJwkHash;
     }
@@ -175,7 +179,7 @@ export class CryptoOps implements ICrypto {
      */
     async signJwt(payload: SignedHttpRequest, kid: string): Promise<string> {
         // Get keypair from cache
-        const cachedKeyPair: CachedKeyPair = await this.cache.get(kid);
+        const cachedKeyPair: CachedKeyPair = await this.cache.get<CachedKeyPair>(DB_TABLE_NAMES.ASYMMETRIC_KEYS, kid);
 
         // Get public key as JWK
         const publicKeyJwk = await this.browserCrypto.exportJwk(cachedKeyPair.publicKey);
@@ -212,7 +216,7 @@ export class CryptoOps implements ICrypto {
      * @returns Public Key JWK string
      */
     async getAsymmetricPublicKey(keyThumbprint: string): Promise<string> {
-        const cachedKeyPair: CachedKeyPair = await this.cache.get(keyThumbprint);
+        const cachedKeyPair: CachedKeyPair = await this.cache.get<CachedKeyPair>(DB_TABLE_NAMES.ASYMMETRIC_KEYS, keyThumbprint);
         // Get public key as JWK
         const publicKeyJwk = await this.browserCrypto.exportJwk(cachedKeyPair.publicKey);
         return BrowserCrypto.getJwkString(publicKeyJwk);
@@ -231,16 +235,19 @@ export class CryptoOps implements ICrypto {
 
         if (kid) {
             // Retrieve Session Transport KeyPair from Key Store
-            const sessionTransportKeypair: CachedKeyPair = await this.cache.get(kid);
+            const sessionTransportKeypair: CachedKeyPair = await this.cache.get<CachedKeyPair>(DB_TABLE_NAMES.ASYMMETRIC_KEYS, kid);
+
             // Deserialize session_key_jwe
             const sessionKeyJwe = new JsonWebEncryption(boundServerTokenResponse.session_key_jwe);
+            
             // Deserialize response_jwe
             const responseJwe = new JsonWebEncryption(boundServerTokenResponse.response_jwe);
             
+            // Unwrap content encryption key
             const derivationKeyUsage = KEY_USAGES.RT_BINDING.DERIVATION_KEY as KeyUsage[];
             const contentEncryptionKey = await sessionKeyJwe.unwrap(sessionTransportKeypair.privateKey, derivationKeyUsage);
 
-            // Derive the session key from the content encryption key
+            // Derive session key using content encryption key
             const kdf = new KeyDerivation(
                 contentEncryptionKey,
                 KEY_DERIVATION_SIZES.DERIVED_KEY_LENGTH,
@@ -251,10 +258,17 @@ export class CryptoOps implements ICrypto {
             const derivedKeyData = new Uint8Array(await kdf.computeKDFInCounterMode(responseJwe.protectedHeader.ctx, KEY_DERIVATION_LABELS.DECRYPTION));
             const sessionKeyUsages = KEY_USAGES.RT_BINDING.SESSION_KEY as KeyUsage[];
             const sessionKeyAlgorithm: AesKeyAlgorithm = { name: "AES-GCM", length: 256 };
-            const sessionKey = await window.crypto.subtle.importKey("raw", derivedKeyData, sessionKeyAlgorithm, true, sessionKeyUsages);
+            const sessionKey = await window.crypto.subtle.importKey("raw", derivedKeyData, sessionKeyAlgorithm, false, sessionKeyUsages);
+
+            // Decrypt response using derived key
             const responseStr = await responseJwe.decrypt(sessionKey);
+
             const response: ServerAuthorizationTokenResponse = JSON.parse(responseStr);
-            return response;
+            await this.cache.put<CryptoKey>(DB_TABLE_NAMES.SYMMETRIC_KEYS, kid, sessionKey);
+            return {
+                ...response,
+                stkJwk: kid
+            };
         } else {
             throw BrowserAuthError.createMissingStkKidError();
         }
