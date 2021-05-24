@@ -4,7 +4,8 @@
  */
 
 import { CredentialEntity } from "./CredentialEntity";
-import { CredentialType } from "../../utils/Constants";
+import { AuthenticationScheme, CredentialType } from "../../utils/Constants";
+import { StringUtils } from "../../utils/StringUtils";
 
 /**
  * REFRESH_TOKEN Cache
@@ -27,6 +28,8 @@ import { CredentialType } from "../../utils/Constants";
  */
 export class RefreshTokenEntity extends CredentialEntity {
     familyId?: string;
+    tokenType?: string;
+    keyId?: string; // for POP and SSH tokenTypes
 
     /**
      * Create RefreshTokenEntity
@@ -41,7 +44,9 @@ export class RefreshTokenEntity extends CredentialEntity {
         refreshToken: string,
         clientId: string,
         familyId?: string,
-        oboAssertion?: string
+        oboAssertion?: string,
+        keyId?: string,
+        tokenType?: string
     ): RefreshTokenEntity {
         const rtEntity = new RefreshTokenEntity();
 
@@ -52,8 +57,20 @@ export class RefreshTokenEntity extends CredentialEntity {
         rtEntity.secret = refreshToken;
         rtEntity.oboAssertion = oboAssertion;
 
-        if (familyId)
+        if (familyId) {
             rtEntity.familyId = familyId;
+        }
+
+        rtEntity.tokenType = StringUtils.isEmpty(tokenType) ? AuthenticationScheme.BEARER : tokenType;
+
+        // Create Access Token With AuthScheme instead of regular access token
+        if (rtEntity.tokenType === AuthenticationScheme.BOUND_RT) {
+            // Make sure keyId is present and add it to credential
+            if (!keyId) {
+                throw Error("No STK for bound RT");
+            }
+            rtEntity.keyId = keyId;
+        }
 
         return rtEntity;
     }

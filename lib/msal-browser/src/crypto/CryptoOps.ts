@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { BaseAuthRequest, ICrypto, PkceCodes, SignedHttpRequest, ServerAuthorizationTokenResponse, BoundServerAuthorizationTokenResponse } from "@azure/msal-common";
+import { BaseAuthRequest, ICrypto, PkceCodes, SignedHttpRequest, ServerAuthorizationTokenResponse, BoundServerAuthorizationTokenResponse, AuthenticationScheme } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
@@ -265,6 +265,7 @@ export class CryptoOps implements ICrypto {
 
             const response: ServerAuthorizationTokenResponse = JSON.parse(responseStr);
             await this.cache.put<CryptoKey>(DB_TABLE_NAMES.SYMMETRIC_KEYS, kid, sessionKey);
+            
             return {
                 ...response,
                 stkJwk: kid

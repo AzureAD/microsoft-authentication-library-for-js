@@ -313,7 +313,8 @@ export const SERVER_TELEM_CONSTANTS = {
  */
 export enum AuthenticationScheme {
     POP = "pop",
-    BEARER = "Bearer"
+    BEARER = "Bearer",
+    BOUND_RT = "BoundRT"
 }
 
 /**
