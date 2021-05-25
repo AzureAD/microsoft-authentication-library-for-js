@@ -32,7 +32,7 @@ import { ClientConfigurationError } from "../../src/error/ClientConfigurationErr
 import { AuthToken } from "../../src/account/AuthToken";
 import { SilentFlowClient } from "../../src/client/SilentFlowClient";
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
-import { CcsCredentialType } from "../../src";
+import { CcsCredentialType } from "../../src/account/CcsCredential";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;

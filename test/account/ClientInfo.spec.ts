@@ -1,7 +1,7 @@
 import { buildClientInfo } from "../../src/account/ClientInfo";
 import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_POP_VALUES } from "../test_kit/StringConstants";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
-import { ClientAuthError, ClientAuthErrorMessage } from "../../src";
+import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 
 describe("ClientInfo.ts Class Unit Tests", () => {
 

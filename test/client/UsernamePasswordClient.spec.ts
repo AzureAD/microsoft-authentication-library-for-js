@@ -20,7 +20,8 @@ import { Authority } from "../../src/authority/Authority";
 import { UsernamePasswordClient } from "../../src/client/UsernamePasswordClient";
 import { CommonUsernamePasswordRequest } from "../../src/request/CommonUsernamePasswordRequest";
 import { AuthToken } from "../../src/account/AuthToken";
-import { AuthenticationResult, ClientConfiguration } from "../../src";
+import { ClientConfiguration } from "../../src/config/ClientConfiguration";
+import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 
 describe("Username Password unit tests", () => {
     let config: ClientConfiguration;
@@ -28,6 +29,9 @@ describe("Username Password unit tests", () => {
     beforeEach(async () => {
         sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
         config = await ClientTestUtils.createTestClientConfiguration();
+        if (config.systemOptions) {
+            config.systemOptions.preventCorsPreflight = true;
+        }
         // Set up required objects and mocked return values
         const decodedLibState = `{ "id": "testid", "ts": 1592846482 }`;
         config.cryptoInterface!.base64Decode = (input: string): string => {
