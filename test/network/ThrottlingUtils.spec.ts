@@ -3,16 +3,15 @@
  * Licensed under the MIT License.
  */
 
-import { expect } from "chai";
 import sinon from "sinon";
 import { ThrottlingUtils } from "../../src/network/ThrottlingUtils";
 import { RequestThumbprint } from "../../src/network/RequestThumbprint";
 import { ThrottlingEntity } from "../../src/cache/entities/ThrottlingEntity";
 import { NetworkResponse } from "../../src/network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
-import { MockStorageClass }  from "../client/ClientTestUtils";
+import { MockStorageClass, mockCrypto }  from "../client/ClientTestUtils";
 import { ServerError } from "../../src";
-import { THUMBPRINT, THROTTLING_ENTITY, TEST_CONFIG } from "../utils/StringConstants";
+import { THUMBPRINT, THROTTLING_ENTITY, TEST_CONFIG } from "../test_kit/StringConstants";
 
 describe("ThrottlingUtils", () => {
     describe("generateThrottlingStorageKey", () => {
@@ -21,7 +20,7 @@ describe("ThrottlingUtils", () => {
             const jsonString = JSON.stringify(thumbprint);
             const key = ThrottlingUtils.generateThrottlingStorageKey(thumbprint);
 
-            expect(key).to.deep.eq(`throttling.${jsonString}`);
+            expect(key).toEqual(`throttling.${jsonString}`);
         });
     });
 
@@ -33,7 +32,7 @@ describe("ThrottlingUtils", () => {
         it("checks the cache and throws an error", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const thumbprintValue: ThrottlingEntity = THROTTLING_ENTITY;
-            const cache = new MockStorageClass();
+            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
             const removeItemStub = sinon.stub(cache, "removeItem");
             sinon.stub(cache, "getThrottlingCache").callsFake(() => thumbprintValue);
             sinon.stub(Date, "now").callsFake(() => 1);
@@ -43,13 +42,13 @@ describe("ThrottlingUtils", () => {
             } catch { }
             sinon.assert.callCount(removeItemStub, 0);
 
-            expect(() => ThrottlingUtils.preProcess(cache, thumbprint)).to.throw(ServerError);
+            expect(() => ThrottlingUtils.preProcess(cache, thumbprint)).toThrowError(ServerError);
         });
 
         it("checks the cache and removes an item", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
             const thumbprintValue: ThrottlingEntity = THROTTLING_ENTITY;
-            const cache = new MockStorageClass();
+            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
             const removeItemStub = sinon.stub(cache, "removeItem");
             sinon.stub(cache, "getThrottlingCache").callsFake(() => thumbprintValue);
             sinon.stub(Date, "now").callsFake(() => 10);
@@ -57,19 +56,19 @@ describe("ThrottlingUtils", () => {
             ThrottlingUtils.preProcess(cache, thumbprint);
             sinon.assert.callCount(removeItemStub, 1);
 
-            expect(() => ThrottlingUtils.preProcess(cache, thumbprint)).to.not.throw;
+            expect(() => ThrottlingUtils.preProcess(cache, thumbprint)).not.toThrow();
         });
 
         it("checks the cache and does nothing with no match", () => {
             const thumbprint: RequestThumbprint = THUMBPRINT;
-            const cache = new MockStorageClass();
+            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
             const removeItemStub = sinon.stub(cache, "removeItem");
             sinon.stub(cache, "getThrottlingCache").callsFake(() => null);
 
             ThrottlingUtils.preProcess(cache, thumbprint);
             sinon.assert.callCount(removeItemStub, 0);
 
-            expect(() => ThrottlingUtils.preProcess(cache, thumbprint)).to.not.throw;
+            expect(() => ThrottlingUtils.preProcess(cache, thumbprint)).not.toThrow();
         });
     });
 
@@ -85,7 +84,7 @@ describe("ThrottlingUtils", () => {
                 body: { },
                 status: 429
             };
-            const cache = new MockStorageClass();
+            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
             const setItemStub = sinon.stub(cache, "setThrottlingCache");
 
             ThrottlingUtils.postProcess(cache, thumbprint, res);
@@ -99,7 +98,7 @@ describe("ThrottlingUtils", () => {
                 body: { },
                 status: 200
             };
-            const cache = new MockStorageClass();
+            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
             const setItemStub = sinon.stub(cache, "setThrottlingCache");
 
             ThrottlingUtils.postProcess(cache, thumbprint, res);
@@ -116,7 +115,7 @@ describe("ThrottlingUtils", () => {
             };
 
             const bool = ThrottlingUtils.checkResponseStatus(res);
-            expect(bool).to.be.true;
+            expect(bool).toBe(true);
         });
 
         it("returns true if 500 <= status < 600", () => {
@@ -127,7 +126,7 @@ describe("ThrottlingUtils", () => {
             };
 
             const bool = ThrottlingUtils.checkResponseStatus(res);
-            expect(bool).to.be.true;
+            expect(bool).toBe(true);
         });
 
         it("returns false if status is not 429 or between 500 and 600", () => {
@@ -138,7 +137,7 @@ describe("ThrottlingUtils", () => {
             };
 
             const bool = ThrottlingUtils.checkResponseStatus(res);
-            expect(bool).to.be.false;
+            expect(bool).toBe(false);
         });
     });
 
@@ -153,7 +152,7 @@ describe("ThrottlingUtils", () => {
             };
 
             const bool = ThrottlingUtils.checkResponseForRetryAfter(res);
-            expect(bool).to.be.true;
+            expect(bool).toBe(true);
         });
 
         it("returns true when Retry-After header exists and when status > 300", () => {
@@ -166,7 +165,7 @@ describe("ThrottlingUtils", () => {
             };
 
             const bool = ThrottlingUtils.checkResponseForRetryAfter(res);
-            expect(bool).to.be.true;
+            expect(bool).toBe(true);
         });
 
         it("returns false when there is no RetryAfter header", () => {
@@ -178,7 +177,7 @@ describe("ThrottlingUtils", () => {
             };
 
             const bool = ThrottlingUtils.checkResponseForRetryAfter(res);
-            expect(bool).to.be.false;
+            expect(bool).toBe(false);
         });
 
         it("returns false when 200 <= status < 300", () => {
@@ -190,50 +189,51 @@ describe("ThrottlingUtils", () => {
             };
 
             const bool = ThrottlingUtils.checkResponseForRetryAfter(res);
-            expect(bool).to.be.false;
+            expect(bool).toBe(false);
         });
     });
 
     describe("calculateThrottleTime", () => {
-        before(() => {
+        beforeAll(() => {
             sinon.stub(Date, "now").callsFake(() => 5000);
         });
 
-        after(() => {
+        afterAll(() => {
             sinon.restore();
         });
 
         it("returns calculated time to throttle", () => {
             const time = ThrottlingUtils.calculateThrottleTime(10);
-            expect(time).to.be.deep.eq(15000);
+            expect(time).toEqual(15000);
         });
 
         it("calculates with the default time given a bad number", () => {
             const time1 = ThrottlingUtils.calculateThrottleTime(-1);
             const time2 = ThrottlingUtils.calculateThrottleTime(0);
+            //@ts-ignore
             const time3 = ThrottlingUtils.calculateThrottleTime(null);
 
             // Based on Constants.DEFAULT_THROTTLE_TIME_SECONDS
-            expect(time1).to.be.deep.eq(65000);
-            expect(time2).to.be.deep.eq(65000);
-            expect(time3).to.be.deep.eq(65000);
+            expect(time1).toEqual(65000);
+            expect(time2).toEqual(65000);
+            expect(time3).toEqual(65000);
         });
 
         it("calculates with the default MAX if given too large of a number", () => {
             const time = ThrottlingUtils.calculateThrottleTime(1000000000);
 
             // Based on Constants.DEFAULT_MAX_THROTTLE_TIME_SECONDS
-            expect(time).to.be.deep.eq(3605000);
+            expect(time).toEqual(3605000);
         });
     });
 
     describe("removeThrottle", () =>  {
-        after(() => {
+        afterAll(() => {
             sinon.restore();
         });
 
         it("removes the entry from storage and returns true", () => {
-            const cache = new MockStorageClass();
+            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
             const removeItemStub = sinon.stub(cache, "removeItem").returns(true);
             const clientId = TEST_CONFIG.MSAL_CLIENT_ID;
             const authority = TEST_CONFIG.validAuthority;
@@ -242,11 +242,11 @@ describe("ThrottlingUtils", () => {
             const res = ThrottlingUtils.removeThrottle(cache, clientId, authority, scopes);
 
             sinon.assert.callCount(removeItemStub, 1);
-            expect(res).to.be.true;
+            expect(res).toBe(true);
         });
 
         it("doesn't find an entry and returns false", () => {
-            const cache = new MockStorageClass();
+            const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
             const removeItemStub = sinon.stub(cache, "removeItem").returns(false);
             const clientId = TEST_CONFIG.MSAL_CLIENT_ID;
             const authority = TEST_CONFIG.validAuthority;
@@ -255,7 +255,7 @@ describe("ThrottlingUtils", () => {
             const res = ThrottlingUtils.removeThrottle(cache, clientId, authority, scopes);
 
             sinon.assert.callCount(removeItemStub, 1);
-            expect(res).to.be.false;
+            expect(res).toBe(false);
         });
     });
 });

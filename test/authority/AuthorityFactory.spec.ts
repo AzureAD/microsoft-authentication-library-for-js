@@ -1,8 +1,6 @@
-import { expect } from "chai";
-import sinon from "sinon";
 import { AuthorityFactory } from "../../src/authority/AuthorityFactory";
 import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
-import { TEST_CONFIG } from "../utils/StringConstants";
+import { TEST_CONFIG } from "../test_kit/StringConstants";
 import { Constants } from "../../src/utils/Constants";
 import { ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 import { Authority } from "../../src/authority/Authority";
@@ -18,12 +16,14 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
             url: string,
             options?: NetworkRequestOptions
         ): T {
+            // @ts-ignore
             return null;
         },
         sendPostRequestAsync<T>(
             url: string,
             options?: NetworkRequestOptions
         ): T {
+            // @ts-ignore
             return null;
         }
     };
@@ -43,12 +43,13 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
 
     afterEach(() => {
         mockCache.clearCache();
-        sinon.restore();
+        jest.clearAllMocks();
     });
 
     it("AuthorityFactory returns null if given url is null or empty", () => {
-        expect(() => AuthorityFactory.createInstance("", networkInterface, mockStorage, authorityOptions)).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
-        expect(() => AuthorityFactory.createInstance(null, networkInterface, mockStorage, authorityOptions)).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
+        expect(() => AuthorityFactory.createInstance("", networkInterface, mockStorage, authorityOptions)).toThrowError(ClientConfigurationErrorMessage.urlEmptyError.desc);
+        // @ts-ignore
+        expect(() => AuthorityFactory.createInstance(null, networkInterface, mockStorage, authorityOptions)).toThrowError(ClientConfigurationErrorMessage.urlEmptyError.desc);
     });
 
     it("Throws error for malformed url strings", () => {
@@ -59,7 +60,7 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
                 mockStorage, 
                 authorityOptions
             )
-        ).to.throw(ClientConfigurationErrorMessage.authorityUriInsecure.desc);
+        ).toThrowError(ClientConfigurationErrorMessage.authorityUriInsecure.desc);
         expect(() =>
             AuthorityFactory.createInstance(
                 "This is not a URI",
@@ -67,57 +68,57 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
                 mockStorage, 
                 authorityOptions
             )
-        ).to.throw(ClientConfigurationErrorMessage.urlParseError.desc);
+        ).toThrowError(ClientConfigurationErrorMessage.urlParseError.desc);
         expect(() =>
             AuthorityFactory.createInstance("", networkInterface, mockStorage, authorityOptions)
-        ).to.throw(ClientConfigurationErrorMessage.urlEmptyError.desc);
+        ).toThrowError(ClientConfigurationErrorMessage.urlEmptyError.desc);
     });
 
     it("createInstance returns Default instance if AAD Authority", () => {
         const authorityInstance = AuthorityFactory.createInstance(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
-        expect(authorityInstance.authorityType).to.be.eq(AuthorityType.Default);
+        expect(authorityInstance.authorityType).toBe(AuthorityType.Default);
         expect(authorityInstance instanceof Authority);
     });
 
     it("createInstance returns Default instance if B2C Authority", () => {
         const authorityInstance = AuthorityFactory.createInstance(TEST_CONFIG.b2cValidAuthority, networkInterface, mockStorage, authorityOptions);
-        expect(authorityInstance.authorityType).to.be.eq(AuthorityType.Default);
+        expect(authorityInstance.authorityType).toBe(AuthorityType.Default);
         expect(authorityInstance instanceof Authority);
     });
 
     it("createInstance return ADFS instance if /adfs in path", () => {
         const authorityInstanceAAD = AuthorityFactory.createInstance(TEST_CONFIG.ADFS_VALID_AUTHORITY, networkInterface, mockStorage, authorityOptions);
-        expect(authorityInstanceAAD.authorityType).to.be.eq(AuthorityType.Adfs);
+        expect(authorityInstanceAAD.authorityType).toBe(AuthorityType.Adfs);
         expect(authorityInstanceAAD instanceof Authority);
 
         authorityOptions.protocolMode = ProtocolMode.OIDC;
         const authorityInstanceOIDC = AuthorityFactory.createInstance(TEST_CONFIG.ADFS_VALID_AUTHORITY, networkInterface, mockStorage, authorityOptions);
-        expect(authorityInstanceOIDC.authorityType).to.be.eq(AuthorityType.Adfs);
+        expect(authorityInstanceOIDC.authorityType).toBe(AuthorityType.Adfs);
         expect(authorityInstanceOIDC instanceof Authority);
     });
 
     it("createInstance returns (non v2) OIDC endpoint with ProtocolMode: OIDC", () => {
         authorityOptions.protocolMode = ProtocolMode.OIDC;
         const authorityInstance = AuthorityFactory.createInstance(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
-        expect(authorityInstance.authorityType).to.be.eq(AuthorityType.Default);
+        expect(authorityInstance.authorityType).toBe(AuthorityType.Default);
         expect(authorityInstance instanceof Authority);
     });
 
     it("createDiscoveredInstance calls resolveEndpointsAsync then returns authority", async () => {
-        const resolveEndpointsStub = sinon.stub(Authority.prototype, "resolveEndpointsAsync").resolves();
+        const resolveEndpointsStub = jest.spyOn(Authority.prototype, "resolveEndpointsAsync").mockResolvedValue();
         const authorityInstance = await AuthorityFactory.createDiscoveredInstance(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
-        expect(authorityInstance.authorityType).to.be.eq(AuthorityType.Default);
+        expect(authorityInstance.authorityType).toBe(AuthorityType.Default);
         expect(authorityInstance instanceof Authority);
-        expect(resolveEndpointsStub.calledOnce).to.be.true;
+        expect(resolveEndpointsStub).toHaveBeenCalledTimes(1);
     });
 
     it("createDiscoveredInstance throws if resolveEndpointsAsync fails", (done) => {
-        const resolveEndpointsStub = sinon.stub(Authority.prototype, "resolveEndpointsAsync").throws("Discovery failed.");
+        const resolveEndpointsStub = jest.spyOn(Authority.prototype, "resolveEndpointsAsync").mockRejectedValue("Discovery failed.");
         AuthorityFactory.createDiscoveredInstance(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions).catch(e => {
-            expect(e).to.be.instanceOf(ClientAuthError);
-            expect(e.errorMessage).to.include(ClientAuthErrorMessage.endpointResolutionError.desc);
-            expect(e.errorMessage).to.include("Discovery failed.");
-            expect(resolveEndpointsStub.calledOnce).to.be.true;
+            expect(e).toBeInstanceOf(ClientAuthError);
+            expect(e.errorMessage.includes(ClientAuthErrorMessage.endpointResolutionError.desc)).toBe(true);
+            expect(e.errorMessage.includes("Discovery failed.")).toBe(true);
+            expect(resolveEndpointsStub).toHaveBeenCalledTimes(1);
             done();
         });
     });

@@ -4,7 +4,7 @@
  */
 
 import { ClientConfiguration, Constants, PkceCodes, ClientAuthError, AccountEntity, CredentialEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, ProtocolMode , AuthorityFactory, AuthorityOptions, AuthorityMetadataEntity } from "../../src";
-import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES, TEST_TOKENS } from "../utils/StringConstants";
+import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES, TEST_TOKENS } from "../test_kit/StringConstants";
 
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
@@ -166,10 +166,10 @@ export class ClientTestUtils {
 
         const mockHttpClient = {
             sendGetRequestAsync<T>(): T {
-                return null;
+                return {} as T;
             },
             sendPostRequestAsync<T>(): T {
-                return null;
+                return {} as T;
             }
         };
 

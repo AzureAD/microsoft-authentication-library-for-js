@@ -1,73 +1,88 @@
-import { expect } from "chai";
-import { ClientConfiguration, buildClientConfiguration } from "../../src/config/ClientConfiguration";
+import { CommonClientConfiguration, buildClientConfiguration } from "../../src/config/ClientConfiguration";
 import { PkceCodes } from "../../src/crypto/ICrypto";
 import { AuthError } from "../../src/error/AuthError";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { LogLevel } from "../../src/logger/Logger";
 import { Constants } from "../../src";
 import { version } from "../../src/packageMetadata";
-import {TEST_CONFIG, TEST_POP_VALUES} from "../utils/StringConstants";
-import { MockStorageClass } from "../client/ClientTestUtils";
+import {TEST_CONFIG, TEST_POP_VALUES} from "../test_kit/StringConstants";
+import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
 import { MockCache } from "../cache/entities/cacheConstants";
 
 describe("ClientConfiguration.ts Class Unit Tests", () => {
 
     it("buildConfiguration assigns default functions", async () => {
-        const emptyConfig: ClientConfiguration = buildClientConfiguration({
+        const emptyConfig: CommonClientConfiguration = buildClientConfiguration({
+            //@ts-ignore
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         });
         // Crypto interface checks
-        expect(emptyConfig.cryptoInterface).to.be.not.null;
-        expect(emptyConfig.cryptoInterface.base64Decode).to.be.not.null;
-        expect(() => emptyConfig.cryptoInterface.base64Decode("test input")).to.throw("Unexpected error in authentication.: Crypto interface - base64Decode() has not been implemented");
-        expect(() => emptyConfig.cryptoInterface.base64Decode("test input")).to.throw(AuthError);
-        expect(emptyConfig.cryptoInterface.base64Encode).to.be.not.null;
-        expect(() => emptyConfig.cryptoInterface.base64Encode("test input")).to.throw("Unexpected error in authentication.: Crypto interface - base64Encode() has not been implemented");
-        expect(() => emptyConfig.cryptoInterface.base64Encode("test input")).to.throw(AuthError);
-        expect(emptyConfig.cryptoInterface.generatePkceCodes).to.be.not.null;
-        await expect(emptyConfig.cryptoInterface.generatePkceCodes()).to.be.rejectedWith("Unexpected error in authentication.: Crypto interface - generatePkceCodes() has not been implemented");
-        await expect(emptyConfig.cryptoInterface.generatePkceCodes()).to.be.rejectedWith(AuthError);
+        expect(emptyConfig.cryptoInterface).not.toBeNull();
+        expect(emptyConfig.cryptoInterface.base64Decode).not.toBeNull();
+        expect(() => emptyConfig.cryptoInterface.base64Decode("test input")).toThrowError(
+            "Unexpected error in authentication.: Crypto interface - base64Decode() has not been implemented"
+        );
+        expect(() => emptyConfig.cryptoInterface.base64Decode("test input")).toThrowError(AuthError);
+        expect(emptyConfig.cryptoInterface.base64Encode).not.toBeNull();
+        expect(() => emptyConfig.cryptoInterface.base64Encode("test input")).toThrowError(
+            "Unexpected error in authentication.: Crypto interface - base64Encode() has not been implemented"
+        );
+        expect(() => emptyConfig.cryptoInterface.base64Encode("test input")).toThrowError(AuthError);
+        expect(emptyConfig.cryptoInterface.generatePkceCodes).not.toBeNull();
+        await expect(emptyConfig.cryptoInterface.generatePkceCodes()).rejects.toMatchObject(AuthError.createUnexpectedError("Crypto interface - generatePkceCodes() has not been implemented"))
         // Storage interface checks
-        expect(emptyConfig.storageInterface).to.be.not.null;
-        expect(emptyConfig.storageInterface.clear).to.be.not.null;
-        expect(() => emptyConfig.storageInterface.clear()).to.throw("Unexpected error in authentication.: Storage interface - clear() has not been implemented");
-        expect(() => emptyConfig.storageInterface.clear()).to.throw(AuthError);
-        expect(emptyConfig.storageInterface.containsKey).to.be.not.null;
-        expect(() => emptyConfig.storageInterface.containsKey("testKey")).to.throw("Unexpected error in authentication.: Storage interface - containsKey() has not been implemented");
-        expect(() => emptyConfig.storageInterface.containsKey("testKey")).to.throw(AuthError);
-        expect(emptyConfig.storageInterface.getAccount).to.be.not.null;
-        expect(() => emptyConfig.storageInterface.getAccount("testKey")).to.throw("Unexpected error in authentication.: Storage interface - getAccount() has not been implemented");
-        expect(() => emptyConfig.storageInterface.getAccount("testKey")).to.throw(AuthError);
-        expect(emptyConfig.storageInterface.getKeys).to.be.not.null;
-        expect(() => emptyConfig.storageInterface.getKeys()).to.throw("Unexpected error in authentication.: Storage interface - getKeys() has not been implemented");
-        expect(() => emptyConfig.storageInterface.getKeys()).to.throw(AuthError);
-        expect(emptyConfig.storageInterface.removeItem).to.be.not.null;
-        expect(() => emptyConfig.storageInterface.removeItem("testKey")).to.throw("Unexpected error in authentication.: Storage interface - removeItem() has not been implemented");
-        expect(() => emptyConfig.storageInterface.removeItem("testKey")).to.throw(AuthError);
-        expect(emptyConfig.storageInterface.setAccount).to.be.not.null;
-        expect(() => emptyConfig.storageInterface.setAccount(MockCache.acc)).to.throw("Unexpected error in authentication.: Storage interface - setAccount() has not been implemented");
-        expect(() => emptyConfig.storageInterface.setAccount(MockCache.acc)).to.throw(AuthError);
+        expect(emptyConfig.storageInterface).not.toBeNull();
+        expect(emptyConfig.storageInterface.clear).not.toBeNull();
+        expect(() => emptyConfig.storageInterface.clear()).toThrowError(
+            "Unexpected error in authentication.: Storage interface - clear() has not been implemented"
+        );
+        expect(() => emptyConfig.storageInterface.clear()).toThrowError(AuthError);
+        expect(emptyConfig.storageInterface.containsKey).not.toBeNull();
+        expect(() => emptyConfig.storageInterface.containsKey("testKey")).toThrowError(
+            "Unexpected error in authentication.: Storage interface - containsKey() has not been implemented"
+        );
+        expect(() => emptyConfig.storageInterface.containsKey("testKey")).toThrowError(AuthError);
+        expect(emptyConfig.storageInterface.getAccount).not.toBeNull();
+        expect(() => emptyConfig.storageInterface.getAccount("testKey")).toThrowError(
+            "Unexpected error in authentication.: Storage interface - getAccount() has not been implemented"
+        );
+        expect(() => emptyConfig.storageInterface.getAccount("testKey")).toThrowError(AuthError);
+        expect(emptyConfig.storageInterface.getKeys).not.toBeNull();
+        expect(() => emptyConfig.storageInterface.getKeys()).toThrowError(
+            "Unexpected error in authentication.: Storage interface - getKeys() has not been implemented"
+        );
+        expect(() => emptyConfig.storageInterface.getKeys()).toThrowError(AuthError);
+        expect(emptyConfig.storageInterface.removeItem).not.toBeNull();
+        expect(() => emptyConfig.storageInterface.removeItem("testKey")).toThrowError(
+            "Unexpected error in authentication.: Storage interface - removeItem() has not been implemented"
+        );
+        expect(() => emptyConfig.storageInterface.removeItem("testKey")).toThrowError(AuthError);
+        expect(emptyConfig.storageInterface.setAccount).not.toBeNull();
+        expect(() => emptyConfig.storageInterface.setAccount(MockCache.acc)).toThrowError(
+            "Unexpected error in authentication.: Storage interface - setAccount() has not been implemented"
+        );
+        expect(() => emptyConfig.storageInterface.setAccount(MockCache.acc)).toThrowError(AuthError);
         // Network interface checks
-        expect(emptyConfig.networkInterface).to.be.not.null;
-        expect(emptyConfig.networkInterface.sendGetRequestAsync).to.be.not.null;
-        await expect(emptyConfig.networkInterface.sendGetRequestAsync("", null)).to.be.rejectedWith("Unexpected error in authentication.: Network interface - sendGetRequestAsync() has not been implemented");
-        await expect(emptyConfig.networkInterface.sendGetRequestAsync("", null)).to.be.rejectedWith(AuthError);
-        expect(emptyConfig.networkInterface.sendPostRequestAsync).to.be.not.null;
-        await expect(emptyConfig.networkInterface.sendPostRequestAsync("", null)).to.be.rejectedWith("Unexpected error in authentication.: Network interface - sendPostRequestAsync() has not been implemented");
-        await expect(emptyConfig.networkInterface.sendPostRequestAsync("", null)).to.be.rejectedWith(AuthError);
+        expect(emptyConfig.networkInterface).not.toBeNull();
+        expect(emptyConfig.networkInterface.sendGetRequestAsync).not.toBeNull();
+        //@ts-ignore
+        expect(emptyConfig.networkInterface.sendGetRequestAsync("", null)).rejects.toMatchObject(AuthError.createUnexpectedError("Network interface - sendGetRequestAsync() has not been implemented"));
+        expect(emptyConfig.networkInterface.sendPostRequestAsync).not.toBeNull();
+        //@ts-ignore
+        await expect(emptyConfig.networkInterface.sendPostRequestAsync("", null)).rejects.toMatchObject(AuthError.createUnexpectedError("Network interface - sendPostRequestAsync() has not been implemented"));
         // Logger options checks
-        expect(emptyConfig.loggerOptions).to.be.not.null;
-        expect(emptyConfig.loggerOptions.piiLoggingEnabled).to.be.false;
+        expect(emptyConfig.loggerOptions).not.toBeNull();
+        expect(emptyConfig.loggerOptions.piiLoggingEnabled).toBe(false);
         // Client info checks
-        expect(emptyConfig.libraryInfo.sku).to.be.eq(Constants.SKU);
-        expect(emptyConfig.libraryInfo.version).to.be.eq(version);
-        expect(emptyConfig.libraryInfo.os).to.be.empty;
-        expect(emptyConfig.libraryInfo.cpu).to.be.empty;
+        expect(emptyConfig.libraryInfo.sku).toBe(Constants.SKU);
+        expect(emptyConfig.libraryInfo.version).toBe(version);
+        expect(emptyConfig.libraryInfo.os).toHaveLength(0);
+        expect(emptyConfig.libraryInfo.cpu).toHaveLength(0);
     });
 
-    const cacheStorageMock = new MockStorageClass();
+    const cacheStorageMock = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
 
     const testPkceCodes = {
         challenge: "TestChallenge",
@@ -78,10 +93,9 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         testParam: "testValue"
     };
 
-    const testKeySet = ["testKey1", "testKey2"];
-
     it("buildConfiguration correctly assigns new values", async () => {
-        const newConfig: ClientConfiguration = buildClientConfiguration({
+        const newConfig: CommonClientConfiguration = buildClientConfiguration({
+            //@ts-ignore
             authOptions: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             },
@@ -127,41 +141,43 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         });
         cacheStorageMock.setAccount(MockCache.acc);
         // Crypto interface tests
-        expect(newConfig.cryptoInterface).to.be.not.null;
-        expect(newConfig.cryptoInterface.base64Decode).to.be.not.null;
-        expect(newConfig.cryptoInterface.base64Decode("testString")).to.be.eq("testDecodedString");
-        expect(newConfig.cryptoInterface.base64Encode).to.be.not.null;
-        expect(newConfig.cryptoInterface.base64Encode("testString")).to.be.eq("testEncodedString");
-        expect(newConfig.cryptoInterface.generatePkceCodes).to.be.not.null;
-        await expect(newConfig.cryptoInterface.generatePkceCodes()).to.eventually.eq(testPkceCodes);
+        expect(newConfig.cryptoInterface).not.toBeNull();
+        expect(newConfig.cryptoInterface.base64Decode).not.toBeNull();
+        expect(newConfig.cryptoInterface.base64Decode("testString")).toBe("testDecodedString");
+        expect(newConfig.cryptoInterface.base64Encode).not.toBeNull();
+        expect(newConfig.cryptoInterface.base64Encode("testString")).toBe("testEncodedString");
+        expect(newConfig.cryptoInterface.generatePkceCodes).not.toBeNull();
+        expect(newConfig.cryptoInterface.generatePkceCodes()).resolves.toBe(testPkceCodes);
         // Storage interface tests
-        expect(newConfig.storageInterface).to.be.not.null;
-        expect(newConfig.storageInterface.clear).to.be.not.null;
-        expect(newConfig.storageInterface.clear).to.be.eq(cacheStorageMock.clear);
-        expect(newConfig.storageInterface.containsKey).to.be.not.null;
-        expect(newConfig.storageInterface.containsKey(MockCache.acc.generateAccountKey())).to.be.true;
-        expect(newConfig.storageInterface.getAccount).to.be.not.null;
-        expect(newConfig.storageInterface.getAccount(MockCache.acc.generateAccountKey())).to.be.eq(MockCache.acc);
-        expect(newConfig.storageInterface.getKeys).to.be.not.null;
-        expect(newConfig.storageInterface.getKeys()).to.be.deep.eq([MockCache.acc.generateAccountKey()]);
-        expect(newConfig.storageInterface.removeItem).to.be.not.null;
-        expect(newConfig.storageInterface.removeItem).to.be.eq(cacheStorageMock.removeItem);
-        expect(newConfig.storageInterface.setAccount).to.be.not.null;
-        expect(newConfig.storageInterface.setAccount).to.be.eq(cacheStorageMock.setAccount);
+        expect(newConfig.storageInterface).not.toBeNull();
+        expect(newConfig.storageInterface.clear).not.toBeNull();
+        expect(newConfig.storageInterface.clear).toBe(cacheStorageMock.clear);
+        expect(newConfig.storageInterface.containsKey).not.toBeNull();
+        expect(newConfig.storageInterface.containsKey(MockCache.acc.generateAccountKey())).toBe(true);
+        expect(newConfig.storageInterface.getAccount).not.toBeNull();
+        expect(newConfig.storageInterface.getAccount(MockCache.acc.generateAccountKey())).toBe(MockCache.acc);
+        expect(newConfig.storageInterface.getKeys).not.toBeNull();
+        expect(newConfig.storageInterface.getKeys()).toEqual([MockCache.acc.generateAccountKey()]);
+        expect(newConfig.storageInterface.removeItem).not.toBeNull();
+        expect(newConfig.storageInterface.removeItem).toBe(cacheStorageMock.removeItem);
+        expect(newConfig.storageInterface.setAccount).not.toBeNull();
+        expect(newConfig.storageInterface.setAccount).toBe(cacheStorageMock.setAccount);
         // Network interface tests
-        expect(newConfig.networkInterface).to.be.not.null;
-        expect(newConfig.networkInterface.sendGetRequestAsync).to.be.not.null;
-        await expect(newConfig.networkInterface.sendGetRequestAsync("", null)).to.eventually.eq(testNetworkResult);
-        expect(newConfig.networkInterface.sendPostRequestAsync).to.be.not.null;
-        await expect(newConfig.networkInterface.sendPostRequestAsync("", null)).to.eventually.eq(testNetworkResult);
+        expect(newConfig.networkInterface).not.toBeNull();
+        expect(newConfig.networkInterface.sendGetRequestAsync).not.toBeNull();
+        //@ts-ignore
+        expect(newConfig.networkInterface.sendGetRequestAsync("", null)).resolves.toBe(testNetworkResult);
+        expect(newConfig.networkInterface.sendPostRequestAsync).not.toBeNull();
+        //@ts-ignore
+        expect(newConfig.networkInterface.sendPostRequestAsync("", null)).resolves.toBe(testNetworkResult);
         // Logger option tests
-        expect(newConfig.loggerOptions).to.be.not.null;
-        expect(newConfig.loggerOptions.loggerCallback).to.be.not.null;
-        expect(newConfig.loggerOptions.piiLoggingEnabled).to.be.true;
+        expect(newConfig.loggerOptions).not.toBeNull();
+        expect(newConfig.loggerOptions.loggerCallback).not.toBeNull();
+        expect(newConfig.loggerOptions.piiLoggingEnabled).toBe(true);
         // Client info tests
-        expect(newConfig.libraryInfo.sku).to.be.eq(TEST_CONFIG.TEST_SKU);
-        expect(newConfig.libraryInfo.version).to.be.eq(TEST_CONFIG.TEST_VERSION);
-        expect(newConfig.libraryInfo.os).to.be.eq(TEST_CONFIG.TEST_OS);
-        expect(newConfig.libraryInfo.cpu).to.be.eq(TEST_CONFIG.TEST_CPU);
+        expect(newConfig.libraryInfo.sku).toBe(TEST_CONFIG.TEST_SKU);
+        expect(newConfig.libraryInfo.version).toBe(TEST_CONFIG.TEST_VERSION);
+        expect(newConfig.libraryInfo.os).toBe(TEST_CONFIG.TEST_OS);
+        expect(newConfig.libraryInfo.cpu).toBe(TEST_CONFIG.TEST_CPU);
     });
 });

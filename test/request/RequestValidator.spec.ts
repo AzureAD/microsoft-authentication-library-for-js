@@ -1,19 +1,17 @@
-import { expect } from "chai";
 import {
     ClientConfigurationError
 } from "../../src";
 
 import { PromptValue } from "../../src/utils/Constants";
 import { RequestValidator } from "../../src/request/RequestValidator";
-import {TEST_CONFIG} from "../utils/StringConstants";
+import {TEST_CONFIG} from "../test_kit/StringConstants";
 
 describe("RequestValidator unit tests", () => {
 
     describe("ValidateRedirectUri tests", () => {
 
         it("Throws UrlEmptyError if redirect uri is empty", () => {
-            expect( function () {RequestValidator.validateRedirectUri("")})
-                .to.throw(ClientConfigurationError.createRedirectUriEmptyError().message);
+            expect( function () {RequestValidator.validateRedirectUri("")}).toThrowError(ClientConfigurationError.createRedirectUriEmptyError().message);
         });
     });
 
@@ -32,8 +30,7 @@ describe("RequestValidator unit tests", () => {
             RequestValidator.validatePrompt(PromptValue.NONE);
         });
         it("Throws InvalidPromptError if invalid prompt value passed in", () => {
-            expect(function() { RequestValidator.validatePrompt("")})
-                .to.throw(ClientConfigurationError.createInvalidPromptError("").message);
+            expect(function() { RequestValidator.validatePrompt("")}).toThrowError(ClientConfigurationError.createInvalidPromptError("").message);
         });
     });
 
@@ -44,8 +41,7 @@ describe("RequestValidator unit tests", () => {
         });
 
         it("Throws InvalidClaimsError if invalid claims value passed in", () => {
-            expect(function() { RequestValidator.validateClaims("invalid_claims_value")})
-                .to.throw(ClientConfigurationError.createInvalidClaimsRequestError().message);
+            expect(function() { RequestValidator.validateClaims("invalid_claims_value")}).toThrowError(ClientConfigurationError.createInvalidClaimsRequestError().message);
         });
         
     });
@@ -53,13 +49,11 @@ describe("RequestValidator unit tests", () => {
     describe("ValidateCodeChallengeParams tests", () => {
 
         it("Throws InvalidCodeChallengeParamsError if no code challenge method present", () => {
-            expect(function() { RequestValidator.validateCodeChallengeParams("",TEST_CONFIG.CODE_CHALLENGE_METHOD)})
-                .to.throw(ClientConfigurationError.createInvalidCodeChallengeParamsError().message);
+            expect(function() { RequestValidator.validateCodeChallengeParams("",TEST_CONFIG.CODE_CHALLENGE_METHOD)}).toThrowError(ClientConfigurationError.createInvalidCodeChallengeParamsError().message);
         });
 
         it("Throws InvalidCodeChallengeMethodError if no code challenge method present", () => {
-            expect(function() { RequestValidator.validateCodeChallengeParams(TEST_CONFIG.TEST_CHALLENGE, "255")})
-                .to.throw(ClientConfigurationError.createInvalidCodeChallengeMethodError().message);
+            expect(function() { RequestValidator.validateCodeChallengeParams(TEST_CONFIG.TEST_CHALLENGE, "255")}).toThrowError(ClientConfigurationError.createInvalidCodeChallengeMethodError().message);
         });
     });
 });
