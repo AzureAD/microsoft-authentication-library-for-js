@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import { LoggerOptions } from "../../src/config/ClientConfiguration";
 import { LogLevel, Logger } from "../../src/logger/Logger";
 import sinon from "sinon";
@@ -26,7 +25,7 @@ describe("Logger.ts Class Unit Tests", () => {
 
         it("Creates a logger with the given logger options", () => {
             const logger = new Logger(loggerOptions);
-            expect(logger.isPiiLoggingEnabled()).to.be.true;
+            expect(logger.isPiiLoggingEnabled()).toBe(true);
         });
     });
 
@@ -35,16 +34,16 @@ describe("Logger.ts Class Unit Tests", () => {
         it("Creates a new logger with logger configurations of existing logger", () => {
             const logger = new Logger(loggerOptions);
             const loggerClone = logger.clone("msal-common", "1.0.0");
-            expect(loggerClone.isPiiLoggingEnabled()).to.equal(logger.isPiiLoggingEnabled());
+            expect(loggerClone.isPiiLoggingEnabled()).toBe(logger.isPiiLoggingEnabled());
         });
 
         it("Creates a new logger with package name and package version", () => {
             const logger = new Logger(loggerOptions);
             const loggerClone = logger.clone("msal-common", "2.0.0");
             loggerClone.info("Message");
-            expect(logStore[LogLevel.Info]).to.include("msal-common");
-            expect(logStore[LogLevel.Info]).to.include("2.0.0");
-            expect(logStore[LogLevel.Info]).to.include("msal-common@2.0.0");
+            expect(logStore[LogLevel.Info].includes("msal-common")).toBe(true);
+            expect(logStore[LogLevel.Info].includes("2.0.0")).toBe(true);
+            expect(logStore[LogLevel.Info].includes("msal-common@2.0.0")).toBe(true);
         });
     });
 
@@ -53,16 +52,16 @@ describe("Logger.ts Class Unit Tests", () => {
         it("Creates a new logger with logger configurations of existing logger", () => {
             const logger = new Logger(loggerOptions);
             const loggerClone = logger.clone("msal-common", "1.0.0");
-            expect(loggerClone.isPiiLoggingEnabled()).to.equal(logger.isPiiLoggingEnabled());
+            expect(loggerClone.isPiiLoggingEnabled()).toBe(logger.isPiiLoggingEnabled());
         });
 
         it("Creates a new logger with package name and package version", () => {
             const logger = new Logger(loggerOptions);
             const loggerClone = logger.clone("msal-common", "2.0.0");
             loggerClone.info("Message");
-            expect(logStore[LogLevel.Info]).to.include("msal-common");
-            expect(logStore[LogLevel.Info]).to.include("2.0.0");
-            expect(logStore[LogLevel.Info]).to.include("msal-common@2.0.0");
+            expect(logStore[LogLevel.Info].includes("msal-common")).toBe(true);
+            expect(logStore[LogLevel.Info].includes("2.0.0")).toBe(true);
+            expect(logStore[LogLevel.Info].includes("msal-common@2.0.0")).toBe(true);
         });
     });
 
@@ -71,7 +70,7 @@ describe("Logger.ts Class Unit Tests", () => {
         it("Executes a callback if assigned", () => {
             const logger = new Logger(loggerOptions);
             logger.executeCallback(LogLevel.Error, "Message", true);
-            expect(logStore[LogLevel.Error]).to.be.eq("Message");
+            expect(logStore[LogLevel.Error]).toBe("Message");
         });
     });
 
@@ -82,7 +81,7 @@ describe("Logger.ts Class Unit Tests", () => {
 
             const logger = new Logger(loggerOptions);
             logger.error("Message");
-            expect(executeCbSpy.calledWith(LogLevel.Error)).to.be.true;
+            expect(executeCbSpy.calledWith(LogLevel.Error)).toBe(true);
         });
 
         it("Executes errorPii APIs", () => {
@@ -90,7 +89,7 @@ describe("Logger.ts Class Unit Tests", () => {
 
             const logger = new Logger(loggerOptions);
             logger.errorPii("Message");
-            expect(executeCbSpy.calledWith(LogLevel.Error)).to.be.true;
+            expect(executeCbSpy.calledWith(LogLevel.Error)).toBe(true);
         });
 
         it("Does not execute errorPii APIs if piiLogging is disabled", () => {
@@ -99,7 +98,7 @@ describe("Logger.ts Class Unit Tests", () => {
 
             const logger = new Logger(loggerOptions);
             logger.errorPii("Message");
-            expect(executeCbSpy.called).to.be.false;
+            expect(executeCbSpy.called).toBe(false);
         });
     });
 
@@ -110,7 +109,7 @@ describe("Logger.ts Class Unit Tests", () => {
 
             const logger = new Logger(loggerOptions);
             logger.warning("Message");
-            expect(executeCbSpy.calledWith(LogLevel.Warning)).to.be.true;
+            expect(executeCbSpy.calledWith(LogLevel.Warning)).toBe(true);
         });
 
         it("Executes warningPii APIs", () => {
@@ -118,7 +117,7 @@ describe("Logger.ts Class Unit Tests", () => {
 
             const logger = new Logger(loggerOptions);
             logger.warningPii("Message");
-            expect(executeCbSpy.calledWith(LogLevel.Warning)).to.be.true;
+            expect(executeCbSpy.calledWith(LogLevel.Warning)).toBe(true);
         });
 
         it("Does not execute warningPii APIs if piiLogging is disabled", () => {
@@ -127,7 +126,7 @@ describe("Logger.ts Class Unit Tests", () => {
 
             const logger = new Logger(loggerOptions);
             logger.warningPii("Message");
-            expect(executeCbSpy.called).to.be.false;
+            expect(executeCbSpy.called).toBe(false);
         });
     });
 
@@ -138,7 +137,7 @@ describe("Logger.ts Class Unit Tests", () => {
 
             const logger = new Logger(loggerOptions);
             logger.info("Message");
-            expect(executeCbSpy.calledWith(LogLevel.Info)).to.be.true;
+            expect(executeCbSpy.calledWith(LogLevel.Info)).toBe(true);
         });
 
         it("Executes infoPii APIs", () => {
@@ -146,7 +145,7 @@ describe("Logger.ts Class Unit Tests", () => {
 
             const logger = new Logger(loggerOptions);
             logger.infoPii("Message");
-            expect(executeCbSpy.calledWith(LogLevel.Info)).to.be.true;
+            expect(executeCbSpy.calledWith(LogLevel.Info)).toBe(true);
         });
 
         it("Does not execute infoPii APIs if piiLogging is disabled", () => {
@@ -155,7 +154,7 @@ describe("Logger.ts Class Unit Tests", () => {
 
             const logger = new Logger(loggerOptions);
             logger.infoPii("Message");
-            expect(executeCbSpy.called).to.be.false;
+            expect(executeCbSpy.called).toBe(false);
         });
     });
 
@@ -166,7 +165,7 @@ describe("Logger.ts Class Unit Tests", () => {
 
             const logger = new Logger(loggerOptions);
             logger.verbose("Message");
-            expect(executeCbSpy.calledWith(LogLevel.Verbose)).to.be.true;
+            expect(executeCbSpy.calledWith(LogLevel.Verbose)).toBe(true);
         });
 
         it("Executes verbosePii APIs", () => {
@@ -174,7 +173,7 @@ describe("Logger.ts Class Unit Tests", () => {
 
             const logger = new Logger(loggerOptions);
             logger.verbosePii("Message");
-            expect(executeCbSpy.calledWith(LogLevel.Verbose)).to.be.true;
+            expect(executeCbSpy.calledWith(LogLevel.Verbose)).toBe(true);
         });
 
         it("Does not execute verbosePii APIs if piiLogging is disabled", () => {
@@ -183,7 +182,7 @@ describe("Logger.ts Class Unit Tests", () => {
 
             const logger = new Logger(loggerOptions);
             logger.verbosePii("Message");
-            expect(executeCbSpy.called).to.be.false;
+            expect(executeCbSpy.called).toBe(false);
         });
     });
 });

@@ -452,8 +452,8 @@ export const CACHE_MOCKS = {
     MOCK_CLIENT_ID_1: "mock_client_id_1",
     MOCK_ACCOUNT_INFO: {
         homeAccountId: "uid.utid",
+        localAccountId: "uid",
         environment: "login.microsoftonline.com",
-        localAccountId: "uid.utid",
         tenantId: "microsoft",
         username: "mocked_username"
     },
