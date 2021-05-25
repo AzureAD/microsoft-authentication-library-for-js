@@ -1,22 +1,5 @@
 import sinon from "sinon";
 import {
-    Authority,
-    AuthorizationCodeClient,
-    CommonAuthorizationCodeRequest,
-    CommonAuthorizationUrlRequest,
-    Constants,
-    ServerError,
-    IdToken,
-    CacheManager,
-    AccountInfo,
-    AccountEntity,
-    AuthToken,
-    ICrypto,
-    TokenClaims,
-    SignedHttpRequest,
-    ClientAuthError
-} from "../../src";
-import {
     ALTERNATE_OPENID_CONFIG_RESPONSE,
     AUTHENTICATION_RESULT,
     DEFAULT_OPENID_CONFIG_RESPONSE,
@@ -33,9 +16,21 @@ import {
 } from "../test_kit/StringConstants";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { BaseClient } from "../../src/client/BaseClient";
-import { AADServerParamKeys, PromptValue, ResponseMode, SSOTypes, AuthenticationScheme, ThrottlingConstants } from "../../src/utils/Constants";
+import { AADServerParamKeys, PromptValue, ResponseMode, SSOTypes, AuthenticationScheme, ThrottlingConstants, Constants } from "../../src/utils/Constants";
 import { ClientTestUtils, MockStorageClass } from "./ClientTestUtils";
 import { TestError } from "../test_kit/TestErrors";
+import { Authority } from "../../src/authority/Authority";
+import { AuthorizationCodeClient } from "../../src/client/AuthorizationCodeClient";
+import { CommonAuthorizationUrlRequest } from "../../src/request/CommonAuthorizationUrlRequest";
+import { TokenClaims } from "../../src/account/TokenClaims";
+import { ServerError } from "../../src/error/ServerError";
+import { CommonAuthorizationCodeRequest } from "../../src/request/CommonAuthorizationCodeRequest";
+import { AuthToken } from "../../src/account/AuthToken";
+import { ICrypto } from "../../src/crypto/ICrypto";
+import { AccountInfo } from "../../src/account/AccountInfo";
+import { CacheManager } from "../../src/cache/CacheManager";
+import { AccountEntity } from "../../src/cache/entities/AccountEntity";
+import { ClientAuthError } from "../../src/error/ClientAuthError";
 
 describe("AuthorizationCodeClient unit tests", () => {
     afterEach(() => {
@@ -667,7 +662,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
                 "nonce": "123523",
             };
-            sinon.stub(IdToken, "extractTokenClaims").returns(idTokenClaims);
+            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -743,7 +738,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
                 "nonce": "123523",
             };
-            sinon.stub(IdToken, "extractTokenClaims").returns(idTokenClaims);
+            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -993,7 +988,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
                 "nonce": "123523",
             };
-            sinon.stub(IdToken, "extractTokenClaims").returns(idTokenClaims);
+            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,
@@ -1075,7 +1070,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
                 "nonce": "123523",
             };
-            sinon.stub(IdToken, "extractTokenClaims").returns(idTokenClaims);
+            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
             const client = new AuthorizationCodeClient(config);
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 authority: Constants.DEFAULT_AUTHORITY,

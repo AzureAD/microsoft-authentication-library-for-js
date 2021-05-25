@@ -7,8 +7,8 @@ import {
     TEST_POP_VALUES
 } from "../test_kit/StringConstants";
 import { RequestParameterBuilder } from "../../src/request/RequestParameterBuilder";
-import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src";
 import sinon from "sinon";
+import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 
 describe("RequestParameterBuilder unit tests", () => {
 
