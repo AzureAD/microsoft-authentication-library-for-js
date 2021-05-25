@@ -4,8 +4,7 @@
  */
 
 import { Constants, NetworkResponse } from "@azure/msal-common";
-import { OpenIdConfigResponse } from "@azure/msal-common/dist/authority/OpenIdConfigResponse";
-import { version } from "../../package.json";
+import { version } from "../../src/packageMetadata";
 
 /**
  * This file contains the string constants used by the test classes.
@@ -119,7 +118,21 @@ export const TEST_HASHES = {
     TEST_CONSENT_REQ_ERROR_HASH2: `#error=consent_required&error_description=msal+error+description+consent_required&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`
 };
 
-export const DEFAULT_OPENID_CONFIG_RESPONSE: NetworkResponse<unknown> = {
+export const DEFAULT_TENANT_DISCOVERY_RESPONSE = {
+    body: {
+        "tenant_discovery_endpoint": "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",
+        "api-version": "1.1",
+        "metadata": [
+            {
+                "preferred_network": "login.windows.net",
+                "preferred_cache": "sts.windows.net",
+                "aliases": ["login.microsoftonline.com","login.windows.net","login.microsoft.com","sts.windows.net"]
+            }
+        ]
+    }
+};
+
+export const DEFAULT_OPENID_CONFIG_RESPONSE: NetworkResponse<any> = {
     headers: {},
     status: 200,
     body : {

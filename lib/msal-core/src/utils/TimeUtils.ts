@@ -14,10 +14,8 @@ export class TimeUtils {
      */
     static parseExpiresIn(expiresIn: string): number {
         // if AAD did not send "expires_in" property, use default expiration of 3599 seconds, for some reason AAD sends 3599 as "expires_in" value instead of 3600
-        if (!expiresIn) {
-            expiresIn = "3599";
-        }
-        return parseInt(expiresIn, 10);
+        const expires = expiresIn || "3599";
+        return parseInt(expires, 10);
     }
 
     /**

@@ -47,12 +47,14 @@ export class HttpClient implements INetworkModule {
      */
     async sendPostRequestAsync<T>(
         url: string,
-        options?: NetworkRequestOptions
+        options?: NetworkRequestOptions,
+        cancellationToken?: number 
     ): Promise<NetworkResponse<T>> {
         const request: AxiosRequestConfig = {
             method: HttpMethod.POST,
             url: url,
             data: (options && options.body) || "",
+            timeout: cancellationToken,
             headers: options && options.headers,
             validateStatus: () => true
         };

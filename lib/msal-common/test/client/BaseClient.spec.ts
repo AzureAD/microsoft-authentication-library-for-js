@@ -1,11 +1,10 @@
-import { expect } from "chai";
 import { BaseClient } from "../../src/client/BaseClient";
 import { Authority, Constants } from "../../src";
 import { HeaderNames } from "../../src/utils/Constants";
 import { ClientTestUtils } from "./ClientTestUtils";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import sinon from "sinon";
-import { DEFAULT_OPENID_CONFIG_RESPONSE } from "../utils/StringConstants";
+import { DEFAULT_OPENID_CONFIG_RESPONSE } from "../test_kit/StringConstants";
 
 class TestClient extends BaseClient {
 
@@ -49,8 +48,8 @@ describe("BaseClient.ts Class Unit Tests", () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new TestClient(config);
-            expect(client).to.be.not.null;
-            expect(client instanceof BaseClient).to.be.true;
+            expect(client).not.toBeNull();
+            expect(client instanceof BaseClient).toBe(true);
         });
 
         it("Sets fields on BaseClient object", async () => {
@@ -58,10 +57,10 @@ describe("BaseClient.ts Class Unit Tests", () => {
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new TestClient(config);
 
-            expect(client.getConfig()).to.be.not.null;
-            expect(client.getCryptoUtils()).to.be.not.null;
-            expect(client.getDefaultAuthorityInstance()).to.be.not.null;
-            expect(client.getNetworkClient()).to.be.not.null;
+            expect(client.getConfig()).not.toBeNull();
+            expect(client.getCryptoUtils()).not.toBeNull();
+            expect(client.getDefaultAuthorityInstance()).not.toBeNull();
+            expect(client.getNetworkClient()).not.toBeNull();
         });
     });
 
@@ -79,7 +78,7 @@ describe("BaseClient.ts Class Unit Tests", () => {
             const client = new TestClient(config);
             const headers = client.createDefaultTokenRequestHeaders();
 
-            expect(headers[HeaderNames.CONTENT_TYPE]).to.eq(Constants.URL_FORM_CONTENT_TYPE);
+            expect(headers[HeaderNames.CONTENT_TYPE]).toBe(Constants.URL_FORM_CONTENT_TYPE);
         });
     });
 });

@@ -1,6 +1,5 @@
-import { expect } from "chai";
 import { ProtocolUtils } from "../../src/utils/ProtocolUtils";
-import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES } from "./StringConstants";
+import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES } from "../test_kit/StringConstants";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { Constants } from "../../src/utils/Constants";
 import sinon from "sinon";
@@ -22,7 +21,7 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
             base64Decode(input: string): string {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                        TEST_POP_VALUES.DECODED_REQ_CNF;
+                        return TEST_POP_VALUES.DECODED_REQ_CNF;
                     case encodedLibState:
                         return decodedLibState;
                     default:
@@ -32,7 +31,7 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
             base64Encode(input: string): string {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
-                        TEST_POP_VALUES.ENCODED_REQ_CNF;
+                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
                     case `${decodedLibState}`:
                         return encodedLibState;
                     default:
@@ -60,34 +59,38 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
 
     it("setRequestState() appends library state to given state", () => {
         const requestState = ProtocolUtils.setRequestState(cryptoInterface, userState);
-        expect(requestState).to.be.eq(testState);
+        expect(requestState).toBe(testState);
     });
 
     it("setRequestState() only creates library state", () => {
         const requestState = ProtocolUtils.setRequestState(cryptoInterface, "");
-        expect(requestState).to.be.eq(encodedLibState);
+        expect(requestState).toBe(encodedLibState);
     });
 
     it("setRequestState throws error if no crypto object is passed to it", () => {
-        expect(() => ProtocolUtils.setRequestState(null, userState)).to.throw(ClientAuthError);
-        expect(() => ProtocolUtils.setRequestState(null, userState)).to.throw(ClientAuthErrorMessage.noCryptoObj.desc);
+        // @ts-ignore
+        expect(() => ProtocolUtils.setRequestState(null, userState)).toThrowError(ClientAuthError);
+        // @ts-ignore
+        expect(() => ProtocolUtils.setRequestState(null, userState)).toThrowError(ClientAuthErrorMessage.noCryptoObj.desc);
     });
 
     it("parseRequestState() throws error if given state is null or empty", () => {
-        expect(() => ProtocolUtils.parseRequestState(cryptoInterface, "")).to.throw(ClientAuthError);
-        expect(() => ProtocolUtils.parseRequestState(cryptoInterface, "")).to.throw(ClientAuthErrorMessage.invalidStateError.desc);
+        expect(() => ProtocolUtils.parseRequestState(cryptoInterface, "")).toThrowError(ClientAuthError);
+        expect(() => ProtocolUtils.parseRequestState(cryptoInterface, "")).toThrowError(ClientAuthErrorMessage.invalidStateError.desc);
 
-        expect(() => ProtocolUtils.parseRequestState(cryptoInterface, null)).to.throw(ClientAuthError);
-        expect(() => ProtocolUtils.parseRequestState(cryptoInterface, null)).to.throw(ClientAuthErrorMessage.invalidStateError.desc);
+        // @ts-ignore
+        expect(() => ProtocolUtils.parseRequestState(cryptoInterface, null)).toThrowError(ClientAuthError);
+        // @ts-ignore
+        expect(() => ProtocolUtils.parseRequestState(cryptoInterface, null)).toThrowError(ClientAuthErrorMessage.invalidStateError.desc);
     });
 
     it("parseRequestState() returns empty userRequestState if no resource delimiter found in state string", () => {
         const requestState = ProtocolUtils.parseRequestState(cryptoInterface, decodedLibState);
-        expect(requestState.userRequestState).to.be.empty;
+        expect(requestState.userRequestState).toHaveLength(0);
     });
 
     it("parseRequestState() correctly splits the state by the resource delimiter", () => {
         const requestState = ProtocolUtils.parseRequestState(cryptoInterface, testState);
-        expect(requestState.userRequestState).to.be.eq(userState);
+        expect(requestState.userRequestState).toBe(userState);
     });
 });

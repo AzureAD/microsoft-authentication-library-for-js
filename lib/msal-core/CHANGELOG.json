@@ -2,6 +2,36 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Thu, 13 May 2021 18:34:08 GMT",
+      "tag": "msal_v1.4.11",
+      "version": "1.4.11",
+      "comments": {
+        "none": [
+          {
+            "comment": "Enable no-param-reassign lint rule",
+            "author": "janutter@microsoft.com",
+            "commit": "e24f5cff944c05ccaecb180fa68814bc89512095",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 12 May 2021 18:35:03 GMT",
+      "tag": "msal_v1.4.11",
+      "version": "1.4.11",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Remove idtoken hash from browser history in msal-core #3587",
+            "author": "hemoral@microsoft.com",
+            "commit": "6a7a5c78af41887d5ac969ee2743f8a8668e5c6e",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 22 Apr 2021 23:26:08 GMT",
       "tag": "msal_v1.4.10",
       "version": "1.4.10",
