@@ -16,9 +16,9 @@ The [`lib`](https://github.com/AzureAD/microsoft-authentication-library-for-js/t
 
 - [Microsoft Authentication Library for JavaScript v2.x](lib/msal-browser/): A browser-based, framework-agnostic browser library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the OAuth 2.0 [Authorization Code Flow with PKCE](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-auth-code-flow), and is [OpenID-compliant](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc).
 
-- [Microsoft Authentication Library for React v1.x (Beta)](lib/msal-react/): A wrapper of the msal-browser 2.x library for apps using React.
+- [Microsoft Authentication Library for React v1.x](lib/msal-react/): A wrapper of the msal-browser 2.x library for apps using React.
 
-- [Microsoft Authentication Library for Angular v2.x (Beta)](lib/msal-angular/): A wrapper of the msal-browser 2.x library for apps using Angular framework.
+- [Microsoft Authentication Library for Angular v2.x](lib/msal-angular/): A wrapper of the msal-browser 2.x library for apps using Angular framework.
 
 - [Microsoft Authentication Library for JavaScript v1.x](lib/msal-core/): A browser-based, framework-agnostic core library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the OAuth 2.0 [Implicit Grant Flow](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-implicit-grant-flow), and is [OpenID-compliant](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-protocols-oidc).
 

@@ -247,6 +247,7 @@ export abstract class ClientApplication {
                 clientCapabilities: this.config.auth.clientCapabilities
             },
             loggerOptions: {
+                logLevel: this.config.system!.loggerOptions!.logLevel,
                 loggerCallback: this.config.system!.loggerOptions!
                     .loggerCallback,
                 piiLoggingEnabled: this.config.system!.loggerOptions!
