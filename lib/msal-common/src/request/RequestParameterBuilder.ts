@@ -107,7 +107,7 @@ export class RequestParameterBuilder {
      * @param loginHint 
      */
     addCcsUpn(loginHint: string): void {
-        this.parameters.set(HeaderNames.CCS_HEADER, encodeURIComponent(`UPN: ${loginHint}`));
+        this.parameters.set(HeaderNames.CCS_HEADER, encodeURIComponent(`UPN:${loginHint}`));
     }
 
     /**
