@@ -17,12 +17,11 @@ import { ResponseHandler } from "../response/ResponseHandler";
 import { CacheRecord } from "../cache/entities/CacheRecord";
 import { AuthenticationScheme } from "../utils/Constants";
 import { StringUtils } from "../utils/StringUtils";
-import { CommonRefreshTokenRequest } from "../request/CommonRefreshTokenRequest";
 
 export class SilentFlowClient extends BaseClient {
 
-    constructor(configuration: ClientConfiguration, request:CommonSilentFlowRequest) {
-        super(configuration, request);
+    constructor(configuration: ClientConfiguration) {
+        super(configuration);
     }
 
     /**
@@ -35,7 +34,7 @@ export class SilentFlowClient extends BaseClient {
             return await this.acquireCachedToken(request);
         } catch (e) {
             if (e instanceof ClientAuthError && e.errorCode === ClientAuthErrorMessage.tokenRefreshRequired.code) {
-                const refreshTokenClient = new RefreshTokenClient(this.config, request as unknown as CommonRefreshTokenRequest);
+                const refreshTokenClient = new RefreshTokenClient(this.config);
                 return refreshTokenClient.acquireTokenByRefreshToken(request);
             } else {
                 throw e;

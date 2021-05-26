@@ -33,8 +33,8 @@ import { AccountInfo } from "../account/AccountInfo";
  */
 export class AuthorizationCodeClient extends BaseClient {
 
-    constructor(configuration: ClientConfiguration, request: CommonAuthorizationCodeRequest|CommonAuthorizationUrlRequest) {
-        super(configuration, request);
+    constructor(configuration: ClientConfiguration) {
+        super(configuration);
     }
 
     /**
