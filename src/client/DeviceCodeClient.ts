@@ -226,9 +226,6 @@ export class DeviceCodeClient extends BaseClient {
         requestParameters.addClientInfo();
         requestParameters.addLibraryInfo(this.config.libraryInfo);
         requestParameters.addThrottling();
-
-        // Add correlationId to msal-common logger instance
-        this.logger.addCorrelationId(correlationId);
         
         if (this.serverTelemetryManager) {
             requestParameters.addServerTelemetry(this.serverTelemetryManager);

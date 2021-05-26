@@ -180,9 +180,6 @@ export class RefreshTokenClient extends BaseClient {
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);
 
-        // Add correlationId to msal-common logger instance
-        this.logger.addCorrelationId(correlationId);
-
         parameterBuilder.addRefreshToken(request.refreshToken);
 
         if (this.config.clientCredentials.clientSecret) {

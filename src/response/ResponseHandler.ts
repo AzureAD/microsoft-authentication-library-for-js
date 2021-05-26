@@ -165,9 +165,6 @@ export class ResponseHandler {
             }
         }
 
-        // Remove correlationId from logs at the end of requests
-        this.logger.addCorrelationId("");
-
         return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj);
     }
 
