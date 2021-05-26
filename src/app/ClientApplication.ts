@@ -339,8 +339,8 @@ export abstract class ClientApplication {
                 throw BrowserAuthError.createNoCachedAuthorityError();
             }
 
-            const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority);
-            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, cachedRequest, this.browserCrypto, this.logger);
+            const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority, cachedRequest.correlationId);
+            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, cachedRequest, this.browserCrypto);
             return await interactionHandler.handleCodeResponse(hash, state, authClient.authority, this.networkClient, this.config.auth.clientId);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
@@ -379,10 +379,10 @@ export abstract class ClientApplication {
             const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
 
             // Initialize the client
-            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority);
+            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority, validRequest.correlationId);
 
             // Create redirect interaction handler.
-            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, authCodeRequest, this.browserCrypto, this.logger);
+            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, authCodeRequest, this.browserCrypto);
 
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
@@ -471,13 +471,13 @@ export abstract class ClientApplication {
             const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
 
             // Initialize the client
-            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority);
+            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority, validRequest.correlationId);
 
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
 
             // Create popup interaction handler.
-            const interactionHandler = new PopupHandler(authClient, this.browserStorage, authCodeRequest, this.logger);
+            const interactionHandler = new PopupHandler(authClient, this.browserStorage, authCodeRequest);
 
             // Show the UI once the url has been created. Get the window handle for the popup.
             const popupParameters: PopupParams = {
@@ -588,7 +588,7 @@ export abstract class ClientApplication {
             const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
 
             // Initialize the client
-            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentRequest.authority);
+            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentRequest.authority, silentRequest.correlationId);
 
             // Create authorize request url
             const navigateUrl = await authClient.getAuthCodeUrl(silentRequest);
@@ -622,7 +622,7 @@ export abstract class ClientApplication {
         };
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);
         try {
-            const refreshTokenClient = await this.createRefreshTokenClient(serverTelemetryManager, silentRequest.authority);
+            const refreshTokenClient = await this.createRefreshTokenClient(serverTelemetryManager, silentRequest.authority, silentRequest.correlationId);
             // Send request to renew token. Auth module will throw errors if token cannot be renewed.
             return await refreshTokenClient.acquireTokenByRefreshToken(silentRequest);
         } catch (e) {
@@ -646,7 +646,7 @@ export abstract class ClientApplication {
      */
     private async silentTokenHelper(navigateUrl: string, authCodeRequest: CommonAuthorizationCodeRequest, authClient: AuthorizationCodeClient): Promise<AuthenticationResult> {
         // Create silent handler
-        const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.config.system.navigateFrameWait, this.logger);
+        const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.config.system.navigateFrameWait);
         // Get the frame handle for the silent request
         const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl);
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
@@ -684,7 +684,7 @@ export abstract class ClientApplication {
 
         try {
             this.emitEvent(EventType.LOGOUT_START, InteractionType.Redirect, logoutRequest);
-            const authClient = await this.createAuthCodeClient(serverTelemetryManager, logoutRequest && logoutRequest.authority);
+            const authClient = await this.createAuthCodeClient(serverTelemetryManager, logoutRequest && logoutRequest.authority, logoutRequest && logoutRequest.correlationId);
             // create logout string and navigate user window to logout. Auth module will clear cache.
             const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
             
@@ -772,7 +772,7 @@ export abstract class ClientApplication {
         try {
             this.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
             // Initialize the client
-            const authClient = await this.createAuthCodeClient(serverTelemetryManager, requestAuthority);
+            const authClient = await this.createAuthCodeClient(serverTelemetryManager, requestAuthority, validRequest.correlationId);
 
             // create logout string and navigate user window to logout. Auth module will clear cache.
             const logoutUri: string = authClient.getLogoutUri(validRequest);
@@ -989,10 +989,10 @@ export abstract class ClientApplication {
      * @param serverTelemetryManager
      * @param authorityUrl
      */
-    protected async createAuthCodeClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<AuthorizationCodeClient> {
+    protected async createAuthCodeClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, correlationId?: string): Promise<AuthorizationCodeClient> {
         this.logger.verbose("createAuthCodeClient called");
         // Create auth module.
-        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
+        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, correlationId);
         return new AuthorizationCodeClient(clientConfig);
     }
 
@@ -1001,10 +1001,10 @@ export abstract class ClientApplication {
      * @param serverTelemetryManager
      * @param authorityUrl
      */
-    protected async createSilentFlowClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<SilentFlowClient> {
+    protected async createSilentFlowClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, correlationId?: string): Promise<SilentFlowClient> {
         this.logger.verbose("createSilentFlowClient called");
         // Create auth module.
-        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
+        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, correlationId);
         return new SilentFlowClient(clientConfig);
     }
 
@@ -1013,10 +1013,10 @@ export abstract class ClientApplication {
      * @param serverTelemetryManager
      * @param authorityUrl
      */
-    protected async createRefreshTokenClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<RefreshTokenClient> {
+    protected async createRefreshTokenClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, correlationId?: string): Promise<RefreshTokenClient> {
         this.logger.verbose("createRefreshTokenClient called");
         // Create auth module.
-        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
+        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, correlationId);
         return new RefreshTokenClient(clientConfig);
     }
 
@@ -1024,8 +1024,9 @@ export abstract class ClientApplication {
      * Creates a Client Configuration object with the given request authority, or the default authority.
      * @param serverTelemetryManager
      * @param requestAuthority
+     * @param requestCorrelationId
      */
-    protected async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string): Promise<ClientConfiguration> {
+    protected async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string, requestCorrelationId?: string): Promise<ClientConfiguration> {
         this.logger.verbose("getClientConfiguration called");
         const discoveredAuthority = await this.getDiscoveredAuthority(requestAuthority);
 
@@ -1040,7 +1041,8 @@ export abstract class ClientApplication {
             },
             loggerOptions: {
                 loggerCallback: this.config.system.loggerOptions.loggerCallback,
-                piiLoggingEnabled: this.config.system.loggerOptions.piiLoggingEnabled
+                piiLoggingEnabled: this.config.system.loggerOptions.piiLoggingEnabled,
+                correlationId: requestCorrelationId
             },
             cryptoInterface: this.browserCrypto,
             networkInterface: this.networkClient,
@@ -1109,9 +1111,6 @@ export abstract class ClientApplication {
 
         const scopes = [...((request && request.scopes) || [])];
         const correlationId = (request && request.correlationId) || this.browserCrypto.createNewGuid();
-
-        // Ensures log messages for each request can be tracked by the correlationId
-        this.logger.addCorrelationId(correlationId);
 
         // Set authenticationScheme to BEARER if not explicitly set in the request
         if (!request.authenticationScheme) {

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { UrlString, StringUtils, CommonAuthorizationCodeRequest, AuthorizationCodeClient, Logger } from "@azure/msal-common";
+import { UrlString, StringUtils, CommonAuthorizationCodeRequest, AuthorizationCodeClient } from "@azure/msal-common";
 import { InteractionHandler, InteractionParams } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -23,8 +23,8 @@ export type PopupParams = InteractionParams & {
 export class PopupHandler extends InteractionHandler {
     private popupUtils: PopupUtils;
 
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, logger: Logger) {
-        super(authCodeModule, storageImpl, authCodeRequest, logger);
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest) {
+        super(authCodeModule, storageImpl, authCodeRequest);
 
         // Properly sets this reference for the unload event.
         this.popupUtils = new PopupUtils(storageImpl, authCodeModule.logger);
