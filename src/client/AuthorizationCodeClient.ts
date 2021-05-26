@@ -33,8 +33,8 @@ import { AccountInfo } from "../account/AccountInfo";
  */
 export class AuthorizationCodeClient extends BaseClient {
 
-    constructor(configuration: ClientConfiguration) {
-        super(configuration);
+    constructor(configuration: ClientConfiguration, request: CommonAuthorizationCodeRequest|CommonAuthorizationUrlRequest) {
+        super(configuration, request);
     }
 
     /**
@@ -250,8 +250,8 @@ export class AuthorizationCodeClient extends BaseClient {
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);
 
-        // Add correlationId to msal-common logger instance
-        this.logger.addCorrelationId(correlationId);
+        // // Add correlationId to msal-common logger instance
+        // this.logger.addCorrelationId(correlationId);
 
         // add response_mode. If not passed in it defaults to query.
         parameterBuilder.addResponseMode(request.responseMode);

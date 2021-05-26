@@ -23,8 +23,8 @@ import { TimeUtils } from "../utils/TimeUtils";
  */
 export class UsernamePasswordClient extends BaseClient {
 
-    constructor(configuration: ClientConfiguration) {
-        super(configuration);
+    constructor(configuration: ClientConfiguration, request: CommonUsernamePasswordRequest) {
+        super(configuration, request);
     }
 
     /**
