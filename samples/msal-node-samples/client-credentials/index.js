@@ -7,9 +7,9 @@ var msal = require('@azure/msal-node');
 
 const config = {
     auth: {
-        clientId: "<CLIENT_ID>",
-        authority: "https://login.microsoftonline.com/<TENANT_ID>",
-        clientSecret: "<CLIENT_SECRET>",
+        clientId: "48f55727-da76-4dbb-9908-d9335f239e20",
+        authority: "https://login.microsoftonline.com/eefab79a-7793-4852-be01-105ecb6f6d4e",
+        clientSecret: "epFuS.3-QDTU3DGI-QQs8UwQx-34jy.u9y",
     },
     system: {
         loggerOptions: {
@@ -30,7 +30,7 @@ const cca = new msal.ConfidentialClientApplication(config);
 const clientCredentialRequest = {
     scopes: ["https://graph.microsoft.com/.default"],
     azureRegion: "westus2",
-    skipCache: true, 
+    skipCache: false, 
 };
 
 cca.acquireTokenByClientCredential(clientCredentialRequest).then((response) => {

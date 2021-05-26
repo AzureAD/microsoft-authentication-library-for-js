@@ -54,9 +54,16 @@ export class ClientCredentialClient extends BaseClient {
      * looks up cache if the tokens are cached already
      */
     private async getCachedAuthenticationResult(request: CommonClientCredentialRequest): Promise<AuthenticationResult | null> {
+        
         const cachedAccessToken = this.readAccessTokenFromCache();
-        if (!cachedAccessToken ||
-            TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
+
+        if (!cachedAccessToken) {
+            this.serverTelemetryManager?.recordCachedAtDoesNotExist();
+            return null;
+        }
+
+        if (TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
+            this.serverTelemetryManager?.recordCachedAtExpired();
             return null;
         }
 
