@@ -101,7 +101,8 @@ export abstract class ClientApplication {
         };
         
         const authClientConfig = await this.buildOauthClientConfiguration(
-            validRequest.authority
+            validRequest.authority,
+            validRequest.correlationId
         );
         this.logger.verbose("Auth client config generated");
         const authorizationCodeClient = new AuthorizationCodeClient(
@@ -129,6 +130,7 @@ export abstract class ClientApplication {
         try {
             const authClientConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
+                validRequest.correlationId,
                 serverTelemetryManager
             );
             this.logger.verbose("Auth client config generated");
@@ -161,6 +163,7 @@ export abstract class ClientApplication {
         try {
             const refreshTokenClientConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
+                validRequest.correlationId,
                 serverTelemetryManager
             );
             this.logger.verbose("Auth client config generated");
@@ -193,6 +196,7 @@ export abstract class ClientApplication {
         try {
             const silentFlowClientConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
+                validRequest.correlationId,
                 serverTelemetryManager
             );
             const silentFlowClient = new SilentFlowClient(
@@ -233,10 +237,11 @@ export abstract class ClientApplication {
      * @param authority - user passed authority in configuration
      * @param serverTelemetryManager - initializes servertelemetry if passed
      */
-    protected async buildOauthClientConfiguration(authority: string, serverTelemetryManager?: ServerTelemetryManager, azureRegionConfiguration?: AzureRegionConfiguration): Promise<ClientConfiguration> {
+    protected async buildOauthClientConfiguration(authority: string, requestCorrelationId?: string, serverTelemetryManager?: ServerTelemetryManager, azureRegionConfiguration?: AzureRegionConfiguration): Promise<ClientConfiguration> {
         this.logger.verbose("buildOauthClientConfiguration called");
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
         this.logger.verbose(`building oauth client configuration with the authority: ${authority}`);
+        this.logger.info("CORRELATION ID: ", requestCorrelationId);
 
         const discoveredAuthority = await this.createAuthority(authority, azureRegionConfiguration);
 
@@ -252,6 +257,7 @@ export abstract class ClientApplication {
                     .loggerCallback,
                 piiLoggingEnabled: this.config.system!.loggerOptions!
                     .piiLoggingEnabled,
+                correlationId: requestCorrelationId
             },
             cryptoInterface: this.cryptoProvider,
             networkInterface: this.config.system!.networkClient,

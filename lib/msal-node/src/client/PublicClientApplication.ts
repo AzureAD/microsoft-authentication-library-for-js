@@ -60,6 +60,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         try {
             const deviceCodeConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
+                validRequest.correlationId,
                 serverTelemetryManager
             );
             this.logger.verbose("Auth client config generated");
@@ -91,6 +92,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         try {
             const usernamePasswordClientConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
+                validRequest.correlationId,
                 serverTelemetryManager
             );
             this.logger.verbose("Auth client config generated");

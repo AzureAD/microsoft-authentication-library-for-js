@@ -130,7 +130,7 @@ const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {
     },
     piiLoggingEnabled: false,
     logLevel: LogLevel.Info,
-    correlationId: ''
+    correlationId: ""
 };
 
 const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {

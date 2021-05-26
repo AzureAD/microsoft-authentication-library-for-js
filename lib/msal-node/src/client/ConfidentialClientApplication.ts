@@ -69,6 +69,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
         try {
             const clientCredentialConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
+                validRequest.correlationId,
                 serverTelemetryManager,
                 azureRegionConfiguration,
             );
@@ -99,7 +100,8 @@ export class ConfidentialClientApplication extends ClientApplication implements 
             ...this.initializeBaseRequest(request)
         };
         const clientCredentialConfig = await this.buildOauthClientConfiguration(
-            validRequest.authority
+            validRequest.authority,
+            validRequest.correlationId
         );
         this.logger.verbose("Auth client config generated");
         const oboClient = new OnBehalfOfClient(clientCredentialConfig);
