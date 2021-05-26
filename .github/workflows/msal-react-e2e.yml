@@ -34,6 +34,7 @@ jobs:
           - 'react-router-sample'
           - 'nextjs-sample'
           - 'gatsby-sample'
+          - 'typescript-sample'
 
     steps:
     - uses: actions/checkout@v2
