@@ -22,6 +22,10 @@ export class ServerTelemetryManager {
     private regionUsed: string | undefined;
     private regionSource: RegionDiscoverySources | undefined;
     private regionOutcome: RegionDiscoveryOutcomes | undefined;
+    private noCacheHit: boolean;
+    private cachedAtDoesNotExist: boolean;
+    private cachedAtIsExpired: boolean; 
+    private cachedAtShouldBeRefreshed: boolean;
 
     constructor(telemetryRequest: ServerTelemetryRequest, cacheManager: CacheManager) {
         this.cacheManager = cacheManager;
@@ -38,13 +42,17 @@ export class ServerTelemetryManager {
      * API to add MSER Telemetry to request
      */
     generateCurrentRequestHeaderValue(): string {
-        const forceRefreshInt = this.forceRefresh ? 1 : 0;
-        const request = `${this.apiId}${SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR}${forceRefreshInt}`;
+        const cacheInfo = this.getCacheInfoValue();
+        const request = `${this.apiId}${SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR}${cacheInfo}`;
         const platformFields = [this.wrapperSKU, this.wrapperVer].join(SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR);
         const regionDiscoveryFields = this.getRegionDiscoveryFields();
         const requestWithRegionDiscoveryFields = [request, regionDiscoveryFields].join(SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR);
 
-        return [SERVER_TELEM_CONSTANTS.SCHEMA_VERSION, requestWithRegionDiscoveryFields, platformFields].join(SERVER_TELEM_CONSTANTS.CATEGORY_SEPARATOR);
+        const serverTelemetryHeaders = [SERVER_TELEM_CONSTANTS.SCHEMA_VERSION, requestWithRegionDiscoveryFields, platformFields].join(SERVER_TELEM_CONSTANTS.CATEGORY_SEPARATOR);
+        // eslint-disable-next-line no-console
+        console.log(serverTelemetryHeaders);
+
+        return serverTelemetryHeaders;
     }
 
     /**
@@ -219,7 +227,25 @@ export class ServerTelemetryManager {
             default:
                 return "0";
         }
-    }  
+    }
+    
+    getCacheInfoValue(): string {
+        if (this.noCacheHit) {
+            return "0";
+        } else if (this.forceRefresh) {
+            return "1";
+        } else if (this.cachedAtDoesNotExist) {
+            return "2";
+        } else if (this.cachedAtIsExpired) { 
+            return "3";
+        } else if (this.cachedAtShouldBeRefreshed) {
+            return "4";
+        } else {
+            return "0";
+        }
+
+        return "0";
+    }
 
     /**
      * Update the region discovery metadata
@@ -231,5 +257,34 @@ export class ServerTelemetryManager {
         this.regionUsed = regionDiscoveryMetadata.region_used;
         this.regionSource = regionDiscoveryMetadata.region_source;
         this.regionOutcome = regionDiscoveryMetadata.region_outcome;
-    } 
+    }
+    
+    /**
+     * Set no cache hit to be true
+     */
+    recordNoCacheHit(): void {
+        this.noCacheHit = true;
+    }
+
+    /**
+     * Set that no cached AT exists
+     */
+    recordCachedAtDoesNotExist(): void {
+        this.cachedAtDoesNotExist = true;
+    }
+
+    /**
+     * Set that the cached AT us expired
+     */
+    recordCachedAtExpired(): void {
+        this.cachedAtIsExpired = true;
+    }
+
+    /**
+     * TODO: Implement the refresh_in logic
+     * Set that the cached AT requires to be refreshed
+     */
+    recordCachedAtShouldBeRefreshed(): void {
+        this.cachedAtShouldBeRefreshed = true;
+    }
 }

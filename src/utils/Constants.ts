@@ -295,7 +295,7 @@ export enum AuthorityMetadataSource {
 }
 
 export const SERVER_TELEM_CONSTANTS = {
-    SCHEMA_VERSION: 2,
+    SCHEMA_VERSION: 5,
     MAX_CUR_HEADER_BYTES: 80, // ESTS limit is 100B, set to 80 to provide a 20B buffer
     MAX_LAST_HEADER_BYTES: 330, // ESTS limit is 350B, set to 330 to provide a 20B buffer,
     MAX_CACHED_ERRORS: 50, // Limit the number of errors that can be stored to prevent uncontrolled size gains
