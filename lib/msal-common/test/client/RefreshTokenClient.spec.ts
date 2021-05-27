@@ -438,14 +438,14 @@ describe("RefreshTokenClient unit tests", () => {
         it("Throws error if it does not find token in cache", async () => {
             const testAccount: AccountInfo = {
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
                 environment: "login.windows.net",
                 tenantId: "testTenantId",
                 username: "testname@contoso.com"
             };
             const testScope2 = "scope2";
             const testAccountEntity: AccountEntity = new AccountEntity();
-            testAccountEntity.homeAccountId = TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID;
+            testAccountEntity.homeAccountId = TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID;
             testAccountEntity.localAccountId = ID_TOKEN_CLAIMS.oid;
             testAccountEntity.environment = "login.windows.net";
             testAccountEntity.realm = "testTenantId";
