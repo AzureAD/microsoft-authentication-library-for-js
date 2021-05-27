@@ -39,7 +39,7 @@ import { CcsCredentialType } from "../../src/account/CcsCredential";
 import { ServerTelemetryManager } from "../../src/telemetry/server/ServerTelemetryManager";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
-testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID}`;
+testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID}`;
 testAccountEntity.localAccountId = ID_TOKEN_CLAIMS.oid;
 testAccountEntity.environment = "login.windows.net";
 testAccountEntity.realm = ID_TOKEN_CLAIMS.tid;
@@ -88,7 +88,7 @@ testRefreshTokenEntity.credentialType = CredentialType.REFRESH_TOKEN;
 
 describe("SilentFlowClient unit tests", () => {
     const testAccount: AccountInfo = {
-        homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+        homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
         environment: "login.windows.net",
         tenantId: ID_TOKEN_CLAIMS.tid,
         username: ID_TOKEN_CLAIMS.preferred_username,
@@ -364,7 +364,7 @@ describe("SilentFlowClient unit tests", () => {
         it("Throws error if it does not find token in cache", async () => {
             const testScope2 = "scope2";
             const testAccountEntity: AccountEntity = new AccountEntity();
-            testAccountEntity.homeAccountId = TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID;
+            testAccountEntity.homeAccountId = TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID;
             testAccountEntity.localAccountId = "testId";
             testAccountEntity.environment = "login.windows.net";
             testAccountEntity.realm = "testTenantId";
@@ -479,7 +479,7 @@ describe("SilentFlowClient unit tests", () => {
         let config: ClientConfiguration;
         let client: SilentFlowClient;
         const testAccount: AccountInfo = {
-            homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID}`,
+            homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID}`,
             tenantId: ID_TOKEN_CLAIMS.tid,
             environment: "login.windows.net",
             username: ID_TOKEN_CLAIMS.preferred_username,

@@ -1,4 +1,4 @@
-import { buildClientInfo } from "../../src/account/ClientInfo";
+import { buildClientInfo, buildClientInfoFromHomeAccountId, ClientInfo } from "../../src/account/ClientInfo";
 import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_POP_VALUES } from "../test_kit/StringConstants";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
@@ -73,6 +73,24 @@ describe("ClientInfo.ts Class Unit Tests", () => {
 
             expect(clientInfo.uid).toBe(TEST_DATA_CLIENT_INFO.TEST_UID);
             expect(clientInfo.utid).toBe(TEST_DATA_CLIENT_INFO.TEST_UTID);
+        });
+    });
+
+    describe("buildClientInfoFromHomeAccountId", () => {
+        it("throws error if homeAccountId is not in the correct format", () => {
+            expect(() => buildClientInfoFromHomeAccountId("")).toThrowError(ClientAuthError);
+            expect(() => buildClientInfoFromHomeAccountId("")).toThrowError(ClientAuthErrorMessage.clientInfoDecodingError.desc);
+
+            expect(() => buildClientInfoFromHomeAccountId("notAHomeAccountId")).toThrowError(ClientAuthError);
+            expect(() => buildClientInfoFromHomeAccountId("notAHomeAccountId")).toThrowError(ClientAuthErrorMessage.clientInfoDecodingError.desc);
+        });
+
+        it("successfully returns client info built from homeAccountId", () => {
+            const expectedClientInfo: ClientInfo = {
+                uid: TEST_DATA_CLIENT_INFO.TEST_UID,
+                utid: TEST_DATA_CLIENT_INFO.TEST_UTID
+            };
+            expect(buildClientInfoFromHomeAccountId(TEST_DATA_CLIENT_INFO.TEST_DECODED_HOME_ACCOUNT_ID)).toMatchObject(expectedClientInfo);
         });
     });
 });
