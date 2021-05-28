@@ -57,7 +57,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
      * Acquires tokens from the authority for the application (not for an end user).
      */
     public async acquireTokenByClientCredential(request: ClientCredentialRequest): Promise<AuthenticationResult | null> {
-        this.logger.info("acquireTokenByClientCredential called");
+        this.logger.info("acquireTokenByClientCredential called", request.correlationId);
         const validRequest: CommonClientCredentialRequest = {
             ...request,
             ...this.initializeBaseRequest(request)
@@ -75,7 +75,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
                 azureRegionConfiguration,
             );
             const clientCredentialClient = new ClientCredentialClient(clientCredentialConfig);
-            clientCredentialClient.logger.verbose("Client credential client created", name, version);
+            clientCredentialClient.logger.verbose("Client credential client created", "",  name, version);
             return clientCredentialClient.acquireToken(validRequest);
         } catch(e) {
             serverTelemetryManager.cacheFailedRequest(e);
@@ -95,7 +95,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
      * https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow#gaining-consent-for-the-middle-tier-application
      */
     public async acquireTokenOnBehalfOf(request: OnBehalfOfRequest): Promise<AuthenticationResult | null> {
-        this.logger.info("acquireTokenOnBehalfOf called");
+        this.logger.info("acquireTokenOnBehalfOf called", request.correlationId);
         const validRequest: CommonOnBehalfOfRequest = {
             ...request,
             ...this.initializeBaseRequest(request)
@@ -105,7 +105,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
             validRequest.correlationId
         );
         const oboClient = new OnBehalfOfClient(clientCredentialConfig);
-        oboClient.logger.verbose("On behalf of client created", name, version);
+        oboClient.logger.verbose("On behalf of client created", "", name, version);
         return oboClient.acquireToken(validRequest);
     }
 

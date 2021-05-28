@@ -55,7 +55,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * until the end-user completes input of credentials.
      */
     public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null> {
-        this.logger.info("acquireTokenByDeviceCode called");
+        this.logger.info("acquireTokenByDeviceCode called", request.correlationId);
         const validRequest: CommonDeviceCodeRequest = Object.assign(request, this.initializeBaseRequest(request));
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByDeviceCode, validRequest.correlationId!);
         try {
@@ -65,7 +65,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 serverTelemetryManager
             );
             const deviceCodeClient = new DeviceCodeClient(deviceCodeConfig);
-            deviceCodeClient.logger.verbose("Device code client created", name, version);
+            deviceCodeClient.logger.verbose("Device code client created", "", name, version);
             return deviceCodeClient.acquireToken(validRequest);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
@@ -84,7 +84,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @param request - UsenamePasswordRequest
      */
     async acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null> {
-        this.logger.info("acquireTokenByUsernamePassword called");
+        this.logger.info("acquireTokenByUsernamePassword called", request.correlationId);
         const validRequest: CommonUsernamePasswordRequest = {
             ...request,
             ...this.initializeBaseRequest(request)
@@ -97,7 +97,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 serverTelemetryManager
             );
             const usernamePasswordClient = new UsernamePasswordClient(usernamePasswordClientConfig);
-            usernamePasswordClient.logger.verbose("Username password client created", name, version);
+            usernamePasswordClient.logger.verbose("Username password client created", "", name, version);
             return usernamePasswordClient.acquireToken(validRequest);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);

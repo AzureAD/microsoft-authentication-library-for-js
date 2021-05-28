@@ -92,7 +92,7 @@ export abstract class ClientApplication {
      * `acquireTokenByCode(AuthorizationCodeRequest)`.
      */
     async getAuthCodeUrl(request: AuthorizationUrlRequest): Promise<string> {
-        this.logger.info("getAuthCodeUrl called");
+        this.logger.info("getAuthCodeUrl called", request.correlationId);
         const validRequest: CommonAuthorizationUrlRequest = {
             ...request,
             ...this.initializeBaseRequest(request),
@@ -107,7 +107,7 @@ export abstract class ClientApplication {
         const authorizationCodeClient = new AuthorizationCodeClient(
             authClientConfig
         );
-        authorizationCodeClient.logger.verbose("Auth code client created", name, version);
+        authorizationCodeClient.logger.verbose("Auth code client created", "", name, version);
         return authorizationCodeClient.getAuthCodeUrl(validRequest);
     }
 
@@ -120,7 +120,7 @@ export abstract class ClientApplication {
      * AuthorizationCodeRequest are the same.
      */
     async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult | null> {
-        this.logger.info("acquireTokenByCode called");
+        this.logger.info("acquireTokenByCode called", request.correlationId);
         const validRequest: CommonAuthorizationCodeRequest = {
             ...request,
             ...this.initializeBaseRequest(request),
@@ -136,7 +136,7 @@ export abstract class ClientApplication {
             const authorizationCodeClient = new AuthorizationCodeClient(
                 authClientConfig
             );
-            authorizationCodeClient.logger.verbose("Auth code client created", name, version);
+            authorizationCodeClient.logger.verbose("Auth code client created", "", name, version);
             return authorizationCodeClient.acquireToken(validRequest);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
@@ -152,7 +152,7 @@ export abstract class ClientApplication {
      * handle the caching and refreshing of tokens automatically.
      */
     async acquireTokenByRefreshToken(request: RefreshTokenRequest): Promise<AuthenticationResult | null> {
-        this.logger.info("acquireTokenByRefreshToken called");
+        this.logger.info("acquireTokenByRefreshToken called", request.correlationId);
         const validRequest: CommonRefreshTokenRequest = {
             ...request,
             ...this.initializeBaseRequest(request),
@@ -169,7 +169,7 @@ export abstract class ClientApplication {
             const refreshTokenClient = new RefreshTokenClient(
                 refreshTokenClientConfig
             );
-            refreshTokenClient.logger.verbose("Refresh token client created", name, version);
+            refreshTokenClient.logger.verbose("Refresh token client created", "", name, version);
             return refreshTokenClient.acquireToken(validRequest);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
@@ -202,7 +202,7 @@ export abstract class ClientApplication {
             const silentFlowClient = new SilentFlowClient(
                 silentFlowClientConfig
             );
-            silentFlowClient.logger.verbose("Silent flow client created", name, version);
+            silentFlowClient.logger.verbose("Silent flow client created", "", name, version);
             return silentFlowClient.acquireToken(validRequest);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
@@ -239,12 +239,11 @@ export abstract class ClientApplication {
      * @param serverTelemetryManager - initializes servertelemetry if passed
      */
     protected async buildOauthClientConfiguration(authority: string, requestCorrelationId?: string, serverTelemetryManager?: ServerTelemetryManager, azureRegionConfiguration?: AzureRegionConfiguration): Promise<ClientConfiguration> {
-        this.logger.verbose("buildOauthClientConfiguration called");
+        this.logger.verbose("buildOauthClientConfiguration called", requestCorrelationId);
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
-        this.logger.verbose(`building oauth client configuration with the authority: ${authority}`);
-        this.logger.info("CORRELATION ID: ", requestCorrelationId);
+        this.logger.verbose(`building oauth client configuration with the authority: ${authority}`, requestCorrelationId);
 
-        const discoveredAuthority = await this.createAuthority(authority, azureRegionConfiguration);
+        const discoveredAuthority = await this.createAuthority(authority, azureRegionConfiguration, requestCorrelationId);
 
         return {
             authOptions: {
@@ -291,10 +290,10 @@ export abstract class ClientApplication {
      * @param authRequest - BaseAuthRequest for initialization
      */
     protected initializeBaseRequest(authRequest: Partial<BaseAuthRequest>): BaseAuthRequest {
-        this.logger.verbose("initializeRequestScopes called");
+        this.logger.verbose("initializeRequestScopes called", authRequest.correlationId);
         // Default authenticationScheme to Bearer, log that POP isn't supported yet
         if (authRequest.authenticationScheme && authRequest.authenticationScheme === AuthenticationScheme.POP) {
-            this.logger.verbose("Authentication Scheme 'pop' is not supported yet, setting Authentication Scheme to 'Bearer' for request");
+            this.logger.verbose("Authentication Scheme 'pop' is not supported yet, setting Authentication Scheme to 'Bearer' for request", authRequest.correlationId);
         }
 
         authRequest.authenticationScheme = AuthenticationScheme.BEARER;
@@ -329,8 +328,8 @@ export abstract class ClientApplication {
      * object. If no authority set in application object, then default to common authority.
      * @param authorityString - authority from user configuration
      */
-    private async createAuthority(authorityString: string, azureRegionConfiguration?: AzureRegionConfiguration): Promise<Authority> {
-        this.logger.verbose("createAuthority called");
+    private async createAuthority(authorityString: string, azureRegionConfiguration?: AzureRegionConfiguration, requestCorrelationId?: string): Promise<Authority> {
+        this.logger.verbose("createAuthority called", requestCorrelationId);
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode!,
             knownAuthorities: this.config.auth.knownAuthorities!,
