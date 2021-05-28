@@ -104,10 +104,10 @@ export abstract class ClientApplication {
             validRequest.authority,
             validRequest.correlationId
         );
-        this.logger.verbose("Auth client config generated");
         const authorizationCodeClient = new AuthorizationCodeClient(
             authClientConfig
         );
+        authorizationCodeClient.logger.verbose("Auth code client created", name, version);
         return authorizationCodeClient.getAuthCodeUrl(validRequest);
     }
 
@@ -133,10 +133,10 @@ export abstract class ClientApplication {
                 validRequest.correlationId,
                 serverTelemetryManager
             );
-            this.logger.verbose("Auth client config generated");
             const authorizationCodeClient = new AuthorizationCodeClient(
                 authClientConfig
             );
+            authorizationCodeClient.logger.verbose("Auth code client created", name, version);
             return authorizationCodeClient.acquireToken(validRequest);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
@@ -166,10 +166,10 @@ export abstract class ClientApplication {
                 validRequest.correlationId,
                 serverTelemetryManager
             );
-            this.logger.verbose("Auth client config generated");
             const refreshTokenClient = new RefreshTokenClient(
                 refreshTokenClientConfig
             );
+            refreshTokenClient.logger.verbose("Refresh token client created", name, version);
             return refreshTokenClient.acquireToken(validRequest);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
@@ -202,6 +202,7 @@ export abstract class ClientApplication {
             const silentFlowClient = new SilentFlowClient(
                 silentFlowClientConfig
             );
+            silentFlowClient.logger.verbose("Silent flow client created", name, version);
             return silentFlowClient.acquireToken(validRequest);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);

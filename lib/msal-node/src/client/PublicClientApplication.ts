@@ -16,6 +16,7 @@ import { ClientApplication } from "./ClientApplication";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
 import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
+import { version, name } from "../packageMetadata";
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications
@@ -63,8 +64,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 validRequest.correlationId,
                 serverTelemetryManager
             );
-            this.logger.verbose("Auth client config generated");
             const deviceCodeClient = new DeviceCodeClient(deviceCodeConfig);
+            deviceCodeClient.logger.verbose("Device code client created", name, version);
             return deviceCodeClient.acquireToken(validRequest);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
@@ -95,8 +96,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 validRequest.correlationId,
                 serverTelemetryManager
             );
-            this.logger.verbose("Auth client config generated");
             const usernamePasswordClient = new UsernamePasswordClient(usernamePasswordClientConfig);
+            usernamePasswordClient.logger.verbose("Username password client created", name, version);
             return usernamePasswordClient.acquireToken(validRequest);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
