@@ -10,6 +10,7 @@ import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { InteractionHandler, InteractionParams } from "./InteractionHandler";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NavigationOptions } from "../navigation/NavigationOptions";
+import { version, name } from "../packageMetadata";
 
 export type RedirectParams = InteractionParams & {
     navigationClient: INavigationClient;
@@ -32,19 +33,19 @@ export class RedirectHandler extends InteractionHandler {
      * @param urlNavigate
      */
     async initiateAuthRequest(requestUrl: string, params: RedirectParams): Promise<void> {
-        this.authModule.logger.verbose("RedirectHandler.initiateAuthRequest called");
+        this.authModule.logger.verbose("RedirectHandler.initiateAuthRequest called", "", name, version);
         // Navigate if valid URL
         if (!StringUtils.isEmpty(requestUrl)) {
             // Cache start page, returns to this page after redirectUri if navigateToLoginRequestUrl is true
             if (params.redirectStartPage) {
-                this.authModule.logger.verbose("RedirectHandler.initiateAuthRequest: redirectStartPage set to true, caching start page");
+                this.authModule.logger.verbose("RedirectHandler.initiateAuthRequest: redirectStartPage set, caching start page", "", name, version);
                 this.browserStorage.setTemporaryCache(TemporaryCacheKeys.ORIGIN_URI, params.redirectStartPage, true);
             }
 
             // Set interaction status in the library.
             this.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
             this.browserStorage.cacheCodeRequest(this.authCodeRequest, this.browserCrypto);
-            this.authModule.logger.infoPii("RedirectHandler.initiateAuthRequest: Navigate to:" + requestUrl);
+            this.authModule.logger.infoPii(`RedirectHandler.initiateAuthRequest: Navigate to: ${requestUrl}`, "", name, version);
             const navigationOptions: NavigationOptions = {
                 apiId: ApiId.acquireTokenRedirect,
                 timeout: params.redirectTimeout,
@@ -53,27 +54,27 @@ export class RedirectHandler extends InteractionHandler {
             
             // If onRedirectNavigate is implemented, invoke it and provide requestUrl
             if (typeof params.onRedirectNavigate === "function") {
-                this.authModule.logger.verbose("RedirectHandler.initiateAuthRequest: Invoking onRedirectNavigate callback");
+                this.authModule.logger.verbose("RedirectHandler.initiateAuthRequest: Invoking onRedirectNavigate callback", "", name, version);
                 const navigate = params.onRedirectNavigate(requestUrl);
 
                 // Returning false from onRedirectNavigate will stop navigation
                 if (navigate !== false) {
-                    this.authModule.logger.verbose("RedirectHandler.initiateAuthRequest: onRedirectNavigate did not return false, navigating");
+                    this.authModule.logger.verbose("RedirectHandler.initiateAuthRequest: onRedirectNavigate did not return false, navigating", "", name, version);
                     await params.navigationClient.navigateExternal(requestUrl, navigationOptions);
                     return;
                 } else {
-                    this.authModule.logger.verbose("RedirectHandler.initiateAuthRequest: onRedirectNavigate returned false, stopping navigation");
+                    this.authModule.logger.verbose("RedirectHandler.initiateAuthRequest: onRedirectNavigate returned false, stopping navigation", "", name, version);
                     return;
                 }
             } else {
                 // Navigate window to request URL
-                this.authModule.logger.verbose("RedirectHandler.initiateAuthRequest: Navigating window to navigate url");
+                this.authModule.logger.verbose("RedirectHandler.initiateAuthRequest: Navigating window to navigate url", "", name, version);
                 await params.navigationClient.navigateExternal(requestUrl, navigationOptions);
                 return;
             }
         } else {
             // Throw error if request URL is empty.
-            this.authModule.logger.info("RedirectHandler.initiateAuthRequest: Navigate url is empty");
+            this.authModule.logger.info("RedirectHandler.initiateAuthRequest: Navigate url is empty", "", name, version);
             throw BrowserAuthError.createEmptyNavigationUriError();
         }
     }
@@ -83,7 +84,7 @@ export class RedirectHandler extends InteractionHandler {
      * @param hash
      */
     async handleCodeResponse(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule, clientId?: string): Promise<AuthenticationResult> {
-        this.authModule.logger.verbose("RedirectHandler.handleCodeResponse called");
+        this.authModule.logger.verbose("RedirectHandler.handleCodeResponse called", "", name, version);
 
         // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {

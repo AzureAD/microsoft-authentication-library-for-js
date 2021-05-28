@@ -36,7 +36,7 @@ export abstract class InteractionHandler {
      * @param locationHash
      */
     async handleCodeResponse(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule): Promise<AuthenticationResult> {
-        this.authModule.logger.verbose("InteractionHandler.handleCodeResponse called", null, name, version);
+        this.authModule.logger.verbose("InteractionHandler.handleCodeResponse called", "", name, version);
         // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {
             throw BrowserAuthError.createEmptyHashError(locationHash);
