@@ -13,6 +13,7 @@ import { ClientApplication } from "./ClientApplication";
 import { SilentRequest } from "../request/SilentRequest";
 import { EventType } from "../event/EventType";
 import { BrowserAuthError } from "../error/BrowserAuthError";
+import { version, name } from "../packageMetadata";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -79,7 +80,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
-        this.logger.verbose("acquireTokenSilent called");
+        this.logger.verbose("acquireTokenSilent called", request.correlationId);
         const account = request.account || this.getActiveAccount();
         if (!account) {
             throw BrowserAuthError.createNoAccountError();
@@ -95,6 +96,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             // Telemetry manager only used to increment cacheHits here
             const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);
             const silentAuthClient = await this.createSilentFlowClient(serverTelemetryManager, silentRequest.authority, silentRequest.correlationId);
+            silentAuthClient.logger.verbose("Silent auth client created", name, version);
             const cachedToken = await silentAuthClient.acquireCachedToken(silentRequest);
             this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, cachedToken);
             return cachedToken;
