@@ -185,4 +185,81 @@ describe("Logger.ts Class Unit Tests", () => {
             expect(executeCbSpy.called).toBe(false);
         });
     });
+
+    describe("CorrelationId tests", () => {
+
+        it("CorrelationId is included in log message if set on Logger configurations", () => {
+            const testCorrelationId = "12345";
+            const logger = new Logger({...loggerOptions, correlationId: testCorrelationId});
+
+            logger.verbose("Message");
+            expect(logStore[LogLevel.Verbose].includes(testCorrelationId)).toBe(true);
+        });
+
+        it("CorrelationId is included in log message if passed in log message", () => {
+            const testCorrelationId = "23456";
+            const logger = new Logger(loggerOptions);
+
+            logger.verbose("Message", testCorrelationId);
+            expect(logStore[LogLevel.Verbose].includes(testCorrelationId)).toBe(true);
+        });
+
+        it("CorrelationId passed in log message takes precedence over correlationId in Logger configurations", () => {
+            const optionsCorrelationId = "34567";
+            const testCorrelationId = "45678";
+            const logger = new Logger({...loggerOptions, correlationId: optionsCorrelationId});
+
+            logger.verbose("Message", testCorrelationId);
+            expect(logStore[LogLevel.Verbose].includes(testCorrelationId)).toBe(true);
+            expect(logStore[LogLevel.Verbose].includes(optionsCorrelationId)).toBe(false);
+        });
+
+        it("CorrelationId on Logger will be used if an empty string is passed in the log message", () => {
+            const testCorrelationId = "56789";
+            const logger = new Logger(loggerOptions, testCorrelationId);
+
+            logger.verbose("Message", "");
+            expect(logStore[LogLevel.Verbose].includes(testCorrelationId)).toBe(true);
+        });
+    });
+
+    describe("Package name and version tests", () => {
+
+        it("Package name and version is set when Logger instantiated", () => {
+            const packageName = "msal-common";
+            const packageVersion = "2.0.0";
+            const logger = new Logger(loggerOptions, packageName, packageVersion);
+
+            logger.info("Message");
+            expect(logStore[LogLevel.Info].includes(packageName)).toBe(true);
+            expect(logStore[LogLevel.Info].includes(packageVersion)).toBe(true);
+            expect(logStore[LogLevel.Info].includes(`${packageName}@${packageVersion}`)).toBe(true);
+        });
+
+        it("Package name and version can be set when message logged", () => {
+            const packageName = "msal-common";
+            const packageVersion = "2.0.0";
+            const logger = new Logger(loggerOptions);
+
+            logger.info("Message", "", packageName, packageVersion);
+            expect(logStore[LogLevel.Info].includes(packageName)).toBe(true);
+            expect(logStore[LogLevel.Info].includes(packageVersion)).toBe(true);
+            expect(logStore[LogLevel.Info].includes(`${packageName}@${packageVersion}`)).toBe(true);
+        });
+
+        it("Package name and version passed in log message takes precedence over name and version on Logger", () => {
+            const loggerPackageName = "msal-common";
+            const loggerPackageVersion = "2.0.0";
+            const logger = new Logger(loggerOptions, loggerPackageName, loggerPackageVersion);
+
+            const messagePackageName = "msal-node";
+            const messagePackageVersion = "1.0.0";
+            logger.info("Message", "", messagePackageName, messagePackageVersion);
+
+            expect(logStore[LogLevel.Info].includes(messagePackageName)).toBe(true);
+            expect(logStore[LogLevel.Info].includes(messagePackageVersion)).toBe(true);
+            expect(logStore[LogLevel.Info].includes(`${messagePackageName}@${messagePackageVersion}`)).toBe(true);
+        });
+
+    });
 });
