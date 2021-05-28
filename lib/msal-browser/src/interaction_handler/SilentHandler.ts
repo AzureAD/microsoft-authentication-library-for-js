@@ -9,6 +9,7 @@ import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { DEFAULT_IFRAME_TIMEOUT_MS } from "../config/Configuration";
+import { version, name } from "../packageMetadata";
 
 export class SilentHandler extends InteractionHandler {
 
@@ -26,7 +27,7 @@ export class SilentHandler extends InteractionHandler {
     async initiateAuthRequest(requestUrl: string): Promise<HTMLIFrameElement> {
         if (StringUtils.isEmpty(requestUrl)) {
             // Throw error if request URL is empty.
-            this.authModule.logger.info("Navigate url is empty");
+            this.authModule.logger.info("Navigate url is empty", "", name, version);
             throw BrowserAuthError.createEmptyNavigationUriError();
         }
 
@@ -41,7 +42,7 @@ export class SilentHandler extends InteractionHandler {
     monitorIframeForHash(iframe: HTMLIFrameElement, timeout: number): Promise<string> {
         return new Promise((resolve, reject) => {
             if (timeout < DEFAULT_IFRAME_TIMEOUT_MS) {
-                this.authModule.logger.warning(`system.loadFrameTimeout or system.iframeHashTimeout set to lower (${timeout}ms) than the default (${DEFAULT_IFRAME_TIMEOUT_MS}ms). This may result in timeouts.`);
+                this.authModule.logger.warning(`system.loadFrameTimeout or system.iframeHashTimeout set to lower (${timeout}ms) than the default (${DEFAULT_IFRAME_TIMEOUT_MS}ms). This may result in timeouts.`, "", name, version);
             }
 
             /*
