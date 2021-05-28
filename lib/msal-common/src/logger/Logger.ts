@@ -14,6 +14,7 @@ export type LoggerMessageOptions = {
     logLevel: LogLevel,
     containsPii?: boolean,
     context?: string,
+    correlationId?: string,
     packageName?: string,
     packageVersion?: string
 };
@@ -86,20 +87,21 @@ export class Logger {
         }
         const timestamp = new Date().toUTCString();
 
-        // Only allow correlationID in logs if pii is enabled.
+        // Add correlationId to logs if set, correlationId provided on log messages take precedence
         let logHeader: string;
-        if (!StringUtils.isEmpty(this.correlationId) && this.piiLoggingEnabled) {
+        if (!StringUtils.isEmpty(options.correlationId)) {
+            logHeader = `[${timestamp}] : [${options.correlationId}]`;
+        } else if (!StringUtils.isEmpty(this.correlationId)) {
             logHeader = `[${timestamp}] : [${this.correlationId}]`;
         } else {
             logHeader = `[${timestamp}]`;
         }
 
+        // Use another library's name and version if provided in options
         let log: string;
         if (options.packageName && options.packageVersion) {
-            // Log messages from other library if specified
             log = `${logHeader} : ${options.packageName}@${options.packageVersion} : ${LogLevel[options.logLevel]} - ${logMessage}`;
         } else {
-            // Log messages from msal-common
             log = `${logHeader} : ${this.packageName}@${this.packageVersion} : ${LogLevel[options.logLevel]} - ${logMessage}`;
         }
 
@@ -119,10 +121,11 @@ export class Logger {
     /**
      * Logs error messages.
      */
-    error(message: string, packageName?: string, packageVersion?: string): void {
+    error(message: string, correlationId?: string, packageName?: string, packageVersion?: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Error,
             containsPii: false,
+            correlationId: correlationId || "",
             packageName: packageName,
             packageVersion: packageVersion,
         });
@@ -131,10 +134,11 @@ export class Logger {
     /**
      * Logs error messages with PII.
      */
-    errorPii(message: string, packageName?: string, packageVersion?: string): void {
+    errorPii(message: string, correlationId?: string, packageName?: string, packageVersion?: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Error,
             containsPii: true,
+            correlationId: correlationId || "",
             packageName: packageName,
             packageVersion: packageVersion,
         });
@@ -143,10 +147,11 @@ export class Logger {
     /**
      * Logs warning messages.
      */
-    warning(message: string, packageName?: string, packageVersion?: string): void {
+    warning(message: string, correlationId?: string, packageName?: string, packageVersion?: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Warning,
             containsPii: false,
+            correlationId: correlationId || "",
             packageName: packageName,
             packageVersion: packageVersion,
         });
@@ -155,10 +160,11 @@ export class Logger {
     /**
      * Logs warning messages with PII.
      */
-    warningPii(message: string, packageName?: string, packageVersion?: string): void {
+    warningPii(message: string, correlationId?: string, packageName?: string, packageVersion?: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Warning,
             containsPii: true,
+            correlationId: correlationId || "",
             packageName: packageName,
             packageVersion: packageVersion,
         });
@@ -167,10 +173,11 @@ export class Logger {
     /**
      * Logs info messages.
      */
-    info(message: string, packageName?: string, packageVersion?: string): void {
+    info(message: string, correlationId?: string, packageName?: string, packageVersion?: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Info,
             containsPii: false,
+            correlationId: correlationId || "",
             packageName: packageName,
             packageVersion: packageVersion,
         });
@@ -179,10 +186,11 @@ export class Logger {
     /**
      * Logs info messages with PII.
      */
-    infoPii(message: string, packageName?: string, packageVersion?: string): void {
+    infoPii(message: string, correlationId?: string, packageName?: string, packageVersion?: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Info,
             containsPii: true,
+            correlationId: correlationId || "",
             packageName: packageName,
             packageVersion: packageVersion,
         });
@@ -191,10 +199,11 @@ export class Logger {
     /**
      * Logs verbose messages.
      */
-    verbose(message: string, packageName?: string, packageVersion?: string): void {
+    verbose(message: string, correlationId?: string, packageName?: string, packageVersion?: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Verbose,
             containsPii: false,
+            correlationId: correlationId || "",
             packageName: packageName,
             packageVersion: packageVersion,
         });
@@ -203,10 +212,11 @@ export class Logger {
     /**
      * Logs verbose messages with PII.
      */
-    verbosePii(message: string, packageName?: string, packageVersion?: string): void {
+    verbosePii(message: string, correlationId?: string, packageName?: string, packageVersion?: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Verbose,
             containsPii: true,
+            correlationId: correlationId || "",
             packageName: packageName,
             packageVersion: packageVersion,
         });
@@ -215,10 +225,11 @@ export class Logger {
     /**
      * Logs trace messages.
      */
-    trace(message: string, packageName?: string, packageVersion?: string): void {
+    trace(message: string, correlationId?: string, packageName?: string, packageVersion?: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Trace,
             containsPii: false,
+            correlationId: correlationId || "",
             packageName: packageName,
             packageVersion: packageVersion,
         });
@@ -227,10 +238,11 @@ export class Logger {
     /**
      * Logs trace messages with PII.
      */
-    tracePii(message: string, packageName?: string, packageVersion?: string): void {
+    tracePii(message: string, correlationId?: string, packageName?: string, packageVersion?: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Trace,
             containsPii: true,
+            correlationId: correlationId || "",
             packageName: packageName,
             packageVersion: packageVersion,
         });
