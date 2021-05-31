@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import { Base64Encode } from "../../src/encode/Base64Encode";
 import { TEST_DATA_CLIENT_INFO } from "../utils/StringConstants";
 
@@ -22,19 +21,19 @@ describe("Base64Encode.ts Unit Tests", () => {
              * BASE64("fooba") = "Zm9vYmE="
              * BASE64("foobar") = "Zm9vYmFy"
              */
-            expect(b64Encode.encode("")).to.be.empty;
-            expect(b64Encode.encode("f")).to.be.eq("Zg==");
-            expect(b64Encode.encode("fo")).to.be.eq("Zm8=");
-            expect(b64Encode.encode("foo")).to.be.eq("Zm9v");
-            expect(b64Encode.encode("foob")).to.be.eq("Zm9vYg==");
-            expect(b64Encode.encode("fooba")).to.be.eq("Zm9vYmE=");
-            expect(b64Encode.encode("foobar")).to.be.eq("Zm9vYmFy");
+            expect(b64Encode.encode("")).toHaveLength(0);
+            expect(b64Encode.encode("f")).toBe("Zg==");
+            expect(b64Encode.encode("fo")).toBe("Zm8=");
+            expect(b64Encode.encode("foo")).toBe("Zm9v");
+            expect(b64Encode.encode("foob")).toBe("Zm9vYg==");
+            expect(b64Encode.encode("fooba")).toBe("Zm9vYmE=");
+            expect(b64Encode.encode("foobar")).toBe("Zm9vYmFy");
         });
 
         it("MSAL Test Vectors", () => {
             // Client Info B64
-            expect(b64Encode.encode(TEST_DATA_CLIENT_INFO.TEST_UID)).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED);
-            expect(b64Encode.encode(TEST_DATA_CLIENT_INFO.TEST_UTID)).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED);
+            expect(b64Encode.encode(TEST_DATA_CLIENT_INFO.TEST_UID)).toBe(TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED);
+            expect(b64Encode.encode(TEST_DATA_CLIENT_INFO.TEST_UTID)).toBe(TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED);
         });
     });
 
@@ -51,19 +50,19 @@ describe("Base64Encode.ts Unit Tests", () => {
              * BASE64("fooba") = "Zm9vYmE="
              * BASE64("foobar") = "Zm9vYmFy"
              */
-            expect(b64Encode.urlEncode("")).to.be.empty;
-            expect(b64Encode.urlEncode("f")).to.be.eq("Zg");
-            expect(b64Encode.urlEncode("fo")).to.be.eq("Zm8");
-            expect(b64Encode.urlEncode("foo")).to.be.eq("Zm9v");
-            expect(b64Encode.urlEncode("foob")).to.be.eq("Zm9vYg");
-            expect(b64Encode.urlEncode("fooba")).to.be.eq("Zm9vYmE");
-            expect(b64Encode.urlEncode("foobar")).to.be.eq("Zm9vYmFy");
+            expect(b64Encode.urlEncode("")).toHaveLength(0);
+            expect(b64Encode.urlEncode("f")).toBe("Zg");
+            expect(b64Encode.urlEncode("fo")).toBe("Zm8");
+            expect(b64Encode.urlEncode("foo")).toBe("Zm9v");
+            expect(b64Encode.urlEncode("foob")).toBe("Zm9vYg");
+            expect(b64Encode.urlEncode("fooba")).toBe("Zm9vYmE");
+            expect(b64Encode.urlEncode("foobar")).toBe("Zm9vYmFy");
         });
 
         it("MSAL Test Vectors", () => {
             // Client Info B64
-            expect(b64Encode.urlEncode(TEST_DATA_CLIENT_INFO.TEST_UID)).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED);
-            expect(b64Encode.urlEncode(TEST_DATA_CLIENT_INFO.TEST_UTID)).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_UTID_URLENCODED);
+            expect(b64Encode.urlEncode(TEST_DATA_CLIENT_INFO.TEST_UID)).toBe(TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED);
+            expect(b64Encode.urlEncode(TEST_DATA_CLIENT_INFO.TEST_UTID)).toBe(TEST_DATA_CLIENT_INFO.TEST_UTID_URLENCODED);
         });
     });
 });

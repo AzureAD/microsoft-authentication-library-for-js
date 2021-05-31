@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Throw untrustedAuthority error if discovery endpoint returns error in response body #3572",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

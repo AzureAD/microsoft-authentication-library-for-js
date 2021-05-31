@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Add incompatibility with Azure App Proxy to browser FAQ",
-  "packageName": "@azure/msal-browser",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none"
-}

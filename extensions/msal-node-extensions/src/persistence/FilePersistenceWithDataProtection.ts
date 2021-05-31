@@ -9,6 +9,8 @@ import { PersistenceError } from "../error/PersistenceError";
 import { Dpapi } from "../dpapi-addon/Dpapi";
 import { DataProtectionScope } from "./DataProtectionScope";
 import { Logger, LoggerOptions } from "@azure/msal-common";
+import { dirname } from "path";
+import { BasePersistence } from "./BasePersistence";
 
 /**
  * Uses CryptProtectData and CryptUnprotectData on Windows to encrypt and decrypt file contents.
@@ -16,13 +18,14 @@ import { Logger, LoggerOptions } from "@azure/msal-common";
  * scope: Scope of the data protection. Either local user or the current machine
  * optionalEntropy: Password or other additional entropy used to encrypt the data
  */
-export class FilePersistenceWithDataProtection implements IPersistence {
+export class FilePersistenceWithDataProtection extends BasePersistence implements IPersistence {
 
     private filePersistence: FilePersistence;
     private scope: DataProtectionScope;
     private optionalEntropy: Uint8Array;
 
     private constructor(scope: DataProtectionScope, optionalEntropy?: string) {
+        super();
         this.scope = scope;
         this.optionalEntropy = optionalEntropy ? Buffer.from(optionalEntropy, "utf-8") : null;
     }
@@ -80,5 +83,10 @@ export class FilePersistenceWithDataProtection implements IPersistence {
 
     public getLogger(): Logger {
         return this.filePersistence.getLogger();
+    }
+
+    public createForPersistenceValidation(): Promise<FilePersistenceWithDataProtection> {
+        const testCacheFileLocation = `${dirname(this.filePersistence.getFilePath())}/test.cache`;
+        return FilePersistenceWithDataProtection.create(testCacheFileLocation, DataProtectionScope.CurrentUser);
     }
 }

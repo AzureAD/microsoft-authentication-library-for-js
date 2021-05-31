@@ -1,9 +1,8 @@
-import { expect } from "chai";
 import { Base64Decode } from "../../src/encode/Base64Decode";
 import { IdTokenClaims, Constants } from "@azure/msal-common";
 import { TEST_DATA_CLIENT_INFO, TEST_URIS, TEST_CONFIG, RANDOM_TEST_GUID } from "../utils/StringConstants";
 import { Base64Encode } from "../../src/encode/Base64Encode";
-import { AuthorizationCodeRequest } from "@azure/msal-common";
+import { CommonAuthorizationCodeRequest } from "@azure/msal-common";
 
 describe("Base64Decode.ts Unit Tests", () => {
 
@@ -25,13 +24,13 @@ describe("Base64Decode.ts Unit Tests", () => {
              * BASE64("fooba") = "Zm9vYmE="
              * BASE64("foobar") = "Zm9vYmFy"
              */
-            expect(b64Decode.decode("")).to.be.empty;
-            expect(b64Decode.decode("Zg==")).to.be.eq("f");
-            expect(b64Decode.decode("Zm8=")).to.be.eq("fo");
-            expect(b64Decode.decode("Zm9v")).to.be.eq("foo");
-            expect(b64Decode.decode("Zm9vYg==")).to.be.eq("foob");
-            expect(b64Decode.decode("Zm9vYmE=")).to.be.eq("fooba");
-            expect(b64Decode.decode("Zm9vYmFy")).to.be.eq("foobar");
+            expect(b64Decode.decode("")).toHaveLength(0);
+            expect(b64Decode.decode("Zg==")).toBe("f");
+            expect(b64Decode.decode("Zm8=")).toBe("fo");
+            expect(b64Decode.decode("Zm9v")).toBe("foo");
+            expect(b64Decode.decode("Zm9vYg==")).toBe("foob");
+            expect(b64Decode.decode("Zm9vYmE=")).toBe("fooba");
+            expect(b64Decode.decode("Zm9vYmFy")).toBe("foobar");
         });
 
         it("RFC 4648 Test Vectors without '='", () => {
@@ -45,22 +44,22 @@ describe("Base64Decode.ts Unit Tests", () => {
              * BASE64("fooba") = "Zm9vYmE="
              * BASE64("foobar") = "Zm9vYmFy"
              */
-            expect(b64Decode.decode("")).to.be.empty;
-            expect(b64Decode.decode("Zg")).to.be.eq("f");
-            expect(b64Decode.decode("Zm8")).to.be.eq("fo");
-            expect(b64Decode.decode("Zm9v")).to.be.eq("foo");
-            expect(b64Decode.decode("Zm9vYg")).to.be.eq("foob");
-            expect(b64Decode.decode("Zm9vYmE")).to.be.eq("fooba");
-            expect(b64Decode.decode("Zm9vYmFy")).to.be.eq("foobar");
+            expect(b64Decode.decode("")).toHaveLength(0);
+            expect(b64Decode.decode("Zg")).toBe("f");
+            expect(b64Decode.decode("Zm8")).toBe("fo");
+            expect(b64Decode.decode("Zm9v")).toBe("foo");
+            expect(b64Decode.decode("Zm9vYg")).toBe("foob");
+            expect(b64Decode.decode("Zm9vYmE")).toBe("fooba");
+            expect(b64Decode.decode("Zm9vYmFy")).toBe("foobar");
         });
 
         it("MSAL Test Vectors", () => {
             const b64Encode = new Base64Encode();
 
             // Client Info B64
-            expect(b64Decode.decode(TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED)).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_UID);
-            expect(b64Decode.decode(TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED)).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_UTID);
-            expect(b64Decode.decode(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO)).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO);
+            expect(b64Decode.decode(TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED)).toBe(TEST_DATA_CLIENT_INFO.TEST_UID);
+            expect(b64Decode.decode(TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED)).toBe(TEST_DATA_CLIENT_INFO.TEST_UTID);
+            expect(b64Decode.decode(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO)).toBe(TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO);
 
             // Id token claims B64
             const idTokenClaims: IdTokenClaims = {
@@ -75,10 +74,10 @@ describe("Base64Decode.ts Unit Tests", () => {
                 "nonce": "123523"
             };
             const stringifiedClaims = JSON.stringify(idTokenClaims);
-            expect(b64Decode.decode(b64Encode.encode(stringifiedClaims))).to.be.eq(stringifiedClaims);
+            expect(b64Decode.decode(b64Encode.encode(stringifiedClaims))).toBe(stringifiedClaims);
             
             // Request object B64
-            const tokenRequest: AuthorizationCodeRequest = {
+            const tokenRequest: CommonAuthorizationCodeRequest = {
 				redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
 				scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
 				code: "thisIsAnAuthCode",
@@ -87,12 +86,12 @@ describe("Base64Decode.ts Unit Tests", () => {
                 correlationId: `${RANDOM_TEST_GUID}`
             };
             const stringifiedReq = JSON.stringify(tokenRequest);
-            expect(b64Decode.decode(b64Encode.encode(stringifiedReq))).to.be.eq(stringifiedReq);
+            expect(b64Decode.decode(b64Encode.encode(stringifiedReq))).toBe(stringifiedReq);
         });
 
         it("Percent encoded URI", ()=> {
             const b64Encode = new Base64Encode();
-            expect(b64Decode.decode(b64Encode.encode(TEST_URIS.TEST_REDIR_WITH_PERCENTENCODED_SYMBOLS_URI))).to.be.eq(TEST_URIS.TEST_REDIR_WITH_PERCENTENCODED_SYMBOLS_URI);
+            expect(b64Decode.decode(b64Encode.encode(TEST_URIS.TEST_REDIR_WITH_PERCENTENCODED_SYMBOLS_URI))).toBe(TEST_URIS.TEST_REDIR_WITH_PERCENTENCODED_SYMBOLS_URI);
         });
     });
 });

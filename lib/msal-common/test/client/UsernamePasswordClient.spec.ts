@@ -3,13 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { expect } from "chai";
 import sinon from "sinon";
 import {
     AUTHENTICATION_RESULT_DEFAULT_SCOPES,
     DEFAULT_OPENID_CONFIG_RESPONSE,
     TEST_CONFIG,
-    TEST_TOKENS,
     TEST_DATA_CLIENT_INFO,
     TEST_URIS,
     CORS_SIMPLE_REQUEST_HEADERS,
@@ -22,7 +20,7 @@ import { Authority } from "../../src/authority/Authority";
 import { UsernamePasswordClient } from "../../src/client/UsernamePasswordClient";
 import { CommonUsernamePasswordRequest } from "../../src/request/CommonUsernamePasswordRequest";
 import { AuthToken } from "../../src/account/AuthToken";
-import { ClientConfiguration } from "../../src";
+import { AuthenticationResult, ClientConfiguration } from "../../src";
 
 describe("Username Password unit tests", () => {
     let config: ClientConfiguration;
@@ -32,7 +30,7 @@ describe("Username Password unit tests", () => {
         config = await ClientTestUtils.createTestClientConfiguration();
         // Set up required objects and mocked return values
         const decodedLibState = `{ "id": "testid", "ts": 1592846482 }`;
-        config.cryptoInterface.base64Decode = (input: string): string => {
+        config.cryptoInterface!.base64Decode = (input: string): string => {
             switch (input) {
                 case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                     return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
@@ -43,7 +41,7 @@ describe("Username Password unit tests", () => {
             }
         };
 
-        config.cryptoInterface.base64Encode = (input: string): string => {
+        config.cryptoInterface!.base64Encode = (input: string): string => {
             switch (input) {
                 case "123-test-uid":
                     return "MTIzLXRlc3QtdWlk";
@@ -76,13 +74,13 @@ describe("Username Password unit tests", () => {
         sinon.restore();
     });
 
-    describe("Constructor", async () => {
+    describe("Constructor", () => {
 
         it("creates a UsernamePasswordClient", async () => {
             const client = new UsernamePasswordClient(config);
-            expect(client).to.be.not.null;
-            expect(client instanceof UsernamePasswordClient).to.be.true;
-            expect(client instanceof BaseClient).to.be.true;
+            expect(client).not.toBeNull();
+            expect(client instanceof UsernamePasswordClient).toBe(true);
+            expect(client instanceof BaseClient).toBe(true);
         });
     });
 
@@ -91,7 +89,7 @@ describe("Username Password unit tests", () => {
         sinon.stub(UsernamePasswordClient.prototype, <any>"executePostToTokenEndpoint").callsFake((tokenEndpoint: string, queryString: string, headers: Record<string, string>) => {
             const headerNames = Object.keys(headers);
             headerNames.forEach((name) => {
-                expect(CORS_SIMPLE_REQUEST_HEADERS).contains(name.toLowerCase());
+                expect(CORS_SIMPLE_REQUEST_HEADERS.includes(name.toLowerCase())).toBe(true);
             });
 
             done();
@@ -125,26 +123,25 @@ describe("Username Password unit tests", () => {
             correlationId: RANDOM_TEST_GUID
         };
 
-        const authResult = await client.acquireToken(usernamePasswordRequest);
+        const authResult = await client.acquireToken(usernamePasswordRequest) as AuthenticationResult;
         const expectedScopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE, TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
-        expect(authResult.scopes).to.deep.eq(expectedScopes);
-        expect(authResult.idToken).to.deep.eq(AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.id_token);
-        expect(authResult.accessToken).to.deep.eq(AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.access_token);
-        expect(authResult.state).to.be.empty;
+        expect(authResult.scopes).toEqual(expectedScopes);
+        expect(authResult.idToken).toEqual(AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.id_token);
+        expect(authResult.accessToken).toEqual(AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.access_token);
+        expect(authResult.state).toHaveLength(0);
 
-        expect(createTokenRequestBodySpy.calledWith(usernamePasswordRequest)).to.be.true;
+        expect(createTokenRequestBodySpy.calledWith(usernamePasswordRequest)).toBe(true);
 
-        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`);
-        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
-        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.GRANT_TYPE}=${encodeURIComponent(GrantType.RESOURCE_OWNER_PASSWORD_GRANT)}`);
-        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${PasswordGrantConstants.username}=mock_name`);
-        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${PasswordGrantConstants.password}=mock_password`);
-        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`);
-        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`);
-        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`);
-        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`);
-        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`);
-        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`);            
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`)).toBe(true);
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`)).toBe(true);
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.GRANT_TYPE}=${encodeURIComponent(GrantType.RESOURCE_OWNER_PASSWORD_GRANT)}`)).toBe(true);
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${PasswordGrantConstants.username}=mock_name`)).toBe(true);
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${PasswordGrantConstants.password}=mock_password`)).toBe(true);
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`)).toBe(true);
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`)).toBe(true);
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`)).toBe(true);
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`)).toBe(true);
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`)).toBe(true);
     });
 
     it("Does not include claims if empty object is passed", async () => {
@@ -162,25 +159,25 @@ describe("Username Password unit tests", () => {
             claims: "{}"
         };
 
-        const authResult = await client.acquireToken(usernamePasswordRequest);
+        const authResult = await client.acquireToken(usernamePasswordRequest) as AuthenticationResult;
         const expectedScopes = [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE, Constants.OFFLINE_ACCESS_SCOPE, TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]];
-        expect(authResult.scopes).to.deep.eq(expectedScopes);
-        expect(authResult.idToken).to.deep.eq(AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.id_token);
-        expect(authResult.accessToken).to.deep.eq(AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.access_token);
-        expect(authResult.state).to.be.empty;
+        expect(authResult.scopes).toEqual(expectedScopes);
+        expect(authResult.idToken).toEqual(AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.id_token);
+        expect(authResult.accessToken).toEqual(AUTHENTICATION_RESULT_DEFAULT_SCOPES.body.access_token);
+        expect(authResult.state).toBe("");
 
-        expect(createTokenRequestBodySpy.calledWith(usernamePasswordRequest)).to.be.true;
+        expect(createTokenRequestBodySpy.calledWith(usernamePasswordRequest)).toBe(true);
 
-        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`);
-        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
-        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.GRANT_TYPE}=${encodeURIComponent(GrantType.RESOURCE_OWNER_PASSWORD_GRANT)}`);
-        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${PasswordGrantConstants.username}=mock_name`);
-        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${PasswordGrantConstants.password}=mock_password`);
-        expect(createTokenRequestBodySpy.returnValues[0]).to.not.contain(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`);
-        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`);
-        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`);
-        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`);
-        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`);
-        expect(createTokenRequestBodySpy.returnValues[0]).to.contain(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`);            
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${TEST_CONFIG.DEFAULT_GRAPH_SCOPE[0]}`)).toBe(true);
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.CLIENT_ID}=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`)).toBe(true);
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.GRANT_TYPE}=${encodeURIComponent(GrantType.RESOURCE_OWNER_PASSWORD_GRANT)}`)).toBe(true);
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${PasswordGrantConstants.username}=mock_name`)).toBe(true);
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${PasswordGrantConstants.password}=mock_password`)).toBe(true);
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`)).toBe(false);
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_CLIENT_SKU}=${Constants.SKU}`)).toBe(true);
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_CLIENT_VER}=${TEST_CONFIG.TEST_VERSION}`)).toBe(true);
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_CLIENT_OS}=${TEST_CONFIG.TEST_OS}`)).toBe(true);
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_CLIENT_CPU}=${TEST_CONFIG.TEST_CPU}`)).toBe(true);
+        expect(createTokenRequestBodySpy.returnValues[0].includes(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`)).toBe(true);        
     });
 });

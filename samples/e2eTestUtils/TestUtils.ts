@@ -32,6 +32,10 @@ export async function setupCredentials(labConfig: LabConfig, labClient: LabClien
         username = labConfig.user.upn;
     }
 
+    if (!labConfig.lab.labName) {
+        throw Error("No Labname provided!");
+    }
+
     const testPwdSecret = await labClient.getSecret(labConfig.lab.labName);
 
     accountPwd = testPwdSecret.value;

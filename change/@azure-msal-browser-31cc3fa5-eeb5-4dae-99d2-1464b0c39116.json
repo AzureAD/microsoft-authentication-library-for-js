@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Use msrCrypto for browsers unit tests",
-  "packageName": "@azure/msal-browser",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none"
-}
