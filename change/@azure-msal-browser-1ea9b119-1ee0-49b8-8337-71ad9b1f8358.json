@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add scheme to credential cache keys #3703",
+  "packageName": "@azure/msal-browser",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
