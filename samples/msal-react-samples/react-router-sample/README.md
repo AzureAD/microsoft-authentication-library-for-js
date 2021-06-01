@@ -55,7 +55,7 @@ For more information, visit:
 npm install
 
 # Change directory to sample directory
-cd samples/msal-react-samples/nextjs-sample
+cd samples/msal-react-samples/react-router-sample
 
 # Build packages locally
 npm run build:package
@@ -80,7 +80,7 @@ Note: If you suspect you are not using the local builds check that the `package.
 
 ```bash
 # Change directory to sample directory
-cd samples/msal-react-samples/nextjs-sample
+cd samples/msal-react-samples/react-router-sample
 
 # Install packages from npm
 npm run install:published

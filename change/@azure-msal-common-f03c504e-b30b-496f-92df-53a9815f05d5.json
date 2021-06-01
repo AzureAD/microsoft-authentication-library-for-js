@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Export ServerAuthorizationTokenResponse type #3657",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
