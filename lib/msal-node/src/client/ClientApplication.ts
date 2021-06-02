@@ -240,7 +240,7 @@ export abstract class ClientApplication {
 
         const discoveredAuthority = await this.createAuthority(authority, azureRegionConfiguration);
 
-        serverTelemetryManager?.updateRegionDiscoveryMetadata(discoveredAuthority.getRegionDiscoveryMetadata());
+        serverTelemetryManager?.updateRegionDiscoveryMetadata(discoveredAuthority.regionDiscoveryMetadata);
 
         return {
             authOptions: {

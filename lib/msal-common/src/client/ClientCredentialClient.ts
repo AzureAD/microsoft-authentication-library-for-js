@@ -8,7 +8,7 @@ import { BaseClient } from "./BaseClient";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { ScopeSet } from "../request/ScopeSet";
-import { GrantType , CredentialType } from "../utils/Constants";
+import { GrantType , CredentialType, CacheOutcome } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { CommonClientCredentialRequest } from "../request/CommonClientCredentialRequest";
@@ -58,12 +58,12 @@ export class ClientCredentialClient extends BaseClient {
         const cachedAccessToken = this.readAccessTokenFromCache();
 
         if (!cachedAccessToken) {
-            this.serverTelemetryManager?.recordCachedAtDoesNotExist();
+            this.serverTelemetryManager?.setCacheOutcome(CacheOutcome.NO_CACHED_ACCESS_TOKEN);
             return null;
         }
 
         if (TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
-            this.serverTelemetryManager?.recordCachedAtExpired();
+            this.serverTelemetryManager?.setCacheOutcome(CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED);
             return null;
         }
 

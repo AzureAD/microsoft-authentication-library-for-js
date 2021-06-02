@@ -370,3 +370,10 @@ export enum RegionDiscoveryOutcomes {
     AUTO_DETECTION_REQUESTED_SUCCESSFUL = "Auto-detect requested and auto-detection worked",
     AUTO_DETECTION_REQUESTED_FAILED = "Auto-detect requested and failed, fallback to global"
 }
+
+export enum CacheOutcome {
+    NO_CACHE_HIT = "No cache hit",
+    NO_CACHED_ACCESS_TOKEN = "No cached access token",
+    CACHED_ACCESS_TOKEN_EXPIRED = "Cached access token is expired",
+    REFRESH_CACHED_ACCESS_TOKEN = "Refresh cached access token"
+}
