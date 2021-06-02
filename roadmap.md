@@ -20,8 +20,8 @@ The MSAL.js team schedules work on a quarterly basis. The roadmap below provides
 
 | Library         | Deliverable                       | Status      | ETA       | Notes                                                        |
 | :-------------- | :-------------------------------- | :---------- | :-------- | :----------------------------------------------------------- |
-| MSAL Angular v2 | General Availability              | Complete    | May 2021  | Stable production release of MSAL Angular wrapper library for MSAL Browser. |
-| MSAL React      | General Availability              | Complete    | May 2021  | Stable production release of MSAL React wrapper library for MSAL Browser. |
+| MSAL Angular v2 | General Availability              | Completed   | May 2021  | Stable production release of MSAL Angular wrapper library for MSAL Browser. |
+| MSAL React      | General Availability              | Completed   | May 2021  | Stable production release of MSAL React wrapper library for MSAL Browser. |
 | MSAL Browser    | Refresh Token Proof-of-possession | In Progress | July 2021 | Cryptographically binds refresh tokens to the browser, helping mitigate replay if tokens are exfiltrated. |
 
 
@@ -35,5 +35,5 @@ The MSAL.js team schedules work on a quarterly basis. The roadmap below provides
 | MSAL Node       | General Availability | Completed  | February 2021 | Stable production release of MSAL Node client library.       |
 | MSAL React      | Public Preview       | Completed  | February 2021 | The public preview milestone will include production level support. |
 | MSAL Angular v2 | Public Preview       | Completed  | March 2021    | The public preview milestone will include production level support. |
-| MSAL Browser    | Logout Popup         | Complete   | March 2021    | Support logging out via popup, to support scenarios where redirect is not desired or not possible (e.g. nested frame). |
+| MSAL Browser    | Logout Popup         | Completed  | March 2021    | Support logging out via popup, to support scenarios where redirect is not desired or not possible (e.g. nested frame). |
 
