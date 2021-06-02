@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { SERVER_TELEM_CONSTANTS, Separators, Constants, RegionDiscoverySources, RegionDiscoveryOutcomes } from "../../utils/Constants";
+import { SERVER_TELEM_CONSTANTS, Separators, CacheOutcome, Constants, RegionDiscoverySources, RegionDiscoveryOutcomes } from "../../utils/Constants";
 import { CacheManager } from "../../cache/CacheManager";
 import { AuthError } from "../../error/AuthError";
 import { ServerTelemetryRequest } from "./ServerTelemetryRequest";
@@ -22,10 +22,7 @@ export class ServerTelemetryManager {
     private regionUsed: string | undefined;
     private regionSource: RegionDiscoverySources | undefined;
     private regionOutcome: RegionDiscoveryOutcomes | undefined;
-    private noCacheHit: boolean;
-    private cachedAtDoesNotExist: boolean;
-    private cachedAtIsExpired: boolean; 
-    private cachedAtShouldBeRefreshed: boolean;
+    private cacheOutcome: CacheOutcome = CacheOutcome.NO_CACHE_HIT;
 
     constructor(telemetryRequest: ServerTelemetryRequest, cacheManager: CacheManager) {
         this.cacheManager = cacheManager;
@@ -48,11 +45,7 @@ export class ServerTelemetryManager {
         const regionDiscoveryFields = this.getRegionDiscoveryFields();
         const requestWithRegionDiscoveryFields = [request, regionDiscoveryFields].join(SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR);
 
-        const serverTelemetryHeaders = [SERVER_TELEM_CONSTANTS.SCHEMA_VERSION, requestWithRegionDiscoveryFields, platformFields].join(SERVER_TELEM_CONSTANTS.CATEGORY_SEPARATOR);
-        // eslint-disable-next-line no-console
-        console.log(serverTelemetryHeaders);
-
-        return serverTelemetryHeaders;
+        return [SERVER_TELEM_CONSTANTS.SCHEMA_VERSION, requestWithRegionDiscoveryFields, platformFields].join(SERVER_TELEM_CONSTANTS.CATEGORY_SEPARATOR);
     }
 
     /**
@@ -230,21 +223,22 @@ export class ServerTelemetryManager {
     }
     
     getCacheInfoValue(): string {
-        if (this.noCacheHit) {
-            return "0";
-        } else if (this.forceRefresh) {
+        if (this.forceRefresh) {
             return "1";
-        } else if (this.cachedAtDoesNotExist) {
-            return "2";
-        } else if (this.cachedAtIsExpired) { 
-            return "3";
-        } else if (this.cachedAtShouldBeRefreshed) {
-            return "4";
-        } else {
-            return "0";
         }
 
-        return "0";
+        switch(this.cacheOutcome) {
+            case CacheOutcome.NO_CACHE_HIT:
+                return "0";
+            case CacheOutcome.NO_CACHED_ACCESS_TOKEN:
+                return "2";
+            case CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED:
+                return "3";
+            case CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN:
+                return "4";
+            default:
+                return "0";
+        }
     }
 
     /**
@@ -258,33 +252,11 @@ export class ServerTelemetryManager {
         this.regionSource = regionDiscoveryMetadata.region_source;
         this.regionOutcome = regionDiscoveryMetadata.region_outcome;
     }
-    
-    /**
-     * Set no cache hit to be true
-     */
-    recordNoCacheHit(): void {
-        this.noCacheHit = true;
-    }
 
     /**
-     * Set that no cached AT exists
+     * Set cache outcome 
      */
-    recordCachedAtDoesNotExist(): void {
-        this.cachedAtDoesNotExist = true;
-    }
-
-    /**
-     * Set that the cached AT us expired
-     */
-    recordCachedAtExpired(): void {
-        this.cachedAtIsExpired = true;
-    }
-
-    /**
-     * TODO: Implement the refresh_in logic
-     * Set that the cached AT requires to be refreshed
-     */
-    recordCachedAtShouldBeRefreshed(): void {
-        this.cachedAtShouldBeRefreshed = true;
+    setCacheOutcome(cacheOutcome: CacheOutcome): void {
+        this.cacheOutcome = cacheOutcome;
     }
 }

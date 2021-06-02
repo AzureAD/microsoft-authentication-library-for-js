@@ -41,7 +41,7 @@ export class Authority {
     // Region discovery service
     private regionDiscovery: RegionDiscovery;
     // Region discovery metadata
-    private regionDiscoveryMetadata: RegionDiscoveryMetadata;
+    public regionDiscoveryMetadata: RegionDiscoveryMetadata;
 
     constructor(authority: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions) {
         this.canonicalAuthority = authority;
@@ -177,15 +177,6 @@ export class Authority {
     }
 
     /**
-     * Region used if any
-     * 
-     * @returns string
-     */
-    public getRegionDiscoveryMetadata(): RegionDiscoveryMetadata {
-        return this.regionDiscoveryMetadata;
-    }
-
-    /**
      * Replaces tenant in url path with current tenant. Defaults to common.
      * @param urlString
      */
@@ -283,18 +274,14 @@ export class Authority {
                     : this.authorityOptions.azureRegionConfiguration.azureRegion;
 
                 if (this.authorityOptions.azureRegionConfiguration.azureRegion === Constants.AZURE_REGION_AUTO_DISCOVER_FLAG) {
-                    if (autodetectedRegionName) {
-                        this.regionDiscoveryMetadata.region_outcome = RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_SUCCESSFUL;
-                    } else {
-                        this.regionDiscoveryMetadata.region_outcome = RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_FAILED;
-                    }
+                    this.regionDiscoveryMetadata.region_outcome = autodetectedRegionName ?
+                        RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_SUCCESSFUL :
+                        RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_FAILED;
                 } else {
                     if (autodetectedRegionName) {
-                        if (this.authorityOptions.azureRegionConfiguration.azureRegion === autodetectedRegionName) {
-                            this.regionDiscoveryMetadata.region_outcome = RegionDiscoveryOutcomes.CONFIGURED_MATCHES_DETECTED;
-                        } else {
-                            this.regionDiscoveryMetadata.region_outcome = RegionDiscoveryOutcomes.CONFIGURED_NOT_DETECTED;
-                        }
+                        this.regionDiscoveryMetadata.region_outcome = (this.authorityOptions.azureRegionConfiguration.azureRegion === autodetectedRegionName) ?
+                            RegionDiscoveryOutcomes.CONFIGURED_MATCHES_DETECTED :
+                            RegionDiscoveryOutcomes.CONFIGURED_NOT_DETECTED;
                     } else {
                         this.regionDiscoveryMetadata.region_outcome = RegionDiscoveryOutcomes.CONFIGURED_NO_AUTO_DETECTION;
                     }

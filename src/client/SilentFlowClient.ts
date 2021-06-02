@@ -15,7 +15,7 @@ import { ClientAuthError, ClientAuthErrorMessage } from "../error/ClientAuthErro
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { CacheRecord } from "../cache/entities/CacheRecord";
-import { AuthenticationScheme } from "../utils/Constants";
+import { AuthenticationScheme, CacheOutcome } from "../utils/Constants";
 import { StringUtils } from "../utils/StringUtils";
 
 export class SilentFlowClient extends BaseClient {
@@ -60,12 +60,22 @@ export class SilentFlowClient extends BaseClient {
         const environment = request.authority || this.authority.getPreferredCache();
         const authScheme = request.authenticationScheme || AuthenticationScheme.BEARER;
         const cacheRecord = this.cacheManager.readCacheRecord(request.account, this.config.authOptions.clientId, requestScopes, environment, authScheme);
-
+        
         if (request.forceRefresh || 
             !StringUtils.isEmptyObj(request.claims) || 
             !cacheRecord.accessToken || 
             TimeUtils.isTokenExpired(cacheRecord.accessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds) ||
             (cacheRecord.accessToken.refreshOn && TimeUtils.isTokenExpired(cacheRecord.accessToken.refreshOn, 0))) {
+
+            // Update server telemetry manager with the cache outcome
+            if (!cacheRecord.accessToken) {
+                this.serverTelemetryManager?.setCacheOutcome(CacheOutcome.NO_CACHED_ACCESS_TOKEN);
+            } else if (TimeUtils.isTokenExpired(cacheRecord.accessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
+                this.serverTelemetryManager?.setCacheOutcome(CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED);
+            } else if (cacheRecord.accessToken.refreshOn && TimeUtils.isTokenExpired(cacheRecord.accessToken.refreshOn, 0)) {
+                this.serverTelemetryManager?.setCacheOutcome(CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN);
+            }   
+            
             // Must refresh due to request parameters, or expired or non-existent access_token
             throw ClientAuthError.createRefreshRequiredError();
         }
