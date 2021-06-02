@@ -4,7 +4,6 @@
  */
 
 import { AuthError } from "./AuthError";
-import { ScopeSet } from "../request/ScopeSet";
 
 /**
  * ClientAuthErrorMessage class containing string constants used by error codes and messages.
@@ -110,6 +109,10 @@ export const ClientAuthErrorMessage = {
     DeviceCodeExpired: {
         code: "device_code_expired",
         desc: "Device code is expired."
+    },
+    DeviceCodeUnknownError: {
+        code: "device_code_unknown_error",
+        desc: "Device code stopped polling for unknown reasons."
     },
     NoAccountInSilentRequest: {
         code: "no_account_in_silent_request",
@@ -371,8 +374,8 @@ export class ClientAuthError extends AuthError {
      * Throws error if ScopeSet is null or undefined.
      * @param givenScopeSet
      */
-    static createEmptyInputScopeSetError(givenScopeSet: ScopeSet): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.emptyInputScopeSetError.code, `${ClientAuthErrorMessage.emptyInputScopeSetError.desc} Given ScopeSet: ${givenScopeSet}`);
+    static createEmptyInputScopeSetError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.emptyInputScopeSetError.code, `${ClientAuthErrorMessage.emptyInputScopeSetError.desc}`);
     }
 
     /**
@@ -387,6 +390,13 @@ export class ClientAuthError extends AuthError {
      */
     static createDeviceCodeExpiredError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.DeviceCodeExpired.code, `${ClientAuthErrorMessage.DeviceCodeExpired.desc}`);
+    }
+
+    /**
+     * Throws error if device code is expired
+     */
+    static createDeviceCodeUnknownError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.DeviceCodeUnknownError.code, `${ClientAuthErrorMessage.DeviceCodeUnknownError.desc}`);
     }
 
     /**
