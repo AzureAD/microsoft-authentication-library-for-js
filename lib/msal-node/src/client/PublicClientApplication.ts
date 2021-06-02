@@ -65,7 +65,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 serverTelemetryManager
             );
             const deviceCodeClient = new DeviceCodeClient(deviceCodeConfig);
-            deviceCodeClient.logger.verbose("Device code client created", "", name, version);
+            deviceCodeClient.logger?.verbose("Device code client created", "", name, version);
             return deviceCodeClient.acquireToken(validRequest);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
@@ -97,7 +97,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 serverTelemetryManager
             );
             const usernamePasswordClient = new UsernamePasswordClient(usernamePasswordClientConfig);
-            usernamePasswordClient.logger.verbose("Username password client created", "", name, version);
+            usernamePasswordClient.logger?.verbose("Username password client created", "", name, version);
             return usernamePasswordClient.acquireToken(validRequest);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);

@@ -1071,7 +1071,7 @@ export abstract class ClientApplication {
      * @param interactionType
      */
     protected preflightInteractiveRequest(request: RedirectRequest|PopupRequest, interactionType: InteractionType): AuthorizationUrlRequest {
-        this.logger.verbose("preflightInteractiveRequest called, validating app environment", request.correlationId);
+        this.logger.verbose("preflightInteractiveRequest called, validating app environment", request?.correlationId);
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 

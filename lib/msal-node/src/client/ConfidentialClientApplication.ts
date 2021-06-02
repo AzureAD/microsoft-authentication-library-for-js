@@ -75,7 +75,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
                 azureRegionConfiguration,
             );
             const clientCredentialClient = new ClientCredentialClient(clientCredentialConfig);
-            clientCredentialClient.logger.verbose("Client credential client created", "",  name, version);
+            clientCredentialClient.logger?.verbose("Client credential client created", "",  name, version);
             return clientCredentialClient.acquireToken(validRequest);
         } catch(e) {
             serverTelemetryManager.cacheFailedRequest(e);
@@ -105,7 +105,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
             validRequest.correlationId
         );
         const oboClient = new OnBehalfOfClient(clientCredentialConfig);
-        oboClient.logger.verbose("On behalf of client created", "", name, version);
+        oboClient.logger?.verbose("On behalf of client created", "", name, version);
         return oboClient.acquireToken(validRequest);
     }
 
