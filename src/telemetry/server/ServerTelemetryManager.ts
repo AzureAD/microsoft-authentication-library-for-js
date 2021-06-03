@@ -203,6 +203,11 @@ export class ServerTelemetryManager {
         }
     }
 
+    /**
+     * Get the header value for the region outcome
+     * @param regionOutcome RegionDiscoveryOutcomes | undefined
+     * @returns string
+     */
     getRegionOutcomeValue(regionOutcome: RegionDiscoveryOutcomes | undefined): string {
         if (!regionOutcome) return "";
 
