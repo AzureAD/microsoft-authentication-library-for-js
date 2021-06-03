@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, CommonSilentFlowRequest } from "@azure/msal-common";
+import { AuthenticationResult, CommonSilentFlowRequest, Logger } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, ApiId, InteractionType } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -14,7 +14,6 @@ import { SilentRequest } from "../request/SilentRequest";
 import { EventType } from "../event/EventType";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { version, name } from "../packageMetadata";
-import { Logger } from "@azure/msal-common";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
