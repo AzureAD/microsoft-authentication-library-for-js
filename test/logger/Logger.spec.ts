@@ -223,43 +223,4 @@ describe("Logger.ts Class Unit Tests", () => {
         });
     });
 
-    describe("Package name and version tests", () => {
-
-        it("Package name and version is set when Logger instantiated", () => {
-            const packageName = "msal-common";
-            const packageVersion = "2.0.0";
-            const logger = new Logger(loggerOptions, packageName, packageVersion);
-
-            logger.info("Message");
-            expect(logStore[LogLevel.Info].includes(packageName)).toBe(true);
-            expect(logStore[LogLevel.Info].includes(packageVersion)).toBe(true);
-            expect(logStore[LogLevel.Info].includes(`${packageName}@${packageVersion}`)).toBe(true);
-        });
-
-        it("Package name and version can be set when message logged", () => {
-            const packageName = "msal-common";
-            const packageVersion = "2.0.0";
-            const logger = new Logger(loggerOptions);
-
-            logger.info("Message", "", packageName, packageVersion);
-            expect(logStore[LogLevel.Info].includes(packageName)).toBe(true);
-            expect(logStore[LogLevel.Info].includes(packageVersion)).toBe(true);
-            expect(logStore[LogLevel.Info].includes(`${packageName}@${packageVersion}`)).toBe(true);
-        });
-
-        it("Package name and version passed in log message takes precedence over name and version on Logger", () => {
-            const loggerPackageName = "msal-common";
-            const loggerPackageVersion = "2.0.0";
-            const logger = new Logger(loggerOptions, loggerPackageName, loggerPackageVersion);
-
-            const messagePackageName = "msal-node";
-            const messagePackageVersion = "1.0.0";
-            logger.info("Message", "", messagePackageName, messagePackageVersion);
-
-            expect(logStore[LogLevel.Info].includes(messagePackageName)).toBe(true);
-            expect(logStore[LogLevel.Info].includes(messagePackageVersion)).toBe(true);
-            expect(logStore[LogLevel.Info].includes(`${messagePackageName}@${messagePackageVersion}`)).toBe(true);
-        });
-
-    });
 });
