@@ -91,7 +91,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             account: account,
             forceRefresh: request.forceRefresh || false
         };
-        const browserRequestLogger = new Logger({...this.config.system.loggerOptions, correlationId: silentRequest.correlationId}, name, version);
+        const browserRequestLogger = this.logger.clone(name, version, silentRequest.correlationId);
         this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
         try {
             // Telemetry manager only used to increment cacheHits here
