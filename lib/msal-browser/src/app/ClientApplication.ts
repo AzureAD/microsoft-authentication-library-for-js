@@ -329,7 +329,7 @@ export abstract class ClientApplication {
      */
     private async handleHash(hash: string, state: string): Promise<AuthenticationResult> {
         const cachedRequest = this.browserStorage.getCachedRequest(state, this.browserCrypto);
-        const browserRequestLogger = new Logger({...this.config.system.loggerOptions, correlationId: cachedRequest.correlationId}, name, version);
+        const browserRequestLogger = this.logger.clone(name, version, cachedRequest.correlationId);
         browserRequestLogger.verbose("handleHash called, retrieved cached request");
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.handleRedirectPromise, cachedRequest.correlationId);
 
@@ -374,7 +374,7 @@ export abstract class ClientApplication {
         }
 
         const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Redirect);
-        const browserRequestLogger = new Logger({...this.config.system.loggerOptions, correlationId: validRequest.correlationId}, name, version);
+        const browserRequestLogger = this.logger.clone(name, version, validRequest.correlationId);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect, validRequest.correlationId);
 
         try {
@@ -469,7 +469,7 @@ export abstract class ClientApplication {
             this.emitEvent(EventType.LOGIN_START, InteractionType.Popup, validRequest);
         }
 
-        const browserRequestLogger = new Logger({...this.config.system.loggerOptions, correlationId: validRequest.correlationId}, name, version);
+        const browserRequestLogger = this.logger.clone(name, version, validRequest.correlationId);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup, validRequest.correlationId);
 
         try {
@@ -588,7 +588,7 @@ export abstract class ClientApplication {
             prompt: PromptValue.NONE
         }, InteractionType.Silent);
 
-        const browserRequestLogger = new Logger({...this.config.system.loggerOptions, correlationId: silentRequest.correlationId}, name, version);
+        const browserRequestLogger = this.logger.clone(name, version, silentRequest.correlationId);
         const serverTelemetryManager = this.initializeServerTelemetryManager(apiId, silentRequest.correlationId);
 
         try {
@@ -629,7 +629,7 @@ export abstract class ClientApplication {
             ...request,
             ...this.initializeBaseRequest(request)
         };
-        const browserRequestLogger = new Logger({...this.config.system.loggerOptions, correlationId: silentRequest.correlationId}, name, version);
+        const browserRequestLogger = this.logger.clone(name, version, silentRequest.correlationId);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);
         try {
             const refreshTokenClient = await this.createRefreshTokenClient(serverTelemetryManager, silentRequest.authority, silentRequest.correlationId);
@@ -692,7 +692,7 @@ export abstract class ClientApplication {
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
         this.logger.verbose("logoutRedirect called", logoutRequest?.correlationId);
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
-        const browserRequestLogger = new Logger({...this.config.system.loggerOptions, correlationId: validLogoutRequest.correlationId}, name, version);
+        const browserRequestLogger = this.logger.clone(name, version, validLogoutRequest.correlationId);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.logout, validLogoutRequest.correlationId);
 
         try {
@@ -782,7 +782,7 @@ export abstract class ClientApplication {
         this.logger.verbose("logoutPopupAsync called", validRequest.correlationId);
         this.emitEvent(EventType.LOGOUT_START, InteractionType.Popup, validRequest);
 
-        const browserRequestLogger = new Logger({...this.config.system.loggerOptions, correlationId: validRequest.correlationId}, name, version);
+        const browserRequestLogger = this.logger.clone(name, version, validRequest.correlationId);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.logoutPopup, validRequest.correlationId);
         
         try {
