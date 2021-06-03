@@ -39,7 +39,7 @@ This sample was bootstrapped with the [Gatsby Hello World Starter](https://githu
 npm install
 
 # Change directory to sample directory
-cd samples/msal-react-samples/nextjs-sample
+cd samples/msal-react-samples/gatsby-sample
 
 # Build packages locally
 npm run build:package
@@ -64,7 +64,7 @@ Note: If you suspect you are not using the local builds check that the `package.
 
 ```bash
 # Change directory to sample directory
-cd samples/msal-react-samples/nextjs-sample
+cd samples/msal-react-samples/gatsby-sample
 
 # Install packages from npm
 npm run install:published
