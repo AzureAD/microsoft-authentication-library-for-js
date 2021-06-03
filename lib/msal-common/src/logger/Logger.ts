@@ -73,7 +73,7 @@ export class Logger {
      * Create new Logger with existing configurations.
      */
     public clone(packageName: string, packageVersion: string, correlationId?: string): Logger {
-        return new Logger({loggerCallback: this.localCallback, piiLoggingEnabled: this.piiLoggingEnabled, logLevel: this.level, correlationId: this.correlationId}, packageName, packageVersion);
+        return new Logger({loggerCallback: this.localCallback, piiLoggingEnabled: this.piiLoggingEnabled, logLevel: this.level, correlationId: correlationId || this.correlationId}, packageName, packageVersion);
     }
 
     /**
