@@ -329,7 +329,8 @@ export abstract class ClientApplication {
      */
     private async handleHash(hash: string, state: string): Promise<AuthenticationResult> {
         const cachedRequest = this.browserStorage.getCachedRequest(state, this.browserCrypto);
-        this.logger.verbose("handleHash called, retrieved cached request", cachedRequest.correlationId);
+        const browserRequestLogger = new Logger({...this.config.system.loggerOptions, correlationId: cachedRequest.correlationId}, name, version);
+        browserRequestLogger.verbose("handleHash called, retrieved cached request");
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.handleRedirectPromise, cachedRequest.correlationId);
 
         try {
@@ -340,8 +341,8 @@ export abstract class ClientApplication {
             }
 
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority, cachedRequest.correlationId);
-            authClient.logger.verbose("Auth code client created", "", name, version);
-            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, cachedRequest, this.browserCrypto);
+            browserRequestLogger.verbose("Auth code client created");
+            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, cachedRequest, browserRequestLogger, this.browserCrypto);
             return await interactionHandler.handleCodeResponse(hash, state, authClient.authority, this.networkClient, this.config.auth.clientId);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
@@ -373,6 +374,7 @@ export abstract class ClientApplication {
         }
 
         const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Redirect);
+        const browserRequestLogger = new Logger({...this.config.system.loggerOptions, correlationId: validRequest.correlationId}, name, version);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect, validRequest.correlationId);
 
         try {
@@ -381,16 +383,16 @@ export abstract class ClientApplication {
 
             // Initialize the client
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority, validRequest.correlationId);
-            authClient.logger.verbose("Auth code client created", "", name, version);
+            browserRequestLogger.verbose("Auth code client created");
 
             // Create redirect interaction handler.
-            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, authCodeRequest, this.browserCrypto);
+            const interactionHandler = new RedirectHandler(authClient, this.browserStorage, authCodeRequest, browserRequestLogger, this.browserCrypto);
 
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
 
             const redirectStartPage = this.getRedirectStartPage(request.redirectStartPage);
-            authClient.logger.verbosePii(`Redirect start page: ${redirectStartPage}`, "", name, version);
+            browserRequestLogger.verbosePii(`Redirect start page: ${redirectStartPage}`);
 
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
             return interactionHandler.initiateAuthRequest(navigateUrl, {
@@ -467,6 +469,7 @@ export abstract class ClientApplication {
             this.emitEvent(EventType.LOGIN_START, InteractionType.Popup, validRequest);
         }
 
+        const browserRequestLogger = new Logger({...this.config.system.loggerOptions, correlationId: validRequest.correlationId}, name, version);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup, validRequest.correlationId);
 
         try {
@@ -475,13 +478,13 @@ export abstract class ClientApplication {
 
             // Initialize the client
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority, validRequest.correlationId);
-            authClient.logger.verbose("Auth code client created", "", name, version);
+            browserRequestLogger.verbose("Auth code client created");
 
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
 
             // Create popup interaction handler.
-            const interactionHandler = new PopupHandler(authClient, this.browserStorage, authCodeRequest);
+            const interactionHandler = new PopupHandler(authClient, this.browserStorage, authCodeRequest, browserRequestLogger);
 
             // Show the UI once the url has been created. Get the window handle for the popup.
             const popupParameters: PopupParams = {
@@ -585,6 +588,7 @@ export abstract class ClientApplication {
             prompt: PromptValue.NONE
         }, InteractionType.Silent);
 
+        const browserRequestLogger = new Logger({...this.config.system.loggerOptions, correlationId: silentRequest.correlationId}, name, version);
         const serverTelemetryManager = this.initializeServerTelemetryManager(apiId, silentRequest.correlationId);
 
         try {
@@ -593,12 +597,12 @@ export abstract class ClientApplication {
 
             // Initialize the client
             const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentRequest.authority, silentRequest.correlationId);
-            authClient.logger.verbose("Auth code client created", "", name, version);
+            browserRequestLogger.verbose("Auth code client created");
 
             // Create authorize request url
             const navigateUrl = await authClient.getAuthCodeUrl(silentRequest);
 
-            return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient);
+            return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, browserRequestLogger);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequestByState(silentRequest.state);
@@ -625,10 +629,11 @@ export abstract class ClientApplication {
             ...request,
             ...this.initializeBaseRequest(request)
         };
+        const browserRequestLogger = new Logger({...this.config.system.loggerOptions, correlationId: silentRequest.correlationId}, name, version);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);
         try {
             const refreshTokenClient = await this.createRefreshTokenClient(serverTelemetryManager, silentRequest.authority, silentRequest.correlationId);
-            refreshTokenClient.logger.verbose("Refresh token client created", "", name, version);
+            browserRequestLogger.verbose("Refresh token client created");
             
             // Send request to renew token. Auth module will throw errors if token cannot be renewed.
             return await refreshTokenClient.acquireTokenByRefreshToken(silentRequest);
@@ -638,7 +643,7 @@ export abstract class ClientApplication {
             const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
             const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
-                this.logger.verbose("Refresh token expired or invalid, attempting acquire token by iframe", silentRequest.correlationId);
+                browserRequestLogger.verbose("Refresh token expired or invalid, attempting acquire token by iframe");
                 return await this.acquireTokenByIframe(request, ApiId.acquireTokenSilent_authCode);
             }
             throw e;
@@ -651,9 +656,9 @@ export abstract class ClientApplication {
      * @param navigateUrl
      * @param userRequestScopes
      */
-    private async silentTokenHelper(navigateUrl: string, authCodeRequest: CommonAuthorizationCodeRequest, authClient: AuthorizationCodeClient): Promise<AuthenticationResult> {
+    private async silentTokenHelper(navigateUrl: string, authCodeRequest: CommonAuthorizationCodeRequest, authClient: AuthorizationCodeClient, browserRequestLogger: Logger): Promise<AuthenticationResult> {
         // Create silent handler
-        const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.config.system.navigateFrameWait);
+        const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, browserRequestLogger, this.config.system.navigateFrameWait);
         // Get the frame handle for the silent request
         const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl);
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
@@ -687,18 +692,19 @@ export abstract class ClientApplication {
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
         this.logger.verbose("logoutRedirect called", logoutRequest?.correlationId);
         const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
+        const browserRequestLogger = new Logger({...this.config.system.loggerOptions, correlationId: validLogoutRequest.correlationId}, name, version);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.logout, validLogoutRequest.correlationId);
 
         try {
             this.emitEvent(EventType.LOGOUT_START, InteractionType.Redirect, logoutRequest);
-            const authClient = await this.createAuthCodeClient(serverTelemetryManager, logoutRequest && logoutRequest.authority, logoutRequest?.correlationId);
-            authClient.logger.verbose("Auth code client created", "", name, version);
+            const authClient = await this.createAuthCodeClient(serverTelemetryManager, logoutRequest && logoutRequest.authority, validLogoutRequest?.correlationId);
+            browserRequestLogger.verbose("Auth code client created");
 
             // create logout string and navigate user window to logout. Auth module will clear cache.
             const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
             
             if (!validLogoutRequest.account || AccountEntity.accountInfoIsEqual(validLogoutRequest.account, this.getActiveAccount(), false)) {
-                authClient.logger.verbose("Setting active account to null", "", name, version);
+                browserRequestLogger.verbose("Setting active account to null");
                 this.setActiveAccount(null);
             }
             
@@ -714,11 +720,11 @@ export abstract class ClientApplication {
                 const navigate = logoutRequest.onRedirectNavigate(logoutUri);
 
                 if (navigate !== false) {
-                    authClient.logger.verbose("Logout onRedirectNavigate did not return false, navigating", "", name, version);
+                    browserRequestLogger.verbose("Logout onRedirectNavigate did not return false, navigating");
                     await this.navigationClient.navigateExternal(logoutUri, navigationOptions);
                     return;
                 } else {
-                    authClient.logger.verbose("Logout onRedirectNavigate returned false, stopping navigation", "", name, version);
+                    browserRequestLogger.verbose("Logout onRedirectNavigate returned false, stopping navigation");
                 }
             } else {
                 await this.navigationClient.navigateExternal(logoutUri, navigationOptions);
@@ -775,19 +781,20 @@ export abstract class ClientApplication {
     private async logoutPopupAsync(validRequest: CommonEndSessionRequest, popupName: string, requestAuthority?: string, popup?: Window|null, mainWindowRedirectUri?: string): Promise<void> {
         this.logger.verbose("logoutPopupAsync called", validRequest.correlationId);
         this.emitEvent(EventType.LOGOUT_START, InteractionType.Popup, validRequest);
-        
+
+        const browserRequestLogger = new Logger({...this.config.system.loggerOptions, correlationId: validRequest.correlationId}, name, version);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.logoutPopup, validRequest.correlationId);
         
         try {
             this.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
             // Initialize the client
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, requestAuthority, validRequest.correlationId);
-            authClient.logger.verbose("Auth code client created", "", name, version);
+            browserRequestLogger.verbose("Auth code client created");
 
             // create logout string and navigate user window to logout. Auth module will clear cache.
             const logoutUri: string = authClient.getLogoutUri(validRequest);
             if (!validRequest.account || AccountEntity.accountInfoIsEqual(validRequest.account, this.getActiveAccount(), false)) {
-                authClient.logger.verbose("Setting active account to null", "", name, version);
+                browserRequestLogger.verbose("Setting active account to null");
                 this.setActiveAccount(null);
             }
 
@@ -801,9 +808,9 @@ export abstract class ClientApplication {
             try {
                 // Don't care if this throws an error (User Cancelled)
                 await popupUtils.monitorPopupForSameOrigin(popupWindow);
-                authClient.logger.verbose("Popup successfully redirected to postLogoutRedirectUri", "", name, version);
+                browserRequestLogger.verbose("Popup successfully redirected to postLogoutRedirectUri");
             } catch (e) {
-                authClient.logger.verbose(`Error occurred while monitoring popup for same origin. Session on server may remain active. Error: ${e}`, "", name, version);
+                browserRequestLogger.verbose(`Error occurred while monitoring popup for same origin. Session on server may remain active. Error: ${e}`);
             }
 
             popupUtils.cleanPopup(popupWindow);
@@ -816,11 +823,11 @@ export abstract class ClientApplication {
                 };
                 const absoluteUrl = UrlString.getAbsoluteUrl(mainWindowRedirectUri, BrowserUtils.getCurrentUri());
 
-                authClient.logger.verbose("Redirecting main window to url specified in the request", "", name, version);
-                authClient.logger.verbosePii(`Redirecing main window to: ${absoluteUrl}`, "", name, version);
+                browserRequestLogger.verbose("Redirecting main window to url specified in the request");
+                browserRequestLogger.verbosePii(`Redirecing main window to: ${absoluteUrl}`);
                 this.navigationClient.navigateInternal(absoluteUrl, navigationOptions);
             } else {
-                authClient.logger.verbose("No main window navigation requested", "", name, version);
+                browserRequestLogger.verbose("No main window navigation requested");
             }
 
         } catch (e) {
@@ -1266,7 +1273,7 @@ export abstract class ClientApplication {
                 validLogoutRequest.postLogoutRedirectUri = UrlString.getAbsoluteUrl(BrowserUtils.getCurrentUri(), BrowserUtils.getCurrentUri());
             }
         } else {
-            this.logger.verbose("postLogoutRedirectUri passed as null, not settibng post logout redirect uri", validLogoutRequest.correlationId);
+            this.logger.verbose("postLogoutRedirectUri passed as null, not setting post logout redirect uri", validLogoutRequest.correlationId);
         }
 
         return validLogoutRequest;

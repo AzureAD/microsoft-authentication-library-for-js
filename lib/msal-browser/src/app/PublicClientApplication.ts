@@ -14,6 +14,7 @@ import { SilentRequest } from "../request/SilentRequest";
 import { EventType } from "../event/EventType";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { version, name } from "../packageMetadata";
+import { Logger } from "@azure/msal-common";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -91,12 +92,13 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             account: account,
             forceRefresh: request.forceRefresh || false
         };
+        const browserRequestLogger = new Logger({...this.config.system.loggerOptions, correlationId: silentRequest.correlationId}, name, version);
         this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
         try {
             // Telemetry manager only used to increment cacheHits here
             const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);
             const silentAuthClient = await this.createSilentFlowClient(serverTelemetryManager, silentRequest.authority, silentRequest.correlationId);
-            silentAuthClient.logger.verbose("Silent auth client created", "", name, version);
+            browserRequestLogger.verbose("Silent auth client created");
             const cachedToken = await silentAuthClient.acquireCachedToken(silentRequest);
             this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, cachedToken);
             return cachedToken;

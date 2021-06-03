@@ -3,19 +3,18 @@
  * Licensed under the MIT License.
  */
 
-import { UrlString, StringUtils, CommonAuthorizationCodeRequest, AuthorizationCodeClient, Constants } from "@azure/msal-common";
+import { UrlString, StringUtils, CommonAuthorizationCodeRequest, AuthorizationCodeClient, Constants, Logger } from "@azure/msal-common";
 import { InteractionHandler } from "./InteractionHandler";
 import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { DEFAULT_IFRAME_TIMEOUT_MS } from "../config/Configuration";
-import { version, name } from "../packageMetadata";
 
 export class SilentHandler extends InteractionHandler {
 
     private navigateFrameWait: number;
-    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, navigateFrameWait: number) {
-        super(authCodeModule, storageImpl, authCodeRequest);
+    constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager, authCodeRequest: CommonAuthorizationCodeRequest, browserRequestLogger: Logger, navigateFrameWait: number) {
+        super(authCodeModule, storageImpl, authCodeRequest, browserRequestLogger);
         this.navigateFrameWait = navigateFrameWait;
     }
 
@@ -27,7 +26,7 @@ export class SilentHandler extends InteractionHandler {
     async initiateAuthRequest(requestUrl: string): Promise<HTMLIFrameElement> {
         if (StringUtils.isEmpty(requestUrl)) {
             // Throw error if request URL is empty.
-            this.authModule.logger.info("Navigate url is empty", "", name, version);
+            this.browserRequestLogger.info("Navigate url is empty");
             throw BrowserAuthError.createEmptyNavigationUriError();
         }
 
@@ -42,7 +41,7 @@ export class SilentHandler extends InteractionHandler {
     monitorIframeForHash(iframe: HTMLIFrameElement, timeout: number): Promise<string> {
         return new Promise((resolve, reject) => {
             if (timeout < DEFAULT_IFRAME_TIMEOUT_MS) {
-                this.authModule.logger.warning(`system.loadFrameTimeout or system.iframeHashTimeout set to lower (${timeout}ms) than the default (${DEFAULT_IFRAME_TIMEOUT_MS}ms). This may result in timeouts.`, "", name, version);
+                this.browserRequestLogger.warning(`system.loadFrameTimeout or system.iframeHashTimeout set to lower (${timeout}ms) than the default (${DEFAULT_IFRAME_TIMEOUT_MS}ms). This may result in timeouts.`);
             }
 
             /*

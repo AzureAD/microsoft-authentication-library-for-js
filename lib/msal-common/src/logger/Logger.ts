@@ -14,9 +14,7 @@ export type LoggerMessageOptions = {
     logLevel: LogLevel,
     containsPii?: boolean,
     context?: string,
-    correlationId?: string,
-    packageName?: string,
-    packageVersion?: string
+    correlationId?: string
 };
 
 /**
@@ -97,14 +95,7 @@ export class Logger {
             logHeader = `[${timestamp}]`;
         }
 
-        // Use another library's name and version if provided in options
-        let log: string;
-        if (options.packageName && options.packageVersion) {
-            log = `${logHeader} : ${options.packageName}@${options.packageVersion} : ${LogLevel[options.logLevel]} - ${logMessage}`;
-        } else {
-            log = `${logHeader} : ${this.packageName}@${this.packageVersion} : ${LogLevel[options.logLevel]} - ${logMessage}`;
-        }
-
+        const log = `${logHeader} : ${this.packageName}@${this.packageVersion} : ${LogLevel[options.logLevel]} - ${logMessage}`;
         // debug(`msal:${LogLevel[options.logLevel]}${options.containsPii ? "-Pii": ""}${options.context ? `:${options.context}` : ""}`)(logMessage);
         this.executeCallback(options.logLevel, log, options.containsPii || false);
     }
@@ -121,130 +112,110 @@ export class Logger {
     /**
      * Logs error messages.
      */
-    error(message: string, correlationId?: string, packageName?: string, packageVersion?: string): void {
+    error(message: string, correlationId?: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Error,
             containsPii: false,
-            correlationId: correlationId || "",
-            packageName: packageName,
-            packageVersion: packageVersion,
+            correlationId: correlationId || ""
         });
     }
 
     /**
      * Logs error messages with PII.
      */
-    errorPii(message: string, correlationId?: string, packageName?: string, packageVersion?: string): void {
+    errorPii(message: string, correlationId?: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Error,
             containsPii: true,
-            correlationId: correlationId || "",
-            packageName: packageName,
-            packageVersion: packageVersion,
+            correlationId: correlationId || ""
         });
     }
 
     /**
      * Logs warning messages.
      */
-    warning(message: string, correlationId?: string, packageName?: string, packageVersion?: string): void {
+    warning(message: string, correlationId?: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Warning,
             containsPii: false,
-            correlationId: correlationId || "",
-            packageName: packageName,
-            packageVersion: packageVersion,
+            correlationId: correlationId || ""
         });
     }
 
     /**
      * Logs warning messages with PII.
      */
-    warningPii(message: string, correlationId?: string, packageName?: string, packageVersion?: string): void {
+    warningPii(message: string, correlationId?: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Warning,
             containsPii: true,
-            correlationId: correlationId || "",
-            packageName: packageName,
-            packageVersion: packageVersion,
+            correlationId: correlationId || ""
         });
     }
 
     /**
      * Logs info messages.
      */
-    info(message: string, correlationId?: string, packageName?: string, packageVersion?: string): void {
+    info(message: string, correlationId?: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Info,
             containsPii: false,
-            correlationId: correlationId || "",
-            packageName: packageName,
-            packageVersion: packageVersion,
+            correlationId: correlationId || ""
         });
     }
 
     /**
      * Logs info messages with PII.
      */
-    infoPii(message: string, correlationId?: string, packageName?: string, packageVersion?: string): void {
+    infoPii(message: string, correlationId?: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Info,
             containsPii: true,
-            correlationId: correlationId || "",
-            packageName: packageName,
-            packageVersion: packageVersion,
+            correlationId: correlationId || ""
         });
     }
 
     /**
      * Logs verbose messages.
      */
-    verbose(message: string, correlationId?: string, packageName?: string, packageVersion?: string): void {
+    verbose(message: string, correlationId?: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Verbose,
             containsPii: false,
-            correlationId: correlationId || "",
-            packageName: packageName,
-            packageVersion: packageVersion,
+            correlationId: correlationId || ""
         });
     }
 
     /**
      * Logs verbose messages with PII.
      */
-    verbosePii(message: string, correlationId?: string, packageName?: string, packageVersion?: string): void {
+    verbosePii(message: string, correlationId?: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Verbose,
             containsPii: true,
-            correlationId: correlationId || "",
-            packageName: packageName,
-            packageVersion: packageVersion,
+            correlationId: correlationId || ""
         });
     }
 
     /**
      * Logs trace messages.
      */
-    trace(message: string, correlationId?: string, packageName?: string, packageVersion?: string): void {
+    trace(message: string, correlationId?: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Trace,
             containsPii: false,
-            correlationId: correlationId || "",
-            packageName: packageName,
-            packageVersion: packageVersion,
+            correlationId: correlationId || ""
         });
     }
 
     /**
      * Logs trace messages with PII.
      */
-    tracePii(message: string, correlationId?: string, packageName?: string, packageVersion?: string): void {
+    tracePii(message: string, correlationId?: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Trace,
             containsPii: true,
-            correlationId: correlationId || "",
-            packageName: packageName,
-            packageVersion: packageVersion,
+            correlationId: correlationId || ""
         });
     }
 

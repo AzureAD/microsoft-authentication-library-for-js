@@ -20,7 +20,6 @@ import {
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
-import { version, name } from "../packageMetadata";
 
 /**
  *  This class is to be used to acquire tokens for confidential client applications (webApp, webAPI). Confidential client applications
@@ -75,7 +74,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
                 azureRegionConfiguration,
             );
             const clientCredentialClient = new ClientCredentialClient(clientCredentialConfig);
-            clientCredentialClient.logger?.verbose("Client credential client created", "",  name, version);
+            this.logger.verbose("Client credential client created", validRequest.correlationId);
             return clientCredentialClient.acquireToken(validRequest);
         } catch(e) {
             serverTelemetryManager.cacheFailedRequest(e);
@@ -105,7 +104,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
             validRequest.correlationId
         );
         const oboClient = new OnBehalfOfClient(clientCredentialConfig);
-        oboClient.logger?.verbose("On behalf of client created", "", name, version);
+        this.logger.verbose("On behalf of client created", validRequest.correlationId);
         return oboClient.acquireToken(validRequest);
     }
 

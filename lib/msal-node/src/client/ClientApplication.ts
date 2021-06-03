@@ -107,7 +107,7 @@ export abstract class ClientApplication {
         const authorizationCodeClient = new AuthorizationCodeClient(
             authClientConfig
         );
-        authorizationCodeClient.logger?.verbose("Auth code client created", "", name, version);
+        this.logger.verbose("Auth code client created", validRequest.correlationId);
         return authorizationCodeClient.getAuthCodeUrl(validRequest);
     }
 
@@ -136,7 +136,7 @@ export abstract class ClientApplication {
             const authorizationCodeClient = new AuthorizationCodeClient(
                 authClientConfig
             );
-            authorizationCodeClient.logger?.verbose("Auth code client created", "", name, version);
+            this.logger.verbose("Auth code client created", validRequest.correlationId);
             return authorizationCodeClient.acquireToken(validRequest);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
@@ -169,7 +169,7 @@ export abstract class ClientApplication {
             const refreshTokenClient = new RefreshTokenClient(
                 refreshTokenClientConfig
             );
-            refreshTokenClient.logger?.verbose("Refresh token client created", "", name, version);
+            this.logger.verbose("Refresh token client created", validRequest.correlationId);
             return refreshTokenClient.acquireToken(validRequest);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
@@ -202,7 +202,7 @@ export abstract class ClientApplication {
             const silentFlowClient = new SilentFlowClient(
                 silentFlowClientConfig
             );
-            silentFlowClient.logger?.verbose("Silent flow client created", "", name, version);
+            this.logger.verbose("Silent flow client created", validRequest.correlationId);
             return silentFlowClient.acquireToken(validRequest);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
