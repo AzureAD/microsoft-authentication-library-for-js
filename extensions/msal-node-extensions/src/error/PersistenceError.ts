@@ -58,4 +58,14 @@ export class PersistenceError extends Error {
     static createCrossPlatformLockError(errorMessage: string): PersistenceError {
         return new PersistenceError("CrossPlatformLockError", errorMessage);
     }
+
+    /**
+     * Throw cache persistence error
+     * 
+     * @param errorMessage string
+     * @returns PersistenceError
+     */
+    static createCachePersistenceError(errorMessage: string): PersistenceError {
+        return new PersistenceError("CachePersistenceError", errorMessage);
+    }
 }
