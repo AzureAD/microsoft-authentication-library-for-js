@@ -162,7 +162,9 @@ export const KEY_USAGES = {
     },
     RT_BINDING: {
         KEYPAIR: ["encrypt", "decrypt"],
-        PRIVATE_KEY: ["decrypt"]
+        PRIVATE_KEY: ["decrypt"],
+        DERIVATION_KEY: ["sign"],
+        SESSION_KEY: ["decrypt"]
     }
 };
 
@@ -174,4 +176,16 @@ export const BROWSER_CRYPTO = {
     DIRECT: "dir",
     S256_HASH_ALG: "SHA-256",
     MODULUS_LENGTH: 2048
+};
+
+export const KEY_DERIVATION_LABELS = {
+    DECRYPTION: "AzureAD-SecureConversation-BoundRT-AES-GCM-SHA256",
+    SIGNING: "AzureAD-SecureConversation-BoundRT-HS256"
+};
+
+// The following are sizes in bits
+export const KEY_DERIVATION_SIZES = {
+    DERIVED_KEY_LENGTH: 256, // L
+    PRF_OUTPUT_LENGTH: 256, // h
+    COUNTER_LENGTH: 256 // r
 };
