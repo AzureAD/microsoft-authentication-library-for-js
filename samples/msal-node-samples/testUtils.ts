@@ -18,16 +18,21 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
     await screenshot.takeScreenshot(page, "loginPage");
     await page.type("#i0116", username);
     await screenshot.takeScreenshot(page, "loginPageUsernameFilled")
-    await page.click("#idSIButton9");
+    await Promise.all([
+        page.click("#idSIButton9"),
+        page.waitForNavigation({ waitUntil: "networkidle0" })
+    ]);
     await page.waitForSelector("#idA_PWD_ForgotPassword");
-    await page.waitForSelector("#idSIButton9");
     await screenshot.takeScreenshot(page, "pwdInputPage");
     await page.type("#i0118", accountPwd);
     await screenshot.takeScreenshot(page, "loginPagePasswordFilled")
-    await page.click("#idSIButton9");
+    await Promise.all([
+        page.click("#idSIButton9"),
+        page.waitForNavigation({ waitUntil: "networkidle0" })
+    ]);
 
     try {
-        await page.waitForSelector('#KmsiCheckboxField', {timeout: 1000});
+        await page.waitForSelector('#idSIButton9', {timeout: 1000});
         await screenshot.takeScreenshot(page, "kmsiPage");
         await Promise.all([
             page.click("#idSIButton9"),
