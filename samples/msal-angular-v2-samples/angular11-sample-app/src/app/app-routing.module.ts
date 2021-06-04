@@ -5,6 +5,7 @@ import { HomeComponent } from './home/home.component';
 import { MsalGuard } from '@azure/msal-angular';
 import { DetailComponent } from './detail/detail.component';
 import { FailedComponent } from './failed/failed.component';
+import { LogoutComponent } from './logout/logout.component';
 
 const routes: Routes = [
   {
@@ -39,10 +40,14 @@ const routes: Routes = [
   {
     path: 'login-failed',
     component: FailedComponent
+  },
+  {
+      path: 'logout',
+      component: LogoutComponent
   }
 ];
 
-const isIframe = window !== window.parent && !window.opener; // Remove this line to use Angular Universal
+const isIframe = window !== window.parent && !window.opener && window.location.href.indexOf("logout") < 0; // Remove this line to use Angular Universal
 
 @NgModule({
   imports: [RouterModule.forRoot(routes, {
