@@ -254,6 +254,10 @@ export class CryptoOps implements ICrypto {
                 const sessionKeyUsages = KEY_USAGES.RT_BINDING.SESSION_KEY as KeyUsage[];
                 const sessionKeyAlgorithm: AesKeyAlgorithm = { name: "AES-GCM", length: 256 };
                 const sessionKey = await window.crypto.subtle.importKey("raw", derivedKeyData, sessionKeyAlgorithm, false, sessionKeyUsages);
+                
+                if (sessionKey) {
+                    return null;
+                }
                 return null;
             } else {
                 throw BrowserAuthError.createMissingStkKidError();
