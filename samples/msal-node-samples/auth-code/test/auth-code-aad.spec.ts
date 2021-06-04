@@ -11,8 +11,7 @@ import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { AppTypes, AzureEnvironments } from "../../../e2eTestUtils/Constants";
 import { 
-    enterCredentials, 
-    enterCredentialsWithConsent, 
+    enterCredentials,
     SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation
  } from "../../testUtils";
@@ -123,7 +122,7 @@ describe("Auth Code AAD PPE Tests", () => {
 
         it("Performs acquire token with prompt = 'consent'", async () => {
             await page.goto(`${homeRoute}/?prompt=consent`);
-            await enterCredentialsWithConsent(page, screenshot, username, accountPwd);
+            await enterCredentials(page, screenshot, username, accountPwd);
 
             const cachedTokens = await NodeCacheTestUtils.waitForTokens(TEST_CACHE_LOCATION, 2000);
             expect(cachedTokens.accessTokens.length).toBe(1);

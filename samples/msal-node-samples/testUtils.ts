@@ -31,6 +31,10 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
         page.waitForNavigation({ waitUntil: "networkidle0" })
     ]);
 
+    if (page.url().startsWith(SAMPLE_HOME_URL)) {
+        return;
+    }
+
     try {
         await page.waitForSelector('#idSIButton9', {timeout: 1000});
         await screenshot.takeScreenshot(page, "kmsiPage");
@@ -54,11 +58,6 @@ export async function approveRemoteConnect(page: Page, screenshot: Screenshot): 
     } catch (e) {
         return;
     }
-}
-
-export async function enterCredentialsWithConsent(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
-    await this.enterCredentials(page, screenshot, username, accountPwd);
-    await this.approveConsent(page, screenshot);
 }
 
 export async function enterCredentialsADFSWithConsent(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
