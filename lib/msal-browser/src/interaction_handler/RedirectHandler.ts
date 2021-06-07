@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthorizationCodeClient, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AuthenticationResult, ThrottlingUtils, Authority, INetworkModule, ClientAuthError, CcsCredential } from "@azure/msal-common";
+import { AuthorizationCodeClient, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AuthenticationResult, ThrottlingUtils, Authority, INetworkModule, ClientAuthError } from "@azure/msal-common";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { ApiId, BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -117,9 +117,9 @@ export class RedirectHandler extends InteractionHandler {
         authCodeResponse.state = requestState;
 
         // Add CCS parameters if available
-        const cachedCcsCred = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.CCS_CREDENTIAL, true);
+        const cachedCcsCred = this.checkCcsCredentials();
         if (cachedCcsCred) {
-            this.authCodeRequest.ccsCredential = JSON.parse(cachedCcsCred) as CcsCredential;
+            this.authCodeRequest.ccsCredential = cachedCcsCred;
         }
 
         // Remove throttle if it exists

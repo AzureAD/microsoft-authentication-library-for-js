@@ -65,9 +65,9 @@ export abstract class InteractionHandler {
         authCodeResponse.state = requestState;
 
         // Add CCS parameters if available
-        const cachedCcsCred = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.CCS_CREDENTIAL, true);
+        const cachedCcsCred = this.checkCcsCredentials();
         if (cachedCcsCred) {
-            this.authCodeRequest.ccsCredential = JSON.parse(cachedCcsCred) as CcsCredential;
+            this.authCodeRequest.ccsCredential = cachedCcsCred;
         }
 
         // Acquire token with retrieved code.
@@ -86,5 +86,18 @@ export abstract class InteractionHandler {
         const cloudInstanceAuthorityUri = `https://${cloudInstanceHostname}/${authority.tenant}/`;
         const cloudInstanceAuthority = await AuthorityFactory.createDiscoveredInstance(cloudInstanceAuthorityUri, networkModule, this.browserStorage, authority.options);
         this.authModule.updateAuthority(cloudInstanceAuthority);
+    }
+
+    protected checkCcsCredentials(): CcsCredential | null {
+        // Look up ccs credential in temp cache
+        const cachedCcsCred = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.CCS_CREDENTIAL, true);
+        if (cachedCcsCred) {
+            try {
+                return JSON.parse(cachedCcsCred) as CcsCredential;
+            } catch (e) {
+                this.authModule.logger.verbosePii(`Cache credential could not be parsed: ${cachedCcsCred}`);
+            }
+        }
+        return null;
     }
 }
