@@ -114,15 +114,23 @@ const msal = new PublicClientApplication({
 })
 
 // Automatically on page load
-msal.logout({
+msal.logoutRedirect({
     onRedirectNavigate: () => {
-        // Return false if you would like to stop navigation after local logout
+        // Return false to stop navigation after local logout
         return false;
     }
 });
 ```
 
 Now when a user logouts out of another application, your application's front-channel logout url will be loaded in a hidden iframe, and MSAL.js will clear its cache to complete single-sign out.
+
+
+### Front-channel logout samples
+
+The following samples demonstrate how to implement front-channel logout using MSAL.js:
+
+- MSAL Angular v2: [Angular 11 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-sample-app)
+- MSAL React: [React Router sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/react-router-sample)
 
 ## Events
 

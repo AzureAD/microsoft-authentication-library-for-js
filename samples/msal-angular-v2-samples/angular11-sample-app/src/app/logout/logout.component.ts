@@ -1,7 +1,6 @@
 import { Component, OnInit } from '@angular/core';
 import { MsalService } from '@azure/msal-angular';
-
-const isIframe = window !== window.parent && !window.opener; // Remove this line to use Angular Universal
+import { BrowserUtils } from "@azure/msal-browser";
 
 @Component({
   selector: 'app-logout',
@@ -19,7 +18,7 @@ export class LogoutComponent implements OnInit {
     this.authService.logoutRedirect({
         // If in iframe, dont perform redirect to AAD
         onRedirectNavigate: () => {
-            return !isIframe;
+            return !BrowserUtils.isInIframe();
         }
     });
   }
