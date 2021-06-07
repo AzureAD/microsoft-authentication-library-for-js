@@ -79,7 +79,7 @@ describe('Auth Code ADFS PPE Tests', () => {
         beforeEach(async () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
-            page.setDefaultNavigationTimeout(0);
+            page.setDefaultTimeout(5000);
         });
 
         afterEach(async () => {

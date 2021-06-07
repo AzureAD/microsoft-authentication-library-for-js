@@ -76,6 +76,7 @@ describe('Device Code AAD PPE Tests', () => {
         beforeEach(async () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
+            page.setDefaultTimeout(5000);
         });
 
         afterEach(async () => {
