@@ -67,13 +67,19 @@ export async function enterCredentialsADFSWithConsent(page: Page, screenshot: Sc
 
 export async function approveConsent(page: Page, screenshot: Screenshot): Promise<void> {
     await page.waitForSelector("#idSIButton9");
-    await page.click("#idSIButton9");
+    await Promise.all([
+        page.waitForNavigation({ waitUntil: "networkidle0"}),
+        page.click("#idSIButton9")
+    ]);
     await takeScreenshotAfter(2000, screenshot, page, 'consentApproved'); 
 }
 
 export async function clickSignIn(page: Page, screenshot: Screenshot): Promise<void> {
     await screenshot.takeScreenshot(page, "samplePageInit");
-    await page.click("#SignIn");
+    await Promise.all([
+        page.waitForNavigation({ waitUntil: "networkidle0"}),
+        page.click("#SignIn")
+    ]);
     await screenshot.takeScreenshot(page, "signInClicked");
 }
 
@@ -81,11 +87,17 @@ export async function enterCredentialsADFS(page: Page, screenshot: Screenshot, u
     await page.waitForSelector("#i0116");
     await screenshot.takeScreenshot(page, "loginPageADFS");
     await page.type("#i0116", username);
-    await page.click("#idSIButton9");
+    await Promise.all([
+        page.waitForNavigation({ waitUntil: "networkidle0"}),
+        page.click("#idSIButton9")
+    ]);
     await page.waitForSelector("#userNameInput");
     await screenshot.takeScreenshot(page, "adfsUsernameInputPage");
     await page.type("#passwordInput", accountPwd);
-    await page.click("#submitButton");
+    await Promise.all([
+        page.waitForNavigation({ waitUntil: "networkidle0"}),
+        page.click("#submitButton")
+    ]);
     await takeScreenshotAfter(2000, screenshot, page, `pwdSubmitted`);
 }
 
@@ -94,7 +106,10 @@ export async function enterDeviceCode(page: Page, screenshot: Screenshot, code: 
     await page.waitForSelector("#otc");
     await screenshot.takeScreenshot(page, 'deviceCodePage');
     await page.type("#otc", code);
-    await page.click("#idSIButton9");
+    await Promise.all([
+        page.waitForNavigation({ waitUntil: "networkidle0"}),
+        page.click("#idSIButton9")
+    ]);
 }
 
 export function takeScreenshotAfter(duration: number, screenshot: Screenshot, page: Page, label: string): Promise<void> {
