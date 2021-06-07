@@ -52,13 +52,16 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
         page.waitForNavigation({ waitUntil: "networkidle0" }),
         page.waitForSelector("#i0116")
     ]);
-    await screenshot.takeScreenshot(page, "loginPage");
     await page.type("#i0116", username);
+    await page.waitForSelector("#idSIButton9");
+    await screenshot.takeScreenshot(page, "loginPage");
     await Promise.all([
         page.waitForNavigation({ waitUntil: "networkidle0" }),
         page.click("#idSIButton9")
     ]);
     await page.waitForSelector("#idA_PWD_ForgotPassword");
+    await page.waitForSelector("#i0118");
+    await page.waitForSelector("#idSIButton9");
     await screenshot.takeScreenshot(page, "pwdInputPage");
     await page.type("#i0118", accountPwd);
     await Promise.all([
@@ -76,6 +79,7 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
     }
 
     await page.waitForSelector('#KmsiCheckboxField', {timeout: 1000});
+    await page.waitForSelector("#idSIButton9");
     await screenshot.takeScreenshot(page, "kmsiPage");
     await Promise.all([
         page.waitForResponse((response: HTTPResponse) => response.url().startsWith("http://localhost")),

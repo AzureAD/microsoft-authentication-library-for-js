@@ -15,6 +15,7 @@ export const SUCCESSFUL_GET_ALL_ACCOUNTS_ID = "accounts-retrieved-successfully";
 
 export async function enterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
     await page.waitForSelector("#i0116");
+    await page.waitForSelector("#idSIButton9");
     await screenshot.takeScreenshot(page, "loginPage");
     await page.type("#i0116", username);
     await screenshot.takeScreenshot(page, "loginPageUsernameFilled")
@@ -23,6 +24,8 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
         page.click("#idSIButton9")
     ]);
     await page.waitForSelector("#idA_PWD_ForgotPassword");
+    await page.waitForSelector("#i0118");
+    await page.waitForSelector("#idSIButton9");
     await screenshot.takeScreenshot(page, "pwdInputPage");
     await page.type("#i0118", accountPwd);
     await screenshot.takeScreenshot(page, "loginPagePasswordFilled")
@@ -50,6 +53,7 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
 export async function approveRemoteConnect(page: Page, screenshot: Screenshot): Promise<void> {
     try {
         await page.waitForSelector("#remoteConnectDescription");
+        await page.waitForSelector("#remoteConnectSubmit");
         await screenshot.takeScreenshot(page, "remoteConnectPage");
         await Promise.all([
             page.waitForNavigation({ waitUntil: "networkidle0"}),
@@ -75,6 +79,7 @@ export async function approveConsent(page: Page, screenshot: Screenshot): Promis
 }
 
 export async function clickSignIn(page: Page, screenshot: Screenshot): Promise<void> {
+    await page.waitForSelector("#SignIn")
     await screenshot.takeScreenshot(page, "samplePageInit");
     await Promise.all([
         page.waitForNavigation({ waitUntil: "networkidle0"}),
@@ -85,13 +90,15 @@ export async function clickSignIn(page: Page, screenshot: Screenshot): Promise<v
 
 export async function enterCredentialsADFS(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
     await page.waitForSelector("#i0116");
+    await page.waitForSelector("#idSIButton9");
     await screenshot.takeScreenshot(page, "loginPageADFS");
     await page.type("#i0116", username);
     await Promise.all([
         page.waitForNavigation({ waitUntil: "networkidle0"}),
         page.click("#idSIButton9")
     ]);
-    await page.waitForSelector("#userNameInput");
+    await page.waitForSelector("#passwordInput");
+    await page.waitForSelector("#submitButton");
     await screenshot.takeScreenshot(page, "adfsUsernameInputPage");
     await page.type("#passwordInput", accountPwd);
     await Promise.all([
@@ -104,6 +111,7 @@ export async function enterCredentialsADFS(page: Page, screenshot: Screenshot, u
 export async function enterDeviceCode(page: Page, screenshot: Screenshot, code: string, deviceCodeUrl: string): Promise<void> {
     await page.goto(deviceCodeUrl);
     await page.waitForSelector("#otc");
+    await page.waitForSelector("#idSIButton9");
     await screenshot.takeScreenshot(page, 'deviceCodePage');
     await page.type("#otc", code);
     await Promise.all([
