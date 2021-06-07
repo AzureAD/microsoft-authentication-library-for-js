@@ -9,7 +9,7 @@ export function Logout() {
         instance.logoutRedirect({
             onRedirectNavigate: () => !BrowserUtils.isInIframe()
         })
-    }, []);
+    }, [ instance ]);
 
     return (
         <div>Logout</div>
