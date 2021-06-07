@@ -56,6 +56,10 @@ export class AccessTokenEntity extends CredentialEntity {
      * @param scopes
      * @param expiresOn
      * @param extExpiresOn
+     * @param cryptoUtils
+     * @param refreshOn
+     * @param tokenType
+     * @param oboAssertion
      */
     static createAccessTokenEntity(
         homeAccountId: string,
