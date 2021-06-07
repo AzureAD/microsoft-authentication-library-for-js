@@ -2,6 +2,7 @@ import { buildClientInfo, buildClientInfoFromHomeAccountId, ClientInfo } from ".
 import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_POP_VALUES } from "../test_kit/StringConstants";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
+import { Constants } from "../../src";
 
 describe("ClientInfo.ts Class Unit Tests", () => {
 
@@ -80,9 +81,14 @@ describe("ClientInfo.ts Class Unit Tests", () => {
         it("throws error if homeAccountId is not in the correct format", () => {
             expect(() => buildClientInfoFromHomeAccountId("")).toThrowError(ClientAuthError);
             expect(() => buildClientInfoFromHomeAccountId("")).toThrowError(ClientAuthErrorMessage.clientInfoDecodingError.desc);
+        });
 
-            expect(() => buildClientInfoFromHomeAccountId("notAHomeAccountId")).toThrowError(ClientAuthError);
-            expect(() => buildClientInfoFromHomeAccountId("notAHomeAccountId")).toThrowError(ClientAuthErrorMessage.clientInfoDecodingError.desc);
+        it("Builds partial clientInfo from homeAccountId with only single string", () => {
+            const expectedClientInfo: ClientInfo = {
+                uid: TEST_DATA_CLIENT_INFO.TEST_UID,
+                utid: Constants.EMPTY_STRING
+            };
+            expect(buildClientInfoFromHomeAccountId(TEST_DATA_CLIENT_INFO.TEST_UID)).toMatchObject(expectedClientInfo);
         });
 
         it("successfully returns client info built from homeAccountId", () => {

@@ -6,7 +6,7 @@
 import { ClientAuthError } from "../error/ClientAuthError";
 import { StringUtils } from "../utils/StringUtils";
 import { ICrypto } from "../crypto/ICrypto";
-import { Separators } from "../utils/Constants";
+import { Separators, Constants } from "../utils/Constants";
 
 /**
  * Client info object which consists of two IDs. Need to add more info here.
@@ -17,7 +17,7 @@ export type ClientInfo = {
 };
 
 /**
- * Function to build a client info object
+ * Function to build a client info object from server clientInfo string
  * @param rawClientInfo
  * @param crypto
  */
@@ -34,13 +34,17 @@ export function buildClientInfo(rawClientInfo: string, crypto: ICrypto): ClientI
     }
 }
 
+/**
+ * Function to build a client info object from cached homeAccountId string
+ * @param homeAccountId 
+ */
 export function buildClientInfoFromHomeAccountId(homeAccountId: string): ClientInfo {
-    const clientInfoParts: string[] = homeAccountId.split(Separators.CLIENT_INFO_SEPARATOR);
-    if (clientInfoParts.length < 2) {
-        throw ClientAuthError.createClientInfoDecodingError("Home account ID was malformed.");
+    if (StringUtils.isEmpty(homeAccountId)) {
+        throw ClientAuthError.createClientInfoDecodingError("Home account ID was empty.");
     }
+    const clientInfoParts: string[] = homeAccountId.split(Separators.CLIENT_INFO_SEPARATOR, 2);
     return {
         uid: clientInfoParts[0],
-        utid: clientInfoParts[1]
+        utid: clientInfoParts.length < 2 ? Constants.EMPTY_STRING : clientInfoParts[1]
     };
 }
