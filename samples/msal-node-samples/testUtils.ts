@@ -19,16 +19,16 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
     await page.type("#i0116", username);
     await screenshot.takeScreenshot(page, "loginPageUsernameFilled")
     await Promise.all([
-        page.click("#idSIButton9"),
-        page.waitForNavigation({ waitUntil: "networkidle0" })
+        page.waitForNavigation({ waitUntil: "networkidle0" }),
+        page.click("#idSIButton9")
     ]);
     await page.waitForSelector("#idA_PWD_ForgotPassword");
     await screenshot.takeScreenshot(page, "pwdInputPage");
     await page.type("#i0118", accountPwd);
     await screenshot.takeScreenshot(page, "loginPagePasswordFilled")
     await Promise.all([
-        page.click("#idSIButton9"),
-        page.waitForNavigation({ waitUntil: "networkidle0" })
+        page.waitForNavigation({ waitUntil: "networkidle0" }),
+        page.click("#idSIButton9")
     ]);
 
     if (page.url().startsWith(SAMPLE_HOME_URL)) {
@@ -39,8 +39,8 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
         await page.waitForSelector('#idSIButton9', {timeout: 1000});
         await screenshot.takeScreenshot(page, "kmsiPage");
         await Promise.all([
-            page.click("#idSIButton9"),
-            page.waitForNavigation({ waitUntil: "networkidle0"})
+            page.waitForNavigation({ waitUntil: "networkidle0"}),
+            page.click("#idSIButton9")
         ]);
     } catch (e) {
         return;
@@ -52,8 +52,8 @@ export async function approveRemoteConnect(page: Page, screenshot: Screenshot): 
         await page.waitForSelector("#remoteConnectDescription");
         await screenshot.takeScreenshot(page, "remoteConnectPage");
         await Promise.all([
-            page.click("#remoteConnectSubmit"),
-            page.waitForNavigation({ waitUntil: "networkidle0"})
+            page.waitForNavigation({ waitUntil: "networkidle0"}),
+            page.click("#remoteConnectSubmit")
         ]);
     } catch (e) {
         return;

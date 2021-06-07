@@ -55,8 +55,8 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
     await screenshot.takeScreenshot(page, "loginPage");
     await page.type("#i0116", username);
     await Promise.all([
-        page.click("#idSIButton9"),
-        page.waitForNavigation({ waitUntil: "networkidle0" })
+        page.waitForNavigation({ waitUntil: "networkidle0" }),
+        page.click("#idSIButton9")
     ]);
     await page.waitForSelector("#idA_PWD_ForgotPassword");
     await screenshot.takeScreenshot(page, "pwdInputPage");
