@@ -208,17 +208,15 @@ export class RefreshTokenClient extends BaseClient {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
 
-        if (this.config.systemOptions.preventCorsPreflight) {
-            if (request.ccsCredential) {
-                switch (request.ccsCredential.type) {
-                    case CcsCredentialType.HOME_ACCOUNT_ID:
-                        const clientInfo = buildClientInfoFromHomeAccountId(request.ccsCredential.credential);
-                        parameterBuilder.addCcsOid(clientInfo);
-                        break;
-                    case CcsCredentialType.UPN:
-                        parameterBuilder.addCcsUpn(request.ccsCredential.credential);
-                        break;
-                }
+        if (this.config.systemOptions.preventCorsPreflight && request.ccsCredential) {
+            switch (request.ccsCredential.type) {
+                case CcsCredentialType.HOME_ACCOUNT_ID:
+                    const clientInfo = buildClientInfoFromHomeAccountId(request.ccsCredential.credential);
+                    parameterBuilder.addCcsOid(clientInfo);
+                    break;
+                case CcsCredentialType.UPN:
+                    parameterBuilder.addCcsUpn(request.ccsCredential.credential);
+                    break;
             }
         }
 

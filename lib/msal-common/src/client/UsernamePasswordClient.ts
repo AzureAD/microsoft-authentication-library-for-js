@@ -106,10 +106,8 @@ export class UsernamePasswordClient extends BaseClient {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
 
-        if (this.config.systemOptions.preventCorsPreflight) {
-            if (request.username) {
-                parameterBuilder.addCcsUpn(request.username);
-            }
+        if (this.config.systemOptions.preventCorsPreflight && request.username) {
+            parameterBuilder.addCcsUpn(request.username);
         }
 
         return parameterBuilder.createQueryString();
