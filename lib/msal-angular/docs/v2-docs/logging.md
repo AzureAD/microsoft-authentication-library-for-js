@@ -25,8 +25,8 @@ export function loggerCallback(logLevel, message) {
             system: {
                 loggerOptions: {
                     loggerCallback,
-                    logLevel: LogLevel.Info,
-                    piiLoggingEnabled: true
+                    piiLoggingEnabled: true,
+                    logLevel: LogLevel.Info
                 }
             }
         })
@@ -37,10 +37,11 @@ export function loggerCallback(logLevel, message) {
 The `logger` can also be set dynamically by using `MsalService.setLogger()`.
 
 ```js
-this.authService.setLogger(new Logger((logLevel, message, piiEnabled) => {
+this.authService.setLogger(new Logger({
+    loggerCallback: (logLevel, message, piiEnabled) => {
         console.log('MSAL Logging: ', message);
     },
-    correlationId: CryptoUtils.createNewGuid(),
-    piiLoggingEnabled: false
-));
+    piiLoggingEnabled: false,
+    logLevel: LogLevel.Info
+}));
 ```
