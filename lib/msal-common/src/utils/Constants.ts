@@ -315,7 +315,6 @@ export const SERVER_TELEM_CONSTANTS = {
 export enum AuthenticationScheme {
     POP = "pop",
     BEARER = "Bearer",
-    BOUND = "Bound"
 }
 
 /**

@@ -280,10 +280,11 @@ export class ResponseHandler {
         // refreshToken
         let cachedRefreshToken: RefreshTokenEntity | null = null;
         if (!StringUtils.isEmpty(serverTokenResponse.refresh_token)) {
-            const stkJwk = serverTokenResponse.kid;
+            const stkKid = serverTokenResponse.stkKid;
+            const skKid = serverTokenResponse.skKid;
 
             // Determine if refresh token is bound based on STK JWK presence in server auth response
-            const rtTokenType = (stkJwk) ? AuthenticationScheme.BOUND : AuthenticationScheme.BEARER;
+            const rtTokenType = (stkKid && skKid) ? AuthenticationScheme.POP : AuthenticationScheme.BEARER;
 
             cachedRefreshToken = RefreshTokenEntity.createRefreshTokenEntity(
                 this.homeAccountIdentifier,
@@ -292,7 +293,8 @@ export class ResponseHandler {
                 this.clientId,
                 serverTokenResponse.foci,
                 oboAssertion,
-                stkJwk,
+                stkKid,
+                skKid,
                 rtTokenType
             );
         }
