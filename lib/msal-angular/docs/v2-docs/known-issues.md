@@ -1,5 +1,8 @@
 # Known issues for MSAL Angular v2
 
+## 2.0.0
+* MSAL Guard's `CanLoad` does not interactively prompt for login. This will be addressed in a future release.
+
 ## 2.0.0-beta.6
 * Due to a security fix, the `MsalCustomNavigationClient` will not navigate client-side when `navigateToLoginRequestUrl` is set to true and handling redirects. This will be addressed in a future release.
 
