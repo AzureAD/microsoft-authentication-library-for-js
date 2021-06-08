@@ -2709,7 +2709,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const logger = new Logger({
                 loggerCallback: (level, message, containsPii) => {
                     expect(message).toContain("Message");
-                    expect(message).toContain(LogLevel.Info);
+                    expect(message).toContain(LogLevel[2]);
     
                     expect(level).toEqual(LogLevel.Info);
                     expect(containsPii).toBeFalsy();

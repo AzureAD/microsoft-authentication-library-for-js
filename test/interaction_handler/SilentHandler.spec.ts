@@ -135,13 +135,12 @@ describe("SilentHandler.ts Unit Tests", () => {
         });
 
         it("Creates a frame asynchronously when created with default timeout", async () => {
-            jest.setTimeout(DEFAULT_IFRAME_TIMEOUT_MS + 1000)
             const silentHandler = new SilentHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, DEFAULT_IFRAME_TIMEOUT_MS);
             const loadFrameSpy = sinon.spy(silentHandler, <any>"loadFrame");
             const authFrame = await silentHandler.initiateAuthRequest(testNavUrl);
             expect(loadFrameSpy.called).toBe(true);
             expect(authFrame instanceof HTMLIFrameElement).toBe(true);
-        });
+        }, DEFAULT_IFRAME_TIMEOUT_MS + 1000);
 
         it("Creates a frame synchronously when created with a timeout of 0", async () => {
             const silentHandler = new SilentHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, 0);
