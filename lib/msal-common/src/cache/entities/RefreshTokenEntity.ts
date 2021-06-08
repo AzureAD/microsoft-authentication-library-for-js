@@ -30,14 +30,20 @@ import { ClientAuthError } from "../../error/ClientAuthError";
 export class RefreshTokenEntity extends CredentialEntity {
     familyId?: string;
     tokenType?: string;
-    kid?: string; // for Bound Refresh Tokens
+    stkKid?: string; // Session Transport Key Key ID for Bound Refresh Tokens
+    skKid?: string; // Session Key Key ID for Bound Refresh Tokens
 
     /**
      * Create RefreshTokenEntity
      * @param homeAccountId
-     * @param authenticationResult
+     * @param environment
+     * @param refreshToken
      * @param clientId
-     * @param authority
+     * @param familyId
+     * @param oboAssertion
+     * @param stkKid
+     * @param sKKid
+     * @param tokenType
      */
     static createRefreshTokenEntity(
         homeAccountId: string,
@@ -46,7 +52,8 @@ export class RefreshTokenEntity extends CredentialEntity {
         clientId: string,
         familyId?: string,
         oboAssertion?: string,
-        kid?: string,
+        stkKid?: string,
+        skKid?: string,
         tokenType?: string
     ): RefreshTokenEntity {
         const rtEntity = new RefreshTokenEntity();
@@ -65,13 +72,19 @@ export class RefreshTokenEntity extends CredentialEntity {
         rtEntity.tokenType = StringUtils.isEmpty(tokenType) ? AuthenticationScheme.BEARER : tokenType;
 
         // Create Refresh Token With AuthScheme instead of bearer refresh token
-        if (rtEntity.tokenType === AuthenticationScheme.BOUND) {
+        if (rtEntity.tokenType === AuthenticationScheme.POP) {
             rtEntity.credentialType = CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME;
             // Make sure keyId is present and add it to credential
-            if (!kid) {
+            if (!stkKid) {
                 throw ClientAuthError.createNoStkKidInServerResponseError();
             }
-            rtEntity.kid = kid;
+
+            if (!skKid) {
+                throw ClientAuthError.createNoSkKidInServerResponseError();
+            }
+
+            rtEntity.stkKid = stkKid;
+            rtEntity.skKid = skKid;
         }
 
         return rtEntity;

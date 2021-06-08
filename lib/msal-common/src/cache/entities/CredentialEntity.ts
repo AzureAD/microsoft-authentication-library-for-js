@@ -24,6 +24,7 @@ import { ClientAuthError } from "../../error/ClientAuthError";
  *      realm: Full tenant or organizational identifier that the account belongs to
  *      target: Permissions that are included in the token, or for refresh tokens, the resource identifier.
  *      oboAssertion: access token passed in as part of OBO request
+ *      tokenType: Authentication scheme under which the credential (access or refresh token) was issued (pop or Bearer).
  * }
  */
 export class CredentialEntity {
@@ -36,6 +37,7 @@ export class CredentialEntity {
     realm?: string;
     target?: string;
     oboAssertion?: string;
+    tokenType?: string;
 
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
@@ -74,7 +76,8 @@ export class CredentialEntity {
             this.clientId,
             this.realm,
             this.target,
-            this.familyId
+            this.familyId,
+            this.tokenType
         );
     }
 
@@ -86,8 +89,10 @@ export class CredentialEntity {
             case CredentialType.ID_TOKEN:
                 return CacheType.ID_TOKEN;
             case CredentialType.ACCESS_TOKEN:
+            case CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME:
                 return CacheType.ACCESS_TOKEN;
             case CredentialType.REFRESH_TOKEN:
+            case CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME:
                 return CacheType.REFRESH_TOKEN;
             default: {
                 throw ClientAuthError.createUnexpectedCredentialTypeError();
@@ -130,12 +135,14 @@ export class CredentialEntity {
         clientId: string,
         realm?: string,
         target?: string,
-        familyId?: string
+        familyId?: string,
+        tokenType?: string
     ): string {
         const credentialKey = [
             this.generateAccountIdForCacheKey(homeAccountId, environment),
             this.generateCredentialIdForCacheKey(credentialType, clientId, realm, familyId),
             this.generateTargetForCacheKey(target),
+            this.generateSchemeForCacheKey(credentialType, tokenType)
         ];
 
         return credentialKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
@@ -165,7 +172,8 @@ export class CredentialEntity {
         credentialType: CredentialType,
         clientId: string,
         realm?: string,
-        familyId?: string
+        familyId?: string,
+        tokenType?: string
     ): string {
         const clientOrFamilyId =
             credentialType === CredentialType.REFRESH_TOKEN
@@ -186,4 +194,18 @@ export class CredentialEntity {
     private static generateTargetForCacheKey(scopes?: string): string {
         return (scopes || "").toLowerCase();
     }
+
+    /**
+     * Generates scheme key component as per schema: <-scheme>
+     */
+     private static generateSchemeForCacheKey(credentialType: string, tokenType?: string): string {
+        const authScheme =
+            ((credentialType === CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME
+                || credentialType === CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME)
+                && tokenType)
+                ? tokenType
+                : "";
+
+        return authScheme.toLowerCase();
+     }
 }
