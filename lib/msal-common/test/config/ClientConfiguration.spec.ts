@@ -3,9 +3,9 @@ import { PkceCodes } from "../../src/crypto/ICrypto";
 import { AuthError } from "../../src/error/AuthError";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { LogLevel } from "../../src/logger/Logger";
-import { Constants } from "../../src";
+import { Constants, ServerAuthorizationTokenResponse } from "../../src";
 import { version } from "../../src/packageMetadata";
-import {TEST_CONFIG, TEST_POP_VALUES} from "../test_kit/StringConstants";
+import { TEST_CONFIG, TEST_POP_VALUES, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES } from "../test_kit/StringConstants";
 import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
 import { MockCache } from "../cache/entities/cacheConstants";
 
@@ -117,6 +117,12 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 },
                 async signJwt(): Promise<string> {
                     return "signedJwt";
+                },
+                async getAsymmetricPublicKey(): Promise<string> {
+                    return TEST_POP_VALUES.KID;
+                },
+                async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
+                    return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES;
                 }
             },
             storageInterface: cacheStorageMock,
