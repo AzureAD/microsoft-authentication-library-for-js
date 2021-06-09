@@ -129,7 +129,6 @@ export class ResponseHandler {
                 response_jwe: serverTokenResponse.response_jwe
             };
             decryptedTokenResponse = await this.cryptoObj.decryptBoundTokenResponse(boundServerTokenResponse, request) || serverTokenResponse;
-            console.log(decryptedTokenResponse);
         } else {
             decryptedTokenResponse = serverTokenResponse;
         }

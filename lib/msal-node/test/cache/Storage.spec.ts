@@ -120,7 +120,7 @@ describe("Storage tests for msal-node: ", () => {
     it('setCache() and getCache() tests - tests for an accessToken', () => {
         const nodeStorage = new NodeStorage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
 
-        const accessTokenKey = 'uid1.utid1-login.windows.net-accesstoken-mock_client_id-samplerealm-scoperead scopewrite';
+        const accessTokenKey = 'uid1.utid1-login.windows.net-accesstoken-mock_client_id-samplerealm-scoperead scopewrite-';
         const newMockAT = {
             'uid1.utid1-login.windows.net-accesstoken-mock_client_id-samplerealm-scoperead scopewrite': {
                 homeAccountId: 'uid1.utid1',
