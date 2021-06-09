@@ -23,4 +23,4 @@ export type ProtectedResourceScopes = {
 export type MatchingResources = {
     absoluteResources: Array<string>,
     relativeResources: Array<string>
-}
+};
