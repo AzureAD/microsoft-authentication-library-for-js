@@ -1,7 +1,7 @@
 import { CryptoOps, CachedKeyPair } from "../../src/crypto/CryptoOps";
 import { GuidGenerator } from "../../src/crypto/GuidGenerator";
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
-import { TEST_CONFIG, TEST_URIS, BROWSER_CRYPTO, KEY_USAGES, TEST_POP_VALUES } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, BROWSER_CRYPTO, KEY_USAGES, TEST_POP_VALUES, DB_TABLE_NAMES } from "../utils/StringConstants";
 import { createHash } from "crypto";
 import { AuthenticationScheme, PkceCodes } from "@azure/msal-common";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
@@ -37,15 +37,16 @@ const RT_BINDING_KEY_OPTIONS = {
 
 describe("CryptoOps.ts Unit Tests", () => {
     let cryptoObj: CryptoOps;
-    let dbStorage = {};
+    let dbStorage = { "asymmetricKeys": { }, "symmetricKeys": {} };
     let oldWindowCrypto = window.crypto;
     beforeEach(() => {
         jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(async (): Promise<void> => {
-            dbStorage = {};
+            dbStorage.asymmetricKeys = {};
+            dbStorage.symmetricKeys = {};
         });
 
-        jest.spyOn(DatabaseStorage.prototype, "put").mockImplementation(async (key: string, payload: CachedKeyPair): Promise<void> => {
-            dbStorage[key] = payload;
+        jest.spyOn(DatabaseStorage.prototype, "put").mockImplementation(async (tableName: string, key: string, payload: any): Promise<void> => {
+            dbStorage[tableName][key] = payload;
         });
         cryptoObj = new CryptoOps();
 
@@ -154,7 +155,7 @@ describe("CryptoOps.ts Unit Tests", () => {
         expect(result.publicKey.algorithm.name.toLowerCase()).toEqual(AT_BINDING_KEY_OPTIONS.keyGenAlgorithmOptions.name.toLowerCase());
         expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
         expect(regExp.test(pkThumbprint)).toBe(true);
-        expect(Object.keys(dbStorage[pkThumbprint])).not.toHaveLength(0);
+        expect(Object.keys(dbStorage[DB_TABLE_NAMES.ASYMMETRIC_KEYS][pkThumbprint])).not.toHaveLength(0);
     });
 
     it("getPublicKeyThumbprint() generates a valid stk_jwk thumbprint", async () => {
@@ -187,6 +188,6 @@ describe("CryptoOps.ts Unit Tests", () => {
         expect(result.privateKey.algorithm.name.toLowerCase()).toEqual(RT_BINDING_KEY_OPTIONS.keyGenAlgorithmOptions.name.toLowerCase());
         expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
         expect(regExp.test(pkThumbprint)).toBe(true);
-        expect(Object.keys(dbStorage[pkThumbprint])).not.toHaveLength(0);
+        expect(Object.keys(dbStorage[DB_TABLE_NAMES.ASYMMETRIC_KEYS][pkThumbprint])).not.toHaveLength(0);
     });
 });
