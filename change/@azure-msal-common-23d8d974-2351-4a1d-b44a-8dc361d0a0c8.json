@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "feat: modify the access token filter #3375",
+  "packageName": "@azure/msal-common",
+  "email": "samuelkamau@microsoft.com",
+  "dependentChangeType": "patch"
+}
