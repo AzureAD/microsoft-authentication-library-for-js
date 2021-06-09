@@ -129,9 +129,9 @@ describe('MsalInterceptor', () => {
   });
 
   it("does not attach authorization header for own domain", (done) => {
-    httpClient.get("http://localhost:4200").subscribe(response => expect(response).toBeTruthy());
+    httpClient.get("http://localhost:9876").subscribe(response => expect(response).toBeTruthy());
 
-    const request = httpMock.expectOne("http://localhost:4200");
+    const request = httpMock.expectOne("http://localhost:9876");
     request.flush({ data: "test" });
     expect(request.request.headers.get("Authorization")).toBeUndefined;
     httpMock.verify();
