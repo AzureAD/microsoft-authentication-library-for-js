@@ -45,7 +45,34 @@ Yes, `@azure/msal-react` supports both function and class components. Hooks, how
 
 ### How do I handle the redirect flow in a react app?
 
-If you've used `@azure/msal-browser` or `msal` v1 in the past, you may be used to calling `handleRedirectCallback` or `handleRedirectPromise` on page load to handle the response of a redirect. In `@azure/msal-react` this is done under the hood and you should not call `handleRedirectPromise`on your own. For the most part, redirects should just work. However, if you need direct access to the response object you can use the [event API](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/events.md) to register a callback that will be invoked with the response when you return to your app. If you're using the `useMsalAuthentication` hook, it does this under the hood and should return the result/error.
+If you've used `@azure/msal-browser` or `msal` v1 in the past, you may be used to calling `handleRedirectCallback` or `handleRedirectPromise` on page load to handle the response of a redirect. In `@azure/msal-react` this is done under the hood and you do not need to call `handleRedirectPromise`on your own. After calling `loginRedirect` or `acquireTokenRedirect` you'll be redirected to the AAD sign in page and after entering your credentials you'll be redirected back to your app which should now show that a user is signed in. Since this is a new, clean instance of your application the actual response object cannot be returned to the original `loginRedirect` API call. Instead there are a few ways you can get what you need:
+
+If you just need an id or access token we recommend calling the `acquireTokenSilent` API right before you need the token. Be sure to check that a user is signed in and interaction isn't in progress before you attempt to retrieve the token. If the previous redirect operation was successful `acquireTokenSilent` will return the tokens from the cache.
+
+```javascript
+const GetDataFromAPI = () => {
+    const { instance, accounts } = useMsal();
+    const isAuthenticated = useIsAuthenticated();
+    const [graphData, setGraphData] = useState(null);
+
+    useEffect(() => {
+        if (isAuthenticated && inProgress === InteractionStatus.None) {
+            instance.acquireTokenSilent({
+                account: accounts[0],
+                scopes: ["User.Read"]
+            }).then(response => {
+                callAPI(response.accessToken);
+            })
+        }
+    }, [inProgress, isAuthenticated, accounts, instance]);
+};
+```
+
+If you need direct access to the response object or error returned by a redirect operation there are 3 ways you can do this:
+
+1. Use the [event API](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/events.md) to register a callback that will be invoked with the response when you return to your app. Make sure this is registered in a code path that is run __after__ the redirect as any callbacks registered __before__ the redirect will be lost.
+1. Use the [useMsalAuthentication hook](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/hooks.md#usemsalauthentication-hook) to login. This hook will return the result or error when you are returned to your app.
+1. Call `handleRedirectPromise` which will resolve with the result or reject with an error if the page was loaded as a result of a redirect
 
 ### What can I do outside of `@azure/msal-react` context?
 
