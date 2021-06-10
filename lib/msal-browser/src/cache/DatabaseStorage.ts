@@ -20,18 +20,24 @@ interface IDBRequestEvent extends Event {
 /**
  * Storage wrapper for IndexedDB storage in browsers: https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API
  */
-export class DatabaseStorage<T>{
+export class DatabaseStorage{
     private db: IDBDatabase|undefined;
     private dbName: string;
-    private tableName: string;
+    private tableNames: string[];
     private version: number;
     private dbOpen: boolean;
 
-    constructor(dbName: string, tableName: string, version: number) {
+    constructor(dbName: string, tableNames: string[], version: number) {
         this.dbName = dbName;
-        this.tableName = tableName;
+        this.tableNames = tableNames;
         this.version = version;
         this.dbOpen = false;
+    }
+
+    validateTableName(tableName: string, reject: Function): void{
+        if (this.tableNames.indexOf(tableName) === -1) {
+            reject(BrowserAuthError.createDatabaseTableNotFoundError(tableName));
+        }
     }
 
     /**
@@ -43,7 +49,9 @@ export class DatabaseStorage<T>{
             const openDB = window.indexedDB.open(this.dbName, this.version);
             openDB.addEventListener("upgradeneeded", (e: IDBVersionChangeEvent) => {
                 const event = e as IDBOpenOnUpgradeNeededEvent;
-                event.target.result.createObjectStore(this.tableName);
+                this.tableNames.forEach(tableName => {
+                    event.target.result.createObjectStore(tableName);
+                });
             });
             openDB.addEventListener("success", (e: Event) => {
                 const event = e as IDBOpenDBRequestEvent;
@@ -60,7 +68,7 @@ export class DatabaseStorage<T>{
      * Retrieves item from IndexedDB instance.
      * @param key 
      */
-    async get(key: string): Promise<T> {
+    async get<T>(tableName: string, key: string): Promise<T> {
         if (!this.dbOpen) {
             await this.open();
         }
@@ -71,9 +79,11 @@ export class DatabaseStorage<T>{
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
             }
 
-            const transaction = this.db.transaction([this.tableName], "readonly");
+            this.validateTableName(tableName, reject);
 
-            const objectStore = transaction.objectStore(this.tableName);
+            const transaction = this.db.transaction([tableName], "readonly");
+
+            const objectStore = transaction.objectStore(tableName);
             const dbGet = objectStore.get(key);
             dbGet.addEventListener("success", (e: Event) => {
                 const event = e as IDBRequestEvent;
@@ -88,7 +98,7 @@ export class DatabaseStorage<T>{
      * @param key 
      * @param payload 
      */
-    async put(key: string, payload: T): Promise<T> {
+    async put<T>(tableName: string, key: string, payload: T): Promise<T> {
         if (!this.dbOpen) {
             await this.open();
         }
@@ -99,8 +109,10 @@ export class DatabaseStorage<T>{
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
             }
 
-            const transaction = this.db.transaction([this.tableName], "readwrite");
-            const objectStore = transaction.objectStore(this.tableName);
+            this.validateTableName(tableName, reject);
+
+            const transaction = this.db.transaction([tableName], "readwrite");
+            const objectStore = transaction.objectStore(tableName);
 
             const dbPut = objectStore.put(payload, key);
             dbPut.addEventListener("success", (e: Event) => {

@@ -144,6 +144,10 @@ export const BrowserAuthErrorMessage = {
     missingStkKid: {
         code: "no_stk_kid_in_request",
         desc: "Failed to decrypt bound token response because the token request does not contain the session transport key thumbprint."
+    },
+    databaseTableNotFound: { 
+        code: "db_table_not_found",
+        desc: "IndexedDB table not found."
     }
 };
 
@@ -413,7 +417,17 @@ export class BrowserAuthError extends AuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.failedToParseNetworkResponse.code, `${BrowserAuthErrorMessage.failedToParseNetworkResponse.desc} | Attempted to reach: ${endpoint.split("?")[0]}`);
     }
 
+    /**
+     * Create an error when stk kid is not part of the request
+     */
     static createMissingStkKidError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.missingStkKid.code, BrowserAuthErrorMessage.missingStkKid.desc);
+    }
+
+    /**
+     * Create an error when a database table with a matching tableName is not found
+     */
+    static createDatabaseTableNotFoundError(tableName: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.databaseTableNotFound.code, `${BrowserAuthErrorMessage.databaseTableNotFound.desc}: Attempted to access table named: ${tableName}`);
     }
 }

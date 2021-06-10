@@ -1,6 +1,6 @@
 import sinon from "sinon";
-import { ICrypto, PkceCodes, UrlString, SignedHttpRequest, TimeUtils, BaseAuthRequest, AuthenticationScheme } from "../../src";
-import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS } from "../test_kit/StringConstants";
+import { ICrypto, PkceCodes, UrlString, SignedHttpRequest, TimeUtils, BaseAuthRequest, AuthenticationScheme, ServerAuthorizationTokenResponse } from "../../src";
+import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES} from "../test_kit/StringConstants";
 import { PopTokenGenerator } from "../../src/crypto/PopTokenGenerator";
 
 describe("PopTokenGenerator Unit Tests", () => {
@@ -53,6 +53,9 @@ describe("PopTokenGenerator Unit Tests", () => {
         },
         async getAsymmetricPublicKey(): Promise<string> {
             return TEST_POP_VALUES.KID;
+        },
+        async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
+            return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES;
         }
     };
 

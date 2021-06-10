@@ -5,9 +5,9 @@ import { AuthorityFactory } from "../../../src/authority/AuthorityFactory";
 import { CacheAccountType, Constants } from "../../../src/utils/Constants";
 import { NetworkRequestOptions, INetworkModule } from "../../../src/network/INetworkModule";
 import { ICrypto, PkceCodes } from "../../../src/crypto/ICrypto";
-import { RANDOM_TEST_GUID, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES, PREFERRED_CACHE_ALIAS } from "../../test_kit/StringConstants";
+import { RANDOM_TEST_GUID, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES, PREFERRED_CACHE_ALIAS, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES } from "../../test_kit/StringConstants";
 import sinon from "sinon";
-import { Authority, AuthorityOptions, AuthorityType, ClientAuthError, ClientAuthErrorMessage, Logger, LogLevel, ProtocolMode } from "../../../src";
+import { Authority, AuthorityOptions, AuthorityType, ClientAuthError, ClientAuthErrorMessage, Logger, LogLevel, ProtocolMode, ServerAuthorizationTokenResponse } from "../../../src";
 import { MockStorageClass, mockCrypto } from "../../client/ClientTestUtils";
 import { AccountInfo } from "../../../src/account/AccountInfo";
 
@@ -51,8 +51,11 @@ const cryptoInterface: ICrypto = {
     async signJwt(): Promise<string> {
         return "";
     },
-    getAsymmetricPublicKey: async(): Promise<string> => {
-        return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
+    async getAsymmetricPublicKey(): Promise<string> {
+        return TEST_POP_VALUES.KID;
+    },
+    async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
+        return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES;
     }
 };
 

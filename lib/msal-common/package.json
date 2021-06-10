@@ -71,6 +71,7 @@
     "typescript": "^3.7.5"
   },
   "dependencies": {
+    "caniuse-lite": "^1.0.30001235",
     "debug": "^4.1.1"
   }
 }
