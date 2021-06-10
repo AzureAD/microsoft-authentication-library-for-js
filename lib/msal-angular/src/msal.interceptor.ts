@@ -143,25 +143,33 @@ export class MsalInterceptor implements HttpInterceptor {
                 matchingResources.absoluteResources.push(key);
             }
             
-            // Transforms relative urls to absolute urls, gets components
-            const keyLink = document.createElement("a");
-            keyLink.href = key;
-            const keyLinkComponents = new UrlString(keyLink.href).getUrlComponents();
-
-            const endpointLink = document.createElement("a");
-            endpointLink.href = endpoint;
-            const endpointLinkComponents = new UrlString(endpointLink.href).getUrlComponents();
+            // Get url components for relative urls
+            const absoluteKey = this.getAbsoluteUrl(key);
+            const keyComponents = new UrlString(absoluteKey).getUrlComponents();
+            const absoluteEndpoint = this.getAbsoluteUrl(endpoint);
+            const endpointComponents = new UrlString(absoluteEndpoint).getUrlComponents();
 
             // Normalized key should include query strings if applicable
-            const relativeNormalizedKeyLink = keyLinkComponents.QueryString ? `${keyLinkComponents.AbsolutePath}?${keyLinkComponents.QueryString}` : this.location.normalize(keyLinkComponents.AbsolutePath);
+            const relativeNormalizedKey = keyComponents.QueryString ? `${keyComponents.AbsolutePath}?${keyComponents.QueryString}` : this.location.normalize(keyComponents.AbsolutePath);
 
             // Add resource to matchingResources.relativeResources if same origin, relativeKey matches endpoint, and is not empty
-            if (keyLinkComponents.HostNameAndPort === endpointLinkComponents.HostNameAndPort && StringUtils.matchPattern(relativeNormalizedKeyLink, endpointLink.href) && relativeNormalizedKeyLink !== "" && relativeNormalizedKeyLink !== "/*"){
+            if (keyComponents.HostNameAndPort === endpointComponents.HostNameAndPort && StringUtils.matchPattern(relativeNormalizedKey, absoluteEndpoint) && relativeNormalizedKey !== "" && relativeNormalizedKey !== "/*"){
                 matchingResources.relativeResources.push(key);
             }
         });
 
         return matchingResources;
+    }
+
+    /**
+     * Transforms relative urls to absolute urls
+     * @param url 
+     * @returns 
+     */
+    private getAbsoluteUrl(url: string): string {
+        const link = document.createElement("a");
+        link.href = url;
+        return link.href;
     }
 
     /**
