@@ -105,7 +105,8 @@ export class Serializer {
                 secret: rtEntity.secret,
                 family_id: rtEntity.familyId,
                 target: rtEntity.target,
-                realm: rtEntity.realm
+                realm: rtEntity.realm,
+                token_type: rtEntity.tokenType
             };
         });
 

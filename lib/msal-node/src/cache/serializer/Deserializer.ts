@@ -127,6 +127,7 @@ export class Deserializer {
                     familyId: serializedRT.family_id,
                     target: serializedRT.target,
                     realm: serializedRT.realm,
+                    tokenType: serializedRT.token_type
                 };
                 const refreshToken: RefreshTokenEntity = new RefreshTokenEntity();
                 CacheManager.toObject(refreshToken, mappedRT);
