@@ -241,6 +241,11 @@ export class CryptoOps implements ICrypto {
 
                 const sessionKeyUsages = KEY_USAGES.RT_BINDING.PRIVATE_KEY as KeyUsage[];
                 const contentEncryptionKey = await sessionKeyJwe.unwrap(sessionTransportKeypair.privateKey, sessionKeyUsages);
+                
+                // TODO: TEMPORARY CHECK TO GET AROUND LINTER
+                if(responseJwe && contentEncryptionKey) {
+                    return null;
+                }
 
                 return null;
             } else {
