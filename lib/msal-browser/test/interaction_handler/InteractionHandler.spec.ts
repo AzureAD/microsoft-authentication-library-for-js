@@ -32,7 +32,7 @@ import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 class TestInteractionHandler extends InteractionHandler {
 
     constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager) {
-        super(authCodeModule, storageImpl, testAuthCodeRequest);
+        super(authCodeModule, storageImpl, testAuthCodeRequest, testBrowserRequestLogger);
     }
 
     showUI(requestUrl: string): Window {
@@ -54,6 +54,11 @@ const testAuthCodeRequest: CommonAuthorizationCodeRequest = {
     code: "",
     correlationId: ""
 };
+
+const testBrowserRequestLogger: Logger = new Logger({
+    loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {},
+    piiLoggingEnabled: true
+}, "@azure/msal-browser", "test");
 
 const testPkceCodes = {
     challenge: "TestChallenge",
@@ -91,6 +96,9 @@ const cryptoInterface = {
     },
     signJwt: async (): Promise<string> => {
         return "signedJwt";
+    },
+    getAsymmetricPublicKey: async(): Promise<string> => {
+        return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
     }
 }
 
