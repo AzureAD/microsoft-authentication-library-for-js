@@ -52,6 +52,7 @@ let authConfig: ClientConfiguration;
 describe("RedirectHandler.ts Unit Tests", () => {
     let authCodeModule: AuthorizationCodeClient;
     let browserStorage: BrowserCacheManager;
+    let browserRequestLogger: Logger;
     beforeEach(() => {
         const appConfig: Configuration = {
             auth: {
@@ -130,6 +131,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             loggerOptions: loggerConfig,
         };        
         authCodeModule = new AuthorizationCodeClient(authConfig);
+        browserRequestLogger = new Logger(authConfig.loggerOptions!);
     });
 
     afterEach(() => {
@@ -139,7 +141,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
     describe("Constructor", () => {
 
         it("creates a subclass of InteractionHandler called RedirectHandler", () => {
-            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserCrypto);
+            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, browserCrypto);
             expect(redirectHandler).toBeInstanceOf(RedirectHandler);
         });
     });
@@ -148,7 +150,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
 
         it("throws error if requestUrl is empty", (done) => {
             const navigationClient = new NavigationClient();
-            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserCrypto);
+            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, browserCrypto);
 
             redirectHandler.initiateAuthRequest("", {
                 redirectTimeout: 3000,
@@ -175,7 +177,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 done();
                 return Promise.resolve(true);
             };
-            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserCrypto);
+            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, browserCrypto);
             redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, {
                 redirectStartPage: "",
                 redirectTimeout: 3000,
@@ -199,7 +201,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 done();
                 return false;
             }
-            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserCrypto);
+            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, browserCrypto);
             redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, {
                 redirectTimeout: 300,
                 redirectStartPage: "",
@@ -224,7 +226,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             const onRedirectNavigate = (url: string) => {
                 expect(url).toEqual(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
             }
-            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserCrypto);
+            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, browserCrypto);
             redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, {
                 redirectTimeout: 3000,
                 redirectStartPage: "",
@@ -237,7 +239,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
     describe("handleCodeResponse()", () => {
 
         it("throws error if given hash is empty", () => {
-            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserCrypto);
+            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, browserCrypto);
             expect(redirectHandler.handleCodeResponse("", "", authorityInstance, authConfig.networkInterface!)).rejects.toMatchObject(BrowserAuthError.createEmptyHashError(""));
             //@ts-ignore
             expect(redirectHandler.handleCodeResponse(null, "", authorityInstance, authConfig.networkInterface!)).rejects.toMatchObject(BrowserAuthError.createEmptyHashError(null));
@@ -302,7 +304,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             sinon.stub(AuthorizationCodeClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
             sinon.stub(AuthorizationCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
 
-            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, testAuthCodeRequest, browserCrypto);
+            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, testAuthCodeRequest, browserRequestLogger, browserCrypto);
             const tokenResponse = await redirectHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT, TEST_STATE_VALUES.TEST_STATE_REDIRECT, authorityInstance, authConfig.networkInterface!);
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(browserStorage.getTemporaryCache(browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY))).toBe(null);

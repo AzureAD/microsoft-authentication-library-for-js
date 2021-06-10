@@ -175,10 +175,13 @@ export class CredentialEntity {
         familyId?: string,
         tokenType?: string
     ): string {
-        const clientOrFamilyId =
-            credentialType === CredentialType.REFRESH_TOKEN
-                ? familyId || clientId
-                : clientId;
+        let clientOrFamilyId: string = "";
+        if (credentialType === CredentialType.REFRESH_TOKEN ||
+            credentialType === CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME) {
+                clientOrFamilyId = familyId || clientId;
+            } else {
+                clientOrFamilyId = clientId;
+            }
         const credentialId: Array<string> = [
             credentialType,
             clientOrFamilyId,

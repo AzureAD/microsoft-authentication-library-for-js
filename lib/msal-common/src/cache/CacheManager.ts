@@ -531,15 +531,14 @@ export abstract class CacheManager implements ICacheManager {
     removeAccountContext(account: AccountEntity): boolean {
         const allCacheKeys = this.getKeys();
         const accountId = account.generateAccountId();
-
         allCacheKeys.forEach((cacheKey) => {
             // don't parse any non-credential type cache entities
             const credType = CredentialEntity.getCredentialType(cacheKey);
             if (credType === Constants.NOT_DEFINED) {
                 return;
             }
-
             const cacheEntity = this.getSpecificCredential(cacheKey, credType);
+
             if (!!cacheEntity && accountId === cacheEntity.generateAccountId()) {
                 this.removeCredential(cacheEntity);
             }
@@ -857,7 +856,8 @@ export abstract class CacheManager implements ICacheManager {
             case CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME: {
                 return this.getAccessTokenCredential(key);
             }
-            case CredentialType.REFRESH_TOKEN: {
+            case CredentialType.REFRESH_TOKEN:
+            case CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME: {
                 return this.getRefreshTokenCredential(key);
             }
             default:
