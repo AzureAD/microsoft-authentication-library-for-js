@@ -347,7 +347,7 @@ export abstract class CacheManager implements ICacheManager {
         allCacheKeys.forEach((cacheKey) => {
             // don't parse any non-credential type cache entities
             const credType = CredentialEntity.getCredentialType(cacheKey);
-
+            
             if (credType === Constants.NOT_DEFINED) {
                 return;
             }
@@ -394,7 +394,6 @@ export abstract class CacheManager implements ICacheManager {
             if (!!target && !this.matchTarget(entity, target)) {
                 return;
             }
-
             switch (credType) {
                 case CredentialType.ID_TOKEN:
                     matchingCredentials.idTokens[cacheKey] = entity as IdTokenEntity;
@@ -404,6 +403,7 @@ export abstract class CacheManager implements ICacheManager {
                     matchingCredentials.accessTokens[cacheKey] = entity as AccessTokenEntity;
                     break;
                 case CredentialType.REFRESH_TOKEN:
+                case CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME:
                     matchingCredentials.refreshTokens[cacheKey] = entity as RefreshTokenEntity;
                     break;
             }
@@ -679,7 +679,7 @@ export abstract class CacheManager implements ICacheManager {
         const refreshTokenFilter: CredentialFilter = {
             homeAccountId: account.homeAccountId,
             environment: account.environment,
-            credentialType: CredentialType.REFRESH_TOKEN,
+            credentialType: CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME,
             clientId: clientId,
             familyId: id
         };

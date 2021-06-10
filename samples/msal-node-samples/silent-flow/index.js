@@ -240,11 +240,10 @@ const getTokenSilent = function (scenarioConfig, clientApplication, port, msalTo
             cachePlugin
         },
         // Uncomment the code below to enable the MSAL logger
-        /*
-         *   system: {
-         *    loggerOptions: loggerOptions
-         *   } 
-         */
+        
+        system: {
+        loggerOptions: loggerOptions
+        } 
     };
     
     // Create an MSAL PublicClientApplication object 
