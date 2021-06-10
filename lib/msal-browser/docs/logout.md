@@ -86,6 +86,52 @@ await msalInstance.logoutPopup({
 });
 ```
 
+## Front-channel logout
+
+Azure AD and Azure AD B2C support the [OAuth front-channel logout feature](https://openid.net/specs/openid-connect-frontchannel-1_0.html), which enables single-sign out across all applications when a user initiates logout. To take advantage of this feature with MSAL.js, perform the following steps:
+
+1. In your application, create a dedicated logout page (see below for details). Note, this page will be loaded in a hidden iframe, and for Azure AD and MSA users, will include the `iss` and `sid` query parameters.
+2. In the Azure Portal, navigate to the **Authentication** page for your application, and register the page from step one under **Front-channel logout URL**. Note, this page must be loaded via `https`.
+
+### Requirements for front-channel logout page
+
+The page used for front-channel logout should be built as follows:
+
+1. On page load, automatically invoke the MSAL `logout` or `logoutRedirect` API. 
+2. In the `PublicClientApplication` configuration, set `system.allowRedirectInIframe` to `true`.
+3. When invoking `logout`, we recommend preventing the redirect in the iframe to the logout page (see [above](#skipping-the-server-sign-out)).
+
+Example:
+
+```typescript
+const msal = new PublicClientApplication({
+    auth: {
+        clientId: "my-client-id"
+    },
+    system: {
+        allowRedirectInIframe: true
+    }
+})
+
+// Automatically on page load
+msal.logoutRedirect({
+    onRedirectNavigate: () => {
+        // Return false to stop navigation after local logout
+        return false;
+    }
+});
+```
+
+Now when a user logouts out of another application, your application's front-channel logout url will be loaded in a hidden iframe, and MSAL.js will clear its cache to complete single-sign out.
+
+
+### Front-channel logout samples
+
+The following samples demonstrate how to implement front-channel logout using MSAL.js:
+
+- MSAL Angular v2: [Angular 11 sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular11-sample-app)
+- MSAL React: [React Router sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/react-router-sample)
+
 ## Events
 
 If different parts of your app need to react to logout status without direct access to the promise returned by `logoutRedirect` or `logoutPopup` you can use the [event API](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/events.md).

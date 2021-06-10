@@ -185,4 +185,42 @@ describe("Logger.ts Class Unit Tests", () => {
             expect(executeCbSpy.called).toBe(false);
         });
     });
+
+    describe("CorrelationId tests", () => {
+
+        it("CorrelationId is included in log message if set on Logger configurations", () => {
+            const testCorrelationId = "12345";
+            const logger = new Logger({...loggerOptions, correlationId: testCorrelationId});
+
+            logger.verbose("Message");
+            expect(logStore[LogLevel.Verbose].includes(testCorrelationId)).toBe(true);
+        });
+
+        it("CorrelationId is included in log message if passed in log message", () => {
+            const testCorrelationId = "23456";
+            const logger = new Logger(loggerOptions);
+
+            logger.verbose("Message", testCorrelationId);
+            expect(logStore[LogLevel.Verbose].includes(testCorrelationId)).toBe(true);
+        });
+
+        it("CorrelationId passed in log message takes precedence over correlationId in Logger configurations", () => {
+            const optionsCorrelationId = "34567";
+            const testCorrelationId = "45678";
+            const logger = new Logger({...loggerOptions, correlationId: optionsCorrelationId});
+
+            logger.verbose("Message", testCorrelationId);
+            expect(logStore[LogLevel.Verbose].includes(testCorrelationId)).toBe(true);
+            expect(logStore[LogLevel.Verbose].includes(optionsCorrelationId)).toBe(false);
+        });
+
+        it("CorrelationId on Logger will be used if an empty string is passed in the log message", () => {
+            const testCorrelationId = "56789";
+            const logger = new Logger(loggerOptions, testCorrelationId);
+
+            logger.verbose("Message", "");
+            expect(logStore[LogLevel.Verbose].includes(testCorrelationId)).toBe(true);
+        });
+    });
+
 });

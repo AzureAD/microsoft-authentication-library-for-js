@@ -43,12 +43,14 @@ export class JsonWebEncryption {
     private initializationVector: string;
     private ciphertext: string;
     private authenticationTag: string;
+    private authenticatedData: Uint8Array;
     private unwrappingAlgorithms: UnwrappingAlgorithmPair;
 
     constructor(rawJwe: string) {
         this.base64Decode = new Base64Decode();
         const jweComponents = rawJwe.split(".");
         this.header = this.parseJweProtectedHeader(jweComponents[0]);
+        this.authenticatedData = this.getAuthenticatedData(jweComponents[0]);
         this.unwrappingAlgorithms = this.setUnwrappingAlgorithms();
         this.encryptedKey = this.base64Decode.base64URLdecode(jweComponents[1]);
         this.initializationVector = this.base64Decode.base64URLdecode(jweComponents[2]);
@@ -58,6 +60,18 @@ export class JsonWebEncryption {
     
     get protectedHeader(): JoseHeader {
         return this.header;
+    }
+
+    getAuthenticatedData(str: string): Uint8Array {
+        const length = str.length;
+        const data = new Uint8Array(length);
+
+        /* mapping... */
+        for (let charIndex = 0; charIndex < length; charIndex++) {
+            data[charIndex] = str.charCodeAt(charIndex) & 255;
+        }
+
+        return data;
     }
 
     /**
@@ -84,6 +98,26 @@ export class JsonWebEncryption {
             },
             false,
             keyUsages);
+    }
+
+    async decrypt(decryptionKey: CryptoKey): Promise<string> {
+        const cipherText = new Uint8Array(BrowserStringUtils.stringToArrayBuffer(this.ciphertext));
+        const authenticationTag = new Uint8Array(BrowserStringUtils.stringToArrayBuffer(this.authenticationTag));
+        const encryptedData = new Uint8Array(cipherText.byteLength + authenticationTag.byteLength);
+        encryptedData.set(cipherText, 0);
+        encryptedData.set(authenticationTag, cipherText.byteLength);
+        const iv = new Uint8Array(BrowserStringUtils.stringToArrayBuffer(this.initializationVector));
+        const additionalData = this.authenticatedData;
+
+        const aesGcmParams: AesGcmParams = {
+            name: "AES-GCM",
+            iv: iv,
+            additionalData: additionalData,
+            tagLength: authenticationTag.byteLength * 8
+        };
+
+        const responseBuffer = await window.crypto.subtle.decrypt(aesGcmParams, decryptionKey, encryptedData);
+        return BrowserStringUtils.utf8ArrToString(new Uint8Array(responseBuffer));
     }
 
     private parseJweProtectedHeader(encodedHeader: string): JoseHeader {

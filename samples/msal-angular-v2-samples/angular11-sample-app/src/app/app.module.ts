@@ -16,6 +16,7 @@ import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
 import { IPublicClientApplication, PublicClientApplication, InteractionType, BrowserCacheLocation, LogLevel } from '@azure/msal-browser';
 import { MsalGuard, MsalInterceptor, MsalBroadcastService, MsalInterceptorConfiguration, MsalModule, MsalService, MSAL_GUARD_CONFIG, MSAL_INSTANCE, MSAL_INTERCEPTOR_CONFIG, MsalGuardConfiguration, MsalRedirectComponent } from '@azure/msal-angular';
 import { DetailComponent } from './detail/detail.component';
+import { LogoutComponent } from './logout/logout.component';
 
 const isIE = window.navigator.userAgent.indexOf("MSIE ") > -1 || window.navigator.userAgent.indexOf("Trident/") > -1; // Remove this line to use Angular Universal
 
@@ -26,9 +27,9 @@ export function loggerCallback(logLevel: LogLevel, message: string) {
 export function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
     auth: {
-      // clientId: '6226576d-37e9-49eb-b201-ec1eeb0029b6', // Prod enviroment. Uncomment to use. 
+    //   clientId: '6226576d-37e9-49eb-b201-ec1eeb0029b6', // Prod enviroment. Uncomment to use. 
       clientId: '3fba556e-5d4a-48e3-8e1a-fd57c12cb82e', // PPE testing environment
-      // authority: 'https://login.microsoftonline.com/common', // Prod environment. Uncomment to use.
+    //   authority: 'https://login.microsoftonline.com/common', // Prod environment. Uncomment to use.
       authority: 'https://login.windows-ppe.net/common', // PPE testing environment.
       redirectUri: '/',
       postLogoutRedirectUri: '/'
@@ -38,6 +39,7 @@ export function MSALInstanceFactory(): IPublicClientApplication {
       storeAuthStateInCookie: isIE, // set to true for IE 11. Remove this line to use Angular Universal
     },
     system: {
+      allowRedirectInIframe: true,
       loggerOptions: {
         loggerCallback,
         logLevel: LogLevel.Info,
@@ -73,7 +75,8 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
     AppComponent,
     HomeComponent,
     ProfileComponent,
-    DetailComponent
+    DetailComponent,
+    LogoutComponent
   ],
   imports: [
     BrowserModule,

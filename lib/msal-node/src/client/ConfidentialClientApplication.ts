@@ -56,7 +56,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
      * Acquires tokens from the authority for the application (not for an end user).
      */
     public async acquireTokenByClientCredential(request: ClientCredentialRequest): Promise<AuthenticationResult | null> {
-        this.logger.info("acquireTokenByClientCredential called");
+        this.logger.info("acquireTokenByClientCredential called", request.correlationId);
         const validRequest: CommonClientCredentialRequest = {
             ...request,
             ...this.initializeBaseRequest(request)
@@ -69,11 +69,12 @@ export class ConfidentialClientApplication extends ClientApplication implements 
         try {
             const clientCredentialConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
+                validRequest.correlationId,
                 serverTelemetryManager,
                 azureRegionConfiguration,
             );
-            this.logger.verbose("Auth client config generated");
             const clientCredentialClient = new ClientCredentialClient(clientCredentialConfig);
+            this.logger.verbose("Client credential client created", validRequest.correlationId);
             return clientCredentialClient.acquireToken(validRequest);
         } catch(e) {
             serverTelemetryManager.cacheFailedRequest(e);
@@ -93,16 +94,17 @@ export class ConfidentialClientApplication extends ClientApplication implements 
      * https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow#gaining-consent-for-the-middle-tier-application
      */
     public async acquireTokenOnBehalfOf(request: OnBehalfOfRequest): Promise<AuthenticationResult | null> {
-        this.logger.info("acquireTokenOnBehalfOf called");
+        this.logger.info("acquireTokenOnBehalfOf called", request.correlationId);
         const validRequest: CommonOnBehalfOfRequest = {
             ...request,
             ...this.initializeBaseRequest(request)
         };
         const clientCredentialConfig = await this.buildOauthClientConfiguration(
-            validRequest.authority
+            validRequest.authority,
+            validRequest.correlationId
         );
-        this.logger.verbose("Auth client config generated");
         const oboClient = new OnBehalfOfClient(clientCredentialConfig);
+        this.logger.verbose("On behalf of client created", validRequest.correlationId);
         return oboClient.acquireToken(validRequest);
     }
 

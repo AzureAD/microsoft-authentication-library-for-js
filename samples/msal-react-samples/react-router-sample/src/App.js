@@ -10,6 +10,7 @@ import { CustomNavigationClient } from "./utils/NavigationClient";
 import { PageLayout } from "./ui-components/PageLayout";
 import { Home } from "./pages/Home";
 import { Profile } from "./pages/Profile";
+import { Logout } from "./pages/Logout";
 
 // Class-based equivalents of "Profile" component
 import { ProfileWithMsal } from "./pages/ProfileWithMsal";
@@ -43,6 +44,9 @@ function Pages() {
       </Route>
       <Route path="/profileRawContext">
         <ProfileRawContext />
+      </Route>
+      <Route path="/logout">
+          <Logout />
       </Route>
       <Route path="/">
         <Home />

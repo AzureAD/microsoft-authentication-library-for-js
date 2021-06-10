@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Upgrade Jest to v27 #3719",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "none"
+}

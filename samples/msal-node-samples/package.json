@@ -3,12 +3,13 @@
     "version": "1.0.0",
     "description": "End-to-end test suite for msal-node",
     "scripts": {
-        "test": "jest",
+        "test": "shx rm -rf screenshots && jest",
         "preinstall": "cd .. && npm install",
         "build:package": "cd ../../lib/msal-node && npm run build:all"
     },
     "devDependencies": {
-        "jest": "^26.6.3",
+        "jest": "^27.0.4",
+        "shx": "^0.3.3",
         "yargs": "^16.2.0"
     },
     "dependencies": {

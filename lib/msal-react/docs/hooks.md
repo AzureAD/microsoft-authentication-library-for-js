@@ -84,6 +84,8 @@ export function App() {
 
 The `useMsal` hook returns the context. This can be used if you need access to the `PublicClientApplication` instance, the list of accounts currently signed in or if you need to know whether a login or other interaction is currently in progress.
 
+Note: The `accounts` value returned by `useMsal` will only update when accounts are added or removed, and will not update when claims are updated. If you need access to updated claims for the current user, use the `useAccount` hook or call `acquireTokenSilent` instead.
+
 ```javascript
 const { instance, accounts, inProgress } = useMsal();
 let accessToken = null;

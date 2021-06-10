@@ -34,7 +34,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 const config = require("../config/ADFS.json");
 
 describe("Silent Flow ADFS 2019 Tests", () => {
-    jest.setTimeout(30000);
+    jest.setTimeout(45000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -47,6 +47,8 @@ describe("Silent Flow ADFS 2019 Tests", () => {
 
     let username: string;
     let accountPwd: string;
+
+    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/silent-flow/adfs`;
 
     beforeAll(async () => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -85,6 +87,7 @@ describe("Silent Flow ADFS 2019 Tests", () => {
         beforeEach(async () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
+            page.setDefaultTimeout(5000);
             await page.goto(homeRoute);
         });
     
@@ -95,8 +98,7 @@ describe("Silent Flow ADFS 2019 Tests", () => {
         });
 
         it("Performs acquire token with Auth Code flow", async () => {
-            const testName = "ADFSAcquireTokenAuthCode";
-            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            const screenshot = new Screenshot(`${screenshotFolder}/AcquireTokenAuthCode`);
             await clickSignIn(page, screenshot);
             await enterCredentialsADFS(page, screenshot, username, accountPwd);
             await page.waitForSelector("#acquireTokenSilent");
@@ -108,8 +110,7 @@ describe("Silent Flow ADFS 2019 Tests", () => {
         });
 
         it("Performs acquire token silent", async () => {
-            const testName = "ADFSAcquireTokenSilent";
-            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            const screenshot = new Screenshot(`${screenshotFolder}/AcquireTokenSilent`);
             await clickSignIn(page, screenshot);
             await enterCredentialsADFS(page, screenshot, username, accountPwd);
             await page.waitForSelector("#acquireTokenSilent");
@@ -119,8 +120,7 @@ describe("Silent Flow ADFS 2019 Tests", () => {
         });
 
         it("Refreshes an expired access token", async () => {
-            const testName = "ADFSRefreshExpiredToken";
-            const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            const screenshot = new Screenshot(`${screenshotFolder}/RefreshExpiredToken`);
             await clickSignIn(page, screenshot);
             await enterCredentialsADFS(page, screenshot, username, accountPwd);
             await page.waitForSelector("#acquireTokenSilent");
@@ -160,8 +160,7 @@ describe("Silent Flow ADFS 2019 Tests", () => {
             });
 
             it("Gets all accounts", async () => {
-                const testName = "ADFSGetAllAccounts";
-                const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+                const screenshot = new Screenshot(`${screenshotFolder}/GetAllAccounts`);
                 await clickSignIn(page, screenshot);
                 await enterCredentialsADFS(page, screenshot, username, accountPwd);
                 await page.waitForSelector("#getAllAccounts");
@@ -191,8 +190,7 @@ describe("Silent Flow ADFS 2019 Tests", () => {
             });
 
             it("Returns empty account array", async () => {
-                const testName = "ADFSNoCachedAccounts";
-                const screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+                const screenshot = new Screenshot(`${screenshotFolder}/NoCachedAccounts`);
                 await page.goto(`${homeRoute}/allAccounts`);
                 await page.waitForSelector("#getAllAccounts");
                 await page.click("#getAllAccounts");

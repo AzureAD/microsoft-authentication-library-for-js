@@ -124,7 +124,6 @@ describe("CryptoOps.ts Unit Tests", () => {
     });
 
     it("getPublicKeyThumbprint() generates a valid request thumbprint", async () => {
-        jest.setTimeout(30000);
         //@ts-ignore
         jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
             expect(algorithm).toBe("SHA-256");
@@ -155,7 +154,7 @@ describe("CryptoOps.ts Unit Tests", () => {
         expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
         expect(regExp.test(pkThumbprint)).toBe(true);
         expect(Object.keys(dbStorage[pkThumbprint])).not.toHaveLength(0);
-    });
+    }, 15000);
 
     it("getPublicKeyThumbprint() generates a valid stk_jwk thumbprint", async () => {
         jest.setTimeout(30000);
@@ -188,5 +187,5 @@ describe("CryptoOps.ts Unit Tests", () => {
         expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
         expect(regExp.test(pkThumbprint)).toBe(true);
         expect(Object.keys(dbStorage[pkThumbprint])).not.toHaveLength(0);
-    });
+    }, 15000);
 });

@@ -59,7 +59,7 @@ export interface ICrypto {
     /**
      * Decrypts a bound token response
      */
-    decryptBoundTokenResponse(boundServerTokenResponse: ServerAuthorizationTokenResponse, request: BaseAuthRequest): Promise<ServerAuthorizationTokenResponse | null>;
+    decryptBoundTokenResponse(boundServerTokenResponse: ServerAuthorizationTokenResponse, request: BaseAuthRequest): Promise<ServerAuthorizationTokenResponse>;
 }
 
 export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
@@ -91,7 +91,7 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
         const notImplErr = "Crypto interface - getAssymetricPublicKey() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
     },
-    async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse | null> {
+    async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
         const notImplErr = "Crypto interface - getAssymetricPublicKey() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
     }
