@@ -70,7 +70,7 @@ describe("PopTokenGenerator Unit Tests", () => {
             sinon.stub(TimeUtils, "nowSeconds").returns(currTime);
         });
 
-        it("Signs the proof-of-possession JWT token with all PoP parameters in the request", async(done) => {
+        it("Signs the proof-of-possession JWT token with all PoP parameters in the request", (done) => {
             const popTokenGenerator = new PopTokenGenerator(cryptoInterface);
             const accessToken = TEST_POP_VALUES.SAMPLE_POP_AT;
             const resourceReqMethod = "POST";
