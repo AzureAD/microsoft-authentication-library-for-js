@@ -50,6 +50,9 @@ const cryptoInterface: ICrypto = {
     },
     async signJwt(): Promise<string> {
         return "";
+    },
+    getAsymmetricPublicKey: async(): Promise<string> => {
+        return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
     }
 };
 

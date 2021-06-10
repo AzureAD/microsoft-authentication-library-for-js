@@ -62,6 +62,9 @@ describe("AuthToken.ts Class Unit Tests", () => {
             },
             async signJwt(): Promise<string> {
                 return "";
+            },
+            getAsymmetricPublicKey: async(): Promise<string> => {
+                return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
             }
         };
     });

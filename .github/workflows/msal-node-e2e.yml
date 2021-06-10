@@ -73,7 +73,7 @@ jobs:
         
     - name: E2E Tests
       working-directory: samples/msal-node-samples
-      timeout-minutes: 5
+      timeout-minutes: 10
       env:
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
