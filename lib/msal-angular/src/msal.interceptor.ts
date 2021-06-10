@@ -9,7 +9,7 @@ import {
     HttpEvent,
     HttpInterceptor
 } from "@angular/common/http";
-import { Location } from "@angular/common";
+import { Location, DOCUMENT } from "@angular/common";
 import { Observable, EMPTY, of } from "rxjs";
 import { switchMap, catchError } from "rxjs/operators";
 import { MsalService } from "./msal.service";
@@ -20,11 +20,17 @@ import { MsalInterceptorAuthRequest, MsalInterceptorConfiguration, ProtectedReso
 
 @Injectable()
 export class MsalInterceptor implements HttpInterceptor {
+    private _document?: Document;
+
     constructor(
         @Inject(MSAL_INTERCEPTOR_CONFIG) private msalInterceptorConfig: MsalInterceptorConfiguration,
         private authService: MsalService,
-        private location: Location
-    ) {}
+        private location: Location,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
+        @Inject(DOCUMENT) document?: any
+    ) {
+        this._document = document as Document;
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
@@ -167,7 +173,7 @@ export class MsalInterceptor implements HttpInterceptor {
      * @returns 
      */
     private getAbsoluteUrl(url: string): string {
-        const link = document.createElement("a");
+        const link = this._document.createElement("a");
         link.href = url;
         return link.href;
     }
