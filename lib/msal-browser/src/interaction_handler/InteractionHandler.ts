@@ -95,7 +95,8 @@ export abstract class InteractionHandler {
             try {
                 return JSON.parse(cachedCcsCred) as CcsCredential;
             } catch (e) {
-                this.authModule.logger.verbosePii(`Cache credential could not be parsed: ${cachedCcsCred}`);
+                this.authModule.logger.error("Cache credential could not be parsed");
+                this.authModule.logger.errorPii(`Cache credential could not be parsed: ${cachedCcsCred}`);
             }
         }
         return null;
