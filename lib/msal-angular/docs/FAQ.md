@@ -7,6 +7,7 @@
 1. [What versions of Angular are supported?](#what-versions-of-angular-are-supported)
 1. [Does `@azure/msal-angular` support Server Side Rendering?](#does-azuremsal-angular-support-server-side-rendering)
 1. [Can `@azure/msal-angular` be used with Internet Explorer?](#can-azuremsal-angular-be-used-with-internet-explorer)
+1. [Can `@azure/msal-angular` be used with Microsoft Graph JavaScript SDK?](#can-azuremsal-angular-be-used-with-microsoft-graph-javascript-sdk)
 
 **[Configuration](#configuration)**
 
@@ -45,6 +46,10 @@ Yes, server side rendering is supported through Angular universal. See our doc [
 ### Can `@azure/msal-angular` be used with Internet Explorer?
 
 Yes, `@azure/msal-angular` does support IE 11. More information can on configuration can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/ie-support.md).
+
+## Can `@azure/msal-angular` be used with Microsoft Graph JavaScript SDK?
+
+Yes, `@azure/msal-angular` can be used as a custom authentication provider for the [Microsoft Graph JavaScript SDK](https://github.com/microsoftgraph/msgraph-sdk-javascript). For an implementation, please refer to the sample: [Angular SPA calling Graph API](https://github.com/Azure-Samples/ms-identity-javascript-angular-tutorial/tree/main/2-Authorization-I/1-call-graph).
 
 ## Configuration
 

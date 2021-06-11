@@ -7,6 +7,7 @@
 1. [What versions of React are supported?](#what-versions-of-React-are-supported)
 1. [Does @azure/msal-react support Server Side Rendering (SSR) or static site generation?](#does-azuremsal-react-support-Server-Side-Rendering-SSR-or-static-site-generation)
 1. [Does @azure/msal-react support class components?](#does-azuremsal-react-support-class-components)
+1. [Can @azure/msal-react be used with Microsoft Graph JavaScript SDK?](#can-azuremsal-react-be-used-with-microsoft-graph-javascript-sdk)
 
 **[Authentication](#authentication)**
 
@@ -40,6 +41,10 @@ Yes! However, authentication cannot be done server side and you should avoid inv
 ### Does `@azure/msal-react` support class components?
 
 Yes, `@azure/msal-react` supports both function and class components. Hooks, however, cannot be used in class components so you will need to consume the msal context and use the APIs provided by `@azure/msal-browser` to build equivalent logic. More information about using `@azure/msal-react` in class components can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/class-components.md).
+
+## Can @azure/msal-react be used with Microsoft Graph JavaScript SDK?
+
+Yes, `@azure/msal-react` can be used as a custom authentication provider for the [Microsoft Graph JavaScript SDK](https://github.com/microsoftgraph/msgraph-sdk-javascript). For an implementation, please refer to the sample: [React SPA calling Graph API](https://github.com/Azure-Samples/ms-identity-javascript-react-tutorial/tree/main/2-Authorization-I/1-call-graph).
 
 ## Authentication
 

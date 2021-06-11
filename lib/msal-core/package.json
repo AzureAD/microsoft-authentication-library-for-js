@@ -68,7 +68,7 @@
     "awesome-typescript-loader": "^3.2.3",
     "babel-plugin-istanbul": "^5.2.0",
     "babel-polyfill": "^6.26.0",
-    "chai": "^4.2.0",
+    "chai": "^4.3.4",
     "dotenv": "^8.2.0",
     "fork-ts-checker-webpack-plugin": "^5.2.1",
     "handlebars": "^4.7.7",
