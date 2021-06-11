@@ -14,6 +14,7 @@ concurrency:
 
 jobs:
   beachball-check:
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     env:
       BEACHBALL: 1
@@ -23,10 +24,8 @@ jobs:
       with:
         # Will return true if any file is not markdown and any file is in /lib
         filters: |
-          containsTrackedChanges: 
-            - '!**.md'
           lib:
-            - 'lib/**/*'
+            - 'lib/**/**.!(md)'
     - uses: actions/checkout@v2
       with:
         fetch-depth: 0
@@ -37,5 +36,5 @@ jobs:
     - run: npm ci
 
     - name: Run Beachball Check command
-      if: ${{ steps.filter.outputs.lib == 'true' && steps.filter.outputs.containsTrackedChanges == 'true' }}
+      if: ${{ steps.filter.outputs.lib == 'true' }}
       run: npm run beachball:check

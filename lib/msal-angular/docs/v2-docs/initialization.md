@@ -17,14 +17,47 @@ In this document:
 Import `MsalModule` into app.module.ts. To initialize MSAL module you are required to pass the clientId of your application which you can get from the application registration.
 
 ```js
+import { NgModule } from '@angular/core';
+import { HTTP_INTERCEPTORS, HttpClientModule } from '@angular/common/http';
+import { AppComponent } from './app.component';
+import { MsalModule, MsalService, MsalGuard, MsalInterceptor, MsalBroadcastService, MsalRedirectComponent } from "@azure/msal-angular";
+import { PublicClientApplication, InteractionType, BrowserCacheLocation } from "@azure/msal-browser";
+
 @NgModule({
     imports: [
-        MsalModule.forRoot( new PublicClientApplication({
+        MsalModule.forRoot( new PublicClientApplication({ // MSAL Configuration
             auth: {
-                clientId: "Your client ID"
+                clientId: "Your client ID",
+                authority: "Your authority",
+                redirectUri: "Your redirect Uri",
+            },
+            cache: {
+                cacheLocation : BrowserCacheLocation.LocalStorage,
+                storeAuthStateInCookie: true, // set to true for IE 11
+            },
+            system: {
+                loggerOptions: {
+                    loggerCallback: () => {},
+                    piiLoggingEnabled: false
+                }
             }
+        }), {
+            interactionType: InteractionType.Redirect, // MSAL Guard Configuration
+        }, {
+            interactionType: InteractionType.Redirect, // MSAL Interceptor Configuration
         })
-    ]
+    ],
+    providers: [
+        {
+            provide: HTTP_INTERCEPTORS,
+            useClass: MsalInterceptor,
+            multi: true
+        },
+        MsalService,
+        MsalGuard,
+        MsalBroadcastService
+    ],
+    bootstrap: [AppComponent, MsalRedirectComponent]
 })
 export class AppModule {}
 ```
@@ -50,17 +83,35 @@ See this example of a route defined with the `MsalGuard`:
 `@azure/msal-angular` allows you to add an Http interceptor (`MsalInterceptor`) in your `app.module.ts` as follows. The `MsalInterceptor` will obtain tokens and add them to all your Http requests in API calls based on the `protectedResourceMap`. See our [MsalInterceptor doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/msal-interceptor.md) for more details on configuration and use.
 
 ```js
+import { NgModule } from '@angular/core';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { AppComponent } from './app.component';
+import { MsalModule, MsalService, MsalGuard, MsalInterceptor, MsalBroadcastService, MsalRedirectComponent } from "@azure/msal-angular";
+import { PublicClientApplication, InteractionType, BrowserCacheLocation } from "@azure/msal-browser";
+
 @NgModule({
     imports: [
-        MsalModule.forRoot({ // MSAL Configuration
+        MsalModule.forRoot( new PublicClientApplication({ // MSAL Configuration
             auth: {
-                clientId: "Your client ID"
+                clientId: "Your client ID",
+                authority: "Your authority",
+                redirectUri: "Your redirect Uri",
+            },
+            cache: {
+                cacheLocation : BrowserCacheLocation.LocalStorage,
+                storeAuthStateInCookie: true, // set to true for IE 11
+            },
+            system: {
+                loggerOptions: {
+                    loggerCallback: () => {},
+                    piiLoggingEnabled: false
+                }
             }
+        }), {
+            interactionType: InteractionType.Redirect, // MSAL Guard Configuration
         }, {
-            interactionType: InteractionType.Popup, // MSAL Guard Configuration
-            authRequest: PopupRequest
-        }, {
-            protectedResourceMap: new Map([ // MSAL Interceptor Configuration
+            interactionType: InteractionType.Redirect, // MSAL Interceptor Configuration
+            protectedResourceMap: new Map([
                 ['https://graph.microsoft.com/v1.0/me', ['user.read']],
                 ['https://api.myapplication.com/users/*', ['customscope.read']],
                 ['http://localhost:4200/about/', null] 
@@ -68,13 +119,16 @@ See this example of a route defined with the `MsalGuard`:
         })
     ],
     providers: [
-        ProductService, 
         {
             provide: HTTP_INTERCEPTORS,
             useClass: MsalInterceptor,
             multi: true
-        }
-    ]
+        },
+        MsalService,
+        MsalGuard,
+        MsalBroadcastService
+    ],
+    bootstrap: [AppComponent, MsalRedirectComponent]
 })
 export class AppModule {}
 ```

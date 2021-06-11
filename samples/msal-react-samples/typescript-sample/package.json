@@ -21,7 +21,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "build:package": "cd ../../../lib/msal-react & npm run build:all",
-    "test": "react-scripts test",
+    "test": "jest",
     "eject": "react-scripts eject",
     "install:local": "npm install ../../../lib/msal-react ../../../lib/msal-react/node_modules/react ../../../lib/msal-react/node_modules/react-dom ../../../lib/msal-browser",
     "install:published": "npm install @azure/msal-browser@latest @azure/msal-react@latest react@^17 react-dom@^17"
@@ -43,5 +43,9 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@types/jest": "^26.0.23",
+    "jest": "^27.0.4"
   }
 }

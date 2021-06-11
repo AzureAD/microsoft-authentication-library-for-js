@@ -464,7 +464,7 @@ export class Authority {
      * @returns bool
      */
     static isPublicCloudAuthority(host: string): boolean {
-        return Constants.KNOWN_PUBLIC_CLOUDS.includes(host);
+        return Constants.KNOWN_PUBLIC_CLOUDS.indexOf(host) >= 0;
     }
 
     /**
