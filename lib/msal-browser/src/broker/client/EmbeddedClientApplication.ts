@@ -102,7 +102,7 @@ export class EmbeddedClientApplication {
      * Send popup flow request to broker.
      * @param request 
      */
-    async sendPopupRequest(request: PopupRequest): Promise<AuthenticationResult|null> {
+    async sendPopupRequest(request: PopupRequest): Promise<AuthenticationResult> {
         await this.preflightBrokerRequest();
 
         const brokerAuthResultMessage = await this.sendRequest(request, InteractionType.Popup, DEFAULT_POPUP_MESSAGE_TIMEOUT);
@@ -115,6 +115,7 @@ export class EmbeddedClientApplication {
                 throw BrokerAuthError.createBrokerResponseInvalidError();
             }
             this.logger.info("popupRequest requires a redirect by the broker, this app will now redirect.");
+            throw BrokerAuthError.createBrokerPopupRequestRedirectingError();
         }
         return brokerAuthResult;
     }

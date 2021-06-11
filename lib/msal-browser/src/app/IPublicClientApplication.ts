@@ -14,7 +14,7 @@ import { WrapperSKU } from "../utils/BrowserConstants";
 import { INavigationClient } from "../navigation/INavigationClient";
 
 export interface IPublicClientApplication {
-    acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult|null>;
+    acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
     acquireTokenRedirect(request: RedirectRequest): Promise<void>;
     acquireTokenSilent(silentRequest: SilentRequest): Promise<AuthenticationResult>;
     addEventCallback(callback: Function): string | null;
@@ -24,7 +24,7 @@ export interface IPublicClientApplication {
     getAccountByUsername(userName: string): AccountInfo | null;
     getAllAccounts(): AccountInfo[];
     handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null>;
-    loginPopup(request?: PopupRequest): Promise<AuthenticationResult|null>;
+    loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
     loginRedirect(request?: RedirectRequest): Promise<void>;
     logout(logoutRequest?: EndSessionRequest): Promise<void>;
     logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void>;

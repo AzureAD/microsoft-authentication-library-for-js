@@ -20,6 +20,10 @@ export const BrokerAuthErrorMessage = {
     brokerRequestIncompleteError: {
         code: "broker_request_incomplete",
         desc: "The brokered request did not have the expected values."
+    },
+    brokeredPopupRequestRedirecting: {
+        code: "broker_popup_will_redirect",
+        desc: "The request for a brokered popup requires a redirect by the broker. If your app does not perform the redirect, please check the broker's logs."
     }
 };
 
@@ -54,11 +58,19 @@ export class BrokerAuthError extends BrowserAuthError {
     }
 
     /**
-     * Creates an error thrown when the broker response is invalid.
-     * @param errDetail 
+     * Creates an error thrown when the broker response is invalid. 
      */
     static createBrokerRequestIncompleteError(): BrokerAuthError {
         return new BrokerAuthError(BrokerAuthErrorMessage.brokerRequestIncompleteError.code,
             `${BrokerAuthErrorMessage.brokerRequestIncompleteError.desc}`);
+    }
+
+    /**
+     * Creates an error thrown when the broker response is invalid.
+     * @param errDetail 
+     */
+    static createBrokerPopupRequestRedirectingError(): BrokerAuthError {
+        return new BrokerAuthError(BrokerAuthErrorMessage.brokeredPopupRequestRedirecting.code,
+            BrokerAuthErrorMessage.brokeredPopupRequestRedirecting.desc);
     }
 }

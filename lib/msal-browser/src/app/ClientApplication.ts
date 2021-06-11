@@ -448,7 +448,7 @@ export abstract class ClientApplication {
      *
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
-    loginPopup(request?: PopupRequest): Promise<AuthenticationResult|null> {
+    loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
         this.logger.verbose("loginPopup called");
         return this.acquireTokenPopup(request || DEFAULT_REQUEST);
     }
@@ -460,7 +460,7 @@ export abstract class ClientApplication {
      *
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
-    acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult|null> {
+    acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         try {
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
             this.logger.verbose("acquireTokenPopup called");

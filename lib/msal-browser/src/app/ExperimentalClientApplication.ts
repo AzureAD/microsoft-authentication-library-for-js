@@ -98,7 +98,7 @@ export class ExperimentalClientApplication extends ClientApplication implements 
      *
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
-    acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult|null> {
+    acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         try {
             // Preflight request
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
