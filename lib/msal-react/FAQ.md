@@ -72,7 +72,7 @@ If you need direct access to the response object or error returned by a redirect
 
 1. Use the [event API](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/events.md) to register a callback that will be invoked with the response when you return to your app. Make sure this is registered in a code path that is run __after__ the redirect as any callbacks registered __before__ the redirect will be lost.
 1. Use the [useMsalAuthentication hook](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/hooks.md#usemsalauthentication-hook) to login. This hook will return the result or error when you are returned to your app.
-1. Call `handleRedirectPromise` which will resolve with the result or reject with an error if the page was loaded as a result of a redirect
+1. Call `handleRedirectPromise` which will resolve with the result or reject with an error if the page was loaded as a result of a redirect.
 
 ### What can I do outside of `@azure/msal-react` context?
 
