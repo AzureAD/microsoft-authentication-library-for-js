@@ -116,7 +116,7 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
                 return of(false);
             }
         } else {
-            this.authService.getLogger().info("Guard - window is undefined, unable to call APIs server-side");
+            this.authService.getLogger().info("Guard - window is undefined, MSAL does not support server-side token acquisition");
             return of(true);
         }
 
