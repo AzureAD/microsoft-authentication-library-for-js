@@ -711,7 +711,7 @@ export class BrowserCacheManager extends CacheManager {
         // Filter cache keys that match the messageOrigin.
         const memCacheKeys = this.getMemoryKeys();
         const embeddedAppKey = `${MemoryCacheKeys.BROKER_RESPONSE}.${messageOrigin}`;
-        const cachedResponseKeys = memCacheKeys.filter((cacheKey) => cacheKey.indexOf(embeddedAppKey));
+        const cachedResponseKeys = memCacheKeys.filter((cacheKey) => cacheKey.indexOf(embeddedAppKey) >= 0);
         // Return null if no cache keys found.
         if (cachedResponseKeys.length <= 0) {
             return null;

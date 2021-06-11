@@ -136,7 +136,7 @@ export class RefreshTokenClient extends BaseClient {
             scopes: request.scopes
         };
 
-        const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParameters);
+        const endpoint = UrlString.appendQueryString(authority.tokenEndpoint+"?dc=ESTS-PUB-WUS2-AZ1-TEST1", queryParameters);
         return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
     }
 

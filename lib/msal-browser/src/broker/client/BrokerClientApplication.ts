@@ -163,6 +163,7 @@ export class BrokerClientApplication extends ClientApplication {
     private async handleBrokerAuthRequest(clientMessage: MessageEvent): Promise<void> {
         const validMessage = BrokerAuthRequest.validate(clientMessage);
         if (validMessage) {
+            console.log(JSON.stringify(validMessage));
             if (!validMessage.request.authority || !validMessage.request.scopes) {
                 throw BrokerAuthError.createBrokerRequestIncompleteError();
             }

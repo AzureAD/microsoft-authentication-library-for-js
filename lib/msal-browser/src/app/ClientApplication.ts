@@ -448,7 +448,7 @@ export abstract class ClientApplication {
      *
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
-    loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
+    loginPopup(request?: PopupRequest): Promise<AuthenticationResult|null> {
         this.logger.verbose("loginPopup called");
         return this.acquireTokenPopup(request || DEFAULT_REQUEST);
     }
@@ -460,7 +460,7 @@ export abstract class ClientApplication {
      *
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
-    acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
+    acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult|null> {
         try {
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
             this.logger.verbose("acquireTokenPopup called");
@@ -586,8 +586,24 @@ export abstract class ClientApplication {
         this.logger.verbose("ssoSilent called");
         this.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
+        // Check that we have some SSO data
+        if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
+            throw BrowserAuthError.createSilentSSOInsufficientInfoError();
+        }
+
+        // Check that prompt is set to none, throw error if it is set to anything else.
+        if (request.prompt && request.prompt !== PromptValue.NONE) {
+            throw BrowserAuthError.createSilentPromptValueError(request.prompt);
+        }
+
+        // Create silent request
+        const silentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
+            ...request,
+            prompt: PromptValue.NONE
+        }, InteractionType.Silent);
+
         try {
-            const silentTokenResult = await this.acquireTokenByIframe(request, ApiId.ssoSilent);
+            const silentTokenResult = await this.acquireTokenByIframe(silentRequest, ApiId.ssoSilent);
             this.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
             return silentTokenResult;
         } catch (e) {
@@ -671,7 +687,12 @@ export abstract class ClientApplication {
             const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
                 this.logger.verbose("Refresh token expired or invalid, attempting acquire token by iframe");
-                return await this.acquireTokenByIframe(request, ApiId.acquireTokenSilent_authCode);
+                // Create silent request
+                const silentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
+                    ...request,
+                    prompt: PromptValue.NONE
+                }, InteractionType.Silent);
+                return await this.acquireTokenByIframe(silentRequest, ApiId.acquireTokenSilent_authCode);
             }
             throw e;
         }

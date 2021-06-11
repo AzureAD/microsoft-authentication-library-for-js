@@ -60,7 +60,7 @@ document.getElementById("brokerLoginBtn").addEventListener("click", () => {
     myMSALObj.experimental.ssoSilent(loginReq).then(handleResponse).catch(err => {
         console.error(err);
         if (err instanceof msal.InteractionRequiredAuthError) {
-            return myMSALObj.experimental.loginPopup(loginReq).then(handleResponse);
+            return myMSALObj.experimental.loginPopup(loginReq);
         }
         contentElement.innerHTML = "I am unable to get data, from where I sit, the Identity provider does not think I am logged in";
     }).catch(err => {

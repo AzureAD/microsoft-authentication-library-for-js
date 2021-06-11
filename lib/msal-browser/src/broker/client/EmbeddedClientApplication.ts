@@ -102,14 +102,19 @@ export class EmbeddedClientApplication {
      * Send popup flow request to broker.
      * @param request 
      */
-    async sendPopupRequest(request: PopupRequest): Promise<AuthenticationResult> {
+    async sendPopupRequest(request: PopupRequest): Promise<AuthenticationResult|null> {
         await this.preflightBrokerRequest();
 
         const brokerAuthResultMessage = await this.sendRequest(request, InteractionType.Popup, DEFAULT_POPUP_MESSAGE_TIMEOUT);
         const brokerAuthResult = BrokerAuthResponse.processBrokerResponseMessage(brokerAuthResultMessage, this.browserStorage);
         if (!brokerAuthResult) {
-            this.logger.errorPii(`Broker response is empty in brokered popup request: ${JSON.stringify(brokerAuthResult)}`);
-            throw BrokerAuthError.createBrokerResponseInvalidError();
+            // Check redirect response
+            const redirectResponse = BrokerRedirectResponse.validate(brokerAuthResultMessage);
+            if (!redirectResponse) {
+                this.logger.errorPii(`Broker response is empty in brokered popup request: ${JSON.stringify(brokerAuthResult)}`);
+                throw BrokerAuthError.createBrokerResponseInvalidError();
+            }
+            this.logger.info("popupRequest requires a redirect by the broker, this app will now redirect.");
         }
         return brokerAuthResult;
     }
@@ -122,7 +127,12 @@ export class EmbeddedClientApplication {
         await this.preflightBrokerRequest();
 
         const message = await this.sendRequest(request, InteractionType.Redirect, DEFAULT_MESSAGE_TIMEOUT);
-        BrokerRedirectResponse.validate(message);
+        const redirectResponse = BrokerRedirectResponse.validate(message);
+        if (!redirectResponse) {
+            this.logger.errorPii(`Broker response is not a redirect: ${JSON.stringify(redirectResponse)}`);
+            throw BrokerAuthError.createBrokerResponseInvalidError();
+        }
+        this.logger.info(`Broker redirecting: ${redirectResponse}`);
     }
 
     /**
