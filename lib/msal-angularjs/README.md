@@ -335,6 +335,9 @@ We highly recommend you ask your questions on Stack Overflow first and browse ex
 - [GitHub Issues](../../issues) for reporting a bug or feature requests
 
 - [User Voice page](https://feedback.azure.com/forums/169401-azure-active-directory) to provide recommendations and/or feedback
+    
+## Share Your Experience
+How easy was it to use this library? And valuable did you find it? Anonymously share your experience with us [here](https://ncv.microsoft.com/98iH6JcTda).
 
 ## Contribute
 
