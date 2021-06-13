@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Allow AuthenticationResult response to return refresh token",
+  "packageName": "@azure/msal-browser",
+  "email": "chris@cwardcode.com",
+  "dependentChangeType": "patch"
+}
