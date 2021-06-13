@@ -169,7 +169,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             //@ts-ignore
             expect(interactionHandler.handleCodeResponse(null, "", authorityInstance, authConfig.networkInterface)).rejects.toMatchObject(BrowserAuthError.createEmptyHashError(null));
         });
-        
+
         // TODO: Need to improve this test
         it(
             "successfully uses a new authority if cloud_instance_host_name is different",
@@ -203,6 +203,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 const testTokenResponse: AuthenticationResult = {
                     authority: authorityInstance.canonicalAuthority,
                     accessToken: TEST_TOKENS.ACCESS_TOKEN,
+                    refreshToken: TEST_TOKENS.REFRESH_TOKEN,
                     idToken: TEST_TOKENS.IDTOKEN_V2,
                     fromCache: false,
                     scopes: ["scope1", "scope2"],

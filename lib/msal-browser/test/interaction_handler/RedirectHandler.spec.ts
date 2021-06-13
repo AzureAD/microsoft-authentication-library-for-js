@@ -123,7 +123,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 },
             },
             loggerOptions: loggerConfig,
-        };        
+        };
         authCodeModule = new AuthorizationCodeClient(authConfig);
         browserRequestLogger = new Logger(authConfig.loggerOptions!);
     });
@@ -209,7 +209,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
                 dbStorage = {};
             });
-            
+
             const navigationClient = new NavigationClient();
             navigationClient.navigateExternal = (requestUrl, options): Promise<boolean> => {
                 expect(requestUrl).toEqual(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
@@ -269,6 +269,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 authority: authorityInstance.canonicalAuthority,
                 accessToken: TEST_TOKENS.ACCESS_TOKEN,
                 idToken: TEST_TOKENS.IDTOKEN_V2,
+                refreshToken: TEST_TOKENS.REFRESH_TOKEN,
                 fromCache: false,
                 scopes: ["scope1", "scope2"],
                 account: testAccount,

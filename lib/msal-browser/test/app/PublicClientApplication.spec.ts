@@ -307,6 +307,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     idToken: testServerTokenResponse.body.id_token,
                     idTokenClaims: testIdTokenClaims,
                     accessToken: testServerTokenResponse.body.access_token,
+                    refreshToken: testServerTokenResponse.body.refresh_token,
                     fromCache: false,
                     expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                     account: testAccount,
@@ -400,6 +401,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         idToken: testServerTokenResponse.body.id_token,
                         idTokenClaims: testIdTokenClaims,
                         accessToken: testServerTokenResponse.body.access_token,
+                        refreshToken: testServerTokenResponse.body.refresh_token,
                         fromCache: false,
                         expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                         account: testAccount,
@@ -439,7 +441,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(tokenResponse1.idTokenClaims).toEqual(expect.objectContaining(testTokenResponse.idTokenClaims));
                     expect(tokenResponse1.accessToken).toEqual(testTokenResponse.accessToken);
                     expect(testTokenResponse.expiresOn && tokenResponse1.expiresOn && testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse1.expiresOn.getMilliseconds()).toBeTruthy();
-                    
+
                     // Response from second promise
                     expect(tokenResponse2.uniqueId).toEqual(testTokenResponse.uniqueId);
                     expect(tokenResponse2.tenantId).toEqual(testTokenResponse.tenantId);
@@ -555,6 +557,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         idToken: testServerTokenResponse.body.id_token,
                         idTokenClaims: testIdTokenClaims,
                         accessToken: testServerTokenResponse.body.access_token,
+                        refreshToken: testServerTokenResponse.body.refresh_token,
                         fromCache: false,
                         expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                         account: testAccount,
@@ -657,6 +660,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         idToken: testServerTokenResponse.body.id_token!,
                         idTokenClaims: testIdTokenClaims,
                         accessToken: testServerTokenResponse.body.access_token!,
+                        refreshToken: testServerTokenResponse.body.refresh_token!,
                         fromCache: false,
                         expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in! * 1000)),
                         account: testAccount,
@@ -774,6 +778,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         idToken: testServerTokenResponse.body.id_token,
                         idTokenClaims: testIdTokenClaims,
                         accessToken: testServerTokenResponse.body.access_token,
+                        refreshToken: testServerTokenResponse.body.refresh_token,
                         fromCache: false,
                         expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                         account: testAccount,
@@ -1105,13 +1110,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 const newWindow = {
                     ...window
                 };
-                
+
                 delete window.opener;
                 delete window.name;
                 window.opener = newWindow;
                 window.name = "msal.testPopup"
             });
-            
+
             afterEach(() => {
                 window.name = oldWindowName;
                 window.opener = oldWindowOpener;
@@ -1476,6 +1481,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     idToken: testServerTokenResponse.id_token,
                     idTokenClaims: testIdTokenClaims,
                     accessToken: testServerTokenResponse.access_token,
+                    refreshToken: testServerTokenResponse.refresh_token,
                     fromCache: false,
                     expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                     account: testAccount,
@@ -1485,7 +1491,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     expect(request.scopes).toContain("openid");
                     expect(request.scopes).toContain("profile");
                     done();
-                    
+
                     return testTokenResponse;
                 });
 
@@ -1527,6 +1533,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     idToken: testServerTokenResponse.id_token,
                     idTokenClaims: testIdTokenClaims,
                     accessToken: testServerTokenResponse.access_token,
+                    refreshToken: testServerTokenResponse.refresh_token,
                     fromCache: false,
                     expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                     account: testAccount,
@@ -1702,6 +1709,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     idToken: testServerTokenResponse.id_token,
                     idTokenClaims: testIdTokenClaims,
                     accessToken: testServerTokenResponse.access_token,
+                    refreshToken: testServerTokenResponse.refresh_token,
                     fromCache: false,
                     expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                     account: testAccount,
@@ -1818,6 +1826,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 idToken: testServerTokenResponse.id_token,
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.access_token,
+                refreshToken: testServerTokenResponse.refresh_token,
                 fromCache: false,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                 account: testAccount,
@@ -1875,6 +1884,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 idToken: testServerTokenResponse.id_token,
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.access_token,
+                refreshToken: testServerTokenResponse.refresh_token,
                 fromCache: false,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                 account: testAccount,
@@ -1936,6 +1946,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 idToken: testServerTokenResponse.id_token,
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.access_token,
+                refreshToken: testServerTokenResponse.refresh_token,
                 fromCache: false,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                 account: testAccount,
@@ -2032,6 +2043,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     idToken: testServerTokenResponse.id_token,
                     idTokenClaims: testIdTokenClaims,
                     accessToken: testServerTokenResponse.access_token,
+                    refreshToken: testServerTokenResponse.refresh_token,
                     fromCache: false,
                     expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                     account: testAccount,
@@ -2050,7 +2062,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     account: testAccount,
                     extraQueryParameters: {
                         queryKey: "queryValue"
-                    }, 
+                    },
                     forceRefresh: false
                 };
                 const expectedRequest: CommonAuthorizationUrlRequest = {
@@ -2113,7 +2125,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 done();
                 return Promise.resolve(true);
             });
-            
+
             const pcaWithPostLogout = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -2130,7 +2142,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 done();
                 return Promise.resolve(true);
             });
-            
+
             const pcaWithPostLogout = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
@@ -2205,7 +2217,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             expect(logoutUriSpy.calledWith(validatedLogoutRequest));
         });
-        
+
         it("throws an error if inside an iframe", async () => {
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
             await expect(pca.logoutRedirect()).rejects.toMatchObject(BrowserAuthError.createRedirectInIframeError(true));
@@ -2528,7 +2540,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 pca.setActiveAccount(testAccountInfo1);
                 const activeAccount1 = pca.getActiveAccount();
                 expect(activeAccount1).toEqual(testAccountInfo1);
-                
+
                 const newName = "Ben Franklin";
                 window.sessionStorage.clear();
                 testAccountInfo1.name = newName;
@@ -2571,7 +2583,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await pca.logoutRedirect();
                 expect(pca.getActiveAccount()).toBeNull;
             });
-    
+
             it(
                 "Clears active account on logoutRedirect when the given account info matches",
                 async () => {
@@ -2599,7 +2611,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 await pca.logoutPopup();
                 expect(pca.getActiveAccount()).toBeNull;
             });
-    
+
             it(
                 "Clears active account on logoutPopup when the given account info matches",
                 async () => {
@@ -2710,10 +2722,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 loggerCallback: (level, message, containsPii) => {
                     expect(message).toContain("Message");
                     expect(message).toContain(LogLevel[2]);
-    
+
                     expect(level).toEqual(LogLevel.Info);
                     expect(containsPii).toBeFalsy();
-    
+
                     done();
                 },
                 piiLoggingEnabled: false

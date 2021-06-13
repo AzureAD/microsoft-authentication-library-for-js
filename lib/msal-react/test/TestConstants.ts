@@ -39,6 +39,7 @@ export const testResult: AuthenticationResult = {
     idToken: "test-id-token",
     idTokenClaims: {},
     accessToken: "test-access-token",
+    refreshToken: "test-refresh-token",
     fromCache: false,
     expiresOn: new Date(Date.now() + (3600000)),
     account: testAccount,
