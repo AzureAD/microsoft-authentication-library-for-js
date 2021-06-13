@@ -118,7 +118,7 @@ export class ResponseHandler {
         let idTokenObj: AuthToken | undefined;
         if (serverTokenResponse.id_token) {
             idTokenObj = new AuthToken(serverTokenResponse.id_token || Constants.EMPTY_STRING, this.cryptoObj);
-    
+
             // token nonce check (TODO: Add a warning if no nonce is given?)
             if (authCodePayload && !StringUtils.isEmpty(authCodePayload.nonce)) {
                 if (idTokenObj.claims.nonce !== authCodePayload.nonce) {
@@ -296,19 +296,19 @@ export class ResponseHandler {
      * @param stateString
      */
     static async generateAuthenticationResult(
-        cryptoObj: ICrypto, 
+        cryptoObj: ICrypto,
         authority: Authority,
-        cacheRecord: CacheRecord, 
-        fromTokenCache: boolean, 
+        cacheRecord: CacheRecord,
+        fromTokenCache: boolean,
         request: BaseAuthRequest,
         idTokenObj?: AuthToken,
         requestState?: RequestStateObject): Promise<AuthenticationResult> {
         let accessToken: string = "";
+        let refreshToken: string = "";
         let responseScopes: Array<string> = [];
         let expiresOn: Date | null = null;
         let extExpiresOn: Date | undefined;
         let familyId: string = Constants.EMPTY_STRING;
-
         if (cacheRecord.accessToken) {
             if (cacheRecord.accessToken.tokenType === AuthenticationScheme.POP) {
                 const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(cryptoObj);
@@ -319,6 +319,10 @@ export class ResponseHandler {
             responseScopes = ScopeSet.fromString(cacheRecord.accessToken.target).asArray();
             expiresOn = new Date(Number(cacheRecord.accessToken.expiresOn) * 1000);
             extExpiresOn = new Date(Number(cacheRecord.accessToken.extendedExpiresOn) * 1000);
+        }
+
+        if (cacheRecord.refreshToken) {
+            refreshToken = cacheRecord.refreshToken.secret;
         }
 
         if (cacheRecord.appMetadata) {
@@ -336,6 +340,7 @@ export class ResponseHandler {
             idToken: idTokenObj ? idTokenObj.rawToken : Constants.EMPTY_STRING,
             idTokenClaims: idTokenObj ? idTokenObj.claims : {},
             accessToken: accessToken,
+            refreshToken: refreshToken,
             fromCache: fromTokenCache,
             expiresOn: expiresOn,
             extExpiresOn: extExpiresOn,

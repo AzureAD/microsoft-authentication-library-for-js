@@ -14,6 +14,7 @@ import { AccountInfo } from "../account/AccountInfo";
  * - idToken                - Id token received as part of the response
  * - idTokenClaims          - MSAL-relevant ID token claims
  * - accessToken            - Access token received as part of the response
+ * - refreshToken           - Refresh token received as part of the response
  * - fromCache              - Boolean denoting whether token came from cache
  * - expiresOn              - Javascript Date object representing relative expiration of access token
  * - extExpiresOn           - Javascript Date object representing extended relative expiration of access token in case of server outage
@@ -29,6 +30,7 @@ export type AuthenticationResult = {
     idToken: string;
     idTokenClaims: object;
     accessToken: string;
+    refreshToken: string;
     fromCache: boolean;
     expiresOn: Date | null;
     tokenType: string;
@@ -36,5 +38,5 @@ export type AuthenticationResult = {
     state?: string;
     familyId?: string;
     cloudGraphHostName?: string;
-    msGraphHost?: string; 
+    msGraphHost?: string;
 };
