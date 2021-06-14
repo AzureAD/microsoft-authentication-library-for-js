@@ -2513,18 +2513,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(pca.getActiveAccount()).toBeNull;
         });
 
-        it(
-            "setActiveAccount() sets the active account local id value correctly",
-            () => {
-                expect((pca as any).activeLocalAccountId).toBeNull;
+        it("setActiveAccount() sets the active account local id value correctly", () => {
+                expect(pca.getActiveAccount()).toBeNull;
                 pca.setActiveAccount(testAccountInfo1);
-                expect((pca as any).activeLocalAccountId).toEqual(testAccountInfo1.localAccountId);
+                expect(pca.getActiveAccount()).toEqual(testAccountInfo1);
             }
         );
 
-        it(
-            "getActiveAccount looks up the current account values and returns them()",
-            () => {
+        it("getActiveAccount looks up the current account values and returns them()", () => {
                 pca.setActiveAccount(testAccountInfo1);
                 const activeAccount1 = pca.getActiveAccount();
                 expect(activeAccount1).toEqual(testAccountInfo1);
@@ -2567,15 +2563,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             it("Clears active account on logoutRedirect with no account", async () => {
-                expect((pca as any).activeLocalAccountId).toEqual(testAccountInfo1.localAccountId);
+                expect(pca.getActiveAccount()).toEqual(testAccountInfo1);
                 await pca.logoutRedirect();
                 expect(pca.getActiveAccount()).toBeNull;
             });
     
-            it(
-                "Clears active account on logoutRedirect when the given account info matches",
-                async () => {
-                    expect((pca as any).activeLocalAccountId).toEqual(testAccountInfo1.localAccountId);
+            it("Clears active account on logoutRedirect when the given account info matches", async () => {
+                    expect(pca.getActiveAccount()).toEqual(testAccountInfo1);
                     await pca.logoutRedirect({
                         account: testAccountInfo1
                     });
@@ -2583,10 +2577,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             );
 
-            it(
-                "Does not clear active account on logoutRedirect if given account object does not match",
-                async () => {
-                    expect((pca as any).activeLocalAccountId).toEqual(testAccountInfo1.localAccountId);
+            it("Does not clear active account on logoutRedirect if given account object does not match", async () => {
+                    expect(pca.getActiveAccount()).toEqual(testAccountInfo1);
                     await pca.logoutRedirect({
                         account: testAccountInfo2
                     });
@@ -2595,15 +2587,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             );
 
             it("Clears active account on logoutPopup with no account", async () => {
-                expect((pca as any).activeLocalAccountId).toEqual(testAccountInfo1.localAccountId);
+                expect(pca.getActiveAccount()).toEqual(testAccountInfo1);
                 await pca.logoutPopup();
                 expect(pca.getActiveAccount()).toBeNull;
             });
     
-            it(
-                "Clears active account on logoutPopup when the given account info matches",
-                async () => {
-                    expect((pca as any).activeLocalAccountId).toEqual(testAccountInfo1.localAccountId);
+            it("Clears active account on logoutPopup when the given account info matches", async () => {
+                    expect(pca.getActiveAccount()).toEqual(testAccountInfo1);
                     await pca.logoutPopup({
                         account: testAccountInfo1
                     });
@@ -2611,10 +2601,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 }
             );
 
-            it(
-                "Does not clear active account on logoutPopup if given account object does not match",
-                async () => {
-                    expect((pca as any).activeLocalAccountId).toEqual(testAccountInfo1.localAccountId);
+            it("Does not clear active account on logoutPopup if given account object does not match", async () => {
+                    expect(pca.getActiveAccount()).toEqual(testAccountInfo1);
                     await pca.logoutPopup({
                         account: testAccountInfo2
                     });
