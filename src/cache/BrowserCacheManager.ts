@@ -394,7 +394,7 @@ export class BrowserCacheManager extends CacheManager {
         const activeAccountIdKey = this.generateCacheKey("active-account");
         if (account) {
             this.logger.verbose("setActiveAccount: Active account set");
-            this.browserStorage.setItem(activeAccountIdKey, account?.localAccountId);
+            this.browserStorage.setItem(activeAccountIdKey, account.localAccountId);
         } else {
             this.logger.verbose("setActiveAccount: No account passed, active account not set");
             this.browserStorage.removeItem(activeAccountIdKey);
