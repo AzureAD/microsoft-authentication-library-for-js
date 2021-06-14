@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -375,6 +375,61 @@ export class BrowserCacheManager extends CacheManager {
     setAuthorityMetadata(key: string, entity: AuthorityMetadataEntity): void {
         this.logger.trace("BrowserCacheManager.setAuthorityMetadata called");
         this.internalStorage.setItem(key, JSON.stringify(entity));
+    }
+
+    /**
+     * Gets the active account
+     */
+    getActiveAccount(): AccountInfo | null {
+        const activeAccountIdKey = this.generateCacheKey("active-account");
+        const activeAccountId = this.browserStorage.getItem(activeAccountIdKey);
+        return this.getAccountInfoByFilter({localAccountId: activeAccountId || ""})[0] || null;
+    }
+
+    /**
+     * Sets the active account's localAccountId in cache
+     * @param account 
+     */
+    setActiveAccount(account: AccountInfo | null): void {
+        const activeAccountIdKey = this.generateCacheKey("active-account");
+        if (account) {
+            this.logger.verbose("setActiveAccount: Active account set");
+            this.browserStorage.setItem(activeAccountIdKey, account?.localAccountId);
+        } else {
+            this.logger.verbose("setActiveAccount: No account passed, active account not set");
+            this.browserStorage.removeItem(activeAccountIdKey);
+        }
+    }
+
+    /**
+     * Gets a list of accounts that match all of the filters provided
+     * @param account 
+     */
+    getAccountInfoByFilter(accountFilter: Partial<Omit<AccountInfo, "idTokenClaims"|"name">>): AccountInfo[] {
+        const allAccounts = this.getAllAccounts();
+        return allAccounts.filter((accountObj) => {
+            if (accountFilter.username && accountFilter.username.toLowerCase() !== accountObj.username.toLowerCase()) {
+                return false;
+            }
+
+            if (accountFilter.homeAccountId && accountFilter.homeAccountId !== accountObj.homeAccountId) {
+                return false;
+            }
+
+            if (accountFilter.localAccountId && accountFilter.localAccountId !== accountObj.localAccountId) {
+                return false;
+            }
+
+            if (accountFilter.tenantId && accountFilter.tenantId !== accountObj.tenantId) {
+                return false;
+            }
+
+            if (accountFilter.environment && accountFilter.environment !== accountObj.environment) {
+                return false;
+            }
+            
+            return true;
+        });
     }
 
     /**
