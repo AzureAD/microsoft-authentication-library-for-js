@@ -224,7 +224,7 @@ describe("CacheManager.ts test cases", () => {
             let credentials = mockCache.cacheManager.getCredentialsFilteredBy(successFilter);
             expect(Object.keys(credentials.idTokens).length).toEqual(1);
             expect(Object.keys(credentials.accessTokens).length).toEqual(3);
-            expect(Object.keys(credentials.refreshTokens).length).toEqual(2);
+            expect(Object.keys(credentials.refreshTokens).length).toEqual(4);
 
             const wrongFilter: CredentialFilter = { homeAccountId: "someuid.someutid" };
             credentials = mockCache.cacheManager.getCredentialsFilteredBy(wrongFilter);
@@ -239,7 +239,7 @@ describe("CacheManager.ts test cases", () => {
             let credentials = mockCache.cacheManager.getCredentialsFilteredBy(successFilter);
             expect(Object.keys(credentials.idTokens).length).toEqual(1);
             expect(Object.keys(credentials.accessTokens).length).toEqual(3);
-            expect(Object.keys(credentials.refreshTokens).length).toEqual(2);
+            expect(Object.keys(credentials.refreshTokens).length).toEqual(4);
             sinon.restore();
 
             const wrongFilter: CredentialFilter = { environment: "Wrong Env" };
@@ -296,13 +296,30 @@ describe("CacheManager.ts test cases", () => {
             expect(Object.keys(credentials.refreshTokens).length).toEqual(0);
         });
 
+        it("credentialType filter (Access Tokens with and without Auth Scheme)", () => {
+            // filter by credentialType
+            const successFilter: CredentialFilter = { credentialType: "RefreshToken" };
+            let credentials = mockCache.cacheManager.getCredentialsFilteredBy(successFilter);
+            expect(Object.keys(credentials.idTokens).length).toEqual(0);
+            expect(Object.keys(credentials.accessTokens).length).toEqual(0);
+            // There are two Bearer tokens in the mock cache
+            expect(Object.keys(credentials.refreshTokens).length).toEqual(2);
+
+            const wrongFilter: CredentialFilter = { credentialType: "RefreshToken_With_AuthScheme" };
+            credentials = mockCache.cacheManager.getCredentialsFilteredBy(wrongFilter);
+            expect(Object.keys(credentials.idTokens).length).toEqual(0);
+            expect(Object.keys(credentials.accessTokens).length).toEqual(0);
+            // There are 2 POP refresh tokens in the mock cache
+            expect(Object.keys(credentials.refreshTokens).length).toEqual(2);
+        });
+
         it("clientId filter", () => {
             // filter by clientId
             const successFilter: CredentialFilter = { clientId: "mock_client_id" };
             let credentials = mockCache.cacheManager.getCredentialsFilteredBy(successFilter);
             expect(Object.keys(credentials.idTokens).length).toEqual(1);
             expect(Object.keys(credentials.accessTokens).length).toEqual(3);
-            expect(Object.keys(credentials.refreshTokens).length).toEqual(1);
+            expect(Object.keys(credentials.refreshTokens).length).toEqual(3);
 
             const wrongFilter: CredentialFilter = { clientId: "Wrong Client ID" };
             credentials = mockCache.cacheManager.getCredentialsFilteredBy(wrongFilter);
@@ -375,9 +392,8 @@ describe("CacheManager.ts test cases", () => {
         const cacheRecord = new CacheRecord();
         cacheRecord.account = ac;
         mockCache.cacheManager.saveCacheRecord(cacheRecord);
-
+        
         mockCache.cacheManager.removeAllAccounts();
-
         // Only app metadata remaining
         expect(mockCache.cacheManager.getKeys().length === 1).toBe(true);
     });
@@ -518,24 +534,24 @@ describe("CacheManager.ts test cases", () => {
     });
 
     it("readRefreshTokenFromCache", () => {
-        const refreshToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, CACHE_MOCKS.MOCK_ACCOUNT_INFO, false) as RefreshTokenEntity;
+        const refreshToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, CACHE_MOCKS.MOCK_ACCOUNT_INFO, false) as RefreshTokenEntity;
         if (!refreshToken) {
             throw TestError.createTestSetupError("refreshToken does not have a value");
         }
-        expect(refreshToken.clientId).toBe(CACHE_MOCKS.MOCK_CLIENT_ID_1);
+        expect(refreshToken.clientId).toBe(CACHE_MOCKS.MOCK_CLIENT_ID);
     });
 
     it("readRefreshTokenFromCache Error", () => {
-        const refreshToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, CACHE_MOCKS.MOCK_ACCOUNT_INFO, true);
+        const refreshToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, CACHE_MOCKS.MOCK_ACCOUNT_INFO, true);
         expect(refreshToken).toBe(null);
     });
 
     it("readRefreshTokenFromCache with familyId", () => {
-        const refreshToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, CACHE_MOCKS.MOCK_ACCOUNT_INFO, true) as RefreshTokenEntity;
+        const refreshToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, CACHE_MOCKS.MOCK_ACCOUNT_INFO, true) as RefreshTokenEntity;
         if (!refreshToken) {
             throw TestError.createTestSetupError("refreshToken does not have a value");
         }
-        expect(refreshToken.clientId).toBe(CACHE_MOCKS.MOCK_CLIENT_ID_1);
+        expect(refreshToken.clientId).toBe(CACHE_MOCKS.MOCK_CLIENT_ID);
     });
 
     it("readRefreshTokenFromCache with environment aliases", () => {

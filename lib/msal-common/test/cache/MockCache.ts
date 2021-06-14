@@ -5,6 +5,7 @@
 
 import { AccessTokenEntity, AccountEntity, AppMetadataEntity, CacheManager, ICrypto, IdTokenEntity, RefreshTokenEntity } from "../../src";
 import { MockStorageClass } from "../client/ClientTestUtils";
+import { TEST_POP_VALUES } from "../test_kit/StringConstants";
 
 export class MockCache {
     cacheManager: MockStorageClass;
@@ -120,6 +121,19 @@ export class MockCache {
         const rt = CacheManager.toObject(new RefreshTokenEntity(), rtData);
         this.cacheManager.setRefreshTokenCredential(rt);
 
+        const rtWithAuthSchemeData = {
+            "environment": "login.microsoftonline.com",
+            "credentialType": "RefreshToken_With_AuthScheme",
+            "secret": "a refresh token",
+            "clientId": "mock_client_id",
+            "homeAccountId": "uid.utid",
+            "tokenType": "pop",
+            "stkKid": TEST_POP_VALUES.KID,
+            "skKid": TEST_POP_VALUES.KID
+        };
+        const rtWithAuthScheme = CacheManager.toObject(new RefreshTokenEntity(), rtWithAuthSchemeData);
+        this.cacheManager.setRefreshTokenCredential(rtWithAuthScheme);
+
         const rtFociData = {
             "environment": "login.microsoftonline.com",
             "credentialType": "RefreshToken",
@@ -130,6 +144,20 @@ export class MockCache {
         };
         const rtFoci = CacheManager.toObject(new RefreshTokenEntity(), rtFociData);
         this.cacheManager.setRefreshTokenCredential(rtFoci);
+
+        const rtFociWithAuthSchemeData = {
+            "environment": "login.microsoftonline.com",
+            "credentialType": "RefreshToken_With_AuthScheme",
+            "secret": "a refresh token",
+            "clientId": "mock_client_id",
+            "homeAccountId": "uid.utid",
+            "tokenType": "pop",
+            "stkKid": TEST_POP_VALUES.KID,
+            "skKid": TEST_POP_VALUES.KID,
+            "familyId": "1"
+        };
+        const rtFociWithAuthScheme = CacheManager.toObject(new RefreshTokenEntity(), rtFociWithAuthSchemeData);
+        this.cacheManager.setRefreshTokenCredential(rtFociWithAuthScheme);
     }
 
     // create appMetadata entries

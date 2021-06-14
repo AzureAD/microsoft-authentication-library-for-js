@@ -54,7 +54,8 @@ export class MockStorageClass extends CacheManager {
     // Credentials (accesstokens)
     getRefreshTokenCredential(key: string): RefreshTokenEntity | null {
         const credType = CredentialEntity.getCredentialType(key);
-        if (credType === CredentialType.REFRESH_TOKEN) {
+        if (credType === CredentialType.REFRESH_TOKEN
+            || credType === CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME) {
             return this.store[key] as RefreshTokenEntity;
         }
         return null;
@@ -62,6 +63,7 @@ export class MockStorageClass extends CacheManager {
     setRefreshTokenCredential(value: RefreshTokenEntity): void {
         const key = value.generateCredentialKey();
         this.store[key] = value;
+        debugger;
     }
 
     // AppMetadata
