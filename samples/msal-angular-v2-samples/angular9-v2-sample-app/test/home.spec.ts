@@ -15,7 +15,7 @@ async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[
     expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).not.toBeNull();
     expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, scopes)).toBeTruthy;
     const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).toBe(4);
+    expect(Object.keys(storage).length).toBe(5);
 }
 
 describe('/ (Home Page)', () => {
@@ -47,6 +47,7 @@ describe('/ (Home Page)', () => {
     beforeEach(async () => {
         context = await browser.createIncognitoBrowserContext();
         page = await context.newPage();
+        page.setDefaultTimeout(5000);
         BrowserCache = new BrowserCacheUtils(page, "localStorage");
         await page.goto(`http://localhost:${port}`);
     });
