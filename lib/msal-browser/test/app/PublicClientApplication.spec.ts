@@ -67,7 +67,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     describe("Constructor tests", () => {
 
         it("passes null check", (done) => {
-            expect(pca).not.toBeNull;
+            expect(pca).not.toBeNull();
             expect(pca instanceof PublicClientApplication).toBeTruthy();
             done();
         });
@@ -150,42 +150,37 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             }
         );
 
-        it("navigates and caches hash if navigateToLoginRequestUri is true and loginRequestUrl contains query string and hash",
-            (done) => {
-                sinon.stub(pca, <any>"interactionInProgress").returns(true);
-                const loginRequestUrl = window.location.href + "?testQueryString=1#testHash";
-                window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
-                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
-                sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
-                    expect(options.noHistory).toBeTruthy();
-                    expect(options.timeout).toBeGreaterThan(0);
-                    expect(urlNavigate).toEqual(loginRequestUrl);
-                    done();
-                    return Promise.resolve(true);
-                });
-                pca.handleRedirectPromise();
-                expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
-            }
-        );
+        it("navigates and caches hash if navigateToLoginRequestUri is true and loginRequestUrl contains query string and hash", (done) => {
+            sinon.stub(pca, <any>"interactionInProgress").returns(true);
+            const loginRequestUrl = window.location.href + "?testQueryString=1#testHash";
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
+            sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(options.noHistory).toBeTruthy();
+                expect(options.timeout).toBeGreaterThan(0);
+                expect(urlNavigate).toEqual(loginRequestUrl);
+                done();
+                return Promise.resolve(true);
+            });
+            pca.handleRedirectPromise();
+            expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
+        });
 
-        it("replaces custom hash if navigateToLoginRequestUri is true and loginRequestUrl contains custom hash",
-            () => {
-                sinon.stub(pca, <any>"interactionInProgress").returns(true);
-                const loginRequestUrl = window.location.href + "#testHash";
-                window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
-                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
-                sinon.stub(PublicClientApplication.prototype, <any>"handleHash").callsFake((responseHash) => {
-                    expect(responseHash).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
+        it("replaces custom hash if navigateToLoginRequestUri is true and loginRequestUrl contains custom hash", () => {
+            sinon.stub(pca, <any>"interactionInProgress").returns(true);
+            const loginRequestUrl = window.location.href + "#testHash";
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
+            sinon.stub(PublicClientApplication.prototype, <any>"handleHash").callsFake((responseHash) => {
+                expect(responseHash).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
+            });
+            return pca.handleRedirectPromise()
+                .then(() => {
+                    expect(window.location.href).toEqual(loginRequestUrl);
                 });
-                return pca.handleRedirectPromise()
-                    .then(() => {
-                        expect(window.location.href).toEqual(loginRequestUrl);
-                    });
-            }
-        );
+        });
 
-        it("replaces custom hash if navigateToLoginRequestUri is true and loginRequestUrl contains custom hash (passed in)",
-            () => {
+        it("replaces custom hash if navigateToLoginRequestUri is true and loginRequestUrl contains custom hash (passed in)", () => {
                 sinon.stub(pca, <any>"interactionInProgress").returns(true);
                 const loginRequestUrl = window.location.href + "#testHash";
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
@@ -196,43 +191,38 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     .then(() => {
                         expect(window.location.href).toEqual(loginRequestUrl);
                     });
-            }
-        );
+        });
 
-        it("processes hash if navigateToLoginRequestUri is true and loginRequestUrl contains trailing slash",
-            (done) => {
-                sinon.stub(pca, <any>"interactionInProgress").returns(true);
-                const loginRequestUrl = window.location.href.endsWith("/") ? window.location.href.slice(0, -1) : window.location.href + "/";
-                window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
-                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
-                sinon.stub(PublicClientApplication.prototype, <any>"handleHash").callsFake((responseHash) => {
-                    expect(responseHash).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
-                    done();
-                });
-                pca.handleRedirectPromise();
-            }
-        );
+        it("processes hash if navigateToLoginRequestUri is true and loginRequestUrl contains trailing slash", (done) => {
+            sinon.stub(pca, <any>"interactionInProgress").returns(true);
+            const loginRequestUrl = window.location.href.endsWith("/") ? window.location.href.slice(0, -1) : window.location.href + "/";
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
+            sinon.stub(PublicClientApplication.prototype, <any>"handleHash").callsFake((responseHash) => {
+                expect(responseHash).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
+                done();
+            });
+            pca.handleRedirectPromise();
+        });
 
-        it("clears hash if navigateToLoginRequestUri is false and loginRequestUrl contains custom hash",
-            (done) => {
-                pca = new PublicClientApplication({
-                    auth: {
-                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                        navigateToLoginRequestUrl: false
-                    }
-                });
-                sinon.stub(pca, <any>"interactionInProgress").returns(true);
-                const loginRequestUrl = window.location.href + "#testHash";
-                window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
-                window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
-                sinon.stub(PublicClientApplication.prototype, <any>"handleHash").callsFake((responseHash) => {
-                    expect(window.location.href).not.toContain("#testHash");
-                    expect(responseHash).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
-                    done();
-                });
-                pca.handleRedirectPromise();
-            }
-        );
+        it("clears hash if navigateToLoginRequestUri is false and loginRequestUrl contains custom hash", (done) => {
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    navigateToLoginRequestUrl: false
+                }
+            });
+            sinon.stub(pca, <any>"interactionInProgress").returns(true);
+            const loginRequestUrl = window.location.href + "#testHash";
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
+            sinon.stub(PublicClientApplication.prototype, <any>"handleHash").callsFake((responseHash) => {
+                expect(window.location.href).not.toContain("#testHash");
+                expect(responseHash).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
+                done();
+            });
+            pca.handleRedirectPromise();
+        });
     });
 
     describe("Redirect Flow Unit tests", () => {
