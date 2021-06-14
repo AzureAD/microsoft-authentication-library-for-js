@@ -97,8 +97,6 @@ We recommend setting the active account:
 - After any action that may change the account, especially if your app uses multiple accounts. See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/home/home.component.ts#L23) for an example of setting the account after a successful login.
 - On initial page load. Wait until all interactions are complete (by subscribing to the `inProgress$` observable and filtering for `InteractionStatus.None`), check if there is an active account, and if there is none, set the active account. This could be the first account retrieved by `getAllAccounts()`, or other account selection logic required by your app. See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app) for an example of checking and setting the active account on page load.
 
-**Note:** Currently, active accounts are for each page load and do not persist. While this is an enhancement we are looking to make, we recommend that you set the active account for each page load.
-
 Our [Angular 11](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app) sample demonstrates basic usage. Your app may require more complicated logic to choose accounts.
 
 ### How do I log users in when they hit the application?
