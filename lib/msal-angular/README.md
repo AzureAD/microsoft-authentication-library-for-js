@@ -128,7 +128,7 @@ This library controls how users sign-in and access services. We recommend you al
 -   [User Voice page](https://feedback.azure.com/forums/169401-azure-active-directory) to provide recommendations and/or feedback
 
 ## Share Your Experience
-How easy was it to use this library? How valuable did you find it? Anonymously share your experience with us [here](https://ncv.microsoft.com/0v3roKKyf8)
+How easy was it to use this library? How valuable did you find it? Anonymously share your experience with us [here](https://ncv.microsoft.com/0v3roKKyf8).
 
 
 ## Contribute
