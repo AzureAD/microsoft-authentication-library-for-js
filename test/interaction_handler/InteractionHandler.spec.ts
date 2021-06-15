@@ -36,7 +36,7 @@ import { TemporaryCacheKeys, BrowserConstants } from "../../src/utils/BrowserCon
 class TestInteractionHandler extends InteractionHandler {
 
     constructor(authCodeModule: AuthorizationCodeClient, storageImpl: BrowserCacheManager) {
-        super(authCodeModule, storageImpl, testAuthCodeRequest);
+        super(authCodeModule, storageImpl, testAuthCodeRequest, testBrowserRequestLogger);
     }
 
     showUI(requestUrl: string): Window {
@@ -58,6 +58,11 @@ const testAuthCodeRequest: CommonAuthorizationCodeRequest = {
     code: "",
     correlationId: ""
 };
+
+const testBrowserRequestLogger: Logger = new Logger({
+    loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {},
+    piiLoggingEnabled: true
+}, "@azure/msal-browser", "test");
 
 const testPkceCodes = {
     challenge: "TestChallenge",
