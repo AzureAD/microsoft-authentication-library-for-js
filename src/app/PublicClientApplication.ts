@@ -92,22 +92,22 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             forceRefresh: request.forceRefresh || false
         };
         const browserRequestLogger = this.logger.clone(name, version, silentRequest.correlationId);
-        this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
+        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
         try {
             // Telemetry manager only used to increment cacheHits here
             const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);
             const silentAuthClient = await this.createSilentFlowClient(serverTelemetryManager, silentRequest.authority, silentRequest.correlationId);
             browserRequestLogger.verbose("Silent auth client created");
             const cachedToken = await silentAuthClient.acquireCachedToken(silentRequest);
-            this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, cachedToken);
+            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, cachedToken);
             return cachedToken;
         } catch (e) {
             try {
                 const tokenRenewalResult = await this.acquireTokenByRefreshToken(silentRequest);
-                this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, tokenRenewalResult);
+                this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, tokenRenewalResult);
                 return tokenRenewalResult;
             } catch (tokenRenewalError) {
-                this.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
+                this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
                 throw tokenRenewalError;
             }
         }
