@@ -210,7 +210,6 @@ describe("Non-browser environment", () => {
             expect(listenMsgSpy.calledOnce).toBeFalsy();
         });
 
-
         it("acquireTokenSilent throws", (done) => {
             const instance = new PublicClientApplication({
                 auth: {
