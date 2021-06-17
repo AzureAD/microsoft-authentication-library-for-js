@@ -1,8 +1,10 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
-import { ProfileComponent } from './profile/profile.component';
-import { HomeComponent } from './home/home.component';
 import { MsalGuard } from '@azure/msal-angular';
+
+import { ProfileComponent } from './profile/profile.component';
+import { FailedComponent } from './failed/failed.component';
+import { HomeComponent } from './home/home.component';
 
 const routes: Routes = [
   {
@@ -30,7 +32,11 @@ const routes: Routes = [
   {
     path: '',
     component: HomeComponent
-  }
+  },
+  {
+    path: 'login-failed',
+    component: FailedComponent
+  },
 ];
 
 const isIframe = window !== window.parent && !window.opener;
