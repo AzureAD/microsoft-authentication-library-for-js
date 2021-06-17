@@ -4,13 +4,12 @@
  */
 
 import * as React from "react";
-import { IPublicClientApplication, stubbedPublicClientApplication, Logger, InteractionStatus } from "@azure/msal-browser";
-import { AccountIdentifiers } from "./types/AccountIdentifiers";
+import { IPublicClientApplication, stubbedPublicClientApplication, Logger, InteractionStatus, AccountInfo } from "@azure/msal-browser";
 
 export interface IMsalContext {
     instance: IPublicClientApplication;
     inProgress: InteractionStatus;
-    accounts: AccountIdentifiers[];
+    accounts: AccountInfo[];
     logger: Logger;
 }
 
