@@ -33,7 +33,8 @@ export class RequestValidator {
                 PromptValue.LOGIN,
                 PromptValue.SELECT_ACCOUNT,
                 PromptValue.CONSENT,
-                PromptValue.NONE
+                PromptValue.NONE,
+                PromptValue.CREATE
             ].indexOf(prompt) < 0
         ) {
             throw ClientConfigurationError.createInvalidPromptError(prompt);
