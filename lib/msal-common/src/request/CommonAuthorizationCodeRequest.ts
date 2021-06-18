@@ -25,5 +25,6 @@ export type CommonAuthorizationCodeRequest = BaseAuthRequest & {
     redirectUri: string;
     codeVerifier?: string;
     tokenQueryParameters?: StringDict;
+    clientInfo?: string;
     ccsCredential?: CcsCredential;
 };

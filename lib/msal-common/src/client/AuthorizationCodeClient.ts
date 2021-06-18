@@ -8,7 +8,7 @@ import { CommonAuthorizationUrlRequest } from "../request/CommonAuthorizationUrl
 import { CommonAuthorizationCodeRequest } from "../request/CommonAuthorizationCodeRequest";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { GrantType, AuthenticationScheme, PromptValue } from "../utils/Constants";
+import { GrantType, AuthenticationScheme, PromptValue, Separators } from "../utils/Constants";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { NetworkResponse } from "../network/NetworkManager";
@@ -27,8 +27,8 @@ import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload";
 import { TimeUtils } from "../utils/TimeUtils";
 import { TokenClaims } from "../account/TokenClaims";
 import { AccountInfo } from "../account/AccountInfo";
-import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
-import { CcsCredentialType } from "../account/CcsCredential";
+import { buildClientInfoFromHomeAccountId, buildClientInfo } from "../account/ClientInfo";
+import { CcsCredentialType, CcsCredential } from "../account/CcsCredential";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -104,7 +104,6 @@ export class AuthorizationCodeClient extends BaseClient {
         if (!serverParams.code) {
             throw ClientAuthError.createNoAuthCodeInServerResponseError();
         }
-
         return {
             ...serverParams,
             // Code param is optional in ServerAuthorizationCodeResponse but required in AuthorizationCodePaylod
@@ -151,8 +150,19 @@ export class AuthorizationCodeClient extends BaseClient {
 
         const requestBody = await this.createTokenRequestBody(request);
         const queryParameters = this.createTokenQueryParameters(request);
-        const headers: Record<string, string> = this.createTokenRequestHeaders(request.ccsCredential);
-
+        let ccsCredential: CcsCredential | undefined = undefined;
+        if (request.clientInfo) {
+            try {
+                const clientInfo = buildClientInfo(request.clientInfo, this.cryptoUtils);
+                ccsCredential = {
+                    credential: `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`,
+                    type: CcsCredentialType.HOME_ACCOUNT_ID
+                };
+            } catch (e) {
+                this.logger.verbose("Could not parse client info for CCS Header: " + e);
+            }
+        }
+        const headers: Record<string, string> = this.createTokenRequestHeaders(ccsCredential || request.ccsCredential);
         const endpoint = StringUtils.isEmpty(queryParameters) ? authority.tokenEndpoint : `${authority.tokenEndpoint}?${queryParameters}`;
 
         return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
@@ -229,16 +239,35 @@ export class AuthorizationCodeClient extends BaseClient {
         if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
+        
+        let ccsCred: CcsCredential | undefined = undefined;
+        if (request.clientInfo) {
+            try {
+                const clientInfo = buildClientInfo(request.clientInfo, this.cryptoUtils);
+                ccsCred = {
+                    credential: `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`,
+                    type: CcsCredentialType.HOME_ACCOUNT_ID
+                };
+            } catch (e) {
+                this.logger.verbose("Could not parse client info for CCS Header: " + e);
+            }
+        } else {
+            ccsCred = request.ccsCredential;
+        }
 
         // Adds these as parameters in the request instead of headers to prevent CORS preflight request
-        if (this.config.systemOptions.preventCorsPreflight && request.ccsCredential) {
-            switch (request.ccsCredential.type) {
+        if (this.config.systemOptions.preventCorsPreflight && ccsCred) {
+            switch (ccsCred.type) {
                 case CcsCredentialType.HOME_ACCOUNT_ID:
-                    const clientInfo = buildClientInfoFromHomeAccountId(request.ccsCredential.credential);
-                    parameterBuilder.addCcsOid(clientInfo);
+                    try {
+                        const clientInfo = buildClientInfoFromHomeAccountId(ccsCred.credential);
+                        parameterBuilder.addCcsOid(clientInfo);
+                    } catch (e) {
+                        this.logger.verbose("Could not parse home account ID for CCS Header: " + e);
+                    }
                     break;
                 case CcsCredentialType.UPN:
-                    parameterBuilder.addCcsUpn(request.ccsCredential.credential);
+                    parameterBuilder.addCcsUpn(ccsCred.credential);
                     break;
             }
         }
@@ -303,7 +332,12 @@ export class AuthorizationCodeClient extends BaseClient {
                     // SessionId is only used in silent calls
                     this.logger.verbose("createAuthCodeUrlQueryString: Prompt is none, adding sid from account");
                     parameterBuilder.addSid(accountSid);
-                    parameterBuilder.addCcsOid(buildClientInfoFromHomeAccountId(request.account.homeAccountId));
+                    try {
+                        const clientInfo = buildClientInfoFromHomeAccountId(request.account.homeAccountId);
+                        parameterBuilder.addCcsOid(clientInfo);
+                    } catch (e) {
+                        this.logger.verbose("Could not parse home account ID for CCS Header: " + e);
+                    }
                 } else if (request.loginHint) {
                     this.logger.verbose("createAuthCodeUrlQueryString: Adding login_hint from request");
                     parameterBuilder.addLoginHint(request.loginHint);
@@ -312,7 +346,12 @@ export class AuthorizationCodeClient extends BaseClient {
                     // Fallback to account username if provided
                     this.logger.verbose("createAuthCodeUrlQueryString: Adding login_hint from account");
                     parameterBuilder.addLoginHint(request.account.username);
-                    parameterBuilder.addCcsOid(buildClientInfoFromHomeAccountId(request.account.homeAccountId));
+                    try {
+                        const clientInfo = buildClientInfoFromHomeAccountId(request.account.homeAccountId);
+                        parameterBuilder.addCcsOid(clientInfo);
+                    } catch (e) {
+                        this.logger.verbose("Could not parse home account ID for CCS Header: " +  e);
+                    }
                 }
             } else if (request.loginHint) {
                 this.logger.verbose("createAuthCodeUrlQueryString: No account, adding login_hint from request");

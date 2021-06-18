@@ -117,9 +117,13 @@ export class RedirectHandler extends InteractionHandler {
         authCodeResponse.state = requestState;
 
         // Add CCS parameters if available
-        const cachedCcsCred = this.checkCcsCredentials();
-        if (cachedCcsCred) {
-            this.authCodeRequest.ccsCredential = cachedCcsCred;
+        if (authCodeResponse.client_info) {
+            this.authCodeRequest.clientInfo = authCodeResponse.client_info;
+        } else {
+            const cachedCcsCred = this.checkCcsCredentials();
+            if (cachedCcsCred) {
+                this.authCodeRequest.ccsCredential = cachedCcsCred;
+            }
         }
 
         // Remove throttle if it exists

@@ -83,15 +83,18 @@ export abstract class BaseClient {
         if (!this.config.systemOptions.preventCorsPreflight && ccsCred) {
             switch (ccsCred.type) {
                 case CcsCredentialType.HOME_ACCOUNT_ID:
-                    const clientInfo = buildClientInfoFromHomeAccountId(ccsCred.credential);
-                    headers[HeaderNames.CCS_HEADER] = `Oid:${clientInfo.uid}@${clientInfo.utid}`;
+                    try {
+                        const clientInfo = buildClientInfoFromHomeAccountId(ccsCred.credential);
+                        headers[HeaderNames.CCS_HEADER] = `Oid:${clientInfo.uid}@${clientInfo.utid}`;
+                    } catch (e) {
+                        this.logger.verbose("Could not parse home account ID for CCS Header: " + e);
+                    }
                     break;
                 case CcsCredentialType.UPN:
                     headers[HeaderNames.CCS_HEADER] = `UPN: ${ccsCred.credential}`;
                     break;
             }
         }
-
         return headers;
     }
 

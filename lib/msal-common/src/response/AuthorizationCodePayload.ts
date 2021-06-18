@@ -14,4 +14,5 @@ export type AuthorizationCodePayload = {
     msgraph_host?: string;
     state?: string;
     nonce?: string;
+    client_info?: string;
 };

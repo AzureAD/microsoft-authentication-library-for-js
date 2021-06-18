@@ -68,9 +68,13 @@ export abstract class InteractionHandler {
         authCodeResponse.state = requestState;
 
         // Add CCS parameters if available
-        const cachedCcsCred = this.checkCcsCredentials();
-        if (cachedCcsCred) {
-            this.authCodeRequest.ccsCredential = cachedCcsCred;
+        if (authCodeResponse.client_info) {
+            this.authCodeRequest.clientInfo = authCodeResponse.client_info;
+        } else {
+            const cachedCcsCred = this.checkCcsCredentials();
+            if (cachedCcsCred) {
+                this.authCodeRequest.ccsCredential = cachedCcsCred;
+            }
         }
 
         // Acquire token with retrieved code.
@@ -91,6 +95,9 @@ export abstract class InteractionHandler {
         this.authModule.updateAuthority(cloudInstanceAuthority);
     }
 
+    /**
+     * Looks up ccs creds in the cache
+     */
     protected checkCcsCredentials(): CcsCredential | null {
         // Look up ccs credential in temp cache
         const cachedCcsCred = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.CCS_CREDENTIAL, true);

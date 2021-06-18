@@ -84,7 +84,8 @@ app.get('/redirect', (req, res) => {
         code: req.query.code,
         scopes: ["user.read"],
         redirectUri: "http://localhost:3000/redirect",
-        codeVerifier: app.locals.pkceCodes.verifier // PKCE Code Verifier
+        codeVerifier: app.locals.pkceCodes.verifier, // PKCE Code Verifier
+        clientInfo: req.query.client_info
     };
 
     pca.acquireTokenByCode(tokenRequest).then((response) => {
