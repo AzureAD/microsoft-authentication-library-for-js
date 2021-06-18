@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add broker types and clients (#3645)",
+  "packageName": "@azure/msal-common",
+  "email": "prkanher@microsoft.com",
+  "dependentChangeType": "patch"
+}
