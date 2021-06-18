@@ -1,6 +1,4 @@
 import { AccessTokenEntity, AccountEntity, AccountInfo, AuthenticationResult, AuthenticationScheme, BrokerAuthenticationResult, CacheRecord, CredentialType, TokenClaims } from "@azure/msal-common";
-import chai, { expect } from "chai";
-import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
 import { ClientApplication } from "../../../src/app/ClientApplication";
 import { BrokerClientApplication } from "../../../src/broker/client/BrokerClientApplication";
@@ -20,7 +18,7 @@ describe("BrokerClientApplication.ts Unit Tests", () => {
         })
 
         it("extends ClientApplication.ts", () => {
-            expect(broker instanceof ClientApplication).to.be.true;
+            expect(broker instanceof ClientApplication).toBeTruthy();
         });
     });
 
@@ -106,8 +104,8 @@ describe("BrokerClientApplication.ts Unit Tests", () => {
             });
             const resp = await broker.handleRedirectPromise();
 
-            expect(handleRedirectPromiseStub.calledOnce).to.be.true;
-            expect(resp).to.be.deep.eq(testTokenResponse);
+            expect(handleRedirectPromiseStub.calledOnce).toBeTruthy();
+            expect(resp).toEqual(testTokenResponse);
         });
 
         it("returns null if tokensToCache is provided", async () => {
@@ -131,8 +129,8 @@ describe("BrokerClientApplication.ts Unit Tests", () => {
             });
             const resp = await broker.handleRedirectPromise();
 
-            expect(handleRedirectPromiseStub.calledOnce).to.be.true;
-            expect(resp).to.be.null;
+            expect(handleRedirectPromiseStub.calledOnce).toBeTruthy();
+            expect(resp).toBeNull();
         });
     });
 });
