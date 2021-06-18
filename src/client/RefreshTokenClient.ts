@@ -211,8 +211,12 @@ export class RefreshTokenClient extends BaseClient {
         if (this.config.systemOptions.preventCorsPreflight && request.ccsCredential) {
             switch (request.ccsCredential.type) {
                 case CcsCredentialType.HOME_ACCOUNT_ID:
-                    const clientInfo = buildClientInfoFromHomeAccountId(request.ccsCredential.credential);
-                    parameterBuilder.addCcsOid(clientInfo);
+                    try {
+                        const clientInfo = buildClientInfoFromHomeAccountId(request.ccsCredential.credential);
+                        parameterBuilder.addCcsOid(clientInfo);
+                    } catch (e) {
+                        this.logger.verbose("Could not parse home account ID for CCS Header: " + e);
+                    }
                     break;
                 case CcsCredentialType.UPN:
                     parameterBuilder.addCcsUpn(request.ccsCredential.credential);
