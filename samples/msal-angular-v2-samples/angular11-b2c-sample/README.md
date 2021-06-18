@@ -45,3 +45,9 @@ Implementing B2C user-flows is a matter of initiating authorization requests aga
 ## Additional notes
 
 - The default interaction type for the sample is redirect. The sample can be configured to use popups by changing the `interactionType` in `app.module.ts` to `InteractionType.Popup`.
+
+- If you would like to protect all the routes in your application so that upon hitting any page, users are automatically prompted for login, follow the [steps outlined in FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/FAQ.md#how-do-i-log-users-in-when-they-hit-the-application)
+
+## Common errors
+
+- If your app is running into redirect loops when trying to acquire a token for a resource such as your web API, make sure you have granted **admin consent** to the permissions/scopes required for that resource on App registration portal. See [Using redirects in MSAL Angular v2](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/redirects.md) for more on redirect experience. See [MSAL Angular v2 Errors](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/errors.md) for other common errors.
