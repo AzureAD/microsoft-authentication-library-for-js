@@ -366,7 +366,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             sinon.stub(AuthorizationCodeClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
             sinon.stub(AuthorizationCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
 
-            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, testAuthCodeRequest, browserCrypto);
+            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, testAuthCodeRequest, browserRequestLogger, browserCrypto);
             const tokenResponse = await redirectHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT, TEST_STATE_VALUES.TEST_STATE_REDIRECT, authorityInstance, authConfig.networkInterface!);
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(browserStorage.getTemporaryCache(browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY))).toBe(null);
