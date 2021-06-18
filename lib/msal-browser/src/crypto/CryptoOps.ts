@@ -3,11 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { BaseAuthRequest, ICrypto, PkceCodes, SignedHttpRequest, ServerAuthorizationTokenResponse, BoundServerAuthorizationTokenResponse } from "@azure/msal-common";
+import { BaseAuthRequest, ICrypto, PkceCodes, SignedHttpRequest, ServerAuthorizationTokenResponse, BoundServerAuthorizationTokenResponse, CommonRefreshTokenRequest } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
 import { PkceGenerator } from "./PkceGenerator";
+import { CtxGenerator } from "./CtxGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
 import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
@@ -43,6 +44,7 @@ export class CryptoOps implements ICrypto {
     private b64Encode: Base64Encode;
     private b64Decode: Base64Decode;
     private pkceGenerator: PkceGenerator;
+    private ctxGenerator: CtxGenerator;
     private _atBindingKeyOptions: CryptoKeyOptions;
     private _rtBindingKeyOptions: CryptoKeyOptions;
 
@@ -60,6 +62,7 @@ export class CryptoOps implements ICrypto {
         this.b64Decode = new Base64Decode();
         this.guidGenerator = new GuidGenerator(this.browserCrypto);
         this.pkceGenerator = new PkceGenerator(this.browserCrypto);
+        this.ctxGenerator = new CtxGenerator(this.browserCrypto);
         this.cache = new DatabaseStorage(CryptoOps.DB_NAME, CryptoOps.TABLE_NAMES, CryptoOps.DB_VERSION);
 
         this._atBindingKeyOptions = {
@@ -97,6 +100,14 @@ export class CryptoOps implements ICrypto {
         return this.guidGenerator.generateGuid();
     }
 
+    /**
+     * 
+     * Creates a new random Ctx - used to derive Bound RT HMAC key.
+     * @returns
+     */
+    createNewCtx(): Uint8Array {
+        return this.ctxGenerator.generateCtx();
+    }
     /**
      * Encodes input string to base64.
      * @param input 
@@ -254,8 +265,11 @@ export class CryptoOps implements ICrypto {
                 KEY_DERIVATION_SIZES.PRF_OUTPUT_LENGTH,
                 KEY_DERIVATION_SIZES.COUNTER_LENGTH
             );
+
+            // Encode context
+            const ctxBytes = Uint8Array.from(window.atob(responseJwe.protectedHeader.ctx), (v) => v.charCodeAt(0));
             
-            const derivedKeyData = new Uint8Array(await kdf.computeKDFInCounterMode(responseJwe.protectedHeader.ctx, KEY_DERIVATION_LABELS.DECRYPTION));
+            const derivedKeyData = new Uint8Array(await kdf.computeKDFInCounterMode(ctxBytes, KEY_DERIVATION_LABELS.DECRYPTION));
             const sessionKeyUsages = KEY_USAGES.RT_BINDING.SESSION_KEY as KeyUsage[];
             const sessionKeyAlgorithm: AesKeyAlgorithm = { name: "AES-GCM", length: 256 };
             const sessionKey = await window.crypto.subtle.importKey("raw", derivedKeyData, sessionKeyAlgorithm, false, sessionKeyUsages);
@@ -264,7 +278,7 @@ export class CryptoOps implements ICrypto {
             const responseStr = await responseJwe.decrypt(sessionKey);
 
             const response: ServerAuthorizationTokenResponse = JSON.parse(responseStr);
-            await this.cache.put<CryptoKey>(DB_TABLE_NAMES.SYMMETRIC_KEYS, kid, sessionKey);
+            await this.cache.put<CryptoKey>(DB_TABLE_NAMES.SYMMETRIC_KEYS, kid, contentEncryptionKey);
             
             return {
                 ...response,
@@ -274,5 +288,65 @@ export class CryptoOps implements ICrypto {
         } else {
             throw BrowserAuthError.createMissingStkKidError();
         }
+    }
+
+    async signBoundTokenRequest(request: CommonRefreshTokenRequest, payload: string): Promise<string> {
+        const { stkKid, skKid } = request;
+
+        if (stkKid && skKid) {
+            // Retrieve Session Transport KeyPair from Key Store
+            const sessionTransportKeypair: CachedKeyPair = await this.cache.get<CachedKeyPair>(DB_TABLE_NAMES.ASYMMETRIC_KEYS, stkKid);
+
+            // Retrieve Session Key from Key Store
+            const contentEncryptionKey: CryptoKey = await this.cache.get<CryptoKey>(DB_TABLE_NAMES.SYMMETRIC_KEYS, skKid);
+            
+            // Derive session key using content encryption key
+            const kdf = new KeyDerivation(
+                contentEncryptionKey,
+                KEY_DERIVATION_SIZES.DERIVED_KEY_LENGTH,
+                KEY_DERIVATION_SIZES.PRF_OUTPUT_LENGTH,
+                KEY_DERIVATION_SIZES.COUNTER_LENGTH
+            );
+
+            // Generate CTX
+            const ctx = this.ctxGenerator.generateCtx();
+            const payloadBytes = Uint8Array.from(payload, (v) => v.charCodeAt(0));
+
+            const inputData = new Uint8Array(ctx.byteLength + payloadBytes.byteLength);
+            inputData.set(ctx, 0);
+            inputData.set(payloadBytes, ctx.byteLength);
+
+            const hashedInputData = new Uint8Array(await window.crypto.subtle.digest({ name: "SHA-256" }, inputData));
+
+            const derivedKeyData = new Uint8Array(await kdf.computeKDFInCounterMode(hashedInputData, KEY_DERIVATION_LABELS.SIGNING));
+
+            const sessionKeyUsages = KEY_USAGES.RT_BINDING.DERIVATION_KEY as KeyUsage[];
+            const sessionKeyAlgorithm: HmacImportParams = { name: "HMAC", hash: "SHA-256" };
+            const sessionKey = await window.crypto.subtle.importKey("raw", derivedKeyData, sessionKeyAlgorithm, false, sessionKeyUsages);
+
+            const urlEncodedCtx = this.b64Encode.urlEncode(BrowserStringUtils.utf8ArrToString(ctx));
+            const header = {
+                ctx: urlEncodedCtx,
+                alg: "HS256"
+            };
+
+            const encodedHeader = this.b64Encode.urlEncode(JSON.stringify(header));
+            const encodedPayload = this.b64Encode.urlEncode(JSON.stringify(payload));
+
+            const jwtString = `${encodedHeader}.${encodedPayload}`;
+
+            // Sign token
+            const tokenBuffer = BrowserStringUtils.stringToArrayBuffer(jwtString);
+            const cryptoKeyOptions = this._rtBindingKeyOptions;
+            cryptoKeyOptions.keyGenAlgorithmOptions.name = "HMAC";
+            const signatureBuffer = await this.browserCrypto.sign(
+                cryptoKeyOptions,
+                sessionKey,
+                tokenBuffer
+            );
+            const encodedSignature = this.b64Encode.urlEncodeArr(new Uint8Array(signatureBuffer));
+            return `${jwtString}.${encodedSignature}`;
+        }
+        return payload;
     }
 }

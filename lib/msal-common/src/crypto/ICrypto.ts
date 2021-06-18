@@ -5,6 +5,7 @@
 
 import { AuthError } from "../error/AuthError";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
+import { CommonRefreshTokenRequest } from "../request/CommonRefreshTokenRequest";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { SignedHttpRequest } from "./SignedHttpRequest";
 
@@ -26,6 +27,10 @@ export interface ICrypto {
      * Creates a guid randomly.
      */
     createNewGuid(): string;
+    /**
+     * Creates a ctx randomly.
+     */
+    createNewCtx(): Uint8Array;
     /**
      * base64 Encode string
      * @param input 
@@ -60,11 +65,19 @@ export interface ICrypto {
      * Decrypts a bound token response
      */
     decryptBoundTokenResponse(boundServerTokenResponse: ServerAuthorizationTokenResponse, request: BaseAuthRequest): Promise<ServerAuthorizationTokenResponse>;
+    /**
+     * Signs a bound token request
+     */
+    signBoundTokenRequest(request: CommonRefreshTokenRequest, payload: string): Promise<string>;
 }
 
 export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     createNewGuid: (): string => {
         const notImplErr = "Crypto interface - createNewGuid() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    createNewCtx: (): Uint8Array => {
+        const notImplErr = "Crypto interface - createNewCtx() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
     },
     base64Decode: (): string => {
@@ -92,7 +105,11 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
         throw AuthError.createUnexpectedError(notImplErr);
     },
     async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
-        const notImplErr = "Crypto interface - getAssymetricPublicKey() has not been implemented";
+        const notImplErr = "Crypto interface - decryptBoundTokenResponse() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async signBoundTokenRequest(): Promise<string> {
+        const notImplErr = "Crypto interface - signBoundTokenRequest() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr); 
     }
 };

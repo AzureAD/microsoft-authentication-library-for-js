@@ -62,17 +62,15 @@ export class KeyDerivation {
         return iterationsRequired;
     }
 
-    public async computeKDFInCounterMode(ctx: string, label: string): Promise<ArrayBuffer> {
-        // Encode context
-        const ctxBytes = Uint8Array.from(window.atob(ctx), (v) => v.charCodeAt(0));
+    public async computeKDFInCounterMode(ctx: Uint8Array, label: string): Promise<ArrayBuffer> {
         // Encode label
         const labelBytes = BrowserStringUtils.stringToUtf8Arr(label);
         // 4 byte counter + label bytes + 1 byte 0x00 + ctx bytes + 4 byte key length
-        const data = new Uint8Array(4 + labelBytes.length + 1 + ctxBytes.length + 4);
+        const data = new Uint8Array(4 + labelBytes.length + 1 + ctx.length + 4);
         data.set([0, 0, 0, 1], 0); // [i]_2 (counter) = 1
         data.set(labelBytes, 4); // Label
         data.set([0], labelBytes.length + 4); // 0x00
-        data.set(ctxBytes, labelBytes.length + 4 + 1); // ctx
+        data.set(ctx, labelBytes.length + 4 + 1); // ctx
         data.set([0, 0, 1, 0], data.length - 4); // [L]_2 (key length)
 
         return await this.kdfInCounterMode(data);

@@ -104,7 +104,7 @@ export class RefreshTokenClient extends BaseClient {
     private async acquireTokenWithCachedRefreshToken(request: CommonSilentFlowRequest, foci: boolean) {
         // fetches family RT or application RT based on FOCI value
         const refreshToken = this.cacheManager.readRefreshTokenFromCache(this.config.authOptions.clientId, request.account, foci);
-
+        
         // no refresh Token
         if (!refreshToken) {
             throw ClientAuthError.createNoTokensFoundError();
@@ -113,10 +113,18 @@ export class RefreshTokenClient extends BaseClient {
         const refreshTokenRequest: CommonRefreshTokenRequest = {
             ...request,
             refreshToken: refreshToken.secret,
-            authenticationScheme: request.authenticationScheme || AuthenticationScheme.BEARER
+            authenticationScheme: request.authenticationScheme || AuthenticationScheme.BEARER,
+            stkKid: refreshToken.stkKid,
+            skKid: refreshToken.skKid,
+            tokenType: refreshToken.tokenType
         };
 
         return this.acquireToken(refreshTokenRequest);
+    }
+
+    private async createBoundTokenRequestBody(request: CommonRefreshTokenRequest): Promise<string> {
+        const payload = await this.createTokenRequestBodyObject(request);
+        return this.cryptoUtils.signBoundTokenRequest(request, payload);
     }
 
     /**
@@ -126,8 +134,16 @@ export class RefreshTokenClient extends BaseClient {
      */
     private async executeTokenRequest(request: CommonRefreshTokenRequest, authority: Authority)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+        
+        // Check if the Refresh Token is bound
+        const isBoundRefreshToken = request.tokenType === AuthenticationScheme.POP && request.stkKid && request.skKid;
+        
+        const requestBody = 
+            (isBoundRefreshToken) ? 
+                await this.createBoundTokenRequestBody(request) :
+                await this.createTokenRequestBody(request);
+        const body = `request=${this.cryptoUtils.base64Encode(requestBody)}&grant_type=${this.cryptoUtils.base64Encode(GrantType.JWT_BEARER)}`;
 
-        const requestBody = await this.createTokenRequestBody(request);
         const queryParameters = this.createTokenQueryParameters(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
         const thumbprint: RequestThumbprint = {
@@ -135,9 +151,9 @@ export class RefreshTokenClient extends BaseClient {
             authority: authority.canonicalAuthority,
             scopes: request.scopes
         };
-
+        console.log(body);
         const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParameters);
-        return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
+        return this.executePostToTokenEndpoint(endpoint, body, headers, thumbprint);
     }
 
     /**
@@ -201,7 +217,68 @@ export class RefreshTokenClient extends BaseClient {
         if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
-
         return parameterBuilder.createQueryString();
+    }
+
+    /**
+     * Helper function to create the token request body
+     * @param request
+     */
+    private async createTokenRequestBodyObject(request: CommonRefreshTokenRequest): Promise<any> {
+        const parameterBuilder = new RequestParameterBuilder();
+
+        parameterBuilder.addClientId(this.config.authOptions.clientId);
+
+        parameterBuilder.addScopes(request.scopes);
+
+        parameterBuilder.addGrantType(GrantType.REFRESH_TOKEN_GRANT);
+
+        // parameterBuilder.addClientInfo();
+
+        // parameterBuilder.addLibraryInfo(this.config.libraryInfo);
+
+        // parameterBuilder.addThrottling();
+        
+        /*
+         * if (this.serverTelemetryManager) {
+         *     parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
+         * }
+         */
+
+        /*
+         * const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
+         * parameterBuilder.addCorrelationId(correlationId);
+         */
+
+        parameterBuilder.addRefreshToken(request.refreshToken);
+
+        /*
+         * if (this.config.clientCredentials.clientSecret) {
+         *     parameterBuilder.addClientSecret(this.config.clientCredentials.clientSecret);
+         * }
+         */
+
+        /*
+         * if (this.config.clientCredentials.clientAssertion) {
+         *     const clientAssertion = this.config.clientCredentials.clientAssertion;
+         *     parameterBuilder.addClientAssertion(clientAssertion.assertion);
+         *     parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
+         * }
+         */
+
+        /*
+         * if (request.authenticationScheme === AuthenticationScheme.POP) {
+         *     const keyManager = new KeyManager(this.cryptoUtils);
+         *     const cnfString = await keyManager.generateCnf(request);
+         *     parameterBuilder.addPopToken(cnfString);
+         * }
+         */
+
+        /*
+         * if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+         *     parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
+         * }
+         */
+        return parameterBuilder.createRequestBody();
     }
 }

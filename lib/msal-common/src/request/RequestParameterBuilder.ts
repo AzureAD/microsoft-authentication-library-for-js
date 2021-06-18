@@ -393,4 +393,14 @@ export class RequestParameterBuilder {
 
         return queryParameterArray.join("&");
     }
+
+    createRequestBody(): Object {
+        const queryParameters = {};
+
+        this.parameters.forEach((value, key) => {
+            queryParameters[key] = value;
+        });
+        
+        return queryParameters;
+    }
 }

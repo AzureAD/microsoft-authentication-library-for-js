@@ -15,8 +15,14 @@ import { StringDict } from "../utils/MsalTypes";
  * - refreshToken            - A refresh token returned from a previous request to the Identity provider.
  * - resourceRequestMethod      - HTTP Request type used to request data from the resource (i.e. "GET", "POST", etc.).  Used for proof-of-possession flows.
  * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
+ * - stkKid                 - A reference to the Session Transport Key with which a PoP refresh token's session key is protected
+ * - skKid                  - A refrence to the Session Key that the PoP Refresh Token is bound to
+ * - tokenType              - Determines the authentication scheme under which the secret was issued (i.e. Bearer or pop)
  */
 export type CommonRefreshTokenRequest = BaseAuthRequest & {
     refreshToken: string;
     tokenQueryParameters?: StringDict;
+    stkKid?: string;
+    skKid?: string;
+    tokenType?: string;
 };
