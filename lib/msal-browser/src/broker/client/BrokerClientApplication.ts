@@ -143,7 +143,7 @@ export class BrokerClientApplication extends ClientApplication {
                 const brokerResponse = JSON.parse(cachedBrokerResponse) as BrokerAuthenticationResult;
                 const clientPort = clientMessage.ports[0];
                 const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Redirect, brokerResponse);
-                this.logger.info(`Sending auth response`);
+                this.logger.infoPii(`Sending auth response`);
                 clientPort.postMessage(brokerAuthResponse);
                 clientPort.close();
                 return;
@@ -163,7 +163,6 @@ export class BrokerClientApplication extends ClientApplication {
     private async handleBrokerAuthRequest(clientMessage: MessageEvent): Promise<void> {
         const validMessage = BrokerAuthRequest.validate(clientMessage);
         if (validMessage) {
-            console.log(JSON.stringify(validMessage));
             if (!validMessage.request.authority || !validMessage.request.scopes) {
                 throw BrokerAuthError.createBrokerRequestIncompleteError();
             }
@@ -188,7 +187,7 @@ export class BrokerClientApplication extends ClientApplication {
                 const brokerResponse = JSON.parse(cachedBrokerResponse) as BrokerAuthenticationResult;
                 const clientPort = clientMessage.ports[0];
                 const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Redirect, brokerResponse);
-                this.logger.info(`Sending auth response`);
+                this.logger.infoPii(`Sending auth response`);
                 clientPort.postMessage(brokerAuthResponse);
                 clientPort.close();
                 return;
@@ -301,7 +300,7 @@ export class BrokerClientApplication extends ClientApplication {
             // Call acquireTokenPopup() and send the response back to the embedded application. 
             const response = (await this.acquireTokenPopupAsync(validatedBrokerRequest, "")) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, response);
-            this.logger.info(`Sending auth response`);
+            this.logger.infoPii(`Sending auth response`);
             clientPort.postMessage(brokerAuthResponse);
             clientPort.close();
         } catch (err) {
@@ -331,7 +330,7 @@ export class BrokerClientApplication extends ClientApplication {
             // Call ssoSilent() and send the response back to the embedded application. 
             const response: BrokerAuthenticationResult = (await this.acquireTokenByIframe(brokeredSilentRequest, ApiId.ssoSilent)) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, response);
-            this.logger.info(`Sending auth response`);
+            this.logger.infoPii(`Sending auth response`);
             clientPort.postMessage(brokerAuthResponse);
             clientPort.close();
         } catch (err) {
@@ -362,7 +361,7 @@ export class BrokerClientApplication extends ClientApplication {
             // Check whether response contains tokens for the child to cache, and sends the response. Otherwise, sends an error back to the child app.
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Silent, response);
             if (brokerAuthResponse.result && brokerAuthResponse.result.tokensToCache) {
-                this.logger.info(`Sending auth response: ${JSON.stringify(brokerAuthResponse)}`);
+                this.logger.infoPii(`Sending auth response: ${JSON.stringify(brokerAuthResponse)}`);
                 clientPort.postMessage(brokerAuthResponse);
                 clientPort.close();
             } else {
