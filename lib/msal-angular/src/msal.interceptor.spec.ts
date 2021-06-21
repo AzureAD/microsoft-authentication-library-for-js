@@ -43,7 +43,7 @@ function MSALInterceptorFactory(): MsalInterceptorConfiguration {
       ["https://*.test.com", ["default.scope2"]],
       ["http://localhost:3000/unprotect", null],
       ["http://localhost:3000/", ["base.scope"]],
-      ["http://apps.com/tenant?abc", ["query.scope"]],
+      ["http://localhost:9876/tenant?abc", ["query.scope"]],
       ["http://applicationA/slash/", ["customA.scope"]],
       ["http://applicationB/noSlash", ["customB.scope"]],
       ["http://applicationC.com", [
@@ -62,7 +62,9 @@ function MSALInterceptorFactory(): MsalInterceptorConfiguration {
           httpMethod: "Post",
           scopes: ["info.scope"]
         }
-      ]]
+      ]],
+      ["http://applicationE.com/profile/", ["customE.scope"]],
+      ["http://applicationF.com/profile/", ["customF.scope"]]
     ]),
     authRequest: testInterceptorConfig.authRequest
   }
@@ -127,9 +129,9 @@ describe('MsalInterceptor', () => {
   });
 
   it("does not attach authorization header for own domain", (done) => {
-    httpClient.get("http://localhost:4200").subscribe(response => expect(response).toBeTruthy());
+    httpClient.get("http://localhost:9876").subscribe(response => expect(response).toBeTruthy());
 
-    const request = httpMock.expectOne("http://localhost:4200");
+    const request = httpMock.expectOne("http://localhost:9876");
     request.flush({ data: "test" });
     expect(request.request.headers.get("Authorization")).toBeUndefined;
     httpMock.verify();
@@ -446,9 +448,9 @@ describe('MsalInterceptor', () => {
       })
     ));
 
-    httpClient.get("http://apps.com/tenant?abc").subscribe();
+    httpClient.get("http://localhost:9876/tenant?abc").subscribe();
     setTimeout(() => {
-      const request = httpMock.expectOne("http://apps.com/tenant?abc");
+      const request = httpMock.expectOne("http://localhost:9876/tenant?abc");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
       expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["query.scope"]});
@@ -515,9 +517,9 @@ describe('MsalInterceptor', () => {
 
     spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
 
-    httpClient.get("relative/me").subscribe();
+    httpClient.get("http://site.com/relative/me").subscribe();
     setTimeout(() => {
-      const request = httpMock.expectOne("relative/me");
+      const request = httpMock.expectOne("http://site.com/relative/me");
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
       expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["relative.scope"]});
@@ -633,6 +635,39 @@ describe('MsalInterceptor', () => {
       request.flush({ data: "test" });
       expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
       expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["all.scope", "info.scope"]});
+      httpMock.verify();
+      done();
+    }, 200);
+  });
+
+  it("does not attach authorization header if relative endpoints match but absolute url does not match", done => {
+    httpClient.get("http://applicationZ.com/noSlash").subscribe(response => expect(response).toBeTruthy());
+
+    const request = httpMock.expectOne("http://applicationZ.com/noSlash");
+    request.flush({ data: "test" });
+    expect(request.request.headers.get("Authorization")).toBeUndefined;
+    httpMock.verify();
+    done();
+  });
+
+  it("attaches authorization header with access token for correct endpoint even though an earlier endpoint in the protectedResourceMap has a matching relative endpoint", done => {
+    const spy = spyOn(PublicClientApplication.prototype, "acquireTokenSilent").and.returnValue((
+      new Promise((resolve) => {
+        //@ts-ignore
+        resolve({
+          accessToken: "access-token"
+        });
+      })
+    ));
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([sampleAccountInfo]);
+
+    httpClient.post("http://applicationF.com/profile/", {}).subscribe();
+    setTimeout(() => {
+      const request = httpMock.expectOne("http://applicationF.com/profile/");
+      request.flush({ data: "test" });
+      expect(request.request.headers.get("Authorization")).toEqual("Bearer access-token");
+      expect(spy).toHaveBeenCalledWith({account: sampleAccountInfo, scopes: ["customF.scope"]});
       httpMock.verify();
       done();
     }, 200);
