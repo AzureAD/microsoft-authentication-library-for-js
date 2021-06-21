@@ -381,7 +381,7 @@ export class BrowserCacheManager extends CacheManager {
      * Gets the active account
      */
     getActiveAccount(): AccountInfo | null {
-        const activeAccountIdKey = this.generateCacheKey("active-account");
+        const activeAccountIdKey = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT);
         const activeAccountId = this.browserStorage.getItem(activeAccountIdKey);
         return this.getAccountInfoByFilter({localAccountId: activeAccountId || ""})[0] || null;
     }
@@ -391,7 +391,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param account 
      */
     setActiveAccount(account: AccountInfo | null): void {
-        const activeAccountIdKey = this.generateCacheKey("active-account");
+        const activeAccountIdKey = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT);
         if (account) {
             this.logger.verbose("setActiveAccount: Active account set");
             this.browserStorage.setItem(activeAccountIdKey, account.localAccountId);
