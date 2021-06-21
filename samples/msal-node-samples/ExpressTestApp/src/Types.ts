@@ -2,6 +2,9 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
+import {
+    TokenClaims
+} from "@azure/msal-common";
 
 import {
     AccountInfo,
@@ -58,4 +61,8 @@ export type AppSettings = {
     },
     policies: any,
     protected: any,
+}
+
+export type IdTokenClaims = TokenClaims & {
+    aud?: string,
 }

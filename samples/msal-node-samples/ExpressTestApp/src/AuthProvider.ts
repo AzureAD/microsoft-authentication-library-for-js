@@ -47,9 +47,9 @@ import * as constants from './Constants';
  * can be used with express sessions in route controllers.
  * 
  * Session variables accessible are as follows:
-    * req.session.isAuthenticated => boolean
-    * req.session.account => object
-    * req.session.resourceName.accessToken => string
+    * req.session.isAuthenticated: boolean
+    * req.session.account: AccountInfo
+    * req.session.resourceName.accessToken: string
  */
 export class AuthProvider {
 
@@ -74,6 +74,9 @@ export class AuthProvider {
 
     /**
      * Initiate sign in flow
+     * @param {Request} req: express request object
+     * @param {Response} res: express response object
+     * @param {NextFunction} next: express next 
      */
     signIn = async (req: Request, res: Response, next: NextFunction): Promise<void> => {
 
@@ -137,6 +140,9 @@ export class AuthProvider {
 
     /**
      * Initiate sign out and clean the session
+     * @param {Request} req: express request object
+     * @param {Response} res: express response object
+     * @param {NextFunction} next: express next 
      */
     signOut = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
 
@@ -158,6 +164,9 @@ export class AuthProvider {
     /**
      * Middleware that handles redirect depending on request state
      * There are basically 2 stages: sign-in and acquire token
+     * @param {Request} req: express request object
+     * @param {Response} res: express response object
+     * @param {NextFunction} next: express next 
      */
     handleRedirect = async (req: Request, res: Response, next: NextFunction): Promise<any> => {
 
@@ -178,16 +187,23 @@ export class AuthProvider {
                             const tokenResponse = await this.msalClient.acquireTokenByCode(req.session.tokenRequest)
                             console.log("\nResponse: \n:", tokenResponse);
 
-                            if (this.tokenValidator.validateIdToken(tokenResponse.idTokenClaims)) {
+                            try {
+                                const isIdTokenValid = await this.tokenValidator.validateIdToken(tokenResponse.idToken);
 
-                                // assign session variables
-                                req.session.account = tokenResponse.account;
-                                req.session.isAuthenticated = true;
+                                if (isIdTokenValid) {
 
-                                return res.status(200).redirect(this.appSettings.settings.homePageRoute);
-                            } else {
-                                console.log(ErrorMessages.INVALID_TOKEN);
-                                return res.status(401).send(ErrorMessages.NOT_PERMITTED);
+                                    // assign session variables
+                                    req.session.account = tokenResponse.account;
+                                    req.session.isAuthenticated = true;
+
+                                    return res.status(200).redirect(this.appSettings.settings.homePageRoute);
+                                } else {
+                                    console.log(ErrorMessages.INVALID_TOKEN);
+                                    return res.status(401).send(ErrorMessages.NOT_PERMITTED);
+                                }
+                            } catch (error) {
+                                console.log(error);
+                                next(error);
                             }
                         } catch (error) {
                             console.log(error);
@@ -321,6 +337,10 @@ export class AuthProvider {
 
     /**
      * This method is used to generate an auth code request
+     * @param {Request} req: express request object
+     * @param {Response} res: express response object
+     * @param {NextFunction} next: express next
+     * @param {AuthCodeParams} params: modify auth code url request
      */
     private getAuthCode = async (req: Request, res: Response, next: NextFunction, params: AuthCodeParams): Promise<void> => {
 
@@ -334,8 +354,6 @@ export class AuthProvider {
         req.session.tokenRequest.redirectUri = params.redirect;
         req.session.tokenRequest.scopes = params.scopes;
 
-        
-
         // request an authorization code to exchange for tokens
         try {
             const response = await this.msalClient.getAuthCodeUrl(req.session.authCodeRequest);
@@ -348,6 +366,7 @@ export class AuthProvider {
 
     /**
      * Util method to get the resource name for a given callingPageRoute (appSettings.json)
+     * @param {string} path: route path
      */
     private getResourceName = (path: string): string => {
         const index = Object.values(this.appSettings.resources).findIndex((resource: Resource) => resource.callingPageRoute === path);

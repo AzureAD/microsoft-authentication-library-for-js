@@ -38,11 +38,18 @@ export const AuthorityStrings = {
     AAD: "https://login.microsoftonline.com/",
 }
 
+/**
+ * AAD Error codes
+ * For more information, visit: https://login.microsoftonline.com/error
+ */
 export const ErrorCodes = {
     65001: "AADSTS65001",
     90118: "AADB2C90118"
 }
 
+/**
+ * Various error constants
+ */
 export const ErrorMessages = {
     NOT_PERMITTED: "Not permitted",
     INVALID_TOKEN: "Invalid token",
