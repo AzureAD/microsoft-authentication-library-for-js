@@ -11,6 +11,9 @@ export const AppStages = {
     SIGN_IN: "sign_in",
     SIGN_OUT: "sign_out",
     ACQUIRE_TOKEN: "acquire_token",
+    SIGN_UP_SIGN_IN: "sign_up_sign_in",
+    RESET_PASSWORD: "reset_password",
+    EDIT_PROFILE: "edit_profile"
 };
 
 /**
@@ -38,20 +41,32 @@ export const AuthorityStrings = {
     AAD: "https://login.microsoftonline.com/",
 }
 
-export const ErrorCodes = {
-    65001: "AADSTS65001",
-    90118: "AADB2C90118"
+/**
+ * Allowed values for prompt
+ */
+export const PromptValue = {
+    LOGIN: "login",
+    SELECT_ACCOUNT: "select_account",
+    CONSENT: "consent",
+    NONE: "none",
+};
+
+/**
+ * Credential Type stored in the cache
+ */
+export const CredentialType = {
+    ID_TOKEN: "IdToken",
+    ACCESS_TOKEN: "AccessToken",
+    REFRESH_TOKEN: "RefreshToken",
 }
 
-export const ErrorMessages = {
-    NOT_PERMITTED: "Not permitted",
-    INVALID_TOKEN: "Invalid token",
-    CANNOT_DETERMINE_APP_STAGE: "Cannot determine application stage",
-    NONCE_MISMATCH: "Nonce does not match",
-    INTERACTION_REQUIRED: "interaction_required",
-    TOKEN_NOT_FOUND: "No token found",
-    TOKEN_NOT_DECODED: "Token cannot be decoded",
-    TOKEN_NOT_VERIFIED: "Token cannot be verified",
-    KEYS_NOT_OBTAINED: "Signing keys cannot be obtained",
-    STATE_NOT_FOUND: "State not found",
+/**
+ * Allowed fields in JSON configuration file
+ */
+export const JsonConfiguration = {
+    CREDENTIALS: "credentials",
+    CONFIGURATION: "configuration",
+    RESOURCES: "resources",
+    POLICIES: "policies",
+    PROTECTED: "protected"
 }

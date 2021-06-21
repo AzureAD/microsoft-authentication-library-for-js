@@ -27,14 +27,7 @@ app.use(express.static(path.join(__dirname, './public')));
  * Using express-session middleware. Be sure to familiarize yourself with available options
  * and set the desired options. Visit: https://www.npmjs.com/package/express-session
  */
-app.use(session({ 
-    secret: 'ENTER_YOUR_SECRET_HERE', 
-    resave: false, 
-    saveUninitialized: false,
-    cookie: {
-        secure: false, // set this to true when deploying
-    }
-}));
+app.use(session({ secret: 'ENTER_YOUR_SECRET_HERE', resave: false, saveUninitialized: false }));
 
 app.use(router);
 

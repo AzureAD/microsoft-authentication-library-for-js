@@ -19,7 +19,7 @@ export class ConfigurationUtils {
 
     /**
      * Validates the fields in the custom JSON configuration file
-     * @param {AppSettings} config: configuration file
+     * @param {JSON} config: configuration file
      */
     static validateAppSettings = (config: AppSettings) => {
 
@@ -51,8 +51,8 @@ export class ConfigurationUtils {
     /**
      * Maps the custom JSON configuration file to configuration
      * object expected by MSAL Node ConfidentialClientApplication
-     * @param {AppSettings} config: configuration file
-     * @param {ICachePlugin} cachePlugin: passed at initialization
+     * @param {JSON} config: configuration file
+     * @param {Object} cachePlugin: passed at initialization
      */
     static getMsalConfiguration = (config: AppSettings, cachePlugin: ICachePlugin = null) => {
         return {

@@ -6,11 +6,11 @@
 import jwt from 'jsonwebtoken';
 import jwksClient from 'jwks-rsa';
 
-import { TokenClaims } from "@azure/msal-common";
 import { Configuration } from '@azure/msal-node';
 
 import { AppSettings } from './Types';
-import { AuthorityStrings, ErrorMessages } from './Constants';
+import { ErrorMessages } from './Errors';
+import { AuthorityStrings } from './Constants';
 
 export class TokenValidator {
 
@@ -46,7 +46,7 @@ export class TokenValidator {
      * @param {string} accessToken: raw JWT token 
      * @param {string} protectedRoute: used for checking scope
      */
-    validateAccessToken = async (accessToken: string, protectedRoute: string): Promise<boolean> => {
+    validateAccessToken = async (accessToken, protectedRoute): Promise<boolean> => {
         const now = Math.round((new Date()).getTime() / 1000); // in UNIX format
 
         if (!accessToken || accessToken === "" || accessToken === "undefined") {
@@ -106,7 +106,7 @@ export class TokenValidator {
     /**
      * Fetches signing keys of an access token 
      * from the authority discovery endpoint
-     * @param {Object} header
+     * @param {string} header
      */
     private getSigningKeys = async(header): Promise<string> => {
         let jwksUri;
