@@ -47,18 +47,19 @@ The wrapper handles authentication with both **Azure AD** and **Azure AD B2C**. 
 
 4. If you are authenticating with **Azure AD B2C**, user-flows and/or policies should be provided as well:
 
-```JSON
-{
-    // ...
-    "policies": {
-        "signUpSignIn": {
-            "authority": "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_susi"
-        },
-        "authorityDomain": "fabrikamb2c.b2clogin.com"  
+    ```JSON
+    {
+        // ...
+        "policies": {
+            "signUpSignIn": {
+                "authority": "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_susi"
+            },
+            "authorityDomain": "fabrikamb2c.b2clogin.com"  
+        }
     }
-}
-```
-5. Install and run the sample website. 
+    ```
+
+5. Install and run the sample app:
 
     ```bash
     cd TestApp && \
@@ -105,7 +106,7 @@ app.get('/id', authProvider.isAuthenticated, mainController.getIdPage);
 
 ### Acquiring tokens
 
-Simply add the `isAuthenticated` middleware before the controller that makes a call to the web API that you would like to access. The access token will be available as a *session variable*:
+Simply add the `getToken` middleware before the controller that makes a call to the web API that you would like to access. The access token will be available as a *session variable*:
 
 ```javascript
 // secure routes that call protected resources
@@ -116,11 +117,11 @@ app.get('/profile', authProvider.isAuthenticated, authProvider.getToken, mainCon
 
 ### Session support
 
-Session support in this sample is provided by the [express-session](https://www.npmjs.com/package/express-session) package. **express-session** is considered unfit for production, and you should either implement your own session solution or use a more suitable 3rd party library.
+Session support in this sample is provided by the [express-session](https://www.npmjs.com/package/express-session) package using in-memory session store. **in-memory session store** is unfit for production, and you should either use a [compatible session store](https://github.com/expressjs/session#compatible-session-stores) or implement your own storage solution.
 
 ### Persistent caching
 
-MSAL Node has an in-memory cache by default. This sample also features a persistent cache plugin in order to save the cache to disk. This plugin is not meant to be production-ready. As such, you might want to implement persistent caching using a 3rd party library like [redis](https://redis.io/).
+MSAL Node has an in-memory cache by default. The demo app also features a [persistent cache plugin](./demo/App/utils/cachePlugin.js) in order to save the cache to disk. This plugin is not meant to be production-ready. As such, you might want to implement persistent caching using a 3rd party library like [redis](https://redis.io/).
 
 ## More information
 

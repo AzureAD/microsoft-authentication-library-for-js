@@ -1,7 +1,7 @@
 {
   "name": "msal-express-wrapper",
   "version": "1.0.0",
-  "description": "A simple wrapper around MSAL Node ConfidentialClientApplication object for Express MVC web apps",
+  "description": "A simple wrapper around MSAL Node ConfidentialClientApplication class for Express MVC web apps",
   "private": true,
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -13,6 +13,7 @@
   "license": "MIT",
   "devDependencies": {
     "@types/express": "^4.17.8",
+    "@types/express-session": "^1.17.3",
     "@typescript-eslint/eslint-plugin": "^4.7.0",
     "@typescript-eslint/parser": "^4.7.0",
     "eslint": "^7.13.0",
@@ -20,7 +21,7 @@
     "typescript": "^4.0.5"
   },
   "dependencies": {
-    "@azure/msal-node": "^1.0.1",
+    "@azure/msal-node": "^1.1.0",
     "axios": "^0.21.0",
     "express": "^4.17.1",
     "express-session": "^1.17.1",
