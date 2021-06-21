@@ -7,7 +7,7 @@ import { NavigationClient, NavigationOptions, UrlString } from "@azure/msal-brow
 import { Router } from "@angular/router";
 import { Location } from "@angular/common";
 import { MsalService } from "./msal.service";
-import { Injectable, ɵCompiler_compileModuleSync__POST_R3__ } from "@angular/core";
+import { Injectable } from "@angular/core";
 
 /**
  * Custom navigation used for Angular client-side navigation.
@@ -33,7 +33,7 @@ export class MsalCustomNavigationClient extends NavigationClient {
         
         // Prevent hash clearing from causing an issue with Client-side navigation after redirect is handled
         if (options.noHistory) {
-            window.location.replace(url);
+            return super.navigateInternal(url, options);
         } else {
             // Normalizing newUrl if no query string
             const urlComponents = new UrlString(url).getUrlComponents();
