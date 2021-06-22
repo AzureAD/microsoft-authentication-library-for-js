@@ -10,6 +10,7 @@
 
 1. [interaction_in_progress](#interaction_in_progress)
 1. [block_iframe_reload](#block_iframe_reload)
+1. [monitor_window_timeout](#monitor_window_timeout)
 
 **[Other](#other)**
 
