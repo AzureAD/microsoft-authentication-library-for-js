@@ -150,6 +150,9 @@ export const mockCrypto = {
     async getPublicKeyThumbprint(): Promise<string> {
         return TEST_POP_VALUES.KID;
     },
+    async getAsymmetricPublicKey(): Promise<string> {
+        return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
+    },
     async signJwt(): Promise<string> {
         return "";
     }
