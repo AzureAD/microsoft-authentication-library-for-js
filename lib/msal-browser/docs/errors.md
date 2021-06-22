@@ -153,6 +153,7 @@ This error can be thrown when calling `ssoSilent`, `acquireTokenSilent`, `acquir
 
 1. The page you use as your `redirectUri` is removing or manipulating the hash
 1. The page you use as your `redirectUri` is automatically navigating to a different page
+1. You are being throttled by your identity provider
 1. Your identity provider did not redirect back to your `redirectUri`.
 
 #### Issues caused by the redirectUri page
@@ -179,7 +180,20 @@ Remember that you will need to register this new `redirectUri` on your App Regis
 
 #### Issues caused by the Identity Provider
 
-You can also get this error if the Identity Provider fails to redirect back to your application. In silent scenarios this error is sometimes accompanied by an X-Frame-Options: Deny error indicating that your identity provider is attempting to either show you an error message or is expecting interaction. The X-Frame-Options error will usually have a url in it and opening this url in a new tab may help you discern what is happening.
+#### Throttling
+
+One of the most common reasons this error can be thrown is that your application has gotten stuck in a loop or made too many token requests in a short amount of time. When this happens the identity provider may throttle subsequent requests for a short time which will result in not being redirected back to your `redirectUri` and ultimately this error.
+
+✔️ To resolve throttling based issues you have 2 options:
+
+1. Stop making requests for a short time before trying again.
+1. Invoke an interactive API, such as `acquireTokenPopup` or `acquireTokenRedirect`.
+
+##### X-Frame-Options Deny
+
+You can also get this error if the Identity Provider fails to redirect back to your application. In silent scenarios this error is sometimes accompanied by an X-Frame-Options: Deny error indicating that your identity provider is attempting to either show you an error message or is expecting interaction. 
+
+✔️ The X-Frame-Options error will usually have a url in it and opening this url in a new tab may help you discern what is happening. If interaction is required consider using an interactive API instead. If an error is being displayed, address the error.
 
 Some B2C flows are expected to throw this error due to their need for user interaction. These flows include:
 
@@ -188,7 +202,11 @@ Some B2C flows are expected to throw this error due to their need for user inter
 - Sign up
 - Some custom policies depending on how they are configured
 
-Another potential reason the identity provider may not redirect back to your application in time may be that there is some extra network latency. The default timeout is about 10 seconds and should be sufficient in most cases, however, if your identity provider is taking longer than that to redirect you can increase this timeout in the MSAL config with either the `iframeHashTimeout`, `windowHashTimeout` or `loadFrameTimeout` configuration parameters.
+##### Network Latency
+
+Another potential reason the identity provider may not redirect back to your application in time may be that there is some extra network latency. 
+
+✔️ The default timeout is about 10 seconds and should be sufficient in most cases, however, if your identity provider is taking longer than that to redirect you can increase this timeout in the MSAL config with either the `iframeHashTimeout`, `windowHashTimeout` or `loadFrameTimeout` configuration parameters.
 
 ```javascript
 const msalConfig = {
