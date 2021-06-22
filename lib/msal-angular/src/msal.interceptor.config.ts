@@ -19,3 +19,8 @@ export type ProtectedResourceScopes = {
     httpMethod: string,
     scopes: Array<string>
 };
+
+export type MatchingResources = {
+    absoluteResources: Array<string>,
+    relativeResources: Array<string>
+};
