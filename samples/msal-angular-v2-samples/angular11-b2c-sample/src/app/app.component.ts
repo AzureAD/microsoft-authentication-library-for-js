@@ -63,6 +63,15 @@ export class AppComponent implements OnInit, OnDestroy {
 
         return result;
       });
+
+      this.msalBroadcastService.msalSubject$
+      .pipe(
+        filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_FAILURE || msg.eventType === EventType.ACQUIRE_TOKEN_FAILURE),
+        takeUntil(this._destroying$)
+      )
+      .subscribe((result: EventMessage) => {
+        // Add your auth error handling logic here
+      });
   }
 
   setLoginDisplay() {
