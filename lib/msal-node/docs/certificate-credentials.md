@@ -182,6 +182,8 @@ OpenSSL can be used for converting `pfx` encoded certificate files to `pem`:
 If the conversion needs to happen programmatically, then you may have to rely on a 3rd party package, as Node.js offers no native method for this. For instance, using a popular TLS implementation like [node-forge](https://www.npmjs.com/package/node-forge), you can do:
 
 ```javascript
+const forge = require('node-forge');
+
 /**
  * @param {string} pfx: certificate + private key combination in pfx format
  * @param {string} passphrase: passphrase used to encrypt pfx file
