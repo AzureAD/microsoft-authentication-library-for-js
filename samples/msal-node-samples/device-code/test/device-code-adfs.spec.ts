@@ -32,7 +32,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 const config = require("../config/ADFS.json");
 
 describe('Device Code ADFS PPE Tests', () => {
-    jest.setTimeout(55000);
+    jest.setTimeout(45000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
