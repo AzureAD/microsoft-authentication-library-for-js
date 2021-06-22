@@ -440,6 +440,28 @@ describe("SilentFlowClient unit tests", () => {
             expect(client.acquireCachedToken(silentFlowRequest)).rejects.toMatchObject(ClientAuthError.createRefreshRequiredError());
         });
 
+        it("acquireCachedToken throws refresh requiredError if access token was cached after the current time", async () => {
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
+            sinon.stub(CacheManager.prototype, "readAccountFromCache").returns(testAccountEntity);
+            sinon.stub(CacheManager.prototype, "readIdTokenFromCache").returns(testIdToken);
+            sinon.stub(CacheManager.prototype, "readAccessTokenFromCache").returns(testAccessTokenEntity);
+            sinon.stub(CacheManager.prototype, "readRefreshTokenFromCache").returns(testRefreshTokenEntity);
+            const config = await ClientTestUtils.createTestClientConfiguration();
+            const client = new SilentFlowClient(config);
+            sinon.stub(TimeUtils, <any>"wasClockTurnedBack").returns(true);
+
+            const silentFlowRequest: CommonSilentFlowRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false
+            };
+
+            expect(client.acquireCachedToken(silentFlowRequest)).rejects.toMatchObject(ClientAuthError.createRefreshRequiredError());
+        });
+
         it("acquireCachedToken throws refresh requiredError if no access token is cached", async () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon.stub(AuthToken, "extractTokenClaims").returns(ID_TOKEN_CLAIMS);
