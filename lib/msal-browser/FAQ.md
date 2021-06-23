@@ -21,6 +21,12 @@
 1. [How to get single sign-on in my application with MSAL.js?](#how-to-get-single-sign-on-in-my-application-with-msaljs)
 1. [How can my application recognize a user after sign-in? How do I correlate users between applications?](#how-can-my-application-recognize-a-user-after-sign-in-how-do-i-correlate-users-between-applications)
 
+**[Accounts](#Accounts)**
+
+1. [In what scenarios will getAllAccounts return multiple accounts?](#in-what-scenarios-will-getallaccounts-return-multiple-accounts)
+1. [Is the result of getAllAccounts sorted in any order?](#is-the-result-of-getallaccounts-sorted-in-any-order)
+1. [If an account is returned by getAllAccounts does that mean the user has an active session on the server?](#if-an-account-is-returned-by-getallaccounts-does-that-mean-the-user-has-an-active-session-on-the-server)
+
 **[Configuration](#Configuration)**
 
 1. [What is the difference between sessionStorage and localStorage?](#what-is-the-difference-between-sessionstorage-and-localstorage)
@@ -148,6 +154,22 @@ loginPopup().then((response) => {
     const uniqueID = response.account.homeAccountId;
 })
 ```
+
+# Accounts
+
+## In what scenarios will `getAllAccounts` return multiple accounts?
+
+`getAllAccounts` will return multiple accounts when your app has made multiple interactive token requests using either an `acquireToken` or `login` API and the user has selected different accounts on the server's account selection screen. Each successful call to an `acquireToken` or `login` API will return exactly one account which can be the same or different from the account returned in a previous call. Each account is saved in local or sessionStorage, depending on how you've configured MSAL, and will be available to any page that lives on the same domain.
+
+If you would like to force the server account selection screen you can pass `prompt: "select_account"` or `prompt: "login"` to the `acquireToken` or `login` API.
+
+## Is the result of `getAllAccounts` sorted in any order?
+
+No, accounts are not sorted nor are they guaranteed to maintain any particular order across multiple calls.
+
+## If an account is returned by `getAllAccounts` does that mean the user has an active session on the server?
+
+No, the account APIs reflect local account state only. If you need to ensure the user has an active session on the server you should call `acquireTokenSilent` and fallback to interaction if needed.
 
 # Configuration
 
