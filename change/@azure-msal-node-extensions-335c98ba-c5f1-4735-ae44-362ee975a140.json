@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Add logs to test beachball",
-  "packageName": "@azure/msal-node-extensions",
-  "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "patch"
-}
