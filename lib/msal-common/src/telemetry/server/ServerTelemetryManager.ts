@@ -189,18 +189,7 @@ export class ServerTelemetryManager {
     getRegionSourceValue(regionSource: RegionDiscoverySources | undefined): string {
         if (!regionSource) return "";
 
-        switch (regionSource) {
-            case RegionDiscoverySources.FAILED_AUTO_DETECTION:
-                return "1";
-            case RegionDiscoverySources.INTERNAL_CACHE:
-                return "2";
-            case RegionDiscoverySources.ENVIRONMENT_VARIABLE:
-                return "3";
-            case RegionDiscoverySources.IMDS:
-                return "4";
-            default:
-                return "0";
-        }
+        return regionSource;
     }
 
     /**
@@ -211,39 +200,17 @@ export class ServerTelemetryManager {
     getRegionOutcomeValue(regionOutcome: RegionDiscoveryOutcomes | undefined): string {
         if (!regionOutcome) return "";
 
-        switch (regionOutcome) {
-            case RegionDiscoveryOutcomes.CONFIGURED_MATCHES_DETECTED:
-                return "1";
-            case RegionDiscoveryOutcomes.CONFIGURED_NO_AUTO_DETECTION:
-                return "2";
-            case RegionDiscoveryOutcomes.CONFIGURED_NOT_DETECTED:
-                return "3";
-            case RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_SUCCESSFUL:
-                return "4";
-            case RegionDiscoveryOutcomes.AUTO_DETECTION_REQUESTED_FAILED:
-                return "5";
-            default:
-                return "0";
-        }
+        return regionOutcome;
     }
     
+    /**
+     * Get the header value for the cache information
+     * @returns string
+     */
     getCacheInfoValue(): string {
-        if (this.forceRefresh) {
-            return "1";
-        }
+        if (this.forceRefresh) return "1";
 
-        switch(this.cacheOutcome) {
-            case CacheOutcome.NO_CACHE_HIT:
-                return "0";
-            case CacheOutcome.NO_CACHED_ACCESS_TOKEN:
-                return "2";
-            case CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED:
-                return "3";
-            case CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN:
-                return "4";
-            default:
-                return "0";
-        }
+        return this.cacheOutcome;
     }
 
     /**

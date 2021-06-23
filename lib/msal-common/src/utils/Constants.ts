@@ -354,26 +354,26 @@ export enum  ResponseCodes {
  * Region Discovery Sources
  */
 export enum RegionDiscoverySources {
-    FAILED_AUTO_DETECTION = "FAILED AUTO DETECTION",
-    INTERNAL_CACHE = "INTERNAL CACHE",
-    ENVIRONMENT_VARIABLE = "ENVIRONMENT VARIABLE",
-    IMDS = "IMDS",
+    FAILED_AUTO_DETECTION = "1",
+    INTERNAL_CACHE = "2",
+    ENVIRONMENT_VARIABLE = "3",
+    IMDS = "4",
 }
 
 /**
  * Region Discovery Outcomes
  */
 export enum RegionDiscoveryOutcomes {
-    CONFIGURED_MATCHES_DETECTED = "Configured by developer and matches auto-detected",
-    CONFIGURED_NO_AUTO_DETECTION = "Configured by developer, cannot be auto-detected",
-    CONFIGURED_NOT_DETECTED = "Configured by developer, does not match auto-detected",
-    AUTO_DETECTION_REQUESTED_SUCCESSFUL = "Auto-detect requested and auto-detection worked",
-    AUTO_DETECTION_REQUESTED_FAILED = "Auto-detect requested and failed, fallback to global"
+    CONFIGURED_MATCHES_DETECTED = "1",
+    CONFIGURED_NO_AUTO_DETECTION = "2",
+    CONFIGURED_NOT_DETECTED = "3",
+    AUTO_DETECTION_REQUESTED_SUCCESSFUL = "4",
+    AUTO_DETECTION_REQUESTED_FAILED = "5"
 }
 
 export enum CacheOutcome {
-    NO_CACHE_HIT = "No cache hit",
-    NO_CACHED_ACCESS_TOKEN = "No cached access token",
-    CACHED_ACCESS_TOKEN_EXPIRED = "Cached access token is expired",
-    REFRESH_CACHED_ACCESS_TOKEN = "Refresh cached access token"
+    NO_CACHE_HIT = "0",
+    NO_CACHED_ACCESS_TOKEN = "2",
+    CACHED_ACCESS_TOKEN_EXPIRED = "3",
+    REFRESH_CACHED_ACCESS_TOKEN = "4"
 }
