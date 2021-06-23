@@ -4,7 +4,6 @@
  */
 
 const express = require('express');
-const forge = require('node-forge');
 
 const msal = require('@azure/msal-node');
 const identity = require("@azure/identity");
