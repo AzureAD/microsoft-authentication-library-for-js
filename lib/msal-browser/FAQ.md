@@ -169,7 +169,7 @@ No, accounts are not sorted nor are they guaranteed to maintain any particular o
 
 ## If an account is returned by `getAllAccounts` does that mean the user has an active session on the server?
 
-No, the account APIs reflect local account state only. If you need to ensure the user has an active session on the server you should call `acquireTokenSilent` and fallback to interaction if needed.
+No, the account APIs reflect local account state only. If you need to ensure the user has an active session on the server you should call `acquireTokenSilent` or `ssoSilent` and fallback to interaction if needed.
 
 # Configuration
 
