@@ -28,15 +28,7 @@ export class RequestValidator {
      * @param prompt
      */
     static validatePrompt(prompt: string) : void {
-        if (
-            [
-                PromptValue.LOGIN,
-                PromptValue.SELECT_ACCOUNT,
-                PromptValue.CONSENT,
-                PromptValue.NONE,
-                PromptValue.CREATE
-            ].indexOf(prompt) < 0
-        ) {
+        if (Object.values(PromptValue).indexOf(prompt) < 0) {
             throw ClientConfigurationError.createInvalidPromptError(prompt);
         }
     }
