@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   beachball-check:
-    if: github.actor != 'dependabot'
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     env:
       BEACHBALL: 1
