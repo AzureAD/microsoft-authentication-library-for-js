@@ -124,6 +124,7 @@ export class RefreshTokenClient extends BaseClient {
 
     private async createBoundTokenRequestBody(request: CommonRefreshTokenRequest): Promise<string> {
         const payload = await this.createTokenRequestBodyObject(request);
+        console.log(payload);
         return this.cryptoUtils.signBoundTokenRequest(request, payload);
     }
 
@@ -142,7 +143,7 @@ export class RefreshTokenClient extends BaseClient {
             (isBoundRefreshToken) ? 
                 await this.createBoundTokenRequestBody(request) :
                 await this.createTokenRequestBody(request);
-        const body = `request=${this.cryptoUtils.base64Encode(requestBody)}&grant_type=${this.cryptoUtils.base64Encode(GrantType.JWT_BEARER)}`;
+        const body = `request=${requestBody}&grant_type=${GrantType.JWT_BEARER}`;
 
         const queryParameters = this.createTokenQueryParameters(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
@@ -233,52 +234,43 @@ export class RefreshTokenClient extends BaseClient {
 
         parameterBuilder.addGrantType(GrantType.REFRESH_TOKEN_GRANT);
 
-        // parameterBuilder.addClientInfo();
+        parameterBuilder.addClientInfo();
 
-        // parameterBuilder.addLibraryInfo(this.config.libraryInfo);
+        parameterBuilder.addLibraryInfo(this.config.libraryInfo);
 
-        // parameterBuilder.addThrottling();
+        parameterBuilder.addThrottling();
         
-        /*
-         * if (this.serverTelemetryManager) {
-         *     parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
-         * }
-         */
+        parameterBuilder.addIssuer("https://login.microsoftonline.com/5d97b14d-c396-4aee-b524-c86d33e9b660/v2.0");
+        parameterBuilder.addAudience("https://login.microsoftonline.com/");
+        
+        if (this.serverTelemetryManager) {
+            parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
+        }
 
-        /*
-         * const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
-         * parameterBuilder.addCorrelationId(correlationId);
-         */
+        const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
+        parameterBuilder.addCorrelationId(correlationId);
 
         parameterBuilder.addRefreshToken(request.refreshToken);
 
-        /*
-         * if (this.config.clientCredentials.clientSecret) {
-         *     parameterBuilder.addClientSecret(this.config.clientCredentials.clientSecret);
-         * }
-         */
+        if (this.config.clientCredentials.clientSecret) {
+            parameterBuilder.addClientSecret(this.config.clientCredentials.clientSecret);
+        }
+        
+        if (this.config.clientCredentials.clientAssertion) {
+            const clientAssertion = this.config.clientCredentials.clientAssertion;
+            parameterBuilder.addClientAssertion(clientAssertion.assertion);
+            parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
+        }
+        
+        if (request.authenticationScheme === AuthenticationScheme.POP) {
+            const keyManager = new KeyManager(this.cryptoUtils);
+            const cnfString = await keyManager.generateCnf(request);
+            parameterBuilder.addPopToken(cnfString);
+        }
 
-        /*
-         * if (this.config.clientCredentials.clientAssertion) {
-         *     const clientAssertion = this.config.clientCredentials.clientAssertion;
-         *     parameterBuilder.addClientAssertion(clientAssertion.assertion);
-         *     parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
-         * }
-         */
-
-        /*
-         * if (request.authenticationScheme === AuthenticationScheme.POP) {
-         *     const keyManager = new KeyManager(this.cryptoUtils);
-         *     const cnfString = await keyManager.generateCnf(request);
-         *     parameterBuilder.addPopToken(cnfString);
-         * }
-         */
-
-        /*
-         * if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
-         *     parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
-         * }
-         */
+        if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+            parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
+        }
         return parameterBuilder.createRequestBody();
     }
 }

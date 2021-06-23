@@ -403,4 +403,16 @@ export class RequestParameterBuilder {
         
         return queryParameters;
     }
+
+    addIssuer(iss: string): void {
+        if(!StringUtils.isEmpty(iss)) {
+            this.parameters.set("iss", iss);
+        }
+    }
+
+    addAudience(aud: string): void {
+        if(!StringUtils.isEmpty(aud)) {
+            this.parameters.set("aud", aud);
+        }
+    }
 }

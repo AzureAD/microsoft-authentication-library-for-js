@@ -310,28 +310,33 @@ export class CryptoOps implements ICrypto {
 
             // Generate CTX
             const ctx = this.ctxGenerator.generateCtx();
-            const payloadBytes = Uint8Array.from(payload, (v) => v.charCodeAt(0));
-
+            const payloadBytes = BrowserStringUtils.stringToUtf8Arr(JSON.stringify(payload));
+            console.log("CTX: ", ctx);
+            console.log("Payload: ", payloadBytes);
             const inputData = new Uint8Array(ctx.byteLength + payloadBytes.byteLength);
+
             inputData.set(ctx, 0);
             inputData.set(payloadBytes, ctx.byteLength);
 
-            const hashedInputData = new Uint8Array(await window.crypto.subtle.digest({ name: "SHA-256" }, inputData));
+            console.log("Concat: ", inputData);
 
+            const hashedInputData = new Uint8Array(await window.crypto.subtle.digest({ name: "SHA-256" }, inputData));
+            console.log("Hashed: ", hashedInputData);
             const derivedKeyData = new Uint8Array(await kdf.computeKDFInCounterMode(hashedInputData, KEY_DERIVATION_LABELS.SIGNING));
 
             const sessionKeyUsages = KEY_USAGES.RT_BINDING.DERIVATION_KEY as KeyUsage[];
             const sessionKeyAlgorithm: HmacImportParams = { name: "HMAC", hash: "SHA-256" };
             const sessionKey = await window.crypto.subtle.importKey("raw", derivedKeyData, sessionKeyAlgorithm, false, sessionKeyUsages);
-
-            const urlEncodedCtx = this.b64Encode.urlEncode(BrowserStringUtils.utf8ArrToString(ctx));
+            console.log("SK: ", sessionKey);
+            // Next two lines work
+            const encodedCtx = this.b64Encode.encode(BrowserStringUtils.utf8ArrToString(ctx));
             const header = {
-                ctx: urlEncodedCtx,
+                ctx: encodedCtx,
                 alg: "HS256"
             };
 
             const encodedHeader = this.b64Encode.urlEncode(JSON.stringify(header));
-            const encodedPayload = this.b64Encode.urlEncode(JSON.stringify(payload));
+            const encodedPayload = this.b64Encode.encode(JSON.stringify(payload));
 
             const jwtString = `${encodedHeader}.${encodedPayload}`;
 
