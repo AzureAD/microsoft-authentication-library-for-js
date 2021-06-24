@@ -3,13 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto } from "./ICrypto";
+import { ICrypto, SignedHttpRequestParameters } from "./ICrypto";
 import { AuthToken } from "../account/AuthToken";
 import { TokenClaims } from "../account/TokenClaims";
 import { TimeUtils } from "../utils/TimeUtils";
 import { UrlString } from "../url/UrlString";
 import { ClientAuthError } from "../error/ClientAuthError";
-import { BaseAuthRequest } from "../request/BaseAuthRequest";
 
 /**
  * See eSTS docs for more info.
@@ -36,12 +35,12 @@ export class PopTokenGenerator {
         this.cryptoUtils = cryptoUtils;
     }
 
-    async generateCnf(request: BaseAuthRequest): Promise<string> {
+    async generateCnf(request: SignedHttpRequestParameters): Promise<string> {
         const reqCnf = await this.generateKid(request);
         return this.cryptoUtils.base64Encode(JSON.stringify(reqCnf));
     }
 
-    async generateKid(request: BaseAuthRequest): Promise<ReqCnf> {
+    async generateKid(request: SignedHttpRequestParameters): Promise<ReqCnf> {
         const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint(request);
 
         return {
@@ -50,7 +49,7 @@ export class PopTokenGenerator {
         };
     }
 
-    async signPopToken(accessToken: string, request: BaseAuthRequest): Promise<string> {
+    async signPopToken(accessToken: string, request: SignedHttpRequestParameters): Promise<string> {
         const tokenClaims: TokenClaims | null = AuthToken.extractTokenClaims(accessToken, this.cryptoUtils);
         if (!tokenClaims?.cnf?.kid) {
             throw ClientAuthError.createTokenClaimsRequiredError();
@@ -59,7 +58,7 @@ export class PopTokenGenerator {
         return this.signPayload(accessToken, tokenClaims.cnf.kid, request);
     }
 
-    async signPayload(payload: string, kid: string, request: BaseAuthRequest, claims?: object): Promise<string> {
+    async signPayload(payload: string, kid: string, request: SignedHttpRequestParameters, claims?: object): Promise<string> {
         // Deconstruct request to extract SHR parameters
         const { resourceRequestMethod, resourceRequestUri, shrClaims } = request;
 
