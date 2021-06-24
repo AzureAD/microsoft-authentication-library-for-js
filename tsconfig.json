@@ -26,6 +26,6 @@
     ],
     "types": [
         "node",
-        "mocha"
+        "jest"
     ]
 }

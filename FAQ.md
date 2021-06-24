@@ -7,6 +7,8 @@
 1. [I am moving from MSAL.js 1.x to MSAL.js to 2.x. What should I know?](#i-am-moving-from-msaljs-1x-to-msaljs-to-2x-what-should-i-know)
 1. [Does this library work for iframed applications?](#does-this-library-work-for-iframed-applications)
 1. [Will MSAL 2.x support B2C?](#will-msal-2x-support-b2c)
+1. [Is MSAL.js 2.x compatible with Azure App Proxy](#is-msaljs-2x-compatible-with-azure-app-proxy)
+1. [Can I use MSAL.js 2.x with Microsoft Graph JavaScript SDK?](#can-i-use-msaljs-2x-with-microsoft-graph-javascript-sdk)
 
 **[Authentication](#Authentication)**
 
@@ -24,6 +26,7 @@
 1. [What is the difference between sessionStorage and localStorage?](#what-is-the-difference-between-sessionstorage-and-localstorage)
 1. [What are the possible configuration options?](#what-are-the-possible-configuration-options)
 1. [Where is the authority string on Azure AD Portal?](#where-is-the-authority-domain-string-on-azure-ad-portal)
+1. [What should I set my redirectUri to?](#what-should-i-set-my-redirecturi-to)
 1. [Why is fragment the only valid field for responseMode in msal-browser?](#why-is-fragment-the-only-valid-field-for-responsemode-in-msal-browser)
 
 **[Tokens](#Tokens)**
@@ -42,6 +45,7 @@
 **[B2C](#B2C)**
 
 1. [How do I specify which B2C policy/user flow I would like to use?](#how-do-i-specify-which-b2c-policyuser-flow-i-would-like-to-use)
+1. [How do I handle the password-reset user-flow?](#how-do-i-handle-the-password-reset-user-flow)
 1. [Why is getAccountByUsername returning null, even though I'm signed in?](#why-is-getaccountbyusername-returning-null-even-though-im-signed-in)
 1. [I logged out of my application. Why am I not asked for credentials when I try to log back in?](#i-logged-out-of-my-application-why-am-i-not-asked-for-credentials-when-i-try-to-log-back-in)
 1. [Why am I not signed in when returning from an invite link?](#why-am-i-not-signed-in-when-returning-from-an-invite-link)
@@ -58,15 +62,34 @@
 
 ## What browsers are supported by MSAL.js?
 
-MSAL.js has been tested with the following browsers:
+MSAL.js has been tested and supports the last 2 stable and supported versions of the following browsers:
 
-IE 11, Edge, Chrome, Firefox and Safari
+- Chrome
+- Edge (Chromium)
+- Firefox
+- Safari
+- Opera
 
-Keep these steps in mind when [using MSAL.js with IE](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Using-msal.js-with-Internet-Explorer).
+MSAL.js has also been tested and supports the following browsers with Promise polyfills (not included):
 
-There are certain known issues and mitigations documented for Safari, IE and Edge. Please check out:
-* [Known issues on IE and Edge](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Known-issues-on-IE-and-Edge-Browser)
-* [Known issue on Safari](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Known-issue-on-Safari)
+- IE 11
+- Edge (Legacy)
+
+Keep [these steps](./docs/internet-explorer.md) in mind when using MSAL.js with IE or Edge Legacy. Support for these browsers will be dropped in the next major version of `@azure/msal-browser` (v3).
+
+MSAL.js also supports the following environments:
+
+- WebViews
+- Chromium Extensions
+- Office Add-ins
+- Teams Applications
+
+### Known Issues with Certain Browsers
+
+There are certain known issues and mitigations documented for the following browsers:
+
+- [Browsers that block 3rd Party Cookies (i.e. Safari, Chrome Incognito, Firefox Private)](https://docs.microsoft.com/azure/active-directory/develop/reference-third-party-cookies-spas)
+- [IE 11 and Edge Legacy](./docs/internet-explorer.md)
 
 ## I am moving from MSAL.js 1.x to MSAL.js to 2.x. What should I know?
 
@@ -78,7 +101,15 @@ We are currently working on support for iframed applications as well as solution
 
 ## Will MSAL 2.x support B2C?
 
-MSAL.js v2 supports B2C of October 2020. 
+MSAL.js v2 supports B2C of October 2020.
+
+## Is MSAL.js 2.x compatible with Azure App Proxy?
+
+Unfortunately, at this time MSAL.js 2.x is not compatible with [Azure App Proxy](https://docs.microsoft.com/azure/active-directory/app-proxy/application-proxy). Single-page applications will need to use MSAL.js 1.x as a workaround. We will post an update when this incompatibility has been fixed. See [this issue](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/3420) for more information.
+
+## Can I use MSAL.js 2.x with Microsoft Graph JavaScript SDK?
+
+Yes, MSAL.js 2.x can be used as a custom authentication provider for the [Microsoft Graph JavaScript SDK](https://github.com/microsoftgraph/msgraph-sdk-javascript). For an implementation, please refer to the sample: [JavaScript SPA calling Graph API](https://github.com/Azure-Samples/ms-identity-javascript-tutorial/tree/main/2-Authorization-I/1-call-graph).
 
 # Authentication
 
@@ -131,6 +162,23 @@ For MSAL.js 2.x, please review [this document](https://github.com/AzureAD/micros
 ## Where is the `authority` domain string on Azure AD Portal?
 
 The `authority` string that you need to supplant to MSAL app configuration is not explicitly listed among the **Endpoint** links on `Azure Portal/AzureAD/App Registration/Overview` page. It is simply the domain part of a `/token` or `/authorize` endpoint, followed by the tenant name or ID e.g. `https://login.microsoftonline.com/common`.
+
+## What should I set my `redirectUri` to?
+
+When you attempt to authenticate MSAL will navigate to your IDP's sign in page either in the current window, a popup window or a hidden iframe depending on whether you used a redirect, popup or silent API respectively. When authentication is complete the IDP will redirect the window to the `redirectUri` specified in the request with the authentication response in the url hash. You can use any page in your application as your `redirectUri` but there are some additional considerations you should be aware of depending on which API you are using. All pages used as a `redirectUri` **must** be registered as a Reply Url of type "SPA" on your app registration.
+
+### RedirectUri for popup and silent flows
+
+When using popup and silent APIs we recommend setting the `redirectUri` to a blank page, a page that does not implement MSAL, or a page that does not itself require a user be authenticated. This will help prevent potential issues as well as improve performance. If your application is only using popup and silent APIs you can set this on the `PublicClientApplication` config. If your application also needs to support redirect APIs you can set the `redirectUri` on a per request basis.
+
+### RedirectUri for redirect flows
+
+When using the redirect APIs you **must** set your `redirectUri` to a page that implements MSAL and that page must also invoke `handleRedirectPromise` in order to process the response. If using `msal-react` or `msal-angular`, `handleRedirectPromise` may be invoked by default, please refer to the docs for those libraries for more specific guidance.
+
+Additional notes:
+
+* If the page that you use as your `redirectUri` requires authentication and automatically invokes a login API, you should ensure that `handleRedirectPromise` has resolved and a user is not signed in **before** invoking the login API.
+* If the page that invokes `loginRedirect` is **different** than your `redirectUri` you will first be redirected to the `redirectUri` then back to the original page. You should invoke `handleRedirectPromise` on both the `redirectUri` **and** the original page. If this is undesired and you would like to stay on the `redirectUri` you can set `navigateToLoginRequestUrl` to `false` in the `PublicClientApplication` config.
 
 ## Why is `fragment` the only valid field for `responseMode` in `msal-browser`?
 
@@ -200,6 +248,33 @@ pca.loginRedirect(request);
 
 Note: Msal.js does not support providing the user flow as a query parameter e.g. `https://yourApp.b2clogin.com/yourApp.onmicrosoft.com/?p=your_policy`. Please make sure your authority is formatted as shown above.
 
+## How do I handle the password-reset user-flow?
+
+The [new password reset experience](https://docs.microsoft.com/azure/active-directory-b2c/add-password-reset-policy?pivots=b2c-user-flow#self-service-password-reset-recommended) is now part of the sign-up or sign-in policy. When the user selects the **Forgot your password?** link, they are immediately sent to the Forgot Password experience. You don't need a separate policy for password reset anymore.
+
+Our recommendation is to move to the new password reset experience since it simplifies the app state and reduces error handling on the user-end. If for some reason you have to use the legacy password-reset user-flow, you'll have to handle the `AADB2C90118` error code returned from B2C service when a user selects the **Forgot your password?** link:
+
+```javascript
+pca.loginPopup()
+    .then((response) => {
+        // do something with auth response
+    }).catch(error => {     
+        // Error handling
+        if (error.errorMessage) {
+            // Check for forgot password error
+            // Learn more about AAD error codes at https://docs.microsoft.com/en-us/azure/active-directory/develop/reference-aadsts-error-codes
+            if (error.errorMessage.indexOf("AADB2C90118") > -1) {
+                // For password reset, initiate a login request against tenant-specific authority with user-flow string appended
+                pca.loginPopup({
+                    authority: "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/b2c_1_reset"
+                });
+            }
+        }
+    });
+```
+
+For a full implementation, see the sample: [MSAL.js v2 B2C sample](https://github.com/Azure-Samples/ms-identity-javascript-tutorial/tree/main/1-Authentication/2-sign-in-b2c)
+
 ## Why is `getAccountByUsername()` returning null, even though I'm signed in?
 
 In order to use `getAccountByUsername()` in B2C scenarios you must enable your `idTokens` to return the `emails` claim in your B2C tenant. MSAL will fill the `username` field on the `AccountInfo` object with the first element of the array returned on the `emails` claim. In most cases this array will only have one element, however, if you notice that your idTokens are returning more than one email on this claim, ensure you are calling `getAccountByUsername` with the first email.
@@ -215,45 +290,6 @@ You can read more about this behavior [here](https://docs.microsoft.com/azure/ac
 ## Why am I not signed in when returning from an invite link?
 
 MSAL.js will only process tokens which it originally requested. If your flow requires that you send a user a link they can use to sign up, you will need to ensure that the link points to your app, not the B2C service directly. An example flow can be seen in the [working with B2C](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/working-with-b2c.md) doc.
-
-## Why is there no access token returned from `acquireTokenSilent`?
-
-Azure AD B2C currently requires refresh tokens to be redeemed with the same scopes that were requested when the refresh token is first obtained. If your application requires different behavior, workarounds include: 
-
-#### If your application only needs to support 1 set of scopes: 
-
-Please ensure that these scopes are requested as part of the `loginPopup`,`loginRedirect` or `ssoSilent` call made prior to calling `acquireTokenSilent`. This ensures the refresh token is issued for the scopes you need.
-
-#### If your application needs to support more than 1 set of scopes:
-
-Include the first set of scopes in `loginPopup`, `loginRedirect` or `ssoSilent` then make another call to `acquireTokenRedirect`, `acquireTokenPopup` or `ssoSilent` containing your 2nd set of scopes. Until the access tokens expire, `acquireTokenSilent` will return either token from the cache. Once an access token is expired, one of the interactive APIs will need to be called again. This is an example of how you can handle this scenario:
-
-```javascript
-// Initial acquisition of scopes 1 and 2
-await msal.loginPopup({scopes: ["scope1"]});
-const account = msal.getAllAccounts()[0];
-await msal.ssoSilent({
-    scopes: ["scope2"],
-    loginHint: account.username
-});
-
-// Subsequent token acquisition with fallback
-msal.acquireTokenSilent({
-    scopes: ["scope1"],
-    account: account
-}).then((response) => {
-    if (!response.accessToken) {
-        return msal.ssoSilent({
-            scopes: ["scope1"],
-            loginHint: account.username
-        });
-    } else {
-        return response;
-    }
-});
-```
-
-:warning: `ssoSilent` will not work in browsers that disable 3rd party cookies, such as Safari. If you need to support these browsers, call `acquireTokenRedirect` or `acquireTokenPopup`
 
 ## What should I do if I believe my issue is with the B2C service itself rather than with the library
 

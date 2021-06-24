@@ -3,30 +3,25 @@
  * Licensed under the MIT License.
  */
 
-import chai from "chai";
-import "mocha";
-import chaiAsPromised from "chai-as-promised";
 import sinon from "sinon";
-import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, AuthorizationCodeRequest, Constants, AuthenticationResult, AuthorizationCodeClient, AuthenticationScheme, ProtocolMode, Logger, Authority, ClientConfiguration, AuthorizationCodePayload } from "@azure/msal-common";
-import { Configuration, buildConfiguration, DEFAULT_REDIRECT_TIMEOUT_MS } from "../../src/config/Configuration";
+import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, CommonAuthorizationCodeRequest, Constants, AuthenticationResult, AuthorizationCodeClient, AuthenticationScheme, ProtocolMode, Logger, Authority, ClientConfiguration, AuthorizationCodePayload, AuthorityOptions } from "@azure/msal-common";
+import { Configuration, buildConfiguration } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_HASHES, TEST_TOKEN_LIFETIMES, TEST_POP_VALUES, TEST_STATE_VALUES } from "../utils/StringConstants";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
-import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
-
-chai.use(chaiAsPromised);
-const expect = chai.expect;
+import { NavigationClient } from "../../src/navigation/NavigationClient";
+import { NavigationOptions } from "../../src/navigation/NavigationOptions";
 
 const testPkceCodes = {
     challenge: "TestChallenge",
     verifier: "TestVerifier"
 } as PkceCodes;
 
-const defaultTokenRequest: AuthorizationCodeRequest = {
+const defaultTokenRequest: CommonAuthorizationCodeRequest = {
     authenticationScheme: AuthenticationScheme.BEARER,
     redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
     code: "thisIsATestCode",
@@ -43,17 +38,11 @@ const testNetworkResult = {
 const browserCrypto = new CryptoOps();
 
 const networkInterface = {
-    sendGetRequestAsync<T>(
-        url: string,
-        options?: NetworkRequestOptions
-    ): T {
-        return null;
+    sendGetRequestAsync<T>(): T {
+        return {} as T;
     },
-    sendPostRequestAsync<T>(
-        url: string,
-        options?: NetworkRequestOptions
-    ): T {
-        return null;
+    sendPostRequestAsync<T>(): T {
+        return {} as T;
     },
 };
 
@@ -63,6 +52,7 @@ let authConfig: ClientConfiguration;
 describe("RedirectHandler.ts Unit Tests", () => {
     let authCodeModule: AuthorizationCodeClient;
     let browserStorage: BrowserCacheManager;
+    let browserRequestLogger: Logger;
     beforeEach(() => {
         const appConfig: Configuration = {
             auth: {
@@ -70,7 +60,13 @@ describe("RedirectHandler.ts Unit Tests", () => {
             }
         };
         const configObj = buildConfiguration(appConfig, true);
-        authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, ProtocolMode.AAD);
+        const authorityOptions: AuthorityOptions = {
+            protocolMode: ProtocolMode.AAD,
+            knownAuthorities: [],
+            cloudDiscoveryMetadata: "",
+            authorityMetadata: ""
+        }
+        authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, browserStorage, authorityOptions);
         const browserCrypto = new CryptoOps();
         const loggerConfig = {
             loggerCallback: (
@@ -129,6 +125,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             loggerOptions: loggerConfig,
         };        
         authCodeModule = new AuthorizationCodeClient(authConfig);
+        browserRequestLogger = new Logger(authConfig.loggerOptions!);
     });
 
     afterEach(() => {
@@ -138,32 +135,27 @@ describe("RedirectHandler.ts Unit Tests", () => {
     describe("Constructor", () => {
 
         it("creates a subclass of InteractionHandler called RedirectHandler", () => {
-            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserCrypto);
-            expect(redirectHandler instanceof RedirectHandler).to.be.true;
+            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, browserCrypto);
+            expect(redirectHandler).toBeInstanceOf(RedirectHandler);
         });
     });
 
     describe("initiateAuthRequest()", () => {
 
-        it("throws error if requestUrl is empty", () => {
-            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserCrypto);
-            expect(() => redirectHandler.initiateAuthRequest("", {
-                redirectTimeout: 3000,
-                redirectStartPage: ""
-            })).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => redirectHandler.initiateAuthRequest("", {
-                redirectTimeout: 3000,
-                redirectStartPage: ""
-            })).to.throw(BrowserAuthError);
+        it("throws error if requestUrl is empty", (done) => {
+            const navigationClient = new NavigationClient();
+            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, browserCrypto);
 
-            expect(() => redirectHandler.initiateAuthRequest(null, {
+            redirectHandler.initiateAuthRequest("", {
                 redirectTimeout: 3000,
-                redirectStartPage: ""
-            })).to.throw(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => redirectHandler.initiateAuthRequest(null, {
-                redirectTimeout: 3000,
-                redirectStartPage: ""
-            })).to.throw(BrowserAuthError);
+                redirectStartPage: "",
+                navigationClient
+            }).catch(e => {
+                expect(e).toBeInstanceOf(BrowserAuthError);
+                expect(e.errorCode).toEqual(BrowserAuthErrorMessage.emptyNavigateUriError.code);
+                expect(e.errorMessage).toEqual(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+                done();
+            });
         });
 
         it("navigates browser window to given window location", (done) => {
@@ -171,40 +163,44 @@ describe("RedirectHandler.ts Unit Tests", () => {
             sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
                 dbStorage = {};
             });
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((requestUrl, timeout, logger) => {
-                expect(requestUrl).to.be.eq(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
-                expect(timeout).to.be.eq(3000);
-                expect(logger).to.be.instanceOf(Logger);
-                expect(browserStorage.getTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, true)).to.be.eq(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
-                return Promise.resolve(done());
-            });
-            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserCrypto);
+            const navigationClient = new NavigationClient();
+            navigationClient.navigateExternal = (requestUrl: string, options: NavigationOptions): Promise<boolean> => {
+                expect(requestUrl).toEqual(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+                expect(options.timeout).toEqual(3000);
+                expect(browserStorage.getTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, true)).toEqual(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+                done();
+                return Promise.resolve(true);
+            };
+            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, browserCrypto);
             redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, {
                 redirectStartPage: "",
-                redirectTimeout: 3000
+                redirectTimeout: 3000,
+                navigationClient
             });
         });
 
-        it("doesnt navigate if onRedirectNavigate returns false", done => {
+        it("doesnt navigate if onRedirectNavigate returns false", (done) => {
             let dbStorage = {};
             sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
                 dbStorage = {};
             });
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((requestUrl, timeout, logger) => {
+            const navigationClient = new NavigationClient();
+            navigationClient.navigateExternal = (urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 done("Navigatation should not happen if onRedirectNavigate returns false");
                 return Promise.reject();
-            });
+            };
 
-            const onRedirectNavigate = url => {
-                expect(url).to.equal(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+            const onRedirectNavigate = (url: string) => {
+                expect(url).toEqual(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
                 done();
                 return false;
             }
-            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserCrypto);
+            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, browserCrypto);
             redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, {
                 redirectTimeout: 300,
                 redirectStartPage: "",
                 onRedirectNavigate,
+                navigationClient
             });
         });
 
@@ -213,33 +209,34 @@ describe("RedirectHandler.ts Unit Tests", () => {
             sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
                 dbStorage = {};
             });
-            sinon.stub(BrowserUtils, "navigateWindow").callsFake((requestUrl, timeout, logger) => {
-                expect(requestUrl).to.equal(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+            
+            const navigationClient = new NavigationClient();
+            navigationClient.navigateExternal = (requestUrl, options): Promise<boolean> => {
+                expect(requestUrl).toEqual(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
                 done();
-                return Promise.resolve();
-            });
+                return Promise.resolve(true);
+            };
 
-            const onRedirectNavigate = url => {
-                expect(url).to.equal(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+            const onRedirectNavigate = (url: string) => {
+                expect(url).toEqual(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
             }
-            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserCrypto);
+            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, browserCrypto);
             redirectHandler.initiateAuthRequest(TEST_URIS.TEST_ALTERNATE_REDIR_URI, {
                 redirectTimeout: 3000,
                 redirectStartPage: "",
-                onRedirectNavigate
+                onRedirectNavigate,
+                navigationClient
             });
         });
     });
 
     describe("handleCodeResponse()", () => {
 
-        it("throws error if given hash is empty", async () => {
-            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserCrypto);
-            await expect(redirectHandler.handleCodeResponse("", "", authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthErrorMessage.hashEmptyError.desc);
-            await expect(redirectHandler.handleCodeResponse("", "", authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthError);
-
-            await expect(redirectHandler.handleCodeResponse(null, "", authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthErrorMessage.hashEmptyError.desc);
-            await expect(redirectHandler.handleCodeResponse(null, "", authorityInstance, authConfig.networkInterface)).to.be.rejectedWith(BrowserAuthError);
+        it("throws error if given hash is empty", () => {
+            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, browserCrypto);
+            expect(redirectHandler.handleCodeResponse("", "", authorityInstance, authConfig.networkInterface!)).rejects.toMatchObject(BrowserAuthError.createEmptyHashError(""));
+            //@ts-ignore
+            expect(redirectHandler.handleCodeResponse(null, "", authorityInstance, authConfig.networkInterface!)).rejects.toMatchObject(BrowserAuthError.createEmptyHashError(null));
         });
 
         it("successfully handles response", async () => {
@@ -286,7 +283,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 dbStorage = {};
             });
 
-            const testAuthCodeRequest: AuthorizationCodeRequest = {
+            const testAuthCodeRequest: CommonAuthorizationCodeRequest = {
                 authenticationScheme: AuthenticationScheme.BEARER,
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: ["scope1", "scope2"],
@@ -301,11 +298,11 @@ describe("RedirectHandler.ts Unit Tests", () => {
             sinon.stub(AuthorizationCodeClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
             sinon.stub(AuthorizationCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
 
-            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, testAuthCodeRequest, browserCrypto);
-            const tokenResponse = await redirectHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT, TEST_STATE_VALUES.TEST_STATE_REDIRECT, authorityInstance, authConfig.networkInterface);
-            expect(tokenResponse).to.deep.eq(testTokenResponse);
-            expect(browserStorage.getTemporaryCache(browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY))).to.be.null;
-            expect(browserStorage.getTemporaryCache(browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH))).to.be.null;
+            const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, testAuthCodeRequest, browserRequestLogger, browserCrypto);
+            const tokenResponse = await redirectHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT, TEST_STATE_VALUES.TEST_STATE_REDIRECT, authorityInstance, authConfig.networkInterface!);
+            expect(tokenResponse).toEqual(testTokenResponse);
+            expect(browserStorage.getTemporaryCache(browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY))).toBe(null);
+            expect(browserStorage.getTemporaryCache(browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH))).toBe(null);
         });
     });
 });
