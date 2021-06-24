@@ -3,13 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { AADServerParamKeys, Constants, ResponseMode, SSOTypes, ClientInfo, AuthenticationScheme, ClaimsRequestKeys, PasswordGrantConstants, OIDC_DEFAULT_SCOPES} from "../utils/Constants";
+import { AADServerParamKeys, Constants, ResponseMode, SSOTypes, ClientInfo, AuthenticationScheme, ClaimsRequestKeys, PasswordGrantConstants, OIDC_DEFAULT_SCOPES, ThrottlingConstants} from "../utils/Constants";
 import { ScopeSet } from "./ScopeSet";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { StringDict } from "../utils/MsalTypes";
 import { RequestValidator } from "./RequestValidator";
 import { LibraryInfo } from "../config/ClientConfiguration";
 import { StringUtils } from "../utils/StringUtils";
+import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 
 export class RequestParameterBuilder {
 
@@ -337,6 +338,22 @@ export class RequestParameterBuilder {
             this.parameters.set(AADServerParamKeys.TOKEN_TYPE, AuthenticationScheme.POP);
             this.parameters.set(AADServerParamKeys.REQ_CNF, encodeURIComponent(cnfString));
         }
+    }
+
+    /**
+     * add server telemetry fields
+     * @param serverTelemetryManager 
+     */
+    addServerTelemetry(serverTelemetryManager: ServerTelemetryManager): void {
+        this.parameters.set(AADServerParamKeys.X_CLIENT_CURR_TELEM, serverTelemetryManager.generateCurrentRequestHeaderValue());
+        this.parameters.set(AADServerParamKeys.X_CLIENT_LAST_TELEM, serverTelemetryManager.generateLastRequestHeaderValue());
+    }
+
+    /**
+     * Adds parameter that indicates to the server that throttling is supported
+     */
+    addThrottling(): void {
+        this.parameters.set(AADServerParamKeys.X_MS_LIB_CAPABILITY, ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE);
     }
 
     /**

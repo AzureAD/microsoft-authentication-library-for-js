@@ -8,8 +8,8 @@ import { AuthToken } from "../account/AuthToken";
 import { TokenClaims } from "../account/TokenClaims";
 import { TimeUtils } from "../utils/TimeUtils";
 import { UrlString } from "../url/UrlString";
-import { IUri } from "../url/IUri";
 import { ClientAuthError } from "../error/ClientAuthError";
+import { BaseAuthRequest } from "../request/BaseAuthRequest";
 
 /**
  * See eSTS docs for more info.
@@ -36,13 +36,13 @@ export class PopTokenGenerator {
         this.cryptoUtils = cryptoUtils;
     }
 
-    async generateCnf(resourceRequestMethod: string, resourceRequestUri: string): Promise<string> {
-        const reqCnf = await this.generateKid(resourceRequestMethod, resourceRequestUri);
+    async generateCnf(request: BaseAuthRequest): Promise<string> {
+        const reqCnf = await this.generateKid(request);
         return this.cryptoUtils.base64Encode(JSON.stringify(reqCnf));
     }
 
-    async generateKid(resourceRequestMethod: string, resourceRequestUri: string): Promise<ReqCnf> {
-        const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint(resourceRequestMethod, resourceRequestUri);
+    async generateKid(request: BaseAuthRequest): Promise<ReqCnf> {
+        const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint(request);
 
         return {
             kid: kidThumbprint,
@@ -50,28 +50,31 @@ export class PopTokenGenerator {
         };
     }
 
-    async signPopToken(accessToken: string, resourceRequestMethod: string, resourceRequestUri: string): Promise<string> {
+    async signPopToken(accessToken: string, request: BaseAuthRequest): Promise<string> {
         const tokenClaims: TokenClaims | null = AuthToken.extractTokenClaims(accessToken, this.cryptoUtils);
-        
         if (!tokenClaims?.cnf?.kid) {
             throw ClientAuthError.createTokenClaimsRequiredError();
         }
-
-        return this.signPayload(accessToken, tokenClaims.cnf.kid, resourceRequestMethod, resourceRequestUri);
+        
+        return this.signPayload(accessToken, tokenClaims.cnf.kid, request);
     }
 
-    async signPayload(payload: string, kid: string, resourceRequestMethod: string, resourceRequestUri: string, claims?: object): Promise<string> {
-        const resourceUrlString: UrlString = new UrlString(resourceRequestUri);
-        const resourceUrlComponents: IUri = resourceUrlString.getUrlComponents();
+    async signPayload(payload: string, kid: string, request: BaseAuthRequest, claims?: object): Promise<string> {
+        // Deconstruct request to extract SHR parameters
+        const { resourceRequestMethod, resourceRequestUri, shrClaims } = request;
+
+        const resourceUrlString = (resourceRequestUri) ? new UrlString(resourceRequestUri) : undefined;
+        const resourceUrlComponents = resourceUrlString?.getUrlComponents();
 
         return await this.cryptoUtils.signJwt({
             at: payload,
-            ts: `${TimeUtils.nowSeconds()}`,
-            m: resourceRequestMethod.toUpperCase(),
-            u: resourceUrlComponents.HostNameAndPort || "",
+            ts: TimeUtils.nowSeconds(),
+            m: resourceRequestMethod?.toUpperCase(),
+            u: resourceUrlComponents?.HostNameAndPort,
             nonce: this.cryptoUtils.createNewGuid(),
-            p: resourceUrlComponents.AbsolutePath,
-            q: [[], resourceUrlComponents.QueryString],
+            p: resourceUrlComponents?.AbsolutePath,
+            q: (resourceUrlComponents?.QueryString) ? [[], resourceUrlComponents.QueryString] : undefined,
+            client_claims: shrClaims || undefined,
             ...claims
         }, kid);
     }

@@ -38,7 +38,13 @@ export const Constants = {
     AUTHORIZATION_PENDING: "authorization_pending",
     NOT_DEFINED: "not_defined",
     EMPTY_STRING: "",
-    FORWARD_SLASH: "/"
+    FORWARD_SLASH: "/",
+    IMDS_ENDPOINT: "http://169.254.169.254/metadata/instance/compute/location",
+    IMDS_VERSION: "2020-06-01",
+    IMDS_TIMEOUT: 2000,
+    AZURE_REGION_AUTO_DISCOVER_FLAG: "AUTO_DISCOVER",
+    REGIONAL_AUTH_PUBLIC_CLOUD_SUFFIX: "login.microsoft.com",
+    KNOWN_PUBLIC_CLOUDS: ["login.microsoftonline.com", "login.windows.net", "login.microsoft.com", "sts.windows.net"]
 };
 
 export const OIDC_DEFAULT_SCOPES = [
@@ -57,11 +63,7 @@ export const OIDC_SCOPES = [
  */
 export enum HeaderNames {
     CONTENT_TYPE = "Content-Type",
-    X_CLIENT_CURR_TELEM = "x-client-current-telemetry",
-    X_CLIENT_LAST_TELEM = "x-client-last-telemetry",
-    RETRY_AFTER = "Retry-After",
-    X_MS_LIB_CAPABILITY = "x-ms-lib-capability",
-    X_MS_LIB_CAPABILITY_VALUE = "retry-after, h429"
+    RETRY_AFTER = "Retry-After"
 }
 
 /**
@@ -115,6 +117,9 @@ export enum AADServerParamKeys {
     X_CLIENT_VER = "x-client-VER",
     X_CLIENT_OS = "x-client-OS",
     X_CLIENT_CPU = "x-client-CPU",
+    X_CLIENT_CURR_TELEM = "x-client-current-telemetry",
+    X_CLIENT_LAST_TELEM = "x-client-last-telemetry",
+    X_MS_LIB_CAPABILITY = "x-ms-lib-capability",
     POST_LOGOUT_URI = "post_logout_redirect_uri",
     ID_TOKEN_HINT= "id_token_hint",
     DEVICE_CODE = "device_code",
@@ -236,6 +241,7 @@ export enum Separators {
 export enum CredentialType {
     ID_TOKEN = "IdToken",
     ACCESS_TOKEN = "AccessToken",
+    ACCESS_TOKEN_WITH_AUTH_SCHEME = "AccessToken_With_AuthScheme",
     REFRESH_TOKEN = "RefreshToken",
 }
 
@@ -290,7 +296,9 @@ export enum AuthorityMetadataSource {
 
 export const SERVER_TELEM_CONSTANTS = {
     SCHEMA_VERSION: 2,
-    MAX_HEADER_BYTES: 4000, // Max is 4KB, 4000 Bytes provides 96 Byte buffer for separators, schema version, etc. 
+    MAX_CUR_HEADER_BYTES: 80, // ESTS limit is 100B, set to 80 to provide a 20B buffer
+    MAX_LAST_HEADER_BYTES: 330, // ESTS limit is 350B, set to 330 to provide a 20B buffer,
+    MAX_CACHED_ERRORS: 50, // Limit the number of errors that can be stored to prevent uncontrolled size gains
     CACHE_KEY: "server-telemetry",
     CATEGORY_SEPARATOR: "|",
     VALUE_SEPARATOR: ",",
@@ -316,7 +324,9 @@ export const ThrottlingConstants = {
     // Default maximum time to throttle in seconds, overrides what the server sends back
     DEFAULT_MAX_THROTTLE_TIME_SECONDS: 3600,
     // Prefix for storing throttling entries
-    THROTTLING_PREFIX: "throttling"
+    THROTTLING_PREFIX: "throttling",
+    // Value assigned to the x-ms-lib-capability header to indicate to the server the library supports throttling
+    X_MS_LIB_CAPABILITY_VALUE: "retry-after, h429"
 };
 
 export const Errors = {
@@ -330,4 +340,12 @@ export const Errors = {
 export enum PasswordGrantConstants {
     username = "username",
     password = "password"
+}
+
+/**
+ * Response codes
+ */
+export enum  ResponseCodes {
+    httpSuccess = 200,
+    httpBadRequest = 400
 }

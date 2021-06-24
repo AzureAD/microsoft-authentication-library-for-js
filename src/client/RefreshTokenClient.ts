@@ -21,6 +21,7 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ClientAuthError, ClientAuthErrorMessage } from "../error/ClientAuthError";
 import { ServerError } from "../error/ServerError";
 import { TimeUtils } from "../utils/TimeUtils";
+import { UrlString } from "../url/UrlString";
 
 /**
  * OAuth2.0 refresh token client
@@ -49,10 +50,8 @@ export class RefreshTokenClient extends BaseClient {
             response.body,
             this.authority,
             reqTimestamp,
-            request.resourceRequestMethod,
-            request.resourceRequestUri,
+            request,
             undefined,
-            [],
             undefined,
             true
         );
@@ -80,8 +79,7 @@ export class RefreshTokenClient extends BaseClient {
         if (isFOCI) {
             try {
                 return this.acquireTokenWithCachedRefreshToken(request, true);
-            }
-            catch (e) {
+            } catch (e) {
                 const noFamilyRTInCache = e instanceof ClientAuthError && e.errorCode === ClientAuthErrorMessage.noTokensFoundError.code;
                 const clientMismatchErrorWithFamilyRT = e instanceof ServerError && e.errorCode === Errors.INVALID_GRANT_ERROR && e.subError === Errors.CLIENT_MISMATCH_ERROR;
 
@@ -115,7 +113,7 @@ export class RefreshTokenClient extends BaseClient {
         const refreshTokenRequest: CommonRefreshTokenRequest = {
             ...request,
             refreshToken: refreshToken.secret,
-            authenticationScheme: AuthenticationScheme.BEARER
+            authenticationScheme: request.authenticationScheme || AuthenticationScheme.BEARER
         };
 
         return this.acquireToken(refreshTokenRequest);
@@ -130,6 +128,7 @@ export class RefreshTokenClient extends BaseClient {
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
 
         const requestBody = await this.createTokenRequestBody(request);
+        const queryParameters = this.createTokenQueryParameters(request);
         const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
@@ -137,7 +136,22 @@ export class RefreshTokenClient extends BaseClient {
             scopes: request.scopes
         };
 
-        return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
+        const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParameters);
+        return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
+    }
+
+    /**
+     * Creates query string for the /token request
+     * @param request 
+     */
+    private createTokenQueryParameters(request: CommonRefreshTokenRequest): string {
+        const parameterBuilder = new RequestParameterBuilder();
+
+        if (request.tokenQueryParameters) {
+            parameterBuilder.addExtraQueryParameters(request.tokenQueryParameters);
+        }
+
+        return parameterBuilder.createQueryString();
     }
 
     /**
@@ -154,6 +168,14 @@ export class RefreshTokenClient extends BaseClient {
         parameterBuilder.addGrantType(GrantType.REFRESH_TOKEN_GRANT);
 
         parameterBuilder.addClientInfo();
+
+        parameterBuilder.addLibraryInfo(this.config.libraryInfo);
+
+        parameterBuilder.addThrottling();
+        
+        if (this.serverTelemetryManager) {
+            parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
+        }
 
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);
@@ -172,14 +194,11 @@ export class RefreshTokenClient extends BaseClient {
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
-            if (!request.resourceRequestMethod || !request.resourceRequestUri) {
-                throw ClientConfigurationError.createResourceRequestParametersRequiredError();
-            }
 
-            parameterBuilder.addPopToken(await popTokenGenerator.generateCnf(request.resourceRequestMethod, request.resourceRequestUri));
+            parameterBuilder.addPopToken(await popTokenGenerator.generateCnf(request));
         }
 
-        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+        if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
 

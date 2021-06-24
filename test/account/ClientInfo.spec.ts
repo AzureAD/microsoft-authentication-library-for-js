@@ -1,8 +1,6 @@
-import { expect } from "chai";
 import { buildClientInfo } from "../../src/account/ClientInfo";
-import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_POP_VALUES } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_POP_VALUES } from "../test_kit/StringConstants";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
-import sinon from "sinon";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../src";
 
 describe("ClientInfo.ts Class Unit Tests", () => {
@@ -52,27 +50,29 @@ describe("ClientInfo.ts Class Unit Tests", () => {
         });
 
         afterEach(() => {
-            sinon.restore();
+            jest.restoreAllMocks();
         });
 
         it("Throws error if clientInfo is null or empty", () => {
-            expect(() => buildClientInfo(null, cryptoInterface)).to.throw(ClientAuthErrorMessage.clientInfoEmptyError.desc);
-            expect(() => buildClientInfo(null, cryptoInterface)).to.throw(ClientAuthError);
+            // @ts-ignore
+            expect(() => buildClientInfo(null, cryptoInterface)).toThrowError(ClientAuthErrorMessage.clientInfoEmptyError.desc);
+            // @ts-ignore
+            expect(() => buildClientInfo(null, cryptoInterface)).toThrowError(ClientAuthError);
 
-            expect(() => buildClientInfo("", cryptoInterface)).to.throw(ClientAuthErrorMessage.clientInfoEmptyError.desc);
-            expect(() => buildClientInfo("", cryptoInterface)).to.throw(ClientAuthError);
+            expect(() => buildClientInfo("", cryptoInterface)).toThrowError(ClientAuthErrorMessage.clientInfoEmptyError.desc);
+            expect(() => buildClientInfo("", cryptoInterface)).toThrowError(ClientAuthError);
         });
 
         it("Throws error if function could not successfully decode ", () => {
-            expect(() => buildClientInfo("ThisCan'tbeParsed", cryptoInterface)).to.throw(ClientAuthErrorMessage.clientInfoDecodingError.desc);
-            expect(() => buildClientInfo("ThisCan'tbeParsed", cryptoInterface)).to.throw(ClientAuthError);
+            expect(() => buildClientInfo("ThisCan'tbeParsed", cryptoInterface)).toThrowError(ClientAuthErrorMessage.clientInfoDecodingError.desc);
+            expect(() => buildClientInfo("ThisCan'tbeParsed", cryptoInterface)).toThrowError(ClientAuthError);
         });
 
         it("Succesfully returns decoded client info", () => {
             const clientInfo = buildClientInfo(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, cryptoInterface);
 
-            expect(clientInfo.uid).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_UID);
-            expect(clientInfo.utid).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_UTID);
+            expect(clientInfo.uid).toBe(TEST_DATA_CLIENT_INFO.TEST_UID);
+            expect(clientInfo.utid).toBe(TEST_DATA_CLIENT_INFO.TEST_UTID);
         });
     });
 });

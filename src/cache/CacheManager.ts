@@ -5,7 +5,7 @@
 
 import { AccountCache, AccountFilter, CredentialFilter, CredentialCache, ValidCredentialType, AppMetadataFilter, AppMetadataCache } from "./utils/CacheTypes";
 import { CacheRecord } from "./entities/CacheRecord";
-import { CacheSchemaType, CredentialType, Constants, APP_METADATA, THE_FAMILY_ID, AUTHORITY_METADATA_CONSTANTS } from "../utils/Constants";
+import { CacheSchemaType, CredentialType, Constants, APP_METADATA, THE_FAMILY_ID, AUTHORITY_METADATA_CONSTANTS, AuthenticationScheme } from "../utils/Constants";
 import { CredentialEntity } from "./entities/CredentialEntity";
 import { ScopeSet } from "../request/ScopeSet";
 import { AccountEntity } from "./entities/AccountEntity";
@@ -223,7 +223,7 @@ export abstract class CacheManager implements ICacheManager {
     private saveAccessToken(credential: AccessTokenEntity): void {
         const currentTokenCache = this.getCredentialsFilteredBy({
             clientId: credential.clientId,
-            credentialType: CredentialType.ACCESS_TOKEN,
+            credentialType: credential.credentialType,
             environment: credential.environment,
             homeAccountId: credential.homeAccountId,
             realm: credential.realm,
@@ -343,16 +343,18 @@ export abstract class CacheManager implements ICacheManager {
             accessTokens: {},
             refreshTokens: {},
         };
-
+        
         allCacheKeys.forEach((cacheKey) => {
             // don't parse any non-credential type cache entities
             const credType = CredentialEntity.getCredentialType(cacheKey);
+
             if (credType === Constants.NOT_DEFINED) {
                 return;
             }
 
             // Attempt retrieval
             const entity = this.getSpecificCredential(cacheKey, credType);
+
             if (!entity) {
                 return;
             }
@@ -398,6 +400,7 @@ export abstract class CacheManager implements ICacheManager {
                     matchingCredentials.idTokens[cacheKey] = entity as IdTokenEntity;
                     break;
                 case CredentialType.ACCESS_TOKEN:
+                case CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME:
                     matchingCredentials.accessTokens[cacheKey] = entity as AccessTokenEntity;
                     break;
                 case CredentialType.REFRESH_TOKEN:
@@ -574,11 +577,12 @@ export abstract class CacheManager implements ICacheManager {
      * @param clientId
      * @param scopes
      * @param environment
+     * @param authScheme
      */
-    readCacheRecord(account: AccountInfo, clientId: string, scopes: ScopeSet, environment: string): CacheRecord {
+    readCacheRecord(account: AccountInfo, clientId: string, scopes: ScopeSet, environment: string, authScheme: AuthenticationScheme): CacheRecord {
         const cachedAccount = this.readAccountFromCache(account);
         const cachedIdToken = this.readIdTokenFromCache(clientId, account);
-        const cachedAccessToken = this.readAccessTokenFromCache(clientId, account, scopes);
+        const cachedAccessToken = this.readAccessTokenFromCache(clientId, account, scopes, authScheme);
         const cachedRefreshToken = this.readRefreshTokenFromCache(clientId, account, false);
         const cachedAppMetadata = this.readAppMetadataFromCache(environment, clientId);
 
@@ -637,19 +641,22 @@ export abstract class CacheManager implements ICacheManager {
      * @param clientId
      * @param account
      * @param scopes
-     * @param inputRealm
+     * @param authScheme
      */
-    readAccessTokenFromCache(clientId: string, account: AccountInfo, scopes: ScopeSet): AccessTokenEntity | null {
+    readAccessTokenFromCache(clientId: string, account: AccountInfo, scopes: ScopeSet, authScheme: AuthenticationScheme): AccessTokenEntity | null {
+        const credentialType = (authScheme === AuthenticationScheme.POP) ? CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME : CredentialType.ACCESS_TOKEN;
+
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: account.homeAccountId,
             environment: account.environment,
-            credentialType: CredentialType.ACCESS_TOKEN,
+            credentialType: credentialType,
             clientId,
             realm: account.tenantId,
             target: scopes.printScopesLowerCase(),
         };
 
         const credentialCache: CredentialCache = this.getCredentialsFilteredBy(accessTokenFilter);
+
         const accessTokens = Object.keys(credentialCache.accessTokens).map((key) => credentialCache.accessTokens[key]);
 
         const numAccessTokens = accessTokens.length;
@@ -796,7 +803,9 @@ export abstract class CacheManager implements ICacheManager {
      * @param target
      */
     private matchTarget(entity: CredentialEntity, target: string): boolean {
-        if (entity.credentialType !== CredentialType.ACCESS_TOKEN || !entity.target) {
+        const isNotAccessTokenCredential = (entity.credentialType !== CredentialType.ACCESS_TOKEN && entity.credentialType !== CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
+
+        if ( isNotAccessTokenCredential || !entity.target) {
             return false;
         }
 
@@ -805,6 +814,8 @@ export abstract class CacheManager implements ICacheManager {
 
         if (!requestTargetScopeSet.containsOnlyOIDCScopes()) {
             requestTargetScopeSet.removeOIDCScopes(); // ignore OIDC scopes
+        } else {
+            requestTargetScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
         }
         return entityScopeSet.containsScopeSet(requestTargetScopeSet);
     }
@@ -842,7 +853,8 @@ export abstract class CacheManager implements ICacheManager {
             case CredentialType.ID_TOKEN: {
                 return this.getIdTokenCredential(key);
             }
-            case CredentialType.ACCESS_TOKEN: {
+            case CredentialType.ACCESS_TOKEN:
+            case CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME: {
                 return this.getAccessTokenCredential(key);
             }
             case CredentialType.REFRESH_TOKEN: {

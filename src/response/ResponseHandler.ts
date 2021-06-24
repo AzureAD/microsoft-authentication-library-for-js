@@ -31,7 +31,7 @@ import { ICachePlugin } from "../cache/interface/ICachePlugin";
 import { TokenCacheContext } from "../cache/persistence/TokenCacheContext";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload";
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { BaseAuthRequest } from "../request/BaseAuthRequest";
 
 /**
  * Class that handles response parsing.
@@ -96,7 +96,7 @@ export class ResponseHandler {
             }
 
             const errString = `${serverResponse.error_codes} - [${serverResponse.timestamp}]: ${serverResponse.error_description} - Correlation ID: ${serverResponse.correlation_id} - Trace ID: ${serverResponse.trace_id}`;
-            throw new ServerError(serverResponse.error, errString);
+            throw new ServerError(serverResponse.error, errString, serverResponse.suberror);
         }
     }
 
@@ -109,10 +109,8 @@ export class ResponseHandler {
         serverTokenResponse: ServerAuthorizationTokenResponse,
         authority: Authority,
         reqTimestamp: number,
-        resourceRequestMethod?: string,
-        resourceRequestUri?: string,
+        request: BaseAuthRequest,
         authCodePayload?: AuthorizationCodePayload,
-        requestScopes?: string[],
         oboAssertion?: string,
         handlingRefreshTokenResponse?: boolean): Promise<AuthenticationResult> {
 
@@ -138,7 +136,7 @@ export class ResponseHandler {
             requestStateObj = ProtocolUtils.parseRequestState(this.cryptoObj, authCodePayload.state);
         }
 
-        const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, reqTimestamp, idTokenObj, requestScopes, oboAssertion, authCodePayload);
+        const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, reqTimestamp, idTokenObj, request.scopes, oboAssertion, authCodePayload);
         let cacheContext;
         try {
             if (this.persistencePlugin && this.serializableCache) {
@@ -156,7 +154,7 @@ export class ResponseHandler {
                 const account = this.cacheStorage.getAccount(key);
                 if (!account) {
                     this.logger.warning("Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache");
-                    return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, idTokenObj, requestStateObj, resourceRequestMethod, resourceRequestUri);
+                    return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj);
                 }
             }
             this.cacheStorage.saveCacheRecord(cacheRecord);
@@ -166,7 +164,7 @@ export class ResponseHandler {
                 await this.persistencePlugin.afterCacheAccess(cacheContext);
             }
         }
-        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, idTokenObj, requestStateObj, resourceRequestMethod, resourceRequestUri);
+        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj);
     }
 
     /**
@@ -210,9 +208,16 @@ export class ResponseHandler {
             // If scopes not returned in server response, use request scopes
             const responseScopes = serverTokenResponse.scope ? ScopeSet.fromString(serverTokenResponse.scope) : new ScopeSet(requestScopes || []);
 
-            // Use timestamp calculated before request
-            const tokenExpirationSeconds = reqTimestamp + (serverTokenResponse.expires_in || 0);
-            const extendedTokenExpirationSeconds = tokenExpirationSeconds + (serverTokenResponse.ext_expires_in || 0);
+            /*
+             * Use timestamp calculated before request
+             * Server may return timestamps as strings, parse to numbers if so.
+             */
+            const expiresIn: number = (typeof serverTokenResponse.expires_in === "string" ? parseInt(serverTokenResponse.expires_in, 10) : serverTokenResponse.expires_in) || 0;
+            const extExpiresIn: number = (typeof serverTokenResponse.ext_expires_in === "string" ? parseInt(serverTokenResponse.ext_expires_in, 10) : serverTokenResponse.ext_expires_in) || 0;
+            const refreshIn: number | undefined = (typeof serverTokenResponse.refresh_in === "string" ? parseInt(serverTokenResponse.refresh_in, 10) : serverTokenResponse.refresh_in) || undefined;
+            const tokenExpirationSeconds = reqTimestamp + expiresIn;
+            const extendedTokenExpirationSeconds = tokenExpirationSeconds + extExpiresIn;
+            const refreshOnSeconds = refreshIn && refreshIn > 0 ? reqTimestamp + refreshIn : undefined;
 
             // non AAD scenarios can have empty realm
             cachedAccessToken = AccessTokenEntity.createAccessTokenEntity(
@@ -224,6 +229,8 @@ export class ResponseHandler {
                 responseScopes.printScopes(),
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
+                this.cryptoObj,
+                refreshOnSeconds,
                 serverTokenResponse.token_type,
                 oboAssertion
             );
@@ -293,23 +300,19 @@ export class ResponseHandler {
         authority: Authority,
         cacheRecord: CacheRecord, 
         fromTokenCache: boolean, 
+        request: BaseAuthRequest,
         idTokenObj?: AuthToken,
-        requestState?: RequestStateObject,
-        resourceRequestMethod?: string, 
-        resourceRequestUri?: string): Promise<AuthenticationResult> {
+        requestState?: RequestStateObject): Promise<AuthenticationResult> {
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
         let expiresOn: Date | null = null;
         let extExpiresOn: Date | undefined;
         let familyId: string = Constants.EMPTY_STRING;
+
         if (cacheRecord.accessToken) {
             if (cacheRecord.accessToken.tokenType === AuthenticationScheme.POP) {
                 const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(cryptoObj);
-
-                if (!resourceRequestMethod || !resourceRequestUri) {
-                    throw ClientConfigurationError.createResourceRequestParametersRequiredError();
-                }
-                accessToken = await popTokenGenerator.signPopToken(cacheRecord.accessToken.secret, resourceRequestMethod, resourceRequestUri);
+                accessToken = await popTokenGenerator.signPopToken(cacheRecord.accessToken.secret, request);
             } else {
                 accessToken = cacheRecord.accessToken.secret;
             }

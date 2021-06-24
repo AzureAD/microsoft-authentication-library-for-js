@@ -1,21 +1,21 @@
-import { expect } from "chai";
-import { CredentialType } from "../../src/utils/Constants";
+import { AuthenticationScheme, CredentialType } from "../../src/utils/Constants";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
 import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity";
 import { CacheRecord } from "../../src/cache/entities/CacheRecord";
 import { AccountFilter, CredentialFilter } from "../../src/cache/utils/CacheTypes";
-import sinon, { mock } from "sinon";
+import sinon from "sinon";
 import { ScopeSet } from "../../src/request/ScopeSet";
 import {
     TEST_CONFIG,
     TEST_TOKENS,
-    CACHE_MOCKS,
-} from "../utils/StringConstants";
+    CACHE_MOCKS
+} from "../test_kit/StringConstants";
 import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { AccountInfo } from "../../src/account/AccountInfo";
 import { MockCache } from "./MockCache";
-import { AuthorityMetadataEntity, CacheManager } from "../../src";
+import { AuthorityMetadataEntity, CacheManager, AppMetadataEntity, IdTokenEntity, RefreshTokenEntity } from "../../src";
 import { mockCrypto } from "../client/ClientTestUtils";
+import { TestError } from "../test_kit/TestErrors";
 
 describe("CacheManager.ts test cases", () => {
     let mockCache = new MockCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, mockCrypto);
@@ -52,8 +52,11 @@ describe("CacheManager.ts test cases", () => {
         const cacheRecord = new CacheRecord();
         cacheRecord.account = ac;
         mockCache.cacheManager.saveCacheRecord(cacheRecord);
-        const mockCacheAccount = mockCache.cacheManager.getAccount(accountKey)
-        expect(mockCacheAccount.homeAccountId).to.eql("someUid.someUtid");
+        const mockCacheAccount = mockCache.cacheManager.getAccount(accountKey) as AccountEntity;
+        if (!mockCacheAccount) {
+            throw TestError.createTestSetupError("mockCacheAccount does not have a value");
+        }
+        expect(mockCacheAccount.homeAccountId).toEqual("someUid.someUtid");
     });
 
     it("save accessToken", () => {
@@ -69,14 +72,52 @@ describe("CacheManager.ts test cases", () => {
             cachedAt: "1000",
             expiresOn: "4600",
             extendedExpiresOn: "4600",
+            tokenType: "Bearer"
         });
 
         const atKey = at.generateCredentialKey();
         const cacheRecord = new CacheRecord();
         cacheRecord.accessToken = at;
         mockCache.cacheManager.saveCacheRecord(cacheRecord);
-        const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(atKey)
-        expect(mockCacheAT.homeAccountId).to.eql("someUid.someUtid");
+
+        const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(atKey) as AccessTokenEntity;
+        if (!mockCacheAT) {
+            throw TestError.createTestSetupError("mockCacheAT does not have a value");
+        }
+        expect(mockCacheAT.homeAccountId).toEqual("someUid.someUtid");
+        expect(mockCacheAT.credentialType).toEqual(CredentialType.ACCESS_TOKEN);
+        expect(mockCacheAT.tokenType).toEqual(AuthenticationScheme.BEARER);
+    });
+
+    it("save accessToken with Auth Scheme (pop)", () => {
+        const at = new AccessTokenEntity();
+        Object.assign(at, {
+            homeAccountId: "someUid.someUtid",
+            environment: "login.microsoftonline.com",
+            credentialType: "AccessToken_With_AuthScheme",
+            clientId: "mock_client_id",
+            secret: "an access token sample",
+            realm: "microsoft",
+            target: "scope6 scope7",
+            cachedAt: "1000",
+            expiresOn: "4600",
+            extendedExpiresOn: "4600",
+            keyId: "some_key",
+            tokenType: "pop"
+        });
+
+        const atKey = at.generateCredentialKey();
+        const cacheRecord = new CacheRecord();
+        cacheRecord.accessToken = at;
+        mockCache.cacheManager.saveCacheRecord(cacheRecord);
+        const mockCacheAT = mockCache.cacheManager.getAccessTokenCredential(atKey) as AccessTokenEntity;
+        if (!mockCacheAT) {
+            throw TestError.createTestSetupError("mockCacheAT does not have a value");
+        }
+        expect(mockCacheAT.homeAccountId).toEqual("someUid.someUtid");
+        expect(mockCacheAT.credentialType).toEqual(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
+        expect(mockCacheAT.tokenType).toEqual(AuthenticationScheme.POP);
+        expect(mockCacheAT.keyId).toBeDefined();
     });
 
     it("getAccount", () => {
@@ -94,11 +135,12 @@ describe("CacheManager.ts test cases", () => {
         cacheRecord.account = ac;
         mockCache.cacheManager.saveCacheRecord(cacheRecord);
 
-        expect(mockCache.cacheManager.getAccount(accountKey).homeAccountId).to.eql("someUid.someUtid");
-        expect(mockCache.cacheManager.getAccount("")).to.be.null;
+        const cacheAccount = mockCache.cacheManager.getAccount(accountKey) as AccountEntity;
+        expect(cacheAccount.homeAccountId).toEqual("someUid.someUtid");
+        expect(mockCache.cacheManager.getAccount("")).toBeNull();
     });
 
-    it("getAccessTokenCredential", () => {
+    it("getAccessTokenCredential (Bearer)", () => {
         const accessTokenEntity = new AccessTokenEntity();
         accessTokenEntity.homeAccountId = "someUid.someUtid";
         accessTokenEntity.environment = "login.microsoftonline.com";
@@ -111,7 +153,30 @@ describe("CacheManager.ts test cases", () => {
         const cacheRecord = new CacheRecord();
         cacheRecord.accessToken = accessTokenEntity;
         mockCache.cacheManager.saveCacheRecord(cacheRecord);
-        expect(mockCache.cacheManager.getAccessTokenCredential(credKey).homeAccountId).to.eql("someUid.someUtid");
+
+        const cachedAccessToken = mockCache.cacheManager.getAccessTokenCredential(credKey) as AccessTokenEntity;
+        expect(cachedAccessToken.homeAccountId).toEqual("someUid.someUtid");
+        expect(cachedAccessToken.credentialType).toEqual(CredentialType.ACCESS_TOKEN);
+    });
+
+    it("getAccessTokenCredential (POP)", () => {
+        const accessTokenEntity = new AccessTokenEntity();
+        accessTokenEntity.homeAccountId = "someUid.someUtid";
+        accessTokenEntity.environment = "login.microsoftonline.com";
+        accessTokenEntity.realm = "microsoft";
+        accessTokenEntity.clientId = "mock_client_id";
+        accessTokenEntity.credentialType = CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME;
+        accessTokenEntity.target = "scope6 scope7";
+
+        const credKey = accessTokenEntity.generateCredentialKey();
+        const cacheRecord = new CacheRecord();
+        cacheRecord.accessToken = accessTokenEntity;
+        mockCache.cacheManager.saveCacheRecord(cacheRecord);
+
+        const cachedAccessToken = mockCache.cacheManager.getAccessTokenCredential(credKey) as AccessTokenEntity;
+        expect(cachedAccessToken.homeAccountId).toEqual("someUid.someUtid");
+        expect(cachedAccessToken.credentialType).toEqual(CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME);
+
     });
 
     describe("getAccountsFilteredBy", () => {
@@ -120,34 +185,34 @@ describe("CacheManager.ts test cases", () => {
             // filter by homeAccountId
             const successFilter: AccountFilter = { homeAccountId: "uid.utid" };
             let accounts = mockCache.cacheManager.getAccountsFilteredBy(successFilter);
-            expect(Object.keys(accounts).length).to.eql(1);
+            expect(Object.keys(accounts).length).toEqual(1);
 
             const wrongFilter: AccountFilter = { homeAccountId: "Wrong Id" };
             accounts = mockCache.cacheManager.getAccountsFilteredBy(wrongFilter);
-            expect(Object.keys(accounts).length).to.eql(0);
+            expect(Object.keys(accounts).length).toEqual(0);
         });
 
         it("environment filter", () => {
             // filter by environment
             const successFilter: AccountFilter = { environment: "login.microsoftonline.com" };
             let accounts = mockCache.cacheManager.getAccountsFilteredBy(successFilter);
-            expect(Object.keys(accounts).length).to.eql(1);
+            expect(Object.keys(accounts).length).toEqual(1);
             sinon.restore();
 
             const wrongFilter: AccountFilter = { environment: "Wrong Env" };
             accounts = mockCache.cacheManager.getAccountsFilteredBy(wrongFilter);
-            expect(Object.keys(accounts).length).to.eql(0);
+            expect(Object.keys(accounts).length).toEqual(0);
         });
 
         it("realm filter", () => {
             // filter by realm
             const successFilter: AccountFilter = { realm: "microsoft" };
             let accounts = mockCache.cacheManager.getAccountsFilteredBy(successFilter);
-            expect(Object.keys(accounts).length).to.eql(1);
+            expect(Object.keys(accounts).length).toEqual(1);
 
             const wrongFilter: AccountFilter = { realm: "Wrong Realm" };
             accounts = mockCache.cacheManager.getAccountsFilteredBy(wrongFilter);
-            expect(Object.keys(accounts).length).to.eql(0);
+            expect(Object.keys(accounts).length).toEqual(0);
         });
     });
 
@@ -157,121 +222,144 @@ describe("CacheManager.ts test cases", () => {
             // filter by homeAccountId
             const successFilter: CredentialFilter = { homeAccountId: "uid.utid" };
             let credentials = mockCache.cacheManager.getCredentialsFilteredBy(successFilter);
-            expect(Object.keys(credentials.idTokens).length).to.eql(1);
-            expect(Object.keys(credentials.accessTokens).length).to.eql(2);
-            expect(Object.keys(credentials.refreshTokens).length).to.eql(2);
+            expect(Object.keys(credentials.idTokens).length).toEqual(1);
+            expect(Object.keys(credentials.accessTokens).length).toEqual(3);
+            expect(Object.keys(credentials.refreshTokens).length).toEqual(2);
 
             const wrongFilter: CredentialFilter = { homeAccountId: "someuid.someutid" };
             credentials = mockCache.cacheManager.getCredentialsFilteredBy(wrongFilter);
-            expect(Object.keys(credentials.idTokens).length).to.eql(0);
-            expect(Object.keys(credentials.accessTokens).length).to.eql(0);
-            expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
+            expect(Object.keys(credentials.idTokens).length).toEqual(0);
+            expect(Object.keys(credentials.accessTokens).length).toEqual(0);
+            expect(Object.keys(credentials.refreshTokens).length).toEqual(0);
         });
 
         it("environment filter", () => {
             // filter by environment
             const successFilter: CredentialFilter = { environment: "login.microsoftonline.com" };
             let credentials = mockCache.cacheManager.getCredentialsFilteredBy(successFilter);
-            expect(Object.keys(credentials.idTokens).length).to.eql(1);
-            expect(Object.keys(credentials.accessTokens).length).to.eql(2);
-            expect(Object.keys(credentials.refreshTokens).length).to.eql(2);
+            expect(Object.keys(credentials.idTokens).length).toEqual(1);
+            expect(Object.keys(credentials.accessTokens).length).toEqual(3);
+            expect(Object.keys(credentials.refreshTokens).length).toEqual(2);
             sinon.restore();
 
             const wrongFilter: CredentialFilter = { environment: "Wrong Env" };
             credentials = mockCache.cacheManager.getCredentialsFilteredBy(wrongFilter);
-            expect(Object.keys(credentials.idTokens).length).to.eql(0);
-            expect(Object.keys(credentials.accessTokens).length).to.eql(0);
-            expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
+            expect(Object.keys(credentials.idTokens).length).toEqual(0);
+            expect(Object.keys(credentials.accessTokens).length).toEqual(0);
+            expect(Object.keys(credentials.refreshTokens).length).toEqual(0);
         });
 
         it("realm filter", () => {
             // filter by realm
             const successFilter: CredentialFilter = { realm: "microsoft" };
             let credentials = mockCache.cacheManager.getCredentialsFilteredBy(successFilter);
-            expect(Object.keys(credentials.idTokens).length).to.eql(1);
-            expect(Object.keys(credentials.accessTokens).length).to.eql(2);
-            expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
+            expect(Object.keys(credentials.idTokens).length).toEqual(1);
+            expect(Object.keys(credentials.accessTokens).length).toEqual(3);
+            expect(Object.keys(credentials.refreshTokens).length).toEqual(0);
 
             const wrongFilter: CredentialFilter = { realm: "Wrong Realm" };
             credentials = mockCache.cacheManager.getCredentialsFilteredBy(wrongFilter);
-            expect(Object.keys(credentials.idTokens).length).to.eql(0);
-            expect(Object.keys(credentials.accessTokens).length).to.eql(0);
-            expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
+            expect(Object.keys(credentials.idTokens).length).toEqual(0);
+            expect(Object.keys(credentials.accessTokens).length).toEqual(0);
+            expect(Object.keys(credentials.refreshTokens).length).toEqual(0);
         });
 
         it("credentialType filter", () => {
-            // filter by realm
+            // filter by credentialType
             const successFilter: CredentialFilter = { credentialType: "IdToken" };
             let credentials = mockCache.cacheManager.getCredentialsFilteredBy(successFilter);
-            expect(Object.keys(credentials.idTokens).length).to.eql(1);
-            expect(Object.keys(credentials.accessTokens).length).to.eql(0);
-            expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
+            expect(Object.keys(credentials.idTokens).length).toEqual(1);
+            expect(Object.keys(credentials.accessTokens).length).toEqual(0);
+            expect(Object.keys(credentials.refreshTokens).length).toEqual(0);
 
             const wrongFilter: CredentialFilter = { credentialType: "Incorrect" };
             credentials = mockCache.cacheManager.getCredentialsFilteredBy(wrongFilter);
-            expect(Object.keys(credentials.idTokens).length).to.eql(0);
-            expect(Object.keys(credentials.accessTokens).length).to.eql(0);
-            expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
+            expect(Object.keys(credentials.idTokens).length).toEqual(0);
+            expect(Object.keys(credentials.accessTokens).length).toEqual(0);
+            expect(Object.keys(credentials.refreshTokens).length).toEqual(0);
+        });
+
+        it("credentialType filter (Access Tokens with and without Auth Scheme)", () => {
+            // filter by credentialType
+            const successFilter: CredentialFilter = { credentialType: "AccessToken" };
+            let credentials = mockCache.cacheManager.getCredentialsFilteredBy(successFilter);
+            expect(Object.keys(credentials.idTokens).length).toEqual(0);
+            // There are two Bearer tokens in the mock cache
+            expect(Object.keys(credentials.accessTokens).length).toEqual(2);
+            expect(Object.keys(credentials.refreshTokens).length).toEqual(0);
+
+            const wrongFilter: CredentialFilter = { credentialType: "AccessToken_With_AuthScheme" };
+            credentials = mockCache.cacheManager.getCredentialsFilteredBy(wrongFilter);
+            expect(Object.keys(credentials.idTokens).length).toEqual(0);
+            // There is one POP token in the mock cache
+            expect(Object.keys(credentials.accessTokens).length).toEqual(1);
+            expect(Object.keys(credentials.refreshTokens).length).toEqual(0);
         });
 
         it("clientId filter", () => {
-            // filter by realm
+            // filter by clientId
             const successFilter: CredentialFilter = { clientId: "mock_client_id" };
             let credentials = mockCache.cacheManager.getCredentialsFilteredBy(successFilter);
-            expect(Object.keys(credentials.idTokens).length).to.eql(1);
-            expect(Object.keys(credentials.accessTokens).length).to.eql(2);
-            expect(Object.keys(credentials.refreshTokens).length).to.eql(1);
+            expect(Object.keys(credentials.idTokens).length).toEqual(1);
+            expect(Object.keys(credentials.accessTokens).length).toEqual(3);
+            expect(Object.keys(credentials.refreshTokens).length).toEqual(1);
 
             const wrongFilter: CredentialFilter = { clientId: "Wrong Client ID" };
             credentials = mockCache.cacheManager.getCredentialsFilteredBy(wrongFilter);
-            expect(Object.keys(credentials.idTokens).length).to.eql(0);
-            expect(Object.keys(credentials.accessTokens).length).to.eql(0);
-            expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
+            expect(Object.keys(credentials.idTokens).length).toEqual(0);
+            expect(Object.keys(credentials.accessTokens).length).toEqual(0);
+            expect(Object.keys(credentials.refreshTokens).length).toEqual(0);
         });
 
         it("target filter", () => {
             // filter by target
             const successFilter = { target: "scope1 scope2 scope3" };
             let credentials = mockCache.cacheManager.getCredentialsFilteredBy(successFilter);
-            expect(Object.keys(credentials.idTokens).length).to.eql(0);
-            expect(Object.keys(credentials.accessTokens).length).to.eql(1);
-            expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
+            expect(Object.keys(credentials.idTokens).length).toEqual(0);
+            expect(Object.keys(credentials.accessTokens).length).toEqual(2);
+            expect(Object.keys(credentials.refreshTokens).length).toEqual(0);
 
             const wrongFilter = { target: "wrong target" };
             credentials = mockCache.cacheManager.getCredentialsFilteredBy(wrongFilter);
-            expect(Object.keys(credentials.idTokens).length).to.eql(0);
-            expect(Object.keys(credentials.accessTokens).length).to.eql(0);
-            expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
+            expect(Object.keys(credentials.idTokens).length).toEqual(0);
+            expect(Object.keys(credentials.accessTokens).length).toEqual(0);
+            expect(Object.keys(credentials.refreshTokens).length).toEqual(0);
 
             const filterOidcscopes = { target: "scope1 scope2 scope3 offline_access openid profile" };
             credentials = mockCache.cacheManager.getCredentialsFilteredBy(filterOidcscopes);
-            expect(Object.keys(credentials.idTokens).length).to.eql(0);
-            expect(Object.keys(credentials.accessTokens).length).to.eql(1);
-            expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
+            expect(Object.keys(credentials.idTokens).length).toEqual(0);
+            expect(Object.keys(credentials.accessTokens).length).toEqual(2);
+            expect(Object.keys(credentials.refreshTokens).length).toEqual(0);
 
             const filterScopesCase = { target: "scope1 scope2 SCOPE3 offline_access openid profile" };
             credentials = mockCache.cacheManager.getCredentialsFilteredBy(filterScopesCase);
-            expect(Object.keys(credentials.idTokens).length).to.eql(0);
-            expect(Object.keys(credentials.accessTokens).length).to.eql(1);
-            expect(Object.keys(credentials.refreshTokens).length).to.eql(0);
+            expect(Object.keys(credentials.idTokens).length).toEqual(0);
+            expect(Object.keys(credentials.accessTokens).length).toEqual(2);
+            expect(Object.keys(credentials.refreshTokens).length).toEqual(0);
         });
     });
 
     it("getAppMetadata and readAppMetadataFromCache", () => {
         const appMetadataKey = "appmetadata-login.microsoftonline.com-mock_client_id_1";
-        const appMetadata = mockCache.cacheManager.getAppMetadata(appMetadataKey);
+        const appMetadata = mockCache.cacheManager.getAppMetadata(appMetadataKey) as AppMetadataEntity;
+        if (!appMetadata) {
+            throw TestError.createTestSetupError("appMetadata does not have a value");
+        }
 
-        expect(appMetadata.clientId).to.eql(CACHE_MOCKS.MOCK_CLIENT_ID_1);
-        expect(appMetadata.environment).to.eql(CACHE_MOCKS.MOCK_ACCOUNT_INFO.environment);
+        expect(appMetadata.clientId).toEqual(CACHE_MOCKS.MOCK_CLIENT_ID_1);
+        expect(appMetadata.environment).toEqual(CACHE_MOCKS.MOCK_ACCOUNT_INFO.environment);
 
-        const cachedAppMetadata = mockCache.cacheManager.readAppMetadataFromCache(CACHE_MOCKS.MOCK_ACCOUNT_INFO.environment, CACHE_MOCKS.MOCK_CLIENT_ID_1);
-        expect(cachedAppMetadata.clientId).to.eql(CACHE_MOCKS.MOCK_CLIENT_ID_1);
-        expect(cachedAppMetadata.environment).to.eql(CACHE_MOCKS.MOCK_ACCOUNT_INFO.environment);
+        const cachedAppMetadata = mockCache.cacheManager.readAppMetadataFromCache(CACHE_MOCKS.MOCK_ACCOUNT_INFO.environment, CACHE_MOCKS.MOCK_CLIENT_ID_1) as AppMetadataEntity;
+        if (!cachedAppMetadata) {
+            throw TestError.createTestSetupError("appMetadata does not have a value");
+        }
+        expect(cachedAppMetadata.clientId).toEqual(CACHE_MOCKS.MOCK_CLIENT_ID_1);
+        expect(cachedAppMetadata.environment).toEqual(CACHE_MOCKS.MOCK_ACCOUNT_INFO.environment);
     });
 
     it("removeAppMetadata", () => {
         mockCache.cacheManager.removeAppMetadata();
-        expect(mockCache.cacheManager.getAppMetadata("appmetadata-login.microsoftonline.com-mock_client_id_1")).to.be.undefined;
+        expect(mockCache.cacheManager.getAppMetadata("appmetadata-login.microsoftonline.com-mock_client_id_1")).toBeUndefined();
     });
 
     it("removeAllAccounts", () => {
@@ -291,13 +379,13 @@ describe("CacheManager.ts test cases", () => {
         mockCache.cacheManager.removeAllAccounts();
 
         // Only app metadata remaining
-        expect(mockCache.cacheManager.getKeys().length === 1).to.be.true;
+        expect(mockCache.cacheManager.getKeys().length === 1).toBe(true);
     });
 
     it("removeAccount", () => {
-        expect(mockCache.cacheManager.getAccount("uid.utid-login.microsoftonline.com-microsoft")).to.not.be.null;
+        expect(mockCache.cacheManager.getAccount("uid.utid-login.microsoftonline.com-microsoft")).not.toBeNull();
         mockCache.cacheManager.removeAccount("uid.utid-login.microsoftonline.com-microsoft");
-        expect(mockCache.cacheManager.getAccount("uid.utid-login.microsoftonline.com-microsoft")).to.be.null;
+        expect(mockCache.cacheManager.getAccount("uid.utid-login.microsoftonline.com-microsoft")).toBeNull();
     });
 
     it("removeCredential", () => {
@@ -317,15 +405,15 @@ describe("CacheManager.ts test cases", () => {
 
         mockCache.cacheManager.removeCredential(at);
         const atKey = at.generateCredentialKey();
-        expect(mockCache.cacheManager.getAccount(atKey)).to.be.null;
+        expect(mockCache.cacheManager.getAccount(atKey)).toBeNull();
     });
 
     it("readAccessTokenFromCache matches multiple tokens, throws error", () => {
         const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "uid.utid", "login.microsoftonline.com", "an_access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
+            "uid.utid", "login.microsoftonline.com", "an_access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, 500, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
 
         const mockedAtEntity2: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
-            "uid.utid", "login.microsoftonline.com", "an_access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, "User.Read test_scope", 4600, 4600, TEST_TOKENS.ACCESS_TOKEN);
+            "uid.utid", "login.microsoftonline.com", "an_access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, "User.Read test_scope", 4600, 4600, mockCrypto, 500, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
 
         const accountData = {
             "username": "John Doe",
@@ -344,32 +432,110 @@ describe("CacheManager.ts test cases", () => {
 
         const mockedAccountInfo: AccountInfo = {
             homeAccountId: "uid.utid",
+            localAccountId: "uid",
             environment: "login.microsoftonline.com",
             tenantId: TEST_CONFIG.TENANT,
             username: "John Doe"
         };
+        if (!mockedAccountInfo) {
+            throw TestError.createTestSetupError("mockedAccountInfo does not have a value");
+        }
+        expect(() => mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, new ScopeSet(["user.read"]), AuthenticationScheme.BEARER)).toThrowError(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
+    });
 
-        expect(() => mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, new ScopeSet(["user.read"]))).to.throw(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
+    it("readAccessTokenFromCache only matches a Bearer Token when Authentication Scheme is set to Bearer", () => {
+        const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
+            "uid.utid", "login.microsoftonline.com", "access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, 500, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
+
+        const mockedPopAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
+            "uid.utid", "login.microsoftonline.com", TEST_TOKENS.POP_TOKEN, CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, "User.Read test_scope", 4600, 4600, mockCrypto, 500, AuthenticationScheme.POP, TEST_TOKENS.ACCESS_TOKEN);
+
+        const accountData = {
+            "username": "John Doe",
+            "localAccountId": "uid",
+            "realm": "common",
+            "environment": "login.microsoftonline.com",
+            "homeAccountId": "uid.utid",
+            "authorityType": "MSSTS",
+            "clientInfo": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ=="
+        };
+        const mockedAccount: AccountEntity = CacheManager.toObject(new AccountEntity(), accountData);
+
+        mockCache.cacheManager.setAccessTokenCredential(mockedAtEntity);
+        mockCache.cacheManager.setAccessTokenCredential(mockedPopAtEntity);
+        mockCache.cacheManager.setAccount(mockedAccount);
+
+        const mockedAccountInfo: AccountInfo = {
+            homeAccountId: "uid.utid",
+            localAccountId: "uid",
+            environment: "login.microsoftonline.com",
+            tenantId: TEST_CONFIG.TENANT,
+            username: "John Doe"
+        };
+        expect(mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, new ScopeSet(["user.read"]), AuthenticationScheme.BEARER)).toEqual(mockedAtEntity);
+        expect(() => mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, new ScopeSet(["user.read"]), AuthenticationScheme.BEARER)).not.toThrowError(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
+    });
+
+    it("readAccessTokenFromCache only matches a POP Token when Authentication Scheme is set to pop", () => {
+        const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
+            "uid.utid", "login.microsoftonline.com", "access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, 500, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
+
+        const mockedPopAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
+            "uid.utid", "login.microsoftonline.com", TEST_TOKENS.POP_TOKEN, CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, "User.Read test_scope", 4600, 4600, mockCrypto, 500, AuthenticationScheme.POP, TEST_TOKENS.ACCESS_TOKEN);
+
+        const accountData = {
+            "username": "John Doe",
+            "localAccountId": "uid",
+            "realm": "common",
+            "environment": "login.microsoftonline.com",
+            "homeAccountId": "uid.utid",
+            "authorityType": "MSSTS",
+            "clientInfo": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ=="
+        };
+        const mockedAccount: AccountEntity = CacheManager.toObject(new AccountEntity(), accountData);
+
+        mockCache.cacheManager.setAccessTokenCredential(mockedAtEntity);
+        mockCache.cacheManager.setAccessTokenCredential(mockedPopAtEntity);
+        mockCache.cacheManager.setAccount(mockedAccount);
+
+        const mockedAccountInfo: AccountInfo = {
+            homeAccountId: "uid.utid",
+            localAccountId: "uid",
+            environment: "login.microsoftonline.com",
+            tenantId: TEST_CONFIG.TENANT,
+            username: "John Doe"
+        };
+        expect(mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, new ScopeSet(["user.read"]), AuthenticationScheme.POP)).toEqual(mockedPopAtEntity);
+        expect(() => mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, new ScopeSet(["user.read"]), AuthenticationScheme.POP)).not.toThrowError(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
     });
 
     it("readIdTokenFromCache", () => {
-        const idToken = mockCache.cacheManager.readIdTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, CACHE_MOCKS.MOCK_ACCOUNT_INFO);
-        expect(idToken.clientId).to.equal(CACHE_MOCKS.MOCK_CLIENT_ID);
+        const idToken = mockCache.cacheManager.readIdTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, CACHE_MOCKS.MOCK_ACCOUNT_INFO) as IdTokenEntity;
+        if (!idToken) {
+            throw TestError.createTestSetupError("idToken does not have a value");
+        }
+        expect(idToken.clientId).toBe(CACHE_MOCKS.MOCK_CLIENT_ID);
     });
 
     it("readRefreshTokenFromCache", () => {
-        const refreshToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, CACHE_MOCKS.MOCK_ACCOUNT_INFO, false);
-        expect(refreshToken.clientId).to.equal(CACHE_MOCKS.MOCK_CLIENT_ID_1);
+        const refreshToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, CACHE_MOCKS.MOCK_ACCOUNT_INFO, false) as RefreshTokenEntity;
+        if (!refreshToken) {
+            throw TestError.createTestSetupError("refreshToken does not have a value");
+        }
+        expect(refreshToken.clientId).toBe(CACHE_MOCKS.MOCK_CLIENT_ID_1);
     });
 
     it("readRefreshTokenFromCache Error", () => {
         const refreshToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, CACHE_MOCKS.MOCK_ACCOUNT_INFO, true);
-        expect(refreshToken).to.equal(null);
+        expect(refreshToken).toBe(null);
     });
 
     it("readRefreshTokenFromCache with familyId", () => {
-        const refreshToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, CACHE_MOCKS.MOCK_ACCOUNT_INFO, true);
-        expect(refreshToken.clientId).to.equal(CACHE_MOCKS.MOCK_CLIENT_ID_1);
+        const refreshToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, CACHE_MOCKS.MOCK_ACCOUNT_INFO, true) as RefreshTokenEntity;
+        if (!refreshToken) {
+            throw TestError.createTestSetupError("refreshToken does not have a value");
+        }
+        expect(refreshToken.clientId).toBe(CACHE_MOCKS.MOCK_CLIENT_ID_1);
     });
 
     it("readRefreshTokenFromCache with environment aliases", () => {
@@ -385,13 +551,17 @@ describe("CacheManager.ts test cases", () => {
         });
         const mockedAccountInfo: AccountInfo = {
             homeAccountId: "uid.utid",
+            localAccountId: "uid",
             environment: "login.windows.net",
             tenantId: "mocked_tid",
             username: "mocked_username"
         };
 
-        const cachedToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, false);
-        expect(cachedToken.homeAccountId).to.equal("uid.utid");
-        expect(cachedToken.environment).to.equal("login.microsoftonline.com");
+        const cachedToken = mockCache.cacheManager.readRefreshTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, false) as RefreshTokenEntity;
+        if (!cachedToken) {
+            throw TestError.createTestSetupError("refreshToken does not have a value");
+        }
+        expect(cachedToken.homeAccountId).toBe("uid.utid");
+        expect(cachedToken.environment).toBe("login.microsoftonline.com");
     });
 });
