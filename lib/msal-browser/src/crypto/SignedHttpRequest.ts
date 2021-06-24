@@ -21,11 +21,13 @@ export class SignedHttpRequest {
 
     /**
      * Generates and caches a keypair for the given request options.
-     * @param publicKeyOptions 
      * @returns Public key digest, which should be sent to the token issuer.
      */
     async generatePublicKey(): Promise<string> {
-        const { kid } = await this.popTokenGenerator.generateKid(this.resourceRequestMethod, this.resourceRequestUri);
+        const { kid } = await this.popTokenGenerator.generateKid({
+            resourceRequestMethod: this.resourceRequestMethod,
+            resourceRequestUri: this.resourceRequestUri
+        });
 
         return kid;
     }
@@ -38,6 +40,14 @@ export class SignedHttpRequest {
      * @returns Pop token signed with the corresponding private key
      */
     async signPopToken(payload: string, publicKey: string, claims?: object): Promise<string> {
-        return this.popTokenGenerator.signPayload(payload, publicKey, this.resourceRequestMethod, this.resourceRequestUri, claims);
+        return this.popTokenGenerator.signPayload(
+            payload, 
+            publicKey,
+            {
+                resourceRequestMethod: this.resourceRequestMethod, 
+                resourceRequestUri: this.resourceRequestUri
+            }, 
+            claims
+        );
     }
 }
