@@ -101,9 +101,15 @@ export class ResponseHandler {
     }
 
     /**
-     * Returns a constructed token response based on given string. Also manages the cache updates and cleanups.
-     * @param serverTokenResponse
-     * @param authority
+     * Returns an AuthenticationResult based on the server's response to a token request, taking into account
+     * whether the response is encrypted (bound). Also manages the cache updates and cleanups.
+     * @param serverTokenResponse 
+     * @param authority 
+     * @param reqTimestamp 
+     * @param request 
+     * @param authCodePayload 
+     * @param oboAssertion 
+     * @param handlingRefreshTokenResponse 
      */
     async handleServerTokenResponse(
         serverTokenResponse: ServerAuthorizationTokenResponse,
@@ -114,6 +120,37 @@ export class ResponseHandler {
         oboAssertion?: string,
         handlingRefreshTokenResponse?: boolean): Promise<AuthenticationResult> {
 
+        let decryptedTokenResponse: ServerAuthorizationTokenResponse;
+
+        if (serverTokenResponse.session_key_jwe && serverTokenResponse.response_jwe && request.stkJwk) {
+            decryptedTokenResponse = await this.cryptoObj.decryptBoundTokenResponse(serverTokenResponse, request) || serverTokenResponse;
+
+        } else {
+            decryptedTokenResponse = serverTokenResponse;
+        }
+
+        return this.handleTokenResponse(decryptedTokenResponse, authority, reqTimestamp, request, authCodePayload, oboAssertion, handlingRefreshTokenResponse);
+    }
+
+    /**
+     * Returns a constructed token response based on decrypted or unbound server token response. Also manages the cache updates and cleanups.
+     * @param serverTokenResponse 
+     * @param authority 
+     * @param reqTimestamp 
+     * @param request 
+     * @param authCodePayload 
+     * @param oboAssertion 
+     * @param handlingRefreshTokenResponse 
+     * @returns 
+     */
+    async handleTokenResponse(
+        serverTokenResponse: ServerAuthorizationTokenResponse,
+        authority: Authority,
+        reqTimestamp: number,
+        request: BaseAuthRequest,
+        authCodePayload?: AuthorizationCodePayload,
+        oboAssertion?: string,
+        handlingRefreshTokenResponse?: boolean): Promise<AuthenticationResult> {
         // create an idToken object (not entity)
         let idTokenObj: AuthToken | undefined;
         if (serverTokenResponse.id_token) {

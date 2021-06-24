@@ -140,6 +140,10 @@ export const BrowserAuthErrorMessage = {
     failedToParseNetworkResponse: {
         code: "failed_to_parse_response",
         desc: "Failed to parse network response. Check network trace."
+    },
+    missingStkKid: {
+        code: "no_stk_kid_in_request",
+        desc: "Failed to decrypt bound token response because the token request does not contain the session transport key thumbprint."
     }
 };
 
@@ -407,5 +411,9 @@ export class BrowserAuthError extends AuthError {
      */
     static createFailedToParseNetworkResponseError(endpoint: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.failedToParseNetworkResponse.code, `${BrowserAuthErrorMessage.failedToParseNetworkResponse.desc} | Attempted to reach: ${endpoint.split("?")[0]}`);
+    }
+
+    static createMissingStkKidError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.missingStkKid.code, BrowserAuthErrorMessage.missingStkKid.desc);
     }
 }
