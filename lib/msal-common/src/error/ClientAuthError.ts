@@ -4,7 +4,6 @@
  */
 
 import { AuthError } from "./AuthError";
-import { ScopeSet } from "../request/ScopeSet";
 
 /**
  * ClientAuthErrorMessage class containing string constants used by error codes and messages.
@@ -29,6 +28,10 @@ export const ClientAuthErrorMessage = {
     endpointResolutionError: {
         code: "endpoints_resolution_error",
         desc: "Error: could not resolve endpoints. Please check network and try again."
+    },
+    networkError: {
+        code: "network_error",
+        desc: "Network request failed. Please check network trace to determine root cause."
     },
     unableToGetOpenidConfigError: {
         code: "openid_config_error",
@@ -107,6 +110,10 @@ export const ClientAuthErrorMessage = {
         code: "device_code_expired",
         desc: "Device code is expired."
     },
+    DeviceCodeUnknownError: {
+        code: "device_code_unknown_error",
+        desc: "Device code stopped polling for unknown reasons."
+    },
     NoAccountInSilentRequest: {
         code: "no_account_in_silent_request",
         desc: "Please pass an account object, silent flow is not supported without account information"
@@ -165,7 +172,15 @@ export const ClientAuthErrorMessage = {
     },
     noAuthorizationCodeFromServer: {
         code: "authorization_code_missing_from_server_response",
-        desc: "Srver response does not contain an authorization code to proceed"
+        desc: "Server response does not contain an authorization code to proceed"
+    },
+    noAzureRegionDetected: {
+        code: "no_azure_region_detected",
+        desc: "No azure region was detected and no fallback was made available"
+    },
+    accessTokenEntityNullError: {
+        code: "access_token_entity_null",
+        desc: "Access token entity is null, please check logs and cache to ensure a valid access token is present."
     }
 };
 
@@ -223,6 +238,14 @@ export class ClientAuthError extends AuthError {
     static createEndpointDiscoveryIncompleteError(errDetail: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.endpointResolutionError.code,
             `${ClientAuthErrorMessage.endpointResolutionError.desc} Detail: ${errDetail}`);
+    }
+
+    /**
+     * Creates an error thrown when the fetch client throws
+     */
+    static createNetworkError(endpoint: string, errDetail: string): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.networkError.code,
+            `${ClientAuthErrorMessage.networkError.desc} | Fetch client threw: ${errDetail} | Attempted to reach: ${endpoint.split("?")[0]}`);
     }
 
     /**
@@ -351,8 +374,8 @@ export class ClientAuthError extends AuthError {
      * Throws error if ScopeSet is null or undefined.
      * @param givenScopeSet
      */
-    static createEmptyInputScopeSetError(givenScopeSet: ScopeSet): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.emptyInputScopeSetError.code, `${ClientAuthErrorMessage.emptyInputScopeSetError.desc} Given ScopeSet: ${givenScopeSet}`);
+    static createEmptyInputScopeSetError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.emptyInputScopeSetError.code, `${ClientAuthErrorMessage.emptyInputScopeSetError.desc}`);
     }
 
     /**
@@ -367,6 +390,13 @@ export class ClientAuthError extends AuthError {
      */
     static createDeviceCodeExpiredError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.DeviceCodeExpired.code, `${ClientAuthErrorMessage.DeviceCodeExpired.desc}`);
+    }
+
+    /**
+     * Throws error if device code is expired
+     */
+    static createDeviceCodeUnknownError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.DeviceCodeUnknownError.code, `${ClientAuthErrorMessage.DeviceCodeUnknownError.desc}`);
     }
 
     /**

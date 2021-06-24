@@ -2,6 +2,270 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Thu, 13 May 2021 18:34:08 GMT",
+      "tag": "@azure/msal-angular_v2.0.0",
+      "version": "2.0.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update docs #3586",
+            "author": "joarroyo@microsoft.com",
+            "commit": "85224c634353b49064e41202736896c1c12af2e8",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update packge locks",
+            "author": "janutter@microsoft.com",
+            "commit": "a96f88d90512c2f5a0063a05ebe22240001d91be",
+            "package": "@azure/msal-angular"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Move MSAL Angular v2 and MSAL React to GA",
+            "author": "janutter@microsoft.com",
+            "commit": "40509896e4820db7ec49093a8afc12b151b85a6a",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 12 May 2021 18:35:03 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-beta.6",
+      "version": "2.0.0-beta.6",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Fix navigation bug when clearing auth code from hash in msal-angular #3609",
+            "author": "hemoral@microsoft.com",
+            "commit": "a45a8c65a4261c820604db0c3afbe932928b7ace",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update MsalInterceptor to accept HTTP methods in protectedResourceMap #3546",
+            "author": "joarroyo@microsoft.com",
+            "commit": "2de8256047baee8ca46702b2a470fe2dfd7f0947",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Properly handle MSAL guard on redirect uri for hash and path routing",
+            "author": "janutter@microsoft.com",
+            "commit": "ca43850a0a6bac877b7004d3db45d3b28a01625e",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update msal-angular tooling to angular v11 #3584",
+            "author": "joarroyo@microsoft.com",
+            "commit": "ca06366ac7c34e9e48fe67f18fef34dab3fab408",
+            "package": "@azure/msal-angular"
+          }
+        ],
+        "none": [
+          {
+            "comment": "[docs] updates and replacements",
+            "author": "dogan.erisen@gmail.com",
+            "commit": "56a947b117302218a625d365b63e8ad85859125f",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update peer dependencies for msal-angular #3510",
+            "author": "joarroyo@microsoft.com",
+            "commit": "1799e51fcd930dfd166f1136ebe72aa9bcd5c000",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 22 Apr 2021 23:26:08 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-beta.5",
+      "version": "2.0.0-beta.5",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Prevent MSAL Guard from navigating app to url with code hash #3506",
+            "author": "janutter@microsoft.com",
+            "commit": "06904071267f726ecb5501d2b75ec71c751cb097",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Add .browserslistrc #3471",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "04c6d659d4dc76183ef9043075d3b6cacc450c9b",
+            "package": "@azure/msal-angular"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Fix msal-angular packge-lock",
+            "author": "janutter@microsoft.com",
+            "commit": "41483305debd20a1345262bd0167f1bef64dfd65",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update and fix eslint rules",
+            "author": "janutter@microsoft.com",
+            "commit": "70debe58239b6a6fdf4e533a8a1ee057257846a8",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "details added to load dynamic configurations using APP_INITIALIZER",
+            "author": "itvinay12@gmail.com",
+            "commit": "d22605301e23a65e28513678a10ab8136f149e80",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 14 Apr 2021 18:39:53 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-beta.4",
+      "version": "2.0.0-beta.4",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "fix(Msal-Angular): Dynamic interceptor authority",
+            "author": "1292510+svrooij@users.noreply.github.com",
+            "commit": "ee6480557de68bb84765097e7b3aa79fb2b5977e",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 31 Mar 2021 22:25:57 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-beta.3",
+      "version": "2.0.0-beta.3",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Update MsalInterceptor types and getScopesForEndpoint with query and relative paths #3307",
+            "author": "joarroyo@microsoft.com",
+            "commit": "054804e1c99b9ac58a0e82c917bf0436d73db481",
+            "package": "@azure/msal-angular"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Update samples and docs with event payload typecasting #3360",
+            "author": "joarroyo@microsoft.com",
+            "commit": "24fda4c133476d87c12ac913f49eb9aff696f68e",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 24 Mar 2021 22:55:46 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-beta.2",
+      "version": "2.0.0-beta.2",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Add support for logoutPopup API #3044",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "5b091a8926cad858b1e00c81b9ff863c5fd40fc4",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Add MsalCustomNavigationClient, updates samples and docs #3174",
+            "author": "joarroyo@microsoft.com",
+            "commit": "e99568a7060fe53cbea84607e35d2532e9fd605e",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update MsalGuard and _inProgress subject #3269",
+            "author": "joarroyo@microsoft.com",
+            "commit": "2f29cb3f2b9cd36e8503ea45f9cf2a4c1a263801",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update MSAL Service handleRedirectObservable hash handling #3243",
+            "author": "joarroyo@microsoft.com",
+            "commit": "1b389e80505b610f323347e06ab35249d0d0ecb3",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 15 Mar 2021 23:45:17 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-beta.1",
+      "version": "2.0.0-beta.1",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "fix: #3149 - Msal Redirect Component was not part of the Module",
+            "author": "rchinnakampalli@worldbankgroup.org",
+            "commit": "852fff6690bdb86dec2344b0e01106ebfaf9bc59",
+            "package": "@azure/msal-angular"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Docs update (#3137)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "9dbd969fd6faf7215887746add05cd370d291674",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 03 Mar 2021 21:47:05 GMT",
+      "tag": "@azure/msal-angular_v2.0.0-beta.0",
+      "version": "2.0.0-beta.0",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Fix BroadcastService logging to use msal-angular version, update samples versions, profile, and links (#3015)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "e7f09b6ada9dd8812c5c29263338a4afd41f2006",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Add FAQ.md and active accounts in sample (#2977)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "c8561df04cb8d72328803429da37e45399238b53",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update msal-angular preinstall script to force npm-force-resolutions version (#3074)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "65c6b630d97ef5acbfa00e621e2177c7d514009f",
+            "package": "@azure/msal-angular"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Add errors doc to msal-angular, update FAQ and redirect docs (#3093)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "c26265e6f337cead73979c8da396d09929d963e8",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update angular docs and samples with incremental vs. upfront consent of scopes (#3051)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "ec7b363ce639e15dd4f34049ad9e95e93e26c183",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Correct spelling mistake for 0.x-1.x-upgrade-guide.md",
+            "author": "30316250+wmundev@users.noreply.github.com",
+            "commit": "1ffad19b63fc55b899eca850fb165241ad66e589",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Add docs and sample for angular client-side navigation (#3073)",
+            "author": "joarroyo@microsoft.com",
+            "commit": "bcf87e1077a1bd75b77d7b700d4197d64c8799a2",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 18 Feb 2021 00:34:32 GMT",
       "tag": "@azure/msal-angular_v2.0.0-alpha.6",
       "version": "2.0.0-alpha.6",

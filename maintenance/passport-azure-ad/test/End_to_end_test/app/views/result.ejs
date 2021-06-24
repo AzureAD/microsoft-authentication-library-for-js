@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>result</title>
+</head>
+<body>
+  <% if (user) { %>
+  <p id="status">succeeded</p>
+  <p id="sub"><%= user.sub %></p>
+  <p id="access_token"><%= user.access_token %></p>
+  <p id="refresh_token"><%= user.refresh_token %></p>
+  <p id="upn"><%= user.profile.upn %></p>
+  <p id="oid"><%= user.profile.oid %></p>
+  <p id="emails"><%= user.profile.emails %></p>
+  <% } else { %>
+  <p id="status">failed</p>
+  <% } %>
+</body>
+</html>

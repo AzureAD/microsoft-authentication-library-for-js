@@ -1,11 +1,15 @@
 import { Component, OnInit } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 
-const GRAPH_ENDPOINT = 'https://graph.microsoft.com/v1.0/me';
+// const GRAPH_ENDPOINT = 'https://graph.microsoft.com/v1.0/me'; // Prod graph endpoint. Uncomment to use.
+const GRAPH_ENDPOINT = 'https://graph.microsoft-ppe.com/v1.0/me';
 
 type ProfileType = {
-  displayName?: string
-}
+  givenName?: string,
+  surname?: string,
+  userPrincipalName?: string,
+  id?: string
+};
 
 @Component({
   selector: 'app-profile',
@@ -20,7 +24,10 @@ export class ProfileComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.getProfile();
+    // Ensures http calls are made client-side
+    if (typeof window !== "undefined") {
+      this.getProfile();
+    }
   }
 
   getProfile() {

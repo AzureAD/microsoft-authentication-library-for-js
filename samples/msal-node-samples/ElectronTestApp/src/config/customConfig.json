@@ -1,0 +1,26 @@
+{
+    "authOptions":
+        {
+            "clientId": "8fcb9fc1-d8f9-49c0-b80e-a8a8a201d051",
+            "authority": "https://login.windows-ppe.net/common/"
+        },
+    "request":
+    {
+        "authCodeUrlParameters": {
+            "scopes": ["user.read"],
+            "redirectUri": "msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0://auth"
+        },
+        "authCodeRequest": {
+            "redirectUri": "msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0://auth",
+            "scopes": ["User.Read"]
+        }
+    },
+    "resourceApi":
+    {
+        "endpoint": "https://graph.microsoft-ppe.com/v1.0/me"
+    },
+    "fileProtocol":
+    {
+        "name": "msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0"
+    }
+}

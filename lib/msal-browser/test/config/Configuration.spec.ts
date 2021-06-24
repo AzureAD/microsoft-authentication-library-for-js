@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import { Configuration, buildConfiguration, DEFAULT_POPUP_TIMEOUT_MS, DEFAULT_IFRAME_TIMEOUT_MS } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
 import { LogLevel, Constants } from "@azure/msal-common";
@@ -16,78 +15,85 @@ describe("Configuration.ts Class Unit Tests", () => {
     const testLoggerCallback = (level: LogLevel, message: string, containsPii: boolean): void => {}
 
     it("buildConfiguration assigns default values", () => {
-        let emptyConfig: Configuration = buildConfiguration({auth: null});
+        // @ts-ignore
+        let emptyConfig: Configuration = buildConfiguration({auth: null}, true);
         // Auth config checks
-        expect(emptyConfig.auth).to.be.not.null;
-        expect(emptyConfig.auth.clientId).to.be.empty;
-        expect(emptyConfig.auth.authority).to.be.eq(`${Constants.DEFAULT_AUTHORITY}`);
-        expect(emptyConfig.auth.redirectUri).to.be.eq("");
-        expect(emptyConfig.auth.postLogoutRedirectUri).to.be.eq("");
-        expect(emptyConfig.auth.navigateToLoginRequestUrl).to.be.true;
+        expect(emptyConfig.auth).not.toBeNull();
+        expect(emptyConfig.auth.clientId).toHaveLength(0);
+        expect(emptyConfig.auth.authority).toBe(`${Constants.DEFAULT_AUTHORITY}`);
+        expect(emptyConfig.auth.redirectUri).toBe("");
+        expect(emptyConfig.auth.postLogoutRedirectUri).toBe("");
+        expect(emptyConfig.auth.navigateToLoginRequestUrl).toBe(true);
         // Cache config checks
-        expect(emptyConfig.cache).to.be.not.null.and.not.undefined
-        expect(emptyConfig.cache.cacheLocation).to.be.not.null.and.not.undefined;
-        expect(emptyConfig.cache.cacheLocation).to.be.eq("sessionStorage");
-        expect(emptyConfig.cache.storeAuthStateInCookie).to.be.not.null.and.not.undefined;
-        expect(emptyConfig.cache.storeAuthStateInCookie).to.be.false;
-        expect(emptyConfig.cache.secureCookies).to.be.false;
+        expect(emptyConfig.cache).toBeDefined()
+        expect(emptyConfig.cache?.cacheLocation).toBeDefined();
+        expect(emptyConfig.cache?.cacheLocation).toBe("sessionStorage");
+        expect(emptyConfig.cache?.storeAuthStateInCookie).toBeDefined();
+        expect(emptyConfig.cache?.storeAuthStateInCookie).toBe(false);
+        expect(emptyConfig.cache?.secureCookies).toBe(false);
         // System config checks
-        expect(emptyConfig.system).to.be.not.null.and.not.undefined;
-        expect(emptyConfig.system.loggerOptions).to.be.not.null.and.not.undefined;
-        expect(emptyConfig.system.loggerOptions.loggerCallback).to.be.not.null.and.not.undefined;
-        expect(emptyConfig.system.loggerOptions.piiLoggingEnabled).to.be.false;
-        expect(emptyConfig.system.networkClient).to.be.not.null.and.not.undefined;
-        expect(emptyConfig.system.windowHashTimeout).to.be.not.null.and.not.undefined;
-        expect(emptyConfig.system.windowHashTimeout).to.be.eq(DEFAULT_POPUP_TIMEOUT_MS);
-        expect(emptyConfig.system.iframeHashTimeout).to.be.not.null.and.not.undefined;
-        expect(emptyConfig.system.iframeHashTimeout).to.be.eq(DEFAULT_IFRAME_TIMEOUT_MS);
-        expect(emptyConfig.system.navigateFrameWait).to.be.eq(0);
-        expect(emptyConfig.system.tokenRenewalOffsetSeconds).to.be.eq(300);
-        expect(emptyConfig.system.asyncPopups).to.be.false;
+        expect(emptyConfig.system).toBeDefined();
+        expect(emptyConfig.system?.loggerOptions).toBeDefined();
+        expect(emptyConfig.system?.loggerOptions?.loggerCallback).toBeDefined();
+        expect(emptyConfig.system?.loggerOptions?.piiLoggingEnabled).toBe(false);
+        expect(emptyConfig.system?.networkClient).toBeDefined();
+        expect(emptyConfig.system?.windowHashTimeout).toBeDefined();
+        expect(emptyConfig.system?.windowHashTimeout).toBe(DEFAULT_POPUP_TIMEOUT_MS);
+        expect(emptyConfig.system?.iframeHashTimeout).toBeDefined();
+        expect(emptyConfig.system?.iframeHashTimeout).toBe(DEFAULT_IFRAME_TIMEOUT_MS);
+        expect(emptyConfig.system?.navigateFrameWait).toBe(0);
+        expect(emptyConfig.system?.tokenRenewalOffsetSeconds).toBe(300);
+        expect(emptyConfig.system?.asyncPopups).toBe(false);
     });
 
     it("sets timeouts with loadFrameTimeout", () => {
         const config: Configuration = buildConfiguration({
-            auth: null,
+            auth: {
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID
+            },
             system: {
                 navigateFrameWait: 1,
                 loadFrameTimeout: 100
             }
-        });
+        }, true);
 
-        expect(config.system.iframeHashTimeout).to.be.eq(100);
-        expect(config.system.windowHashTimeout).to.be.eq(100);
-        expect(config.system.navigateFrameWait).to.be.eq(1);
+        expect(config.system?.iframeHashTimeout).toBe(100);
+        expect(config.system?.windowHashTimeout).toBe(100);
+        expect(config.system?.navigateFrameWait).toBe(1);
     });
 
     it("sets timeouts with hash timeouts", () => {
         const config: Configuration = buildConfiguration({
-            auth: null,
+            auth: {
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID
+            },
             system: {
                 iframeHashTimeout: 5000,
                 windowHashTimeout: 50000
             }
-        });
+        }, true);
 
-        expect(config.system.iframeHashTimeout).to.be.eq(5000);
-        expect(config.system.windowHashTimeout).to.be.eq(50000);
+        expect(config.system?.iframeHashTimeout).toBe(5000);
+        expect(config.system?.windowHashTimeout).toBe(50000);
     });
 
     it("sets timeouts with loadFrameTimeout and hash timeouts", () => {
         const config: Configuration = buildConfiguration({
-            auth: null,
+            auth: {
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID
+            },
             system: {
                 navigateFrameWait: 1,
                 iframeHashTimeout: 6001,
                 windowHashTimeout: 6002,
                 loadFrameTimeout: 500
             }
-        });
+        }, true);
 
-        expect(config.system.iframeHashTimeout).to.be.eq(6001);
-        expect(config.system.windowHashTimeout).to.be.eq(6002);
-        expect(config.system.loadFrameTimeout).to.be.eq(500);
-        expect(config.system.navigateFrameWait).to.be.eq(1);
+        expect(config.system?.iframeHashTimeout).toBe(6001);
+        expect(config.system?.windowHashTimeout).toBe(6002);
+        expect(config.system?.loadFrameTimeout).toBe(500);
+        expect(config.system?.navigateFrameWait).toBe(1);
     });
 
     it("Tests logger", () => {
@@ -97,7 +103,9 @@ describe("Configuration.ts Class Unit Tests", () => {
         const consoleWarnSpy = sinon.stub(console, "warn");
         const message = "log message";
         let emptyConfig: Configuration = buildConfiguration({
-            auth: null,
+            auth: {
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID
+            },
             system: {
                 loggerOptions: {
                     loggerCallback: (level, message, containsPii) => {
@@ -121,17 +129,20 @@ describe("Configuration.ts Class Unit Tests", () => {
                     }
                 }
             }
-        });
+        }, true);
+        if (!emptyConfig || !emptyConfig.system || !emptyConfig.system.loggerOptions || !emptyConfig.system.loggerOptions.loggerCallback) {
+            throw "config not setup correctly";
+        }
         emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Error, message, true)
-        expect(consoleErrorSpy.called).to.be.false;
+        expect(consoleErrorSpy.called).toBe(false);
         emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Error, message, false)
-        expect(consoleErrorSpy.calledOnce).to.be.true;
+        expect(consoleErrorSpy.calledOnce).toBe(true);
         emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Info, message, false)
-        expect(consoleInfoSpy.calledOnce).to.be.true;
+        expect(consoleInfoSpy.calledOnce).toBe(true);
         emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Verbose, message, false)
-        expect(consoleDebugSpy.calledOnce).to.be.true;
+        expect(consoleDebugSpy.calledOnce).toBe(true);
         emptyConfig.system.loggerOptions.loggerCallback(LogLevel.Warning, message, false)
-        expect(consoleWarnSpy.calledOnce).to.be.true;
+        expect(consoleWarnSpy.calledOnce).toBe(true);
     });
 
     let testProtectedResourceMap = new Map<string, Array<string>>();
@@ -159,31 +170,31 @@ describe("Configuration.ts Class Unit Tests", () => {
                 },
                 asyncPopups: true
             }
-        });
+        }, true);
         // Auth config checks
-        expect(newConfig.auth).to.be.not.null;
-        expect(newConfig.auth.clientId).to.be.eq(TEST_CONFIG.MSAL_CLIENT_ID);
-        expect(newConfig.auth.authority).to.be.eq(TEST_CONFIG.validAuthority);
-        expect(newConfig.auth.redirectUri).to.be.eq(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
-        expect(newConfig.auth.postLogoutRedirectUri).to.be.eq(TEST_URIS.TEST_LOGOUT_URI);
-        expect(newConfig.auth.navigateToLoginRequestUrl).to.be.false;
+        expect(newConfig.auth).not.toBeNull();
+        expect(newConfig.auth.clientId).toBe(TEST_CONFIG.MSAL_CLIENT_ID);
+        expect(newConfig.auth.authority).toBe(TEST_CONFIG.validAuthority);
+        expect(newConfig.auth.redirectUri).toBe(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+        expect(newConfig.auth.postLogoutRedirectUri).toBe(TEST_URIS.TEST_LOGOUT_URI);
+        expect(newConfig.auth.navigateToLoginRequestUrl).toBe(false);
         // Cache config checks
-        expect(newConfig.cache).to.be.not.null;
-        expect(newConfig.cache.cacheLocation).to.be.not.null;
-        expect(newConfig.cache.cacheLocation).to.be.eq("localStorage");
-        expect(newConfig.cache.storeAuthStateInCookie).to.be.not.null;
-        expect(newConfig.cache.storeAuthStateInCookie).to.be.true;
-        expect(newConfig.cache.secureCookies).to.be.true;
+        expect(newConfig.cache).not.toBeNull();
+        expect(newConfig.cache?.cacheLocation).not.toBeNull();
+        expect(newConfig.cache?.cacheLocation).toBe("localStorage");
+        expect(newConfig.cache?.storeAuthStateInCookie).not.toBeNull();
+        expect(newConfig.cache?.storeAuthStateInCookie).toBe(true);
+        expect(newConfig.cache?.secureCookies).toBe(true);
         // System config checks
-        expect(newConfig.system).to.be.not.null;
-        expect(newConfig.system.windowHashTimeout).to.be.not.null;
-        expect(newConfig.system.windowHashTimeout).to.be.eq(TEST_POPUP_TIMEOUT_MS);
-        expect(newConfig.system.tokenRenewalOffsetSeconds).to.be.not.null;
-        expect(newConfig.system.tokenRenewalOffsetSeconds).to.be.eq(TEST_OFFSET);
-        expect(newConfig.system.navigateFrameWait).to.be.eq(0);
-        expect(newConfig.system.loggerOptions).to.be.not.null;
-        expect(newConfig.system.loggerOptions.loggerCallback).to.be.not.null;
-        expect(newConfig.system.loggerOptions.piiLoggingEnabled).to.be.true;
-        expect(newConfig.system.asyncPopups).to.be.true;
+        expect(newConfig.system).not.toBeNull();
+        expect(newConfig.system?.windowHashTimeout).not.toBeNull();
+        expect(newConfig.system?.windowHashTimeout).toBe(TEST_POPUP_TIMEOUT_MS);
+        expect(newConfig.system?.tokenRenewalOffsetSeconds).not.toBeNull();
+        expect(newConfig.system?.tokenRenewalOffsetSeconds).toBe(TEST_OFFSET);
+        expect(newConfig.system?.navigateFrameWait).toBe(0);
+        expect(newConfig.system?.loggerOptions).not.toBeNull();
+        expect(newConfig.system?.loggerOptions?.loggerCallback).not.toBeNull();
+        expect(newConfig.system?.loggerOptions?.piiLoggingEnabled).toBe(true);
+        expect(newConfig.system?.asyncPopups).toBe(true);
     });
 });

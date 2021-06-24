@@ -11,7 +11,7 @@ import { Account } from "./Account";
 import { SSOTypes, Constants, PromptState, ResponseTypes } from "./utils/Constants";
 import { StringUtils } from "./utils/StringUtils";
 import { ScopeSet } from "./ScopeSet";
-import { name as libraryVersion } from "./packageMetadata";
+import { version as libraryVersion } from "./packageMetadata";
 
 /**
  * Nonce: OIDC Nonce definition: https://openid.net/specs/openid-connect-core-1_0.html#IDToken
@@ -134,7 +134,7 @@ export class ServerRequestParameters {
      * @param loginHint
      */
     // TODO: check how this behaves when domain_hint only is sent in extraparameters and idToken has no upn.
-    private constructUnifiedCacheQueryParameter(request: AuthenticationParameters, idTokenObject: any): StringDict {
+    private constructUnifiedCacheQueryParameter(request: AuthenticationParameters, idTokenObject: object): StringDict {
 
         // preference order: account > sid > login_hint
         let ssoType;
@@ -168,7 +168,7 @@ export class ServerRequestParameters {
         else if (idTokenObject) {
             if (idTokenObject.hasOwnProperty(Constants.upn)) {
                 ssoType = SSOTypes.ID_TOKEN;
-                ssoData = idTokenObject.upn;
+                ssoData = idTokenObject["upn"];
             }
         }
 
@@ -190,11 +190,12 @@ export class ServerRequestParameters {
      * @param {@link ServerRequestParameters}
      * @ignore
      */
-    private addHintParameters(account: Account, qParams: StringDict): StringDict {
+    private addHintParameters(account: Account, params: StringDict): StringDict {
     /*
      * This is a final check for all queryParams added so far; preference order: sid > login_hint
      * sid cannot be passed along with login_hint or domain_hint, hence we check both are not populated yet in queryParameters
      */
+        let qParams = params;
         if (account && !qParams[SSOTypes.SID]) {
             // sid - populate only if login_hint is not already populated and the account has sid
             const populateSID = !qParams[SSOTypes.LOGIN_HINT] && account.sid && this.promptValue === PromptState.NONE;
@@ -217,10 +218,8 @@ export class ServerRequestParameters {
      * Add SID to extraQueryParameters
      * @param sid
      */
-    private addSSOParameter(ssoType: string, ssoData: string, ssoParam?: StringDict): StringDict {
-        if (!ssoParam) {
-            ssoParam = {};
-        }
+    private addSSOParameter(ssoType: string, ssoData: string, params?: StringDict): StringDict {
+        const ssoParam = params || {};
 
         if (!ssoData) {
             return ssoParam;
@@ -275,8 +274,8 @@ export class ServerRequestParameters {
      * Check to see if there are SSO params set in the Request
      * @param request
      */
-    static isSSOParam(request: AuthenticationParameters) {
-        return request && (request.account || request.sid || request.loginHint);
+    static isSSOParam(request: AuthenticationParameters): boolean {
+        return !!(request && (request.account || request.sid || request.loginHint));
     }
 
     /**
@@ -285,7 +284,7 @@ export class ServerRequestParameters {
      * @param scopes Array<string>: AuthenticationRequest scopes configuration
      * @param loginScopesOnly boolean: True if the scopes array ONLY contains the clientId or any combination of OIDC scopes, without resource scopes
      */
-    static determineResponseType(accountsMatch: boolean, scopes: Array<string>) {
+    static determineResponseType(accountsMatch: boolean, scopes: Array<string>): string {
         // Supports getting an id_token by sending in clientId as only scope or OIDC scopes as only scopes
         if (ScopeSet.onlyContainsOidcScopes(scopes)) {
             return ResponseTypes.id_token;

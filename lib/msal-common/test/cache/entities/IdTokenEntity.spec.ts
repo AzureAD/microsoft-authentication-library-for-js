@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import { IdTokenEntity } from "../../../src/cache/entities/IdTokenEntity";
 import { mockIdTokenEntity, mockAccessTokenEntity_1 } from "./cacheConstants";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../../src";
@@ -13,28 +12,26 @@ describe("IdTokenEntity.ts Unit Tests", () => {
     it("Create an IdTokenEntity", () => {
         const idT = new IdTokenEntity();
         Object.assign(idT, mockIdTokenEntity);
-        expect(idT.generateCredentialKey()).to.eql(
-            "uid.utid-login.microsoftonline.com-idtoken-mock_client_id-microsoft-"
-        );
+        expect(idT.generateCredentialKey()).toEqual("uid.utid-login.microsoftonline.com-idtoken-mock_client_id-microsoft-");
     });
 
     it("Throws error if IdTokenEntity is not assigned a type", () => {
         const idT = new IdTokenEntity();
-        expect(() => idT.generateType()).to.throw(ClientAuthError);
-        expect(() => idT.generateType()).to.throw(ClientAuthErrorMessage.unexpectedCredentialType.desc);
+        expect(() => idT.generateType()).toThrowError(ClientAuthError);
+        expect(() => idT.generateType()).toThrowError(ClientAuthErrorMessage.unexpectedCredentialType.desc);
     });
 
     it("Generate IdTokenEntity type", () => {
         const idT = new IdTokenEntity();
         Object.assign(idT, mockIdTokenEntity);
-        expect(idT.generateType()).to.eql(CacheType.ID_TOKEN);
+        expect(idT.generateType()).toEqual(CacheType.ID_TOKEN);
     });
 
     it("verify if an object is an id token entity", () => {
-        expect(IdTokenEntity.isIdTokenEntity(mockIdTokenEntity)).to.eql(true);
+        expect(IdTokenEntity.isIdTokenEntity(mockIdTokenEntity)).toEqual(true);
     });
 
     it("verify if an object is not an id token entity", () => {
-        expect(IdTokenEntity.isIdTokenEntity(mockAccessTokenEntity_1)).to.eql(false);
+        expect(IdTokenEntity.isIdTokenEntity(mockAccessTokenEntity_1)).toEqual(false);
     });
 });

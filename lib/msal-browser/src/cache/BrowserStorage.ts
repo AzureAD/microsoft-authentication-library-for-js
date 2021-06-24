@@ -16,7 +16,7 @@ export class BrowserStorage implements IWindowStorage {
         this.windowStorage = window[cacheLocation];
     }
 
-    private validateWindowStorage(cacheLocation: string) {
+    private validateWindowStorage(cacheLocation: string): void {
         if (cacheLocation !== BrowserCacheLocation.LocalStorage && cacheLocation !== BrowserCacheLocation.SessionStorage) {
             throw BrowserConfigurationAuthError.createStorageNotSupportedError(cacheLocation);
         }

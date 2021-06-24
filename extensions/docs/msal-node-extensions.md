@@ -110,3 +110,15 @@ const pca = new PublicClientApplication(publicClientConfig);
 ```
 
 Note that MSAL will not read and write to persistence by default. You will have to call PublicClientApplication.tokenCache.readFromPersistence() and PublicClientApplication.tokenCache.writeToPersistence() anytime you trigger and MSAL Node operation that alters the token cache.
+
+### Note for Electron Developers:
+If you are using this extension for Electron, you might face an error similar to this:
+```
+Uncaught Exception:
+Error: The module 
+"<path-to-project>\node_modules\...\dpapi.node" was compiled against a different Node.js version using NODE_MODULE_VERSION 85. This version of Node.js requires NODE_MODULE_VERSION 80. Please try re-compiling or re-installing the module...."
+```
+This error is probably due to Node.js version differences between the Electron project and the extension. This can be handled by re-building the package with the following steps:
+- Install ```electron-rebuild``` with the command ```npm i -D electron-rebuild``` if you don't already have it installed.
+- Remove ```packages-lock.json``` from your project if it exists
+- Run ```./node_modules/.bin/electron-rebuild```

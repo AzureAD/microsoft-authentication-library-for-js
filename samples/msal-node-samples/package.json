@@ -1,0 +1,19 @@
+{
+    "name": "msal-node-samples",
+    "version": "1.0.0",
+    "description": "End-to-end test suite for msal-node",
+    "scripts": {
+        "test": "shx rm -rf screenshots && jest",
+        "preinstall": "cd .. && npm install",
+        "build:package": "cd ../../lib/msal-node && npm run build:all"
+    },
+    "devDependencies": {
+        "jest": "^27.0.4",
+        "shx": "^0.3.3",
+        "yargs": "^16.2.0"
+    },
+    "dependencies": {
+        "@types/express": "^4.17.11",
+        "express": "^4.17.1"
+    }
+}

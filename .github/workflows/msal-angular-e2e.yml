@@ -14,8 +14,13 @@ on:
       - 'lib/msal-browser/**/*' 
       - 'lib/msal-common/**/*'
       - 'samples/msal-angular-v2-samples/**/*'
+      - 'samples/e2eTestUtils/**/*'
       - '!**.md'
       - '.github/workflows/msal-angular-e2e.yml'
+
+concurrency:
+  group: angular-e2e-${{github.ref}}
+  cancel-in-progress: true
 
 jobs:
   run-e2e:
@@ -30,6 +35,7 @@ jobs:
           - 'angular10-sample-app'
           - 'angular11-b2c-sample'
           - 'angular11-sample-app'
+          - 'angular12-sample-app'
 
     steps:
     - uses: actions/checkout@v2
@@ -53,7 +59,9 @@ jobs:
     - name: Install ${{ matrix.sample }}
       working-directory: samples/msal-angular-v2-samples/${{ matrix.sample }}
       run: |
+        npm run install:local
         npm install
+
     - name: Build ${{ matrix.sample }}
       working-directory: samples/msal-angular-v2-samples/${{ matrix.sample }}
       run: npm run build

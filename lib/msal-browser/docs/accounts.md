@@ -23,7 +23,7 @@ function handleResponse(resp) {
         homeAccountId = resp.account.homehomeAccountId; // alternatively: resp.account.homehomeAccountId or resp.account.username
     } else {
         const currentAccounts = myMSALObj.getAllAccounts();
-        if (!currentAccounts || currentAccounts.length < 1) { // No cached accounts
+        if (currentAccounts.length < 1) { // No cached accounts
             return;
         } else if (currentAccounts.length > 1) { // Multiple account scenario
             // Add account selection code here

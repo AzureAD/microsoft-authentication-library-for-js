@@ -1,0 +1,58 @@
+{
+    "selectors": {
+        "Core Library": {
+            "labels": {
+                "msal@1.x": {
+                    "searchStrings": ["@azure/msal or msal"]
+                },
+                "msal-browser": {
+                    "searchStrings": ["@azure/msal-browser"]
+                },
+                "msal-node": {
+                    "searchStrings": ["@azure/msal-node"]
+                },
+                "adal-node": {
+                    "searchStrings": ["adal-node"]
+                },
+                "adal.js": {
+                    "searchStrings": ["adal.js"]
+                },
+                "passport-azure-ad": {
+                    "searchStrings": ["passport-azure-ad"]
+                }
+            }
+        },
+        "Wrapper Library": {
+            "labels": {
+                "msal-angular": {
+                    "searchStrings": ["@azure/msal-angular"]
+                },
+                "msal-react": {
+                    "searchStrings": ["@azure/msal-react"]
+                },
+                "msal-node-extensions": {
+                    "searchStrings": ["@azure/msal-node-extensions"]
+                },
+                "adal-angular": {
+                    "searchStrings": ["adal-angular"]
+                }
+            }
+        },
+        "Identity Provider": {
+            "labels": {
+                "b2c": {
+                    "searchStrings": ["B2C"]
+                },
+                "adfs": {
+                    "searchStrings": ["ADFS"]
+                }
+            }
+        }
+    },
+    "ignoreIssuesOpenedBefore": "2021-04-06",
+    "enforceTemplate": true,
+    "templateEnforcementLabel": "more-information-needed",
+    "incompleteTemplateMessage": "Please update the original issue and make sure to fill out the entire issue template so we can better assist you.",
+    "noTemplateMessage": "Please open a new issue and use one of the provided issue templates. Thanks!",
+    "noTemplateClose": true
+}

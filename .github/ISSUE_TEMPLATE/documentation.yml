@@ -1,0 +1,57 @@
+name: Documentation
+description: Issues with documentation for one of our libraries.
+labels: [documentation, question]
+body:
+
+- type: markdown
+  attributes:
+    value: |
+      ## Before Submitting your Issue
+      If there's a problem with the documentation or samples in this repo, please consider opening a PR with the necessary changes instead.
+      
+      You'll find our contributing doc [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/contributing.md)
+      
+- type: markdown
+  attributes:
+    value: |
+      ## Issue Details
+
+- type: dropdown
+  attributes:
+    label: Core Library
+    multiple: true
+    options: 
+      - "MSAL.js v2 (@azure/msal-browser)"
+      - "MSAL.js v1 (@azure/msal or msal)"
+      - "MSAL Node (@azure/msal-node)"
+      - "Passport Azure AD (passport-azure-ad)"
+      - "ADAL Node (adal-node)"
+      - "ADAL.js (adal.js)"
+
+- type: dropdown
+  attributes:
+    label: Wrapper Library
+    multiple: true
+    options:
+      - "MSAL Angular (@azure/msal-angular)"
+      - "MSAL React (@azure/msal-react)"
+      - "MSAL Node Extensions (@azure/msal-node-extensions)"
+      - "ADAL Angular (adal-angular)"
+      - "Not Applicable"
+  validations:
+    required: true
+
+- type: input
+  attributes:
+    label: Documentation Location
+    description: Please provide a link to the documentation this issue is about
+    placeholder: "docs.microsoft.com"
+  validations: 
+    required: true
+
+- type: textarea
+  attributes:
+    label: Description
+    description: "Please briefly describe your issue."
+  validations: 
+    required: true

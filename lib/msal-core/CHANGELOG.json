@@ -2,6 +2,140 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Thu, 13 May 2021 18:34:08 GMT",
+      "tag": "msal_v1.4.11",
+      "version": "1.4.11",
+      "comments": {
+        "none": [
+          {
+            "comment": "Enable no-param-reassign lint rule",
+            "author": "janutter@microsoft.com",
+            "commit": "e24f5cff944c05ccaecb180fa68814bc89512095",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 12 May 2021 18:35:03 GMT",
+      "tag": "msal_v1.4.11",
+      "version": "1.4.11",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Remove idtoken hash from browser history in msal-core #3587",
+            "author": "hemoral@microsoft.com",
+            "commit": "6a7a5c78af41887d5ac969ee2743f8a8668e5c6e",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 22 Apr 2021 23:26:08 GMT",
+      "tag": "msal_v1.4.10",
+      "version": "1.4.10",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update and fix eslint rules",
+            "author": "janutter@microsoft.com",
+            "commit": "70debe58239b6a6fdf4e533a8a1ee057257846a8",
+            "package": "msal"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Encode control characters in cookies set by MSAL.js v1 #3469",
+            "author": "janutter@microsoft.com",
+            "commit": "80e40e83c0e3709fce6ae0534138c930dfdacaa5",
+            "package": "msal"
+          },
+          {
+            "comment": "Add .browserslistrc #3471",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "04c6d659d4dc76183ef9043075d3b6cacc450c9b",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 14 Apr 2021 18:39:53 GMT",
+      "tag": "msal_v1.4.9",
+      "version": "1.4.9",
+      "comments": {
+        "none": [
+          {
+            "comment": "Merge pull request #2964 from AzureAD/msal-react-migration-guide",
+            "author": "1292510+svrooij@users.noreply.github.com",
+            "commit": "ee6480557de68bb84765097e7b3aa79fb2b5977e",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 31 Mar 2021 22:25:57 GMT",
+      "tag": "msal_v1.4.9",
+      "version": "1.4.9",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix token cache for /consumers authority #3327",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "d9f23adb2d26f9008ccb24977b4a8352755fbda5",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 24 Mar 2021 22:55:46 GMT",
+      "tag": "msal_v1.4.8",
+      "version": "1.4.8",
+      "comments": {
+        "none": [
+          {
+            "comment": "Fix code example",
+            "author": "stef.heyenrath@gmail.com",
+            "commit": "f2542071844d89989a5db16d36552cdd5826309b",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 15 Mar 2021 23:45:17 GMT",
+      "tag": "msal_v1.4.8",
+      "version": "1.4.8",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Dont migrate tokens for different clientId #3188",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "2933eaab47f1f840b71bfdb5b991eb297922e48a",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 03 Mar 2021 21:47:05 GMT",
+      "tag": "msal_v1.4.7",
+      "version": "1.4.7",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix lib version on request (#3080) ",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "b38129df9722e009e9e9a8b6a482a272835c3bf9",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 09 Feb 2021 01:48:22 GMT",
       "tag": "msal_v1.4.6",
       "version": "1.4.6",

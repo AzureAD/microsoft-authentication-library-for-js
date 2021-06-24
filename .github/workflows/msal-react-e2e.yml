@@ -14,8 +14,13 @@ on:
       - 'lib/msal-browser/**/*' 
       - 'lib/msal-common/**/*'
       - 'samples/msal-react-samples/**/*'
+      - 'samples/e2eTestUtils/**/*'
       - '!**.md'
       - '.github/workflows/msal-react-e2e.yml'
+
+concurrency:
+  group: react-e2e-${{github.ref}}
+  cancel-in-progress: true
 
 jobs:
   run-e2e:
@@ -28,6 +33,8 @@ jobs:
         sample:
           - 'react-router-sample'
           - 'nextjs-sample'
+          - 'gatsby-sample'
+          - 'typescript-sample'
 
     steps:
     - uses: actions/checkout@v2

@@ -54,12 +54,12 @@ export class XhrClient {
         });
     }
 
-    protected handleError(responseText: string): any {
-        let jsonResponse;
+    protected handleError(responseText: string): string {
+        let jsonResponse: object;
         try {
             jsonResponse = JSON.parse(responseText);
-            if (jsonResponse.error) {
-                return jsonResponse.error;
+            if (jsonResponse["error"]) {
+                return jsonResponse["error"];
             } else {
                 throw responseText;
             }
@@ -70,6 +70,6 @@ export class XhrClient {
 }
 
 export type XhrResponse = {
-    body: any,
+    body: object,
     statusCode: number
 };

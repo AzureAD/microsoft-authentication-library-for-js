@@ -95,13 +95,13 @@ export class UrlUtils {
         const lowerCaseUrl = url.toLowerCase();
         const urlObject = this.GetUrlComponents(lowerCaseUrl);
         const pathArray = urlObject.PathSegments;
-        if (tenantId && (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === SSOTypes.ORGANIZATIONS))) {
+        if (tenantId && (pathArray.length !== 0 && (pathArray[0] === Constants.common || pathArray[0] === SSOTypes.ORGANIZATIONS || pathArray[0] === SSOTypes.CONSUMERS))) {
             pathArray[0] = tenantId;
         }
         return this.constructAuthorityUriFromObject(urlObject, pathArray);
     }
 
-    static constructAuthorityUriFromObject(urlObject: IUri, pathArray: string[]) {
+    static constructAuthorityUriFromObject(urlObject: IUri, pathArray: string[]): string {
         return this.CanonicalizeUri(urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/"));
     }
     
@@ -125,6 +125,17 @@ export class UrlUtils {
         const authority =  this.CanonicalizeUri(url);
         const pathArray = this.GetUrlComponents(authority).PathSegments;
         return (pathArray.length !== 0 && pathArray[0] === SSOTypes.ORGANIZATIONS);
+    }
+
+    /**
+     * Checks if an authority is for consumers (ex. https://a:b/consumers/)
+     * @param url The url
+     * @returns true if authority is for  and false otherwise 
+     */
+    static isConsumersAuthority(url: string): boolean {
+        const authority =  this.CanonicalizeUri(url);
+        const pathArray = this.GetUrlComponents(authority).PathSegments;
+        return (pathArray.length !== 0 && pathArray[0] === SSOTypes.CONSUMERS);
     }
 
     /**
@@ -172,11 +183,13 @@ export class UrlUtils {
      */
     static CanonicalizeUri(url: string): string {
         if (url) {
-            url = url.toLowerCase();
-        }
+            let lowerCaseUrl = url.toLowerCase();
 
-        if (url && !UrlUtils.endsWith(url, "/")) {
-            url += "/";
+            if (!UrlUtils.endsWith(lowerCaseUrl, "/")) {
+                lowerCaseUrl += "/";
+            }
+
+            return lowerCaseUrl;
         }
 
         return url;
@@ -207,15 +220,16 @@ export class UrlUtils {
             return url;
         }
 
+        let updatedUrl = url;
         let regex = new RegExp("(\\&" + name + "=)[^\&]+");
-        url = url.replace(regex, "");
+        updatedUrl = url.replace(regex, "");
         // name=value&
         regex = new RegExp("(" + name + "=)[^\&]+&");
-        url = url.replace(regex, "");
+        updatedUrl = url.replace(regex, "");
         // name=value
         regex = new RegExp("(" + name + "=)[^\&]+");
-        url = url.replace(regex, "");
-        return url;
+        updatedUrl = url.replace(regex, "");
+        return updatedUrl;
     }
 
     /**
@@ -255,7 +269,7 @@ export class UrlUtils {
      * Returns deserialized portion of URL hash
      * @ignore
      */
-    static deserializeHash(urlFragment: string) {
+    static deserializeHash(urlFragment: string): object {
         const hash = UrlUtils.getHashFromUrl(urlFragment);
         return CryptoUtils.deserialize(hash);
     }

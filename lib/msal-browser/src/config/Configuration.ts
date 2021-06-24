@@ -6,6 +6,8 @@
 import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode, LogLevel, StubbedNetworkModule } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserCacheLocation } from "../utils/BrowserConstants";
+import { INavigationClient } from "../navigation/INavigationClient";
+import { NavigationClient } from "../navigation/NavigationClient";
 
 // Default timeout for popup windows and iframes in milliseconds
 export const DEFAULT_POPUP_TIMEOUT_MS = 60000;
@@ -68,6 +70,7 @@ export type CacheOptions = {
 export type BrowserSystemOptions = SystemOptions & {
     loggerOptions?: LoggerOptions;
     networkClient?: INetworkModule;
+    navigationClient?: INavigationClient;
     windowHashTimeout?: number;
     iframeHashTimeout?: number;
     loadFrameTimeout?: number;
@@ -131,6 +134,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
 
     // Default logger options for browser
     const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
         loggerCallback: (): void => {},
         logLevel: LogLevel.Info,
         piiLoggingEnabled: false
@@ -141,6 +145,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         ...DEFAULT_SYSTEM_OPTIONS,
         loggerOptions: DEFAULT_LOGGER_OPTIONS,
         networkClient: isBrowserEnvironment ? BrowserUtils.getBrowserNetworkClient() : StubbedNetworkModule,
+        navigationClient: new NavigationClient(),
         loadFrameTimeout: 0,
         // If loadFrameTimeout is provided, use that as default.
         windowHashTimeout: (userInputSystem && userInputSystem.loadFrameTimeout) || DEFAULT_POPUP_TIMEOUT_MS,

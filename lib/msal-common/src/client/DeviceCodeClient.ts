@@ -54,8 +54,7 @@ export class DeviceCodeClient extends BaseClient {
             response,
             this.authority,
             reqTimestamp,
-            request.resourceRequestMethod,
-            request.resourceRequestUri
+            request
         );
     }
 
@@ -132,6 +131,32 @@ export class DeviceCodeClient extends BaseClient {
     }
 
     /**
+     * Breaks the polling with specific conditions.
+     * @param request CommonDeviceCodeRequest
+     * @param deviceCodeResponse DeviceCodeResponse
+     */
+    private continuePolling(
+        deviceCodeExpirationTime: number,
+        userSpecifiedTimeout?: number,
+        userSpecifiedCancelFlag?: boolean,
+    ): boolean {
+        if (userSpecifiedCancelFlag) {
+            this.logger.error("Token request cancelled by setting DeviceCodeRequest.cancel = true");
+            throw ClientAuthError.createDeviceCodeCancelledError();
+        } else if (userSpecifiedTimeout && userSpecifiedTimeout < deviceCodeExpirationTime && TimeUtils.nowSeconds() > userSpecifiedTimeout) {
+            this.logger.error(`User defined timeout for device code polling reached. The timeout was set for ${userSpecifiedTimeout}`);
+            throw ClientAuthError.createUserTimeoutReachedError();
+        } else if (TimeUtils.nowSeconds() > deviceCodeExpirationTime) {
+            if (userSpecifiedTimeout) {
+                this.logger.verbose(`User specified timeout ignored as the device code has expired before the timeout elapsed. The user specified timeout was set for ${userSpecifiedTimeout}`);
+            }
+            this.logger.error(`Device code expired. Expiration time of device code was ${deviceCodeExpirationTime}`);
+            throw ClientAuthError.createDeviceCodeExpiredError();
+        }
+        return true;
+    }
+
+    /**
      * Creates token request with device code response and polls token endpoint at interval set by the device code
      * response
      * @param request
@@ -152,58 +177,35 @@ export class DeviceCodeClient extends BaseClient {
          * Poll token endpoint while (device code is not expired AND operation has not been cancelled by
          * setting CancellationToken.cancel = true). POST request is sent at interval set by pollingIntervalMilli
          */
-        return new Promise<ServerAuthorizationTokenResponse>((resolve, reject) => {
+        while (this.continuePolling(deviceCodeExpirationTime, userSpecifiedTimeout, request.cancel)) {
+            const thumbprint: RequestThumbprint = {
+                clientId: this.config.authOptions.clientId,
+                authority: request.authority,
+                scopes: request.scopes
+            };
+            const response = await this.executePostToTokenEndpoint(
+                this.authority.tokenEndpoint,
+                requestBody,
+                headers,
+                thumbprint);
 
-            const intervalId: ReturnType<typeof setTimeout> = setInterval(async () => {
-                try {
-                    if (request.cancel) {
+            if (response.body && response.body.error === Constants.AUTHORIZATION_PENDING) {
+                // user authorization is pending. Sleep for polling interval and try again
+                this.logger.info(response.body.error_description || "Authorization pending. Continue polling.");
+  
+                await TimeUtils.delay(pollingIntervalMilli);
+            } else {
+                this.logger.verbose("Authorization completed successfully. Polling stopped.");
+                return response.body;
+            }
+        }
 
-                        this.logger.error("Token request cancelled by setting DeviceCodeRequest.cancel = true");
-                        clearInterval(intervalId);
-                        reject(ClientAuthError.createDeviceCodeCancelledError());
-
-                    } else if (userSpecifiedTimeout && userSpecifiedTimeout < deviceCodeExpirationTime && TimeUtils.nowSeconds() > userSpecifiedTimeout) {
-
-                        this.logger.error(`User defined timeout for device code polling reached. The timeout was set for ${userSpecifiedTimeout}`);
-                        clearInterval(intervalId);
-                        reject(ClientAuthError.createUserTimeoutReachedError());
-
-                    } else if (TimeUtils.nowSeconds() > deviceCodeExpirationTime) {
-
-                        if (userSpecifiedTimeout) {
-                            this.logger.verbose(`User specified timeout ignored as the device code has expired before the timeout elapsed. The user specified timeout was set for ${userSpecifiedTimeout}`);
-                        }
-
-                        this.logger.error(`Device code expired. Expiration time of device code was ${deviceCodeExpirationTime}`);
-                        clearInterval(intervalId);
-                        reject(ClientAuthError.createDeviceCodeExpiredError());
-
-                    } else {
-                        const thumbprint: RequestThumbprint = {
-                            clientId: this.config.authOptions.clientId,
-                            authority: request.authority,
-                            scopes: request.scopes
-                        };
-                        const response = await this.executePostToTokenEndpoint(
-                            this.authority.tokenEndpoint,
-                            requestBody,
-                            headers,
-                            thumbprint);
-
-                        if (response.body && response.body.error === Constants.AUTHORIZATION_PENDING) {
-                            // user authorization is pending. Sleep for polling interval and try again
-                            this.logger.info(response.body.error_description || "no_error_description");
-                        } else {
-                            clearInterval(intervalId);
-                            resolve(response.body);
-                        }
-                    }
-                } catch (error) {
-                    clearInterval(intervalId);
-                    reject(error);
-                }
-            }, pollingIntervalMilli);
-        });
+        /*
+         * The above code should've thrown by this point, but to satisfy TypeScript,
+         * and in the rare case the conditionals in continuePolling() may not catch everything...
+         */
+        this.logger.error("Polling stopped for unknown reasons.");
+        throw ClientAuthError.createDeviceCodeUnknownError();
     }
 
     /**
@@ -222,8 +224,14 @@ export class DeviceCodeClient extends BaseClient {
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         requestParameters.addCorrelationId(correlationId);
         requestParameters.addClientInfo();
+        requestParameters.addLibraryInfo(this.config.libraryInfo);
+        requestParameters.addThrottling();
+        
+        if (this.serverTelemetryManager) {
+            requestParameters.addServerTelemetry(this.serverTelemetryManager);
+        }
 
-        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+        if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             requestParameters.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
         return requestParameters.createQueryString();

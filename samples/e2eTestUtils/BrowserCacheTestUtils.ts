@@ -1,7 +1,8 @@
-import puppeteer from "puppeteer";
+import * as puppeteer from "puppeteer";
 
 import { LabConfig } from "./LabConfig";
 import { Configuration } from "../../lib/msal-browser";
+import { ServerTelemetryEntity } from "../../lib/msal-common";
 
 export type tokenMap = {
     idTokens: string[],
@@ -10,12 +11,19 @@ export type tokenMap = {
 };
 
 export function buildConfig(labConfig: LabConfig): Configuration {
+    if (!labConfig.app.appId) {
+        throw Error("No ClientId Received from Lab!")
+    }
     const msalConfig: Configuration = {
         auth: {
             clientId: labConfig.app.appId
         }
     };
 
+    if (!labConfig.lab.authority) {
+        throw Error("No Authority received from Lab!");
+    }
+    
     if (labConfig.lab.authority.endsWith("/")) {
         msalConfig.auth.authority = labConfig.lab.authority + labConfig.user.tenantID;
     } else {
@@ -44,6 +52,7 @@ export class BrowserCacheUtils {
 
     async getTokens(): Promise<tokenMap> {
         const storage = await this.getWindowStorage();
+
         const tokenKeys: tokenMap = {
             idTokens: [],
             accessTokens: [],
@@ -52,7 +61,7 @@ export class BrowserCacheUtils {
         Object.keys(storage).forEach(async key => {
             if (key.includes("idtoken") && BrowserCacheUtils.validateToken(storage[key], "IdToken")) {
                 tokenKeys.idTokens.push(key);
-            } else if (key.includes("accesstoken") && BrowserCacheUtils.validateToken(storage[key], "AccessToken")) {
+            } else if (key.includes("accesstoken") && (BrowserCacheUtils.validateToken(storage[key], "AccessToken") || BrowserCacheUtils.validateToken(storage[key], "AccessToken_With_AuthScheme"))) {
                 tokenKeys.accessTokens.push(key);
             } else if (key.includes("refreshtoken") && BrowserCacheUtils.validateToken(storage[key], "RefreshToken")) {
                 tokenKeys.refreshTokens.push(key);
@@ -87,6 +96,13 @@ export class BrowserCacheUtils {
             ) {
                 return false;
             }
+        } else if (tokenType === "AccessToken_With_AuthScheme") {
+            if (
+                !BrowserCacheUtils.validateStringField(tokenVal.keyId) ||
+                !BrowserCacheUtils.validateStringField(tokenVal.tokenType)
+            ) {
+                return false;
+            }
         }
 
         return true;
@@ -100,6 +116,19 @@ export class BrowserCacheUtils {
         const storage = await this.getWindowStorage();
 
         return accessTokenKeys.some((key) => {
+            const tokenVal = JSON.parse(storage[key]);
+            const tokenScopes = tokenVal.target.toLowerCase().split(" ");
+
+            return scopes.every((scope) => {
+                return tokenScopes.includes(scope.toLowerCase());
+            });
+        });
+    }
+
+    async popAccessTokenForScopesExists(accessTokenKeys: Array<string>, scopes: Array<String>): Promise<boolean> {
+        const storage = await this.getWindowStorage();
+
+        return accessTokenKeys.filter((key) => key.indexOf("accesstoken_with_authscheme") !== -1).some((key) => {
             const tokenVal = JSON.parse(storage[key]);
             const tokenScopes = tokenVal.target.toLowerCase().split(" ");
 
@@ -132,13 +161,13 @@ export class BrowserCacheUtils {
         return null;
     }
 
-    async getTelemetryCacheEntry(clientId: string): Promise<object> {
+    async getTelemetryCacheEntry(clientId: string): Promise<ServerTelemetryEntity|null> {
         const storage = await this.getWindowStorage();
         const telemetryKey = BrowserCacheUtils.getTelemetryKey(clientId);
 
         const telemetryVal = storage[telemetryKey];
 
-        return telemetryVal ? JSON.parse(telemetryVal): null;
+        return telemetryVal ? JSON.parse(telemetryVal) as ServerTelemetryEntity: null;
     }
 
     static getTelemetryKey(clientId: string): string {

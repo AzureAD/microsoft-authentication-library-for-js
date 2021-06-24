@@ -129,6 +129,7 @@ export enum SSOTypes {
     SID = "sid",
     LOGIN_HINT = "login_hint",
     ORGANIZATIONS = "organizations",
+    CONSUMERS = "consumers",
     ID_TOKEN ="id_token",
     ACCOUNT_ID = "accountIdentifier",
     HOMEACCOUNT_ID = "homeAccountIdentifier"
@@ -169,10 +170,3 @@ export const FramePrefix = {
     ID_TOKEN_FRAME: "msalIdTokenFrame",
     TOKEN_FRAME: "msalRenewFrame"
 };
-
-/**
- * MSAL JS Library Version
- */
-export function libraryVersion(): string {
-    return "1.4.4";
-}

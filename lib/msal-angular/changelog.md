@@ -1,8 +1,81 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Thu, 18 Feb 2021 00:34:32 GMT and should not be manually modified.
+This log was last generated on Thu, 13 May 2021 18:34:08 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.0.0
+
+Thu, 13 May 2021 18:34:08 GMT
+
+### Patches
+
+- Move MSAL Angular v2 and MSAL React to GA (janutter@microsoft.com)
+
+## 2.0.0-beta.6
+
+Wed, 12 May 2021 18:35:03 GMT
+
+### Changes
+
+- Fix navigation bug when clearing auth code from hash in msal-angular #3609 (hemoral@microsoft.com)
+- Update MsalInterceptor to accept HTTP methods in protectedResourceMap #3546 (joarroyo@microsoft.com)
+- Properly handle MSAL guard on redirect uri for hash and path routing (janutter@microsoft.com)
+- Update msal-angular tooling to angular v11 #3584 (joarroyo@microsoft.com)
+
+## 2.0.0-beta.5
+
+Thu, 22 Apr 2021 23:26:08 GMT
+
+### Changes
+
+- Prevent MSAL Guard from navigating app to url with code hash #3506 (janutter@microsoft.com)
+- Add .browserslistrc #3471 (thomas.norling@microsoft.com)
+
+## 2.0.0-beta.4
+
+Wed, 14 Apr 2021 18:39:53 GMT
+
+### Changes
+
+- fix(Msal-Angular): Dynamic interceptor authority (1292510+svrooij@users.noreply.github.com)
+
+## 2.0.0-beta.3
+
+Wed, 31 Mar 2021 22:25:57 GMT
+
+### Changes
+
+- Update MsalInterceptor types and getScopesForEndpoint with query and relative paths #3307 (joarroyo@microsoft.com)
+
+## 2.0.0-beta.2
+
+Wed, 24 Mar 2021 22:55:46 GMT
+
+### Changes
+
+- Add support for logoutPopup API #3044 (thomas.norling@microsoft.com)
+- Add MsalCustomNavigationClient, updates samples and docs #3174 (joarroyo@microsoft.com)
+- Update MsalGuard and _inProgress subject #3269 (joarroyo@microsoft.com)
+- Update MSAL Service handleRedirectObservable hash handling #3243 (joarroyo@microsoft.com)
+
+## 2.0.0-beta.1
+
+Mon, 15 Mar 2021 23:45:17 GMT
+
+### Changes
+
+- fix: #3149 - Msal Redirect Component was not part of the Module (rchinnakampalli@worldbankgroup.org)
+
+## 2.0.0-beta.0
+
+Wed, 03 Mar 2021 21:47:05 GMT
+
+### Changes
+
+- Fix BroadcastService logging to use msal-angular version, update samples versions, profile, and links (#3015) (joarroyo@microsoft.com)
+- Add FAQ.md and active accounts in sample (#2977) (joarroyo@microsoft.com)
+- Update msal-angular preinstall script to force npm-force-resolutions version (#3074) (joarroyo@microsoft.com)
 
 ## 2.0.0-alpha.6
 

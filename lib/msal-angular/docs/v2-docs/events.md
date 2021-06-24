@@ -2,7 +2,7 @@
 
 Before you start here, make sure you understand how to [initialize the application object](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/initialization.md).
 
-MSAL Angular v2 uses the event system exposed by `@azure/msal-browser`, which emits events related to auth and MSAL, and can be used for updating UI, showing error messages, and so on.
+`@azure/msal-angular` uses the event system exposed by `@azure/msal-browser`, which emits events related to auth and MSAL, and can be used for updating UI, showing error messages, and so on.
 
 ## Consuming events in your app
 
@@ -28,7 +28,7 @@ export class AppComponent implements OnInit, OnDestroy {
         filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS), 
         takeUntil(this._destroying$)
       )
-      .subscribe((result) => {
+      .subscribe((result: EventMessage) => {
         // Do something with the result
       });
   }
@@ -40,8 +40,25 @@ export class AppComponent implements OnInit, OnDestroy {
 }
 ```
 
+Note that you may need to cast the `result.payload` as a specific type to prevent compilation errors. The payload type will depend on the event, and can be found in our documentation [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/events.md).
 
-For the full example of using events, please see our sample [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular10-sample-app/src/app/app.component.ts#L29).
+```javascript
+ngOnInit(): void {
+  this.msalBroadcastService.msalSubject$
+    .pipe(
+      filter((msg: EventMessage) => msg.eventType === EventType.LOGIN_SUCCESS),
+    )
+    .subscribe((result: EventMessage) => {
+      // Casting payload as AuthenticationResult to access account
+      const payload = result.payload as AuthenticationResult;
+      this.authService.instance.setActiveAccount(payload.account);
+    });
+}
+```
+
+
+
+For the full example of using events, please see our sample [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/d46c4455243bd51767f669a13fbb717d786c6716/samples/msal-angular-v2-samples/angular11-sample-app/src/app/home/home.component.ts#L17).
 
 ## Table of events
 
@@ -90,7 +107,9 @@ An example of error handling can also be found on our [MSAL Angular v2 B2C Sampl
 
 ## The inProgress$ Observable
 
-The `inProgress$` observable is also handled by the `MsalBroadcastService`, and should be subscribed to when application needs to know the status of interactions, particularly to check that interactions are completed. We recommend checking that the status of interactions is none before functions involving user accounts.
+The `inProgress$` observable is also handled by the `MsalBroadcastService`, and should be subscribed to when application needs to know the status of interactions, particularly to check that interactions are completed. We recommend checking that the status of interactions is `InteractionStatus.None` before functions involving user accounts. 
+
+Note that the last / most recent `InteractionStatus` will also be available when subscribing to the `inProgress$` observable.
 
 See the example below for its use. A full example can also be found in our [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular11-sample-app/src/app/home/home.component.ts#L23). A full list of interaction statuses can be found [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/src/utils/BrowserConstants.ts#L87).
 

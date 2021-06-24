@@ -1,14 +1,14 @@
 import "mocha";
 import puppeteer from "puppeteer";
 import { expect } from "chai";
-import { Screenshot, createFolder, setupCredentials } from "../../../../../e2eTestUtils/TestUtils";
+import { Screenshot, createFolder, setupCredentials, enterCredentials } from "../../../../../e2eTestUtils/TestUtils";
 import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes, UserTypes, B2cProviders } from "../../../../../e2eTestUtils/Constants";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
 import { msalConfig as aadMsalConfig, request as aadTokenRequest } from "../authConfigs/aadAuthConfig.json";
 import { msalConfig as b2cMsalConfig, request as b2cTokenRequest } from "../authConfigs/b2cAuthConfig.json";
-import { b2cAadPpeEnterCredentials, b2cLocalAccountEnterCredentials, clickLoginPopup, clickLoginRedirect, enterCredentials, waitForReturnToApp } from "./testUtils";
+import { b2cAadPpeEnterCredentials, b2cLocalAccountEnterCredentials, clickLoginPopup, clickLoginRedirect, clickLogoutPopup, clickLogoutRedirect, waitForReturnToApp } from "./testUtils";
 import fs from "fs";
 import { RedirectRequest } from "../../../../../../lib/msal-browser/src";
 
@@ -163,6 +163,53 @@ describe("Default tests", function () {
 
                 // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
                 await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
+            });
+        });
+
+        describe("logout Tests", () => {
+            let testName: string;
+            let screenshot: Screenshot;
+            
+            beforeEach(async () => {
+                context = await browser.createIncognitoBrowserContext();
+                page = await context.newPage();
+                BrowserCache = new BrowserCacheUtils(page, aadMsalConfig.cache.cacheLocation);
+                await page.goto(SAMPLE_HOME_URL);
+
+                testName = "logoutBaseCase";
+                screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+                const [popupPage, popupWindowClosed] = await clickLoginPopup(screenshot, page);
+                await enterCredentials(popupPage, screenshot, username, accountPwd);
+                await waitForReturnToApp(screenshot, page, popupPage, popupWindowClosed);
+            });
+
+            afterEach(async () => {
+                await page.evaluate(() =>  Object.assign({}, window.sessionStorage.clear()));
+                await page.evaluate(() =>  Object.assign({}, window.localStorage.clear()));
+                await page.close();
+            });
+
+            it("logoutRedirect", async () => {
+                await clickLogoutRedirect(screenshot, page);
+                expect(page.url().startsWith("https://login.windows-ppe.net/common/")).to.be.true;
+                expect(page.url()).to.contain("logout");
+                // Skip server sign-out
+                await page.goto(SAMPLE_HOME_URL);
+                const tokenStore = await BrowserCache.getTokens();
+                expect(tokenStore.idTokens.length).to.be.eq(0);
+                expect(tokenStore.accessTokens.length).to.be.eq(0);
+                expect(tokenStore.refreshTokens.length).to.be.eq(0);
+            });
+
+            it("logoutPopup", async () => {
+                const [popupWindow, popupWindowClosed] = await clickLogoutPopup(screenshot, page);
+                await popupWindow.waitForNavigation();
+                expect(popupWindow.url().startsWith("https://login.windows-ppe.net/common/")).to.be.true;
+                expect(popupWindow.url()).to.contain("logout");
+                const tokenStore = await BrowserCache.getTokens();
+                expect(tokenStore.idTokens.length).to.be.eq(0);
+                expect(tokenStore.accessTokens.length).to.be.eq(0);
+                expect(tokenStore.refreshTokens.length).to.be.eq(0);
             });
         });
 

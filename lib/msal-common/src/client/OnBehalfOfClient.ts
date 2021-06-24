@@ -57,7 +57,7 @@ export class OnBehalfOfClient extends BaseClient {
      * @param request
      */
     private async getCachedAuthenticationResult(request: CommonOnBehalfOfRequest): Promise<AuthenticationResult | null> {
-        const cachedAccessToken = this.readAccessTokenFromCache(request);
+        const cachedAccessToken = this.readAccessTokenFromCache();
         if (!cachedAccessToken ||
             TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
             return null;
@@ -89,21 +89,23 @@ export class OnBehalfOfClient extends BaseClient {
                 idToken: cachedIdToken,
                 refreshToken: null,
                 appMetadata: null
-            }, true, idTokenObject);
+            },
+            true,
+            request,
+            idTokenObject);
     }
 
     /**
      * read access token from cache TODO: CacheManager API should be used here
      * @param request
      */
-    private readAccessTokenFromCache(request: CommonOnBehalfOfRequest): AccessTokenEntity | null {
+    private readAccessTokenFromCache(): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
             environment: this.authority.canonicalAuthorityUrlComponents.HostNameAndPort,
             credentialType: CredentialType.ACCESS_TOKEN,
             clientId: this.config.authOptions.clientId,
             realm: this.authority.tenant,
             target: this.scopeSet.printScopesLowerCase(),
-            oboAssertion: request.oboAssertion
         };
 
         const credentialCache: CredentialCache = this.cacheManager.getCredentialsFilteredBy(accessTokenFilter);
@@ -181,11 +183,7 @@ export class OnBehalfOfClient extends BaseClient {
             response.body,
             this.authority,
             reqTimestamp,
-            request.resourceRequestMethod,
-            request.resourceRequestUri,
-            undefined,
-            request.scopes,
-            request.oboAssertion
+            request
         );
 
         return tokenResponse;
@@ -205,6 +203,14 @@ export class OnBehalfOfClient extends BaseClient {
         parameterBuilder.addGrantType(GrantType.JWT_BEARER);
 
         parameterBuilder.addClientInfo();
+
+        parameterBuilder.addLibraryInfo(this.config.libraryInfo);
+
+        parameterBuilder.addThrottling();
+        
+        if (this.serverTelemetryManager) {
+            parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
+        }
 
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);

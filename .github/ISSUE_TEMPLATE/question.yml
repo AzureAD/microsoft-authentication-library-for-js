@@ -1,0 +1,112 @@
+name: Question
+description: General questions about one of our libraries or related services.
+labels: [question]
+body:
+- type: markdown
+  attributes:
+    value: |
+      ## Before Submitting your Issue
+      Please check to see if your question is answered in the FAQ for the library you are using:
+      - [@azure/msal-browser](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md)
+      - [@azure/msal-node](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/FAQ.md)
+      - [@azure/msal-angular](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/FAQ.md)
+      - [@azure/msal-react](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/FAQ.md)
+      - [@azure/msal or msal](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/docs/FAQ.md)
+      
+      If you have questions about timelines, please see our [roadmap](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/roadmap.md). Issues pertaining to timelines may be closed without comment.
+
+- type: markdown
+  attributes:
+    value: |
+      ## Issue Details
+    
+- type: dropdown
+  attributes:
+    label: Core Library
+    options: 
+      - "MSAL.js v2 (@azure/msal-browser)"
+      - "MSAL.js v1 (@azure/msal or msal)"
+      - "MSAL Node (@azure/msal-node)"
+      - "Passport Azure AD (passport-azure-ad)"
+      - "ADAL Node (adal-node)"
+      - "ADAL.js (adal.js)"
+  validations:
+    required: true
+    
+- type: input
+  attributes:
+    label: Core Library Version
+    description: "Please enter the version you are using."
+    placeholder: "2.14.1"
+  validations:
+    required: true
+    
+- type: dropdown
+  attributes:
+    label: Wrapper Library
+    options:
+      - "MSAL Angular (@azure/msal-angular)"
+      - "MSAL React (@azure/msal-react)"
+      - "MSAL Node Extensions (@azure/msal-node-extensions)"
+      - "ADAL Angular (adal-angular)"
+      - "Not Applicable"
+  validations:
+    required: true
+    
+- type: input
+  attributes:
+    label: Wrapper Library Version
+    description: "Please enter the version you are using. If you are not using a wrapper library please enter 'None'"
+    placeholder: "2.0.0-beta.0"
+  validations:
+    required: true
+    
+- type: textarea
+  attributes:
+    label: Description
+    description: "Please briefly describe your issue."
+  validations: 
+    required: true
+
+- type: textarea
+  attributes:
+    label: MSAL Configuration
+    description: "If this is a usage question please provide your MSAL configuration."
+    render: javascript
+    placeholder: |
+      {
+        auth: {
+          clientId: "clientId",
+          authority: "https://login.microsoftonline.com/common/"
+        },
+        cache: {
+          cacheLocation: "sessionStorage"
+          storeAuthStateInCookie: false
+        }
+      }
+    
+- type: textarea
+  attributes:
+    label: Relevant Code Snippets
+    description: "If this is a usage question please provide relevant code snippets."
+    render: javascript
+
+- type: dropdown
+  attributes:
+    label: Identity Provider
+    options: 
+      - Azure AD / MSA
+      - Azure B2C Basic Policy
+      - Azure B2C Custom Policy
+      - ADFS
+      - Other
+
+- type: dropdown
+  attributes:
+    label: Source
+    description: "Are you an internal or external customer?"
+    options: 
+      - Internal (Microsoft)
+      - External (Customer)
+  validations: 
+     required: true

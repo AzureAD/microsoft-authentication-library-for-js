@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "fix: have the log level propagate to msal-common",
+  "packageName": "@azure/msal-node",
+  "email": "samuelkamau@microsoft.com",
+  "dependentChangeType": "patch"
+}

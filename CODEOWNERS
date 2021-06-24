@@ -1,8 +1,8 @@
-* @jasonnutter @tnorling @sameerag @pkanher617 @DarylThayil @jo-arroyo @hectormmg @samuelkubai
+* @jasonnutter @tnorling @sameerag @pkanher617 @jo-arroyo @hectormmg @samuelkubai
 
 # MSAL Angular
 /lib/msal-angular/ @jasonnutter @jo-arroyo @tnorling
-/lib/msal-angularjs/ @jasonnutter @jo-arroyo @tnorling
+/maintenance/msal-angularjs/ @jasonnutter @jo-arroyo @tnorling
 /samples/msal-angular-samples/ @jasonnutter @jo-arroyo @tnorling
 /samples/msal-angularjs-samples/ @jasonnutter @jo-arroyo @tnorling
 
@@ -22,9 +22,18 @@
 /samples/msal-node-samples/ @sameerag @hectormmg @samuelkubai
 /extensions/msal-node-extensions/ @sameerag @hectormmg @samuelkubai
 
+# ADAL Node
+/maintenance/adal-node @sameerag @pkanher617 @samuelkubai
+
+# Passport Azure Ad
+/maintenance/passport-azure-ad @pkanher617 @samuelkubai @sameerag
+
 # MSAL React
 /lib/msal-react/ @tnorling @jasonnutter @jo-arroyo
 /samples/msal-react-samples/ @tnorling @jasonnutter @jo-arroyo
+
+## ADAL.js
+/maintenance/adal-angular @jasonnutter @sameerag @pkanher617
 
 # Build
 /build/ @pkanher617 @jasonnutter @tnorling

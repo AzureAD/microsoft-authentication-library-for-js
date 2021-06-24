@@ -1,8 +1,87 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Thu, 18 Feb 2021 00:34:32 GMT and should not be manually modified.
+This log was last generated on Wed, 12 May 2021 18:35:03 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.14.2
+
+Wed, 12 May 2021 18:35:03 GMT
+
+### Patches
+
+- Adjust log messages #3589 (joarroyo@microsoft.com)
+- Fix hash removal from URL and browser history after interactive request #3609 (hemoral@microsoft.com)
+- Update account equality check #3527 (thomas.norling@microsoft.com)
+- Close popup if error is thrown before popup window navigation occurs #3572 (thomas.norling@microsoft.com)
+- change msal-browser/msal-common to preserveModules to enable tree-shaking #3300 (oo.thomas96@gmail.com)
+
+## 2.14.1
+
+Thu, 22 Apr 2021 23:26:08 GMT
+
+### Patches
+
+- Add .browserslistrc #3471 (thomas.norling@microsoft.com)
+- Look for temp cache items in local storage as fallback #3509 (janutter@microsoft.com)
+
+## 2.14.0
+
+Wed, 14 Apr 2021 18:39:53 GMT
+
+### Minor changes
+
+- Add support for AccessToken_With_AuthScheme credential type #3426 (hectormgdev@gmail.com)
+
+### Patches
+
+- Make SHR parameters optional (#3320) (hemoral@microsoft.com)
+
+## 2.13.1
+
+Wed, 31 Mar 2021 22:25:57 GMT
+
+### Patches
+
+- Export PopupEvent #3360 (joarroyo@microsoft.com)
+
+## 2.13.0
+
+Wed, 24 Mar 2021 22:55:46 GMT
+
+### Minor changes
+
+- Add logoutPopup API #3044 (thomas.norling@microsoft.com)
+
+### Patches
+
+- Fix errors thrown on cache lookups when reading non-msal cache values #3245 (thomas.norling@microsoft.com)
+- Update blockReloadInIframe error message with link to error doc #3294 (thomas.norling@microsoft.com)
+- Block nested popups #3249 (thomas.norling@microsoft.com)
+
+## 2.12.1
+
+Mon, 15 Mar 2021 23:45:17 GMT
+
+### Patches
+
+- Clear temporary cache cookies on page load #3129 (prkanher@microsoft.com)
+- Throw BrowserAuthError when fetch fails #3146 (thomas.norling@microsoft.com)
+
+## 2.12.0
+
+Wed, 03 Mar 2021 21:47:05 GMT
+
+### Minor changes
+
+- Add option to make MSAL browser cookies secure (#3001) (hemoral@microsoft.com)
+- Add setNavigationClient API and expose INavigationClient interface (#2985) (thomas.norling@microsoft.com)
+
+### Patches
+
+- Separate telemetry for ssoSilent and ATS iframe renewal (#3064) (thomas.norling@microsoft.com)
+- Add instrumentation to msal-browser (#3004) (joarroyo@microsoft.com)
+- Memoize multiple calls to handleRedirectPromise (#3072) (thomas.norling@microsoft.com)
 
 ## 2.11.2
 

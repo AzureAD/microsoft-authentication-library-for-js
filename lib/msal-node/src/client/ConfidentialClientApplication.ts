@@ -6,7 +6,7 @@
 import { ClientApplication } from "./ClientApplication";
 import { Configuration } from "../config/Configuration";
 import { ClientAssertion } from "./ClientAssertion";
-import { ApiId } from "../utils/Constants";
+import { ApiId , REGION_ENVIRONMENT_VARIABLE } from "../utils/Constants";
 import {
     ClientCredentialClient,
     OnBehalfOfClient,
@@ -14,7 +14,9 @@ import {
     CommonOnBehalfOfRequest,
     AuthenticationResult,
     StringUtils,
-    ClientAuthError } from "@azure/msal-common";
+    ClientAuthError,
+    AzureRegionConfiguration
+} from "@azure/msal-common";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
@@ -54,19 +56,25 @@ export class ConfidentialClientApplication extends ClientApplication implements 
      * Acquires tokens from the authority for the application (not for an end user).
      */
     public async acquireTokenByClientCredential(request: ClientCredentialRequest): Promise<AuthenticationResult | null> {
-        this.logger.info("acquireTokenByClientCredential called");
+        this.logger.info("acquireTokenByClientCredential called", request.correlationId);
         const validRequest: CommonClientCredentialRequest = {
             ...request,
             ...this.initializeBaseRequest(request)
+        };
+        const azureRegionConfiguration: AzureRegionConfiguration = {
+            azureRegion: validRequest.azureRegion,
+            environmentRegion: process.env[REGION_ENVIRONMENT_VARIABLE] 
         };
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByClientCredential, validRequest.correlationId, validRequest.skipCache);
         try {
             const clientCredentialConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
-                serverTelemetryManager
+                validRequest.correlationId,
+                serverTelemetryManager,
+                azureRegionConfiguration,
             );
-            this.logger.verbose("Auth client config generated");
             const clientCredentialClient = new ClientCredentialClient(clientCredentialConfig);
+            this.logger.verbose("Client credential client created", validRequest.correlationId);
             return clientCredentialClient.acquireToken(validRequest);
         } catch(e) {
             serverTelemetryManager.cacheFailedRequest(e);
@@ -86,16 +94,17 @@ export class ConfidentialClientApplication extends ClientApplication implements 
      * https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow#gaining-consent-for-the-middle-tier-application
      */
     public async acquireTokenOnBehalfOf(request: OnBehalfOfRequest): Promise<AuthenticationResult | null> {
-        this.logger.info("acquireTokenOnBehalfOf called");
+        this.logger.info("acquireTokenOnBehalfOf called", request.correlationId);
         const validRequest: CommonOnBehalfOfRequest = {
             ...request,
             ...this.initializeBaseRequest(request)
         };
         const clientCredentialConfig = await this.buildOauthClientConfiguration(
-            validRequest.authority
+            validRequest.authority,
+            validRequest.correlationId
         );
-        this.logger.verbose("Auth client config generated");
         const oboClient = new OnBehalfOfClient(clientCredentialConfig);
+        this.logger.verbose("On behalf of client created", validRequest.correlationId);
         return oboClient.acquireToken(validRequest);
     }
 

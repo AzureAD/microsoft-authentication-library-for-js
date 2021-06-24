@@ -49,7 +49,7 @@ export class UsernamePasswordClient extends BaseClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
-        const tokenResponse = responseHandler.handleServerTokenResponse(response.body, this.authority, reqTimestamp);
+        const tokenResponse = responseHandler.handleServerTokenResponse(response.body, this.authority, reqTimestamp, request);
 
         return tokenResponse;
     }
@@ -87,10 +87,18 @@ export class UsernamePasswordClient extends BaseClient {
         parameterBuilder.addGrantType(GrantType.RESOURCE_OWNER_PASSWORD_GRANT);
         parameterBuilder.addClientInfo();
 
+        parameterBuilder.addLibraryInfo(this.config.libraryInfo);
+
+        parameterBuilder.addThrottling();
+        
+        if (this.serverTelemetryManager) {
+            parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
+        }
+
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);
 
-        if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
+        if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
 
