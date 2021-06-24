@@ -89,6 +89,7 @@ export class CredentialEntity {
             case CredentialType.ID_TOKEN:
                 return CacheType.ID_TOKEN;
             case CredentialType.ACCESS_TOKEN:
+            case CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME:
                 return CacheType.ACCESS_TOKEN;
             case CredentialType.REFRESH_TOKEN:
                 return CacheType.REFRESH_TOKEN;
