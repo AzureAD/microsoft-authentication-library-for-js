@@ -6,6 +6,7 @@
 import { ICrypto, AuthError, PkceCodes } from "@azure/msal-common";
 
 export const TEST_CONSTANTS = {
+    PREFERRED_CACHE: "login.windows.net",
     CLIENT_ID: "b41a6fbb-c728-4e03-aa59-d25b0fd383b6",
     DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common/",
     AUTHORITY: "https://login.microsoftonline.com/TenantId",
