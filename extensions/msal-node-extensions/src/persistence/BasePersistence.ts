@@ -15,7 +15,7 @@ export abstract class BasePersistence {
         const persistenceValidator = await this.createForPersistenceValidation();
 
         try {
-            persistenceValidator.save(Constants.PERSISTENCE_TEST_DATA);
+            await persistenceValidator.save(Constants.PERSISTENCE_TEST_DATA);
 
             const retrievedDummyData = await persistenceValidator.load();
 
