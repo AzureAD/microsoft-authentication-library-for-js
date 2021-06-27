@@ -5,7 +5,7 @@
 
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
-import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, testNavUrlNoRequest, DEFAULT_TENANT_DISCOVERY_RESPONSE } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, testNavUrlNoRequest, DEFAULT_TENANT_DISCOVERY_RESPONSE, TEST_POP_VALUES } from "../utils/StringConstants";
 import { ServerError, Constants, AccountInfo, TokenClaims, PromptValue, AuthenticationResult, CommonAuthorizationCodeRequest, CommonAuthorizationUrlRequest, AuthToken, PersistentCacheKeys, AuthorizationCodeClient, ResponseMode, AccountEntity, ProtocolUtils, AuthenticationScheme, RefreshTokenClient, Logger, ServerTelemetryEntity, CommonSilentFlowRequest, CommonEndSessionRequest, LogLevel, NetworkResponse, ServerAuthorizationTokenResponse } from "@azure/msal-common";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { BrowserConstants, TemporaryCacheKeys, ApiId, InteractionType, BrowserCacheLocation, WrapperSKU } from "../../src/utils/BrowserConstants";
@@ -810,6 +810,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         describe("loginRedirect", () => {
+            beforeEach(() => {
+                sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
+            });
 
             it(
                 "loginRedirect throws an error if interaction is currently in progress",
@@ -1021,7 +1024,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     correlationId: TEST_CONFIG.CORRELATION_ID,
                     responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
                     nonce: "",
-                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
                 };
                 await pca.loginRedirect(emptyRequest);
                 const validatedRequest: CommonAuthorizationUrlRequest = {
@@ -1034,7 +1037,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     authority: `${Constants.DEFAULT_AUTHORITY}`,
                     responseMode: ResponseMode.FRAGMENT,
                     codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                    codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                    codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                    stkJwk: TEST_POP_VALUES.KID
                 };
                 expect(loginUrlSpy.calledWith(validatedRequest)).toBeTruthy();
             });
@@ -1090,7 +1094,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         nonce: RANDOM_TEST_GUID,
                         responseMode: ResponseMode.FRAGMENT,
                         codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                        codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                        codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                        stkJwk: TEST_POP_VALUES.KID
                     };
                     expect(loginUrlSpy.calledWith(validatedRequest)).toBeTruthy();
                 }
@@ -1138,6 +1143,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
 
         describe("acquireTokenRedirect", () => {
+            beforeEach(() => {
+                sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
+            });
 
             it("throws an error if interaction is currently in progress", async () => {
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
@@ -1289,6 +1297,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     errorCode: "create_login_url_error",
                     errorMessage: "Error in creating a login url"
                 };
+
                 sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").throws(testError);
                 try {
                     await pca.acquireTokenRedirect(emptyRequest);
@@ -1341,7 +1350,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     correlationId: TEST_CONFIG.CORRELATION_ID,
                     responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
                     nonce: "",
-                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    stkJwk: TEST_POP_VALUES.KID
                 };
                 await pca.acquireTokenRedirect(emptyRequest);
                 const validatedRequest: CommonAuthorizationUrlRequest = {
@@ -1411,7 +1421,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                         nonce: RANDOM_TEST_GUID,
                         responseMode: ResponseMode.FRAGMENT,
                         codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                        codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                        codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                        stkJwk: TEST_POP_VALUES.KID
                     };
                     expect(acquireTokenUrlSpy.calledWith(validatedRequest)).toBeTruthy();
                 }
@@ -1429,6 +1440,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 };
                 // @ts-ignore
                 sinon.stub(window, "open").returns(popupWindow);
+                sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
             });
 
             afterEach(() => {
@@ -1585,6 +1597,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 };
                 // @ts-ignore
                 sinon.stub(window, "open").returns(popupWindow);
+                sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
             });
 
             afterEach(() => {
@@ -1759,6 +1772,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     describe("ssoSilent() Tests", () => {
 
+        beforeEach(() => {
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
+        });
+
         it("throws error if loginHint or sid are empty", async () => {
             await expect(pca.ssoSilent({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -1900,6 +1917,9 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("Acquire Token Silent (Iframe) Tests", () => {
+        beforeEach(() => {
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
+        });
 
         it("successfully renews token", async () => {
             const testServerTokenResponse = {
@@ -2065,7 +2085,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     responseMode: ResponseMode.FRAGMENT,
                     codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
                     codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
-                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+                    authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                    stkJwk: TEST_POP_VALUES.KID
                 };
                 const tokenResp = await pca.acquireTokenSilent(CommonSilentFlowRequest);
 

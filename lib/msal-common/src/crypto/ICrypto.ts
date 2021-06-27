@@ -43,12 +43,18 @@ export interface ICrypto {
      * Generates an JWK RSA S256 Thumbprint
      * @param request
      */
-    getPublicKeyThumbprint(request: BaseAuthRequest): Promise<string>;
+    getPublicKeyThumbprint(request: BaseAuthRequest, keyType?: string): Promise<string>;
     /** 
      * Returns a signed proof-of-possession token with a given acces token that contains a cnf claim with the required kid.
      * @param accessToken 
      */
     signJwt(payload: SignedHttpRequest, kid: string): Promise<string>;
+    /**
+     * Returns the public key from an asymmetric key pair stored in IndexedDB based on the
+     * public key thumbprint parameter
+     * @param keyThumbprint
+     */
+    getAsymmetricPublicKey(keyThumbprint: string): Promise<string>;
 }
 
 export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
@@ -74,6 +80,10 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     },
     async signJwt(): Promise<string> {
         const notImplErr = "Crypto interface - signJwt() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async getAsymmetricPublicKey(): Promise<string> {
+        const notImplErr = "Crypto interface - getAssymetricPublicKey() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
     }
 };
