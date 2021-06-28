@@ -57,7 +57,7 @@ export class OnBehalfOfClient extends BaseClient {
      * @param request
      */
     private async getCachedAuthenticationResult(request: CommonOnBehalfOfRequest): Promise<AuthenticationResult | null> {
-        const cachedAccessToken = this.readAccessTokenFromCache(request);
+        const cachedAccessToken = this.readAccessTokenFromCache();
         if (!cachedAccessToken ||
             TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
             return null;
@@ -99,14 +99,13 @@ export class OnBehalfOfClient extends BaseClient {
      * read access token from cache TODO: CacheManager API should be used here
      * @param request
      */
-    private readAccessTokenFromCache(request: CommonOnBehalfOfRequest): AccessTokenEntity | null {
+    private readAccessTokenFromCache(): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
             environment: this.authority.canonicalAuthorityUrlComponents.HostNameAndPort,
             credentialType: CredentialType.ACCESS_TOKEN,
             clientId: this.config.authOptions.clientId,
             realm: this.authority.tenant,
             target: this.scopeSet.printScopesLowerCase(),
-            oboAssertion: request.oboAssertion
         };
 
         const credentialCache: CredentialCache = this.cacheManager.getCredentialsFilteredBy(accessTokenFilter);
