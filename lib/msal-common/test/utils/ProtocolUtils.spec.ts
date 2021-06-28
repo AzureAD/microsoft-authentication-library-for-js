@@ -3,7 +3,7 @@ import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES } from "../test_kit/Stri
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { Constants } from "../../src/utils/Constants";
 import sinon from "sinon";
-import { ClientAuthError, ClientAuthErrorMessage } from "../../src";
+import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 
 describe("ProtocolUtils.ts Class Unit Tests", () => {
 

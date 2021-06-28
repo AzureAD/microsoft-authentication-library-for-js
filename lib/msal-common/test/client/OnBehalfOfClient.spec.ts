@@ -28,7 +28,8 @@ import { ScopeSet } from "../../src/request/ScopeSet";
 import { CredentialCache } from "../../src/cache/utils/CacheTypes";
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ClientAuthError } from "../../src/error/ClientAuthError";
-import { ClientConfiguration, AuthenticationResult } from "../../src";
+import { AuthenticationResult } from "../../src/response/AuthenticationResult";
+import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 
 describe("OnBehalfOf unit tests", () => {
     let config: ClientConfiguration;

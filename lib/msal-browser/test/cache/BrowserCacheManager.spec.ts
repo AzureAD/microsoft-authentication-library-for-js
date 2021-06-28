@@ -899,7 +899,7 @@ describe("BrowserCacheManager tests", () => {
                 const testNonce = "testNonce";
                 const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
                 ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
-                browserStorage.updateCacheEntries(stateString, testNonce, `${Constants.DEFAULT_AUTHORITY}/`);
+                browserStorage.updateCacheEntries(stateString, testNonce, `${Constants.DEFAULT_AUTHORITY}/`, "", null);
 
                 const stateKey = browserStorage.generateStateKey(stateString);
                 const nonceKey = browserStorage.generateNonceKey(stateString);
@@ -916,7 +916,7 @@ describe("BrowserCacheManager tests", () => {
             () => {
                 const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
                 const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
-                browserStorage.updateCacheEntries(stateString, "nonce", `${TEST_URIS.DEFAULT_INSTANCE}/`);
+                browserStorage.updateCacheEntries(stateString, "nonce", `${TEST_URIS.DEFAULT_INSTANCE}/`, "", null);
                 browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, "TestRequestParams");
                 browserStorage.setItem(TemporaryCacheKeys.ORIGIN_URI, TEST_URIS.TEST_REDIR_URI);
 
