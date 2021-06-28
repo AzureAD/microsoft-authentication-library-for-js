@@ -64,7 +64,7 @@ export class DeviceCodeClient extends BaseClient {
      */
     private async getDeviceCode(request: CommonDeviceCodeRequest): Promise<DeviceCodeResponse> {
         const queryString = this.createQueryString(request);
-        const headers = this.createDefaultTokenRequestHeaders();
+        const headers = this.createTokenRequestHeaders();
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: request.authority,
@@ -167,7 +167,7 @@ export class DeviceCodeClient extends BaseClient {
         deviceCodeResponse: DeviceCodeResponse): Promise<ServerAuthorizationTokenResponse> {
 
         const requestBody = this.createTokenRequestBody(request, deviceCodeResponse);
-        const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
+        const headers: Record<string, string> = this.createTokenRequestHeaders();
 
         const userSpecifiedTimeout = request.timeout ? TimeUtils.nowSeconds() + request.timeout : undefined;
         const deviceCodeExpirationTime = TimeUtils.nowSeconds() + deviceCodeResponse.expiresIn;
