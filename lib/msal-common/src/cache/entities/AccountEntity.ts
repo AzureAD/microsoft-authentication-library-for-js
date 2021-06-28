@@ -245,10 +245,12 @@ export class AccountEntity {
 
         // for cases where there is clientInfo
         if (serverClientInfo) {
-            const clientInfo = buildClientInfo(serverClientInfo, cryptoObj);
-            if (!StringUtils.isEmpty(clientInfo.uid) && !StringUtils.isEmpty(clientInfo.utid)) {
-                return `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`;
-            }
+            try {
+                const clientInfo = buildClientInfo(serverClientInfo, cryptoObj);
+                if (!StringUtils.isEmpty(clientInfo.uid) && !StringUtils.isEmpty(clientInfo.utid)) {
+                    return `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`;
+                }
+            } catch (e) {}
         }
 
         // default to "sub" claim

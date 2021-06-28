@@ -69,7 +69,8 @@ export enum TemporaryCacheKeys {
     URL_HASH = "urlHash",
     REQUEST_PARAMS = "request.params",
     SCOPES = "scopes",
-    INTERACTION_STATUS_KEY = "interaction.status"
+    INTERACTION_STATUS_KEY = "interaction.status",
+    CCS_CREDENTIAL = "ccs.credential"
 }
 
 /**
