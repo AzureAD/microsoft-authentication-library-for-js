@@ -196,6 +196,9 @@ export class ClientTestUtils {
             loggerOptions: {
                 loggerCallback: testLoggerCallback,
             },
+            systemOptions: {
+                tokenRenewalOffsetSeconds: TEST_CONFIG.DEFAULT_TOKEN_RENEWAL_OFFSET
+            },
             clientCredentials: {
                 clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,
             },

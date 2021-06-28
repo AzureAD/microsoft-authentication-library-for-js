@@ -32,6 +32,7 @@ import { ClientConfigurationError } from "../../src/error/ClientConfigurationErr
 import { AuthToken } from "../../src/account/AuthToken";
 import { SilentFlowClient } from "../../src/client/SilentFlowClient";
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
+import { CcsCredentialType } from "../../src/account/CcsCredential";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
@@ -222,7 +223,11 @@ describe("RefreshTokenClient unit tests", () => {
             const expectedRefreshRequest: CommonRefreshTokenRequest = {
                 ...silentFlowRequest,
                 authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-                refreshToken: testRefreshTokenEntity.secret
+                refreshToken: testRefreshTokenEntity.secret,
+                ccsCredential: {
+                    credential: testAccount.homeAccountId,
+                    type: CcsCredentialType.HOME_ACCOUNT_ID
+                }
             };
             const refreshTokenClientSpy = sinon.stub(RefreshTokenClient.prototype, "acquireToken");
 
@@ -391,7 +396,11 @@ describe("RefreshTokenClient unit tests", () => {
             const expectedRefreshRequest: CommonRefreshTokenRequest = {
                 ...silentFlowRequest,
                 refreshToken: testRefreshTokenEntity.secret,
-                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                ccsCredential: {
+                    credential: testAccount.homeAccountId,
+                    type: CcsCredentialType.HOME_ACCOUNT_ID
+                }
             };
             const refreshTokenClientSpy = sinon.stub(RefreshTokenClient.prototype, "acquireToken");
 
@@ -429,14 +438,14 @@ describe("RefreshTokenClient unit tests", () => {
         it("Throws error if it does not find token in cache", async () => {
             const testAccount: AccountInfo = {
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID,
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
                 environment: "login.windows.net",
                 tenantId: "testTenantId",
                 username: "testname@contoso.com"
             };
             const testScope2 = "scope2";
             const testAccountEntity: AccountEntity = new AccountEntity();
-            testAccountEntity.homeAccountId = TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID;
+            testAccountEntity.homeAccountId = TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID;
             testAccountEntity.localAccountId = ID_TOKEN_CLAIMS.oid;
             testAccountEntity.environment = "login.windows.net";
             testAccountEntity.realm = "testTenantId";

@@ -16,6 +16,7 @@ import { GrantType } from "../utils/Constants";
 import { StringUtils } from "../utils/StringUtils";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { TimeUtils } from "../utils/TimeUtils";
+import { CcsCredentialType } from "../account/CcsCredential";
 
 /**
  * Oauth2.0 Password grant client
@@ -66,7 +67,10 @@ export class UsernamePasswordClient extends BaseClient {
             scopes: request.scopes
         };
         const requestBody = this.createTokenRequestBody(request);
-        const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
+        const headers: Record<string, string> = this.createTokenRequestHeaders({
+            credential: request.username,
+            type: CcsCredentialType.UPN
+        });
 
         return this.executePostToTokenEndpoint(authority.tokenEndpoint, requestBody, headers, thumbprint);
     }
@@ -100,6 +104,10 @@ export class UsernamePasswordClient extends BaseClient {
 
         if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
+        }
+
+        if (this.config.systemOptions.preventCorsPreflight && request.username) {
+            parameterBuilder.addCcsUpn(request.username);
         }
 
         return parameterBuilder.createQueryString();

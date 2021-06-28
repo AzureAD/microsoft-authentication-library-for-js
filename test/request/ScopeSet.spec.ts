@@ -1,7 +1,8 @@
 import { ScopeSet } from "../../src/request/ScopeSet";
-import { ClientConfigurationError, ClientConfigurationErrorMessage, Constants, ClientAuthError, ClientAuthErrorMessage } from "../../src";
 import sinon from "sinon";
-import { OIDC_DEFAULT_SCOPES, OIDC_SCOPES } from "../../src/utils/Constants";
+import { OIDC_DEFAULT_SCOPES, OIDC_SCOPES, Constants } from "../../src/utils/Constants";
+import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../../src/error/ClientConfigurationError";
+import { ClientAuthErrorMessage, ClientAuthError } from "../../src/error/ClientAuthError";
 
 describe("ScopeSet.ts", () => {
 
