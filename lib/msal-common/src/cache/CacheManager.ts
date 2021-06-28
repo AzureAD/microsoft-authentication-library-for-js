@@ -228,8 +228,16 @@ export abstract class CacheManager implements ICacheManager {
             homeAccountId: credential.homeAccountId,
             realm: credential.realm,
         });
+        
+        /*
+         * Migration code to delete all value (easier to debug, no legacy tokens)
+         *  Log messages that specify migration errors/cache misses
+         */
+
+        console.log("Current token cache", currentTokenCache);
         const currentScopes = ScopeSet.fromString(credential.target);
         const currentAccessTokens: AccessTokenEntity[] = Object.keys(currentTokenCache.accessTokens).map(key => currentTokenCache.accessTokens[key]);
+        console.log("Current ATs: ", currentAccessTokens);
         if (currentAccessTokens) {
             currentAccessTokens.forEach((tokenEntity) => {
                 const tokenScopeSet = ScopeSet.fromString(tokenEntity.target);
