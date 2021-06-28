@@ -1046,7 +1046,8 @@ export abstract class ClientApplication {
                 clientCapabilities: this.config.auth.clientCapabilities
             },
             systemOptions: {
-                tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds
+                tokenRenewalOffsetSeconds: this.config.system.tokenRenewalOffsetSeconds,
+                preventCorsPreflight: true
             },
             loggerOptions: {
                 loggerCallback: this.config.system.loggerOptions.loggerCallback,
@@ -1207,7 +1208,7 @@ export abstract class ClientApplication {
             }
         }
 
-        this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority);
+        this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority, validatedRequest.loginHint || "", validatedRequest.account || null);
 
         return validatedRequest;
     }
