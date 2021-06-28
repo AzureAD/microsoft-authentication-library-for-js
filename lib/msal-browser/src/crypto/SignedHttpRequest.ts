@@ -4,19 +4,17 @@
  */
 
 import { CryptoOps } from "./CryptoOps";
-import { PopTokenGenerator } from "@azure/msal-common";
+import { PopTokenGenerator, SignedHttpRequestParameters } from "@azure/msal-common";
 
 export class SignedHttpRequest {
     private popTokenGenerator: PopTokenGenerator;
     private cryptoOpts: CryptoOps;
-    private resourceRequestUri: string;
-    private resourceRequestMethod: string;
+    private shrParameters: SignedHttpRequestParameters;
 
-    constructor(resourceRequestUri: string, resourceRequestMethod: string) {
+    constructor(shrParameters: SignedHttpRequestParameters) {
         this.cryptoOpts = new CryptoOps();
         this.popTokenGenerator = new PopTokenGenerator(this.cryptoOpts);
-        this.resourceRequestUri = resourceRequestUri;
-        this.resourceRequestMethod = resourceRequestMethod;
+        this.shrParameters = shrParameters;
     }
 
     /**
@@ -24,10 +22,7 @@ export class SignedHttpRequest {
      * @returns Public key digest, which should be sent to the token issuer.
      */
     async generatePublicKey(): Promise<string> {
-        const { kid } = await this.popTokenGenerator.generateKid({
-            resourceRequestMethod: this.resourceRequestMethod,
-            resourceRequestUri: this.resourceRequestUri
-        });
+        const { kid } = await this.popTokenGenerator.generateKid(this.shrParameters);
 
         return kid;
     }
@@ -43,10 +38,7 @@ export class SignedHttpRequest {
         return this.popTokenGenerator.signPayload(
             payload, 
             publicKey,
-            {
-                resourceRequestMethod: this.resourceRequestMethod, 
-                resourceRequestUri: this.resourceRequestUri
-            }, 
+            this.shrParameters, 
             claims
         );
     }
