@@ -63,7 +63,8 @@ export const OIDC_SCOPES = [
  */
 export enum HeaderNames {
     CONTENT_TYPE = "Content-Type",
-    RETRY_AFTER = "Retry-After"
+    RETRY_AFTER = "Retry-After",
+    CCS_HEADER = "X-AnchorMailbox"
 }
 
 /**
@@ -132,7 +133,8 @@ export enum AADServerParamKeys {
     OBO_ASSERTION = "assertion",
     REQUESTED_TOKEN_USE = "requested_token_use",
     ON_BEHALF_OF = "on_behalf_of",
-    FOCI = "foci"
+    FOCI = "foci",
+    CCS_HEADER = "X-AnchorMailbox"
 }
 
 /**
@@ -281,7 +283,7 @@ export enum CacheType {
  * More Cache related constants
  */
 export const APP_METADATA = "appmetadata";
-export const ClientInfo = "client_info";
+export const CLIENT_INFO = "client_info";
 export const THE_FAMILY_ID = "1";
 
 export const AUTHORITY_METADATA_CONSTANTS = {

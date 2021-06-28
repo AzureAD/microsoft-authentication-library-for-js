@@ -2,35 +2,35 @@
 The Microsoft Authentication Extensions for Node offers secure mechanisms for client applications to perform cross-platform token cache serialization and persistence.
 
 ## Overview
-MSAL Node requires developers to implement their own logic for persisting the token cache. The MSAL Node extensions aim to provide a robust, secure, and configurable token cache peristence implementation across Windows, Mac, and Linux for public client applications (Desktop clients, CLI applications , etc). It provides mechanisms for encrypting as well as accessing the token cache by multiple processess concurrently. 
+MSAL Node requires developers to implement their own logic for persisting the token cache. The MSAL Node extensions aim to provide a robust, secure, and configurable token cache peristence implementation across Windows, Mac, and Linux for public client applications (Desktop clients, CLI applications , etc). It provides mechanisms for encrypting as well as accessing the token cache by multiple processess concurrently.
 
 Supported platforms are Windows, Mac and Linux:
 
 - Windows - DPAPI is used for encryption.
-- MAC - The MAC KeyChain is used.
-- Linux - LibSecret is used for storing to "Secret Service".
+- MAC - The MAC KeyChain is used through npm keytar.
+- Linux - LibSecret is used for storing to "Secret Service" through npm keytar.
 
 ## Code
 ### Creating the persistence layer
 Creating the persistence will differ based on what platform you are targeting.
 
-#### Windows: 
+#### Windows:
 ```js
 import { FilePersistenceWithDataProtection, DataProtectionScope } from "@azure/msal-node-extensions";
 
-const cachePath = "path/to/cache/file.json"; 
+const cachePath = "path/to/cache/file.json";
 const dataProtectionScope = DataProtectionScope.CurrentUser;
 const optinalEntropy = "";
 const windowsPersistence = FilePersistenceWithDataProtection.create(cachePath, dataProtectionScope, optionalEntropy);
 ```
 
-- cachePath is the path in the file system where the encrypted cache file will be stored. 
+- cachePath is the path in the file system where the encrypted cache file will be stored.
 - dataProtectionScope specifies the scope of the data protection - either the current user or the local machine. You do not need a key to protect or unprotect the data. If you set the scope to CurrentUser, only applications running on your credentials can unprotect the data; however, that means that any application running on your credentials can access the protected data. If you set the scope to LocalMachine, any full-trust application on the computer can unprotect, access, and modify the data.
 - optionalEntropy specifies password or other additional entropy used to encrypt the data.
 
-The FilePersistenceWithDataProtection uses the Win32 CryptProtectData and CryptUnprotectData APIs. For more information on dataProtectionScope, or optionalEntropy, reference the documentation for those APIs.  
+The FilePersistenceWithDataProtection uses the Win32 CryptProtectData and CryptUnprotectData APIs. For more information on dataProtectionScope, or optionalEntropy, reference the documentation for those APIs.
 
-#### Mac: 
+#### Mac:
 ```js
 import { KeychainPersistence } from "@azure/msal-node-extensions";
 
@@ -44,7 +44,7 @@ const macPersistence = KeychainPersistence.create(cachePath, serviceName, accoun
 - service name under which the cache is stored the keychain.
 - account name under which the cache is stored in the keychain.
 
-#### Linux: 
+#### Linux:
 ```js
 import { LibSecretPersistence } from "@azure/msal-node-extensions";
 
@@ -91,7 +91,7 @@ const persistenceCachePlugin = new PersistenceCachePlugin(windowsPersistence, lo
 ```
 
 ### Setting the PersistenceCachePlugin on the MSAL Node PublicClientApplication configuration
-Once you have a PersistenceCachePlugin, that can be set on the MSAL Node PublicClientApplication, by setting it as part of the configuration. 
+Once you have a PersistenceCachePlugin, that can be set on the MSAL Node PublicClientApplication, by setting it as part of the configuration.
 
 ```js
 import { PublicClientApplication } from "@azure/msal-node";
@@ -115,7 +115,7 @@ Note that MSAL will not read and write to persistence by default. You will have 
 If you are using this extension for Electron, you might face an error similar to this:
 ```
 Uncaught Exception:
-Error: The module 
+Error: The module
 "<path-to-project>\node_modules\...\dpapi.node" was compiled against a different Node.js version using NODE_MODULE_VERSION 85. This version of Node.js requires NODE_MODULE_VERSION 80. Please try re-compiling or re-installing the module...."
 ```
 This error is probably due to Node.js version differences between the Electron project and the extension. This can be handled by re-building the package with the following steps:

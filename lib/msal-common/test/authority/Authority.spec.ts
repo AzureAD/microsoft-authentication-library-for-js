@@ -10,8 +10,11 @@ import {
     B2C_OPENID_CONFIG_RESPONSE
 } from "../test_kit/StringConstants";
 import { ClientConfigurationErrorMessage, ClientConfigurationError } from "../../src/error/ClientConfigurationError";
-import { AuthorityMetadataEntity, AuthorityOptions, ClientAuthError, ClientAuthErrorMessage, ProtocolMode } from "../../src";
 import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
+import { ClientAuthErrorMessage, ClientAuthError } from "../../src/error/ClientAuthError";
+import { AuthorityOptions } from "../../src/authority/AuthorityOptions";
+import { ProtocolMode } from "../../src/authority/ProtocolMode";
+import { AuthorityMetadataEntity } from "../../src/cache/entities/AuthorityMetadataEntity";
 
 let mockStorage: MockStorageClass;
 
