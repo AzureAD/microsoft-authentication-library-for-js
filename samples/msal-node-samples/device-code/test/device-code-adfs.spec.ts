@@ -13,6 +13,7 @@ import { AppTypes, AzureEnvironments, FederationProviders, UserTypes } from "../
 import { 
     enterCredentialsADFS,
     enterDeviceCode,
+    approveConsent,
     SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation
  } from "../../testUtils";
@@ -92,6 +93,7 @@ describe('Device Code ADFS PPE Tests', () => {
                 const { userCode, verificationUri} = deviceCodeResponse;
                 await enterDeviceCode(page, screenshot, userCode, verificationUri);
                 await enterCredentialsADFS(page, screenshot, username, accountPwd);
+                await approveConsent(page, screenshot);
                 await page.waitForSelector("#message");
                 await screenshot.takeScreenshot(page, "SuccessfulDeviceCodeMessage");
             };
