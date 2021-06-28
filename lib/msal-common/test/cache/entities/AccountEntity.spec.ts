@@ -7,9 +7,14 @@ import { NetworkRequestOptions, INetworkModule } from "../../../src/network/INet
 import { ICrypto, PkceCodes } from "../../../src/crypto/ICrypto";
 import { RANDOM_TEST_GUID, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES, PREFERRED_CACHE_ALIAS } from "../../test_kit/StringConstants";
 import sinon from "sinon";
-import { Authority, AuthorityOptions, AuthorityType, ClientAuthError, ClientAuthErrorMessage, Logger, LogLevel, ProtocolMode } from "../../../src";
 import { MockStorageClass, mockCrypto } from "../../client/ClientTestUtils";
 import { AccountInfo } from "../../../src/account/AccountInfo";
+import { AuthorityOptions } from "../../../src/authority/AuthorityOptions";
+import { ProtocolMode } from "../../../src/authority/ProtocolMode";
+import { LogLevel, Logger } from "../../../src/logger/Logger";
+import { Authority } from "../../../src/authority/Authority";
+import { ClientAuthError, ClientAuthErrorMessage } from "../../../src/error/ClientAuthError";
+import { AuthorityType } from "../../../src/authority/AuthorityType";
 
 const cryptoInterface: ICrypto = {
     createNewGuid(): string {

@@ -21,13 +21,25 @@ import { SilentFlowClient } from "../../src/client/SilentFlowClient";
 import { RefreshTokenClient } from "../../src/client/RefreshTokenClient";
 import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 import { AccountInfo } from "../../src/account/AccountInfo";
-import { CommonSilentFlowRequest, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CacheManager, TimeUtils, ClientConfiguration, CommonRefreshTokenRequest, ServerTelemetryManager, ClientAuthError, ClientConfigurationError } from "../../src";
 import { AuthToken } from "../../src/account/AuthToken";
 import { ScopeSet } from "../../src/request/ScopeSet";
 import { PopTokenGenerator } from "../../src/crypto/PopTokenGenerator";
+import { AccountEntity } from "../../src/cache/entities/AccountEntity";
+import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity";
+import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity";
+import { TimeUtils } from "../../src/utils/TimeUtils";
+import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity";
+import { CommonSilentFlowRequest } from "../../src/request/CommonSilentFlowRequest";
+import { CacheManager } from "../../src/cache/CacheManager";
+import { ClientAuthError } from "../../src/error/ClientAuthError";
+import { ClientConfigurationError } from "../../src/error/ClientConfigurationError";
+import { ClientConfiguration } from "../../src/config/ClientConfiguration";
+import { CommonRefreshTokenRequest } from "../../src/request/CommonRefreshTokenRequest";
+import { CcsCredentialType } from "../../src/account/CcsCredential";
+import { ServerTelemetryManager } from "../../src/telemetry/server/ServerTelemetryManager";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
-testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID}`;
+testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID}`;
 testAccountEntity.localAccountId = ID_TOKEN_CLAIMS.oid;
 testAccountEntity.environment = "login.windows.net";
 testAccountEntity.realm = ID_TOKEN_CLAIMS.tid;
@@ -76,7 +88,7 @@ testRefreshTokenEntity.credentialType = CredentialType.REFRESH_TOKEN;
 
 describe("SilentFlowClient unit tests", () => {
     const testAccount: AccountInfo = {
-        homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+        homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
         environment: "login.windows.net",
         tenantId: ID_TOKEN_CLAIMS.tid,
         username: ID_TOKEN_CLAIMS.preferred_username,
@@ -352,7 +364,7 @@ describe("SilentFlowClient unit tests", () => {
         it("Throws error if it does not find token in cache", async () => {
             const testScope2 = "scope2";
             const testAccountEntity: AccountEntity = new AccountEntity();
-            testAccountEntity.homeAccountId = TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID;
+            testAccountEntity.homeAccountId = TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID;
             testAccountEntity.localAccountId = "testId";
             testAccountEntity.environment = "login.windows.net";
             testAccountEntity.realm = "testTenantId";
@@ -489,7 +501,7 @@ describe("SilentFlowClient unit tests", () => {
         let config: ClientConfiguration;
         let client: SilentFlowClient;
         const testAccount: AccountInfo = {
-            homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID}`,
+            homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID}`,
             tenantId: ID_TOKEN_CLAIMS.tid,
             environment: "login.windows.net",
             username: ID_TOKEN_CLAIMS.preferred_username,
@@ -553,7 +565,11 @@ describe("SilentFlowClient unit tests", () => {
             const expectedRefreshRequest: CommonRefreshTokenRequest = {
                 ...silentFlowRequest,
                 refreshToken: testRefreshTokenEntity.secret,
-                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                ccsCredential: {
+                    credential: testAccount.homeAccountId,
+                    type: CcsCredentialType.HOME_ACCOUNT_ID
+                }
             };
 
             sinon.stub(TimeUtils, <any>"isTokenExpired").returns(true);
@@ -634,7 +650,11 @@ describe("SilentFlowClient unit tests", () => {
             const expectedRefreshRequest: CommonRefreshTokenRequest = {
                 ...silentFlowRequest,
                 refreshToken: testRefreshTokenEntity.secret,
-                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                ccsCredential: {
+                    credential: testAccount.homeAccountId,
+                    type: CcsCredentialType.HOME_ACCOUNT_ID
+                }
             };
 
             const refreshTokenSpy = sinon.stub(RefreshTokenClient.prototype, "acquireToken");
