@@ -26,6 +26,7 @@ import { NavigationOptions } from "../../src/navigation/NavigationOptions";
 import { PopupUtils } from "../../src/utils/PopupUtils";
 import { EndSessionPopupRequest } from "../../src/request/EndSessionPopupRequest";
 import { EventMessage } from "../../src/event/EventMessage";
+import { EventHandler } from "../../src/event/EventHandler";
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     const cacheConfig = {
@@ -2723,82 +2724,27 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("Event API tests", () => {
-        it("can add an event callback and broadcast to it", (done) => {
+        it("can add an event callback", (done) => {
             const subscriber = (message: EventMessage) => {
                 expect(message.eventType).toEqual(EventType.LOGIN_START);
                 expect(message.interactionType).toEqual(InteractionType.Popup);
                 done();
             };
 
+            const callbackSpy = sinon.spy(EventHandler.prototype, "addEventCallback");
+
             pca.addEventCallback(subscriber);
-            // @ts-ignore
-            pca.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
-        });
-
-        it("can remove an event callback", (done) => {
-            const subscriber = (message: EventMessage) => {
-                expect(message.eventType).toEqual(EventType.LOGIN_START);
-                expect(message.interactionType).toEqual(InteractionType.Popup);
-            };
-
-            const callbackSpy = sinon.spy(subscriber);
-
-            const callbackId = pca.addEventCallback(callbackSpy);
-            // @ts-ignore
-            pca.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
-            pca.removeEventCallback(callbackId || "");
-            // @ts-ignore
-            pca.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
             expect(callbackSpy.calledOnce).toBeTruthy();
             done();
         });
 
-        it("can add multiple callbacks and broadcast to all", (done) => {
-            const subscriber1 = (message: EventMessage) => {
-                expect(message.eventType).toEqual(EventType.ACQUIRE_TOKEN_START);
-                expect(message.interactionType).toEqual(InteractionType.Redirect);
-            };
+        it("can remove an event callback", (done) => {
+            const callbackSpy = sinon.spy(EventHandler.prototype, "removeEventCallback");
 
-            const subscriber2 = (message: EventMessage) => {
-                expect(message.eventType).toEqual(EventType.ACQUIRE_TOKEN_START);
-                expect(message.interactionType).toEqual(InteractionType.Redirect);
-                done();
-            };
-
-            pca.addEventCallback(subscriber1);
-            pca.addEventCallback(subscriber2);
-            // @ts-ignore
-            pca.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Redirect);
-        });
-
-        it("sets interactionType, payload, and error to null by default", (done) => {
-            const subscriber = (message: EventMessage) => {
-                expect(message.eventType).toEqual(EventType.LOGIN_START);
-                expect(message.interactionType).toBeNull();
-                expect(message.payload).toBeNull();
-                expect(message.error).toBeNull();
-                expect(message.timestamp).not.toBeNull();
-                done();
-            };
-
-            pca.addEventCallback(subscriber);
-            // @ts-ignore
-            pca.emitEvent(EventType.LOGIN_START);
-        });
-
-        it("sets all expected fields on event", (done) => {
-            const subscriber = (message: EventMessage) => {
-                expect(message.eventType).toEqual(EventType.LOGIN_START);
-                expect(message.interactionType).toEqual(InteractionType.Silent);
-                expect(message.payload).toEqual({scopes: ["user.read"]});
-                expect(message.error).toBeNull();
-                expect(message.timestamp).not.toBeNull();
-                done();
-            };
-
-            pca.addEventCallback(subscriber);
-            // @ts-ignore
-            pca.emitEvent(EventType.LOGIN_START, InteractionType.Silent, {scopes: ["user.read"]}, null);
+            const callbackId = pca.addEventCallback(() => {});
+            pca.removeEventCallback(callbackId || "");
+            expect(callbackSpy.calledOnce).toBeTruthy();
+            done();
         });
     });
 
