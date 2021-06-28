@@ -1,14 +1,15 @@
-import {Constants, SSOTypes, PromptValue, AADServerParamKeys, ResponseMode, GrantType, AuthenticationScheme} from "../../src/utils/Constants";
+import {Constants, SSOTypes, PromptValue, AADServerParamKeys, ResponseMode, GrantType, AuthenticationScheme, HeaderNames} from "../../src/utils/Constants";
 import {
     TEST_CONFIG,
     TEST_URIS,
     TEST_TOKENS,
     DEVICE_CODE_RESPONSE,
-    TEST_POP_VALUES
+    TEST_POP_VALUES,
+    TEST_DATA_CLIENT_INFO
 } from "../test_kit/StringConstants";
 import { RequestParameterBuilder } from "../../src/request/RequestParameterBuilder";
-import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src";
 import sinon from "sinon";
+import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
 
 describe("RequestParameterBuilder unit tests", () => {
 
@@ -131,6 +132,27 @@ describe("RequestParameterBuilder unit tests", () => {
         const requestParameterBuilder = new RequestParameterBuilder();
         expect(() => requestParameterBuilder.addClaims(claims, [])).toThrowError(ClientConfigurationErrorMessage.invalidClaimsRequest.desc);
         sinon.restore();
+    });
+
+    describe("CCS parameters", () => {
+
+        it("adds CCS parameter from given client_info object", () => {
+            const requestParameterBuilder = new RequestParameterBuilder();
+            requestParameterBuilder.addCcsOid({
+                uid: TEST_DATA_CLIENT_INFO.TEST_UID,
+                utid: TEST_DATA_CLIENT_INFO.TEST_UTID
+            });
+            const requestQueryString = requestParameterBuilder.createQueryString();
+            expect(requestQueryString.includes(`${HeaderNames.CCS_HEADER}=${encodeURIComponent(`Oid:${TEST_DATA_CLIENT_INFO.TEST_UID}@${TEST_DATA_CLIENT_INFO.TEST_UTID}`)}`)).toBeTruthy();
+        });
+        
+        it("adds CCS parameter from given UPN", () => {
+            const requestParameterBuilder = new RequestParameterBuilder();
+            const testUpn = "AbeLi@microsoft.com";
+            requestParameterBuilder.addCcsUpn(testUpn);
+            const requestQueryString = requestParameterBuilder.createQueryString();
+            expect(requestQueryString.includes(`${HeaderNames.CCS_HEADER}=${encodeURIComponent(`UPN:${testUpn}`)}`)).toBeTruthy();
+        });
     });
 
     describe("addClientCapabilitiesToClaims tests", () => {
