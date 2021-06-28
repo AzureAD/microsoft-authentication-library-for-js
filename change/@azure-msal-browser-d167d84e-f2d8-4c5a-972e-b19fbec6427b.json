@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update monitor_window_timeout error message with link to error docs #3783",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

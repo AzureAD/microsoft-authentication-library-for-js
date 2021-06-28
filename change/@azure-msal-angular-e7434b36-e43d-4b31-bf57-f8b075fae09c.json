@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Don't use normalized url in Angular custom nav client #3757",
-  "packageName": "@azure/msal-angular",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "patch"
-}

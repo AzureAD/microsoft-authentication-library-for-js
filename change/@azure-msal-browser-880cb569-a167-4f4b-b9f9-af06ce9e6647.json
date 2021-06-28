@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add correlationId to log messages #3601",
-  "packageName": "@azure/msal-browser",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}
