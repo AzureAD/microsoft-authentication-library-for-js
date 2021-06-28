@@ -15,7 +15,7 @@ export abstract class BasePersistence {
         const persistenceValidator = await this.createForPersistenceValidation();
 
         try {
-            persistenceValidator.save(Constants.PERSISTENCE_TEST_DATA);
+            await persistenceValidator.save(Constants.PERSISTENCE_TEST_DATA);
 
             const retrievedDummyData = await persistenceValidator.load();
 
@@ -31,11 +31,10 @@ export abstract class BasePersistence {
                     `Persistence check failed. Data written ${Constants.PERSISTENCE_TEST_DATA} is different from data read ${retrievedDummyData}`
                 );
             }
-         } catch(e) {
-            throw PersistenceError.createCachePersistenceError(`Verifing persistence failed with the error: ${e}`)
-        } finally {
-            persistenceValidator.delete();
+            await persistenceValidator.delete();
             return true;
+        } catch (e) {
+            throw PersistenceError.createCachePersistenceError(`Verifing persistence failed with the error: ${e}`);
         }
     }
 
