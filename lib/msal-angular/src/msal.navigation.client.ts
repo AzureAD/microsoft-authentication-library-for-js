@@ -26,19 +26,18 @@ export class MsalCustomNavigationClient extends NavigationClient {
     }
 
     async navigateInternal(url:string, options: NavigationOptions): Promise<boolean> {
-        this.authService.getLogger().verbose("MsalCustomNavigationClient called");
-        const urlComponents = new UrlString(url).getUrlComponents();
-
-        // Normalizing newUrl if no query string
-        const newUrl = urlComponents.QueryString ? `${urlComponents.AbsolutePath}?${urlComponents.QueryString}` : this.location.normalize(urlComponents.AbsolutePath);
-
-        // Replaces current state if noHistory flag set to true
-        this.authService.getLogger().verbosePii(`MsalCustomNavigationClient - navigating to newUrl: ${newUrl}`);
-
+        this.authService.getLogger().trace("MsalCustomNavigationClient called");
+        
+        this.authService.getLogger().verbose("MsalCustomNavigationClient - navigating");
+        this.authService.getLogger().verbosePii(`MsalCustomNavigationClient - navigating to url: ${url}`);
+        
         // Prevent hash clearing from causing an issue with Client-side navigation after redirect is handled
         if (options.noHistory) {
-            window.location.replace(newUrl);
+            return super.navigateInternal(url, options);
         } else {
+            // Normalizing newUrl if no query string
+            const urlComponents = new UrlString(url).getUrlComponents();
+            const newUrl = urlComponents.QueryString ? `${urlComponents.AbsolutePath}?${urlComponents.QueryString}` : this.location.normalize(urlComponents.AbsolutePath);
             this.router.navigateByUrl(newUrl, { replaceUrl: options.noHistory });
         }
         return Promise.resolve(options.noHistory);

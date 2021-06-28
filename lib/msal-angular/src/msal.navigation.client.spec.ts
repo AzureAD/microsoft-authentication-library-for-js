@@ -1,5 +1,5 @@
 import { TestBed } from '@angular/core/testing';
-import { EventType, InteractionStatus, InteractionType, NavigationOptions, PublicClientApplication } from '@azure/msal-browser';
+import { EventType, InteractionStatus, InteractionType, NavigationClient, NavigationOptions, PublicClientApplication } from '@azure/msal-browser';
 import { MsalBroadcastService } from './msal.broadcast.service';
 import { MsalModule, MsalService } from './public-api';
 import { MsalCustomNavigationClient } from './msal.navigation.client';
@@ -44,7 +44,7 @@ describe('MsalCustomNaviationClient', () => {
             expect(navigationClient).toBeTruthy();
         });
 
-        it("NavigateInternal", (done) => {
+        it("NavigateInternal (noHistory false)", (done) => {
             const url = 'http://localhost:4200/profile';
             const normalizedAbsoluteUrl = '/profile';
 
@@ -61,7 +61,19 @@ describe('MsalCustomNaviationClient', () => {
                 done();
             });
         });
+
+        it("NavigateInternal (noHistory true)", (done) => {
+            const url = 'http://localhost:4200/profile';
+
+            const options = {
+                noHistory: true
+            } as NavigationOptions;
+
+            const windowLocationReplaceSpy = spyOn(NavigationClient.prototype, 'navigateInternal');
+            navigationClient.navigateInternal(url, options).then(() => {
+                expect(windowLocationReplaceSpy).toHaveBeenCalledWith(url, options);
+                done();
+            });
+        });
     });
-
-
 });
