@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-node-extensions
 
-This log was last generated on Fri, 05 Mar 2021 21:26:46 GMT and should not be manually modified.
+This log was last generated on Wed, 23 Jun 2021 00:01:49 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.7
+
+Wed, 23 Jun 2021 00:01:49 GMT
+
+### Changes
+
+- Add logs to test beachball (sameera.gajjarapu@microsoft.com)
 
 ## 1.0.0-alpha.6
 
