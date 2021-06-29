@@ -28,9 +28,9 @@ export class RequestValidator {
      * @param prompt
      */
     static validatePrompt(prompt: string) : void {
-        let promptValues = [];
+        const promptValues = [];
 
-        for (let value in PromptValue) {
+        for (const value in PromptValue) {
             promptValues.push(PromptValue[value]);
         }
 
