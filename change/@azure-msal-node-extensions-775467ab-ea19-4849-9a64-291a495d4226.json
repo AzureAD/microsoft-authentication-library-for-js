@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "feat: implemented the changes from the pull request",
+  "comment": "fix: bump up the msal-common version",
   "packageName": "@azure/msal-node-extensions",
   "email": "samuelkamau@microsoft.com",
   "dependentChangeType": "patch"
