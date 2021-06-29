@@ -133,7 +133,7 @@ export class AuthorizationCodeClient extends BaseClient {
         const queryString = this.createLogoutUrlQueryString(logoutRequest);
 
         // Construct logout URI.
-        return StringUtils.isEmpty(queryString) ? this.authority.endSessionEndpoint : `${this.authority.endSessionEndpoint}?${queryString}`;
+        return UrlString.appendQueryString(this.authority.endSessionEndpoint, queryString);
     }
 
     /**

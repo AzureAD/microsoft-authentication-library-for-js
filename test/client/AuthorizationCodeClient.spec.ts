@@ -1401,5 +1401,36 @@ describe("AuthorizationCodeClient unit tests", () => {
             const testLogoutUriWithParams = `${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common")}?${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI)}&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}&${AADServerParamKeys.ID_TOKEN_HINT}=id_token_hint`;
             expect(logoutUri).toBe(testLogoutUriWithParams);
         });
+
+        it("Does not append an extra '?' when the end session endpoint already contains a query string", async () => {
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves({
+                "token_endpoint": "https://login.windows.net/common/oauth2/v2.0/token?param1=value1",
+                "issuer": "https://login.windows.net/{tenantid}/v2.0",
+                "userinfo_endpoint": "https://graph.microsoft.com/oidc/userinfo",
+                "authorization_endpoint": "https://login.windows.net/common/oauth2/v2.0/authorize?param1=value1",
+                "end_session_endpoint": "https://login.windows.net/common/oauth2/v2.0/logout?param1=value1",
+            });
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(config);
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
+                environment: "login.windows.net",
+                tenantId: "testTenantId",
+                username: "test@contoso.com",
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID
+            };
+
+            const removeAccountSpy = sinon.stub(CacheManager.prototype, "removeAccount").returns(true);
+            const logoutUri = client.getLogoutUri({
+                account: testAccount,
+                correlationId: RANDOM_TEST_GUID,
+                postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
+                idTokenHint: "id_token_hint"
+            });
+
+            expect(removeAccountSpy.calledWith(AccountEntity.generateAccountCacheKey(testAccount))).toBe(true);
+            const testLogoutUriWithParams = `https://login.windows.net/common/oauth2/v2.0/logout?param1=value1&${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI)}&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}&${AADServerParamKeys.ID_TOKEN_HINT}=id_token_hint`;
+            expect(logoutUri).toBe(testLogoutUriWithParams);
+        });
     });
 });
