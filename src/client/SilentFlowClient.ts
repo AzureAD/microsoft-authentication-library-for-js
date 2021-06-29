@@ -65,6 +65,7 @@ export class SilentFlowClient extends BaseClient {
             !StringUtils.isEmptyObj(request.claims) || 
             !cacheRecord.accessToken || 
             TimeUtils.isTokenExpired(cacheRecord.accessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds) ||
+            TimeUtils.wasClockTurnedBack(cacheRecord.accessToken.cachedAt) ||
             (cacheRecord.accessToken.refreshOn && TimeUtils.isTokenExpired(cacheRecord.accessToken.refreshOn, 0))) {
 
             // Update server telemetry manager with the cache outcome

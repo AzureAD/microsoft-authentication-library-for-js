@@ -3,10 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { ServerTelemetryManager, AuthError, ServerTelemetryRequest, ServerTelemetryEntity } from "../../src";
 import { TEST_CONFIG } from "../test_kit/StringConstants";
 import sinon from "sinon";
 import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
+import { ServerTelemetryRequest } from "../../src/telemetry/server/ServerTelemetryRequest";
+import { ServerTelemetryManager } from "../../src/telemetry/server/ServerTelemetryManager";
+import { AuthError } from "../../src/error/AuthError";
+import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
 
 const testCacheManager = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
 const testApiCode = 9999999;
