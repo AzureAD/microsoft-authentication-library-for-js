@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "verifyPersistence returns the right value on failure(#3787)",
+  "packageName": "@azure/msal-node-extensions",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}
