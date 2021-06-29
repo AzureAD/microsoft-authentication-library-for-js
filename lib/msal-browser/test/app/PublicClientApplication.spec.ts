@@ -68,7 +68,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     describe("Constructor tests", () => {
 
         it("passes null check", (done) => {
-            expect(pca).not.toBeNull;
+            expect(pca).not.toBe(null);
             expect(pca instanceof PublicClientApplication).toBeTruthy();
             done();
         });
@@ -78,7 +78,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 sinon.stub(pca, <any>"interactionInProgress").returns(false);
                 window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_ALTERNATE_REDIR_URI);
-                expect(await pca.handleRedirectPromise()).toBeNull;
+                expect(await pca.handleRedirectPromise()).toBe(null);
             }
         );
 
@@ -424,7 +424,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     const tokenResponse1 = await promise1;
                     const tokenResponse2 = await promise2;
                     const tokenResponse3 = await pca.handleRedirectPromise("testHash");
-                    expect(tokenResponse3).toBeNull();
+                    expect(tokenResponse3).toBe(null);
                     const tokenResponse4 = await pca.handleRedirectPromise();
 
                     if (!tokenResponse1 || !tokenResponse2) {
@@ -689,7 +689,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                     const tokenResponse = await pca.handleRedirectPromise();
                     if (!tokenResponse) {
-                        expect(tokenResponse).not.toBeNull();
+                        expect(tokenResponse).not.toBe(null);
                         throw new Error("Token Response is null!"); // Throw to resolve Typescript complaints below
                     }
                     expect(callbackCalled).toBeTruthy();
@@ -2550,13 +2550,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("getAccountByUsername returns null if account doesn't exist", () => {
             const account = pca.getAccountByUsername("this-email-doesnt-exist@microsoft.com");
-            expect(account).toBeNull;
+            expect(account).toBe(null);
         });
 
         it("getAccountByUsername returns null if passed username is null", () => {
             // @ts-ignore
             const account = pca.getAccountByUsername(null);
-            expect(account).toBeNull;
+            expect(account).toBe(null);
         });
 
         it("getAccountByHomeId returns account specified", () => {
@@ -2566,13 +2566,13 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("getAccountByHomeId returns null if passed id doesn't exist", () => {
             const account = pca.getAccountByHomeId("this-id-doesnt-exist");
-            expect(account).toBeNull;
+            expect(account).toBe(null);
         });
 
         it("getAccountByHomeId returns null if passed id is null", () => {
             // @ts-ignore
             const account = pca.getAccountByHomeId(null);
-            expect(account).toBeNull;
+            expect(account).toBe(null);
         });
     });
 
@@ -2609,23 +2609,21 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
         it("active account is initialized as null", () => {
             // Public client should initialze with active account set to null.
-            expect(pca.getActiveAccount()).toBeNull;
+            expect(pca.getActiveAccount()).toBe(null);
         });
 
         it("setActiveAccount() sets the active account local id value correctly", () => {
-                expect(pca.getActiveAccount()).toBeNull;
+                expect(pca.getActiveAccount()).toBe(null);
                 pca.setActiveAccount(testAccountInfo1);
                 expect(pca.getActiveAccount()).toEqual(testAccountInfo1);
-            }
-        );
+        });
 
-        it("getActiveAccount looks up the current account values and returns them()", () => {
+        it("getActiveAccount looks up the current account values and returns them", () => {
                 pca.setActiveAccount(testAccountInfo1);
                 const activeAccount1 = pca.getActiveAccount();
                 expect(activeAccount1).toEqual(testAccountInfo1);
                 
                 const newName = "Ben Franklin";
-                window.sessionStorage.clear();
                 testAccountInfo1.name = newName;
                 testAccount1.name = newName;
                 const cacheKey = AccountEntity.generateAccountCacheKey(testAccountInfo1);
@@ -2633,8 +2631,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
                 const activeAccount2 = pca.getActiveAccount();
                 expect(activeAccount2).toEqual(testAccountInfo1);
-            }
-        );
+        });
 
         describe("activeAccount logout", () => {
             const testAccountInfo2: AccountInfo = {
@@ -2664,7 +2661,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             it("Clears active account on logoutRedirect with no account", async () => {
                 expect(pca.getActiveAccount()).toEqual(testAccountInfo1);
                 await pca.logoutRedirect();
-                expect(pca.getActiveAccount()).toBeNull;
+                expect(pca.getActiveAccount()).toBe(null);
             });
     
             it("Clears active account on logoutRedirect when the given account info matches", async () => {
@@ -2672,7 +2669,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     await pca.logoutRedirect({
                         account: testAccountInfo1
                     });
-                    expect(pca.getActiveAccount()).toBeNull;
+                    expect(pca.getActiveAccount()).toBe(null);
                 }
             );
 
@@ -2688,7 +2685,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             it("Clears active account on logoutPopup with no account", async () => {
                 expect(pca.getActiveAccount()).toEqual(testAccountInfo1);
                 await pca.logoutPopup();
-                expect(pca.getActiveAccount()).toBeNull;
+                expect(pca.getActiveAccount()).toBe(null);
             });
     
             it("Clears active account on logoutPopup when the given account info matches", async () => {
@@ -2696,7 +2693,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     await pca.logoutPopup({
                         account: testAccountInfo1
                     });
-                    expect(pca.getActiveAccount()).toBeNull;
+                    expect(pca.getActiveAccount()).toBe(null);
                 }
             );
 
