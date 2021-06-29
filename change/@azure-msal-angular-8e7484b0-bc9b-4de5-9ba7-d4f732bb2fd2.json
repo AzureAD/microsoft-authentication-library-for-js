@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Remove note from FAQ about active accounts not persisting",
+  "packageName": "@azure/msal-angular",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "none"
+}
