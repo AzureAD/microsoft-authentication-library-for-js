@@ -47,7 +47,7 @@ describe('MsalBroadcastService', () => {
     });
 
     // @ts-ignore
-    msalInstance.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
+    msalInstance.eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
   });
 
 });

@@ -65,6 +65,7 @@ export class SilentFlowClient extends BaseClient {
             !StringUtils.isEmptyObj(request.claims) || 
             !cacheRecord.accessToken || 
             TimeUtils.isTokenExpired(cacheRecord.accessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds) ||
+            TimeUtils.wasClockTurnedBack(cacheRecord.accessToken.cachedAt) ||
             (cacheRecord.accessToken.refreshOn && TimeUtils.isTokenExpired(cacheRecord.accessToken.refreshOn, 0))) {
             // Must refresh due to request parameters, or expired or non-existent access_token
             throw ClientAuthError.createRefreshRequiredError();

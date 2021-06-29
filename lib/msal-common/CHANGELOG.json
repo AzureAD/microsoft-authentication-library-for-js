@@ -2,6 +2,79 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 28 Jun 2021 23:39:48 GMT",
+      "tag": "@azure/msal-common_v4.4.0",
+      "version": "4.4.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add CCS parameters to headers or form_data #3636",
+            "author": "prkanher@microsoft.com",
+            "commit": "2956380aecde38382a28c7ed15164b8dfd65cfca",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Add correlationId to log messages #3601",
+            "author": "joarroyo@microsoft.com",
+            "commit": "8d58f91c9dd9d65df4a016c7bcdbbd03e9bf573e",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Export ServerAuthorizationTokenResponse type #3657",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "f6f7a7c738706668c869fcc84338d8c212a5ab4f",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Discard tokens cached after current time #3786",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "99f70d893b77ff1aaa3a81ad85135abbaf21b0c4",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Remove input params from Empty Scopes error constructors #3654",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "8c2b7f5c3c859bb4936f8409212f84a825c560be",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "feat: modify the access token filter #3375",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "b8d7b2e7224bef7bebeb7e1f93b4358b77266804",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "fix: fix device code polling bug",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "97f32a03df3835bf4f1be60ab7179c10196459a4",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "none": [
+          {
+            "comment": "fix: update package lock files",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "0199e41269b79de70f7d0da0fb12448db534f784",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Upgrade Jest to v27 #3719",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6c34aa5be3ee9536bd2febd2b7781fcdf0d28786",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Component governance dependency updates #3655",
+            "author": "joarroyo@microsoft.com",
+            "commit": "3f74f3bffd88fc0b39a854da090f01aa9c072618",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 13 May 2021 18:34:08 GMT",
       "tag": "@azure/msal-common_v4.3.0",
       "version": "4.3.0",

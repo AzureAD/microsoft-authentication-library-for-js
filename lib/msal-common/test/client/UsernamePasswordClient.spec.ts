@@ -10,7 +10,6 @@ import {
     TEST_CONFIG,
     TEST_DATA_CLIENT_INFO,
     TEST_URIS,
-    CORS_SIMPLE_REQUEST_HEADERS,
     RANDOM_TEST_GUID
 } from "../test_kit/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
@@ -20,7 +19,8 @@ import { Authority } from "../../src/authority/Authority";
 import { UsernamePasswordClient } from "../../src/client/UsernamePasswordClient";
 import { CommonUsernamePasswordRequest } from "../../src/request/CommonUsernamePasswordRequest";
 import { AuthToken } from "../../src/account/AuthToken";
-import { AuthenticationResult, ClientConfiguration } from "../../src";
+import { ClientConfiguration } from "../../src/config/ClientConfiguration";
+import { AuthenticationResult } from "../../src/response/AuthenticationResult";
 
 describe("Username Password unit tests", () => {
     let config: ClientConfiguration;
@@ -28,6 +28,9 @@ describe("Username Password unit tests", () => {
     beforeEach(async () => {
         sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
         config = await ClientTestUtils.createTestClientConfiguration();
+        if (config.systemOptions) {
+            config.systemOptions.preventCorsPreflight = true;
+        }
         // Set up required objects and mocked return values
         const decodedLibState = `{ "id": "testid", "ts": 1592846482 }`;
         config.cryptoInterface!.base64Decode = (input: string): string => {
@@ -82,30 +85,6 @@ describe("Username Password unit tests", () => {
             expect(client instanceof UsernamePasswordClient).toBe(true);
             expect(client instanceof BaseClient).toBe(true);
         });
-    });
-
-    it("Does not add headers that do not qualify for a simple request", (done) => {
-        // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
-        sinon.stub(UsernamePasswordClient.prototype, <any>"executePostToTokenEndpoint").callsFake((tokenEndpoint: string, queryString: string, headers: Record<string, string>) => {
-            const headerNames = Object.keys(headers);
-            headerNames.forEach((name) => {
-                expect(CORS_SIMPLE_REQUEST_HEADERS.includes(name.toLowerCase())).toBe(true);
-            });
-
-            done();
-            return AUTHENTICATION_RESULT_DEFAULT_SCOPES;
-        });
-
-        const client = new UsernamePasswordClient(config);
-        const usernamePasswordRequest: CommonUsernamePasswordRequest = {
-            authority: Constants.DEFAULT_AUTHORITY,
-            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            username: "mock_name",
-            password: "mock_password",
-            correlationId: RANDOM_TEST_GUID
-        };
-
-        client.acquireToken(usernamePasswordRequest);
     });
 
     it("acquires a token", async () => {

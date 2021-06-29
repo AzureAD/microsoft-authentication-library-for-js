@@ -11,9 +11,8 @@ import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { AppTypes, AzureEnvironments, FederationProviders, UserTypes } from "../../../e2eTestUtils/Constants";
 import { 
-    enterCredentialsADFS,
+    enterCredentialsADFSWithConsent,
     enterDeviceCode,
-    approveConsent,
     SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation
  } from "../../testUtils";
@@ -92,8 +91,7 @@ describe('Device Code ADFS PPE Tests', () => {
             const deviceCodeCallback = async (deviceCodeResponse: any) => {
                 const { userCode, verificationUri} = deviceCodeResponse;
                 await enterDeviceCode(page, screenshot, userCode, verificationUri);
-                await enterCredentialsADFS(page, screenshot, username, accountPwd);
-                await approveConsent(page, screenshot);
+                await enterCredentialsADFSWithConsent(page, screenshot, username, accountPwd);
                 await page.waitForSelector("#message");
                 await screenshot.takeScreenshot(page, "SuccessfulDeviceCodeMessage");
             };

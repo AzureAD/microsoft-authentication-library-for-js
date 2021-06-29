@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "fix: update the client capabilities type in configuration #3678",
-  "packageName": "@azure/msal-node",
-  "email": "samuelkamau@microsoft.com",
-  "dependentChangeType": "patch"
-}
