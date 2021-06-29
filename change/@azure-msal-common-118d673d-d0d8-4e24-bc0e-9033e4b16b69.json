@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix double query string for logout endpoint #3814",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
