@@ -2,6 +2,55 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Mon, 28 Jun 2021 23:39:48 GMT",
+      "tag": "@azure/msal-node_v1.2.0",
+      "version": "1.2.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "fix: have the log level propagate to msal-common",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "0b4f088dd8fa862230da1ac967bb5bfc8f8de3e7",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "fix: update the client capabilities type in configuration #3678",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "8b8e73db8737efa34c93c447e95f1f17354ad9ab",
+            "package": "@azure/msal-node"
+          }
+        ],
+        "none": [
+          {
+            "comment": "fix: update package lock files",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "0199e41269b79de70f7d0da0fb12448db534f784",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Regnerate package-lock #3719",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6c34aa5be3ee9536bd2febd2b7781fcdf0d28786",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Component governance dependency updates #3655",
+            "author": "joarroyo@microsoft.com",
+            "commit": "3f74f3bffd88fc0b39a854da090f01aa9c072618",
+            "package": "@azure/msal-node"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add correlationId to log messages #3601",
+            "author": "joarroyo@microsoft.com",
+            "commit": "ce883893504cd8021441b540d747aa895787d163",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 13 May 2021 18:34:08 GMT",
       "tag": "@azure/msal-node_v1.1.0",
       "version": "1.1.0",

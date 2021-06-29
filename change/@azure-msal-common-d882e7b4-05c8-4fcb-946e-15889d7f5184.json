@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add CCS parameters to headers or form_data #3636",
-  "packageName": "@azure/msal-common",
-  "email": "prkanher@microsoft.com",
-  "dependentChangeType": "patch"
-}

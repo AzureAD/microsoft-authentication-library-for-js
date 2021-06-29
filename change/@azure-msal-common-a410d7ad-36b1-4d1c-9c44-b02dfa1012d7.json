@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Discard tokens cached after current time #3786",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
