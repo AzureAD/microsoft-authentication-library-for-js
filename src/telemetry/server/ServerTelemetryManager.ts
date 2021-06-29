@@ -22,7 +22,7 @@ export class ServerTelemetryManager {
     private regionUsed: string | undefined;
     private regionSource: RegionDiscoverySources | undefined;
     private regionOutcome: RegionDiscoveryOutcomes | undefined;
-    private cacheOutcome: CacheOutcome = CacheOutcome.NO_CACHE_HIT;
+    private cacheOutcome: CacheOutcome;
 
     constructor(telemetryRequest: ServerTelemetryRequest, cacheManager: CacheManager) {
         this.cacheManager = cacheManager;
@@ -33,14 +33,16 @@ export class ServerTelemetryManager {
         this.wrapperVer = telemetryRequest.wrapperVer || Constants.EMPTY_STRING;
 
         this.telemetryCacheKey = SERVER_TELEM_CONSTANTS.CACHE_KEY + Separators.CACHE_KEY_SEPARATOR + telemetryRequest.clientId;
+
+        // Initialize the cache outcome value
+        this.setCacheOutcome(this.forceRefresh ? CacheOutcome.FORCE_REFRESH : CacheOutcome.NO_CACHE_HIT);
     }
 
     /**
      * API to add MSER Telemetry to request
      */
     generateCurrentRequestHeaderValue(): string {
-        const cacheInfo = this.getCacheInfoValue();
-        const request = `${this.apiId}${SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR}${cacheInfo}`;
+        const request = `${this.apiId}${SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR}${this.cacheOutcome}`;
         const platformFields = [this.wrapperSKU, this.wrapperVer].join(SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR);
         const regionDiscoveryFields = this.getRegionDiscoveryFields();
         const requestWithRegionDiscoveryFields = [request, regionDiscoveryFields].join(SERVER_TELEM_CONSTANTS.VALUE_SEPARATOR);
@@ -175,42 +177,10 @@ export class ServerTelemetryManager {
         const regionDiscoveryFields: string[] = [];
 
         regionDiscoveryFields.push(this.regionUsed || "");
-        regionDiscoveryFields.push(this.getRegionSourceValue(this.regionSource));
-        regionDiscoveryFields.push(this.getRegionOutcomeValue(this.regionOutcome));
+        regionDiscoveryFields.push(this.regionSource || "");
+        regionDiscoveryFields.push(this.regionOutcome || "");
 
         return regionDiscoveryFields.join(",");
-    }
-
-    /**
-     * Get the header value for the region source
-     * @param regionSource
-     * @returns string
-     */
-    getRegionSourceValue(regionSource: RegionDiscoverySources | undefined): string {
-        if (!regionSource) return "";
-
-        return regionSource;
-    }
-
-    /**
-     * Get the header value for the region outcome
-     * @param regionOutcome RegionDiscoveryOutcomes | undefined
-     * @returns string
-     */
-    getRegionOutcomeValue(regionOutcome: RegionDiscoveryOutcomes | undefined): string {
-        if (!regionOutcome) return "";
-
-        return regionOutcome;
-    }
-    
-    /**
-     * Get the header value for the cache information
-     * @returns string
-     */
-    getCacheInfoValue(): string {
-        if (this.forceRefresh) return "1";
-
-        return this.cacheOutcome;
     }
 
     /**

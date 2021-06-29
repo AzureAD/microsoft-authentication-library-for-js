@@ -373,6 +373,7 @@ export enum RegionDiscoveryOutcomes {
 
 export enum CacheOutcome {
     NO_CACHE_HIT = "0",
+    FORCE_REFRESH = "1",
     NO_CACHED_ACCESS_TOKEN = "2",
     CACHED_ACCESS_TOKEN_EXPIRED = "3",
     REFRESH_CACHED_ACCESS_TOKEN = "4"
