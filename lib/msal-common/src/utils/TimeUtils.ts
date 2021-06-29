@@ -30,6 +30,18 @@ export class TimeUtils {
     }
 
     /**
+     * If the current time is earlier than the time that a token was cached at, we must discard the token
+     * i.e. The system clock was turned back after acquiring the cached token
+     * @param cachedAt 
+     * @param offset 
+     */
+    static wasClockTurnedBack(cachedAt: string): boolean {
+        const cachedAtSec = Number(cachedAt);
+
+        return cachedAtSec > TimeUtils.nowSeconds();
+    }
+
+    /**
      * Waits for t number of milliseconds
      * @param t number
      * @param value T

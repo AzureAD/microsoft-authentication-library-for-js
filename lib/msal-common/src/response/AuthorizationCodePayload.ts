@@ -13,5 +13,6 @@ export type AuthorizationCodePayload = {
     cloud_graph_host_name?: string;
     msgraph_host?: string;
     state?: string;
-    nonce?: string
+    nonce?: string;
+    client_info?: string;
 };

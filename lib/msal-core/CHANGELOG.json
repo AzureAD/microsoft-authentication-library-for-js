@@ -2,6 +2,27 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Mon, 28 Jun 2021 23:39:48 GMT",
+      "tag": "msal_v1.4.11",
+      "version": "1.4.11",
+      "comments": {
+        "none": [
+          {
+            "comment": "Component governance dependency updates #3655",
+            "author": "joarroyo@microsoft.com",
+            "commit": "3f74f3bffd88fc0b39a854da090f01aa9c072618",
+            "package": "msal"
+          },
+          {
+            "comment": "fix: update package lock files",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "0199e41269b79de70f7d0da0fb12448db534f784",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 13 May 2021 18:34:08 GMT",
       "tag": "msal_v1.4.11",
       "version": "1.4.11",

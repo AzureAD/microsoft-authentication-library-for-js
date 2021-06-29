@@ -12,7 +12,7 @@ import { MockStorageClass, mockCrypto }  from "../client/ClientTestUtils";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { ServerError } from "../../src/error/ServerError";
 import { AUTHENTICATION_RESULT, NETWORK_REQUEST_OPTIONS, THUMBPRINT, THROTTLING_ENTITY, DEFAULT_NETWORK_IMPLEMENTATION, TEST_CONFIG } from "../test_kit/StringConstants";
-import { ClientAuthError, ClientAuthErrorMessage } from "../../src";
+import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 
 describe("NetworkManager", () => {
     describe("sendPostRequest", () => {
