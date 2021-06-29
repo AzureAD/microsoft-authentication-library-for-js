@@ -2,6 +2,21 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Tue, 29 Jun 2021 00:28:30 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.8",
+      "version": "1.0.0-alpha.8",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "verifyPersistence returns the right value on failure(#3787)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "dc8086acc0ccc91e066e886adffd5895911d33f0",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 23 Jun 2021 00:01:49 GMT",
       "tag": "@azure/msal-node-extensions_v1.0.0-alpha.7",
       "version": "1.0.0-alpha.7",
