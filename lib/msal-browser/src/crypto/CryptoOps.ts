@@ -294,9 +294,6 @@ export class CryptoOps implements ICrypto {
         const { stkKid, skKid } = request;
 
         if (stkKid && skKid) {
-            // Retrieve Session Transport KeyPair from Key Store
-            const sessionTransportKeypair: CachedKeyPair = await this.cache.get<CachedKeyPair>(DB_TABLE_NAMES.ASYMMETRIC_KEYS, stkKid);
-
             // Retrieve Session Key from Key Store
             const contentEncryptionKey: CryptoKey = await this.cache.get<CryptoKey>(DB_TABLE_NAMES.SYMMETRIC_KEYS, skKid);
             
@@ -311,23 +308,18 @@ export class CryptoOps implements ICrypto {
             // Generate CTX
             const ctx = this.ctxGenerator.generateCtx();
             const payloadBytes = BrowserStringUtils.stringToUtf8Arr(JSON.stringify(payload));
-            console.log("CTX: ", ctx);
-            console.log("Payload: ", payloadBytes);
+  
             const inputData = new Uint8Array(ctx.byteLength + payloadBytes.byteLength);
 
             inputData.set(ctx, 0);
             inputData.set(payloadBytes, ctx.byteLength);
 
-            console.log("Concat: ", inputData);
-
             const hashedInputData = new Uint8Array(await window.crypto.subtle.digest({ name: "SHA-256" }, inputData));
-            console.log("Hashed: ", hashedInputData);
             const derivedKeyData = new Uint8Array(await kdf.computeKDFInCounterMode(hashedInputData, KEY_DERIVATION_LABELS.SIGNING));
 
             const sessionKeyUsages = KEY_USAGES.RT_BINDING.DERIVATION_KEY as KeyUsage[];
             const sessionKeyAlgorithm: HmacImportParams = { name: "HMAC", hash: "SHA-256" };
             const sessionKey = await window.crypto.subtle.importKey("raw", derivedKeyData, sessionKeyAlgorithm, false, sessionKeyUsages);
-            console.log("SK: ", sessionKey);
             // Next two lines work
             const encodedCtx = this.b64Encode.encode(BrowserStringUtils.utf8ArrToString(ctx));
             const header = {

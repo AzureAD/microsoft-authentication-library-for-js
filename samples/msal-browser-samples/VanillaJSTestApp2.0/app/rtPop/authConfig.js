@@ -35,11 +35,11 @@ const msalConfig = {
 
 // RT PoP Test Slice params
 const extraQueryParams = {
-    dc: "ESTS-PUB-WUS2-AZ1-TEST1"
+    dc: "ESTS-PUB-WUS2-AZ1-FD000-TEST1"
 };
 
 const tokenQueryParams = {
-    slice: "TestSlice&dc=ESTS-PUB-WUS2-AZ1-TEST1"
+    slice: "TestSlice&dc=ESTS-PUB-WUS2-AZ1-FD000-TEST1"
 }
 
 // Add here scopes for id token to be used at MS Identity Platform endpoints.

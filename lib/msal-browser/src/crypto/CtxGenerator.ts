@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { BrowserCrypto } from "./BrowserCrypto";
 import { Base64Encode } from "../encode/Base64Encode";
 
