@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Wed, 12 May 2021 18:35:03 GMT and should not be manually modified.
+This log was last generated on Mon, 28 Jun 2021 23:39:48 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.2.0
+
+Mon, 28 Jun 2021 23:39:48 GMT
+
+### Minor changes
+
+- Add correlationId to log messages #3601 (joarroyo@microsoft.com)
+
+### Patches
+
+- fix: have the log level propagate to msal-common (samuelkamau@microsoft.com)
+- fix: update the client capabilities type in configuration #3678 (samuelkamau@microsoft.com)
 
 ## 1.1.0
 
