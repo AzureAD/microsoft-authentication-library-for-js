@@ -1,8 +1,25 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Wed, 12 May 2021 18:35:03 GMT and should not be manually modified.
+This log was last generated on Mon, 28 Jun 2021 23:39:48 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 4.4.0
+
+Mon, 28 Jun 2021 23:39:48 GMT
+
+### Minor changes
+
+- Add CCS parameters to headers or form_data #3636 (prkanher@microsoft.com)
+- Add correlationId to log messages #3601 (joarroyo@microsoft.com)
+
+### Patches
+
+- Export ServerAuthorizationTokenResponse type #3657 (thomas.norling@microsoft.com)
+- Discard tokens cached after current time #3786 (thomas.norling@microsoft.com)
+- Remove input params from Empty Scopes error constructors #3654 (thomas.norling@microsoft.com)
+- feat: modify the access token filter #3375 (samuelkamau@microsoft.com)
+- fix: fix device code polling bug (samuelkamau@microsoft.com)
 
 ## 4.3.0
 

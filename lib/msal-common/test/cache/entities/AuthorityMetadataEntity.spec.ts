@@ -1,6 +1,7 @@
-import { Constants, TimeUtils } from "../../../src";
 import { AuthorityMetadataEntity } from "../../../src/cache/entities/AuthorityMetadataEntity";
 import { DEFAULT_OPENID_CONFIG_RESPONSE, TEST_CONFIG } from "../../test_kit/StringConstants";
+import { Constants } from "../../../src/utils/Constants";
+import { TimeUtils } from "../../../src/utils/TimeUtils";
 
 describe("AuthorityMetadataEntity.ts Unit Tests", () => {
     const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
