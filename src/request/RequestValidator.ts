@@ -28,7 +28,13 @@ export class RequestValidator {
      * @param prompt
      */
     static validatePrompt(prompt: string) : void {
-        if (Object.values(PromptValue).indexOf(prompt) < 0) {
+        let promptValues = [];
+
+        for (let value in PromptValue) {
+            promptValues.push(PromptValue[value]);
+        }
+
+        if (promptValues.indexOf(prompt) < 0) {
             throw ClientConfigurationError.createInvalidPromptError(prompt);
         }
     }
