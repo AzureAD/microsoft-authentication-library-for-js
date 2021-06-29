@@ -383,7 +383,10 @@ export class BrowserCacheManager extends CacheManager {
     getActiveAccount(): AccountInfo | null {
         const activeAccountIdKey = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT);
         const activeAccountId = this.browserStorage.getItem(activeAccountIdKey);
-        return this.getAccountInfoByFilter({localAccountId: activeAccountId || ""})[0] || null;
+        if (!activeAccountId) {
+            return null;
+        }
+        return this.getAccountInfoByFilter({localAccountId: activeAccountId})[0] || null;
     }
 
     /**
