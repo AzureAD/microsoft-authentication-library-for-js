@@ -2,6 +2,59 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Mon, 28 Jun 2021 23:39:48 GMT",
+      "tag": "@azure/msal-angular_v2.0.1",
+      "version": "2.0.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Don't use normalized url in Angular custom nav client #3757",
+            "author": "janutter@microsoft.com",
+            "commit": "267087aa1443bdd8a1b0208f300f56e9b8b5b8d5",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "MsalInterceptor relative url fix #3729",
+            "author": "joarroyo@microsoft.com",
+            "commit": "18e0a6e4e96c640216759547c2945da46182e4ea",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Add window check to msal-guard #3664",
+            "author": "joarroyo@microsoft.com",
+            "commit": "e4ee6981f042308d44f97590454b548a0197c3f1",
+            "package": "@azure/msal-angular"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Unit test updates",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "f0c574a8c2ffeb3132703e7e9e17d01e1898abaa",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Regenerate package-lock #3719",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6c34aa5be3ee9536bd2febd2b7781fcdf0d28786",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "fix: update package lock files",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "0199e41269b79de70f7d0da0fb12448db534f784",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Component governance dependency updates #3655",
+            "author": "joarroyo@microsoft.com",
+            "commit": "d06ce5f5f4aa774e447d01e9cbf17d05a730bc47",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 13 May 2021 18:34:08 GMT",
       "tag": "@azure/msal-angular_v2.0.0",
       "version": "2.0.0",

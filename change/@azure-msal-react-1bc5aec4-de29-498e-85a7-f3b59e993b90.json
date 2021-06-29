@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Change accounts context type to AccountInfo[] #3677",
-  "packageName": "@azure/msal-react",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
