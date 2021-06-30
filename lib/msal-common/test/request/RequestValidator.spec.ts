@@ -26,6 +26,9 @@ describe("RequestValidator unit tests", () => {
         it("PromptValue none", () => {
             RequestValidator.validatePrompt(PromptValue.NONE);
         });
+        it("PromptValue create", () => {
+            RequestValidator.validatePrompt(PromptValue.CREATE);
+        });
         it("Throws InvalidPromptError if invalid prompt value passed in", () => {
             expect(function() { RequestValidator.validatePrompt("")}).toThrowError(ClientConfigurationError.createInvalidPromptError("").message);
         });
