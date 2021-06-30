@@ -34,8 +34,10 @@ export class RegionDiscovery {
                 const response = await this.getRegionFromIMDS(Constants.IMDS_VERSION);
                 if (response.status === ResponseCodes.httpSuccess) {
                     autodetectedRegionName = response.body;
+                    regionDiscoveryMetadata.region_source = RegionDiscoverySources.IMDS;
                 } 
                 
+                // Check if the response was a bad request and try again with a more recent version of IMDS
                 if (response.status === ResponseCodes.httpBadRequest) {
                     const latestIMDSVersion = await this.getCurrentVersion();
                     if (!latestIMDSVersion) {
@@ -46,10 +48,9 @@ export class RegionDiscovery {
                     const response = await this.getRegionFromIMDS(latestIMDSVersion);
                     if (response.status === ResponseCodes.httpSuccess) {
                         autodetectedRegionName = response.body;
+                        regionDiscoveryMetadata.region_source = RegionDiscoverySources.IMDS;
                     }
                 }
-                
-                if (autodetectedRegionName) regionDiscoveryMetadata.region_source = RegionDiscoverySources.IMDS;
             } catch(e) {
                 regionDiscoveryMetadata.region_source = RegionDiscoverySources.FAILED_AUTO_DETECTION;
                 return null;
