@@ -15,7 +15,6 @@ export class ServerTelemetryManager {
     private cacheManager: CacheManager;
     private apiId: number;
     private correlationId: string;
-    private forceRefresh: boolean;
     private telemetryCacheKey: string;
     private wrapperSKU: String;
     private wrapperVer: String;
@@ -28,7 +27,6 @@ export class ServerTelemetryManager {
         this.cacheManager = cacheManager;
         this.apiId = telemetryRequest.apiId;
         this.correlationId = telemetryRequest.correlationId;
-        this.forceRefresh = telemetryRequest.forceRefresh || false;
         this.wrapperSKU = telemetryRequest.wrapperSKU || Constants.EMPTY_STRING;
         this.wrapperVer = telemetryRequest.wrapperVer || Constants.EMPTY_STRING;
 
