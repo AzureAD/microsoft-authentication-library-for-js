@@ -75,7 +75,8 @@ export enum PersistentCacheKeys {
     CLIENT_INFO = "client.info",
     ADAL_ID_TOKEN = "adal.idtoken",
     ERROR = "error",
-    ERROR_DESC = "error.description"
+    ERROR_DESC = "error.description",
+    ACTIVE_ACCOUNT = "active-account"
 }
 
 /**
