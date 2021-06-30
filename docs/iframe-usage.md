@@ -6,19 +6,23 @@ MSAL.js can be used with iframed applications under restricted conditions:
 * Due to the above restriction, you **cannot** use [redirect APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/initialization.md#redirect-apis) in an iframed app; user interactions with the IdP must be handled via popups (see [below](#error-handling))
 * You **can** achieve [single-sign on](https://docs.microsoft.com/azure/active-directory/develop/msal-js-sso) between iframed and parent apps running on the same domain **and** on different domains **if** both apps are owned or managed (see [below](#single-sign-on))
 
-> :information_source: Azure AD B2C offers an [embedded sign-in experience](https://docs.microsoft.com/azure/active-directory-b2c/embedded-login) (public preview), which allows rendering a custom login UX in an iframe. Since MSAL prevents redirects in iframe, you'll need to set the [allowRedirectIframe](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md#system-config-options) configuration option to **true** in order to make user of this feature.
+> :information_source: Azure AD B2C offers an [embedded sign-in experience](https://docs.microsoft.com/azure/active-directory-b2c/embedded-login) (public preview), which allows rendering a custom login UX in an iframe. Since MSAL prevents redirects in iframes by default, you'll need to set the [allowRedirectIframe](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md#system-config-options) configuration option to **true** in order to make use of this feature.
 
 ## Browser restrictions
 
-Because Azure AD session cookies within an iframe are considered [3rd party cookies](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#third-party_cookies), certain browsers (for example **Safari** or **Chrome** in incognito mode with 3rd party cookies disabled) either block or clear these cookies. This will affect the single sign-on experience for iframed apps as they will not have access to IdP's session cookies.
+Because Azure AD session cookies within an iframe are considered [3rd party cookies](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#third-party_cookies), certain browsers (for example **Safari** or **Chrome** in *incognito* mode with 3rd party cookies disabled) either block or clear these cookies. This will affect the single sign-on experience for iframed apps as they will not have access to IdP's session cookies.
 
 Additionally, when 3rd party cookies are disabled, the app in the iframe will not have access to local or session storage. MSAL.js will fallback to in-memory storage in this case.
 
 ## Single sign-on
 
-iframed and parent apps on the same domain will have access to the same MSAL.js cache instance and will be able to sign-in without prompts. See for more: [Single sign-on with MSAL.js](https://docs.microsoft.com/azure/active-directory/develop/msal-js-sso)
+### Apps on the same domain
 
-iframed and parent apps on different domains can make use of the [ssoSilent()](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md#silent-login-with-ssosilent) API. You will need to pass an **account**, a **loginHint** or a **sid** as parameter. To do so, you can make use of the [postMessage()](https://html.spec.whatwg.org/multipage/web-messaging.html#dom-window-postmessage-options-dev) API, use a 3rd party solution (e.g. [postmate](https://github.com/dollarshaveclub/postmate)) or implement a custom message broker. When using `postMessage()` API, please ensure to follow [security considerations](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage#security_concerns).
+iframed and parent apps on the same domain will have access to the same MSAL.js cache instance and will be able to sign-in without prompts, provided that both apps configure msal to use the [local storage](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/caching.md#cache-storage) for caching. See for more: [Single sign-on with MSAL.js](https://docs.microsoft.com/azure/active-directory/develop/msal-js-sso)
+
+### Apps on different domains
+
+iframed and parent apps on different domains can make use of the [ssoSilent()](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md#silent-login-with-ssosilent) API. You will need to pass an **account**, a **loginHint** or a **sid** as parameter. For cross-origin communication between iframed and parent apps, you can make use of the [postMessage()](https://html.spec.whatwg.org/multipage/web-messaging.html#dom-window-postmessage-options-dev) API, use a 3rd party solution (e.g. [postmate](https://github.com/dollarshaveclub/postmate)) or implement a custom message broker. When using `postMessage()` API, please ensure to follow [security considerations](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage#security_concerns).
 
 ```javascript
 // Create the main myMSALObj instance
@@ -92,7 +96,7 @@ You should catch and handle any errors if `ssoSilent()` fails. In particular:
 
 ## User interaction
 
-if you like to minimize communication with IdP that requires user interaction, or if you have issues with popups for any reason, you may consider:
+If you like to minimize communication with IdP that requires user interaction, or if you have issues with popups for any reason, you may consider:
 
 * **Avoiding interaction when users sign-in for the first time**
   * [Granting admin consent](https://docs.microsoft.com/azure/active-directory/develop/v2-admin-consent) to a tenant will prevent consent prompts for permissions required by your app.
