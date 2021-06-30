@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add constant for active account cache key #3755",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
