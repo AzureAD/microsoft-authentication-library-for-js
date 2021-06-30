@@ -10,6 +10,7 @@ import { ServerTelemetryRequest } from "../../src/telemetry/server/ServerTelemet
 import { ServerTelemetryManager } from "../../src/telemetry/server/ServerTelemetryManager";
 import { AuthError } from "../../src/error/AuthError";
 import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
+import { CacheOutcome } from "../../src/utils/Constants";
 
 const testCacheManager = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
 const testApiCode = 9999999;
@@ -118,8 +119,9 @@ describe("ServerTelemetryManager.ts", () => {
         });
 
         it("Adds telemetry headers with current request with forceRefresh true", () => {
-            const testPayload: ServerTelemetryRequest = {...testTelemetryPayload, forceRefresh: true };
+            const testPayload: ServerTelemetryRequest = {...testTelemetryPayload };
             const telemetryManager = new ServerTelemetryManager(testPayload, testCacheManager);
+            telemetryManager.setCacheOutcome(CacheOutcome.FORCE_REFRESH);
             const currHeaderVal = telemetryManager.generateCurrentRequestHeaderValue();
             expect(currHeaderVal).toEqual(`5|${testApiCode},1,,,|,`);
         });
