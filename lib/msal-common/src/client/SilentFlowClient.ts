@@ -60,24 +60,28 @@ export class SilentFlowClient extends BaseClient {
         const environment = request.authority || this.authority.getPreferredCache();
         const authScheme = request.authenticationScheme || AuthenticationScheme.BEARER;
         const cacheRecord = this.cacheManager.readCacheRecord(request.account, this.config.authOptions.clientId, requestScopes, environment, authScheme);
-        
-        if (request.forceRefresh || 
-            !StringUtils.isEmptyObj(request.claims) || 
-            !cacheRecord.accessToken || 
-            TimeUtils.isTokenExpired(cacheRecord.accessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds) ||
+       
+        if (request.forceRefresh) {
+            // Must refresh due to present force_refresh flag.
+            this.serverTelemetryManager?.setCacheOutcome(CacheOutcome.FORCE_REFRESH);
+            throw ClientAuthError.createRefreshRequiredError();
+        } else if (!cacheRecord.accessToken) {
+            // Must refresh due to non-existent access_token.
+            this.serverTelemetryManager?.setCacheOutcome(CacheOutcome.NO_CACHED_ACCESS_TOKEN);
+            throw ClientAuthError.createRefreshRequiredError();
+        } else if (
             TimeUtils.wasClockTurnedBack(cacheRecord.accessToken.cachedAt) ||
-            (cacheRecord.accessToken.refreshOn && TimeUtils.isTokenExpired(cacheRecord.accessToken.refreshOn, 0))) {
-
-            // Update server telemetry manager with the cache outcome
-            if (!cacheRecord.accessToken) {
-                this.serverTelemetryManager?.setCacheOutcome(CacheOutcome.NO_CACHED_ACCESS_TOKEN);
-            } else if (TimeUtils.isTokenExpired(cacheRecord.accessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
-                this.serverTelemetryManager?.setCacheOutcome(CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED);
-            } else if (cacheRecord.accessToken.refreshOn && TimeUtils.isTokenExpired(cacheRecord.accessToken.refreshOn, 0)) {
-                this.serverTelemetryManager?.setCacheOutcome(CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN);
-            }   
-            
-            // Must refresh due to request parameters, or expired or non-existent access_token
+            TimeUtils.isTokenExpired(cacheRecord.accessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)
+        ) {
+            // Must refresh due to expired access_token.
+            this.serverTelemetryManager?.setCacheOutcome(CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED);
+            throw ClientAuthError.createRefreshRequiredError();
+        } else if (cacheRecord.accessToken.refreshOn && TimeUtils.isTokenExpired(cacheRecord.accessToken.refreshOn, 0)) {
+            // Must refresh due to the refresh_in value.
+            this.serverTelemetryManager?.setCacheOutcome(CacheOutcome.REFRESH_CACHED_ACCESS_TOKEN);
+            throw ClientAuthError.createRefreshRequiredError();
+        } else if (!StringUtils.isEmptyObj(request.claims)) {
+            // Must refresh due to request parameters.
             throw ClientAuthError.createRefreshRequiredError();
         }
 

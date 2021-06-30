@@ -22,7 +22,7 @@ export class ServerTelemetryManager {
     private regionUsed: string | undefined;
     private regionSource: RegionDiscoverySources | undefined;
     private regionOutcome: RegionDiscoveryOutcomes | undefined;
-    private cacheOutcome: CacheOutcome;
+    private cacheOutcome: CacheOutcome = CacheOutcome.NO_CACHE_HIT;
 
     constructor(telemetryRequest: ServerTelemetryRequest, cacheManager: CacheManager) {
         this.cacheManager = cacheManager;
@@ -33,9 +33,6 @@ export class ServerTelemetryManager {
         this.wrapperVer = telemetryRequest.wrapperVer || Constants.EMPTY_STRING;
 
         this.telemetryCacheKey = SERVER_TELEM_CONSTANTS.CACHE_KEY + Separators.CACHE_KEY_SEPARATOR + telemetryRequest.clientId;
-
-        // Initialize the cache outcome value
-        this.setCacheOutcome(this.forceRefresh ? CacheOutcome.FORCE_REFRESH : CacheOutcome.NO_CACHE_HIT);
     }
 
     /**
