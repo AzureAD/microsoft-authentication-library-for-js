@@ -16,7 +16,7 @@ Additionally, when 3rd party cookies are disabled, the app in the iframe will no
 
 ## Single sign-on
 
-iframed and parent apps on the same domain will have access to the same MSAL.js cache instance and will be able to sing-in without prompts. See for more: [Single sign-on with MSAL.js](https://docs.microsoft.com/azure/active-directory/develop/msal-js-sso)
+iframed and parent apps on the same domain will have access to the same MSAL.js cache instance and will be able to sign-in without prompts. See for more: [Single sign-on with MSAL.js](https://docs.microsoft.com/azure/active-directory/develop/msal-js-sso)
 
 iframed and parent apps on different domains can make use of the [ssoSilent()](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md#silent-login-with-ssosilent) API. You will need to pass an **account**, a **loginHint** or a **sid** as parameter. To do so, you can make use of the [postMessage()](https://html.spec.whatwg.org/multipage/web-messaging.html#dom-window-postmessage-options-dev) API, use a 3rd party solution (e.g. [postmate](https://github.com/dollarshaveclub/postmate)) or implement a custom message broker. When using `postMessage()` API, please ensure to follow [security considerations](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage#security_concerns).
 
