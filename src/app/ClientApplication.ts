@@ -52,9 +52,6 @@ export abstract class ClientApplication {
     // Flag to indicate if in browser environment
     protected isBrowserEnvironment: boolean;
 
-    // Sets the account to use if no account info is given
-    private activeLocalAccountId: string | null;
-
     // Set the SKU and Version for wrapper library if applicable
     private wrapperSKU: string | undefined;
     private wrapperVer: string | undefined;
@@ -94,8 +91,6 @@ export abstract class ClientApplication {
         this.isBrowserEnvironment = typeof window !== "undefined";
         // Set the configuration.
         this.config = buildConfiguration(configuration, this.isBrowserEnvironment);
-
-        this.activeLocalAccountId = null;
 
         // Initialize logger
         this.logger = new Logger(this.config.system.loggerOptions, name, version);
@@ -918,25 +913,14 @@ export abstract class ClientApplication {
      * @param account
      */
     setActiveAccount(account: AccountInfo | null): void {
-        if (account) {
-            this.logger.verbose("setActiveAccount: Active account set");
-            this.activeLocalAccountId = account.localAccountId;
-        } else {
-            this.logger.verbose("setActiveAccount: No account passed, active account not set");
-            this.activeLocalAccountId = null;
-        }
+        this.browserStorage.setActiveAccount(account);
     }
 
     /**
      * Gets the currently active account
      */
     getActiveAccount(): AccountInfo | null {
-        if (!this.activeLocalAccountId) {
-            this.logger.verbose("getActiveAccount: No active account");
-            return null;
-        }
-
-        return this.getAccountByLocalId(this.activeLocalAccountId);
+        return this.browserStorage.getActiveAccount();
     }
 
     // #endregion
