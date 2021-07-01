@@ -6,7 +6,7 @@ MSAL.js can be used with iframed applications under restricted conditions:
 * Due to the above restriction, you **cannot** use [redirect APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/initialization.md#redirect-apis) in an iframed app; user interactions with the IdP must be handled via popups (see [below](#error-handling))
 * You **can** achieve [single-sign on](https://docs.microsoft.com/azure/active-directory/develop/msal-js-sso) between iframed and parent apps running on the same domain **and** on different domains **if** both apps are owned or managed (see [below](#single-sign-on))
 
-> :information_source: Azure AD B2C offers an [embedded sign-in experience](https://docs.microsoft.com/azure/active-directory-b2c/embedded-login) (public preview), which allows rendering a custom login UX in an iframe. Since MSAL prevents redirect in iframes by default, you'll need to set the [allowRedirectIframe](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md#system-config-options) configuration option to **true** in order to make use of this feature. Note that enabling this configuration option for apps on Azure AD is not recommended, in accordance with the above restrictions.
+> :information_source: Azure AD B2C offers an [embedded sign-in experience](https://docs.microsoft.com/azure/active-directory-b2c/embedded-login) (public preview), which allows rendering a custom login UX in an iframe. Since MSAL prevents redirect in iframes by default, you'll need to set the [allowRedirectIframe](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md#system-config-options) configuration option to **true** in order to make use of this feature. Note that enabling this option for apps on Azure AD is not recommended, in accordance with the above restrictions.
 
 ## Browser restrictions
 
@@ -22,7 +22,7 @@ iframed and parent apps on the same domain will have access to the same MSAL.js 
 
 ### Apps on different domains
 
-iframed and parent apps on different domains can make use of the [ssoSilent()](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md#silent-login-with-ssosilent) API. You will need to pass an **account**, a **loginHint** or a **sid** as parameter. For cross-origin communication between iframed and parent apps, you can make use of the [postMessage()](https://html.spec.whatwg.org/multipage/web-messaging.html#dom-window-postmessage-options-dev) API, use a 3rd party solution (e.g. [postmate](https://github.com/dollarshaveclub/postmate)) or implement a custom message broker. When using `postMessage()` API, please ensure to follow [security considerations](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage#security_concerns).
+iframed and parent apps on different domains can make use of the [ssoSilent()](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md#silent-login-with-ssosilent) API. You will need to pass an **account**, a **loginHint** or a **sid** as parameter when using `ssoSilent()`. For cross-origin communication between iframed and parent apps, you can utilize the [postMessage()](https://html.spec.whatwg.org/multipage/web-messaging.html#dom-window-postmessage-options-dev) API, rely on a 3rd party solution (e.g. [postmate](https://github.com/dollarshaveclub/postmate)), or implement a custom message broker. When using the `postMessage()` API, please ensure to follow the [security considerations](https://developer.mozilla.org/en-US/docs/Web/API/Window/postMessage#security_concerns).
 
 ```javascript
 // Create the main myMSALObj instance
@@ -96,13 +96,13 @@ You should catch and handle any errors if `ssoSilent()` fails. In particular:
 
 ## User interaction
 
-If you like to minimize communication with IdP that requires user interaction, or if you have issues with popups for any reason, you may consider:
+If you like to minimize communication with IdP that requires user interaction, or if you have issues with popups for any reason, you may consider to:
 
-* **Avoiding interaction when users sign-in for the first time**
+* **Avoid interaction when users sign-in for the first time**
   * [Granting admin consent](https://docs.microsoft.com/azure/active-directory/develop/v2-admin-consent) to a tenant will prevent consent prompts for permissions required by your app.
-* **Avoiding interaction when calling an API that has permissions requiring consent**
+* **Avoid interaction when calling an API that has permissions requiring consent**
   * [Pre-authorizing client apps](https://docs.microsoft.com/azure/active-directory/develop/reference-app-manifest#preauthorizedapplications-attribute) will prevent consent prompts for permissions required by your web API
 
 ## Single sign-out
 
-You can use MSAL.js with a [front-channel logout URI](https://openid.net/specs/openid-connect-backchannel-1_0.html) to achieve *single sign-out* effect between iframed and parent apps. In particular, you may want to enable front-channel logout for your iframed child apps, so that the logout from parent app can trigger logout from child apps. See for more: [How to configure a front-channel logout URI](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/logout.md#front-channel-logout).
+You can use MSAL.js with a [front-channel logout URI](https://openid.net/specs/openid-connect-backchannel-1_0.html) to achieve *single sign-out* effect between iframed and parent apps. In particular, you may want to enable front-channel logout for your iframed apps, so that logout from the parent app can trigger logout from child apps. See for more: [How to configure a front-channel logout URI](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/logout.md#front-channel-logout).
