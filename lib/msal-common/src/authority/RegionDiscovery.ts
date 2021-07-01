@@ -28,26 +28,26 @@ export class RegionDiscovery {
         // Initialize auto detected region with the region from the envrionment 
         let autodetectedRegionName = environmentRegion;
 
-        // Call the local IMDS endpoint for applications running in azure vms
+        // Check if a region was detected from the environment, if not, attempt to get the region from IMDS 
         if (!autodetectedRegionName) {
             try {
-                const response = await this.getRegionFromIMDS(Constants.IMDS_VERSION);
-                if (response.status === ResponseCodes.httpSuccess) {
-                    autodetectedRegionName = response.body;
+                const localIMDSVersionResponse = await this.getRegionFromIMDS(Constants.IMDS_VERSION);
+                if (localIMDSVersionResponse.status === ResponseCodes.httpSuccess) {
+                    autodetectedRegionName = localIMDSVersionResponse.body;
                     regionDiscoveryMetadata.region_source = RegionDiscoverySources.IMDS;
                 } 
                 
-                // Check if the response was a bad request and try again with a more recent version of IMDS
-                if (response.status === ResponseCodes.httpBadRequest) {
-                    const latestIMDSVersion = await this.getCurrentVersion();
-                    if (!latestIMDSVersion) {
+                // If the response using the local IMDS version failed, try to fetch the current version of IMDS and retry. 
+                if (localIMDSVersionResponse.status === ResponseCodes.httpBadRequest) {
+                    const currentIMDSVersion = await this.getCurrentVersion();
+                    if (!currentIMDSVersion) {
                         regionDiscoveryMetadata.region_source = RegionDiscoverySources.FAILED_AUTO_DETECTION;
                         return null;
                     }
 
-                    const response = await this.getRegionFromIMDS(latestIMDSVersion);
-                    if (response.status === ResponseCodes.httpSuccess) {
-                        autodetectedRegionName = response.body;
+                    const currentIMDSVersionResponse = await this.getRegionFromIMDS(currentIMDSVersion);
+                    if (currentIMDSVersionResponse.status === ResponseCodes.httpSuccess) {
+                        autodetectedRegionName = currentIMDSVersionResponse.body;
                         regionDiscoveryMetadata.region_source = RegionDiscoverySources.IMDS;
                     }
                 }
@@ -59,7 +59,10 @@ export class RegionDiscovery {
             regionDiscoveryMetadata.region_source = RegionDiscoverySources.ENVIRONMENT_VARIABLE;
         }
 
-        if (!autodetectedRegionName) regionDiscoveryMetadata.region_source = RegionDiscoverySources.FAILED_AUTO_DETECTION;
+        // If no region was auto detected from the environment or from the IMDS endpoint, mark the attempt as a FAILED_AUTO_DETECTION
+        if (!autodetectedRegionName) {
+            regionDiscoveryMetadata.region_source = RegionDiscoverySources.FAILED_AUTO_DETECTION;
+        }
 
         return autodetectedRegionName || null;
     }
