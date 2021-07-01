@@ -41,35 +41,33 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         history.replaceState = oldReplaceState;
     });
 
-    it(
-        "replaceHash replaces the current window hash with the hash from the provided url",
-        () => {
-            window.location.hash = "thisIsAHash";
-            const url = "http://localhost/#";
-            const testHash = "#replacementHash";
-            BrowserUtils.replaceHash(url + testHash);
-            expect(window.location.hash).toBe(testHash);
-        }
-    );
+    it("replaceHash replaces the current window hash with the hash from the provided url", () => {
+        window.location.hash = "thisIsAHash";
+        const url = "http://localhost/#";
+        const testHash = "#replacementHash";
+        BrowserUtils.replaceHash(url + testHash);
+        expect(window.location.hash).toBe(testHash);
+    });
 
-    it(
-        "replaceHash clears the current window hash when provided url does not have hash",
-        () => {
-            window.location.hash = "thisIsAHash";
-            const url = "http://localhost/";
-            BrowserUtils.replaceHash(url);
-            expect(window.location.hash).toBe("");
-        }
-    );
+    it("replaceHash clears the current window hash when provided url does not have hash", () => {
+        window.location.hash = "thisIsAHash";
+        const url = "http://localhost/";
+        BrowserUtils.replaceHash(url);
+        expect(window.location.hash).toBe("");
+    });
     
-    it(
-        "isInIframe() returns false if window parent is not the same as the current window",
-        () => {
-            expect(BrowserUtils.isInIframe()).toBe(false);
-            sinon.stub(window, "parent").value(null);
-            expect(BrowserUtils.isInIframe()).toBe(true);
-        }
-    );
+    it("isInIframe() returns false if window parent is not the same as the current window", () => {
+        expect(BrowserUtils.isInIframe()).toBe(false);
+        sinon.stub(window, "parent").value(null);
+        expect(BrowserUtils.isInIframe()).toBe(true);
+    });
+
+    it("isInPopup() returns false if window opener is not the same as the current window and the window name starts with 'msal.'", () => {
+        expect(BrowserUtils.isInPopup()).toBe(false);
+        window.opener = {...window};
+        sinon.stub(window, "name").value("msal.popupwindow");
+        expect(BrowserUtils.isInPopup()).toBe(true);
+    });
 
     it("getCurrentUri() returns current location uri of browser", () => {
         expect(BrowserUtils.getCurrentUri()).toBe(TEST_URIS.TEST_REDIR_URI);
