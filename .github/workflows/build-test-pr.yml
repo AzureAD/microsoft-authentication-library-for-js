@@ -9,7 +9,7 @@ on:
     paths:
       - 'lib/**/*'
       - '!**.md'
-      - '.github/workflows/build-steps.yml'
+      - '.github/workflows/build-steps-pr.yml'
 
 concurrency:
   group: ci-${{github.ref}}
@@ -33,10 +33,10 @@ jobs:
           filters: |
             core:
               - 'lib/msal-core/**/**.!(md)'
-              - '.github/workflows/build-steps.yml'
+              - '.github/workflows/build-steps-pr.yml'
             common: &common
               - 'lib/msal-common/**/**.!(md)'
-              - '.github/workflows/build-steps.yml'
+              - '.github/workflows/build-steps-pr.yml'
             browser: &browser
               - *common
               - 'lib/msal-browser/**/**.!(md)'
