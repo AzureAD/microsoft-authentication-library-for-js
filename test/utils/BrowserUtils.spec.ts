@@ -55,14 +55,31 @@ describe("BrowserUtils.ts Function Unit Tests", () => {
         BrowserUtils.replaceHash(url);
         expect(window.location.hash).toBe("");
     });
+
+    it("isInIframe() returns false if window parent is the same as the current window", () => {
+        sinon.stub(window, "parent").value(window);
+        expect(BrowserUtils.isInIframe()).toBe(false);
+    });
     
-    it("isInIframe() returns false if window parent is not the same as the current window", () => {
+    it("isInIframe() returns true if window parent is not the same as the current window", () => {
         expect(BrowserUtils.isInIframe()).toBe(false);
         sinon.stub(window, "parent").value(null);
         expect(BrowserUtils.isInIframe()).toBe(true);
     });
 
-    it("isInPopup() returns false if window opener is not the same as the current window and the window name starts with 'msal.'", () => {
+    it("isInPopup() returns false if window opener is not the same as the current window but window name does not starts with 'msal.'", () => {
+        window.opener = {...window};
+        sinon.stub(window, "name").value("non-msal-popup");
+        expect(BrowserUtils.isInPopup()).toBe(false);
+    });
+
+    it("isInPopup() returns false if window opener is the same as the current window", () => {
+        window.opener = window;
+        sinon.stub(window, "name").value("msal.");
+        expect(BrowserUtils.isInPopup()).toBe(false);
+    });
+
+    it("isInPopup() returns true if window opener is not the same as the current window and the window name starts with 'msal.'", () => {
         expect(BrowserUtils.isInPopup()).toBe(false);
         window.opener = {...window};
         sinon.stub(window, "name").value("msal.popupwindow");
