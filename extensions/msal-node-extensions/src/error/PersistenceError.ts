@@ -68,4 +68,14 @@ export class PersistenceError extends Error {
     static createCachePersistenceError(errorMessage: string): PersistenceError {
         return new PersistenceError("CachePersistenceError", errorMessage);
     }
+
+    /**
+     * Throw unsupported error
+     * 
+     * @param errorMessage string
+     * @returns PersistenceError
+     */
+    static createNotSupportedError(errorMessage: string): PersistenceError {
+        return new PersistenceError("NotSupported", errorMessage);
+    }
 }

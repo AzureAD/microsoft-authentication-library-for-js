@@ -4,7 +4,7 @@
  */
 
 import { promises as fs } from "fs";
-import { dirname } from "path";
+import { dirname, join } from "path";
 import { IPersistence } from "./IPersistence";
 import { Constants } from "../utils/Constants";
 import { PersistenceError } from "../error/PersistenceError";
@@ -23,9 +23,9 @@ export class FilePersistence extends BasePersistence implements IPersistence {
     private filePath: string;
     private logger: Logger;
 
-    public static async create(fileLocation: string, loggerOptions?: LoggerOptions): Promise<FilePersistence> {
+    public static async create(fileLocation: string | null | undefined, loggerOptions?: LoggerOptions): Promise<FilePersistence> {
         const filePersistence = new FilePersistence();
-        filePersistence.filePath = fileLocation;
+        filePersistence.filePath = fileLocation || filePersistence.getDefaultCacheLocation();
         filePersistence.logger = new Logger(loggerOptions || FilePersistence.createDefaultLoggerOptions());
         await filePersistence.createCacheFile();
         return filePersistence;
@@ -90,7 +90,7 @@ export class FilePersistence extends BasePersistence implements IPersistence {
     }
 
     public createForPersistenceValidation(): Promise<FilePersistence> {
-        const testCacheFileLocation = `${dirname(this.filePath)}/test.cache`;
+        const testCacheFileLocation = join(dirname(this.filePath), "test.cache");
         return FilePersistence.create(testCacheFileLocation);
     }
 

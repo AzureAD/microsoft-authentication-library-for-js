@@ -3,12 +3,23 @@
  * Licensed under the MIT License.
  */
 
+import path from "path";
 import { PersistenceError } from "../error/PersistenceError";
 import { Constants } from "../utils/Constants";
 import { IPersistence } from "./IPersistence";
+import { Environment } from "../utils/Environment";
 
 export abstract class BasePersistence {
     public abstract createForPersistenceValidation(): Promise<IPersistence>; 
+
+    /**
+     * Returns the default file location based on the operating system
+     *  
+     * @returns string
+     */
+    protected getDefaultCacheLocation(): string {
+        return path.join(Environment.getUserRootDirectory(), Constants.DEFAULT_CACHE_FILE_NAME);
+    }
 
     public async verifyPersistence(): Promise<boolean> {
         // We are using a different location for the test to avoid overriding the functional cache

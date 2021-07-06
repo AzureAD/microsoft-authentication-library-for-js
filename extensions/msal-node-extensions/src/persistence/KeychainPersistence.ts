@@ -8,7 +8,7 @@ import { FilePersistence } from "./FilePersistence";
 import { IPersistence } from "./IPersistence";
 import { PersistenceError } from "../error/PersistenceError";
 import { Logger, LoggerOptions } from "@azure/msal-common";
-import { dirname } from "path";
+import { dirname, join } from "path";
 import { BasePersistence } from "./BasePersistence";
 
 /**
@@ -30,7 +30,7 @@ export class KeychainPersistence extends BasePersistence implements IPersistence
     }
 
     public static async create(
-        fileLocation: string,
+        fileLocation: string | null | undefined,
         serviceName: string,
         accountName: string,
         loggerOptions?: LoggerOptions): Promise<KeychainPersistence> {
@@ -80,7 +80,7 @@ export class KeychainPersistence extends BasePersistence implements IPersistence
     }
    
     public createForPersistenceValidation(): Promise<KeychainPersistence> {
-        const testCacheFileLocation = `${dirname(this.filePersistence.getFilePath())}/test.cache`;
+        const testCacheFileLocation = join(dirname(this.filePersistence.getFilePath()), "test.cache");
         return KeychainPersistence.create(testCacheFileLocation, "persistenceValidationServiceName", "persistencValidationAccountName");
     }
 }
