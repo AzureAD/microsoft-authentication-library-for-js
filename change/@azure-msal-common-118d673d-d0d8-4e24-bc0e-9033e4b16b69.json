@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Remove input params from Empty Scopes error constructors #3654",
+  "comment": "Fix double query string for logout endpoint #3814",
   "packageName": "@azure/msal-common",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

@@ -97,56 +97,7 @@ For an implementation, see the code sample: [auth-code-key-vault](../../../sampl
 
 > :information_source: Converting `PKCS12/PFX` to `PEM`
 >
-> In most circumstances, Azure Key Vault can export certificates and private keys in `pem` format (see: [Export stored certificates](https://docs.microsoft.com/azure/key-vault/certificates/how-to-export-certificate?tabs=azure-cli#export-stored-certificates)), if **Content Type** was chosen as `pem` during certificate generation (see: [Create a certificate in Key Vault](https://docs.microsoft.com/azure/key-vault/certificates/tutorial-rotate-certificates#create-a-certificate-in-key-vault)). If for some reason this is not the case, OpenSSL can be used for conversions:
->
-> ```bash
-> openssl pkcs12 -in certificate.pfx -out certificate.pem
-> ```
->
-> If the conversion needs to happen programmatically, then you may have to rely on a 3rd party package, as Node.js offers no native method for this. For instance, using a popular TLS implementation like [node-forge](https://www.npmjs.com/package/node-forge), you can do:
->
-> ```javascript
->
-> const secretClient = new keyvaultSecret.SecretClient(KVUri, credential);
-> const secretResponse = await secretClient.getSecret(CERTIFICATE_NAME).catch(err => console.log(err));
-> convertPFX(secretResponse.value) // pkcs12/pfx formatted certificate + private key combination
->
-> /**
-> * @param {string} pfx: a certificate in pkcs12 format
-> * @param {string} passphrase: passphrase used to encrypt pfx file
-> * @returns {Object}
-> */
-> function convertPFX(pfx, passphrase = null) {
->
->    const asn = forge.asn1.fromDer(forge.util.decode64(pfx));   
->    const p12 = forge.pkcs12.pkcs12FromAsn1(asn, true, passphrase);
->
->    // Retrieve key data
->    const keyData = p12.getBags({ bagType: forge.pki.oids.pkcs8ShroudedKeyBag })[forge.pki.oids.pkcs8ShroudedKeyBag]
->        .concat(p12.getBags({ bagType: forge.pki.oids.keyBag })[forge.pki.oids.keyBag]);
->
->    // Retrieve certificate data
->    const certBags = p12.getBags({ bagType: forge.pki.oids.certBag })[forge.pki.oids.certBag];
->    const certificate = forge.pki.certificateToPem(certBags[0].cert)
->
->    // Convert a Forge private key to an ASN.1 RSAPrivateKey
->    const rsaPrivateKey = forge.pki.privateKeyToAsn1(keyData[0].key);
->
->    // Wrap an RSAPrivateKey ASN.1 object in a PKCS#8 ASN.1 PrivateKeyInfo
->    const privateKeyInfo = forge.pki.wrapRsaPrivateKey(rsaPrivateKey);
->
->    // Convert a PKCS#8 ASN.1 PrivateKeyInfo to PEM
->    const privateKey = forge.pki.privateKeyInfoToPem(privateKeyInfo);
->
->    console.log("Converted certificate: \n", certificate);
->    console.log("Converted key: \n", privateKey);
->
->    return {
->        certificate: certificate,
->        key: privateKey
->    };
-> }
-> ```
+> In most circumstances, Azure Key Vault can export certificates and private keys in `pem` format (see: [Export stored certificates](https://docs.microsoft.com/azure/key-vault/certificates/how-to-export-certificate?tabs=azure-cli#export-stored-certificates)), if **Content Type** was chosen as `pem` during certificate generation (see: [Create a certificate in Key Vault](https://docs.microsoft.com/azure/key-vault/certificates/tutorial-rotate-certificates#create-a-certificate-in-key-vault)). If for some reason this is not the case, OpenSSL can be used for conversions. Please refer to [Certificates: converting pfx to pem](./certificate-credentials.md#optional-converting-pfx-to-pem).
 
 ## Using Azure Managed Identity
 

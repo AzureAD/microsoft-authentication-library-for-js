@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Thu, 13 May 2021 18:34:08 GMT and should not be manually modified.
+This log was last generated on Mon, 28 Jun 2021 23:39:48 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.0.1
+
+Mon, 28 Jun 2021 23:39:48 GMT
+
+### Patches
+
+- Don't use normalized url in Angular custom nav client #3757 (janutter@microsoft.com)
+- MsalInterceptor relative url fix #3729 (joarroyo@microsoft.com)
+- Add window check to msal-guard #3664 (joarroyo@microsoft.com)
 
 ## 2.0.0
 
