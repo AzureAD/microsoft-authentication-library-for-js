@@ -95,15 +95,14 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             authority: request.authority || "",
             scopes: request.scopes,
             homeAccountIdentifier: account.homeAccountId
-        }
+        };
         const silentRequestKey = ThrottlingUtils.generateThrottlingStorageKey(thumbprint);
         let response = this.silentRequest.get(silentRequestKey);
         if (typeof response === "undefined") {
             response = this.acquireTokenSilentAsync(request, account).then((result) => {
                 this.silentRequest.delete(silentRequestKey);
                 return result;
-            })
-            .catch((error) => {
+            }).catch((error) => {
                 this.silentRequest.delete(silentRequestKey);
                 throw error;
             });
