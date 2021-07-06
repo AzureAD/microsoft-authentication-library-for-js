@@ -17,7 +17,7 @@ export abstract class BasePersistence {
      *  
      * @returns string
      */
-    protected getDefaultCacheLocation(): string {
+    public getDefaultCacheLocation(): string {
         return path.join(Environment.getUserRootDirectory(), Constants.DEFAULT_CACHE_FILE_NAME);
     }
 

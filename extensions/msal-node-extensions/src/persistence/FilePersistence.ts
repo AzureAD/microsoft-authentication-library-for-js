@@ -23,7 +23,7 @@ export class FilePersistence extends BasePersistence implements IPersistence {
     private filePath: string;
     private logger: Logger;
 
-    public static async create(fileLocation: string | null | undefined, loggerOptions?: LoggerOptions): Promise<FilePersistence> {
+    public static async create(fileLocation?: string | null, loggerOptions?: LoggerOptions): Promise<FilePersistence> {
         const filePersistence = new FilePersistence();
         filePersistence.filePath = fileLocation || filePersistence.getDefaultCacheLocation();
         filePersistence.logger = new Logger(loggerOptions || FilePersistence.createDefaultLoggerOptions());

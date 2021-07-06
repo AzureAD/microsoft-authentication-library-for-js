@@ -60,4 +60,9 @@ describe('Test File Persistence', () => {
             expect(await file.reloadNecessary(Date.now())).toBe(false);
         }, 100);
     });
+
+    test('Default cache location is used when no cache location is provided', async () => {
+        const filePersistence = await FilePersistence.create();
+        expect(await FileSystemUtils.doesFileExist(filePersistence.getDefaultCacheLocation())).toBe(true);
+    })
 });
