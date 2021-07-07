@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "ROPC added for Confidential Clients (#3838)",
+  "packageName": "@azure/msal-node",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}
