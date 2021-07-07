@@ -12,7 +12,8 @@ import {
     TEST_POP_VALUES,
     POP_AUTHENTICATION_RESULT,
     TEST_ACCOUNT_INFO,
-    CORS_SIMPLE_REQUEST_HEADERS
+    CORS_SIMPLE_REQUEST_HEADERS,
+    ID_TOKEN_CLAIMS
 } from "../test_kit/StringConstants";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { BaseClient } from "../../src/client/BaseClient";
@@ -32,6 +33,7 @@ import { CacheManager } from "../../src/cache/CacheManager";
 import { AccountEntity } from "../../src/cache/entities/AccountEntity";
 import { ClientAuthError } from "../../src/error/ClientAuthError";
 import { CcsCredentialType } from "../../src";
+import { ResponseHandler } from "../../src/response/ResponseHandler";
 
 describe("AuthorizationCodeClient unit tests", () => {
     afterEach(() => {
@@ -1033,25 +1035,42 @@ describe("AuthorizationCodeClient unit tests", () => {
         it("Adds tokenQueryParameters to the /token request", (done) => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").callsFake((url) => {
-                expect(url.includes("/token?testParam=testValue")).toBe(true);
+                expect(url.includes("/token?dc=ESTS-PUB-WUS2-AZ1-TEST1&testParam=testValue")).toBe(true);
                 done();
+                return AUTHENTICATION_RESULT;
+            });
+            sinon.stub(ResponseHandler.prototype, "validateTokenResponse").callsFake(() => {});
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: AuthenticationScheme.BEARER,
+                tokenQueryParameters: {
+                    testParam: "testValue"
+                }
+            };
+            sinon.stub(ResponseHandler.prototype, "handleServerTokenResponse").callsFake(async () => {
+                return {
+                    authority: TEST_CONFIG.validAuthority,
+                    uniqueId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                    tenantId: TEST_ACCOUNT_INFO.tenantId,
+                    accessToken: AUTHENTICATION_RESULT.body.access_token,
+                    scopes: authCodeRequest.scopes,
+                    account: TEST_ACCOUNT_INFO,
+                    idToken: AUTHENTICATION_RESULT.body.id_token,
+                    idTokenClaims: ID_TOKEN_CLAIMS,
+                    fromCache: false,
+                    expiresOn: new Date(),
+                    tokenType: "accessToken",
+                }
             });
 
             ClientTestUtils.createTestClientConfiguration().then(config => {
                 const client = new AuthorizationCodeClient(config);
-                const authCodeRequest: CommonAuthorizationCodeRequest = {
-                    authority: Constants.DEFAULT_AUTHORITY,
-                    scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
-                    redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
-                    code: TEST_TOKENS.AUTHORIZATION_CODE,
-                    codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                    claims: TEST_CONFIG.CLAIMS,
-                    correlationId: RANDOM_TEST_GUID,
-                    authenticationScheme: AuthenticationScheme.BEARER,
-                    tokenQueryParameters: {
-                        testParam: "testValue"
-                    }
-                };
     
                 client.acquireToken(authCodeRequest).catch(e => {
                     // Catch errors thrown after the function call this test is testing    

@@ -2262,7 +2262,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 return Promise.resolve(true);
             });
             pca.logoutRedirect({
-                onRedirectNavigate: (url) => {
+                onRedirectNavigate: (url: string) => {
                     expect(url).toEqual(testLogoutUrl);
                     done();
                     return false;
@@ -2283,7 +2283,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 return Promise.resolve(true);
             });
             pca.logoutRedirect({
-                onRedirectNavigate: (url) => {
+                onRedirectNavigate: (url: string) => {
                     expect(url).toEqual(testLogoutUrl);
                     return true;
                 }
@@ -2726,7 +2726,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     describe("Logger", () => {
         it("getLogger and setLogger", done => {
             const logger = new Logger({
-                loggerCallback: (level, message, containsPii) => {
+                loggerCallback: (level: LogLevel, message: string, containsPii: boolean) => {
                     expect(message).toContain("Message");
                     expect(message).toContain(LogLevel[2]);
     

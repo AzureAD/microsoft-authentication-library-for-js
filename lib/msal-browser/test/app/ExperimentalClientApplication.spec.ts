@@ -2641,7 +2641,7 @@ describe("ExperimentalClientApplication.ts Class Unit Tests", () => {
 
             pca.experimental?.addEventCallback(subscriber);
             // @ts-ignore
-            pca.experimental.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
+            pca.experimental.eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
         });
 
         it("can remove an event callback", (done) => {
@@ -2654,10 +2654,10 @@ describe("ExperimentalClientApplication.ts Class Unit Tests", () => {
 
             const callbackId = pca.experimental?.addEventCallback(callbackSpy);
             // @ts-ignore
-            pca.experimental.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
+            pca.experimental.eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
             pca.experimental?.removeEventCallback(callbackId!);
             // @ts-ignore
-            pca.experimental.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
+            pca.experimental.eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
             expect(callbackSpy.calledOnce).toBeTruthy();
             done();
         });

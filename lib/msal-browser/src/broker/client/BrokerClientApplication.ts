@@ -429,7 +429,7 @@ export class BrokerClientApplication extends ClientApplication {
 
         const requestNonce = embeddedRequest.nonce || this.browserCrypto.createNewGuid();
 
-        this.browserStorage.updateCacheEntries(brokerState, requestNonce, embeddedRequest.authority);
+        this.browserStorage.updateCacheEntries(brokerState, requestNonce, embeddedRequest.authority, embeddedRequest.loginHint || "", embeddedRequest.account || null);
         return {
             ...embeddedRequest,
             state: brokerState,

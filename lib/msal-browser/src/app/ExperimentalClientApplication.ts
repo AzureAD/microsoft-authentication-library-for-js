@@ -106,7 +106,7 @@ export class ExperimentalClientApplication extends ClientApplication implements 
             if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
                 return this.embeddedApp.sendPopupRequest(validRequest);
             }
-            this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority);
+            this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority, validRequest.loginHint || "", validRequest.account || null);
             const popupName = PopupUtils.generatePopupName(this.config.auth.clientId, validRequest);
 
             // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
@@ -145,7 +145,7 @@ export class ExperimentalClientApplication extends ClientApplication implements 
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.verbose("ssoSilent called");
-        this.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
+        this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
         // Check that we have some SSO data
         if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
@@ -168,10 +168,10 @@ export class ExperimentalClientApplication extends ClientApplication implements 
                 return this.embeddedApp.sendSsoSilentRequest(silentRequest);
             }
             const silentTokenResult = await this.acquireTokenByIframe(silentRequest, ApiId.ssoSilent);
-            this.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
+            this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
             return silentTokenResult;
         } catch (e) {
-            this.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
+            this.eventHandler.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
             throw e;
         }
     }
@@ -194,14 +194,14 @@ export class ExperimentalClientApplication extends ClientApplication implements 
             account: accountObj,
             forceRefresh: request.forceRefresh || false
         };
-        this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
+        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
 
         try {
             // Telemetry manager only used to increment cacheHits here
             const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);
             const silentAuthClient = await this.createSilentFlowClient(serverTelemetryManager, silentRequest.authority);
             const cachedToken = await silentAuthClient.acquireCachedToken(silentRequest);
-            this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, cachedToken);
+            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, cachedToken);
             return cachedToken;
         } catch (e) {
             try {
@@ -209,10 +209,10 @@ export class ExperimentalClientApplication extends ClientApplication implements 
                     return this.embeddedApp.sendSilentRefreshRequest(silentRequest);
                 }
                 const tokenRenewalResult = await this.acquireTokenByRefreshToken(silentRequest);
-                this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, tokenRenewalResult);
+                this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, tokenRenewalResult);
                 return tokenRenewalResult;
             } catch (tokenRenewalError) {
-                this.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
+                this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
                 throw tokenRenewalError;
             }
         }
