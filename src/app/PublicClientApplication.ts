@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, CommonSilentFlowRequest, RequestThumbprint, ThrottlingUtils } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, CommonSilentFlowRequest, RequestThumbprint } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, ApiId, InteractionType } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -96,7 +96,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             scopes: request.scopes,
             homeAccountIdentifier: account.homeAccountId
         };
-        const silentRequestKey = ThrottlingUtils.generateThrottlingStorageKey(thumbprint);
+        const silentRequestKey = JSON.stringify(thumbprint);
         let response = this.activeSilentTokenRequests.get(silentRequestKey);
         if (typeof response === "undefined") {
             this.logger.verbose("acquireTokenSilent called for the first time, storing active request", request.correlationId);
