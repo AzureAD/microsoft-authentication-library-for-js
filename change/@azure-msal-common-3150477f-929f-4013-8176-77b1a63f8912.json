@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "feat: add regional authority telemetry #3662",
+  "packageName": "@azure/msal-common",
+  "email": "samuelkamau@microsoft.com",
+  "dependentChangeType": "patch"
+}
