@@ -25,6 +25,7 @@ jest.mock('@azure/msal-common');
 
 describe('PublicClientApplication', () => {
     const authority: Authority = {
+        regionDiscoveryMetadata: { region_used: undefined, region_source: undefined, region_outcome: undefined },
         resolveEndpointsAsync: () => {
             return new Promise<void>(resolve => {
                 resolve();
@@ -33,7 +34,7 @@ describe('PublicClientApplication', () => {
         discoveryComplete: () => {
             return true;
         },
-    } as Authority;
+    } as unknown as Authority;
 
     let appConfig: Configuration = {
         auth: {
