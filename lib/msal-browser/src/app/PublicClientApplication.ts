@@ -22,7 +22,7 @@ import { version, name } from "../packageMetadata";
 export class PublicClientApplication extends ClientApplication implements IPublicClientApplication {
 
     // Redirect Response Object
-    private silentRequest: Map<string, Promise<AuthenticationResult>>;
+    private activeSilentTokenRequests: Map<string, Promise<AuthenticationResult>>;
 
     /**
      * @constructor
@@ -48,7 +48,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     constructor(configuration: Configuration) {
         super(configuration);
 
-        this.silentRequest = new Map();
+        this.activeSilentTokenRequests = new Map();
     }
 
     /**
@@ -97,18 +97,21 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             homeAccountIdentifier: account.homeAccountId
         };
         const silentRequestKey = ThrottlingUtils.generateThrottlingStorageKey(thumbprint);
-        let response = this.silentRequest.get(silentRequestKey);
+        let response = this.activeSilentTokenRequests.get(silentRequestKey);
         if (typeof response === "undefined") {
-            response = this.acquireTokenSilentAsync(request, account).then((result) => {
-                this.silentRequest.delete(silentRequestKey);
-                return result;
-            }).catch((error) => {
-                this.silentRequest.delete(silentRequestKey);
-                throw error;
-            });
-            this.silentRequest.set(silentRequestKey, response);
+            this.logger.verbose("acquireTokenSilent called for the first time, storing active request", request.correlationId);
+            response = this.acquireTokenSilentAsync(request, account)
+                .then((result) => {
+                    this.activeSilentTokenRequests.delete(silentRequestKey);
+                    return result;
+                })
+                .catch((error) => {
+                    this.activeSilentTokenRequests.delete(silentRequestKey);
+                    throw error;
+                });
+            this.activeSilentTokenRequests.set(silentRequestKey, response);
         } else {
-            this.logger.verbose("acquireTokenSilent has been called previously, returning the result from the first call");
+            this.logger.verbose("acquireTokenSilent has been called previously, returning the result from the first call", request.correlationId);
         }
         return response;
     }
