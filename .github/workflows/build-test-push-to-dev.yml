@@ -53,3 +53,5 @@ jobs:
       with:
         files: lib/${{matrix.library}}/coverage/lcov.info
         flags: ${{ matrix.library }}
+        root_dir: lib/${{ matrix.library }}
+        gcov_prefix: lib/${{ matrix.library }}
