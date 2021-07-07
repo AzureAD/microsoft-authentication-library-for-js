@@ -78,7 +78,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     }
 
     /**
-     * Silently acquire an access token for a given set of scopes. Returnings currently processing promise if parallel requests are made.
+     * Silently acquire an access token for a given set of scopes. Returns currently processing promise if parallel requests are made.
      *
      * @param {@link (SilentRequest:type)}
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
