@@ -10,6 +10,7 @@ import { ServerTelemetryRequest } from "../../src/telemetry/server/ServerTelemet
 import { ServerTelemetryManager } from "../../src/telemetry/server/ServerTelemetryManager";
 import { AuthError } from "../../src/error/AuthError";
 import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
+import { CacheOutcome } from "../../src/utils/Constants";
 
 const testCacheManager = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
 const testApiCode = 9999999;
@@ -114,14 +115,15 @@ describe("ServerTelemetryManager.ts", () => {
         it("Adds telemetry headers with current request", () => {
             const telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
             const currHeaderVal = telemetryManager.generateCurrentRequestHeaderValue();
-            expect(currHeaderVal).toBe(`2|${testApiCode},0|,`);
+            expect(currHeaderVal).toEqual(`5|${testApiCode},0,,,|,`);
         });
 
         it("Adds telemetry headers with current request with forceRefresh true", () => {
-            const testPayload: ServerTelemetryRequest = {...testTelemetryPayload, forceRefresh: true };
+            const testPayload: ServerTelemetryRequest = {...testTelemetryPayload };
             const telemetryManager = new ServerTelemetryManager(testPayload, testCacheManager);
+            telemetryManager.setCacheOutcome(CacheOutcome.FORCE_REFRESH);
             const currHeaderVal = telemetryManager.generateCurrentRequestHeaderValue();
-            expect(currHeaderVal).toBe(`2|${testApiCode},1|,`);
+            expect(currHeaderVal).toEqual(`5|${testApiCode},1,,,|,`);
         });
 
         it("Adds telemetry headers with last failed request", () => {
@@ -135,7 +137,7 @@ describe("ServerTelemetryManager.ts", () => {
 
             const telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
             const lastHeaderVal = telemetryManager.generateLastRequestHeaderValue();
-            expect(lastHeaderVal).toBe(`2|${testCacheHits}|${testApiCode},${testCorrelationId}|${testError}|1,0`);
+            expect(lastHeaderVal).toBe(`5|${testCacheHits}|${testApiCode},${testCorrelationId}|${testError}|1,0`);
         });
 
         it("Adds telemetry headers with multiple last failed requests", () => {
@@ -150,7 +152,7 @@ describe("ServerTelemetryManager.ts", () => {
             const telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
             const lastHeaderVal = telemetryManager.generateLastRequestHeaderValue();
             expect(lastHeaderVal).toBe(
-                `2|${testCacheHits}|${testApiCode},${testCorrelationId},${testApiCode},${testCorrelationId}|${testError},${testError}|2,0`
+                `5|${testCacheHits}|${testApiCode},${testCorrelationId},${testApiCode},${testCorrelationId}|${testError},${testError}|2,0`
             );
         });
 
@@ -166,7 +168,7 @@ describe("ServerTelemetryManager.ts", () => {
 
             const telemetryManager = new ServerTelemetryManager(testTelemetryPayload, testCacheManager);
             const lastHeaderVal = telemetryManager.generateLastRequestHeaderValue();
-            expect(lastHeaderVal).toBe(`2|${testCacheHits}|${testApiCode},${testCorrelationId}|${testError}|2,1`);
+            expect(lastHeaderVal).toBe(`5|${testCacheHits}|${testApiCode},${testCorrelationId}|${testError}|2,1`);
         });
     });
 
