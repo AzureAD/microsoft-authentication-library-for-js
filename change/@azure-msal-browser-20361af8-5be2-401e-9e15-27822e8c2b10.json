@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Adding experimental client APIs #3855",
+  "packageName": "@azure/msal-browser",
+  "email": "prkanher@microsoft.com",
+  "dependentChangeType": "patch"
+}
