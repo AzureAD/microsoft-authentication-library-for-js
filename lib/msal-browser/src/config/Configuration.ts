@@ -5,10 +5,9 @@
 
 import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode, LogLevel, StubbedNetworkModule } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
-import { BrowserCacheLocation, InteractionType } from "../utils/BrowserConstants";
+import { BrowserCacheLocation } from "../utils/BrowserConstants";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NavigationClient } from "../navigation/NavigationClient";
-import { RedirectRequest } from "../request/RedirectRequest";
 
 // Default timeout for popup windows and iframes in milliseconds
 export const DEFAULT_POPUP_TIMEOUT_MS = 60000;
@@ -55,18 +54,6 @@ export type CacheOptions = {
 };
 
 /**
- * Broker Options
- * 
- */
-export type BrokerOptions = {
-    actAsBroker?: boolean;
-    preferredInteractionType: InteractionType.Popup | InteractionType.Redirect | InteractionType.None | null;
-    allowBrokering?: boolean;
-    trustedBrokerDomains?: string[];
-    brokerRedirectParams?: Pick<RedirectRequest, "redirectStartPage" | "onRedirectNavigate">;
-};
-
-/**
  * Library Specific Options
  *
  * - tokenRenewalOffsetSeconds    - Sets the window of offset needed to renew the token before expiry
@@ -93,11 +80,6 @@ export type BrowserSystemOptions = SystemOptions & {
     allowRedirectInIframe?: boolean;
 };
 
-export type ExperimentalOptions = {
-    enable?: boolean;
-    brokerOptions?: BrokerOptions;
-};
-
 /**
  * Use the configuration object to configure MSAL and initialize the UserAgentApplication.
  *
@@ -110,15 +92,13 @@ export type ExperimentalOptions = {
 export type Configuration = {
     auth: BrowserAuthOptions,
     cache?: CacheOptions,
-    system?: BrowserSystemOptions,
-    experimental?: ExperimentalOptions
+    system?: BrowserSystemOptions
 };
 
 export type BrowserConfiguration = {
     auth: Required<BrowserAuthOptions>,
     cache: Required<CacheOptions>,
-    system: Required<BrowserSystemOptions>,
-    experimental?: Required<ExperimentalOptions>
+    system: Required<BrowserSystemOptions>
 };
 
 /**
@@ -130,7 +110,7 @@ export type BrowserConfiguration = {
  *
  * @returns Configuration object
  */
-export function buildConfiguration({ auth: userInputAuth, cache: userInputCache, system: userInputSystem, experimental: userExperimental }: Configuration, isBrowserEnvironment: boolean): BrowserConfiguration {
+export function buildConfiguration({ auth: userInputAuth, cache: userInputCache, system: userInputSystem }: Configuration, isBrowserEnvironment: boolean): BrowserConfiguration {
 
     // Default auth options for browser
     const DEFAULT_AUTH_OPTIONS: Required<BrowserAuthOptions> = {
@@ -161,15 +141,6 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         piiLoggingEnabled: false
     };
 
-    // Default broker options for browser
-    const DEFAULT_BROKER_OPTIONS: Required<BrokerOptions> = {
-        preferredInteractionType: null,
-        brokerRedirectParams: {},
-        actAsBroker: false,
-        allowBrokering: false,
-        trustedBrokerDomains: []
-    };
-
     // Default system options for browser
     const DEFAULT_BROWSER_SYSTEM_OPTIONS: Required<BrowserSystemOptions> = {
         ...DEFAULT_SYSTEM_OPTIONS,
@@ -186,11 +157,6 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         allowRedirectInIframe: false
     };
 
-    const DEFAULT_EXPERIMENTAL_OPTIONS: Required<ExperimentalOptions> = {
-        enable: false,
-        brokerOptions: DEFAULT_BROKER_OPTIONS
-    };
-
     const overlayedConfig: BrowserConfiguration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...userInputAuth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...userInputCache },
@@ -200,14 +166,6 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
             loggerOptions: {
                 ...DEFAULT_LOGGER_OPTIONS, 
                 ...((userInputSystem && userInputSystem.loggerOptions) || {}),
-            }
-        },
-        experimental: {
-            ...DEFAULT_EXPERIMENTAL_OPTIONS,
-            ...userExperimental,
-            brokerOptions: {
-                ...DEFAULT_BROKER_OPTIONS,
-                ...((userExperimental && userExperimental.brokerOptions) || {}),
             }
         }
     };

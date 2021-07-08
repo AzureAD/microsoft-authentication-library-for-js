@@ -13,7 +13,6 @@ import { BrokerHandshakeResponse } from "../msg/resp/BrokerHandshakeResponse";
 import { BrokerAuthRequest } from "../msg/req/BrokerAuthRequest";
 import { BrokerRedirectResponse } from "../msg/resp/BrokerRedirectResponse";
 import { BrokerAuthResponse } from "../msg/resp/BrokerAuthResponse";
-import { ClientApplication } from "../../app/ClientApplication";
 import { BrokerHandleRedirectRequest } from "../msg/req/BrokerHandleRedirectRequest";
 import { BrokerSilentRequest } from "../request/BrokerSilentRequest";
 import { BrokerAuthError } from "../../error/BrokerAuthError";
@@ -22,19 +21,23 @@ import { BrokerRedirectRequest } from "../request/BrokerRedirectRequest";
 import { BrokerSsoSilentRequest } from "../request/BrokerSsoSilentRequest";
 import { AuthorizationUrlRequest } from "../../request/AuthorizationUrlRequest";
 import { BrokerStateObject } from "../../utils/BrowserProtocolUtils";
+import { PublicClientApplication } from "../../app/PublicClientApplication";
+import { ExperimentalBrowserConfiguration, ExperimentalConfiguration, buildExperimentalConfiguration } from "../../config/ExperimentalConfiguration";
 
 /**
  * Broker Application class to manage brokered requests.
  */
-export class BrokerClientApplication extends ClientApplication {
+export class BrokerClientApplication extends PublicClientApplication {
 
     // Current promise which is processing the hash in the url response, trading for tokens, and caching the brokered response in memory.
     private currentBrokerRedirectResponse?: Promise<BrokerAuthenticationResult | null>;
+    private experimentalConfig: ExperimentalBrowserConfiguration;
 
-    constructor(configuration: Configuration) {
+    constructor(configuration: Configuration, experimentalConfiguration: ExperimentalConfiguration) {
         super(configuration);
 
         this.currentBrokerRedirectResponse = undefined;
+        this.experimentalConfig = buildExperimentalConfiguration(experimentalConfiguration);
     }
 
     /**
@@ -217,7 +220,7 @@ export class BrokerClientApplication extends ClientApplication {
      * @param messageInteractionType 
      */
     private getInteractionType(messageInteractionType: InteractionType): InteractionType {
-        const configuredPreferredType = this.config.experimental!.brokerOptions.preferredInteractionType;;
+        const configuredPreferredType = this.experimentalConfig.brokerOptions.preferredInteractionType;;
         return configuredPreferredType ? configuredPreferredType : messageInteractionType;
     }
 
@@ -271,8 +274,8 @@ export class BrokerClientApplication extends ClientApplication {
             // Call acquireTokenRedirect()
             this.acquireTokenRedirectAsync(
                 validatedBrokerRequest, 
-                this.config.experimental?.brokerOptions.brokerRedirectParams?.redirectStartPage, 
-                this.config.experimental?.brokerOptions.brokerRedirectParams?.onRedirectNavigate);
+                this.experimentalConfig.brokerOptions.brokerRedirectParams?.redirectStartPage, 
+                this.experimentalConfig.brokerOptions.brokerRedirectParams?.onRedirectNavigate);
         } catch (err) {
             const brokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, null, err);
             this.logger.info(`Found auth error in popup: ${err}`);

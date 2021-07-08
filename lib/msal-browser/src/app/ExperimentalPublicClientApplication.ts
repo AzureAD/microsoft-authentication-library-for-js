@@ -15,58 +15,41 @@ import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { ApiId, InteractionType } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
-import { ClientApplication } from "./ClientApplication";
-import { IPublicClientApplication } from "./IPublicClientApplication";
 import { PopupUtils } from "../utils/PopupUtils";
+import { IPublicClientApplication } from "./IPublicClientApplication";
+import { PublicClientApplication } from "./PublicClientApplication";
+import { ExperimentalBrowserConfiguration, ExperimentalConfiguration, buildExperimentalConfiguration } from "../config/ExperimentalConfiguration";
 
-export class ExperimentalClientApplication extends ClientApplication implements IPublicClientApplication {
+export class ExperimentalPublicClientApplication extends PublicClientApplication implements IPublicClientApplication {
 
     // Broker Objects
     protected embeddedApp?: EmbeddedClientApplication;
     protected broker?: BrokerClientApplication;
+    protected experimentalConfig: ExperimentalBrowserConfiguration;
 
-    constructor(configuration: Configuration, parent: ClientApplication) {
+    constructor(configuration: Configuration, experimentalConfiguration: ExperimentalConfiguration) {
         super(configuration);
-        // bind to parent
-        this.initializeBrokering.bind(parent);
-        this.handleRedirectPromise.bind(parent);
-        this.loginRedirect.bind(parent);
-        this.acquireTokenRedirect.bind(parent);
-        this.loginPopup.bind(parent);
-        this.acquireTokenPopup.bind(parent);
-        this.ssoSilent.bind(parent);
-        this.acquireTokenSilent.bind(parent);
-        this.logout.bind(parent);
-        this.logoutPopup.bind(parent);
-        this.logoutRedirect.bind(parent);
-        this.getAllAccounts.bind(parent);
-        this.getAccountByUsername.bind(parent);
-        this.getAccountByHomeId.bind(parent);
-        this.getAccountByLocalId.bind(parent);
-        this.addEventCallback.bind(parent);
-        this.removeEventCallback.bind(parent);
-        this.getLogger.bind(parent);
-        this.setLogger.bind(parent);
+        this.experimentalConfig = buildExperimentalConfiguration(experimentalConfiguration);
     }
 
     /**
      * 
      */
     async initializeBrokering(): Promise<void> {
-        if (!this.isBrowserEnvironment || !this.config.experimental) {
+        if (!this.isBrowserEnvironment) {
             return;
         }
 
-        if (this.config.experimental.brokerOptions.actAsBroker && !BrowserUtils.isInIframe()) {
-            if(this.config.experimental.brokerOptions.allowBrokering) {
+        if (this.experimentalConfig.brokerOptions.actAsBroker && !BrowserUtils.isInIframe()) {
+            if(this.experimentalConfig.brokerOptions.allowBrokering) {
                 this.logger.verbose("Running in top frame and both actAsBroker, allowBrokering flags set to true. actAsBroker takes precedence.");
             }
 
-            this.broker = new BrokerClientApplication(this.config);
+            this.broker = new BrokerClientApplication(this.config, this.experimentalConfig);
             this.logger.verbose("Acting as Broker");
             this.broker.listenForBrokerMessage();
-        } else if (this.config.experimental.brokerOptions.allowBrokering) {
-            this.embeddedApp = new EmbeddedClientApplication(this.config.auth.clientId, this.config.experimental.brokerOptions, this.logger, this.browserStorage);
+        } else if (this.experimentalConfig.brokerOptions.allowBrokering) {
+            this.embeddedApp = new EmbeddedClientApplication(this.config.auth.clientId, this.experimentalConfig.brokerOptions, this.logger, this.browserStorage);
             this.logger.verbose("Acting as child");
             await this.embeddedApp.initiateHandshake();
         }
@@ -89,7 +72,7 @@ export class ExperimentalClientApplication extends ClientApplication implements 
     }
 
     // #endregion
-
+ 
     // #region Popup Flow
 
     /**
