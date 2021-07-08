@@ -25,5 +25,10 @@ export type TokenClaims = {
     cnf?: {
         kid: string;
     };
-    x5c_ca?: string
+    x5c_ca?: string,
+    ts?: number,
+    at?: string,
+    u?: string,
+    p?: string,
+    m?: string
 };
