@@ -45,7 +45,7 @@ export interface ICrypto {
      * Generates an JWK RSA S256 Thumbprint
      * @param request
      */
-    getPublicKeyThumbprint(request: SignedHttpRequestParameters): Promise<string>;
+    getPublicKeyThumbprint(request: BaseAuthRequest): Promise<string>;
     /** 
      * Returns a signed proof-of-possession token with a given acces token that contains a cnf claim with the required kid.
      * @param accessToken 
