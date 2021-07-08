@@ -21,7 +21,7 @@ import { version, name } from "../packageMetadata";
  */
 export class PublicClientApplication extends ClientApplication implements IPublicClientApplication {
 
-    // Redirect Response Object
+    // Active requests
     private activeSilentTokenRequests: Map<string, Promise<AuthenticationResult>>;
 
     /**
@@ -97,10 +97,10 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             homeAccountIdentifier: account.homeAccountId
         };
         const silentRequestKey = JSON.stringify(thumbprint);
-        let response = this.activeSilentTokenRequests.get(silentRequestKey);
-        if (typeof response === "undefined") {
+        const cachedResponse = this.activeSilentTokenRequests.get(silentRequestKey);
+        if (typeof cachedResponse === "undefined") {
             this.logger.verbose("acquireTokenSilent called for the first time, storing active request", request.correlationId);
-            response = this.acquireTokenSilentAsync(request, account)
+            const response = this.acquireTokenSilentAsync(request, account)
                 .then((result) => {
                     this.activeSilentTokenRequests.delete(silentRequestKey);
                     return result;
@@ -110,10 +110,11 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     throw error;
                 });
             this.activeSilentTokenRequests.set(silentRequestKey, response);
+            return response;
         } else {
             this.logger.verbose("acquireTokenSilent has been called previously, returning the result from the first call", request.correlationId);
+            return cachedResponse;
         }
-        return response;
     }
 
     /**
