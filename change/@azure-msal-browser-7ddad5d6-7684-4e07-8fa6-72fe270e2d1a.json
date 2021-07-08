@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add broker feature to experimental API (#3645)",
+  "packageName": "@azure/msal-browser",
+  "email": "prkanher@microsoft.com",
+  "dependentChangeType": "patch"
+}

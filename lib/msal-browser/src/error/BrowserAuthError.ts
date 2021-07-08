@@ -87,7 +87,7 @@ export const BrowserAuthErrorMessage = {
     },
     silentSSOInsufficientInfoError: {
         code: "silent_sso_error",
-        desc: "Silent SSO could not be completed - insufficient information was provided. Please provide either a loginHint or sid."
+        desc: "Silent SSO could not be completed - insufficient information was provided. Please provide an account, loginHint or sid."
     },
     noAccountError: {
         code: "no_account_error",
@@ -116,6 +116,26 @@ export const BrowserAuthErrorMessage = {
     invalidCacheType: {
         code: "invalid_cache_type",
         desc: "Invalid cache type"
+    },
+    brokerTimeoutError: {
+        code: "broker_timeout",
+        desc: "Message broker timed out."
+    },
+    invalidBrokerMessage: {
+        code: "invalid_broker_message",
+        desc: "messageType for broker message is invalid"
+    },
+    untrustedBrokerError: {
+        code: "untrusted_broker_error",
+        desc: "The given broker origin is not trusted."
+    },
+    noTrustedBrokersProvided: {
+        code: "no_trusted_brokers_provided",
+        desc: "No trusted brokers provided."
+    },
+    brokeringDisabledError: {
+        code: "brokering_disabled",
+        desc: "Brokering is not enabled for the client application. Please check logs to see if handshake was performed."
     },
     notInBrowserEnvironment: {
         code: "non_browser_environment",
@@ -148,11 +168,12 @@ export const BrowserAuthErrorMessage = {
  */
 export class BrowserAuthError extends AuthError {
 
+    static BROWSER_AUTH_ERROR_NAME: string = "BrowserAuthError";
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
 
         Object.setPrototypeOf(this, BrowserAuthError.prototype);
-        this.name = "BrowserAuthError";
+        this.name = BrowserAuthError.BROWSER_AUTH_ERROR_NAME;
     }
 
     /**
@@ -365,6 +386,26 @@ export class BrowserAuthError extends AuthError {
      */
     static createInvalidCacheTypeError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.invalidCacheType.code, `${BrowserAuthErrorMessage.invalidCacheType.desc}`);
+    }
+
+    static createMessageBrokerTimeoutError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.brokerTimeoutError.code, BrowserAuthErrorMessage.brokerTimeoutError.desc);
+    }
+
+    static createInvalidBrokerMessageError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.invalidBrokerMessage.code, BrowserAuthErrorMessage.invalidBrokerMessage.desc);
+    }
+
+    static createUntrustedBrokerError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.untrustedBrokerError.code, BrowserAuthErrorMessage.untrustedBrokerError.desc);
+    }
+
+    static createNoTrustedBrokersProvidedError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.noTrustedBrokersProvided.code, BrowserAuthErrorMessage.noTrustedBrokersProvided.desc);
+    }
+
+    static createBrokeringDisabledError(innerError: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.brokeringDisabledError.code, `${BrowserAuthErrorMessage.brokeringDisabledError.desc} Inner Error: ${innerError}`);
     }
 
     /**

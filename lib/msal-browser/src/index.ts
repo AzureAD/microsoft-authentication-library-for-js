@@ -9,6 +9,7 @@
  */
 
 export { PublicClientApplication } from "./app/PublicClientApplication";
+export { ExperimentalClientApplication } from "./app/ExperimentalClientApplication";
 export { Configuration, BrowserAuthOptions, CacheOptions, BrowserSystemOptions } from "./config/Configuration";
 export { InteractionType, InteractionStatus, BrowserCacheLocation, WrapperSKU, ApiId } from "./utils/BrowserConstants";
 export { BrowserUtils } from "./utils/BrowserUtils";
@@ -37,6 +38,8 @@ export { EventType } from "./event/EventType";
 // Common Object Formats
 export {
     AuthenticationScheme,
+    // Cache
+    CacheRecord,
     // Account
     AccountInfo,
     AccountEntity,

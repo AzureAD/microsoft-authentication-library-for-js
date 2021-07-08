@@ -73,6 +73,10 @@ export enum TemporaryCacheKeys {
     CCS_CREDENTIAL = "ccs.credential"
 }
 
+export enum MemoryCacheKeys {
+    BROKER_RESPONSE = "broker.response"
+}
+
 /**
  * API Codes for Telemetry purposes. 
  * Before adding a new code you must claim it in the MSAL Telemetry tracker as these number spaces are shared across all MSALs
@@ -96,7 +100,17 @@ export enum ApiId {
 export enum InteractionType {
     Redirect = "redirect",
     Popup = "popup",
-    Silent = "silent"
+    Silent = "silent",
+    None = "none"
+}
+
+export enum BrokerMessageType {
+    HANDSHAKE_REQUEST = "BrokerHandshakeRequest",
+    HANDSHAKE_RESPONSE = "BrokerHandshakeResponse",
+    AUTH_REQUEST = "BrokerAuthRequest",
+    REDIRECT_RESPONSE = "BrokerRedirectResponse",
+    HANDLE_REDIRECT_REQUEST = "BrokerHandleRedirectRequest",
+    AUTH_RESULT = "BrokerAuthResult",
 }
 
 /**

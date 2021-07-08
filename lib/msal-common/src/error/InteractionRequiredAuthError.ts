@@ -27,9 +27,10 @@ export const InteractionRequiredAuthSubErrorMessage = [
  */
 export class InteractionRequiredAuthError extends ServerError {
 
+    static INTERACTION_REQ_ERROR_NAME: string = "InteractionRequiredAuthError";
     constructor(errorCode?: string, errorMessage?: string, subError?: string) {
         super(errorCode, errorMessage, subError);
-        this.name = "InteractionRequiredAuthError";
+        this.name = InteractionRequiredAuthError.INTERACTION_REQ_ERROR_NAME;
 
         Object.setPrototypeOf(this, InteractionRequiredAuthError.prototype);
     }

@@ -9,6 +9,8 @@
  */
 
 export { AuthorizationCodeClient} from "./client/AuthorizationCodeClient";
+export { BrokerAuthorizationCodeClient } from "./client/broker/BrokerAuthorizationCodeClient";
+export { BrokerRefreshTokenClient } from "./client/broker/BrokerRefreshTokenClient";
 export { DeviceCodeClient } from "./client/DeviceCodeClient";
 export { RefreshTokenClient } from "./client/RefreshTokenClient";
 export { ClientCredentialClient } from "./client/ClientCredentialClient";
@@ -30,6 +32,7 @@ export { AuthorityOptions } from "./authority/AuthorityOptions";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
 export { ProtocolMode } from "./authority/ProtocolMode";
+export { ScopeSet } from "./request/ScopeSet";
 // Cache
 export { CacheManager, DefaultStorageClass } from "./cache/CacheManager";
 export { AccountCache, AccessTokenCache, IdTokenCache, RefreshTokenCache, AppMetadataCache, ValidCacheType, ValidCredentialType } from "./cache/utils/CacheTypes";
@@ -45,6 +48,7 @@ export { ThrottlingEntity } from "./cache/entities/ThrottlingEntity";
 export { ICachePlugin } from "./cache/interface/ICachePlugin";
 export { TokenCacheContext } from "./cache/persistence/TokenCacheContext";
 export { ISerializableTokenCache } from "./cache/interface/ISerializableTokenCache";
+export { CacheRecord } from "./cache/entities/CacheRecord";
 // Network Interface
 export { INetworkModule, NetworkRequestOptions, StubbedNetworkModule } from "./network/INetworkModule";
 export { NetworkManager, NetworkResponse } from "./network/NetworkManager";
@@ -66,9 +70,14 @@ export { CommonSilentFlowRequest } from "./request/CommonSilentFlowRequest";
 export { CommonDeviceCodeRequest } from "./request/CommonDeviceCodeRequest";
 export { CommonEndSessionRequest } from "./request/CommonEndSessionRequest";
 export { CommonUsernamePasswordRequest } from "./request/CommonUsernamePasswordRequest";
+export { BrokeredAuthorizationCodeRequest } from "./request/broker/BrokeredAuthorizationCodeRequest";
+export { BrokeredAuthorizationUrlRequest } from "./request/broker/BrokeredAuthorizationUrlRequest";
+export { BrokeredRefreshTokenRequest } from "./request/broker/BrokeredRefreshTokenRequest";
+export { BrokeredSilentFlowRequest } from "./request/broker/BrokeredSilentFlowRequest";
 export { AzureRegion } from "./authority/AzureRegion";
 export { AzureRegionConfiguration } from "./authority/AzureRegionConfiguration";
 export { AuthenticationResult } from "./response/AuthenticationResult";
+export { BrokerAuthenticationResult } from "./response/BrokerAuthenticationResult";
 export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload";
 export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse";
 export { ServerAuthorizationTokenResponse } from "./response/ServerAuthorizationTokenResponse";

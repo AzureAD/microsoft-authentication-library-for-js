@@ -141,7 +141,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * @param authority
      * @param request
      */
-    private async executeTokenRequest(authority: Authority, request: CommonAuthorizationCodeRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
+    protected async executeTokenRequest(authority: Authority, request: CommonAuthorizationCodeRequest): Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
@@ -163,7 +163,7 @@ export class AuthorizationCodeClient extends BaseClient {
             }
         }
         const headers: Record<string, string> = this.createTokenRequestHeaders(ccsCredential || request.ccsCredential);
-        const endpoint = StringUtils.isEmpty(queryParameters) ? authority.tokenEndpoint : `${authority.tokenEndpoint}?${queryParameters}`;
+        const endpoint = StringUtils.isEmpty(queryParameters) ? authority.tokenEndpoint+"?dc=ESTS-PUB-WUS2-AZ1-TEST1" : `${authority.tokenEndpoint}?dc=ESTS-PUB-WUS2-AZ1-TEST1&${queryParameters}`;
 
         return this.executePostToTokenEndpoint(endpoint, requestBody, headers, thumbprint);
     }
@@ -186,7 +186,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * Generates a map for all the params to be sent to the service
      * @param request
      */
-    private async createTokenRequestBody(request: CommonAuthorizationCodeRequest): Promise<string> {
+    protected async createTokenRequestBody(request: CommonAuthorizationCodeRequest): Promise<string> {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -279,7 +279,7 @@ export class AuthorizationCodeClient extends BaseClient {
      * This API validates the `AuthorizationCodeUrlRequest` and creates a URL
      * @param request
      */
-    private createAuthCodeUrlQueryString(request: CommonAuthorizationUrlRequest): string {
+    protected createAuthCodeUrlQueryString(request: CommonAuthorizationUrlRequest): string {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);

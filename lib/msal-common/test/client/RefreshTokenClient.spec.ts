@@ -12,7 +12,8 @@ import {
     TEST_DATA_CLIENT_INFO,
     ID_TOKEN_CLAIMS,
     AUTHENTICATION_RESULT_WITH_FOCI,
-    CORS_SIMPLE_REQUEST_HEADERS
+    CORS_SIMPLE_REQUEST_HEADERS,
+    TEST_ACCOUNT_INFO
 } from "../test_kit/StringConstants";
 import { BaseClient} from "../../src/client/BaseClient";
 import { AADServerParamKeys, GrantType, Constants, CredentialType, AuthenticationScheme, ThrottlingConstants } from "../../src/utils/Constants";
@@ -33,6 +34,7 @@ import { AuthToken } from "../../src/account/AuthToken";
 import { SilentFlowClient } from "../../src/client/SilentFlowClient";
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
 import { CcsCredentialType } from "../../src/account/CcsCredential";
+import { ResponseHandler } from "../../src/response/ResponseHandler";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
@@ -87,10 +89,27 @@ describe("RefreshTokenClient unit tests", () => {
             config = await ClientTestUtils.createTestClientConfiguration();
         });
 
-        it("Adds tokenQueryParameters to the /token request", (done) => {
+        it("Adds tokenQueryParameters to the /token request", async (done) => {
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").callsFake((url) => {
-                expect(url.includes("/token?testParam=testValue")).toBe(true);
+                expect(url.includes("/token?dc=ESTS-PUB-WUS2-AZ1-TEST1&testParam=testValue")).toBe(true);
                 done();
+                return AUTHENTICATION_RESULT;
+            });
+            sinon.stub(ResponseHandler.prototype, "validateTokenResponse").callsFake(() => {});
+            sinon.stub(ResponseHandler.prototype, "handleServerTokenResponse").callsFake(async () => {
+                return {
+                    authority: TEST_CONFIG.validAuthority,
+                    uniqueId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                    tenantId: TEST_ACCOUNT_INFO.tenantId,
+                    accessToken: AUTHENTICATION_RESULT.body.access_token,
+                    scopes: refreshTokenRequest.scopes,
+                    account: TEST_ACCOUNT_INFO,
+                    idToken: AUTHENTICATION_RESULT.body.id_token,
+                    idTokenClaims: ID_TOKEN_CLAIMS,
+                    fromCache: false,
+                    expiresOn: new Date(),
+                    tokenType: "accessToken",
+                }
             });
 
             const client = new RefreshTokenClient(config);
@@ -106,9 +125,7 @@ describe("RefreshTokenClient unit tests", () => {
                 }
             };
 
-            client.acquireToken(refreshTokenRequest).catch(e => {
-                // Catch errors thrown after the function call this test is testing    
-            });
+            await client.acquireToken(refreshTokenRequest);
         });
     });
 
@@ -145,7 +162,7 @@ describe("RefreshTokenClient unit tests", () => {
             sinon.restore();
         });
 
-        it("Does not add headers that do not qualify for a simple request", (done) => {
+        it("Does not add headers that do not qualify for a simple request", async (done) => {
             // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").callsFake((tokenEndpoint: string, queryString: string, headers: Record<string, string>) => {
                 const headerNames = Object.keys(headers);
@@ -167,7 +184,7 @@ describe("RefreshTokenClient unit tests", () => {
                 authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
             };
 
-            client.acquireToken(refreshTokenRequest);
+            await client.acquireToken(refreshTokenRequest);
         });
 
         it("acquires a token", async () => {

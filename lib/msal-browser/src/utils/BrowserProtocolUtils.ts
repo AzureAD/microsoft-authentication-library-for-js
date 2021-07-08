@@ -10,6 +10,12 @@ export type BrowserStateObject = {
     interactionType: InteractionType
 };
 
+export type BrokerStateObject = BrowserStateObject & {
+    brokeredClientId: string,
+    brokeredReqAuthority: string,
+    brokeredReqScopes: string
+};
+
 export class BrowserProtocolUtils {
 
     /**

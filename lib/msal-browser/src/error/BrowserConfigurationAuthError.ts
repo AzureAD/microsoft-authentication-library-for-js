@@ -46,9 +46,10 @@ export const BrowserConfigurationAuthErrorMessage = {
  */
 export class BrowserConfigurationAuthError extends AuthError {
 
+    static BROWSER_CONFIG_ERROR_NAME: string = "BrowserConfigurationAuthError";
     constructor(errorCode: string, errorMessage?: string) {
         super(errorCode, errorMessage);
-        this.name = "BrowserConfigurationAuthError";
+        this.name = BrowserConfigurationAuthError.BROWSER_CONFIG_ERROR_NAME;
 
         Object.setPrototypeOf(this, BrowserConfigurationAuthError.prototype);
     }
