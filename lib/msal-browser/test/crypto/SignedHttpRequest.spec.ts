@@ -47,7 +47,7 @@ describe("SignedHttpRequest.ts Unit Tests", () => {
             resourceRequestUri: "https://consoto.com", 
             resourceRequestMethod: "GET"
         });
-        const kid = await shr.generatePublicKey();
+        const kid = await shr.generatePublicKeyThumbprint();
         expect(kid).toEqual("oYYABCL-q4VzKcaE6f6RQSsaXbCEEAs3qYz8lbYqqGc");
     });
 
@@ -60,7 +60,7 @@ describe("SignedHttpRequest.ts Unit Tests", () => {
             resourceRequestUri: "https://consoto.com/path", 
             resourceRequestMethod: "GET"
         });
-        const kid = await shr.generatePublicKey();
+        const kid = await shr.generatePublicKeyThumbprint();
 
         const popToken = await shr.signPopToken(payload, kid, {
             nonce,

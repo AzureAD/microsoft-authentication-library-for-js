@@ -9,6 +9,7 @@ import { TokenClaims } from "../account/TokenClaims";
 import { TimeUtils } from "../utils/TimeUtils";
 import { UrlString } from "../url/UrlString";
 import { ClientAuthError } from "../error/ClientAuthError";
+import { BaseAuthRequest } from "../request/BaseAuthRequest";
 
 /**
  * See eSTS docs for more info.
@@ -35,12 +36,12 @@ export class PopTokenGenerator {
         this.cryptoUtils = cryptoUtils;
     }
 
-    async generateCnf(request: SignedHttpRequestParameters): Promise<string> {
+    async generateCnf(request: BaseAuthRequest): Promise<string> {
         const reqCnf = await this.generateKid(request);
         return this.cryptoUtils.base64Encode(JSON.stringify(reqCnf));
     }
 
-    async generateKid(request: SignedHttpRequestParameters): Promise<ReqCnf> {
+    async generateKid(request: BaseAuthRequest): Promise<ReqCnf> {
         const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint(request);
 
         return {
@@ -49,7 +50,7 @@ export class PopTokenGenerator {
         };
     }
 
-    async signPopToken(accessToken: string, request: SignedHttpRequestParameters): Promise<string> {
+    async signPopToken(accessToken: string, request: BaseAuthRequest): Promise<string> {
         const tokenClaims: TokenClaims | null = AuthToken.extractTokenClaims(accessToken, this.cryptoUtils);
         if (!tokenClaims?.cnf?.kid) {
             throw ClientAuthError.createTokenClaimsRequiredError();
