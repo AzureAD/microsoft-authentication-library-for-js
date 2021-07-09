@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, CommonSilentFlowRequest } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, CommonSilentFlowRequest, RequestThumbprint } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, ApiId, InteractionType } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -20,6 +20,9 @@ import { version, name } from "../packageMetadata";
  * to obtain JWT tokens as described in the OAuth 2.0 Authorization Code Flow with PKCE specification.
  */
 export class PublicClientApplication extends ClientApplication implements IPublicClientApplication {
+
+    // Active requests
+    private activeSilentTokenRequests: Map<string, Promise<AuthenticationResult>>;
 
     /**
      * @constructor
@@ -44,6 +47,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     constructor(configuration: Configuration) {
         super(configuration);
+
+        this.activeSilentTokenRequests = new Map();
     }
 
     /**
@@ -73,7 +78,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     }
 
     /**
-     * Silently acquire an access token for a given set of scopes. Will use cached token if available, otherwise will attempt to acquire a new token from the network via refresh token.
+     * Silently acquire an access token for a given set of scopes. Returns currently processing promise if parallel requests are made.
      *
      * @param {@link (SilentRequest:type)}
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
@@ -85,6 +90,40 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         if (!account) {
             throw BrowserAuthError.createNoAccountError();
         }
+        const thumbprint: RequestThumbprint = {
+            clientId: this.config.auth.clientId,
+            authority: request.authority || "",
+            scopes: request.scopes,
+            homeAccountIdentifier: account.homeAccountId
+        };
+        const silentRequestKey = JSON.stringify(thumbprint);
+        const cachedResponse = this.activeSilentTokenRequests.get(silentRequestKey);
+        if (typeof cachedResponse === "undefined") {
+            this.logger.verbose("acquireTokenSilent called for the first time, storing active request", request.correlationId);
+            const response = this.acquireTokenSilentAsync(request, account)
+                .then((result) => {
+                    this.activeSilentTokenRequests.delete(silentRequestKey);
+                    return result;
+                })
+                .catch((error) => {
+                    this.activeSilentTokenRequests.delete(silentRequestKey);
+                    throw error;
+                });
+            this.activeSilentTokenRequests.set(silentRequestKey, response);
+            return response;
+        } else {
+            this.logger.verbose("acquireTokenSilent has been called previously, returning the result from the first call", request.correlationId);
+            return cachedResponse;
+        }
+    }
+
+    /**
+     * Silently acquire an access token for a given set of scopes. Will use cached token if available, otherwise will attempt to acquire a new token from the network via refresh token.
+     * @param {@link (SilentRequest:type)}
+     * @param {@link (AccountInfo:type)}
+     * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} 
+     */
+    private async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult>{
         const silentRequest: CommonSilentFlowRequest = {
             ...request,
             ...this.initializeBaseRequest(request),
