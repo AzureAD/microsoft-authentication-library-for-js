@@ -328,7 +328,7 @@ CacheDriver.prototype._refreshEntryIfNecessary = function(entry, isResourceSpeci
   // Add some buffer in to the time comparison to account for clock skew or latency.
   var nowPlusBuffer = (new Date()).addMinutes(constants.Misc.CLOCK_BUFFER);
 
-  if (isResourceSpecific && nowPlusBuffer.isAfter(expiryDate)) {
+if (isResourceSpecific && nowPlusBuffer.isAfter(Date.parse(expiryDate))) {
     this._log.info('Cached token is expired.  Refreshing: ' + expiryDate);
     this._refreshExpiredEntry(entry, callback);
     return;
