@@ -7,6 +7,7 @@ export function Logout() {
 
     useEffect(() => {
         instance.logoutRedirect({
+            account: instance.getActiveAccount(),
             onRedirectNavigate: () => !BrowserUtils.isInIframe()
         })
     }, [ instance ]);

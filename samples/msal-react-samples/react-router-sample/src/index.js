@@ -14,10 +14,10 @@ import { msalConfig } from "./authConfig";
 
 export const msalInstance = new PublicClientApplication(msalConfig);
 
-// Account selection logic is app dependent. Adjust as needed for different use cases.
-const accounts = msalInstance.getAllAccounts();
-if (accounts.length > 0) {
-  msalInstance.setActiveAccount(accounts[0]);
+// Default to using the first account if no account is active on page load
+if (!msalInstance.getActiveAccount() && msalInstance.getAllAccounts().length > 0) {
+  // Account selection logic is app dependent. Adjust as needed for different use cases.
+  msalInstance.setActiveAccount(msalInstance.getAllAccounts()[0]);
 }
 
 msalInstance.addEventCallback((event) => {

@@ -3,14 +3,15 @@ import { useMsal } from "@azure/msal-react";
 import Typography from "@material-ui/core/Typography";
 
 const WelcomeName = () => {
-    const { accounts } = useMsal();
+    const { instance } = useMsal();
     const [name, setName] = useState(null);
 
+    const activeAccount = instance.getActiveAccount();
     useEffect(() => {
-        if (accounts.length > 0) {
-            setName(accounts[0].name.split(" ")[0]);
+        if (activeAccount) {
+            setName(activeAccount.name.split(' ')[0]);
         }
-    }, [accounts]);
+    }, [activeAccount]);
 
     if (name) {
         return <Typography variant="h6">Welcome, {name}</Typography>;
