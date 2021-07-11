@@ -6,6 +6,10 @@
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
+import { ISubtleCrypto } from "./ISubtleCrypto";
+import { ModernBrowserCrypto } from "./ModernBrowserCrypto";
+import { MsrBrowserCrypto } from "./MsrBrowserCrypto";
+import { MsBrowserCrypto } from "./MsBrowserCrypto";
 /**
  * See here for more info on RsaHashedKeyGenParams: https://developer.mozilla.org/en-US/docs/Web/API/RsaHashedKeyGenParams
  */
@@ -25,10 +29,17 @@ const PUBLIC_EXPONENT: Uint8Array = new Uint8Array([0x01, 0x00, 0x01]);
 export class BrowserCrypto {
 
     private _keygenAlgorithmOptions: RsaHashedKeyGenParams;
+    private subtleCrypto: ISubtleCrypto;
 
     constructor() {
-        if (!(this.hasCryptoAPI())) {
-            throw BrowserAuthError.createCryptoNotAvailableError("Browser crypto or msCrypto object not available.");
+        if ("crypto" in window) {
+            this.subtleCrypto = new ModernBrowserCrypto();
+        } else if ("msrCrypto" in window) {
+            this.subtleCrypto = new MsrBrowserCrypto();
+        } else if ("msCrypto" in window) {
+            this.subtleCrypto = new MsBrowserCrypto();
+        } else {
+            throw BrowserAuthError.createCryptoNotAvailableError("Browser crypto, msCrypto, or msrCrypto objects not available.");
         }
 
         this._keygenAlgorithmOptions = {
@@ -46,19 +57,15 @@ export class BrowserCrypto {
     async sha256Digest(dataString: string): Promise<ArrayBuffer> {
         const data = BrowserStringUtils.stringToUtf8Arr(dataString);
 
-        return this.hasIECrypto() ? this.getMSCryptoDigest(S256_HASH_ALG, data) : this.getSubtleCryptoDigest(S256_HASH_ALG, data);
+        return this.subtleCrypto.digest(S256_HASH_ALG, data);
     }
 
     /**
      * Populates buffer with cryptographically random values.
      * @param dataBuffer 
      */
-    getRandomValues(dataBuffer: Uint8Array): void {
-        const cryptoObj = window["msCrypto"] || window.crypto;
-        if (!cryptoObj.getRandomValues) {
-            throw BrowserAuthError.createCryptoNotAvailableError("getRandomValues does not exist.");
-        }
-        cryptoObj.getRandomValues(dataBuffer);
+    getRandomValues(dataBuffer: Uint8Array): Uint8Array {
+        return this.subtleCrypto.getRandomValues(dataBuffer);
     }
 
     /**
@@ -67,11 +74,7 @@ export class BrowserCrypto {
      * @param usages 
      */
     async generateKeyPair(extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKeyPair> {
-        return (
-            this.hasIECrypto() ? 
-                this.msCryptoGenerateKey(extractable, usages) 
-                : window.crypto.subtle.generateKey(this._keygenAlgorithmOptions, extractable, usages)
-        ) as Promise<CryptoKeyPair>;
+        return this.subtleCrypto.generateKey(this._keygenAlgorithmOptions, extractable, usages);
     }
 
     /**
@@ -80,7 +83,7 @@ export class BrowserCrypto {
      * @param format 
      */
     async exportJwk(key: CryptoKey): Promise<JsonWebKey> {
-        return this.hasIECrypto() ? this.msCryptoExportJwk(key) : window.crypto.subtle.exportKey(KEY_FORMAT_JWK, key);
+        return this.subtleCrypto.exportKey(KEY_FORMAT_JWK, key);
     }
 
     /**
@@ -91,12 +94,7 @@ export class BrowserCrypto {
      * @param usages 
      */
     async importJwk(key: JsonWebKey, extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKey> {
-        const keyString = BrowserCrypto.getJwkString(key);
-        const keyBuffer = BrowserStringUtils.stringToArrayBuffer(keyString);
-
-        return this.hasIECrypto() ? 
-            this.msCryptoImportKey(keyBuffer, extractable, usages) 
-            : window.crypto.subtle.importKey(KEY_FORMAT_JWK, key, this._keygenAlgorithmOptions, extractable, usages);
+        return this.subtleCrypto.importKey(KEY_FORMAT_JWK, key, this._keygenAlgorithmOptions, extractable, usages);
     }
 
     /**
@@ -105,150 +103,6 @@ export class BrowserCrypto {
      * @param data 
      */
     async sign(key: CryptoKey, data: ArrayBuffer): Promise<ArrayBuffer> {
-        return this.hasIECrypto() ?
-            this.msCryptoSign(key, data)
-            : window.crypto.subtle.sign(this._keygenAlgorithmOptions, key, data);
-    }
-
-    /**
-     * Check whether IE crypto or other browser cryptography is available.
-     */
-    private hasCryptoAPI(): boolean {
-        return this.hasIECrypto() || this.hasBrowserCrypto();
-    }
-
-    /**
-     * Checks whether IE crypto (AKA msCrypto) is available.
-     */
-    private hasIECrypto(): boolean {
-        return "msCrypto" in window;
-    }
-
-    /**
-     * Check whether browser crypto is available.
-     */
-    private hasBrowserCrypto(): boolean {
-        return "crypto" in window;
-    }
-
-    /**
-     * Helper function for SHA digest.
-     * @param algorithm 
-     * @param data 
-     */
-    private async getSubtleCryptoDigest(algorithm: string, data: Uint8Array): Promise<ArrayBuffer> {
-        return window.crypto.subtle.digest(algorithm, data);
-    }
-
-    /**
-     * IE Helper function for SHA digest.
-     * @param algorithm 
-     * @param data 
-     */
-    private async getMSCryptoDigest(algorithm: string, data: Uint8Array): Promise<ArrayBuffer> {
-        return new Promise((resolve, reject) => {
-            const digestOperation = window["msCrypto"].subtle.digest(algorithm, data.buffer);
-            digestOperation.addEventListener("complete", (e: { target: { result: ArrayBuffer | PromiseLike<ArrayBuffer>; }; }) => {
-                resolve(e.target.result);
-            });
-            digestOperation.addEventListener("error", (error: string) => {
-                reject(error);
-            });
-        });
-    }
-
-    /**
-     * IE Helper function for generating a keypair
-     * @param extractable 
-     * @param usages 
-     */
-    private async msCryptoGenerateKey(extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKeyPair> {
-        return new Promise((resolve: Function, reject: Function) => {
-            const msGenerateKey = window["msCrypto"].subtle.generateKey(this._keygenAlgorithmOptions, extractable, usages);
-            msGenerateKey.addEventListener("complete", (e: { target: { result: CryptoKeyPair | PromiseLike<CryptoKeyPair>; }; }) => {
-                resolve(e.target.result);
-            });
-
-            msGenerateKey.addEventListener("error", (error: string) => {
-                reject(error);
-            });
-        });
-    }
-
-    /**
-     * IE Helper function for exportKey
-     * @param key 
-     * @param format 
-     */
-    private async msCryptoExportJwk(key: CryptoKey): Promise<JsonWebKey> {
-        return new Promise((resolve: Function, reject: Function) => {
-            const msExportKey = window["msCrypto"].subtle.exportKey(KEY_FORMAT_JWK, key);
-            msExportKey.addEventListener("complete", (e: { target: { result: ArrayBuffer; }; }) => {
-                const resultBuffer: ArrayBuffer = e.target.result;
-
-                const resultString = BrowserStringUtils.utf8ArrToString(new Uint8Array(resultBuffer))
-                    .replace(/\r/g, "")
-                    .replace(/\n/g, "")
-                    .replace(/\t/g, "")
-                    .split(" ").join("")
-                    .replace("\u0000", "");
-
-                try {
-                    resolve(JSON.parse(resultString));
-                } catch (e) {
-                    reject(e);
-                }
-            });
-
-            msExportKey.addEventListener("error", (error: string) => {
-                reject(error);
-            });
-        });
-    }
-
-    /**
-     * IE Helper function for importKey
-     * @param key 
-     * @param format 
-     * @param extractable 
-     * @param usages 
-     */
-    private async msCryptoImportKey(keyBuffer: ArrayBuffer, extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKey> {
-        return new Promise((resolve: Function, reject: Function) => {
-            const msImportKey = window["msCrypto"].subtle.importKey(KEY_FORMAT_JWK, keyBuffer, this._keygenAlgorithmOptions, extractable, usages);
-            msImportKey.addEventListener("complete", (e: { target: { result: CryptoKey | PromiseLike<CryptoKey>; }; }) => {
-                resolve(e.target.result);
-            });
-
-            msImportKey.addEventListener("error", (error: string) => {
-                reject(error);
-            });
-        });
-    }
-
-    /**
-     * IE Helper function for sign JWT
-     * @param key 
-     * @param data 
-     */
-    private async msCryptoSign(key: CryptoKey, data: ArrayBuffer): Promise<ArrayBuffer> {
-        return new Promise((resolve: Function, reject: Function) => {
-            const msSign = window["msCrypto"].subtle.sign(this._keygenAlgorithmOptions, key, data);
-            msSign.addEventListener("complete", (e: { target: { result: ArrayBuffer | PromiseLike<ArrayBuffer>; }; }) => {
-                resolve(e.target.result);
-            });
-
-            msSign.addEventListener("error", (error: string) => {
-                reject(error);
-            });
-        });
-    }
-
-    /**
-     * Returns stringified jwk.
-     * @param jwk 
-     */
-    static getJwkString(jwk: JsonWebKey): string {
-        return JSON.stringify(jwk, Object.keys(jwk).sort());
+        return this.subtleCrypto.sign(this._keygenAlgorithmOptions, key, data);
     }
 }

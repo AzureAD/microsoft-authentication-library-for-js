@@ -96,7 +96,7 @@ export class CryptoOps implements ICrypto {
             kty: publicKeyJwk.kty,
             n: publicKeyJwk.n
         };
-        const publicJwkString: string = BrowserCrypto.getJwkString(pubKeyThumprintObj);
+        const publicJwkString: string = BrowserStringUtils.getSortedObjectString(pubKeyThumprintObj);
         const publicJwkBuffer: ArrayBuffer = await this.browserCrypto.sha256Digest(publicJwkString);
         const publicJwkHash: string = this.b64Encode.urlEncodeArr(new Uint8Array(publicJwkBuffer));
 
@@ -127,7 +127,7 @@ export class CryptoOps implements ICrypto {
 
         // Get public key as JWK
         const publicKeyJwk = await this.browserCrypto.exportJwk(cachedKeyPair.publicKey);
-        const publicKeyJwkString = BrowserCrypto.getJwkString(publicKeyJwk);
+        const publicKeyJwkString = BrowserStringUtils.getSortedObjectString(publicKeyJwk);
 
         // Generate header
         const header = {
