@@ -44,6 +44,16 @@ export class BrowserUtils {
         return window.parent !== window;
     }
 
+    /**
+     * Returns boolean of whether or not the current window is a popup opened by msal
+     */
+    static isInPopup(): boolean {
+        return !!window.opener && 
+            window.opener !== window && 
+            typeof window.name === "string" && 
+            window.name.indexOf(`${BrowserConstants.POPUP_NAME_PREFIX}.`) === 0;
+    }
+
     // #endregion
 
     /**
@@ -103,7 +113,7 @@ export class BrowserUtils {
      */
     static blockAcquireTokenInPopups(): void {
         // Popups opened by msal popup APIs are given a name that starts with "msal."
-        if (window.opener && window.opener !== window && typeof window.name === "string" && window.name.indexOf(`${BrowserConstants.POPUP_NAME_PREFIX}.`) === 0) {
+        if (BrowserUtils.isInPopup()) {
             throw BrowserAuthError.createBlockAcquireTokenInPopupsError();
         }
     }
