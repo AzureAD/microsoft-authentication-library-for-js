@@ -24,7 +24,7 @@ iframed and parent apps with the same-origin may have access to the same MSAL.js
 
 ### Apps with cross-origin
 
-iframed and parent apps with cross-origin can make use of the [ssoSilent()](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md#silent-login-with-ssosilent) API to achieve single sign-on. To do so, the parent app needs to pass down either an **account**, a **loginHint** (username) or a **session id** (sid) to the iframed app. For cross-origin communication between iframed and parent apps, there are a few alternatives you can consider:
+Iframed and parent apps with cross-origin can make use of the [ssoSilent()](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md#silent-login-with-ssosilent) API to achieve single sign-on. To do so, the parent app needs to pass down either an **account**, a **loginHint** (username) or a **session id** (sid) to the iframed app. For cross-origin communication between iframed and parent apps, there are a few alternatives you can consider:
 
 - You can add query strings to iframe's source in the parent app and retrieve them later in the child:
 
