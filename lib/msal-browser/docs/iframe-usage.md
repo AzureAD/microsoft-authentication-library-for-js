@@ -10,7 +10,7 @@ By default, MSAL prevents full-frame redirects to **Azure AD** login UX when an 
 
 ## Browser restrictions
 
-Because Azure AD session cookies within an iframe are considered [3rd party cookies](https://developer.mozilla.org/en-US/docs/Web/HTTP/Cookies#third-party_cookies), certain browsers (for example **Safari** or **Chrome** in *incognito* mode with 3rd party cookies disabled) either block or clear these cookies. This will affect the **single sign-on** experience for iframed apps as they will not have access to IdP's session cookies (see: [Single sign-on](#single-sign-on)).
+Because Azure AD session cookies within an iframe are considered [3rd party cookies](https://developer.mozilla.org/docs/Web/HTTP/Cookies#third-party_cookies), certain browsers (for example **Safari** or **Chrome** in *incognito* mode with 3rd party cookies disabled) either block or clear these cookies. This will affect the **single sign-on** experience for iframed apps as they will not have access to IdP's session cookies (see: [Single sign-on](#single-sign-on)).
 
 Additionally, when 3rd party cookies are disabled in **Chrome**, iframed MSAL apps will not have access to local or session storage. MSAL will fallback to in-memory storage in this case.
 
