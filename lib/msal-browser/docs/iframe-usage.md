@@ -20,7 +20,7 @@ You **can** achieve [single sign-on](https://docs.microsoft.com/azure/active-dir
 
 ### Apps with same-origin
 
-iframed and parent apps with the same-origin may have access to the same MSAL.js cache instance and be able to sign-in without prompts, provided that both apps configure MSAL to use the [local storage](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/caching.md#cache-storage) for caching. See for more: [Single sign-on with MSAL.js](https://docs.microsoft.com/azure/active-directory/develop/msal-js-sso)
+Iframed and parent apps with the same-origin may have access to the same MSAL.js cache instance and be able to sign-in without prompts, provided that both apps configure MSAL to use the [local storage](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/caching.md#cache-storage) for caching. See for more: [Single sign-on with MSAL.js](https://docs.microsoft.com/azure/active-directory/develop/msal-js-sso)
 
 ### Apps with cross-origin
 
