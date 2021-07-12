@@ -9,7 +9,7 @@ import { PersistenceError } from "../error/PersistenceError";
 import { Dpapi } from "../dpapi-addon/Dpapi";
 import { DataProtectionScope } from "./DataProtectionScope";
 import { Logger, LoggerOptions } from "@azure/msal-common";
-import { dirname } from "path";
+import { dirname, join } from "path";
 import { BasePersistence } from "./BasePersistence";
 
 /**
@@ -31,7 +31,7 @@ export class FilePersistenceWithDataProtection extends BasePersistence implement
     }
 
     public static async create(
-        fileLocation: string,
+        fileLocation: string | null | undefined,
         scope: DataProtectionScope,
         optionalEntropy?: string,
         loggerOptions?: LoggerOptions): Promise<FilePersistenceWithDataProtection> {
@@ -86,7 +86,7 @@ export class FilePersistenceWithDataProtection extends BasePersistence implement
     }
 
     public createForPersistenceValidation(): Promise<FilePersistenceWithDataProtection> {
-        const testCacheFileLocation = `${dirname(this.filePersistence.getFilePath())}/test.cache`;
+        const testCacheFileLocation = join(dirname(this.filePersistence.getFilePath()), "test.cache");
         return FilePersistenceWithDataProtection.create(testCacheFileLocation, DataProtectionScope.CurrentUser);
     }
 }
