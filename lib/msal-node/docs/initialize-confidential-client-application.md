@@ -29,7 +29,7 @@ const clientConfig = {
         clientAssertion: "assertion"
     }
 };
-const pca = new msal.ConfidentialClient(clientConfig);
+const pca = new msal.ConfidentialClientApplication(clientConfig);
 ```
 
 ## Configuration Basics

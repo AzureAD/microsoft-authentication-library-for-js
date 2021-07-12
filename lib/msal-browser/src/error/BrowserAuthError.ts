@@ -63,11 +63,11 @@ export const BrowserAuthErrorMessage = {
     },
     monitorPopupTimeoutError: {
         code: "monitor_window_timeout",
-        desc: "Token acquisition in popup failed due to timeout."
+        desc: "Token acquisition in popup failed due to timeout. For more visit: aka.ms/msaljs/browser-errors."
     },
     monitorIframeTimeoutError: {
         code: "monitor_window_timeout",
-        desc: "Token acquisition in iframe failed due to timeout."
+        desc: "Token acquisition in iframe failed due to timeout. For more visit: aka.ms/msaljs/browser-errors."
     },
     redirectInIframeError: {
         code: "redirect_in_iframe",

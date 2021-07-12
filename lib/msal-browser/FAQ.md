@@ -7,7 +7,8 @@
 1. [I am moving from MSAL.js 1.x to MSAL.js to 2.x. What should I know?](#i-am-moving-from-msaljs-1x-to-msaljs-to-2x-what-should-i-know)
 1. [Does this library work for iframed applications?](#does-this-library-work-for-iframed-applications)
 1. [Will MSAL 2.x support B2C?](#will-msal-2x-support-b2c)
-1. [Is MSAL.js 2.x compatibile with Azure App Proxy](#is-msaljs-2x-compatible-with-azure-app-proxy)
+1. [Is MSAL.js 2.x compatible with Azure App Proxy](#is-msaljs-2x-compatible-with-azure-app-proxy)
+1. [Can I use MSAL.js 2.x with Microsoft Graph JavaScript SDK?](#can-i-use-msaljs-2x-with-microsoft-graph-javascript-sdk)
 
 **[Authentication](#Authentication)**
 
@@ -19,6 +20,12 @@
 
 1. [How to get single sign-on in my application with MSAL.js?](#how-to-get-single-sign-on-in-my-application-with-msaljs)
 1. [How can my application recognize a user after sign-in? How do I correlate users between applications?](#how-can-my-application-recognize-a-user-after-sign-in-how-do-i-correlate-users-between-applications)
+
+**[Accounts](#Accounts)**
+
+1. [In what scenarios will getAllAccounts return multiple accounts?](#in-what-scenarios-will-getallaccounts-return-multiple-accounts)
+1. [Is the result of getAllAccounts sorted in any order?](#is-the-result-of-getallaccounts-sorted-in-any-order)
+1. [If an account is returned by getAllAccounts does that mean the user has an active session on the server?](#if-an-account-is-returned-by-getallaccounts-does-that-mean-the-user-has-an-active-session-on-the-server)
 
 **[Configuration](#Configuration)**
 
@@ -106,6 +113,10 @@ MSAL.js v2 supports B2C of October 2020.
 
 Unfortunately, at this time MSAL.js 2.x is not compatible with [Azure App Proxy](https://docs.microsoft.com/azure/active-directory/app-proxy/application-proxy). Single-page applications will need to use MSAL.js 1.x as a workaround. We will post an update when this incompatibility has been fixed. See [this issue](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/3420) for more information.
 
+## Can I use MSAL.js 2.x with Microsoft Graph JavaScript SDK?
+
+Yes, MSAL.js 2.x can be used as a custom authentication provider for the [Microsoft Graph JavaScript SDK](https://github.com/microsoftgraph/msgraph-sdk-javascript). For an implementation, please refer to the sample: [JavaScript SPA calling Graph API](https://github.com/Azure-Samples/ms-identity-javascript-tutorial/tree/main/2-Authorization-I/1-call-graph).
+
 # Authentication
 
 ## I don't understand the redirect flow. How does the `handleRedirectPromise` function work?
@@ -128,6 +139,9 @@ Simply set your `authority` in your MSAL app configuration to **consumers** tena
 
 Currently the msal-browser package is designed for Single-Page Applications that are handling all authentication through the browser client. We have not yet optimized this to work with server-side components. As such, requests to retrieve the authorization code from the first leg of the flow can't be met currently. We are currently working on an [implementation of msal that will run in node libraries](https://github.com/AzureAD/microsoft-authentication-library-for-js/projects/4), and as part of that we will explore options to make msal-browser work with server-side components.
 
+## How do I implement self-service sign-up?
+MSAL Browser supports self-service sign-up in the auth code flow. Please see our docs [here](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#popuprequest) for supported prompt values in the request and their expected outcomes, and [here](http://aka.ms/s3u) for an overview of self-service sign-up and configuration changes that need to be made to your Azure tenant. Please note that that self-service sign-up is not available in B2C and test environments.
+
 # Single Sign-On
 
 ## How to get single sign-on in my application with MSAL.js?
@@ -143,6 +157,22 @@ loginPopup().then((response) => {
     const uniqueID = response.account.homeAccountId;
 })
 ```
+
+# Accounts
+
+## In what scenarios will `getAllAccounts` return multiple accounts?
+
+`getAllAccounts` will return multiple accounts when your app has made multiple interactive token requests using either an `acquireToken` or `login` API and the user has selected different accounts on the server's account selection screen. Each successful call to an `acquireToken` or `login` API will return exactly one account which can be the same or different from the account returned in a previous call. Each account is saved in local or sessionStorage, depending on how you've configured MSAL, and will be available to any page that lives on the same domain.
+
+If you would like to force the server account selection screen you can pass `prompt: "select_account"` or `prompt: "login"` to the `acquireToken` or `login` API.
+
+## Is the result of `getAllAccounts` sorted in any order?
+
+No, accounts are not sorted nor are they guaranteed to maintain any particular order across multiple calls.
+
+## If an account is returned by `getAllAccounts` does that mean the user has an active session on the server?
+
+No, the account APIs reflect local account state only. If you need to ensure the user has an active session on the server you should call `acquireTokenSilent` or `ssoSilent` and fallback to interaction if needed.
 
 # Configuration
 

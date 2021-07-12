@@ -9,22 +9,28 @@ import {
     HttpEvent,
     HttpInterceptor
 } from "@angular/common/http";
-import { Location } from "@angular/common";
+import { Location, DOCUMENT } from "@angular/common";
 import { Observable, EMPTY, of } from "rxjs";
 import { switchMap, catchError } from "rxjs/operators";
 import { MsalService } from "./msal.service";
 import { AccountInfo, AuthenticationResult, BrowserConfigurationAuthError, InteractionType, StringUtils, UrlString } from "@azure/msal-browser";
 import { Injectable, Inject } from "@angular/core";
 import { MSAL_INTERCEPTOR_CONFIG } from "./constants";
-import { MsalInterceptorAuthRequest, MsalInterceptorConfiguration, ProtectedResourceScopes } from "./msal.interceptor.config";
+import { MsalInterceptorAuthRequest, MsalInterceptorConfiguration, ProtectedResourceScopes, MatchingResources } from "./msal.interceptor.config";
 
 @Injectable()
 export class MsalInterceptor implements HttpInterceptor {
+    private _document?: Document;
+
     constructor(
         @Inject(MSAL_INTERCEPTOR_CONFIG) private msalInterceptorConfig: MsalInterceptorConfiguration,
         private authService: MsalService,
-        private location: Location
-    ) {}
+        private location: Location,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any, @typescript-eslint/explicit-module-boundary-types
+        @Inject(DOCUMENT) document?: any
+    ) {
+        this._document = document as Document;
+    }
 
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
@@ -85,6 +91,7 @@ export class MsalInterceptor implements HttpInterceptor {
 
     /**
      * Invoke interaction for the given set of scopes
+     * @param authRequest Request
      * @param scopes Array of scopes for the request
      * @returns Result from the interactive request
      */
@@ -102,7 +109,7 @@ export class MsalInterceptor implements HttpInterceptor {
     /**
      * Looks up the scopes for the given endpoint from the protectedResourceMap
      * @param endpoint Url of the request
-     * @param endpoint Http method of the request
+     * @param httpMethod Http method of the request
      * @returns Array of scopes, or null if not found
      *
      */
@@ -116,8 +123,11 @@ export class MsalInterceptor implements HttpInterceptor {
 
         const matchingProtectedResources = this.matchResourcesToEndpoint(protectedResourcesArray, normalizedEndpoint);
 
-        if (matchingProtectedResources.length > 0) {
-            return this.matchScopesToEndpoint(this.msalInterceptorConfig.protectedResourceMap, matchingProtectedResources, httpMethod);
+        // Check absolute urls of resources first before checking relative to prevent incorrect matching where multiple resources have similar relative urls
+        if (matchingProtectedResources.absoluteResources.length > 0) {
+            return this.matchScopesToEndpoint(this.msalInterceptorConfig.protectedResourceMap, matchingProtectedResources.absoluteResources, httpMethod);
+        } else if (matchingProtectedResources.relativeResources.length > 0){
+            return this.matchScopesToEndpoint(this.msalInterceptorConfig.protectedResourceMap, matchingProtectedResources.relativeResources, httpMethod);
         }
 
         return null;
@@ -125,27 +135,47 @@ export class MsalInterceptor implements HttpInterceptor {
 
     /**
      * Finds resource endpoints that match request endpoint
-     * @param protectedResourcesArray 
+     * @param protectedResourcesEndpoints
      * @param endpoint 
-     * @param location 
      * @returns 
      */
-    private matchResourcesToEndpoint(protectedResourcesEndpoints: string[], endpoint: string): Array<string> {
-        return protectedResourcesEndpoints.filter(key => {
+    private matchResourcesToEndpoint(protectedResourcesEndpoints: string[], endpoint: string): MatchingResources {
+        const matchingResources: MatchingResources = {absoluteResources: [], relativeResources: []};
+
+        protectedResourcesEndpoints.forEach(key => {
+            // Normalizes and adds resource to matchingResources.absoluteResources if key matches endpoint. StringUtils.matchPattern accounts for wildcards
             const normalizedKey = this.location.normalize(key);
+            if (StringUtils.matchPattern(normalizedKey, endpoint)){
+                matchingResources.absoluteResources.push(key);
+            }
             
+            // Get url components for relative urls
+            const absoluteKey = this.getAbsoluteUrl(key);
+            const keyComponents = new UrlString(absoluteKey).getUrlComponents();
+            const absoluteEndpoint = this.getAbsoluteUrl(endpoint);
+            const endpointComponents = new UrlString(absoluteEndpoint).getUrlComponents();
+
             // Normalized key should include query strings if applicable
-            const keyComponents = new UrlString(key).getUrlComponents();
             const relativeNormalizedKey = keyComponents.QueryString ? `${keyComponents.AbsolutePath}?${keyComponents.QueryString}` : this.location.normalize(keyComponents.AbsolutePath);
 
-            // Relative endpoint not applicable, matching endpoint with protected resource. StringUtils.matchPattern accounts for wildcards
-            if (relativeNormalizedKey === "" || relativeNormalizedKey === "/*") {
-                return StringUtils.matchPattern(normalizedKey, endpoint);
-            } else {
-                // Matching endpoint with both protected resource and relative url of protected resource
-                return StringUtils.matchPattern(normalizedKey, endpoint) || StringUtils.matchPattern(relativeNormalizedKey, endpoint);
+            // Add resource to matchingResources.relativeResources if same origin, relativeKey matches endpoint, and is not empty
+            if (keyComponents.HostNameAndPort === endpointComponents.HostNameAndPort && StringUtils.matchPattern(relativeNormalizedKey, absoluteEndpoint) && relativeNormalizedKey !== "" && relativeNormalizedKey !== "/*"){
+                matchingResources.relativeResources.push(key);
             }
         });
+
+        return matchingResources;
+    }
+
+    /**
+     * Transforms relative urls to absolute urls
+     * @param url 
+     * @returns 
+     */
+    private getAbsoluteUrl(url: string): string {
+        const link = this._document.createElement("a");
+        link.href = url;
+        return link.href;
     }
 
     /**

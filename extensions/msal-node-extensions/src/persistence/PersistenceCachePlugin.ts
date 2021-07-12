@@ -51,16 +51,17 @@ export class PersistenceCachePlugin implements ICachePlugin {
     /**
      * Reads from storage and saves an in-memory copy. If persistence has not been updated
      * since last time data was read, in memory copy is used.
-     * 
-     * If cacheContext.cacheHasChanged === true, then file lock is created and not deleted until 
-     * afterCacheAccess() is called, to prevent the cache file from changing in between 
-     * beforeCacheAccess() and afterCacheAccess(). 
+     *
+     * If cacheContext.cacheHasChanged === true, then file lock is created and not deleted until
+     * afterCacheAccess() is called, to prevent the cache file from changing in between
+     * beforeCacheAccess() and afterCacheAccess().
      */
     public async beforeCacheAccess(cacheContext: TokenCacheContext): Promise<void> {
         this.logger.info("Executing before cache access");
         const reloadNecessary = await this.persistence.reloadNecessary(this.lastSync);
         if (!reloadNecessary && this.currentCache !== null) {
             if (cacheContext.cacheHasChanged) {
+                this.logger.verbose("Cache context has changed");
                 await this.crossPlatformLock.lock();
             }
             return;

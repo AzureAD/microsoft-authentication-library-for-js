@@ -54,16 +54,17 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * until the end-user completes input of credentials.
      */
     public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null> {
-        this.logger.info("acquireTokenByDeviceCode called");
+        this.logger.info("acquireTokenByDeviceCode called", request.correlationId);
         const validRequest: CommonDeviceCodeRequest = Object.assign(request, this.initializeBaseRequest(request));
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByDeviceCode, validRequest.correlationId!);
         try {
             const deviceCodeConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
+                validRequest.correlationId,
                 serverTelemetryManager
             );
-            this.logger.verbose("Auth client config generated");
             const deviceCodeClient = new DeviceCodeClient(deviceCodeConfig);
+            this.logger.verbose("Device code client created", validRequest.correlationId);
             return deviceCodeClient.acquireToken(validRequest);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
@@ -82,7 +83,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @param request - UsenamePasswordRequest
      */
     async acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null> {
-        this.logger.info("acquireTokenByUsernamePassword called");
+        this.logger.info("acquireTokenByUsernamePassword called", request.correlationId);
         const validRequest: CommonUsernamePasswordRequest = {
             ...request,
             ...this.initializeBaseRequest(request)
@@ -91,10 +92,11 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         try {
             const usernamePasswordClientConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
+                validRequest.correlationId,
                 serverTelemetryManager
             );
-            this.logger.verbose("Auth client config generated");
             const usernamePasswordClient = new UsernamePasswordClient(usernamePasswordClientConfig);
+            this.logger.verbose("Username password client created", validRequest.correlationId);
             return usernamePasswordClient.acquireToken(validRequest);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);

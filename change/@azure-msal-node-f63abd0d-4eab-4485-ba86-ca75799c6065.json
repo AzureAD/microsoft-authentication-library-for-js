@@ -1,6 +1,6 @@
 {
-  "type": "patch",
-  "comment": "fix: have the log level propagate to msal-common",
+  "type": "minor",
+  "comment": "feat: add regional authority telemetry, #3662",
   "packageName": "@azure/msal-node",
   "email": "samuelkamau@microsoft.com",
   "dependentChangeType": "patch"
