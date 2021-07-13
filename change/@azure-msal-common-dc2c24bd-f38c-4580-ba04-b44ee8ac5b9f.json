@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Adding ROPC for confidential client apps (#3838)",
+  "packageName": "@azure/msal-common",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}
