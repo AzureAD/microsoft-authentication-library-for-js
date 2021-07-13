@@ -7,13 +7,19 @@ const express = require("express");
 const path = require("path");
 const process = require("process");
 const msal = require("@azure/msal-node");
-const { Environment, PersistenceCreator} = require("@azure/msal-node-extensions");
+const { 
+    DataProtectionScope,
+    Environment,
+    PersistenceCreator,
+    PersistenceCachePlugin,
+} = require("@azure/msal-node-extensions");
 
 const SERVER_PORT = process.env.PORT || 3000;
 const cachePath = path.join(Environment.getUserRootDirectory(), "./cache.json");
 
 const persistenceConfiguration = {
     cachePath,
+    dataProtectionScope: DataProtectionScope.CurrentUser,
     serviceName: "serviceName",
     accountName: "accountName",
     usePlaintextFileOnLinux: false,
@@ -28,7 +34,7 @@ PersistenceCreator
             authority: "https://login.microsoftonline.com/90b8faa8-cc95-460e-a618-ee770bee1759",
         },
         cache: {
-            cachePlugin: new extensions.PersistenceCachePlugin(persistence)
+            cachePlugin: new PersistenceCachePlugin(persistence)
         }
     };
 
