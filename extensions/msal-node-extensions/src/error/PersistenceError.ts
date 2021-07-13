@@ -68,4 +68,34 @@ export class PersistenceError extends Error {
     static createCachePersistenceError(errorMessage: string): PersistenceError {
         return new PersistenceError("CachePersistenceError", errorMessage);
     }
+
+    /**
+     * Throw unsupported error
+     * 
+     * @param errorMessage string
+     * @returns PersistenceError
+     */
+    static createNotSupportedError(errorMessage: string): PersistenceError {
+        return new PersistenceError("NotSupported", errorMessage);
+    }
+
+    /**
+     * Throw persistence not verified error
+     * 
+     * @param errorMessage string
+     * @returns PersistenceError
+     */
+    static createPersistenceNotVerifiedError(errorMessage: string): PersistenceError {
+        return new PersistenceError("PersistenceNotVerified", errorMessage);
+    }
+
+    /**
+     * Throw persistence creation validation error
+     * 
+     * @param errorMessage string
+     * @returns PersistenceError
+     */
+    static createPersistenceCreationValidationError(errorMessage: string): PersistenceError {
+        return new PersistenceError("PersistenceCreationValidationError", errorMessage);
+    }
 }
