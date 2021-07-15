@@ -2,8 +2,8 @@
 Microsoft Authentication Library for JavaScript (MSAL.js)
 =========================================================
 
-| [Getting Started](https://docs.microsoft.com/azure/active-directory/develop/guidedsetups/active-directory-javascriptspa)| [AAD Docs](https://aka.ms/aaddevv2) | [Library Reference](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal.html) | [Support](README.md#community-help-and-support) | [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples)
-| --- | --- | --- | --- | --- |
+| [Getting Started](https://docs.microsoft.com/azure/active-directory/develop/guidedsetups/active-directory-javascriptspa)| [AAD Docs](https://aka.ms/aaddevv2) | [Library Reference](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal.html) | [Support](README.md#community-help-and-support) | [Samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/Samples) | [Feedback](https://ncv.microsoft.com/RiFgth8uZb) |
+| --- | --- | --- | --- | --- | --- |
 
 ⚠️⚠️⚠️ This library is no longer receiving new features and will only receive critical bug and security fixes. All new applications should use [@azure/msal-browser](https://www.npmjs.com/package/@azure/msal-browser) instead. ⚠️⚠️⚠️
 
@@ -198,6 +198,9 @@ You can learn further details about MSAL.js functionality documented in the [MSA
 ## Security Reporting
 
 If you find a security issue with our libraries or services please report it to [secure@microsoft.com](mailto:secure@microsoft.com) with as much detail as possible. Your submission may be eligible for a bounty through the [Microsoft Bounty](http://aka.ms/bugbounty) program. Please do not post security issues to GitHub Issues or any other public site. We will contact you shortly upon receiving the information. We encourage you to get notifications of when security incidents occur by visiting [this page](https://technet.microsoft.com/security/dd252948) and subscribing to Security Advisory Alerts.
+
+## Share your experience
+How easy was it to use this library? And valuable did you find it? Anonymously share your experience with us [here](https://ncv.microsoft.com/RiFgth8uZb).
 
 ## License
 
