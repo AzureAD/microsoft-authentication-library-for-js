@@ -1,13 +1,13 @@
 # Using MSAL in iframed apps
 
-By default, MSAL prevents full-frame redirects to **Azure AD** authentication endpoint when an app is rendered inside an iframe, which means you cannot use [redirect APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/initialization.md#redirect-apis) for user interaction with the IdP:
+By default, MSAL prevents full-frame redirects to **Azure AD** authentication endpoint when an app is rendered inside an iframe, which means you cannot use [redirect APIs](./initialization.md#redirect-apis) for user interaction with the IdP:
 
 - This restriction is imposed since **Azure AD** will refuse to render any prompt requiring user interaction (e.g. **credential entry**, **consent**, **logout** etc.) in an iframe by throwing the `X-FRAME OPTIONS SET TO DENY` [error](https://html.spec.whatwg.org/multipage/browsing-the-web.html#the-x-frame-options-header), a measure taken to prevent [clickjacking attacks](https://owasp.org/www-community/attacks/Clickjacking).
-- Instead, you'll have to rely on MSAL's [popup APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/initialization.md#popup-apis) if user interaction is required, and/or silent APIs (`ssoSilent()`, `acquireTokenSilent()`) if user interaction can be avoided.
-- Similarly, you'll have to use the [logoutPopup()](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/logout.md#logoutpopup) API for sign-outs (:warning: if your app is using a version of msal-browser older than v2.13, make sure to upgrade and replace the `logout()` API, as it will attempt a full-frame redirect to Azure AD).
-- When using [popup APIs](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/initialization.md#popup-apis), you need to take into account any [sandboxing](https://html.spec.whatwg.org/multipage/origin.html#sandboxing) restrictions imposed by the parent app. In particular, the parent app needs to set `allow-popups` flag when the iframe is sandboxed.
+- Instead, you'll have to rely on MSAL's [popup APIs](./initialization.md#popup-apis) if user interaction is required, and/or silent APIs (`ssoSilent()`, `acquireTokenSilent()`) if user interaction can be avoided.
+- Similarly, you'll have to use the [logoutPopup()](./logout.md#logoutpopup) API for sign-outs (:warning: if your app is using a version of msal-browser older than v2.13, make sure to upgrade and replace the `logout()` API, as it will attempt a full-frame redirect to Azure AD).
+- When using [popup APIs](./initialization.md#popup-apis), you need to take into account any [sandboxing](https://html.spec.whatwg.org/multipage/origin.html#sandboxing) restrictions imposed by the parent app. In particular, the parent app needs to set the `allow-popups` flag when the iframe is sandboxed.
 
-**Azure AD B2C** offers an [embedded sign-in experience](https://docs.microsoft.com/azure/active-directory-b2c/embedded-login), which allows rendering a custom login UI in an iframe. Since MSAL prevents redirect in iframes by default, you'll need to set the [allowRedirectInIframe](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/configuration.md#system-config-options) configuration option to **true** in order to make use of this feature. Note that enabling this option for apps on **Azure AD** is not recommended, due to the above restriction.
+**Azure AD B2C** offers an [embedded sign-in experience](https://docs.microsoft.com/azure/active-directory-b2c/embedded-login), which allows rendering a custom login UI in an iframe. Since MSAL prevents redirect in iframes by default, you'll need to set the [allowRedirectInIframe](./configuration.md#system-config-options) configuration option to **true** in order to make use of this feature. Note that enabling this option for apps on **Azure AD** is not recommended, due to the above restriction.
 
 ## Browser restrictions
 
@@ -17,15 +17,15 @@ Additionally, when 3rd party cookies are disabled in **Chrome**, iframed MSAL ap
 
 ## Single sign-on
 
-You **can** achieve [single sign-on](https://docs.microsoft.com/azure/active-directory/develop/msal-js-sso) between iframed and parent apps with the [same-origin](https://developer.mozilla.org/docs/Web/Security/Same-origin_policy) **and** with [cross-origin](https://developer.mozilla.org/docs/Web/Security/Same-origin_policy#cross-origin_script_api_access) **if** you pass an [account hint](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md#silent-login-with-ssosilent) from the parent app to the iframed app.
+You **can** achieve [single sign-on](https://docs.microsoft.com/azure/active-directory/develop/msal-js-sso) between iframed and parent apps with the [same-origin](https://developer.mozilla.org/docs/Web/Security/Same-origin_policy) **and** with [cross-origin](https://developer.mozilla.org/docs/Web/Security/Same-origin_policy#cross-origin_script_api_access) **if** you pass an [account hint](./login-user.md#silent-login-with-ssosilent) from the parent app to the iframed app.
 
 ### Apps with same-origin
 
-Iframed and parent apps with the same-origin may have access to the same MSAL.js cache instance and be able to sign-in without prompts, provided that both apps configure MSAL to use the [local storage](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/caching.md#cache-storage) for caching. See for more: [Single sign-on with MSAL.js](https://docs.microsoft.com/azure/active-directory/develop/msal-js-sso)
+Iframed and parent apps with the same-origin may have access to the same MSAL.js cache instance and be able to sign-in without prompts, provided that both apps configure MSAL to use the [local storage](./caching.md#cache-storage) for caching. See for more: [Single sign-on with MSAL.js](https://docs.microsoft.com/azure/active-directory/develop/msal-js-sso)
 
 ### Apps with cross-origin
 
-Iframed and parent apps with cross-origin can make use of the [ssoSilent()](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md#silent-login-with-ssosilent) API to achieve single sign-on. To do so, the parent app needs to pass down either an **account**, a **loginHint** (username) or a **session id** (sid) to the iframed app. For cross-origin communication between iframed and parent apps, there are a few alternatives you can consider:
+Iframed and parent apps with cross-origin can make use of the [ssoSilent()](./login-user.md#silent-login-with-ssosilent) API to achieve single sign-on. To do so, the parent app needs to pass down either an **account**, a **loginHint** (username) or a **session id** (sid) to the iframed app. For cross-origin communication between iframed and parent apps, there are a few alternatives you can consider:
 
 - You can add query strings to iframe's source in the parent app and retrieve them later in the child:
 
@@ -43,16 +43,14 @@ const myMSALObj = new msal.PublicClientApplication({
     },
 });
 
-let username = "";
-
 window.onload = () => {
     
     const urlParams = new URLSearchParams(window.location.search);
-    username = urlParams.get("username");
+    const sid = urlParams.get("sid");
 
     // attempt SSO
     myMSALObj.ssoSilent({
-        loginHint: username
+        sid: sid
     }).then((response) => {
         // do something with response
     }).catch(error => {
@@ -78,16 +76,15 @@ const myMSALObj = new msal.PublicClientApplication({
 });
 
 const parentDomain = "http://localhost:3001";
-let username = "";
 
 window.addEventListener("message", (event) => {
     // check the origin of the data
     if (event.origin === parentDomain) {
-        username = event.data;
+        const sid = event.data;
 
         // attempt SSO
         myMSALObj.ssoSilent({
-            loginHint: username
+            sid: sid
         }).then((response) => {
             // do something with response
         }).catch(error => {
@@ -106,7 +103,7 @@ You should catch and handle any errors if `ssoSilent()` fails. In particular:
 
 ```javascript
     myMSALObj.ssoSilent({
-        loginHint: username
+        sid: sid
     }).then((response) => {
             // do something with response
         }).catch(error => {
@@ -120,7 +117,7 @@ You should catch and handle any errors if `ssoSilent()` fails. In particular:
                     // e.g. username is null
                 }
                 if (error.errorCode === "popup_window_error") {
-                    // e.g. popups can't be loaded
+                    // e.g. popups are blocked
                 }
             } else {
                 console.log(error);
@@ -138,4 +135,4 @@ If you would like to minimize communication with IdP that requires user interact
 
 ## Single sign-out
 
-You can use MSAL.js with a [front-channel logout URI](https://openid.net/specs/openid-connect-backchannel-1_0.html) to achieve *single sign-out* effect between iframed and parent apps. For instance, if you would like users to automatically logout from iframed apps when they logout from the parent app, you should enable front-channel logout for the iframed apps. To do so, please refer to: [How to configure a front-channel logout URI](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/logout.md#front-channel-logout).
+You can use MSAL.js with a [front-channel logout URI](https://openid.net/specs/openid-connect-backchannel-1_0.html) to achieve *single sign-out* effect between iframed and parent apps. For instance, if you would like users to automatically logout from iframed apps when they logout from the parent app, you should enable front-channel logout for the iframed apps. To do so, please refer to: [How to configure a front-channel logout URI](./logout.md#front-channel-logout).
