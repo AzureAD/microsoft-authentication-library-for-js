@@ -94,13 +94,23 @@ export class UsernamePasswordClient extends BaseClient {
         parameterBuilder.addLibraryInfo(this.config.libraryInfo);
 
         parameterBuilder.addThrottling();
-        
+
         if (this.serverTelemetryManager) {
             parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
         }
 
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);
+
+        if (this.config.clientCredentials.clientSecret) {
+            parameterBuilder.addClientSecret(this.config.clientCredentials.clientSecret);
+        }
+
+        if (this.config.clientCredentials.clientAssertion) {
+            const clientAssertion = this.config.clientCredentials.clientAssertion;
+            parameterBuilder.addClientAssertion(clientAssertion.assertion);
+            parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
+        }
 
         if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
