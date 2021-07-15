@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix bug causing acquireTokenSilent to hang and never return #3867",
+  "packageName": "msal",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
