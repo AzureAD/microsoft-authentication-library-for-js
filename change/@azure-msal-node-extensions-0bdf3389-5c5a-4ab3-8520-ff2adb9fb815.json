@@ -1,5 +1,5 @@
 {
-  "type": "minor",
+  "type": "prerelease",
   "comment": "feat: add the persistence creator",
   "packageName": "@azure/msal-node-extensions",
   "email": "samuelkamau@microsoft.com",
