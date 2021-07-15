@@ -6,7 +6,7 @@
 import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, CcsCredential, CcsCredentialType } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
+import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys, InMemoryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserStorage } from "./BrowserStorage";
 import { MemoryStorage } from "./MemoryStorage";
 import { IWindowStorage } from "./IWindowStorage";
@@ -366,6 +366,25 @@ export class BrowserCacheManager extends CacheManager {
         return allKeys.filter((key) => {
             return this.isAuthorityMetadata(key);
         });
+    }
+
+    /**
+     * Sets wrapper metadata in memory
+     * @param wrapperSKU 
+     * @param wrapperVersion 
+     */
+    setWrapperMetadata(wrapperSKU: string, wrapperVersion: string): void {
+        this.internalStorage.setItem(InMemoryCacheKeys.WRAPPER_SKU, wrapperSKU);
+        this.internalStorage.setItem(InMemoryCacheKeys.WRAPPER_VER, wrapperVersion);
+    }
+
+    /**
+     * Returns wrapper metadata from in-memory storage
+     */
+    getWrapperMetadata(): [string, string] {
+        const sku = this.internalStorage.getItem(InMemoryCacheKeys.WRAPPER_SKU) || "";
+        const version = this.internalStorage.getItem(InMemoryCacheKeys.WRAPPER_VER) || "";
+        return [sku, version];
     }
 
     /**
