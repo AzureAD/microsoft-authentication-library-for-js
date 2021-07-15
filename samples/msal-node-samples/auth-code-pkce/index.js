@@ -11,8 +11,8 @@ const SERVER_PORT = process.env.PORT || 3000;
 // including the clientSecret
 const config = {
     auth: {
-        clientId: "89e61572-2f96-47ba-b571-9d8c8f96b69d",
-        authority: "https://login.microsoftonline.com/5d97b14d-c396-4aee-b524-c86d33e9b660"
+        clientId: "ENTER_CLIENT_ID",
+        authority: "https://login.microsoftonline.com/ENTER_TENANT_ID"
     },
     system: {
         loggerOptions: {

@@ -15,7 +15,7 @@ const config = {
 const pca = new msal.PublicClientApplication(config);
 
 const refreshTokenRequest = {
-    refreshToken: "",
+    refreshToken: "", // replace with raw refresh token string here
     scopes: ["user.read"],
 };
 

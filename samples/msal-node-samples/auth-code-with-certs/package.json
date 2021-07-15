@@ -12,7 +12,7 @@
   "author": "Microsoft",
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-node": "file:../../../../lib/msal-node",
+    "@azure/msal-node": "file:../../../lib/msal-node",
     "express": "^4.17.1"
   }
 }

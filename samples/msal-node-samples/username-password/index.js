@@ -12,12 +12,21 @@ const { promises: fs } = require("fs");
 const cachePath = "./data/cache.json"; // Replace this string with the path to your valid cache file.
 
 const beforeCacheAccess = async (cacheContext) => {
-    cacheContext.tokenCache.deserialize(await fs.readFile(cachePath, "utf-8"));
+    try {
+        const cacheFile = await fs.readFile(cachePath, "utf-8");
+        cacheContext.tokenCache.deserialize(cacheFile);   
+    } catch (error) {
+        cacheContext.tokenCache.deserialize(await fs.writeFile(cachePath, ""));
+    }
 };
 
 const afterCacheAccess = async (cacheContext) => {
     if (cacheContext.cacheHasChanged) {
-        await fs.writeFile(cachePath, cacheContext.tokenCache.serialize());
+        try {
+            await fs.writeFile(cachePath, cacheContext.tokenCache.serialize());   
+        } catch (error) {
+            console.log(error);
+        }
     }
 };
 
