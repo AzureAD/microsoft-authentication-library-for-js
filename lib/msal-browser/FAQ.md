@@ -103,7 +103,9 @@ Please refer to our migration guide [here](https://github.com/AzureAD/microsoft-
 
 ## Does this library work for iframed applications?
 
-We are currently working on support for iframed applications as well as solutions for applications affected by ITP 2.x changes. You can monitor the first of those tickets [here](#1410).
+MSAL.js can be used in iframed applications under certain conditions. For more information, please refer to: [Using MSAL in iframed apps](./docs/iframe-usage.md)
+
+We are also working on solutions for applications affected by ITP 2.x changes.
 
 ## Will MSAL 2.x support B2C?
 
