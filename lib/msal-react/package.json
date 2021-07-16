@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-react",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -40,7 +40,7 @@
   },
   "module": "dist/msal-react.esm.js",
   "devDependencies": {
-    "@azure/msal-browser": "^2.15.0",
+    "@azure/msal-browser": "^2.15.1",
     "@testing-library/jest-dom": "^5.11.5",
     "@testing-library/react": "^11.2.3",
     "@types/jest": "^26.0.15",
@@ -54,6 +54,5 @@
     "tsdx": "^0.14.1",
     "tslib": "^2.0.0",
     "typescript": "^3.9.7"
-  },
-  "dependencies": {}
+  }
 }
