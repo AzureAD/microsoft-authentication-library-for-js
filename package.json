@@ -1,6 +1,6 @@
 {
   "name": "@foresee/microsoft-authentication-libraries-for-js",
-  "private": true,
+  "version": "21.9.0",
   "devDependencies": {
     "@angular-eslint/eslint-plugin": "^2.0.2",
     "@angular/compiler": "^11.2.8",
@@ -69,6 +69,5 @@
     "beachball:bumpDeps": "beachball bump",
     "beachball:publish": "beachball publish -n $NODE_AUTH_TOKEN",
     "beachball:release": "node ./.github/create-releases.js"
-  },
-  "dependencies": {}
+  }
 }

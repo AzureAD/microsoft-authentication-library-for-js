@@ -1,5 +1,4 @@
 {
-  "lerna": "3.16.4",
   "command": {
     "run": {
       "scope": [
@@ -13,15 +12,15 @@
       "stream": true
     },
     "exec": {
-        "scope": [
-            "msal",
-            "@azure/msal-browser",
-            "@azure/msal-common",
-            "@azure/msal-node",
-            "@azure/msal-react",
-            "@azure/msal-angular"
-        ],
-        "stream": true
+      "scope": [
+        "msal",
+        "@azure/msal-browser",
+        "@azure/msal-common",
+        "@azure/msal-node",
+        "@azure/msal-react",
+        "@azure/msal-angular"
+      ],
+      "stream": true
     }
   },
   "packages": [
