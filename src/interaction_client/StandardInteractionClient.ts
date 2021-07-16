@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, Logger, ServerTelemetryManager, ServerTelemetryRequest, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest } from "@azure/msal-common";
+import { ICrypto, Logger, ServerTelemetryManager, ServerTelemetryRequest, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, PersistentCacheKeys, IdToken, BaseAuthRequest, AuthenticationScheme } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
@@ -12,10 +12,13 @@ import { EventHandler } from "../event/EventHandler";
 import { BrowserConstants, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { version } from "../packageMetadata";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
+import { BrowserProtocolUtils, BrowserStateObject } from "../utils/BrowserProtocolUtils";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { INavigationClient } from "../navigation/INavigationClient";
+import { RedirectRequest } from "../request/RedirectRequest";
+import { PopupRequest } from "../request/PopupRequest";
+import { SsoSilentRequest } from "../request/SsoSilentRequest";
 
 /**
  * Defines the class structure and helper functions used by the "standard", non-brokered auth flows (popup, redirect, silent (RT), silent (iframe))
@@ -214,5 +217,117 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     protected interactionInProgress(): boolean {
         // Check whether value in cache is present and equal to expected value
         return (this.browserStorage.getTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, true)) === BrowserConstants.INTERACTION_IN_PROGRESS_VALUE;
+    }
+
+    /**
+     * Helper to validate app environment before making a request.
+     * @param request
+     * @param interactionType
+     */
+    protected preflightInteractiveRequest(request: RedirectRequest|PopupRequest, interactionType: InteractionType): AuthorizationUrlRequest {
+        this.logger.verbose("preflightInteractiveRequest called, validating app environment", request?.correlationId);
+        // block the reload if it occurred inside a hidden iframe
+        BrowserUtils.blockReloadInHiddenIframes();
+    
+        // Check if interaction is in progress. Throw error if true.
+        if (this.interactionInProgress()) {
+            throw BrowserAuthError.createInteractionInProgressError();
+        }
+    
+        return this.initializeAuthorizationRequest(request, interactionType);
+    }
+
+    /**
+     * Helper to initialize required request parameters for interactive APIs and ssoSilent()
+     * @param request
+     * @param interactionType
+     */
+    protected initializeAuthorizationRequest(request: RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
+        this.logger.verbose("initializeAuthorizationRequest called", request.correlationId);
+        const redirectUri = this.getRedirectUri(request.redirectUri);
+        const browserState: BrowserStateObject = {
+            interactionType: interactionType
+        };
+
+        const state = ProtocolUtils.setRequestState(
+            this.browserCrypto,
+            (request && request.state) || "",
+            browserState
+        );
+
+        const validatedRequest: AuthorizationUrlRequest = {
+            ...this.initializeBaseRequest(request),
+            redirectUri: redirectUri,
+            state: state,
+            nonce: request.nonce || this.browserCrypto.createNewGuid(),
+            responseMode: ResponseMode.FRAGMENT
+        };
+
+        const account = request.account || this.browserStorage.getActiveAccount();
+        if (account) {
+            this.logger.verbose("Setting validated request account");
+            this.logger.verbosePii(`Setting validated request account: ${account}`);
+            validatedRequest.account = account;
+        }
+
+        // Check for ADAL SSO
+        if (StringUtils.isEmpty(validatedRequest.loginHint)) {
+            // Only check for adal token if no SSO params are being used
+            const adalIdTokenString = this.browserStorage.getTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN);
+            if (adalIdTokenString) {
+                const adalIdToken = new IdToken(adalIdTokenString, this.browserCrypto);
+                this.browserStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
+                if (adalIdToken.claims && adalIdToken.claims.upn) {
+                    this.logger.verbose("No SSO params used and ADAL token retrieved, setting ADAL upn as loginHint");
+                    validatedRequest.loginHint = adalIdToken.claims.upn;
+                }
+            }
+        }
+
+        this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority, validatedRequest.loginHint || "", validatedRequest.account || null);
+
+        return validatedRequest;
+    }
+
+    /**
+     * Initializer function for all request APIs
+     * @param request
+     */
+    protected initializeBaseRequest(request: Partial<BaseAuthRequest>): BaseAuthRequest {
+        this.logger.verbose("Initializing BaseAuthRequest", request.correlationId);
+        const authority = request.authority || this.config.auth.authority;
+
+        const scopes = [...((request && request.scopes) || [])];
+        const correlationId = (request && request.correlationId) || this.browserCrypto.createNewGuid();
+
+        // Set authenticationScheme to BEARER if not explicitly set in the request
+        if (!request.authenticationScheme) {
+            request.authenticationScheme = AuthenticationScheme.BEARER;
+            this.logger.verbose("Authentication Scheme wasn't explicitly set in request, defaulting to \"Bearer\" request", request.correlationId);
+        } else {
+            this.logger.verbose(`Authentication Scheme set to "${request.authenticationScheme}" as configured in Auth request`, request.correlationId);
+        }
+
+        const validatedRequest: BaseAuthRequest = {
+            ...request,
+            correlationId,
+            authority,
+            scopes
+        };
+
+        return validatedRequest;
+    }
+
+    /**
+     *
+     * Use to get the redirect uri configured in MSAL or null.
+     * @param requestRedirectUri
+     * @returns Redirect URL
+     *
+     */
+    protected getRedirectUri(requestRedirectUri?: string): string {
+        this.logger.verbose("getRedirectUri called");
+        const redirectUri = requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
+        return UrlString.getAbsoluteUrl(redirectUri, BrowserUtils.getCurrentUri());
     }
 }

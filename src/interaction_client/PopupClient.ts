@@ -3,11 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, Logger, AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, AccountEntity, UrlString } from "@azure/msal-common";
-import { BrowserConfiguration } from "../config/Configuration";
+import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, AccountEntity, UrlString } from "@azure/msal-common";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { EventHandler } from "../event/EventHandler";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { PopupUtils } from "../utils/PopupUtils";
 import { EventType } from "../event/EventType";
@@ -17,14 +14,15 @@ import { PopupHandler, PopupParams } from "../interaction_handler/PopupHandler";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { NavigationOptions } from "../navigation/NavigationOptions";
 import { BrowserUtils } from "../utils/BrowserUtils";
-import { INavigationClient } from "../navigation/INavigationClient";
+import { PopupRequest } from "../request/PopupRequest";
 
 export class PopupClient extends StandardInteractionClient {
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient) {
-        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient);
-    }
-
-    acquireToken(validRequest: AuthorizationUrlRequest): Promise<AuthenticationResult> {
+    /**
+     * Acquires tokens by opening a popup window to the /authorize endpoint of the authority
+     * @param request 
+     */
+    acquireToken(request: PopupRequest): Promise<AuthenticationResult> {
+        const validRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
         this.logger = this.logger.clone(name, version, validRequest.correlationId);
         const popupName = PopupUtils.generatePopupName(this.config.auth.clientId, validRequest);
 
