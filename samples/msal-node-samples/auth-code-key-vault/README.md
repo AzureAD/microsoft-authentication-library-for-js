@@ -1,4 +1,4 @@
-# MSAL Node Web App using certificates
+# MSAL Node Standalone Sample: Azure Key Vault Access
 
 This sample demonstrates an MSAL Node [confidential client](../../../lib/msal-node/docs/initialize-confidential-client-application.md) (web) application that lets users authenticate against **Azure AD**.
 
@@ -32,11 +32,11 @@ Before running the sample, you will need to replace the values in the config:
 ```javascript
 const config = {
     auth: {
-        clientId: "YOUR_CLIENT_ID",
-        authority: "https://login.microsoftonline.com/YOUR_TENANT_ID",
+        clientId: "ENTER_CLIENT_ID",
+        authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO",
         clientCertificate: {
-            thumbprint: "CERT_THUMBPRINT",
-            privateKey: "CERT_PRIVATE_KEY",
+            thumbprint: "ENTER_CERT_THUMBPRINT",
+            privateKey: "ENTER_CERT_PRIVATE_KEY",
         }
     },
     system: {
@@ -59,7 +59,7 @@ In the same folder, type:
     npm start
 ```
 
-The server should start at port **3000**.
+The server should start at port **3000**. Navigate to `https://localhost:3000` in your browser, which will trigger the login process.
 
 ## More information
 

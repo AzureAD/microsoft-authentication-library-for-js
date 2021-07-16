@@ -1,8 +1,8 @@
-# MSAL Node Web App using certificates
+# MSAL Node Standalone Sample: Certificate Credentials
 
 This sample demonstrates an MSAL Node [confidential client](../../../lib/msal-node/docs/initialize-confidential-client-application.md) (web) application that lets users authenticate against **Azure AD**.
 
-This sample requires a certificate. Certificates and related topics are discussed in [Using Certificates with MSAL Node](../../../lib/msal-node/docs/certificate-credentials.md).
+This sample requires a certificate. A set of example certificate (public and private key) is placed in the [certs](./certs) folder. You can use them for testing but we recommend you generate your own certificate. Certificate generation and related topics are discussed in [Using Certificates with MSAL Node](../../../lib/msal-node/docs/certificate-credentials.md).
 
 ## Setup
 
@@ -27,7 +27,7 @@ Locate the folder where `package.json` resides in your terminal. Then type:
    - Click on **Upload** certificate and select the certificate file to upload.
    - Click **Add**. Once the certificate is uploaded, the *thumbprint*, *start date*, and *expiration* values are displayed.
 
-Before running the sample, you will need to replace the values in the config
+Before running the sample, you will need to replace the values in the configuration object:
 
 ```javascript
 const config = {
@@ -59,7 +59,7 @@ In the same folder, type:
     npm start
 ```
 
-The server should start at port **3000** (e.g. `https://localhost:3000`).
+The server should start at port **3000**. Navigate to `https://localhost:3000` in your browser, which will trigger the login process.
 
 ## More information
 

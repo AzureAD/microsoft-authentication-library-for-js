@@ -1,11 +1,11 @@
 {
   "name": "msal-node-auth-code-certs",
   "version": "1.0.0",
-  "description": "sample app for msal-node with certificates",
+  "description": "sample for msal-node confidential client application using certificates",
   "main": "index.js",
   "private": true,
   "scripts": {
-    "start": "node index.js",
+    "start": "node ./index.js",
     "build:package": "cd ../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
     "start:build": "npm run build:package && npm start"
   },
@@ -13,6 +13,7 @@
   "license": "MIT",
   "dependencies": {
     "@azure/msal-node": "file:../../../lib/msal-node",
-    "express": "^4.17.1"
+    "express": "^4.17.1",
+    "local": "^0.3.3"
   }
 }

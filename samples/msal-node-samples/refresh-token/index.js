@@ -7,8 +7,17 @@ var msal = require('@azure/msal-node');
 
 const config = {
     auth: {
-        clientId: "6c04f413-f6e7-4690-b372-dbdd083e7e5a",
-        authority: "https://login.microsoftonline.com/sgonz.onmicrosoft.com",
+        clientId: "ENTER_CLIENT_ID",
+        authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO",
+    },
+    system: {
+        loggerOptions: {
+            loggerCallback(loglevel, message, containsPii) {
+                console.log(message);
+            },
+            piiLoggingEnabled: false,
+            logLevel: msal.LogLevel.Verbose,
+        }
     }
 };
 

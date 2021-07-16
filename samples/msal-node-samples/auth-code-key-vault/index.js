@@ -30,7 +30,7 @@ function msalApp(thumbprint, privateKey) {
     const config = {
         auth: {
             clientId: "ENTER_CLIENT_ID",
-            authority: "https://login.microsoftonline.com/ENTER_TENANT_ID",
+            authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO",
             clientCertificate: {
                 thumbprint: thumbprint,
                 privateKey: privateKey,
