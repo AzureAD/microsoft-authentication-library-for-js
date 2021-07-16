@@ -7,8 +7,10 @@ import { ICrypto, INetworkModule, Logger, AuthenticationResult } from "@azure/ms
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { EndSessionRequest } from "../request/EndSessionRequest";
+import { RedirectRequest } from "../request/RedirectRequest";
+import { PopupRequest } from "../request/PopupRequest";
+import { SsoSilentRequest } from "../request/SsoSilentRequest";
 
 export abstract class BaseInteractionClient {
 
@@ -28,7 +30,7 @@ export abstract class BaseInteractionClient {
         this.eventHandler = eventHandler;
     }
 
-    abstract acquireToken(request: AuthorizationUrlRequest): Promise<AuthenticationResult|void>;
+    abstract acquireToken(request: RedirectRequest|PopupRequest|SsoSilentRequest): Promise<AuthenticationResult|void>;
 
     abstract logout(request: EndSessionRequest): Promise<void>;
 }

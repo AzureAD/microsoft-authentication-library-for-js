@@ -3,28 +3,26 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, Logger, AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, UrlString, AccountEntity } from "@azure/msal-common";
+import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, UrlString, AccountEntity } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
-import { BrowserConfiguration } from "../config/Configuration";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { EventHandler } from "../event/EventHandler";
 import { version } from "../packageMetadata";
 import { ApiId, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
-import { INavigationClient } from "../navigation/INavigationClient";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { EventType } from "../event/EventType";
 import { NavigationOptions } from "../navigation/NavigationOptions";
 import { BrowserAuthError } from "../error/BrowserAuthError";
+import { RedirectRequest } from "../request/RedirectRequest";
 
-export class RedirectClient extends StandardInteractionClient {
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient) {
-        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient);
-    }
-    
-    async acquireToken(validRequest: AuthorizationUrlRequest, startPage?: string, onRedirectNavigate?: (url: string) => boolean | void): Promise<void> {
+export class RedirectClient extends StandardInteractionClient {   
+    /**
+     * Redirects the page to the /authorize endpoint of the IDP
+     * @param request 
+     */
+    async acquireToken(request: RedirectRequest): Promise<void> {
+        const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Redirect);
         this.logger = this.logger.clone(name, version, validRequest.correlationId);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect, validRequest.correlationId);
 
@@ -42,7 +40,7 @@ export class RedirectClient extends StandardInteractionClient {
             // Create acquire token url.
             const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
 
-            const redirectStartPage = this.getRedirectStartPage(startPage);
+            const redirectStartPage = this.getRedirectStartPage(request.redirectStartPage);
             this.logger.verbosePii(`Redirect start page: ${redirectStartPage}`);
 
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
@@ -50,7 +48,7 @@ export class RedirectClient extends StandardInteractionClient {
                 navigationClient: this.navigationClient,
                 redirectTimeout: this.config.system.redirectNavigationTimeout,
                 redirectStartPage: redirectStartPage,
-                onRedirectNavigate: onRedirectNavigate
+                onRedirectNavigate: request.onRedirectNavigate
             });
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
