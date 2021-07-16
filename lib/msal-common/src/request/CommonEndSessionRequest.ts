@@ -4,6 +4,7 @@
  */
 
 import { AccountInfo } from "../account/AccountInfo";
+import { StringDict } from "../utils/MsalTypes";
 
 /**
  * CommonEndSessionRequest
@@ -16,5 +17,7 @@ export type CommonEndSessionRequest = {
     correlationId: string
     account?: AccountInfo | null,
     postLogoutRedirectUri?: string | null,
-    idTokenHint?: string
+    idTokenHint?: string,
+    state?: string,
+    extraQueryParameters?: StringDict 
 };
