@@ -73,7 +73,7 @@ jobs:
       with:
         path: |
           node_modules
-          lib/*/*/node_modules
+          */*/node_modules
         key: ${{ runner.os }}-${{ hashFiles('package-lock.json', 'lib/**/package-lock.json') }}
 
     - name: Clean Install
