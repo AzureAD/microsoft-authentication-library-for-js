@@ -234,18 +234,21 @@ export class RefreshTokenClient extends BaseClient {
 
         parameterBuilder.addGrantType(GrantType.REFRESH_TOKEN_GRANT);
 
-        parameterBuilder.addClientInfo();
+        // parameterBuilder.addClientInfo();
 
-        parameterBuilder.addLibraryInfo(this.config.libraryInfo);
+        // parameterBuilder.addLibraryInfo(this.config.libraryInfo);
 
-        parameterBuilder.addThrottling();
+        // parameterBuilder.addThrottling();
         
+        // TODO: These are hardcoded
         parameterBuilder.addIssuer("https://login.microsoftonline.com/5d97b14d-c396-4aee-b524-c86d33e9b660/v2.0");
         parameterBuilder.addAudience("https://login.microsoftonline.com/");
         
-        if (this.serverTelemetryManager) {
-            parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
-        }
+        /*
+         * if (this.serverTelemetryManager) {
+         *     parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
+         * }
+         */
 
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);

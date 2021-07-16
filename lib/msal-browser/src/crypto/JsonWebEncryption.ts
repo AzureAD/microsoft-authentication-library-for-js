@@ -5,9 +5,11 @@
 
 import { StringDict } from "@azure/msal-common";
 import { Base64Decode } from "../encode/Base64Decode";
+import { Base64Encode } from "../encode/Base64Encode";
 import { JsonWebEncryptionError } from "../error/JsonWebEncryptionError";
 import { BROWSER_CRYPTO } from "../utils/BrowserConstants";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
+import { base64ToBytes } from "./TestDecoder";
 
 export type JoseHeader = {
     alg: string,
@@ -38,8 +40,9 @@ const KEY_ALGORITHM_MAP: StringDict = {
 
 export class JsonWebEncryption {
     private base64Decode: Base64Decode;
+    private base64Encode: Base64Encode;
     private header: JoseHeader;
-    private encryptedKey: string;
+    private encryptedKey: Uint8Array;
     private initializationVector: string;
     private ciphertext: string;
     private authenticationTag: string;
@@ -48,14 +51,15 @@ export class JsonWebEncryption {
 
     constructor(rawJwe: string) {
         this.base64Decode = new Base64Decode();
+        this.base64Encode = new Base64Encode();
         const jweComponents = rawJwe.split(".");
         this.header = this.parseJweProtectedHeader(jweComponents[0]);
         this.authenticatedData = this.getAuthenticatedData(jweComponents[0]);
         this.unwrappingAlgorithms = this.setUnwrappingAlgorithms();
-        this.encryptedKey = this.base64Decode.base64URLdecode(jweComponents[1]);
-        this.initializationVector = this.base64Decode.base64URLdecode(jweComponents[2]);
-        this.ciphertext = this.base64Decode.base64URLdecode(jweComponents[3]);
-        this.authenticationTag = this.base64Decode.base64URLdecode(jweComponents[4]);
+        this.encryptedKey = base64ToBytes(jweComponents[1]);
+        this.initializationVector = this.decodeElement(jweComponents[2]);
+        this.ciphertext = this.decodeElement(jweComponents[3]);
+        this.authenticationTag = this.decodeElement(jweComponents[4]);
     }
     
     get protectedHeader(): JoseHeader {
@@ -85,8 +89,9 @@ export class JsonWebEncryption {
      * @param keyUsages - An array containing the usages for the imported key
      */
     async unwrap(unwrappingKey: CryptoKey, keyUsages: KeyUsage[]): Promise<CryptoKey> {
-        const encryptedKeyBuffer = BrowserStringUtils.stringToArrayBuffer(this.encryptedKey);
-        const contentEncryptionKey = await window.crypto.subtle.decrypt(this.unwrappingAlgorithms.decryption, unwrappingKey, encryptedKeyBuffer);
+        // const encryptedKeyBuffer = BrowserStringUtils.stringToArrayBuffer(this.encryptedKey);
+        const contentEncryptionKey = await window.crypto.subtle.decrypt(this.unwrappingAlgorithms.decryption, unwrappingKey, this.encryptedKey);
+        
         return await window.crypto.subtle.importKey(
             "raw",
             contentEncryptionKey,
@@ -121,7 +126,7 @@ export class JsonWebEncryption {
     }
 
     private parseJweProtectedHeader(encodedHeader: string): JoseHeader {
-        const decodedHeader = this.base64Decode.base64URLdecode(encodedHeader);
+        const decodedHeader = this.base64Decode.decode(encodedHeader);
         try {
             return JSON.parse(decodedHeader);
         } catch (error) {
@@ -144,5 +149,10 @@ export class JsonWebEncryption {
         } else {
             throw JsonWebEncryptionError.createHeaderAlgorithmMismatch(label);
         }
+    }
+
+    private decodeElement(encodedFragment: string): string {
+        const encodedString = encodedFragment.replace(/-/g, "+").replace(/_/g, "/");
+        return atob(encodedString);
     }
 }

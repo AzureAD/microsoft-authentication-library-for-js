@@ -42,6 +42,14 @@ export class Base64Encode {
         return this.base64EncArr(inputUtf8Arr);
     }
 
+    base64UrlEncode(input: string): string {
+        const base64Encoded = window.btoa(unescape(encodeURIComponent(input)));
+        return base64Encoded
+            .replace(/=/g, "")
+            .replace(/\+/g, "-")
+            .replace(/\//g, "_");
+    }
+
     /**
      * Base64 encode byte array
      * @param aBytes 
