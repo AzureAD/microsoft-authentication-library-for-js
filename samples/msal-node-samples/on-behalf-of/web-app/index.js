@@ -61,7 +61,7 @@ app.get('/redirect', (req, res) => {
         accessToken = response.accessToken;
         callWebApi(response.accessToken, (oboResponse) => {
             console.log(oboResponse);
-            res.sendStatus(200);
+            res.status(200).send(oboResponse);
         });
     }).catch((error) => {
         console.log(error);

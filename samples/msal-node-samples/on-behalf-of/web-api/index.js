@@ -41,10 +41,10 @@ const validateJwt = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (authHeader) {
         const token = authHeader.split(' ')[1];
-
+        
         const validationOptions = {
-            audience: config.auth.clientId,
-            issuer: config.auth.authority + "/v2.0"
+            audience: config.auth.clientId, // v2.0 token
+            issuer: config.auth.authority + "/v2.0" // v2.0 token
         }
 
         jwt.verify(token, getSigningKeys, validationOptions, (err, payload) => {
