@@ -94,24 +94,24 @@ export abstract class ClientApplication {
 
         // Initialize logger
         this.logger = new Logger(this.config.system.loggerOptions, name, version);
-        
+
         // Initialize the network module class.
         this.networkClient = this.config.system.networkClient;
-        
+
         // Initialize the navigation client class.
         this.navigationClient = this.config.system.navigationClient;
-        
+
         // Initialize redirectResponse Map
         this.redirectResponse = new Map();
-        
+
         // Initialize the crypto class.
         this.browserCrypto = this.isBrowserEnvironment ? new CryptoOps() : DEFAULT_CRYPTO_IMPLEMENTATION;
 
         this.eventHandler = new EventHandler(this.logger, this.browserCrypto);
 
         // Initialize the browser storage class.
-        this.browserStorage = this.isBrowserEnvironment ? 
-            new BrowserCacheManager(this.config.auth.clientId, this.config.cache, this.browserCrypto, this.logger) : 
+        this.browserStorage = this.isBrowserEnvironment ?
+            new BrowserCacheManager(this.config.auth.clientId, this.config.cache, this.browserCrypto, this.logger) :
             DEFAULT_BROWSER_CACHE_MANAGER(this.config.auth.clientId, this.logger);
     }
 
@@ -170,7 +170,7 @@ export abstract class ClientApplication {
             } else {
                 this.logger.verbose("handleRedirectPromise has been called previously, returning the result from the first call");
             }
-            
+
             return response;
         }
         this.logger.verbose("handleRedirectPromise returns null, not browser environment");
@@ -240,9 +240,9 @@ export abstract class ClientApplication {
             };
 
             /**
-             * Default behavior is to redirect to the start page and not process the hash now. 
+             * Default behavior is to redirect to the start page and not process the hash now.
              * The start page is expected to also call handleRedirectPromise which will process the hash in one of the checks above.
-             */  
+             */
             let processHashOnRedirect: boolean = true;
             if (!loginRequestUrl || loginRequestUrl === "null") {
                 // Redirect to home page if login request url is null (real null or the string null)
@@ -509,7 +509,7 @@ export abstract class ClientApplication {
             } else {
                 this.eventHandler.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Popup, null, e);
             }
-            
+
             if (popup) {
                 // Close the synchronous popup if an error is thrown before the window unload event is registered
                 popup.close();
@@ -564,7 +564,11 @@ export abstract class ClientApplication {
         this.logger.verbose("acquireTokenByIframe called", request.correlationId);
         // Check that we have some SSO data
         if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
-            throw BrowserAuthError.createSilentSSOInsufficientInfoError();
+            /**
+             * VERINT CHANGE
+             * In order to do an auto login request, we do not have a loginHint or sid, ignore this check
+             */
+            // throw BrowserAuthError.createSilentSSOInsufficientInfoError();
         }
 
         // Check that prompt is set to none, throw error if it is set to anything else.
@@ -624,7 +628,7 @@ export abstract class ClientApplication {
         try {
             const refreshTokenClient = await this.createRefreshTokenClient(serverTelemetryManager, silentRequest.authority, silentRequest.correlationId);
             browserRequestLogger.verbose("Refresh token client created");
-            
+
             // Send request to renew token. Auth module will throw errors if token cannot be renewed.
             return await refreshTokenClient.acquireTokenByRefreshToken(silentRequest);
         } catch (e) {
@@ -665,7 +669,7 @@ export abstract class ClientApplication {
 
     /**
      * Deprecated logout function. Use logoutRedirect or logoutPopup instead
-     * @param logoutRequest 
+     * @param logoutRequest
      * @deprecated
      */
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
@@ -692,18 +696,18 @@ export abstract class ClientApplication {
 
             // create logout string and navigate user window to logout. Auth module will clear cache.
             const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
-            
+
             if (!validLogoutRequest.account || AccountEntity.accountInfoIsEqual(validLogoutRequest.account, this.getActiveAccount(), false)) {
                 browserRequestLogger.verbose("Setting active account to null");
                 this.setActiveAccount(null);
             }
-            
+
             const navigationOptions: NavigationOptions = {
                 apiId: ApiId.logout,
                 timeout: this.config.system.redirectNavigationTimeout,
                 noHistory: false
             };
-            
+
             this.eventHandler.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
             // Check if onRedirectNavigate is implemented, and invoke it if so
             if (logoutRequest && typeof logoutRequest.onRedirectNavigate === "function") {
@@ -731,7 +735,7 @@ export abstract class ClientApplication {
 
     /**
      * Clears local cache for the current user then opens a popup window prompting the user to sign-out of the server
-     * @param logoutRequest 
+     * @param logoutRequest
      */
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void> {
         let validLogoutRequest: CommonEndSessionRequest;
@@ -762,11 +766,11 @@ export abstract class ClientApplication {
     }
 
     /**
-     * 
-     * @param request 
-     * @param popupName 
+     *
+     * @param request
+     * @param popupName
      * @param requestAuthority
-     * @param popup 
+     * @param popup
      */
     private async logoutPopupAsync(validRequest: CommonEndSessionRequest, popupName: string, requestAuthority?: string, popup?: Window|null, mainWindowRedirectUri?: string): Promise<void> {
         this.logger.verbose("logoutPopupAsync called", validRequest.correlationId);
@@ -774,7 +778,7 @@ export abstract class ClientApplication {
 
         const browserRequestLogger = this.logger.clone(name, version, validRequest.correlationId);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.logoutPopup, validRequest.correlationId);
-        
+
         try {
             this.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
             // Initialize the client
@@ -825,7 +829,7 @@ export abstract class ClientApplication {
                 // Close the synchronous popup if an error is thrown before the window unload event is registered
                 popup.close();
             }
-            
+
             this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY));
             this.eventHandler.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Popup, null, e);
             serverTelemetryManager.cacheFailedRequest(e);
