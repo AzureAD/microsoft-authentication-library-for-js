@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Look for temp cache items in local storage as fallback #3509",
+  "packageName": "@azure/msal-browser",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "patch"
+}
