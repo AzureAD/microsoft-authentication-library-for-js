@@ -7,9 +7,9 @@ var msal = require('@azure/msal-node');
 
 const config = {
     auth: {
-        clientId: "<CLIENT_ID>",
-        authority: "https://login.microsoftonline.com/<TENANT_ID>",
-        clientSecret: "<CLIENT_SECRET>",
+        clientId: "ENTER_CLIENT_ID",
+        authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO",
+        clientSecret: "ENTER_CLIENT_SECRET",
     },
     system: {
         loggerOptions: {
@@ -28,9 +28,7 @@ const cca = new msal.ConfidentialClientApplication(config);
 // With client credentials flows permissions need to be granted in the portal by a tenant administrator. 
 // The scope is always in the format "<resource>/.default"
 const clientCredentialRequest = {
-    scopes: ["https://graph.microsoft.com/.default"],
-    azureRegion: "westus2",
-    skipCache: true, 
+    scopes: ["https://graph.microsoft.com/.default"]
 };
 
 cca.acquireTokenByClientCredential(clientCredentialRequest).then((response) => {
