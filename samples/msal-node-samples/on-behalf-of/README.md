@@ -1,6 +1,6 @@
 # MSAL Node Standalone Sample: On-Behalf-Of Flow
 
-This sample demonstrates how to implement an MSAL Node [confidential client](../../../lib/msal-node/docs/initialize-confidential-client-application.md) (web) application calling a protected web API (aka *middle-tier*) which in turn calls Microsoft Graph using the [OAuth 2.0 on-behalf-of flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow).
+This sample demonstrates how to implement an MSAL Node [confidential client application](../../../lib/msal-node/docs/initialize-confidential-client-application.md) calling a protected web API (aka *middle-tier*) which in turn calls Microsoft Graph using the [OAuth 2.0 on-behalf-of flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-on-behalf-of-flow).
 
 The on-behalf-of is most commonly used for a web app calling a web API. That web API can also use the same flow to call subsequent web APIs, thereby establishing an *OBO chain*.
 
@@ -134,7 +134,7 @@ In a separate terminal window, start the web app:
     npm start
 ```
 
-Open your browser and navigate to `http://localhost:3000` this will trigger the web app to call the web API, which in turn calls Microsoft Graph. You should then see the response from Graph API in your browser.
+Open your browser and navigate to `http://localhost:3000`. This will trigger the web app to acquire an access token and call the web API, which in turn calls Microsoft Graph. You should then see the response from Graph API in your browser.
 
 ## More information
 

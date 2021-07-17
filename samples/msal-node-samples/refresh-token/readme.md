@@ -2,7 +2,7 @@
 
 This sample demonstrates how to implement an MSAL Node [public client application](../../../lib/msal-node/docs/initialize-public-client-application.md) to exchange a refresh token for an access token when the said access token has expired, using the [OAuth 2.0 Refresh Token](https://oauth.net/2/grant-types/refresh-token/).
 
-Note that MSAL does not expose refresh tokens by default and developers are not expected to build logic around them, as MSAL handles the token refreshing process itself. However, the `acquireTokenByRefreshToken()` API is useful when you have a refresh token acquired by other means and you would like to use it to renew an access token.
+Note that MSAL does not expose refresh tokens by default and developers are not expected to build logic around them, as MSAL handles the token refreshing process itself. However, the `acquireTokenByRefreshToken()` API useful certain cases: for instance, if you are storing refresh tokens in a separate location (e.g. in an encrypted cache file) and you would like to use it to renew an access token.
 
 ## Setup
 
@@ -29,15 +29,6 @@ const config = {
     auth: {
         clientId: "ENTER_CLIENT_ID",
         authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO",
-    },
-    system: {
-        loggerOptions: {
-            loggerCallback(loglevel, message, containsPii) {
-                console.log(message);
-            },
-            piiLoggingEnabled: false,
-            logLevel: msal.LogLevel.Verbose,
-        }
     }
 };
 ```

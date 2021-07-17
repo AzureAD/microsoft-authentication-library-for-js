@@ -1,6 +1,6 @@
 # MSAL Node Standalone Sample: Azure Key Vault Access
 
-This sample demonstrates an MSAL Node [confidential client](../../../lib/msal-node/docs/initialize-confidential-client-application.md) (web) application that lets users authenticate against **Azure AD**.
+This sample demonstrates an MSAL Node [confidential client application](../../../lib/msal-node/docs/initialize-confidential-client-application.md) that lets users authenticate against **Azure AD**.
 
 This sample requires an [Azure Key Vault](https://docs.microsoft.com/azure/key-vault/general/basic-concepts). Key Vault and related topics are discussed in [Securing MSAL Node with Azure Key Vault and Azure Managed Identity](../../../lib/msal-node/docs/key-vault-managed-identity.md).
 
@@ -50,7 +50,7 @@ In the same folder, type:
     npm start
 ```
 
-The server should start at port **3000**. Navigate to `https://localhost:3000` in your browser, which will trigger the login process.
+The server should start at port **3000**. Navigate to `https://localhost:3000` in your browser, which will trigger the token acquisition process.
 
 ## More information
 

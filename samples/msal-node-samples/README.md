@@ -4,23 +4,32 @@ The sample applications contained in this directory are independent samples of M
 
 ## Which sample should I review?
 
-Review our [scenario docs](https://docs.microsoft.com/azure/active-directory/develop/authentication-flows-app-scenarios) to pick an app type and authentication flow.
+Review our [scenario docs](https://docs.microsoft.com/azure/active-directory/develop/authentication-flows-app-scenarios) to pick an app type and authentication flow. Continue to the appropriate sample to learn how it works, or to build it in to your existing app.
 
-Continue to the appropriate sample to learn how it works, or to build it in to your existing app.
-
-- [Auth Code](auth-code/readme.md) [web app]
-- [Auth Code w/ PKCE](ElectronTestApp/README.md) [desktop app]
-- [Client Credentials](client-credentials/readme.md) [console app]
-- [Device Code](device-code/readme.md) [headless app]
-- [On Behalf Of](on-behalf-of/web-app/readme.md) [web app calling MS Graph via web API]
-- [Silent Flow](silent-flow) [web app showing cache usage]
-- [B2C Auth Code](b2c-auth-code/README.md) [web app on Azure AD B2C]
+| sample                                                     | app type                          | auth flow                           |
+|------------------------------------------------------------|-----------------------------------|-------------------------------------|
+| [auth-code](./auth-code/README.md)                         | web app (public client)           | authorization code                  |
+| [auth-code-pkce](./auth-code-pkce/README.md)               | web app (public client)           | authorization code with PKCE        |
+| [auth-code-with-certs](./auth-code-with-certs/README.md)   | web app (confidential client)     | authorization code                  |
+| [auth-code-key-vault](./auth-code-key-vault/README.md)     | web app (confidential client)     | authorization code                  |
+| [silent-flow](./silent-flow/README.md)                     | web app (confidential client)     | authorization code                  |
+| [on-behalf-of](./on-behalf-of/README.md)                   | web app (confidential client)     | on-behalf-of                        |
+| [refresh-token](./refresh-token/README.md)                 | web app (confidential client)     | refresh token                       |
+| [username-password](./username-password/README.md)         | console app (public client)       | resource owner password credentials |
+| [username-password-cca](./username-password-cca/README.md) | console app (confidential client) | resource owner password credentials |
+| [device-code](./device-code/README.md)                     | headless app (public client)      | device code                         |
+| [client-credentials](./client-credentials/README.md)       | console app (confidential client) | client credentials                  |
+| [b2c-auth-code](./b2c-auth-code/README.md)                 | web app (confidential client)     | authorization code                  |
+| [b2c-auth-code-pkce](./b2c-auth-code-pkce/README.md)       | web app (public client)           | authorization code with PKCE        |
+| [b2c-silent-flow](./b2c-silent-flow/README.md)             | web app (public client)           | authorization code with PKCE        |
+| [ElectronTestApp](./ElectronTestApp/README.md)             | desktop app (public client)       | authorization code with PKCE        |
+| [ExpressTestApp](./ExpressTestApp/README.md)               | web app (confidential client)     | authorization code                  |
 
 For in-depth tutorials, see:
 
-- [Securing a web app](https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-nodejs-webapp-msal)
-- [Securing a console app](https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-nodejs-console)
-- [Securing a desktop app](https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-nodejs-desktop)
+- [Developing a web app with MSAL Node](https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-nodejs-webapp-msal)
+- [Developing a console app with MSAL Node](https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-nodejs-console)
+- [Developing a desktop app with MSAL Node](https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-nodejs-desktop)
 
 ## How to run the samples?
 
