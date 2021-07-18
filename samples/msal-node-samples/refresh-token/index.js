@@ -9,6 +9,7 @@ const config = {
     auth: {
         clientId: "ENTER_CLIENT_ID",
         authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO",
+        clientSecret: "ENTER_CLIENT_SECRET"
     },
     system: {
         loggerOptions: {
@@ -21,14 +22,14 @@ const config = {
     }
 };
 
-const pca = new msal.PublicClientApplication(config);
+const cca = new msal.ConfidentialClientApplication(config);
 
 const refreshTokenRequest = {
     refreshToken: "", // replace with raw refresh token string here
     scopes: ["user.read"],
 };
 
-pca.acquireTokenByRefreshToken(refreshTokenRequest).then((response) => {
+cca.acquireTokenByRefreshToken(refreshTokenRequest).then((response) => {
     console.log(JSON.stringify(response));
 }).catch((error) => {
     console.log(JSON.stringify(error));

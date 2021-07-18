@@ -25,11 +25,11 @@ Locate the folder where `package.json` resides in your terminal. Then type:
    - Under **Supported account types**, select **Accounts in this organizational directory only**.
 1. Select **Register** to create the application.
 1. In the app's registration screen, find and note the **Application (client) ID** and **Directory (Tenant) ID**. You use these values in your app's configuration file(s) later.
-1. In the **Client secrets** section, select **New client secret**:
+1. In the app's registration screen, select the **Certificates & secrets** blade in the left.
+   - In the **Client secrets** section, select **New client secret**.
    - Type a key description (for instance `app secret`),
-   - Select one of the available key durations (**In 1 year**, **In 2 years**, or **Never Expires**) as per your security posture.
-   - The generated key value will be displayed when you select the **Add** button. Copy the generated value for use in the steps later.
-   - You'll need this key later in your code's configuration files. This key value will not be displayed again, and is not retrievable by any other means, so make sure to note it from the Azure portal before navigating to any other screen or blade.
+   - Select one of the available key durations (6 months, 12 months or Custom) as per your security posture.
+   - The generated key value will be displayed when you select the **Add** button. Copy and save the generated value for use in later steps.
 
 Before running the sample, you will need to replace the values in the configuration object:
 
