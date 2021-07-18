@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "resource-and-scopes doc correction",
-  "packageName": "@azure/msal-browser",
-  "email": "dogan.erisen@gmail.com",
-  "dependentChangeType": "none"
-}

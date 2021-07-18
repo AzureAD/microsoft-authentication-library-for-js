@@ -27,4 +27,9 @@ export const Constants = {
      * Default service name for using MSAL Keytar
      */
     DEFAULT_SERVICE_NAME: "msal-node-extensions",
+
+    /**
+     * Test data used to verify underlying persistence mechanism
+     */
+    PERSISTENCE_TEST_DATA: "Dummy data to verify underlying persistence mechanism"
 };

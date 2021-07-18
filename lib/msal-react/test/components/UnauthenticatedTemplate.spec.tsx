@@ -8,7 +8,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { testAccount, TEST_CONFIG } from "../TestConstants";
 import { MsalProvider, UnauthenticatedTemplate } from "../../src/index";
-import { PublicClientApplication, IPublicClientApplication, Configuration } from "@azure/msal-browser";
+import { PublicClientApplication, IPublicClientApplication, Configuration, InteractionType, EventType, EventMessage } from "@azure/msal-browser";
 
 describe("UnauthenticatedTemplate tests", () => {
     let pca: IPublicClientApplication;
@@ -172,6 +172,42 @@ describe("UnauthenticatedTemplate tests", () => {
     test("Does not show child component if inProgress value is startup", async () => {        
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
             // Prevent handleRedirectPromise from raising an event and updating inProgress
+            return Promise.resolve(null);
+        });
+        render(
+            <MsalProvider instance={pca}>
+                <p>This text will always display.</p>
+                <UnauthenticatedTemplate>
+                    <span>No user is authenticated!</span>
+                </UnauthenticatedTemplate>
+            </MsalProvider>
+        );
+
+        await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
+        expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
+        expect(screen.queryByText("No user is authenticated!")).not.toBeInTheDocument();
+    });
+
+    test("Does not show child component if inProgress value is handleRedirect", async () => {        
+        const eventCallbacks: Array<Function> = [];
+        let eventId = 0;
+        jest.spyOn(pca, "addEventCallback").mockImplementation((callbackFn) => {
+            eventCallbacks.push(callbackFn);
+            eventId += 1;
+            return eventId.toString();
+        });
+        const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
+            const eventMessage: EventMessage = {
+                eventType: EventType.HANDLE_REDIRECT_START,
+                interactionType: InteractionType.Redirect,
+                payload: null,
+                error: null,
+                timestamp: 10000
+            };
+
+            eventCallbacks.forEach((callback) => {
+                callback(eventMessage);
+            });
             return Promise.resolve(null);
         });
         render(

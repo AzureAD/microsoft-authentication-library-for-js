@@ -18,11 +18,17 @@ createPersistence().then((filePersistence) => {
         auth: {
             clientId: "99cab759-2aab-420b-91d8-5e3d8d4f063b",
             authority: "https://login.microsoftonline.com/90b8faa8-cc95-460e-a618-ee770bee1759",
-        },
-        cache: {
-            cachePlugin: new extensions.PersistenceCachePlugin(filePersistence)
-        },
+        }
     };
+
+    const persistenceVerified = await filePersistence.verifyPersistence();
+    if (persistenceVerified) {
+        console.log("Persistence verified...");
+        publicClientConfig.cache = {
+            cachePlugin: new extensions.PersistenceCachePlugin(filePersistence)
+        }
+    }
+
     const pca = new msal.PublicClientApplication(publicClientConfig);
 
     // Create Express App and Routes

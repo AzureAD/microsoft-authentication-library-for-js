@@ -11,11 +11,12 @@ dotenv.config({
 export class LabClient {
 
     private credentials: ClientSecretCredential;
-    private currentToken: AccessToken;
+    private currentToken: AccessToken | null;
     constructor() {
         const tenant = process.env[ENV_VARIABLES.TENANT];
         const clientId = process.env[ENV_VARIABLES.CLIENT_ID];
         const client_secret = process.env[ENV_VARIABLES.SECRET];
+        this.currentToken = null;
         if (!tenant || !clientId || !client_secret) {
             throw "Environment variables not set!";
         }

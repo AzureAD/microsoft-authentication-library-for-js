@@ -51,20 +51,20 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      * Serializes in memory cache to JSON
      */
     serialize(): string {
-        this.logger.verbose("Serializing in-memory cache");
+        this.logger.trace("Serializing in-memory cache");
         let finalState = Serializer.serializeAllCache(
             this.storage.getInMemoryCache() as InMemoryCache
         );
 
         // if cacheSnapshot not null or empty, merge
         if (!StringUtils.isEmpty(this.cacheSnapshot)) {
-            this.logger.verbose("Reading cache snapshot from disk");
+            this.logger.trace("Reading cache snapshot from disk");
             finalState = this.mergeState(
                 JSON.parse(this.cacheSnapshot),
                 finalState
             );
         } else {
-            this.logger.verbose("No cache snapshot to merge");
+            this.logger.trace("No cache snapshot to merge");
         }
         this.cacheHasChanged = false;
 
@@ -76,17 +76,17 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      * @param cache - blob formatted cache
      */
     deserialize(cache: string): void {
-        this.logger.verbose("Deserializing JSON to in-memory cache");
+        this.logger.trace("Deserializing JSON to in-memory cache");
         this.cacheSnapshot = cache;
 
         if (!StringUtils.isEmpty(this.cacheSnapshot)) {
-            this.logger.verbose("Reading cache snapshot from disk");
+            this.logger.trace("Reading cache snapshot from disk");
             const deserializedCache = Deserializer.deserializeAllCache(
                 this.overlayDefaults(JSON.parse(this.cacheSnapshot))
             );
             this.storage.setInMemoryCache(deserializedCache);
         } else {
-            this.logger.verbose("No cache snapshot to deserialize");
+            this.logger.trace("No cache snapshot to deserialize");
         }
     }
 
@@ -102,7 +102,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      */
     async getAllAccounts(): Promise<AccountInfo[]> {
 
-        this.logger.verbose("getAllAccounts called");
+        this.logger.trace("getAllAccounts called");
         let cacheContext;
         try {
             if (this.persistence) {
@@ -152,7 +152,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      * @param account - AccountInfo passed by the user
      */
     async removeAccount(account: AccountInfo): Promise<void> {
-        this.logger.verbose("removeAccount called");
+        this.logger.trace("removeAccount called");
         let cacheContext;
         try {
             if (this.persistence) {
@@ -180,7 +180,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      * @param currentState - current cache state in the library
      */
     private mergeState(oldState: JsonCache, currentState: JsonCache): JsonCache {
-        this.logger.verbose("Merging in-memory cache with cache snapshot");
+        this.logger.trace("Merging in-memory cache with cache snapshot");
         const stateAfterRemoval = this.mergeRemovals(oldState, currentState);
         return this.mergeUpdates(stateAfterRemoval, currentState);
     }
@@ -224,7 +224,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      * @param newState - updated cache
      */
     private mergeRemovals(oldState: JsonCache, newState: JsonCache): JsonCache {
-        this.logger.verbose("Remove updated entries in cache");
+        this.logger.trace("Remove updated entries in cache");
         const accounts = oldState.Account ? this.mergeRemovalsDict<SerializedAccountEntity>(oldState.Account, newState.Account) : oldState.Account;
         const accessTokens = oldState.AccessToken ? this.mergeRemovalsDict<SerializedAccessTokenEntity>(oldState.AccessToken, newState.AccessToken) : oldState.AccessToken;
         const refreshTokens = oldState.RefreshToken ? this.mergeRemovalsDict<SerializedRefreshTokenEntity>(oldState.RefreshToken, newState.RefreshToken) : oldState.RefreshToken;
@@ -261,7 +261,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
      * @param passedInCache - cache read from the blob
      */
     private overlayDefaults(passedInCache: JsonCache): JsonCache {
-        this.logger.verbose("Overlaying input cache with the default cache");
+        this.logger.trace("Overlaying input cache with the default cache");
         return {
             Account: {
                 ...defaultSerializedCache.Account,

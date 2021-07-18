@@ -36,8 +36,8 @@ export class ScopeSet {
      * @param scopesRequired
      */
     static fromString(inputScopeString: string): ScopeSet {
-        inputScopeString = inputScopeString || "";
-        const inputScopes: Array<string> = inputScopeString.split(" ");
+        const scopeString = inputScopeString || "";
+        const inputScopes: Array<string> = scopeString.split(" ");
         return new ScopeSet(inputScopes);
     }
 
@@ -49,7 +49,7 @@ export class ScopeSet {
     private validateInputScopes(inputScopes: Array<string>): void {
         // Check if scopes are required but not given or is an empty array
         if (!inputScopes || inputScopes.length < 1) {
-            throw ClientConfigurationError.createEmptyScopesArrayError(inputScopes);
+            throw ClientConfigurationError.createEmptyScopesArrayError();
         }
     }
 
@@ -139,7 +139,7 @@ export class ScopeSet {
      */
     unionScopeSets(otherScopes: ScopeSet): Set<string> {
         if (!otherScopes) {
-            throw ClientAuthError.createEmptyInputScopeSetError(otherScopes);
+            throw ClientAuthError.createEmptyInputScopeSetError();
         }
         const unionScopes = new Set<string>(); // Iterator in constructor not supported in IE11
         otherScopes.scopes.forEach(scope => unionScopes.add(scope.toLowerCase()));
@@ -153,7 +153,7 @@ export class ScopeSet {
      */
     intersectingScopeSets(otherScopes: ScopeSet): boolean {
         if (!otherScopes) {
-            throw ClientAuthError.createEmptyInputScopeSetError(otherScopes);
+            throw ClientAuthError.createEmptyInputScopeSetError();
         }
         
         // Do not allow OIDC scopes to be the only intersecting scopes

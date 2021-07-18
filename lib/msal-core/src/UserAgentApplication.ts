@@ -217,10 +217,18 @@ export class UserAgentApplication {
         this.cacheStorage = new AuthCache(this.clientId, this.config.cache.cacheLocation, this.inCookie);
 
         // Initialize window handling code
-        window.activeRenewals = {};
-        window.renewStates = [];
-        window.callbackMappedToRenewStates = { };
-        window.promiseMappedToRenewStates = { };
+        if (!window.activeRenewals) {
+            window.activeRenewals = {};
+        }
+        if (!window.renewStates) {
+            window.renewStates = [];
+        }
+        if (!window.callbackMappedToRenewStates) {
+            window.callbackMappedToRenewStates = {};
+        }
+        if (!window.promiseMappedToRenewStates) {
+            window.promiseMappedToRenewStates = {};
+        }
         window.msal = this;
 
         const urlHash = window.location.hash;
@@ -1000,7 +1008,7 @@ export class UserAgentApplication {
         if (!window.callbackMappedToRenewStates[expectedState]) {
             window.callbackMappedToRenewStates[expectedState] = (response: AuthResponse, error: AuthError) => {
                 // reset active renewals
-                window.activeRenewals[requestSignature] = null;
+                delete window.activeRenewals[requestSignature];
 
                 // for all promiseMappedtoRenewStates for a given 'state' - call the reject/resolve with error/token respectively
                 for (let i = 0; i < window.promiseMappedToRenewStates[expectedState].length; ++i) {
@@ -1019,8 +1027,8 @@ export class UserAgentApplication {
                 }
 
                 // reset
-                window.promiseMappedToRenewStates[expectedState] = null;
-                window.callbackMappedToRenewStates[expectedState] = null;
+                delete window.promiseMappedToRenewStates[expectedState];
+                delete window.callbackMappedToRenewStates[expectedState];
             };
         }
     }
@@ -1144,10 +1152,11 @@ export class UserAgentApplication {
      * Used to call the constructor callback with the token/error
      * @param {string} [hash=window.location.hash] - Hash fragment of Url.
      */
-    private processCallBack(hash: string, stateInfo: ResponseStateInfo, parentCallback?: Function): void {
+    private processCallBack(hash: string, respStateInfo: ResponseStateInfo, parentCallback?: Function): void {
         this.logger.info("ProcessCallBack has been called. Processing callback from redirect response");
 
         // get the state info from the hash
+        let stateInfo = respStateInfo;
         if (!stateInfo) {
             this.logger.verbose("StateInfo is null, getting stateInfo from hash");
             stateInfo = this.getResponseState(hash);
@@ -1232,7 +1241,7 @@ export class UserAgentApplication {
         this.logger.verbose("HandleRedirectAuthenticationResponse has been called");
 
         // clear hash from window
-        WindowUtils.clearUrlFragment();
+        WindowUtils.clearUrlFragment(window);
         this.logger.verbose("Window.location.hash cleared");
 
         // if (window.parent !== window), by using self, window.parent becomes equal to window in getResponseState method specifically
@@ -1472,12 +1481,11 @@ export class UserAgentApplication {
             
             if (tokenIsStillValid) {
                 this.logger.verbose("Access token expiration is within offset, using access token found in cache");
-                if (!account) {
-                    account = this.getAccount();
-                    if (!account) {
-                        throw AuthError.createUnexpectedError("Account should not be null here.");
-                    }
+                const responseAccount: Account = account || this.getAccount();
+                if (!responseAccount) {
+                    throw AuthError.createUnexpectedError("Account should not be null here.");
                 }
+
                 const aState = this.getAccountState(serverAuthenticationRequest.state);
                 const response: AuthResponse = {
                     uniqueId: "",
@@ -1488,7 +1496,7 @@ export class UserAgentApplication {
                     accessToken: accessTokenCacheItem.value.accessToken,
                     scopes: accessTokenCacheItem.key.scopes.split(" "),
                     expiresOn: new Date(Number(accessTokenCacheItem.value.expiresIn) * 1000),
-                    account: account,
+                    account: responseAccount,
                     accountState: aState,
                     fromCache: true
                 };   

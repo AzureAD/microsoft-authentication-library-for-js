@@ -83,6 +83,12 @@ However, if you, as a developer, want to debug locally your application running 
 
 When you are done, restore Internet explorer security settings by going to IE Settings | Internet Options | Security | **Reset all zones to default level**
 
+## Known issues
+
+### Internet Explorer
+
+- [IE doesn't properly handle caching of openid-configuration across subdomains](https://github.com/AzureAD/microsoft-authentication-library-for-js/issues/2974)
+
 ## Sample Application
 
 You'll find a sample application that can be run in IE11 [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/ie11-sample)

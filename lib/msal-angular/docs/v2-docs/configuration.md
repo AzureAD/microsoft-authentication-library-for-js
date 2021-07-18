@@ -19,12 +19,11 @@ This guide will detail how to leverage each method for your application.
 ### Angular-specific configurations
 
 * An `interactionType` must be specified on `MsalGuardConfiguration` and `MsalInterceptorConfiguration`, and can be set to `Popup` or `Redirect`.
-* An `authRequest` object can be specified on `MsalGuardConfiguration` and `MsalInterceptorConfiguration` to set additional options. 
-  * This is an advanced featured that is not required. However, we recommend setting `authRequest` on the `MsalGuardConfiguration` with `scopes` so that consent may be obtained for the scopes upfront. If consent for `scopes` are not consented to upfront, scopes can be obtained incrementally. This may result in a consent dialogue being presented to your app user multiple times. 
-  * Consenting to scopes upfront is demonstrated in the code samples below, and in our [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples).
-  * All possible parameters for the request object can be found here: [`PopupRequest`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_request_popuprequest_.html) and [`RedirectRequest`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/msal-browser/modules/_src_request_redirectrequest_.html).
-* The `protectedResourceMap` object on `MsalInterceptorConfiguration` is used to protect routes. See the [upgrade guide](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/v1-v2-upgrade-guide.md) to see how to use wildcards, and how this differs from MSAL v1.
-* The `loginFailedRoute` string can be set on `MsalGuardConfiguration`. Msal Guard will redirect to this route if login is required and fails.
+* The `protectedResourceMap` object on `MsalInterceptorConfiguration` is used to protect routes.
+* An optional `authRequest` object can be specified on `MsalGuardConfiguration` and `MsalInterceptorConfiguration` to set additional options. 
+* An optional `loginFailedRoute` string can be set on `MsalGuardConfiguration`. Msal Guard will redirect to this route if login is required and fails.
+
+Please see our [MsalInterceptor](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/msal-interceptor.md) and [MsalGuard](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/v2-docs/msal-guard.md) docs for more details on configurations, usage, and differences to MSAL Angular v1.
 
 ### Configuration for redirects
 
@@ -35,12 +34,15 @@ We recommend importing `MsalRedirectComponent` and bootstrapping with the `AppCo
 The `MsalModule` class contains a static method that can be called in your `app.module.ts` file:
 
 ```typescript
-import { MsalModule, MsalService, MsalGuard, MsalInterceptor } from "@azure/msal-angular";
-import { IPublicClientApplication, PublicClientApplication, InteractionType, BrowserCacheLocation } from "@azure/msal-browser";
+import { NgModule } from '@angular/core';
+import { HTTP_INTERCEPTORS } from '@angular/common/http';
+import { AppComponent } from './app.component';
+import { MsalModule, MsalService, MsalGuard, MsalInterceptor, MsalBroadcastService, MsalRedirectComponent } from "@azure/msal-angular";
+import { PublicClientApplication, InteractionType, BrowserCacheLocation } from "@azure/msal-browser";
 
 @NgModule({
     imports: [
-        MsalModule.forRoot({ // MSAL Configuration
+        MsalModule.forRoot( new PublicClientApplication({ // MSAL Configuration
             auth: {
                 clientId: "clientid",
                 authority: "https://login.microsoftonline.com/common/",
@@ -51,14 +53,14 @@ import { IPublicClientApplication, PublicClientApplication, InteractionType, Bro
             cache: {
                 cacheLocation : BrowserCacheLocation.LocalStorage,
                 storeAuthStateInCookie: true, // set to true for IE 11
-            }
+            },
             system: {
                 loggerOptions: {
                     loggerCallback: () => {},
                     piiLoggingEnabled: false
                 }
             }
-        }, {
+        }), {
             interactionType: InteractionType.Popup, // MSAL Guard Configuration
             authRequest: {
               scopes: ['user.read']
@@ -71,12 +73,13 @@ import { IPublicClientApplication, PublicClientApplication, InteractionType, Bro
     ],
     providers: [
         {
-          provide: HTTP_INTERCEPTORS,
-          useClass: MsalInterceptor,
-          multi: true
+            provide: HTTP_INTERCEPTORS,
+            useClass: MsalInterceptor,
+            multi: true
         },
         MsalGuard
-    ]
+    ],
+    bootstrap: [AppComponent, MsalRedirectComponent]
 })
 export class AppModule {}
 ```
@@ -92,7 +95,9 @@ import {
   MsalInterceptor,
   MsalInterceptorConfig,
   MsalGuard,
-  MsalGuardConfig
+  MsalGuardConfig,
+  MsalBroadcastService, 
+  MsalRedirectComponent
 } from "@azure/msal-angular";
 import { IPublicClientApplication, PublicClientApplication, InteractionType, BrowserCacheLocation } from "@azure/msal-browser";
 
@@ -156,7 +161,7 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
     MsalBroadcastService
     MsalService
   ],
-  bootstrap: [AppComponent]
+  bootstrap: [AppComponent, MsalRedirectComponent]
 })
 export class AppModule { }
 ```
@@ -497,7 +502,7 @@ export class AppModule { }
 }
 ```
 
-## MsalGuard - dynamic auth request
+### MsalGuard - Dynamic auth request
 
 The **MsalGuard** also allows you to dynamically change the **authRequest** at runtime. This allow you to pick a different authority for a route, or to dynamically add scopes based on the **RouterStateSnapshot**.
 

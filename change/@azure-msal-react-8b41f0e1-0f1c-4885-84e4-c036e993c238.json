@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update msal-react package-lock.json",
-  "packageName": "@azure/msal-react",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none"
-}

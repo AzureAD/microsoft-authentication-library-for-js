@@ -8,6 +8,8 @@ import { FilePersistence } from "./FilePersistence";
 import { IPersistence } from "./IPersistence";
 import { PersistenceError } from "../error/PersistenceError";
 import { Logger, LoggerOptions } from "@azure/msal-common";
+import { dirname } from "path";
+import { BasePersistence } from "./BasePersistence";
 
 /**
  * Uses reads and writes passwords to Secret Service API/libsecret. Requires libsecret
@@ -16,13 +18,14 @@ import { Logger, LoggerOptions } from "@azure/msal-common";
  * serviceName: Identifier used as key for whatever value is stored
  * accountName: Account under which password should be stored
  */
-export class LibSecretPersistence implements IPersistence {
+export class LibSecretPersistence extends BasePersistence implements IPersistence {
 
     protected readonly serviceName;
     protected readonly accountName;
     private filePersistence: FilePersistence;
 
     private constructor(serviceName: string, accountName: string) {
+        super();
         this.serviceName = serviceName;
         this.accountName = accountName;
     }
@@ -75,5 +78,10 @@ export class LibSecretPersistence implements IPersistence {
 
     public getLogger(): Logger {
         return this.filePersistence.getLogger();
+    }
+      
+    public createForPersistenceValidation(): Promise<LibSecretPersistence> {
+        const testCacheFileLocation = `${dirname(this.filePersistence.getFilePath())}/test.cache`;
+        return LibSecretPersistence.create(testCacheFileLocation, "persistenceValidationServiceName", "persistencValidationAccountName");
     }
 }

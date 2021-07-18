@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import sinon from "sinon";
 import { BrowserProtocolUtils, BrowserStateObject } from "../../src/utils/BrowserProtocolUtils";
 import { InteractionType } from "../../src/utils/BrowserConstants";
@@ -25,28 +24,35 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
         sinon.restore(); 
     });
 
-    it("extractBrowserRequestState() returns an null if given interaction type is null or empty", () => {
-        const requestState1 = BrowserProtocolUtils.extractBrowserRequestState(cryptoInterface, null);
-        expect(requestState1).to.be.null;
-        
-        const requestState2 = BrowserProtocolUtils.extractBrowserRequestState(cryptoInterface, "");
-        expect(requestState2).to.be.null;
-    });
+    it(
+        "extractBrowserRequestState() returns an null if given interaction type is null or empty",
+        () => {
+            //@ts-ignore
+            const requestState1 = BrowserProtocolUtils.extractBrowserRequestState(cryptoInterface, null);
+            expect(requestState1).toBeNull();
+            
+            const requestState2 = BrowserProtocolUtils.extractBrowserRequestState(cryptoInterface, "");
+            expect(requestState2).toBeNull();
+        }
+    );
 
-    it("extractBrowserRequestState() returns a valid platform state string", () => {
-        const redirectState = ProtocolUtils.setRequestState(cryptoInterface, null, browserRedirectRequestState);
-        const popupState = ProtocolUtils.setRequestState(cryptoInterface, null, browserPopupRequestState);
-        const redirectPlatformState = BrowserProtocolUtils.extractBrowserRequestState(cryptoInterface, redirectState);
-        expect(redirectPlatformState.interactionType).to.be.eq(InteractionType.Redirect);
-        const popupPlatformState = BrowserProtocolUtils.extractBrowserRequestState(cryptoInterface, popupState);
-        expect(popupPlatformState.interactionType).to.be.eq(InteractionType.Popup);
-    });
+    it(
+        "extractBrowserRequestState() returns a valid platform state string",
+        () => {
+            const redirectState = ProtocolUtils.setRequestState(cryptoInterface, undefined, browserRedirectRequestState);
+            const popupState = ProtocolUtils.setRequestState(cryptoInterface, undefined, browserPopupRequestState);
+            const redirectPlatformState = BrowserProtocolUtils.extractBrowserRequestState(cryptoInterface, redirectState);
+            expect(redirectPlatformState!.interactionType).toBe(InteractionType.Redirect);
+            const popupPlatformState = BrowserProtocolUtils.extractBrowserRequestState(cryptoInterface, popupState);
+            expect(popupPlatformState!.interactionType).toBe(InteractionType.Popup);
+        }
+    );
 
     describe("parseServerResponseFromHash", () => {
         it("parses code from hash", () => {
             const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
 
-            expect(serverParams).to.deep.equal({
+            expect(serverParams).toEqual({
                 "client_info": "eyJ1aWQiOiIxMjMtdGVzdC11aWQiLCJ1dGlkIjoiNDU2LXRlc3QtdXRpZCJ9",
                 "code": "thisIsATestCode",
                 "state": "eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsIm1ldGEiOnsiaW50ZXJhY3Rpb25UeXBlIjoicmVkaXJlY3QifX0=|userState"
@@ -56,7 +62,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
         it("parses error from hash", () => {
             const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(TEST_HASHES.TEST_ERROR_HASH);
 
-            expect(serverParams).to.deep.equal({
+            expect(serverParams).toEqual({
                 "error": "error_code",
                 "error_description": "msal error description",
                 "state": "eyJpZCI6IjExNTUzYTliLTcxMTYtNDhiMS05ZDQ4LWY2ZDRhOGZmODM3MSIsIm1ldGEiOnsiaW50ZXJhY3Rpb25UeXBlIjoicmVkaXJlY3QifX0=|userState"
@@ -66,7 +72,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
         it("parses tokens from hash", () => {
             const serverParams = BrowserProtocolUtils.parseServerResponseFromHash(TEST_HASHES.TEST_SUCCESS_ACCESS_TOKEN_HASH);
 
-            expect(serverParams).to.deep.equal({
+            expect(serverParams).toEqual({
                 "access_token": "this.isan.accesstoken",
                 "client_info": "eyJ1aWQiOiIxMjMtdGVzdC11aWQiLCJ1dGlkIjoiNDU2LXRlc3QtdXRpZCJ9",
                 "expiresIn": "3599",
@@ -78,12 +84,12 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
 
         it("handles empty hash", () => {
             const serverParams = BrowserProtocolUtils.parseServerResponseFromHash("#");
-            expect(serverParams).to.deep.equal({});
+            expect(serverParams).toEqual({});
         });
 
         it("handles empty string", () => {
             const serverParams = BrowserProtocolUtils.parseServerResponseFromHash("");
-            expect(serverParams).to.deep.equal({});
+            expect(serverParams).toEqual({});
         });
     });
 });

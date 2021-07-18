@@ -39,17 +39,19 @@ export class UrlString {
      */
     static canonicalizeUri(url: string): string {
         if (url) {
-            url = url.toLowerCase();
+            let lowerCaseUrl = url.toLowerCase();
 
-            if (StringUtils.endsWith(url, "?")) {
-                url = url.slice(0, -1);
-            } else if (StringUtils.endsWith(url, "?/")) {
-                url = url.slice(0, -2);
+            if (StringUtils.endsWith(lowerCaseUrl, "?")) {
+                lowerCaseUrl = lowerCaseUrl.slice(0, -1);
+            } else if (StringUtils.endsWith(lowerCaseUrl, "?/")) {
+                lowerCaseUrl = lowerCaseUrl.slice(0, -2);
             }
 
-            if (!StringUtils.endsWith(url, "/")) {
-                url += "/";
+            if (!StringUtils.endsWith(lowerCaseUrl, "/")) {
+                lowerCaseUrl += "/";
             }
+
+            return lowerCaseUrl;
         }
 
         return url;
@@ -95,6 +97,23 @@ export class UrlString {
         return this.urlString;
     }
 
+    /**
+     * Given a url and a query string return the url with provided query string appended
+     * @param url 
+     * @param queryString 
+     */
+    static appendQueryString(url: string, queryString: string): string {
+        if (StringUtils.isEmpty(queryString)) {
+            return url;
+        }
+
+        return url.indexOf("?") < 0 ? `${url}?${queryString}` : `${url}&${queryString}`;
+    }
+
+    /**
+     * Returns a url with the hash removed
+     * @param url 
+     */
     static removeHashFromUrl(url: string): string {
         return UrlString.canonicalizeUri(url.split("#")[0]);
     }

@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Run npm audit for PRs",
-  "packageName": "@azure/msal-browser",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none"
-}

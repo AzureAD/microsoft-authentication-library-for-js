@@ -12,6 +12,11 @@ export enum HttpMethod {
 }
 
 /**
+ * Constants used for region discovery
+ */
+export const REGION_ENVIRONMENT_VARIABLE = "REGION_NAME";
+
+/**
  * Constant used for PKCE
  */
 export const RANDOM_OCTET_SIZE = 32;

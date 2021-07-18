@@ -9,6 +9,7 @@ import {
     AuthorizationCodeClient,
     DeviceCodeClient,
     RefreshTokenClient,
+    UsernamePasswordClient,
     ClientConfiguration,
     ProtocolMode,
     Logger,
@@ -18,6 +19,7 @@ import {
 import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest";
 import { DeviceCodeRequest } from "../../src/request/DeviceCodeRequest";
 import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
+import { UsernamePasswordRequest } from '../../src/request/UsernamePasswordRequest';
 import { NodeStorage } from "../../src/cache/NodeStorage";
 import { HttpClient } from "../../src/network/HttpClient";
 
@@ -25,6 +27,7 @@ jest.mock('@azure/msal-common');
 
 describe('PublicClientApplication', () => {
     const authority: Authority = {
+        regionDiscoveryMetadata: { region_used: undefined, region_source: undefined, region_outcome: undefined },
         resolveEndpointsAsync: () => {
             return new Promise<void>(resolve => {
                 resolve();
@@ -33,7 +36,7 @@ describe('PublicClientApplication', () => {
         discoveryComplete: () => {
             return true;
         },
-    } as Authority;
+    } as unknown as Authority;
 
     let appConfig: Configuration = {
         auth: {
@@ -130,6 +133,23 @@ describe('PublicClientApplication', () => {
         );
     });
 
+    test('acquireTokenByUsernamePassword', async () => {
+        const request: UsernamePasswordRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            username: TEST_CONSTANTS.USERNAME,
+            password: TEST_CONSTANTS.PASSWORD
+        };
+
+        mocked(AuthorityFactory.createDiscoveredInstance).mockReturnValue(Promise.resolve(authority));
+
+        const authApp = new PublicClientApplication(appConfig);
+        await authApp.acquireTokenByUsernamePassword(request);
+        expect(UsernamePasswordClient).toHaveBeenCalledTimes(1);
+        expect(UsernamePasswordClient).toHaveBeenCalledWith(
+            expect.objectContaining(expectedConfig)
+        );
+    });
+
     test('acquireToken default authority', async () => {
         // No authority set in app configuration or request, should default to common authority
         const config: Configuration = {
@@ -154,6 +174,7 @@ describe('PublicClientApplication', () => {
         expect(authorityMock.mock.calls[0][3]).toStrictEqual({
             protocolMode: ProtocolMode.AAD,
             knownAuthorities: [],
+            azureRegionConfiguration: undefined,
             cloudDiscoveryMetadata: "",
             authorityMetadata: ""
         });
@@ -180,6 +201,7 @@ describe('PublicClientApplication', () => {
         expect(authorityMock.mock.calls[0][3]).toStrictEqual({
             protocolMode: ProtocolMode.AAD,
             knownAuthorities: [],
+            azureRegionConfiguration: undefined,
             cloudDiscoveryMetadata: "",
             authorityMetadata: ""
         });

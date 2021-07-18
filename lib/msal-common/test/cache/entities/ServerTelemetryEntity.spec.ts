@@ -1,7 +1,6 @@
-import { expect } from "chai";
 import { ServerTelemetryEntity } from "../../../src/cache/entities/ServerTelemetryEntity";
 import { SERVER_TELEM_CONSTANTS, Separators } from "../../../src/utils/Constants";
-import { TEST_CONFIG } from "../../utils/StringConstants";
+import { TEST_CONFIG } from "../../test_kit/StringConstants";
 
 describe("ServerTelemetryEntity.ts Unit Tests", () => {
 
@@ -15,7 +14,7 @@ describe("ServerTelemetryEntity.ts Unit Tests", () => {
             cacheHits: 0
         };
 
-        expect(ServerTelemetryEntity.isServerTelemetryEntity(ServerTelemetryKey, serverTelemetryObject)).to.be.true;
+        expect(ServerTelemetryEntity.isServerTelemetryEntity(ServerTelemetryKey, serverTelemetryObject)).toBe(true);
     });
 
     it("Verify an object is not a ServerTelemetry Entity", () => {
@@ -26,37 +25,37 @@ describe("ServerTelemetryEntity.ts Unit Tests", () => {
             errorCount: 1
         };
 
-        expect(ServerTelemetryEntity.isServerTelemetryEntity(ServerTelemetryKey, missingCacheHits)).to.be.false;
+        expect(ServerTelemetryEntity.isServerTelemetryEntity(ServerTelemetryKey, missingCacheHits)).toBe(false);
 
         const missingErrors = {
             failedRequests: [999, "correlationId"],
             errorCount: 1,
             cacheHits: 0
         };
-        expect(ServerTelemetryEntity.isServerTelemetryEntity(ServerTelemetryKey, missingErrors)).to.be.false;
+        expect(ServerTelemetryEntity.isServerTelemetryEntity(ServerTelemetryKey, missingErrors)).toBe(false);
 
         const missingFailedRequests = {
             errors: ["testError"],
             errorCount: 1,
             cacheHits: 0
         };
-        expect(ServerTelemetryEntity.isServerTelemetryEntity(ServerTelemetryKey, missingFailedRequests)).to.be.false;
+        expect(ServerTelemetryEntity.isServerTelemetryEntity(ServerTelemetryKey, missingFailedRequests)).toBe(false);
 
         const noCommonValues = {
             testParam: "test"
         };
-        expect(ServerTelemetryEntity.isServerTelemetryEntity(ServerTelemetryKey, noCommonValues)).to.be.false;
+        expect(ServerTelemetryEntity.isServerTelemetryEntity(ServerTelemetryKey, noCommonValues)).toBe(false);
     });
 
     it("Verify an object is a ServerTelemetry Entity only when cache key is passed", () => {
 
-        expect(ServerTelemetryEntity.isServerTelemetryEntity(ServerTelemetryKey)).to.be.true;
+        expect(ServerTelemetryEntity.isServerTelemetryEntity(ServerTelemetryKey)).toBe(true);
     });
 
     it("Verify an object is not a ServerTelemetry Entity only when cache key is passed", () => {
 
         const ServerTelemetryKey = Separators.CACHE_KEY_SEPARATOR + SERVER_TELEM_CONSTANTS.CACHE_KEY + TEST_CONFIG.MSAL_CLIENT_ID;
-        expect(ServerTelemetryEntity.isServerTelemetryEntity(ServerTelemetryKey)).to.be.false;
+        expect(ServerTelemetryEntity.isServerTelemetryEntity(ServerTelemetryKey)).toBe(false);
     });
 
 });

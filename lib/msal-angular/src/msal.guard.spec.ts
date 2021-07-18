@@ -1,16 +1,17 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { Router, UrlTree } from '@angular/router';
+import { UrlTree } from '@angular/router';
+import { Location } from "@angular/common";
 import { BrowserSystemOptions, BrowserUtils, InteractionType, IPublicClientApplication, LogLevel, PublicClientApplication, UrlString } from '@azure/msal-browser';
 import { of } from 'rxjs';
 import { MsalGuardConfiguration } from './msal.guard.config';
 import { MsalModule, MsalGuard, MsalService, MsalBroadcastService } from './public-api';
+import { RouterTestingModule } from '@angular/router/testing';
 
 let guard: MsalGuard;
 let authService: MsalService;
 let routeMock: any = { snapshot: {} };
 let routeStateMock: any = { snapshot: {}, url: '/' };
-let routerMock = { navigate: jasmine.createSpy('navigate') };
 let testInteractionType: InteractionType;
 let testLoginFailedRoute: string;
 let testConfiguration: Partial<MsalGuardConfiguration>;
@@ -21,6 +22,15 @@ function MSALInstanceFactory(): IPublicClientApplication {
     auth: {
       clientId: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
       redirectUri: 'http://localhost:4200'
+    },
+    system: {
+        loggerOptions: {
+            loggerCallback: (level, message) => {
+                // console.log(message)
+            },
+            logLevel: LogLevel.Verbose,
+            piiLoggingEnabled: true
+        }
     }
   });
 }
@@ -34,7 +44,7 @@ function MSALGuardConfigFactory(): MsalGuardConfiguration {
   }
 }
 
-function initializeMsal() {
+function initializeMsal(providers: any[] = []) {
   TestBed.resetTestingModule();
   TestBed.configureTestingModule({
     imports: [
@@ -42,13 +52,14 @@ function initializeMsal() {
         MSALInstanceFactory(),
         MSALGuardConfigFactory(),
         { interactionType: InteractionType.Popup, protectedResourceMap: new Map() }),
-      HttpClientTestingModule
+      HttpClientTestingModule,
+      RouterTestingModule.withRoutes([])
     ],
     providers: [
       MsalGuard,
-      { provide: Router, useValue: routerMock },
       MsalService,
-      MsalBroadcastService
+      MsalBroadcastService,
+      ...providers
     ]
   });
 
@@ -94,7 +105,16 @@ describe('MsalGuard', () => {
       });
   });
 
-  it("returns false if page contains known successful response", (done) => {
+  it("returns false if page contains known successful response (path routing)", (done) => {
+    initializeMsal([
+        {
+            provide: Location,
+            useValue: {
+                path: jasmine.createSpy("path").and.callFake((hash: boolean) => hash ? "/path#code=": "/path")
+            }
+        }
+    ])
+
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
         //@ts-ignore
         of("test")
@@ -108,14 +128,41 @@ describe('MsalGuard', () => {
         username: "test"
       }]);
   
-    guard.canActivate(routeMock, {
-        ...routeStateMock,
-        url: "/#code=test"
-    })
-    .subscribe(result => {
-        expect(result).toBeFalse();
-        done();
-    });
+    guard.canActivate(routeMock, routeStateMock)
+        .subscribe((result: UrlTree) => {
+            expect(result.toString()).toEqual('/path');
+            done();
+        });
+  });
+
+  it("returns false if page contains known successful response (hash routing)", (done) => {
+    initializeMsal([
+        {
+            provide: Location,
+            useValue: {
+                path: jasmine.createSpy("path").and.callFake((hash: boolean) => hash ? "/code=": "/")
+            }
+        }
+    ])
+
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
+        //@ts-ignore
+        of("test")
+    );
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
+        homeAccountId: "test",
+        localAccountId: "test",
+        environment: "test",
+        tenantId: "test",
+        username: "test"
+      }]);
+  
+    guard.canActivate(routeMock, routeStateMock)
+        .subscribe((result: UrlTree) => {
+            expect(result.toString()).toEqual('/');
+            done();
+        });
   });
 
   it("returns true for a logged in user", (done) => {

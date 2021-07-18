@@ -13,7 +13,8 @@ import {
     ServerTelemetryEntity,
     ThrottlingEntity,
     CredentialEntity,
-    CredentialType
+    CredentialType,
+    AuthorityMetadataEntity
 } from "@azure/msal-common";
 
 export class TestStorageManager extends CacheManager {
@@ -78,9 +79,26 @@ export class TestStorageManager extends CacheManager {
     getAppMetadata(key: string): AppMetadataEntity | null {
         return this.store[key] as AppMetadataEntity;
     }
+
     setAppMetadata(appMetadata: AppMetadataEntity): void {
         const appMetadataKey = appMetadata.generateAppMetadataKey();
         this.store[appMetadataKey] = appMetadata;
+    }
+
+    // AuthorityMetadata
+    getAuthorityMetadata(key: string): AuthorityMetadataEntity | null {
+        return this.store[key] as AuthorityMetadataEntity;
+    }
+    
+    setAuthorityMetadata(key: string, value: AuthorityMetadataEntity): void {
+        this.store[key] = value;
+    }
+
+    getAuthorityMetadataKeys(): Array<string> {
+        const allKeys = this.getKeys();
+        return allKeys.filter((key: string) => {
+            return this.isAuthorityMetadata(key);
+        });
     }
 
     // Telemetry cache

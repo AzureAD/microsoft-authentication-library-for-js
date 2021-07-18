@@ -36,8 +36,8 @@ Via NPM:
 Via CDN:
 
     <!-- Latest compiled and minified JavaScript -->
-    <script src="https://secure.aadcdn.microsoftonline-p.com/lib/1.0.18/js/adal.min.js"></script>
-    <script src="https://secure.aadcdn.microsoftonline-p.com/lib/1.0.18/js/adal-angular.min.js"></script>
+    <script src="https://alcdn.msauth.net/lib/1.0.18/js/adal.min.js"></script>
+    <script src="https://alcdn.msauth.net/lib/1.0.18/js/adal-angular.min.js"></script>
 
 CDN will be updated to latest version 1.0.18.
 

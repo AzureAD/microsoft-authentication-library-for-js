@@ -1,7 +1,7 @@
-import { expect } from "chai";
-import { Constants, TimeUtils } from "../../../src";
 import { AuthorityMetadataEntity } from "../../../src/cache/entities/AuthorityMetadataEntity";
-import { DEFAULT_OPENID_CONFIG_RESPONSE, TEST_CONFIG } from "../../utils/StringConstants";
+import { DEFAULT_OPENID_CONFIG_RESPONSE, TEST_CONFIG } from "../../test_kit/StringConstants";
+import { Constants } from "../../../src/utils/Constants";
+import { TimeUtils } from "../../../src/utils/TimeUtils";
 
 describe("AuthorityMetadataEntity.ts Unit Tests", () => {
     const key = `authority-metadata-${TEST_CONFIG.MSAL_CLIENT_ID}-${Constants.DEFAULT_AUTHORITY_HOST}`;
@@ -20,19 +20,20 @@ describe("AuthorityMetadataEntity.ts Unit Tests", () => {
     };
 
     it("Verify if an object is a AuthorityMetadataEntity", () => {
-        expect(AuthorityMetadataEntity.isAuthorityMetadataEntity(key, testObj)).to.be.true;
+        expect(AuthorityMetadataEntity.isAuthorityMetadataEntity(key, testObj)).toBe(true);
     });
 
     it("Verify an object is not a AuthorityMetadataEntity", () => {
-        expect(AuthorityMetadataEntity.isAuthorityMetadataEntity(key, null)).to.be.false;
-        expect(AuthorityMetadataEntity.isAuthorityMetadataEntity(key, {})).to.be.false;
-        expect(AuthorityMetadataEntity.isAuthorityMetadataEntity("not-a-real-key", testObj)).to.be.false;
+        // @ts-ignore
+        expect(AuthorityMetadataEntity.isAuthorityMetadataEntity(key, null)).toBe(false);
+        expect(AuthorityMetadataEntity.isAuthorityMetadataEntity(key, {})).toBe(false);
+        expect(AuthorityMetadataEntity.isAuthorityMetadataEntity("not-a-real-key", testObj)).toBe(false);
 
         Object.keys(testObj).forEach((key) => {
             const incompleteTestObject = {...testObj};
             delete incompleteTestObject[key];
 
-            expect(AuthorityMetadataEntity.isAuthorityMetadataEntity(key, incompleteTestObject)).to.be.false;
+            expect(AuthorityMetadataEntity.isAuthorityMetadataEntity(key, incompleteTestObject)).toBe(false);
         });
     });
 });

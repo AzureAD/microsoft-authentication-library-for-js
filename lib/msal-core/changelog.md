@@ -1,8 +1,25 @@
 # Change Log - msal
 
-This log was last generated on Wed, 31 Mar 2021 22:25:57 GMT and should not be manually modified.
+This log was last generated on Wed, 12 May 2021 18:35:03 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.4.11
+
+Wed, 12 May 2021 18:35:03 GMT
+
+### Patches
+
+- Remove idtoken hash from browser history in msal-core #3587 (hemoral@microsoft.com)
+
+## 1.4.10
+
+Thu, 22 Apr 2021 23:26:08 GMT
+
+### Patches
+
+- Encode control characters in cookies set by MSAL.js v1 #3469 (janutter@microsoft.com)
+- Add .browserslistrc #3471 (thomas.norling@microsoft.com)
 
 ## 1.4.9
 

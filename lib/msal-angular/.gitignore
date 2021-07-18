@@ -47,3 +47,5 @@ Thumbs.db
 
 # Typedocs
 ref/
+
+__ivy_ngcc__

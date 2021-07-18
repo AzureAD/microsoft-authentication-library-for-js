@@ -8,7 +8,7 @@ import { BaseClient } from "./BaseClient";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { ScopeSet } from "../request/ScopeSet";
-import { GrantType, AADServerParamKeys , CredentialType, Constants } from "../utils/Constants";
+import { GrantType, AADServerParamKeys , CredentialType, Constants, CacheOutcome } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { CommonOnBehalfOfRequest } from "../request/CommonOnBehalfOfRequest";
@@ -57,9 +57,13 @@ export class OnBehalfOfClient extends BaseClient {
      * @param request
      */
     private async getCachedAuthenticationResult(request: CommonOnBehalfOfRequest): Promise<AuthenticationResult | null> {
-        const cachedAccessToken = this.readAccessTokenFromCache(request);
+        const cachedAccessToken = this.readAccessTokenFromCache();
         if (!cachedAccessToken ||
             TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
+
+            // Update the server telemetry outcome
+            this.serverTelemetryManager?.setCacheOutcome(!cachedAccessToken ? CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED : CacheOutcome.NO_CACHED_ACCESS_TOKEN);
+
             return null;
         }
 
@@ -99,14 +103,13 @@ export class OnBehalfOfClient extends BaseClient {
      * read access token from cache TODO: CacheManager API should be used here
      * @param request
      */
-    private readAccessTokenFromCache(request: CommonOnBehalfOfRequest): AccessTokenEntity | null {
+    private readAccessTokenFromCache(): AccessTokenEntity | null {
         const accessTokenFilter: CredentialFilter = {
             environment: this.authority.canonicalAuthorityUrlComponents.HostNameAndPort,
             credentialType: CredentialType.ACCESS_TOKEN,
             clientId: this.config.authOptions.clientId,
             realm: this.authority.tenant,
             target: this.scopeSet.printScopesLowerCase(),
-            oboAssertion: request.oboAssertion
         };
 
         const credentialCache: CredentialCache = this.cacheManager.getCredentialsFilteredBy(accessTokenFilter);
@@ -160,7 +163,7 @@ export class OnBehalfOfClient extends BaseClient {
         : Promise<AuthenticationResult | null> {
 
         const requestBody = this.createTokenRequestBody(request);
-        const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
+        const headers: Record<string, string> = this.createTokenRequestHeaders();
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: request.authority,

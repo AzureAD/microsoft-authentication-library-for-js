@@ -23,6 +23,7 @@ export { AuthToken } from "./account/AuthToken";
 export { AuthToken as IdToken } from "./account/AuthToken";
 export { TokenClaims } from "./account/TokenClaims";
 export { TokenClaims as IdTokenClaims } from "./account/TokenClaims";
+export { CcsCredential, CcsCredentialType } from "./account/CcsCredential";
 // Authority
 export { Authority } from "./authority/Authority";
 export { AuthorityOptions } from "./authority/AuthorityOptions";
@@ -65,9 +66,12 @@ export { CommonSilentFlowRequest } from "./request/CommonSilentFlowRequest";
 export { CommonDeviceCodeRequest } from "./request/CommonDeviceCodeRequest";
 export { CommonEndSessionRequest } from "./request/CommonEndSessionRequest";
 export { CommonUsernamePasswordRequest } from "./request/CommonUsernamePasswordRequest";
+export { AzureRegion } from "./authority/AzureRegion";
+export { AzureRegionConfiguration } from "./authority/AzureRegionConfiguration";
 export { AuthenticationResult } from "./response/AuthenticationResult";
 export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload";
 export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse";
+export { ServerAuthorizationTokenResponse } from "./response/ServerAuthorizationTokenResponse";
 export { DeviceCodeResponse } from "./response/DeviceCodeResponse";
 // Logger Callback
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";

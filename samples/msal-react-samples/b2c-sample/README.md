@@ -5,6 +5,10 @@
 This developer sample is used to run basic B2C use cases for the MSAL library. You can also alter the configuration in `./src/authConfig.js` to execute other behaviors.
 This sample was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
 
+### How to handle B2C user-flows
+
+Implementing B2C user-flows is a matter of initiating authorization requests against the corresponding authorities. This sample demonstrates the [sign-up/sign-in](https://docs.microsoft.com/azure/active-directory-b2c/add-sign-up-and-sign-in-policy?pivots=b2c-user-flow) user-flow with [self-service password reset](https://docs.microsoft.com/azure/active-directory-b2c/add-password-reset-policy?pivots=b2c-user-flow#self-service-password-reset-recommended).
+
 ## Notable files and what they demonstrate
 
 1. `./src/App.js` - Shows implementation of `MsalProvider`, all children will have access to `@azure/msal-react` context, hooks and components. Also shows how to handle password reset.
@@ -38,7 +42,7 @@ This sample was bootstrapped with [Create React App](https://github.com/facebook
 // Install dev dependencies for msal-react and msal-browser from root of repo
 npm install
 // Change directory to sample directory
-cd samples/msal-react-samples/react-router-sample
+cd samples/msal-react-samples/b2c-sample
 // Build packages locally
 npm run build:package
 // Install sample dependencies
@@ -60,7 +64,7 @@ Note: If you suspect you are not using the local builds check that the `package.
 
 ```bash
 // Change directory to sample directory
-cd samples/msal-react-samples/react-router-sample
+cd samples/msal-react-samples/b2c-sample
 // Install packages from npm
 npm run install:published
 // Install rest of dependencies

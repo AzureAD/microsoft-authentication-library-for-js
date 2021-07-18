@@ -42,6 +42,20 @@ export class StringUtils {
         return (typeof str === "undefined" || !str || 0 === str.length);
     }
 
+    /**
+     * Check if stringified object is empty
+     * @param strObj 
+     */
+    static isEmptyObj(strObj?: string): boolean {
+        if (strObj && !StringUtils.isEmpty(strObj)) {
+            try {
+                const obj = JSON.parse(strObj);
+                return Object.keys(obj).length === 0;
+            } catch (e) {}
+        }
+        return true;
+    }
+
     static startsWith(str: string, search: string): boolean {
         return str.indexOf(search) === 0;
     }

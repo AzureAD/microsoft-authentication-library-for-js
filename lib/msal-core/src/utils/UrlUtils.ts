@@ -183,11 +183,13 @@ export class UrlUtils {
      */
     static CanonicalizeUri(url: string): string {
         if (url) {
-            url = url.toLowerCase();
-        }
+            let lowerCaseUrl = url.toLowerCase();
 
-        if (url && !UrlUtils.endsWith(url, "/")) {
-            url += "/";
+            if (!UrlUtils.endsWith(lowerCaseUrl, "/")) {
+                lowerCaseUrl += "/";
+            }
+
+            return lowerCaseUrl;
         }
 
         return url;
@@ -218,15 +220,16 @@ export class UrlUtils {
             return url;
         }
 
+        let updatedUrl = url;
         let regex = new RegExp("(\\&" + name + "=)[^\&]+");
-        url = url.replace(regex, "");
+        updatedUrl = url.replace(regex, "");
         // name=value&
         regex = new RegExp("(" + name + "=)[^\&]+&");
-        url = url.replace(regex, "");
+        updatedUrl = url.replace(regex, "");
         // name=value
         regex = new RegExp("(" + name + "=)[^\&]+");
-        url = url.replace(regex, "");
-        return url;
+        updatedUrl = url.replace(regex, "");
+        return updatedUrl;
     }
 
     /**

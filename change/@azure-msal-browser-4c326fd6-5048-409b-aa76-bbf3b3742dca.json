@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update and fix eslint rules",
-  "packageName": "@azure/msal-browser",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none"
-}

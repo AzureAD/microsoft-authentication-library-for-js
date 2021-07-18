@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Move /token headers to POST body to avoid OPTIONS request (#3094)",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
