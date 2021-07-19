@@ -37,6 +37,8 @@ jobs:
           - 'angular11-sample-app'
           - 'angular12-sample-app'
 
+    name: ${{ matrix.sample }}
+
     steps:
     - uses: actions/checkout@v2
 
@@ -49,7 +51,8 @@ jobs:
       with:
         path: |
           node_modules
-          **/node_modules
+          lib/*/node_modules
+          samples/node_modules
         key: ${{ runner.os }}-${{ matrix.sample }}-${{ hashFiles('**/package-lock.json') }}
 
     - name: Clean Install

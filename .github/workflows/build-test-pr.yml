@@ -61,6 +61,8 @@ jobs:
           # e.g. ['package1', 'package2'] if both package folders contains changes
           library: ${{ fromJSON(needs.pre-check.outputs.packages) }}
   
+    name: ${{ matrix.library }}
+    
     steps:
     - uses: actions/checkout@v2
 

@@ -27,6 +27,8 @@ jobs:
             - msal-node
             - msal-angular
             - msal-react
+
+    name: ${{ matrix.library }}
   
     steps:
     - uses: actions/checkout@v2

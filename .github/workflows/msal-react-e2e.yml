@@ -36,6 +36,8 @@ jobs:
           - 'gatsby-sample'
           - 'typescript-sample'
 
+    name: ${{ matrix.sample }}
+
     steps:
     - uses: actions/checkout@v2
 
