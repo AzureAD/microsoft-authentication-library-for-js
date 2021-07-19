@@ -210,9 +210,14 @@ export class MsalInterceptor implements HttpInterceptor {
 
                     // Method in protectedResourceMap matches request http method
                     if (normalizedResourceMethod === normalizedRequestMethod) {
-                        entry.scopes.forEach(scope => {
-                            scopesForEndpoint.push(scope);
-                        });
+                        // Validate if scopes comes null to unprotect the resource in a certain http method 
+                        if (entry.scopes === null) {
+                            allMatchedScopes.push(null);
+                          } else {
+                            entry.scopes.forEach((scope) => {
+                              scopesForEndpoint.push(scope);
+                            });
+                          }
                     }
                 }
             });
