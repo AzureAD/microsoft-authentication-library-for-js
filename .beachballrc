@@ -5,6 +5,5 @@
     "scope": ["lib/**", "extensions/**"],
     "registry": "http://fsr-artifactory.aws.foreseeresults.com/artifactory/api/npm/npm-snapshots/",
     "shouldPublish": "true",
-    "package": "verint"
 
 }
