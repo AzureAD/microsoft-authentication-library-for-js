@@ -131,7 +131,7 @@ export class TestStorageManager extends CacheManager {
     getKeys(): string[] {
         return Object.keys(this.store);
     }
-    clear(): void {
+    async clear(): Promise<void> {
         this.store = {};
     }
 }

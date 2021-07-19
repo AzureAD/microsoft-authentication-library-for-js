@@ -114,7 +114,7 @@ export class MockStorageClass extends CacheManager {
     getAuthorityMetadataKeys(): string[] {
         return this.getKeys();
     }
-    clear(): void {
+    async clear(): Promise<void> {
         this.store = {};
     }
 }

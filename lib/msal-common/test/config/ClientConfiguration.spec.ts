@@ -35,10 +35,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         // Storage interface checks
         expect(emptyConfig.storageInterface).not.toBeNull();
         expect(emptyConfig.storageInterface.clear).not.toBeNull();
-        expect(() => emptyConfig.storageInterface.clear()).toThrowError(
-            "Unexpected error in authentication.: Storage interface - clear() has not been implemented"
-        );
-        expect(() => emptyConfig.storageInterface.clear()).toThrowError(AuthError);
+        await expect(emptyConfig.storageInterface.clear()).rejects.toMatchObject(AuthError.createUnexpectedError("Storage interface - clear() has not been implemented for the cacheStorage interface."))
         expect(emptyConfig.storageInterface.containsKey).not.toBeNull();
         expect(() => emptyConfig.storageInterface.containsKey("testKey")).toThrowError(
             "Unexpected error in authentication.: Storage interface - containsKey() has not been implemented"

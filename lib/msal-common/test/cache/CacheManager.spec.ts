@@ -37,8 +37,8 @@ describe("CacheManager.ts test cases", () => {
         })
     });
 
-    afterEach(() => {
-        mockCache.clearCache();
+    afterEach(async () => {
+        await mockCache.clearCache();
         sinon.restore();
     });
 
