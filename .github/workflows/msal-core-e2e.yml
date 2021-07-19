@@ -48,7 +48,7 @@ jobs:
 
     - name: Install Sample
       if: steps.cache.outputs.cache-hit != 'true'
-      working-directory: samples/msal-core/samples/VanillaJSTestApp
+      working-directory: samples/msal-core-samples/VanillaJSTestApp
       run: npm install
 
     - name: Build packages
