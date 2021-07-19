@@ -38,7 +38,7 @@ jobs:
 
     - name: Install beachball
       if: ${{ steps.filter.outputs.lib == 'true' }}
-      run: npm install beachball
+      run: npm ci
 
     - name: Run Beachball Check command
       if: ${{ steps.filter.outputs.lib == 'true' }}
