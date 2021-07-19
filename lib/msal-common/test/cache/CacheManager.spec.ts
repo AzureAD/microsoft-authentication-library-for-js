@@ -10,7 +10,7 @@ import {
     TEST_TOKENS,
     CACHE_MOCKS
 } from "../test_kit/StringConstants";
-import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
+import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { AccountInfo } from "../../src/account/AccountInfo";
 import { MockCache } from "./MockCache";
 import { mockCrypto } from "../client/ClientTestUtils";
@@ -436,7 +436,33 @@ describe("CacheManager.ts test cases", () => {
         const atKey = atWithAuthScheme.generateCredentialKey();
         expect(mockCache.cacheManager.getAccount(atKey)).toBeNull();
         expect(removeTokenBindingKeySpy.getCall(0).args[0]).toEqual(atWithAuthSchemeData.keyId);
-    })
+    });
+
+    it("throws bindingKeyNotRemoved error when key isn't deleted from storage", async () =>{
+        const atWithAuthScheme = new AccessTokenEntity();
+        const atWithAuthSchemeData = {
+            environment: "login.microsoftonline.com",
+            credentialType: "AccessToken_With_AuthScheme",
+            secret: "an access token",
+            realm: "microsoft",
+            target: "scope1 scope2 scope3",
+            clientId: "mock_client_id",
+            cachedAt: "1000",
+            homeAccountId: "uid.utid",
+            extendedExpiresOn: "4600",
+            expiresOn: "4600",
+            keyId: "V6N_HMPagNpYS_wxM14X73q3eWzbTr9Z31RyHkIcN0Y",
+            tokenType: "pop"
+        };
+        
+        Object.assign(atWithAuthScheme, atWithAuthSchemeData);
+
+        jest.spyOn(mockCrypto, "removeTokenBindingKey").mockImplementation((keyId: string): Promise<boolean> => {
+            return Promise.reject();
+        });
+
+        return await expect(mockCache.cacheManager.removeCredential(atWithAuthScheme)).rejects.toThrow(ClientAuthError.createBindingKeyNotRemovedError());
+    });
 
     it("readAccessTokenFromCache matches multiple tokens, throws error", () => {
         const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(

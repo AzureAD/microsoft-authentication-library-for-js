@@ -148,6 +148,8 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(newConfig.cryptoInterface.base64Encode("testString")).toBe("testEncodedString");
         expect(newConfig.cryptoInterface.generatePkceCodes).not.toBeNull();
         expect(newConfig.cryptoInterface.generatePkceCodes()).resolves.toBe(testPkceCodes);
+        expect(newConfig.cryptoInterface.removeTokenBindingKey).not.toBeNull();
+        expect(newConfig.cryptoInterface.removeTokenBindingKey("testString")).resolves.toBe(true);
         // Storage interface tests
         expect(newConfig.storageInterface).not.toBeNull();
         expect(newConfig.storageInterface.clear).not.toBeNull();
