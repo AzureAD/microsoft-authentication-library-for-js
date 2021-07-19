@@ -555,7 +555,7 @@ export class BrowserCacheManager extends CacheManager {
         await this.removeAllAccounts();
         this.removeAppMetadata();
 
-        // Removes all remaining MSAL cache itemssss
+        // Removes all remaining MSAL cache items
         this.getKeys().forEach((cacheKey: string) => {
             // Check if key contains msal prefix; For now, we are clearing all the cache items created by MSAL.js
             if ((this.browserStorage.containsKey(cacheKey) || this.temporaryCacheStorage.containsKey(cacheKey)) && ((cacheKey.indexOf(Constants.CACHE_PREFIX) !== -1) || (cacheKey.indexOf(this.clientId) !== -1))) {
