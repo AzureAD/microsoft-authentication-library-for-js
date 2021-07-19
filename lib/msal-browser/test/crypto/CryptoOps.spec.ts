@@ -96,6 +96,7 @@ describe("CryptoOps.ts Unit Tests", () => {
     });
 
     it("getPublicKeyThumbprint() generates a valid request thumbprint", async () => {
+        jest.setTimeout(30000);
         //@ts-ignore
         jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
             expect(algorithm).toBe("SHA-256");

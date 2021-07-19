@@ -12,6 +12,7 @@ import { BrowserCrypto } from "./BrowserCrypto";
 import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export type CachedKeyPair = {
     publicKey: CryptoKey,
@@ -132,6 +133,10 @@ export class CryptoOps implements ICrypto {
     async signJwt(payload: SignedHttpRequest, kid: string): Promise<string> {
         // Get keypair from cache
         const cachedKeyPair: CachedKeyPair = await this.cache.get(kid);
+
+        if (!cachedKeyPair) {
+            throw BrowserAuthError.createSigningKeyNotFoundInStorageError(kid);
+        }
 
         // Get public key as JWK
         const publicKeyJwk = await this.browserCrypto.exportJwk(cachedKeyPair.publicKey);
