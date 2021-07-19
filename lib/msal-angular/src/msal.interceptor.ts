@@ -212,11 +212,11 @@ export class MsalInterceptor implements HttpInterceptor {
                         // Validate if scopes comes null to unprotect the resource in a certain http method 
                         if (entry.scopes === null) {
                             allMatchedScopes.push(null);
-                        } else {
+                          } else {
                             entry.scopes.forEach((scope) => {
-                                scopesForEndpoint.push(scope);
+                              scopesForEndpoint.push(scope);
                             });
-                        }
+                          }
                     }
                 }
             });
