@@ -321,7 +321,7 @@ describe('MsalInterceptor', () => {
     done();
   });
 
-  it("does not attach authorization header when scopes set to null on spesific http method, and resource is before any base url or wildcards", done => {
+  it("does not attach authorization header when scopes set to null on specific http method, and resource is before any base url or wildcards", done => {
     httpClient.post("http://localhost:3000/unprotect/post", {}).subscribe(response => expect(response).toBeTruthy());
 
     const request = httpMock.expectOne("http://localhost:3000/unprotect/post");
