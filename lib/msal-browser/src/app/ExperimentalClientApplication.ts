@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, CommonSilentFlowRequest, StringUtils, PromptValue } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, CommonSilentFlowRequest, StringUtils, PromptValue, ProtocolUtils, ResponseMode, PersistentCacheKeys, IdToken } from "@azure/msal-common";
 import { BrokerClientApplication } from "../broker/client/BrokerClientApplication";
 import { EmbeddedClientApplication } from "../broker/client/EmbeddedClientApplication";
 import { Configuration } from "../config/Configuration";
@@ -18,6 +18,8 @@ import { BrowserUtils } from "../utils/BrowserUtils";
 import { ClientApplication } from "./ClientApplication";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { PopupUtils } from "../utils/PopupUtils";
+import { BrowserStateObject } from "../utils/BrowserProtocolUtils";
+import { RedirectRequest } from "../request/RedirectRequest";
 
 export class ExperimentalClientApplication extends ClientApplication implements IPublicClientApplication {
 
@@ -66,7 +68,7 @@ export class ExperimentalClientApplication extends ClientApplication implements 
             this.logger.verbose("Acting as Broker");
             this.broker.listenForBrokerMessage();
         } else if (this.config.experimental.brokerOptions.allowBrokering) {
-            this.embeddedApp = new EmbeddedClientApplication(this.config.auth.clientId, this.config.experimental.brokerOptions, this.logger, this.browserStorage);
+            this.embeddedApp = new EmbeddedClientApplication(this.config.auth.clientId, this.config.experimental.brokerOptions, this.logger, this.browserStorage, this.browserCrypto);
             this.logger.verbose("Acting as child");
             await this.embeddedApp.initiateHandshake();
         }
@@ -216,6 +218,56 @@ export class ExperimentalClientApplication extends ClientApplication implements 
                 throw tokenRenewalError;
             }
         }
+    }
+
+    /**
+     * Helper to initialize required request parameters for interactive APIs and ssoSilent()
+     * @param request
+     * @param interactionType
+     */
+    protected initializeAuthorizationRequest(request: RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
+        this.logger.verbose("initializeAuthorizationRequest called", request.correlationId);
+        const redirectUri = this.getRedirectUri(request.redirectUri);
+        const browserState: BrowserStateObject = {
+            interactionType: interactionType
+        };
+
+        const state = ProtocolUtils.setRequestState(
+            this.browserCrypto,
+            (request && request.state) || "",
+            browserState
+        );
+
+        const validatedRequest: AuthorizationUrlRequest = {
+            ...this.initializeBaseRequest(request),
+            redirectUri: redirectUri,
+            state: state,
+            nonce: request.nonce || this.browserCrypto.createNewGuid(),
+            responseMode: ResponseMode.FRAGMENT
+        };
+
+        const account = request.account || this.getActiveAccount();
+        if (account) {
+            this.logger.verbose("Setting validated request account");
+            this.logger.verbosePii(`Setting validated request account: ${account}`);
+            validatedRequest.account = account;
+        }
+
+        // Check for ADAL SSO
+        if (StringUtils.isEmpty(validatedRequest.loginHint)) {
+            // Only check for adal token if no SSO params are being used
+            const adalIdTokenString = this.browserStorage.getTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN);
+            if (adalIdTokenString) {
+                const adalIdToken = new IdToken(adalIdTokenString, this.browserCrypto);
+                this.browserStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
+                if (adalIdToken.claims && adalIdToken.claims.upn) {
+                    this.logger.verbose("No SSO params used and ADAL token retrieved, setting ADAL upn as loginHint");
+                    validatedRequest.loginHint = adalIdToken.claims.upn;
+                }
+            }
+        }
+
+        return validatedRequest;
     }
 
     // #endregion

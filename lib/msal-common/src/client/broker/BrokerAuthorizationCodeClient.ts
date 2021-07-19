@@ -118,6 +118,13 @@ export class BrokerAuthorizationCodeClient extends AuthorizationCodeClient {
             parameterBuilder.addState(request.state);
         }
 
+        if (request.authenticationScheme === AuthenticationScheme.POP) {
+            if (!request.embeddedAppCnf) {
+                throw ClientAuthError.createNoEmbeddedAppCnfProvidedError();
+            }
+            parameterBuilder.addPopToken(request.embeddedAppCnf);
+        }
+
         if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }

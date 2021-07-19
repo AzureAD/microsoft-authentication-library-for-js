@@ -17,6 +17,7 @@ export class BrokerAuthRequest extends BrokerMessage {
     public embeddedClientId: string;
     public interactionType: InteractionType;
     public request: RedirectRequest | PopupRequest | SsoSilentRequest | SilentRequest;
+    public requestCnf?: string;
 
     private _embeddedAppOrigin: string;
     public get embeddedAppOrigin(): string {

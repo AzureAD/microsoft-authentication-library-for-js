@@ -19,4 +19,5 @@ import { CommonRefreshTokenRequest } from "../CommonRefreshTokenRequest";
 export type BrokeredRefreshTokenRequest = CommonRefreshTokenRequest & {
     embeddedAppClientId: string;
     embeddedAppRedirectUri: string;
+    embeddedAppCnf?: string;
 };

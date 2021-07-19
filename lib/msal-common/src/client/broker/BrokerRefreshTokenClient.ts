@@ -105,6 +105,13 @@ export class BrokerRefreshTokenClient extends RefreshTokenClient {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
             parameterBuilder.addPopToken(await popTokenGenerator.generateCnf(request));
         }
+        
+        if (request.authenticationScheme === AuthenticationScheme.POP) {
+            if (!request.embeddedAppCnf) {
+                throw ClientAuthError.createNoEmbeddedAppCnfProvidedError();
+            }
+            parameterBuilder.addPopToken(request.embeddedAppCnf);
+        }
 
         if (!StringUtils.isEmpty(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);

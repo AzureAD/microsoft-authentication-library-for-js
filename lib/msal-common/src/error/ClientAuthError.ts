@@ -181,6 +181,10 @@ export const ClientAuthErrorMessage = {
     accessTokenEntityNullError: {
         code: "access_token_entity_null",
         desc: "Access token entity is null, please check logs and cache to ensure a valid access token is present."
+    },
+    noEmbeddedAppCnf: {
+        code: "no_embedded_app_cnf",
+        desc: "The embedded app did not provide enough data to complete a bound token request. Please ensure the embedded app has access to crypto APIs."
     }
 };
 
@@ -504,5 +508,9 @@ export class ClientAuthError extends AuthError {
      */
     static createNoAuthCodeInServerResponseError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.noAuthorizationCodeFromServer.code, ClientAuthErrorMessage.noAuthorizationCodeFromServer.desc);
+    }
+
+    static createNoEmbeddedAppCnfProvidedError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.noEmbeddedAppCnf.code, ClientAuthErrorMessage.noEmbeddedAppCnf.desc);
     }
 }

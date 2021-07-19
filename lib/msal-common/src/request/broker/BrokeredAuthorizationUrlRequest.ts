@@ -36,4 +36,5 @@ import { CommonAuthorizationUrlRequest } from "../CommonAuthorizationUrlRequest"
 export type BrokeredAuthorizationUrlRequest = CommonAuthorizationUrlRequest & {
     embeddedAppClientId: string;
     brokerRedirectUri: string;
+    embeddedAppCnf?: string;
 };

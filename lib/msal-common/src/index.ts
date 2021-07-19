@@ -58,6 +58,7 @@ export { UrlString } from "./url/UrlString";
 // Crypto Interface
 export { ICrypto, PkceCodes, DEFAULT_CRYPTO_IMPLEMENTATION } from "./crypto/ICrypto";
 export { SignedHttpRequest } from "./crypto/SignedHttpRequest";
+export { PopTokenGenerator } from "./crypto/PopTokenGenerator";
 // Request and Response
 export { BaseAuthRequest } from "./request/BaseAuthRequest";
 export { CommonAuthorizationUrlRequest } from "./request/CommonAuthorizationUrlRequest";

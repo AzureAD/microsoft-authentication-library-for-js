@@ -4,7 +4,7 @@
  */
 
 import { BrokerOptions } from "../../config/Configuration";
-import { Logger, AuthenticationResult, Constants } from "@azure/msal-common";
+import { Logger, AuthenticationResult, Constants, ICrypto, AuthenticationScheme } from "@azure/msal-common";
 import { BrokerHandshakeRequest } from "../msg/req/BrokerHandshakeRequest";
 import { BrokerHandshakeResponse } from "../msg/resp/BrokerHandshakeResponse";
 import { PopupRequest } from "../../request/PopupRequest";
@@ -33,13 +33,14 @@ export class EmbeddedClientApplication {
     private version: string;
     private brokerOrigin: string;
     private browserStorage: BrowserCacheManager;
+    private browserCrypto: ICrypto;
 
     private get trustedBrokersProvided(): boolean {
         return !!this.brokerOpts.trustedBrokerDomains && this.brokerOpts.trustedBrokerDomains.length >= 1;
     }
     public brokerConnectionEstablished: boolean;
 
-    constructor(clientId: string, experimentalConfig: BrokerOptions, logger: Logger, browserStorage: BrowserCacheManager) {
+    constructor(clientId: string, experimentalConfig: BrokerOptions, logger: Logger, browserStorage: BrowserCacheManager, browserCrypto: ICrypto) {
         this.brokerOpts = experimentalConfig;
         this.clientId = clientId;
         this.logger = logger;
@@ -47,6 +48,7 @@ export class EmbeddedClientApplication {
         this.brokerConnectionEstablished = false;
         this.version = version;
         this.brokerOrigin = Constants.EMPTY_STRING;
+        this.browserCrypto = browserCrypto;
     }
 
     /**
@@ -170,6 +172,8 @@ export class EmbeddedClientApplication {
      */
     private async sendRequest(request: PopupRequest|RedirectRequest|SsoSilentRequest, interactionType: InteractionType, timeoutMs: number): Promise<MessageEvent> {
         const brokerRequest = new BrokerAuthRequest(this.clientId, interactionType, request, Constants.EMPTY_STRING);
+        if (request.authenticationScheme === AuthenticationScheme.POP) {
+        }
         return this.messageBroker(brokerRequest, timeoutMs);
     }
 
