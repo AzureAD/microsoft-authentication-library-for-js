@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-react
 
-This log was last generated on Mon, 28 Jun 2021 23:39:48 GMT and should not be manually modified.
+This log was last generated on Fri, 16 Jul 2021 21:11:59 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.3
+
+Fri, 16 Jul 2021 21:11:59 GMT
+
+### Patches
+
+- fix: fixing the npm audit issues (samuelkamau@microsoft.com)
 
 ## 1.0.1
 

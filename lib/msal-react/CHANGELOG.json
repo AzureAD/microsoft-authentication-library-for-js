@@ -2,6 +2,21 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Fri, 16 Jul 2021 21:11:59 GMT",
+      "tag": "@azure/msal-react_v1.0.3",
+      "version": "1.0.3",
+      "comments": {
+        "patch": [
+          {
+            "comment": "fix: fixing the npm audit issues",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "9b19470078b65bedf2b69246ba764b32b533a268",
+            "package": "@azure/msal-react"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 28 Jun 2021 23:39:48 GMT",
       "tag": "@azure/msal-react_v1.0.1",
       "version": "1.0.1",

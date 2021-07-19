@@ -2,6 +2,29 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Fri, 16 Jul 2021 21:11:59 GMT",
+      "tag": "@azure/msal-angular_v2.0.3",
+      "version": "2.0.3",
+      "comments": {
+        "none": [
+          {
+            "comment": "Remove note from FAQ about active accounts not persisting",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "db59cc072e50f201f09e03a09a1b7b8355e10ee1",
+            "package": "@azure/msal-angular"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "fix: fixing the npm audit issues",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "9b19470078b65bedf2b69246ba764b32b533a268",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 28 Jun 2021 23:39:48 GMT",
       "tag": "@azure/msal-angular_v2.0.1",
       "version": "2.0.1",

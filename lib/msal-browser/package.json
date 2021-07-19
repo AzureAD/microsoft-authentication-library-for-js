@@ -1,5 +1,5 @@
 {
-  "name": "@azure/msal-browser",
+  "name": "@verint/msal-browser",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -10,7 +10,7 @@
     "type": "git",
     "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
   },
-  "version": "2.15.1",
+  "version": "2.16.0",
   "description": "Microsoft Authentication Library for js",
   "keywords": [
     "implicit",
@@ -84,6 +84,6 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@azure/msal-common": "^4.4.1"
+    "@azure/msal-common": "^4.5.0"
   }
 }

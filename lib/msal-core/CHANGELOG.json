@@ -2,6 +2,21 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Fri, 16 Jul 2021 21:11:59 GMT",
+      "tag": "msal_v1.4.13",
+      "version": "1.4.13",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix bug causing acquireTokenSilent to hang and never return #3867",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "8944e763c2e8b32fe74b60aa73775ae1b9798206",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 28 Jun 2021 23:39:48 GMT",
       "tag": "msal_v1.4.11",
       "version": "1.4.11",

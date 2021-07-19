@@ -1,8 +1,16 @@
 # Change Log - msal
 
-This log was last generated on Wed, 12 May 2021 18:35:03 GMT and should not be manually modified.
+This log was last generated on Fri, 16 Jul 2021 21:11:59 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.4.13
+
+Fri, 16 Jul 2021 21:11:59 GMT
+
+### Patches
+
+- Fix bug causing acquireTokenSilent to hang and never return #3867 (thomas.norling@microsoft.com)
 
 ## 1.4.11
 

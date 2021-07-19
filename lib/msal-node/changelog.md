@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Mon, 28 Jun 2021 23:39:48 GMT and should not be manually modified.
+This log was last generated on Fri, 16 Jul 2021 21:11:59 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.3.0
+
+Fri, 16 Jul 2021 21:11:59 GMT
+
+### Minor changes
+
+- feat: add regional authority telemetry, #3662 (samuelkamau@microsoft.com)
+- ROPC added for Confidential Clients (#3838) (sameera.gajjarapu@microsoft.com)
+
+### Patches
+
+- Bump @azure/msal-common to v4.5.0 (joarroyo@microsoft.com)
 
 ## 1.2.0
 

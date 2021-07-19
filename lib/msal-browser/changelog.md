@@ -1,8 +1,22 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 28 Jun 2021 23:39:48 GMT and should not be manually modified.
+This log was last generated on Fri, 16 Jul 2021 21:11:59 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.16.0
+
+Fri, 16 Jul 2021 21:11:59 GMT
+
+### Minor changes
+
+- Msal-Browser supports parallel silent requests #3837 (joarroyo@microsoft.com)
+- Persist active account #3755 (thomas.norling@microsoft.com)
+
+### Patches
+
+- fix: fixing the npm audit issues (samuelkamau@microsoft.com)
+- Bump @azure/msal-common to v4.5.0 (joarroyo@microsoft.com)
 
 ## 2.15.0
 

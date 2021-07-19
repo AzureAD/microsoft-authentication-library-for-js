@@ -2,6 +2,49 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Fri, 16 Jul 2021 21:11:59 GMT",
+      "tag": "@azure/msal-browser_v2.16.0",
+      "version": "2.16.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Msal-Browser supports parallel silent requests #3837",
+            "author": "joarroyo@microsoft.com",
+            "commit": "3d6a01191deb3fa1da722b4362d52535c350ddd7",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Persist active account #3755",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "db59cc072e50f201f09e03a09a1b7b8355e10ee1",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Add support for prompt=create #3773",
+            "author": "joarroyo@microsoft.com",
+            "commit": "c9314cedfe08b643e43e358243dc7f49253f77ef",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "fix: fixing the npm audit issues",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "9b19470078b65bedf2b69246ba764b32b533a268",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Bump @azure/msal-common to v4.5.0",
+            "author": "joarroyo@microsoft.com",
+            "commit": "c9314cedfe08b643e43e358243dc7f49253f77ef",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 28 Jun 2021 23:39:48 GMT",
       "tag": "@azure/msal-browser_v2.15.0",
       "version": "2.15.0",
