@@ -15,6 +15,7 @@ on:
       - 'samples/msal-browser-samples/VanillaJSTestApp2.0/**/*'
       - 'samples/e2eTestUtils/**/*'
       - '!**.md'
+      - '.github/workflows/msal-browser-e2e.yml'
 
 concurrency:
   group: browser-e2e-${{github.ref}}
@@ -37,8 +38,8 @@ jobs:
       with:
         path: |
           node_modules
-          */*/node_modules
-        key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          **/node_modules
+        key: ${{ runner.os }}-msal-browser-e2e-${{ hashFiles('**/package-lock.json') }}
 
     - name: Clean Install
       if: steps.cache.outputs.cache-hit != 'true'

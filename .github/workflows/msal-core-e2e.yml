@@ -13,6 +13,7 @@ on:
       - 'lib/msal-core/**/*'
       - 'samples/msal-core-samples/VanillaJSTestApp/**/*'
       - '!**.md'
+      - '.github/workflows/msal-core-e2e.yml'
 
 concurrency:
   group: core-e2e-${{github.ref}}
@@ -36,8 +37,8 @@ jobs:
       with:
         path: |
           node_modules
-          */*/node_modules
-        key: ${{ runner.os }}-${{ hashFiles('**/package-lock.json') }}
+          **/node_modules
+        key: ${{ runner.os }}-msal-core-e2e-${{ hashFiles('**/package-lock.json') }}
 
     - name: Clean Install
       if: steps.cache.outputs.cache-hit != 'true'

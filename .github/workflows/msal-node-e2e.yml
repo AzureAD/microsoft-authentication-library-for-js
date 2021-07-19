@@ -46,7 +46,7 @@ jobs:
       with:
         path: |
           node_modules
-          */*/node_modules
+          **/node_modules
         key: ${{ runner.os }}-${{ matrix.node }}-${{ hashFiles('**/package-lock.json') }}
 
     - name: Clean Install
