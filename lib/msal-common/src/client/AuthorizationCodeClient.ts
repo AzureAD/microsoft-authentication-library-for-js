@@ -35,7 +35,7 @@ import { CcsCredentialType, CcsCredential } from "../account/CcsCredential";
  */
 export class AuthorizationCodeClient extends BaseClient {
 
-    constructor(configuration: ClientConfiguration, test: string) {
+    constructor(configuration: ClientConfiguration) {
         super(configuration);
     }
 
