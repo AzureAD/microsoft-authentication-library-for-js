@@ -48,7 +48,7 @@ export class BrowserUtils {
      * Returns boolean of whether or not the current window is a popup opened by msal
      */
     static isInPopup(): boolean {
-        return !!window.opener && 
+        return typeof window !== "undefined" && !!window.opener && 
             window.opener !== window && 
             typeof window.name === "string" && 
             window.name.indexOf(`${BrowserConstants.POPUP_NAME_PREFIX}.`) === 0;
