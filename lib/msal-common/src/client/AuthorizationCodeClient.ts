@@ -141,9 +141,13 @@ export class AuthorizationCodeClient extends BaseClient {
                 this.logger.verbose("Account provided in logout request was not found.");
             }
         } else {
-            // Clear all accounts and tokens
-            this.logger.verbose("No account provided in logout request, clearing all cache items.");
-            await this.cacheManager.clear();
+            try {
+                // Clear all accounts and tokens
+                await this.cacheManager.clear();
+                this.logger.verbose("No account provided in logout request, clearing all cache items.");
+            } catch(e) {
+                this.logger.verbose("Failed to clear cache.");
+            }
         }
     }
 
