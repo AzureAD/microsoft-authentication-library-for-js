@@ -28,6 +28,7 @@ import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NavigationOptions } from "../navigation/NavigationOptions";
 import { EventHandler } from "../event/EventHandler";
+import { TokenCache } from "../cache/TokenCache";
 
 export abstract class ClientApplication {
 
@@ -45,6 +46,8 @@ export abstract class ClientApplication {
 
     // Input configuration by developer/user
     protected config: BrowserConfiguration;
+
+    private tokenCache: TokenCache;
 
     // Logger
     protected logger: Logger;
@@ -113,6 +116,8 @@ export abstract class ClientApplication {
         this.browserStorage = this.isBrowserEnvironment ? 
             new BrowserCacheManager(this.config.auth.clientId, this.config.cache, this.browserCrypto, this.logger) : 
             DEFAULT_BROWSER_CACHE_MANAGER(this.config.auth.clientId, this.logger);
+
+        this.tokenCache = new TokenCache(this.config, this.browserStorage, this.logger, this.browserCrypto);
     }
 
     // #region Redirect Flow
@@ -1273,6 +1278,13 @@ export abstract class ClientApplication {
      */
     removeEventCallback(callbackId: string): void {
         this.eventHandler.removeEventCallback(callbackId);
+    }
+
+    /**
+     * Gets the token cache for the application.
+     */
+    getTokenCache(): TokenCache {
+        return this.tokenCache;
     }
 
     /**
