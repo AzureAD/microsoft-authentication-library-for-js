@@ -140,6 +140,10 @@ export const BrowserAuthErrorMessage = {
     failedToParseNetworkResponse: {
         code: "failed_to_parse_response",
         desc: "Failed to parse network response. Check network trace."
+    },
+    unableToLoadTokenError : {
+        code: "unable_to_load_token",
+        desc: "Unable to sideload token. Please ensure you have all necessary parameters entered."
     }
 };
 
@@ -407,5 +411,12 @@ export class BrowserAuthError extends AuthError {
      */
     static createFailedToParseNetworkResponseError(endpoint: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.failedToParseNetworkResponse.code, `${BrowserAuthErrorMessage.failedToParseNetworkResponse.desc} | Attempted to reach: ${endpoint.split("?")[0]}`);
+    }
+
+    /**
+     * Create an error thrown when the necessary information is not available to sideload tokens 
+     */
+    static createUnableToLoadTokenError(errorDetail: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.unableToLoadTokenError.code, `${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | ${errorDetail}`);
     }
 }
