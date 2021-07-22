@@ -17,6 +17,13 @@ Supported platforms are Windows, Mac and Linux:
 
 To understand more about the library you can visit our [wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-Node-Extensions) for more details.
 
+## Installation
+The `@azure/msal-node-extensions` is available on NPM:
+
+```bash
+npm install @azure/msal-node-extensions --save
+```
+
 ## Building
 
 The extensions contain prebuild binaries.
