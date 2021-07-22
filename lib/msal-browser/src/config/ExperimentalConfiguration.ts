@@ -6,6 +6,10 @@
 import { InteractionType } from "../utils/BrowserConstants";
 import { RedirectRequest } from "../request/RedirectRequest";
 
+export type ExperimentalConfiguration = {
+    brokerOptions?: BrokerOptions;
+};
+
 /**
  * Broker Options
  */
@@ -15,10 +19,6 @@ export type BrokerOptions = {
     allowBrokering?: boolean;
     trustedBrokerDomains?: string[];
     brokerRedirectParams?: Pick<RedirectRequest, "redirectStartPage" | "onRedirectNavigate">;
-};
-
-export type ExperimentalConfiguration = {
-    brokerOptions?: BrokerOptions;
 };
 
 export type ExperimentalBrowserConfiguration = {
