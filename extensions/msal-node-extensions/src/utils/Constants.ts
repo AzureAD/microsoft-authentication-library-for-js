@@ -31,5 +31,32 @@ export const Constants = {
     /**
      * Test data used to verify underlying persistence mechanism
      */
-    PERSISTENCE_TEST_DATA: "Dummy data to verify underlying persistence mechanism"
+    PERSISTENCE_TEST_DATA: "Dummy data to verify underlying persistence mechanism",
+
+    /**
+     * This is the value of a the guid if the process is being ran by the root user
+     */
+    LINUX_ROOT_USER_GUID: 0,
+
+    /**
+     * List of environment variables
+     */
+    ENVIRONMENT: {
+        HOME: "HOME",
+        LOGNAME: "LOGNAME",
+        USER: "USER",
+        LNAME: "LNAME",
+        USERNAME: "USERNAME",
+        PLATFORM: "platform",
+        LOCAL_APPLICATION_DATA: "LOCALAPPDATA"
+    },
+
+    // Name of the default cache file
+    DEFAULT_CACHE_FILE_NAME: "cache.json"
+};
+
+export enum Platform {
+    WINDOWS = "win32",
+    LINUX = "linux",
+    MACOS = "darwin"
 };
