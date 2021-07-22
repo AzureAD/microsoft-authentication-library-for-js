@@ -67,7 +67,7 @@ Yes, MSAL Node can be used as a custom authentication provider for the [Microsof
 Yes, we recommend the new [Powershell Graph SDK](https://github.com/microsoftgraph/msgraph-sdk-powershell) for doing so. For instance, the script below creates an Azure AD application with a custom redirect URI of type **Mobile and Desktop apps** (aka *InstalledClient*) and **User.Read** permission for Microsoft Graph in a tenant specified by the user, and then provisions a service principal in the same tenant based on this application object:
 
 ```Powershell
-Install-Module -Name Microsoft.Graph.Applications
+Import-Module Microsoft.Graph.Applications
 
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
