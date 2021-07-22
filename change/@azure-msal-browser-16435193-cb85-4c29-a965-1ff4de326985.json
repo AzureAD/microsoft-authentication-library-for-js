@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Expose isInPopup helper function #3825",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
