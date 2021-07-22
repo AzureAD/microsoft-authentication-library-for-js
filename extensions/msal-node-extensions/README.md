@@ -11,6 +11,8 @@ Supported platforms are Windows, Mac and Linux:
 
 > Note: It is recommended to use this library for cache persistence support for Public client applications such as Desktop apps only. In web applications, this may lead to scale and performance issues. Web applications are recommended to persist the cache in session.
 
+To understand more about the library you can visit our [wiki](https://github.com/AzureAD/microsoft-authentication-library-for-js/wiki/MSAL-Node-Extensions) for more details.
+
 ## Building
 
 The extensions contain prebuild binaries.
