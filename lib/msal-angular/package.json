@@ -54,6 +54,5 @@
   "peerDependencies": {
     "@azure/msal-browser": "^2.15.0",
     "rxjs": "^6.0.0"
-  },
-  "dependencies": {}
+  }
 }
