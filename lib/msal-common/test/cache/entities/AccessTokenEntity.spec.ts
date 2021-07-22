@@ -1,7 +1,7 @@
 import { AccessTokenEntity } from "../../../src/cache/entities/AccessTokenEntity";
 import { mockCache, mockAccessTokenEntity_1, mockAccessTokenEntity_2, mockRefreshTokenEntity } from "./cacheConstants";
-import { ClientAuthError, ClientAuthErrorMessage } from "../../../src";
 import { CacheType } from "../../../src/utils/Constants";
+import { ClientAuthError, ClientAuthErrorMessage } from "../../../src/error/ClientAuthError";
 
 describe("AccessTokenEntity.ts Unit Tests", () => {
 

@@ -1,6 +1,6 @@
 import { AppMetadataEntity } from "../../../src/cache/entities/AppMetadataEntity";
 import { mockAppMetaDataEntity, mockIdTokenEntity } from "./cacheConstants";
-import { IdTokenEntity } from "../../../src";
+import { IdTokenEntity } from "../../../src/cache/entities/IdTokenEntity";
 
 describe("AppMetadataEntity.ts Unit Tests", () => {
     it("Verify an AppMetadataEntity", () => {

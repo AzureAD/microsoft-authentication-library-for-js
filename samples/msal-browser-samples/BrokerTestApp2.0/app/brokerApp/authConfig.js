@@ -29,14 +29,13 @@ const msalConfig = {
                 }
             }
         }
-    },
-    experimental: {
-        enable: true,
-        // TODO: Use interaction type enum
-        brokerOptions: {
-            actAsBroker: true,
-            preferredInteractionType: "redirect"
-        }
+    }
+};
+
+const expMsalConfig = {
+    brokerOptions: {
+        actAsBroker: true,
+        preferredInteractionType: "redirect"
     }
 };
 

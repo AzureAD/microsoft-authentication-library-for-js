@@ -15,60 +15,43 @@ import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { ApiId, InteractionType } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
-import { ClientApplication } from "./ClientApplication";
-import { IPublicClientApplication } from "./IPublicClientApplication";
 import { PopupUtils } from "../utils/PopupUtils";
-import { BrowserStateObject } from "../utils/BrowserProtocolUtils";
+import { IPublicClientApplication } from "./IPublicClientApplication";
+import { PublicClientApplication } from "./PublicClientApplication";
+import { ExperimentalBrowserConfiguration, ExperimentalConfiguration, buildExperimentalConfiguration } from "../config/ExperimentalConfiguration";
 import { RedirectRequest } from "../request/RedirectRequest";
+import { BrowserStateObject } from "../utils/BrowserProtocolUtils";
 
-export class ExperimentalClientApplication extends ClientApplication implements IPublicClientApplication {
+export class ExperimentalPublicClientApplication extends PublicClientApplication implements IPublicClientApplication {
 
     // Broker Objects
     protected embeddedApp?: EmbeddedClientApplication;
     protected broker?: BrokerClientApplication;
+    protected experimentalConfig: ExperimentalBrowserConfiguration;
 
-    constructor(configuration: Configuration, parent: ClientApplication) {
+    constructor(configuration: Configuration, experimentalConfiguration: ExperimentalConfiguration) {
         super(configuration);
-        // bind to parent
-        this.initializeBrokering.bind(parent);
-        this.handleRedirectPromise.bind(parent);
-        this.loginRedirect.bind(parent);
-        this.acquireTokenRedirect.bind(parent);
-        this.loginPopup.bind(parent);
-        this.acquireTokenPopup.bind(parent);
-        this.ssoSilent.bind(parent);
-        this.acquireTokenSilent.bind(parent);
-        this.logout.bind(parent);
-        this.logoutPopup.bind(parent);
-        this.logoutRedirect.bind(parent);
-        this.getAllAccounts.bind(parent);
-        this.getAccountByUsername.bind(parent);
-        this.getAccountByHomeId.bind(parent);
-        this.getAccountByLocalId.bind(parent);
-        this.addEventCallback.bind(parent);
-        this.removeEventCallback.bind(parent);
-        this.getLogger.bind(parent);
-        this.setLogger.bind(parent);
+        this.experimentalConfig = buildExperimentalConfiguration(experimentalConfiguration);
     }
 
     /**
      * 
      */
     async initializeBrokering(): Promise<void> {
-        if (!this.isBrowserEnvironment || !this.config.experimental) {
+        if (!this.isBrowserEnvironment) {
             return;
         }
 
-        if (this.config.experimental.brokerOptions.actAsBroker && !BrowserUtils.isInIframe()) {
-            if(this.config.experimental.brokerOptions.allowBrokering) {
+        if (this.experimentalConfig.brokerOptions.actAsBroker && !BrowserUtils.isInIframe()) {
+            if(this.experimentalConfig.brokerOptions.allowBrokering) {
                 this.logger.verbose("Running in top frame and both actAsBroker, allowBrokering flags set to true. actAsBroker takes precedence.");
             }
 
-            this.broker = new BrokerClientApplication(this.config);
+            this.broker = new BrokerClientApplication(this.config, this.experimentalConfig);
             this.logger.verbose("Acting as Broker");
             this.broker.listenForBrokerMessage();
-        } else if (this.config.experimental.brokerOptions.allowBrokering) {
-            this.embeddedApp = new EmbeddedClientApplication(this.config.auth.clientId, this.config.experimental.brokerOptions, this.logger, this.browserStorage, this.browserCrypto);
+        } else if (this.experimentalConfig.brokerOptions.allowBrokering) {
+            this.embeddedApp = new EmbeddedClientApplication(this.config.auth.clientId, this.experimentalConfig.brokerOptions, this.logger, this.browserStorage);
             this.logger.verbose("Acting as child");
             await this.embeddedApp.initiateHandshake();
         }
@@ -91,7 +74,7 @@ export class ExperimentalClientApplication extends ClientApplication implements 
     }
 
     // #endregion
-
+ 
     // #region Popup Flow
 
     /**
@@ -108,7 +91,7 @@ export class ExperimentalClientApplication extends ClientApplication implements 
             if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
                 return this.embeddedApp.sendPopupRequest(validRequest);
             }
-            this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority);
+            this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority, validRequest.loginHint || "", validRequest.account || null);
             const popupName = PopupUtils.generatePopupName(this.config.auth.clientId, validRequest);
 
             // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
@@ -147,7 +130,7 @@ export class ExperimentalClientApplication extends ClientApplication implements 
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.verbose("ssoSilent called");
-        this.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
+        this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
         // Check that we have some SSO data
         if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
@@ -170,10 +153,10 @@ export class ExperimentalClientApplication extends ClientApplication implements 
                 return this.embeddedApp.sendSsoSilentRequest(silentRequest);
             }
             const silentTokenResult = await this.acquireTokenByIframe(silentRequest, ApiId.ssoSilent);
-            this.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
+            this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
             return silentTokenResult;
         } catch (e) {
-            this.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
+            this.eventHandler.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
             throw e;
         }
     }
@@ -196,14 +179,14 @@ export class ExperimentalClientApplication extends ClientApplication implements 
             account: accountObj,
             forceRefresh: request.forceRefresh || false
         };
-        this.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
+        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
 
         try {
             // Telemetry manager only used to increment cacheHits here
             const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);
             const silentAuthClient = await this.createSilentFlowClient(serverTelemetryManager, silentRequest.authority);
             const cachedToken = await silentAuthClient.acquireCachedToken(silentRequest);
-            this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, cachedToken);
+            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, cachedToken);
             return cachedToken;
         } catch (e) {
             try {
@@ -211,10 +194,10 @@ export class ExperimentalClientApplication extends ClientApplication implements 
                     return this.embeddedApp.sendSilentRefreshRequest(silentRequest);
                 }
                 const tokenRenewalResult = await this.acquireTokenByRefreshToken(silentRequest);
-                this.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, tokenRenewalResult);
+                this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, tokenRenewalResult);
                 return tokenRenewalResult;
             } catch (tokenRenewalError) {
-                this.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
+                this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
                 throw tokenRenewalError;
             }
         }

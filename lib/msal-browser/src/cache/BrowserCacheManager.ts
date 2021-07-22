@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, RequestThumbprint } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, CcsCredential, CcsCredentialType, RequestThumbprint } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys, MemoryCacheKeys } from "../utils/BrowserConstants";
@@ -375,6 +375,64 @@ export class BrowserCacheManager extends CacheManager {
     setAuthorityMetadata(key: string, entity: AuthorityMetadataEntity): void {
         this.logger.trace("BrowserCacheManager.setAuthorityMetadata called");
         this.internalStorage.setItem(key, JSON.stringify(entity));
+    }
+
+    /**
+     * Gets the active account
+     */
+    getActiveAccount(): AccountInfo | null {
+        const activeAccountIdKey = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT);
+        const activeAccountId = this.browserStorage.getItem(activeAccountIdKey);
+        if (!activeAccountId) {
+            return null;
+        }
+        return this.getAccountInfoByFilter({localAccountId: activeAccountId})[0] || null;
+    }
+
+    /**
+     * Sets the active account's localAccountId in cache
+     * @param account 
+     */
+    setActiveAccount(account: AccountInfo | null): void {
+        const activeAccountIdKey = this.generateCacheKey(PersistentCacheKeys.ACTIVE_ACCOUNT);
+        if (account) {
+            this.logger.verbose("setActiveAccount: Active account set");
+            this.browserStorage.setItem(activeAccountIdKey, account.localAccountId);
+        } else {
+            this.logger.verbose("setActiveAccount: No account passed, active account not set");
+            this.browserStorage.removeItem(activeAccountIdKey);
+        }
+    }
+
+    /**
+     * Gets a list of accounts that match all of the filters provided
+     * @param account 
+     */
+    getAccountInfoByFilter(accountFilter: Partial<Omit<AccountInfo, "idTokenClaims"|"name">>): AccountInfo[] {
+        const allAccounts = this.getAllAccounts();
+        return allAccounts.filter((accountObj) => {
+            if (accountFilter.username && accountFilter.username.toLowerCase() !== accountObj.username.toLowerCase()) {
+                return false;
+            }
+
+            if (accountFilter.homeAccountId && accountFilter.homeAccountId !== accountObj.homeAccountId) {
+                return false;
+            }
+
+            if (accountFilter.localAccountId && accountFilter.localAccountId !== accountObj.localAccountId) {
+                return false;
+            }
+
+            if (accountFilter.tenantId && accountFilter.tenantId !== accountObj.tenantId) {
+                return false;
+            }
+
+            if (accountFilter.environment && accountFilter.environment !== accountObj.environment) {
+                return false;
+            }
+            
+            return true;
+        });
     }
 
     /**
@@ -780,7 +838,7 @@ export class BrowserCacheManager extends CacheManager {
      * @param serverAuthenticationRequest
      * @param account
      */
-    updateCacheEntries(state: string, nonce: string, authorityInstance: string): void {
+    updateCacheEntries(state: string, nonce: string, authorityInstance: string, loginHint: string, account: AccountInfo|null): void {
         this.logger.trace("BrowserCacheManager.updateCacheEntries called");
         // Cache the request state
         const stateCacheKey = this.generateStateKey(state);
@@ -793,6 +851,20 @@ export class BrowserCacheManager extends CacheManager {
         // Cache authorityKey
         const authorityCacheKey = this.generateAuthorityKey(state);
         this.setTemporaryCache(authorityCacheKey, authorityInstance, false);
+
+        if (account) {
+            const ccsCredential: CcsCredential = {
+                credential: account.homeAccountId,
+                type: CcsCredentialType.HOME_ACCOUNT_ID
+            };
+            this.setTemporaryCache(TemporaryCacheKeys.CCS_CREDENTIAL, JSON.stringify(ccsCredential), true);
+        } else if (!StringUtils.isEmpty(loginHint)) {
+            const ccsCredential: CcsCredential = {
+                credential: loginHint,
+                type: CcsCredentialType.UPN
+            };
+            this.setTemporaryCache(TemporaryCacheKeys.CCS_CREDENTIAL, JSON.stringify(ccsCredential), true);
+        }
     }
 
     /**
@@ -820,6 +892,7 @@ export class BrowserCacheManager extends CacheManager {
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.URL_HASH));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY));
+        this.removeItem(this.generateCacheKey(TemporaryCacheKeys.CCS_CREDENTIAL));
     }
 
     /**

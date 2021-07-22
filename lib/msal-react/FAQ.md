@@ -56,7 +56,7 @@ If you just need an id or access token we recommend calling the `acquireTokenSil
 
 ```javascript
 const GetDataFromAPI = () => {
-    const { instance, accounts } = useMsal();
+    const { instance, accounts, inProgress } = useMsal();
     const isAuthenticated = useIsAuthenticated();
     const [graphData, setGraphData] = useState(null);
 

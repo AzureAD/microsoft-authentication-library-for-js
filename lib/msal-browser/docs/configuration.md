@@ -60,6 +60,8 @@ const msalInstance = new PublicClientApplication(msalConfig);
 
 ## Configuration Options
 
+These options are for the PublicClientApplication class, and does not include experimental APIs that MSAL exposes through the `ExperimentalPublicClientApplication.ts` class.
+
 ### Auth Config Options
 
 | Option | Description | Format | Default Value |

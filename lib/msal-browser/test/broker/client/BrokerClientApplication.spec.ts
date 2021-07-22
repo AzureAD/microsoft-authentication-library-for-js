@@ -14,7 +14,7 @@ describe("BrokerClientApplication.ts Unit Tests", () => {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 }
-            });
+            }, {});
         })
 
         it("extends ClientApplication.ts", () => {
@@ -77,7 +77,7 @@ describe("BrokerClientApplication.ts Unit Tests", () => {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 }
-            });
+            }, {});
         })
 
         afterEach(() => {
@@ -104,7 +104,7 @@ describe("BrokerClientApplication.ts Unit Tests", () => {
             });
             const resp = await broker.handleRedirectPromise();
 
-            expect(handleRedirectPromiseStub.calledOnce).toBeTruthy;
+            expect(handleRedirectPromiseStub.calledOnce).toBeTruthy();
             expect(resp).toEqual(testTokenResponse);
         });
 

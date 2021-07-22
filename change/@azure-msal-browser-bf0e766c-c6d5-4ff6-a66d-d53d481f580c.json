@@ -1,6 +1,6 @@
 {
   "type": "none",
-  "comment": "Component governance dependency updates #3655",
+  "comment": "Add support for prompt=create #3773",
   "packageName": "@azure/msal-browser",
   "email": "joarroyo@microsoft.com",
   "dependentChangeType": "none"

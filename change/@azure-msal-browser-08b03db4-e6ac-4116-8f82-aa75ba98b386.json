@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix logoutPopup parameter type on IPublicClientApplication #3663",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

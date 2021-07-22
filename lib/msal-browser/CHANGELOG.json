@@ -2,6 +2,73 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 28 Jun 2021 23:39:48 GMT",
+      "tag": "@azure/msal-browser_v2.15.0",
+      "version": "2.15.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Component governance dependency updates #3655",
+            "author": "joarroyo@microsoft.com",
+            "commit": "3f74f3bffd88fc0b39a854da090f01aa9c072618",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Remove unused error #3657",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "f6f7a7c738706668c869fcc84338d8c212a5ab4f",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Upgrade Jest to v27 #3719",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6c34aa5be3ee9536bd2febd2b7781fcdf0d28786",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "fix: update package lock files",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "0199e41269b79de70f7d0da0fb12448db534f784",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Update monitor_window_timeout error message with link to error docs #3783",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "728b63ea69ba0aa57c1a1fa0a0c714dbb168b9a6",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Refactor event APIs into EventHandler class #3770",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "f0c574a8c2ffeb3132703e7e9e17d01e1898abaa",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Fix logoutPopup parameter type on IPublicClientApplication #3663",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "16200653c5f9d31d890d1d592e8b58ffde7259ed",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add correlationId to log messages #3601",
+            "author": "joarroyo@microsoft.com",
+            "commit": "8d58f91c9dd9d65df4a016c7bcdbbd03e9bf573e",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add CCS parameters to headers or form_data #3636",
+            "author": "prkanher@microsoft.com",
+            "commit": "2956380aecde38382a28c7ed15164b8dfd65cfca",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 13 May 2021 18:34:08 GMT",
       "tag": "@azure/msal-browser_v2.14.2",
       "version": "2.14.2",

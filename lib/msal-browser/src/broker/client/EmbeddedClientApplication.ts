@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { BrokerOptions } from "../../config/Configuration";
 import { Logger, AuthenticationResult, Constants, ICrypto, AuthenticationScheme } from "@azure/msal-common";
 import { BrokerHandshakeRequest } from "../msg/req/BrokerHandshakeRequest";
 import { BrokerHandshakeResponse } from "../msg/resp/BrokerHandshakeResponse";
@@ -20,6 +19,7 @@ import { BrowserCacheManager } from "../../cache/BrowserCacheManager";
 import { SsoSilentRequest } from "../../request/SsoSilentRequest";
 import { BrokerAuthError } from "../../error/BrokerAuthError";
 import { version } from "../../packageMetadata";
+import { BrokerOptions } from "../../config/ExperimentalConfiguration";
 
 const DEFAULT_MESSAGE_TIMEOUT = 2000;
 const DEFAULT_POPUP_MESSAGE_TIMEOUT = 60000;

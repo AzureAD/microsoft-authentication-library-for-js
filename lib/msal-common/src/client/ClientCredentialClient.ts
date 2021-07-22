@@ -107,7 +107,7 @@ export class ClientCredentialClient extends BaseClient {
         : Promise<AuthenticationResult | null> {
 
         const requestBody = this.createTokenRequestBody(request);
-        const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
+        const headers: Record<string, string> = this.createTokenRequestHeaders();
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: request.authority,
