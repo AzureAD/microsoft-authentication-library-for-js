@@ -9,7 +9,7 @@
 1. [Will MSAL 2.x support B2C?](#will-msal-2x-support-b2c)
 1. [Is MSAL.js 2.x compatible with Azure App Proxy](#is-msaljs-2x-compatible-with-azure-app-proxy)
 1. [Can I use MSAL.js 2.x with Microsoft Graph JavaScript SDK?](#can-i-use-msaljs-2x-with-microsoft-graph-javascript-sdk)
-1. [Can I provision a single-page application via command line?](#can-i-provision-a-single-page-application-via-command-line)
+1. [Can I provision a single-page application via command-line?](#can-i-provision-a-single-page-application-via-command-line)
 
 **[Authentication](#Authentication)**
 
@@ -120,12 +120,12 @@ Unfortunately, at this time MSAL.js 2.x is not compatible with [Azure App Proxy]
 
 Yes, MSAL.js 2.x can be used as a custom authentication provider for the [Microsoft Graph JavaScript SDK](https://github.com/microsoftgraph/msgraph-sdk-javascript). For an implementation, please refer to the sample: [JavaScript SPA calling Graph API](https://github.com/Azure-Samples/ms-identity-javascript-tutorial/tree/main/2-Authorization-I/1-call-graph).
 
-## Can I provision a single-page application via command line?
+## Can I provision a single-page application via command-line?
 
-Yes, we recommend the new [Powershell Graph SDK](https://github.com/microsoftgraph/msgraph-sdk-powershell) for doing so. The script below creates an Azure AD application with redirect URI of type **SPA** and **User.Read** permission for Microsoft Graph in a tenant specified by the user, and then provisions a service principal in the same tenant based on this application object:
+Yes, we recommend the new [Powershell Graph SDK](https://github.com/microsoftgraph/msgraph-sdk-powershell) for doing so. For instance, the script below creates an Azure AD application with redirect URI of type **SPA** and **User.Read** permission for Microsoft Graph in a tenant specified by the user, and then provisions a service principal in the same tenant based on this application object:
 
 ```Powershell
-Install-Module -Name Microsoft.Graph.Applications
+Import-Module Microsoft.Graph.Applications
 
 Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
 
