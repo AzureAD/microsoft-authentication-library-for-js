@@ -76,7 +76,7 @@ export class PersistenceError extends Error {
      * @returns PersistenceError
      */
     static createNotSupportedError(errorMessage: string): PersistenceError {
-        return new PersistenceError("NotSupported", errorMessage);
+        return new PersistenceError("NotSupportedError", errorMessage);
     }
 
     /**
@@ -86,7 +86,7 @@ export class PersistenceError extends Error {
      * @returns PersistenceError
      */
     static createPersistenceNotVerifiedError(errorMessage: string): PersistenceError {
-        return new PersistenceError("PersistenceNotVerified", errorMessage);
+        return new PersistenceError("PersistenceNotVerifiedError", errorMessage);
     }
 
     /**
@@ -95,7 +95,7 @@ export class PersistenceError extends Error {
      * @param errorMessage string
      * @returns PersistenceError
      */
-    static createPersistenceCreationValidationError(errorMessage: string): PersistenceError {
-        return new PersistenceError("PersistenceCreationValidationError", errorMessage);
+    static createPersistenceNotValidatedError(errorMessage: string): PersistenceError {
+        return new PersistenceError("PersistenceNotValidatedError", errorMessage);
     }
 }
