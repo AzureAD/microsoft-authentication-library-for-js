@@ -1,6 +1,6 @@
 {
   "type": "prerelease",
-  "comment": "feat: add the persistence creator",
+  "comment": "feat: add the persistence creator (#3859)",
   "packageName": "@azure/msal-node-extensions",
   "email": "samuelkamau@microsoft.com",
   "dependentChangeType": "patch"
