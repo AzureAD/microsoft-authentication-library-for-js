@@ -24,7 +24,7 @@ export class BrowserUtils {
         contentWindow.location.hash = Constants.EMPTY_STRING;
         if (typeof contentWindow.history.replaceState === "function") {
             // Full removes "#" from url
-            contentWindow.history.replaceState(null, Constants.EMPTY_STRING, `${contentWindow.location.pathname}${contentWindow.location.search}`);
+            contentWindow.history.replaceState(null, Constants.EMPTY_STRING, `${contentWindow.location.origin}${contentWindow.location.pathname}${contentWindow.location.search}`);
         }
     }
 
