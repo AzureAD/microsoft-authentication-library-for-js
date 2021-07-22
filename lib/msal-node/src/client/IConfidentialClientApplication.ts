@@ -10,6 +10,7 @@ import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
 import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { SilentFlowRequest } from "../request/SilentFlowRequest";
+import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
 import { TokenCache } from "../cache/TokenCache";
 
 /**
@@ -35,6 +36,9 @@ export interface IConfidentialClientApplication {
 
     /** Acquires tokens from the authority for the application */
     acquireTokenOnBehalfOf(request: OnBehalfOfRequest): Promise<AuthenticationResult | null>;
+
+    /** Acquires tokens with password grant by exchanging client applications username and password for credentials */
+    acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null>;
 
     /** Gets the token cache for the application */
     getTokenCache(): TokenCache;
