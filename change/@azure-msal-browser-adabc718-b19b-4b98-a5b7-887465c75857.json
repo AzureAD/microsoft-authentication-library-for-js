@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Msal-Browser supports parallel silent requests #3837",
+  "packageName": "@azure/msal-browser",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "patch"
+}
