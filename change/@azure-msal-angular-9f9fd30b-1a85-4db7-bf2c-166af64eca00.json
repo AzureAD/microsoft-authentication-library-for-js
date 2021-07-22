@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "allow unprotect resources on certain http methods",
+  "comment": "allow unprotect resources on certain http methods #3878",
   "packageName": "@azure/msal-angular",
   "email": "daniel.vargastr@gmail.com",
   "dependentChangeType": "patch"
