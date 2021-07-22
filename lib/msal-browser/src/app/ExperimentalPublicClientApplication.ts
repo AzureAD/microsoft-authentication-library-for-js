@@ -51,7 +51,7 @@ export class ExperimentalPublicClientApplication extends PublicClientApplication
             this.logger.verbose("Acting as Broker");
             this.broker.listenForBrokerMessage();
         } else if (this.experimentalConfig.brokerOptions.allowBrokering) {
-            this.embeddedApp = new EmbeddedClientApplication(this.config.auth.clientId, this.experimentalConfig.brokerOptions, this.logger, this.browserStorage);
+            this.embeddedApp = new EmbeddedClientApplication(this.config.auth.clientId, this.experimentalConfig.brokerOptions, this.logger, this.browserStorage, this.browserCrypto);
             this.logger.verbose("Acting as child");
             await this.embeddedApp.initiateHandshake();
         }
