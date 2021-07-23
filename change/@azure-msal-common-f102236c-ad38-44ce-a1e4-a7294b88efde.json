@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix logger constructor #3899",
+  "packageName": "@azure/msal-common",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
