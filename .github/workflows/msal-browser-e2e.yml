@@ -41,23 +41,30 @@ jobs:
           lib/*/node_modules
         key: ${{ runner.os }}-${{ hashFiles('package-lock.json', 'lib/**/package-lock.json') }}
 
-    - name: Restore node_modules for sample
-      uses: actions/cache@v2
-      id: sample-cache
-      with: 
-        path: samples/**/node_modules
-        key: ${{ runner.os }}-browser-e2e-${{ hashFiles('samples/**/package-lock.json') }}
-
     - name: Clean Install
       if: steps.lib-cache.outputs.cache-hit != 'true'
       env:
         RUNNING_NODE_CI: 1
       run: npm ci
 
+    - name: Restore node_modules for test tools
+      uses: actions/cache@v2
+      id: test-tools-cache
+      with: 
+        path: samples/node_modules
+        key: ${{ runner.os }}-browser-test-tools-${{ hashFiles('samples/package.json') }}
+
     - name: Install Test Tools
-      if: steps.sample-cache.outputs.cache-hit != 'true'
+      if: steps.test-tools.outputs.cache-hit != 'true'
       working-directory: samples
       run: npm install
+
+    - name: Restore node_modules for sample
+      uses: actions/cache@v2
+      id: sample-cache
+      with: 
+        path: samples/msal-browser-samples/VanillaJSTestApp2.0/node_modules
+        key: ${{ runner.os }}-browser-sample-${{ hashFiles('samples/msal-browser-samples/VanillaJSTestApp2.0/package.json') }}
 
     - name: Install Sample
       if: steps.sample-cache.outputs.cache-hit != 'true'

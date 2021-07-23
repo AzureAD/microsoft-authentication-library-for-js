@@ -29,8 +29,12 @@ jobs:
       fail-fast: false
       matrix:
         node: [ 10, 12, 14, 16 ]
+        sample: 
+          - 'auth-code'
+          - 'device-code'
+          - 'silent-flow'
 
-    name: Node ${{ matrix.node }}
+    name: ${{ matrix.sample }} - Node v${{ matrix.node }}
 
     steps:
     - uses: actions/checkout@v2
@@ -49,13 +53,6 @@ jobs:
           lib/*/node_modules
         key: ${{ runner.os }}-${{ hashFiles('package-lock.json', 'lib/**/package-lock.json') }}
 
-    - name: Restore node_modules for sample
-      uses: actions/cache@v2
-      id: sample-cache
-      with: 
-        path: samples/**/node_modules
-        key: ${{ runner.os }}-${{ matrix.node }}-${{ hashFiles('samples/**/package-lock.json') }}
-
     - name: Clean Install
       if: steps.lib-cache.outputs.cache-hit != 'true'
       env:
@@ -65,35 +62,37 @@ jobs:
     - name: Build Package
       working-directory: samples/msal-node-samples
       run: npm run build:package
+
+    - name: Restore node_modules for test tools
+      uses: actions/cache@v2
+      id: test-tools-cache
+      with: 
+        path: |
+          samples/node_modules
+          samples/msal-node-samples/node_modules
+        key: ${{ runner.os }}-node-test-tools-${{ matrix.node }}-${{ hashFiles('samples/package.json', 'samples/msal-node-samples/package.json') }}
       
     - name: Install Test Tools
-      if: steps.sample-cache.outputs.cache-hit != 'true'
+      if: steps.test-tools-cache.outputs.cache-hit != 'true'
       working-directory: samples/msal-node-samples
       run: npm install
-    
-    - name: Install Auth Code Sample
-      if: steps.sample-cache.outputs.cache-hit != 'true'
-      working-directory: samples/msal-node-samples/auth-code
-      run: |
-        npm run install:local
-        npm install
 
-    - name: Install Device Code Sample
-      if: steps.sample-cache.outputs.cache-hit != 'true'
-      working-directory: samples/msal-node-samples/device-code
-      run: |
-        npm run install:local
-        npm install
+    - name: Restore node_modules for sample
+      uses: actions/cache@v2
+      id: sample-cache
+      with: 
+        path: samples/msal-node-samples/${{ matrix.sample }}/node_modules
+        key: ${{ runner.os }}-node-e2e-${{ matrix.sample }}-${{ matrix.node }}-${{ hashFiles(format('samples/msal-node-samples/{0}/package.json', matrix.sample)) }}
 
-    - name: Install Silent Flow Sample
+    - name: Install Sample
       if: steps.sample-cache.outputs.cache-hit != 'true'
-      working-directory: samples/msal-node-samples/silent-flow
+      working-directory: samples/msal-node-samples/${{ matrix.sample }}
       run: |
         npm run install:local
         npm install
         
     - name: E2E Tests
-      working-directory: samples/msal-node-samples
+      working-directory: samples/msal-node-samples/${{ matrix.sample }}
       timeout-minutes: 10
       env:
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}

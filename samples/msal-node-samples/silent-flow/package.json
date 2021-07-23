@@ -6,6 +6,7 @@
   "private": true,
   "scripts": {
     "start": "node index.js",
+    "test": "jest",
     "install:local": "npm install ../../../lib/msal-node"
   },
   "author": "Microsoft",

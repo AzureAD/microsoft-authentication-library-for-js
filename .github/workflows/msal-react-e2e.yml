@@ -53,13 +53,6 @@ jobs:
           lib/*/node_modules
         key: ${{ runner.os }}-${{ hashFiles('package-lock.json', 'lib/**/package-lock.json') }}
 
-    - name: Restore node_modules for sample
-      uses: actions/cache@v2
-      id: sample-cache
-      with: 
-        path: samples/**/node_modules
-        key: ${{ runner.os }}-${{ matrix.sample }}-${{ hashFiles('samples/**/package-lock.json') }}
-
     - name: Clean Install
       if: steps.lib-cache.outputs.cache-hit != 'true'
       env:
@@ -70,10 +63,26 @@ jobs:
       working-directory: lib/msal-react
       run: npm run build:all
 
+    - name: Restore node_modules for test tools
+      uses: actions/cache@v2
+      id: test-tools-cache
+      with: 
+        path: |
+          samples/node_modules
+          samples/msal-react-samples/node_modules
+        key: ${{ runner.os }}-react-e2e-${{ hashFiles('samples/package.json', 'samples/msal-react-samples/package.json') }}
+
     - name: Install Test Tools
-      if: steps.sample-cache.outputs.cache-hit != 'true'
+      if: steps.test-tools-cache.outputs.cache-hit != 'true'
       working-directory: samples/msal-react-samples
       run: npm install
+
+    - name: Restore node_modules for sample
+      uses: actions/cache@v2
+      id: sample-cache
+      with: 
+        path: samples/msal-react-samples/${{ matrix.sample }}/node_modules
+        key: ${{ runner.os }}-react-e2e-${{ hashFiles(format('samples/msal-react-samples/{0}/package.json', matrix.sample)) }}
 
     - name: Install ${{ matrix.sample }}
       if: steps.sample-cache.outputs.cache-hit != 'true'
