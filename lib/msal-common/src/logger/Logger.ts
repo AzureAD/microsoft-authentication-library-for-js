@@ -62,7 +62,7 @@ export class Logger {
         const defaultLoggerCallback = () => {};
         this.localCallback = loggerOptions.loggerCallback || defaultLoggerCallback;
         this.piiLoggingEnabled = loggerOptions.piiLoggingEnabled || false;
-        this.level = loggerOptions.logLevel || LogLevel.Info;
+        this.level = (typeof(loggerOptions.logLevel) === "number") ? loggerOptions.logLevel : LogLevel.Info;
         this.correlationId = loggerOptions.correlationId || "";
 
         this.packageName = packageName || Constants.EMPTY_STRING;
