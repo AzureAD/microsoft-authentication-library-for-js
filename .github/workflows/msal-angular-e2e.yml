@@ -83,7 +83,7 @@ jobs:
       id: sample-cache
       with: 
         path: samples/msal-angular-v2-samples/${{ matrix.sample }}/node_modules
-        key: ${{ runner.os }}-${{ matrix.sample }}-${{ hashFiles(format('samples/msal-angular-samples/{0}/package.json', matrix.sample)) }}
+        key: ${{ runner.os }}-${{ matrix.sample }}-${{ hashFiles(format('samples/msal-angular-v2-samples/{0}/package.json', matrix.sample)) }}
 
     - name: Install ${{ matrix.sample }}
       if: steps.sample-cache.outputs.cache-hit != 'true'
