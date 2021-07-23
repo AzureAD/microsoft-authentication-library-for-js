@@ -73,6 +73,7 @@ export { AuthenticationResult } from "./response/AuthenticationResult";
 export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload";
 export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse";
 export { ServerAuthorizationTokenResponse } from "./response/ServerAuthorizationTokenResponse";
+export { ServerAuthorizationROPCResponse } from "./response/ServerAuthorizationROPCResponse";
 export { DeviceCodeResponse } from "./response/DeviceCodeResponse";
 export { ScopeSet } from "./request/ScopeSet";
 // Logger Callback
