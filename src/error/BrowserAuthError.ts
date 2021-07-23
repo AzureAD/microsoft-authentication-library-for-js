@@ -143,7 +143,7 @@ export const BrowserAuthErrorMessage = {
     },
     unableToLoadTokenError : {
         code: "unable_to_load_token",
-        desc: "Unable to sideload token. Please ensure you have all necessary parameters entered."
+        desc: "Error loading token to cache."
     }
 };
 
