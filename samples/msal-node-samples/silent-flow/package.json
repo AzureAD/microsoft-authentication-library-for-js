@@ -17,5 +17,8 @@
     "express": "^4.17.1",
     "express-handlebars": "^4.0.4",
     "express-promise-router": "^4.0.1"
+  },
+  "devDependencies": {
+    "jest": "^27.0.4"
   }
 }
