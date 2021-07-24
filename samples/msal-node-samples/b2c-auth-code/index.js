@@ -17,9 +17,9 @@ const SERVER_PORT = process.env.PORT || 3000;
  */
 const confidentialClientConfig = {
     auth: {
-        clientId: 'e6e1bea3-d98f-4850-ba28-e80ed613cc72', 
+        clientId: 'ENTER_CLIENT_ID', 
         authority: policies.authorities.signUpSignIn.authority, 
-        clientSecret: 'QvIx~O-0ydZ-2~ao3c6~69-6kTezm-9uL6',
+        clientSecret: 'ENTER_CLIENT_SECRET',
         knownAuthorities: [policies.authorityDomain], 
         redirectUri: 'http://localhost:3000/redirect',
     },
