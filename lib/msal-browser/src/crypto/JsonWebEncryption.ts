@@ -9,7 +9,6 @@ import { Base64Encode } from "../encode/Base64Encode";
 import { JsonWebEncryptionError } from "../error/JsonWebEncryptionError";
 import { BROWSER_CRYPTO } from "../utils/BrowserConstants";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { base64ToBytes } from "./TestDecoder";
 
 export type JoseHeader = {
     alg: string,
@@ -42,7 +41,7 @@ export class JsonWebEncryption {
     private base64Decode: Base64Decode;
     private base64Encode: Base64Encode;
     private header: JoseHeader;
-    private encryptedKey: Uint8Array;
+    private encryptedKey: string;
     private initializationVector: string;
     private ciphertext: string;
     private authenticationTag: string;
@@ -56,7 +55,7 @@ export class JsonWebEncryption {
         this.header = this.parseJweProtectedHeader(jweComponents[0]);
         this.authenticatedData = this.getAuthenticatedData(jweComponents[0]);
         this.unwrappingAlgorithms = this.setUnwrappingAlgorithms();
-        this.encryptedKey = base64ToBytes(jweComponents[1]);
+        this.encryptedKey = this.decodeElement(jweComponents[1]);
         this.initializationVector = this.decodeElement(jweComponents[2]);
         this.ciphertext = this.decodeElement(jweComponents[3]);
         this.authenticationTag = this.decodeElement(jweComponents[4]);
@@ -89,8 +88,8 @@ export class JsonWebEncryption {
      * @param keyUsages - An array containing the usages for the imported key
      */
     async unwrap(unwrappingKey: CryptoKey, keyUsages: KeyUsage[]): Promise<CryptoKey> {
-        // const encryptedKeyBuffer = BrowserStringUtils.stringToArrayBuffer(this.encryptedKey);
-        const contentEncryptionKey = await window.crypto.subtle.decrypt(this.unwrappingAlgorithms.decryption, unwrappingKey, this.encryptedKey);
+        const encryptedKeyBuffer = BrowserStringUtils.stringToArrayBuffer(this.encryptedKey);
+        const contentEncryptionKey = await window.crypto.subtle.decrypt(this.unwrappingAlgorithms.decryption, unwrappingKey, encryptedKeyBuffer);
         
         return await window.crypto.subtle.importKey(
             "raw",

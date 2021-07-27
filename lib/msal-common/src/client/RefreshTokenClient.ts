@@ -124,7 +124,6 @@ export class RefreshTokenClient extends BaseClient {
 
     private async createBoundTokenRequestBody(request: CommonRefreshTokenRequest): Promise<string> {
         const payload = await this.createTokenRequestBodyObject(request);
-        console.log(payload);
         return this.cryptoUtils.signBoundTokenRequest(request, payload);
     }
 
@@ -152,7 +151,7 @@ export class RefreshTokenClient extends BaseClient {
             authority: authority.canonicalAuthority,
             scopes: request.scopes
         };
-        console.log(body);
+        
         const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParameters);
         return this.executePostToTokenEndpoint(endpoint, body, headers, thumbprint);
     }

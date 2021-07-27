@@ -2,9 +2,9 @@
 const msalConfig = {
     auth: {
         clientId: "bc77b0a7-16aa-4af4-884b-41b968c9c71a",
-        // authority: "http://zurich.test.dnsdemo1.test/00000001-0000-0ff1-ce00-000000000000",
-        // knownAuthorities: ["http://zurich.test.dnsdemo1.test"]
-        authority: "https://login.microsoftonline.com/5d97b14d-c396-4aee-b524-c86d33e9b660"
+        authority: "https://zurich.test.dnsdemo1.test:8478/00000001-0000-0ff1-ce00-000000000000",
+        knownAuthorities: ["https://zurich.test.dnsdemo1.test:8478"]
+        // authority: "https://login.microsoftonline.com/5d97b14d-c396-4aee-b524-c86d33e9b660"
     },
     cache: {
         cacheLocation: "sessionStorage", // This configures where your cache will be stored
@@ -30,7 +30,8 @@ const msalConfig = {
                         console.warn(message);	
                         return;	
                 }
-            }
+            },
+            level: msal.LogLevel.Verbose
         }
     }
 };

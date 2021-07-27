@@ -308,14 +308,15 @@ export class CryptoOps implements ICrypto {
             );
 
             // Generate CTX
-            const ctx = new CtxGenerator(this.browserCrypto).generateCtx(); // new Uint8Array([167, 216, 104, 154, 24, 141, 215, 120, 188, 126, 252, 26, 224, 208, 58, 110, 113, 2, 73, 32, 102, 101, 128, 242]);
+            const ctx = new CtxGenerator(this.browserCrypto).generateCtx();
             const ctxString = bytesToBase64(ctx);
+            
             const payloadBytes = BrowserStringUtils.stringToUtf8Arr(JSON.stringify(payload));
             const inputData = new Uint8Array(ctx.byteLength + payloadBytes.byteLength);
             inputData.set(ctx, 0);
             inputData.set(payloadBytes, ctx.byteLength);
             const hashedInputData = new Uint8Array(await window.crypto.subtle.digest({ name: "SHA-256" }, inputData));
-            const derivedKeyData = new Uint8Array(await kdf.computeKDFInCounterMode(hashedInputData, "AzureAD-SecureConversation"));
+            const derivedKeyData = new Uint8Array(await kdf.computeKDFInCounterMode(hashedInputData, KEY_DERIVATION_LABELS.SIGNING));
             const sessionKeyUsages = ["sign", "verify"] as KeyUsage[];
             const sessionKeyAlgorithm: HmacImportParams = { name: "HMAC", hash: "SHA-256" };
             const sessionKey = await window.crypto.subtle.importKey("raw", derivedKeyData, sessionKeyAlgorithm, false, sessionKeyUsages);
@@ -342,44 +343,7 @@ export class CryptoOps implements ICrypto {
             );
 
             const encodedSignature = this.b64Encode.urlEncodeArr(new Uint8Array(signatureBuffer));
-            debugger;
             const jwt = `${jwtString}.${encodedSignature}`;
-
-            // Verify
-
-            /*
-             * const jwtElements = jwt.split(".");
-             * const header1 = JSON.parse(this.b64Decode.decode(jwtElements[0]));
-             * const payload1 = JSON.parse(this.b64Decode.decode(jwtElements[1]));
-             * const signature1 = atob(jwtElements[2].replace(/-/g, "+").replace(/_/g, "/"));
-             * const body = `${jwtElements[0]}.${jwtElements[1]}`;
-             * const bodyBuffer = BrowserStringUtils.stringToArrayBuffer(body);
-             */
-            
-            /*
-             * const sig = BrowserStringUtils.stringToArrayBuffer(signature1);
-             * const ctx1 = header1.ctx;
-             * const ctxBytes1 = base64ToBytes(ctx1);
-             */
-            
-            // const payloadBytes1 = BrowserStringUtils.stringToUtf8Arr(JSON.stringify(payload1));
-
-            /*
-             * const inputData1 = new Uint8Array(ctxBytes1.byteLength + payloadBytes1.byteLength);
-             * inputData1.set(ctxBytes1, 0);
-             * inputData1.set(payloadBytes1, ctxBytes1.byteLength);
-             */
-        
-            // const hashedInputData1 = new Uint8Array(await window.crypto.subtle.digest({ name: "SHA-256" }, inputData1));
-
-            // const derivedKeyData1 = new Uint8Array(await kdf.computeKDFInCounterMode(hashedInputData1, "AzureAD-SecureConversation"));
-
-            /*
-             * const sessionKeyUsages1 = ["sign", "verify"] as KeyUsage[];
-             * const sessionKeyAlgorithm1: HmacImportParams = { name: "HMAC", hash: "SHA-256" };
-             * const sessionKey1 = await window.crypto.subtle.importKey("raw", derivedKeyData1, sessionKeyAlgorithm1, false, sessionKeyUsages1);
-             */
-
             return jwt;
         }
         return payload;
