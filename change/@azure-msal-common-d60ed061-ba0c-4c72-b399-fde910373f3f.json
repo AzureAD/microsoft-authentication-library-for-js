@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "double decoding issue- tests added",
+  "comment": "Fix double encoding state #3903",
   "packageName": "@azure/msal-common",
   "email": "bmahal@microsoft.com",
   "dependentChangeType": "patch"
