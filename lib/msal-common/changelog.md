@@ -1,8 +1,23 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 28 Jun 2021 23:39:48 GMT and should not be manually modified.
+This log was last generated on Thu, 22 Jul 2021 22:50:22 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 4.5.0
+
+Thu, 22 Jul 2021 22:50:22 GMT
+
+### Minor changes
+
+- Adding ROPC for confidential client apps (#3838) (sameera.gajjarapu@microsoft.com)
+- feat: add regional authority telemetry #3662 (samuelkamau@microsoft.com)
+- Add support for prompt=create #3773 (joarroyo@microsoft.com)
+
+### Patches
+
+- Add constant for active account cache key #3755 (thomas.norling@microsoft.com)
+- Fix double query string for logout endpoint #3814 (thomas.norling@microsoft.com)
 
 ## 4.4.0
 
