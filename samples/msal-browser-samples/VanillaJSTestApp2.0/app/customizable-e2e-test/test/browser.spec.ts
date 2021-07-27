@@ -301,6 +301,24 @@ describe("Default tests", function () {
                 // Verify browser cache contains Account, idToken, AccessToken and RefreshToken
                 await verifyTokenStore(BrowserCache, aadTokenRequest.scopes);
             });
+
+            it("Performs loadTokens", async () => {
+                await page.waitForSelector("#loadTokens");
+
+                // Remove id_tokens and accesstokens from cache so we can verify id token loaded
+                const tokenStore = await BrowserCache.getTokens();
+                await BrowserCache.removeTokens(tokenStore.idTokens);
+                await BrowserCache.removeTokens(tokenStore.accessTokens);
+
+                await page.click("#loadTokens");
+                await page.reload();
+                await screenshot.takeScreenshot(page, "loadTokens");
+
+                const cache = await BrowserCache.getTokens();
+                expect(cache.idTokens.length).to.be.eq(1);
+                expect(cache.accessTokens.length).to.be.eq(1);
+                expect(cache.refreshTokens.length).to.be.eq(1);
+            });
         });
     });
 
