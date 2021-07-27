@@ -138,6 +138,14 @@ describe("StringUtils.ts Class Unit Tests", () => {
 
     });
 
+    it("queryStringToObject correctly deserializes query string into object", () => {
+        const serializedObj = "param1=test%2525u00f1";
+        const deserializedObj = {
+            "param1": "test%25u00f1"
+        };
+        expect(StringUtils.queryStringToObject(serializedObj)).toEqual(deserializedObj);        
+    });
+
     describe("jsonParseHelper", () => {
         it("parses json", () => {
             const test = { test: "json" };
