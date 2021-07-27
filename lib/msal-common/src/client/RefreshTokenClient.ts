@@ -242,6 +242,7 @@ export class RefreshTokenClient extends BaseClient {
         // TODO: These are hardcoded
         parameterBuilder.addIssuer("https://login.microsoftonline.com/5d97b14d-c396-4aee-b524-c86d33e9b660/v2.0");
         parameterBuilder.addAudience("https://login.microsoftonline.com/");
+        parameterBuilder.addExpiration(TimeUtils.nowSeconds() + 3000);
         
         /*
          * if (this.serverTelemetryManager) {

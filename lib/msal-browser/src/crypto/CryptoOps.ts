@@ -139,7 +139,7 @@ export class CryptoOps implements ICrypto {
      */
     async getPublicKeyThumbprint(request: BaseAuthRequest, keyType?: string): Promise<string> {
         let keyOptions: CryptoKeyOptions;
-
+        
         switch(keyType) {
             case CryptoKeyTypes.stk_jwk:
                 keyOptions = this._rtBindingKeyOptions;
@@ -147,7 +147,7 @@ export class CryptoOps implements ICrypto {
             default:
                 keyOptions = this._atBindingKeyOptions;
         }
-        
+
         // Generate Keypair
         const keyPair = await this.browserCrypto.generateKeyPair(keyOptions, CryptoOps.EXTRACTABLE);
 
@@ -333,8 +333,14 @@ export class CryptoOps implements ICrypto {
 
             // Sign token
             const tokenBuffer = BrowserStringUtils.stringToArrayBuffer(jwtString);
-            const cryptoKeyOptions = this._rtBindingKeyOptions;
-            cryptoKeyOptions.keyGenAlgorithmOptions.name = "HMAC";
+            const cryptoKeyOptions: CryptoKeyOptions = {
+                keyGenAlgorithmOptions: {
+                    ...this._rtBindingKeyOptions.keyGenAlgorithmOptions,
+                    name: "HMAC",
+                },
+                keypairUsages: this._rtBindingKeyOptions.keypairUsages,
+                privateKeyUsage: this._rtBindingKeyOptions.privateKeyUsage
+            };
 
             const signatureBuffer = await this.browserCrypto.sign(
                 cryptoKeyOptions,

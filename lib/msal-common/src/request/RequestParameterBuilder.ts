@@ -415,4 +415,10 @@ export class RequestParameterBuilder {
             this.parameters.set("aud", aud);
         }
     }
+
+    addExpiration(exp: number): void {
+        if(exp) {
+            this.parameters.set("exp", `${exp}`);
+        }
+    }
 }
