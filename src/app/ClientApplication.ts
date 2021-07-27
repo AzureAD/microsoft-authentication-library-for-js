@@ -250,7 +250,8 @@ export abstract class ClientApplication {
             } else {
                 this.eventHandler.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Popup, null, e);
             }
-            throw e;
+            // Since this function is syncronous we need to reject
+            return Promise.reject(e);
         });
     }
 
@@ -351,9 +352,14 @@ export abstract class ClientApplication {
      * @param logoutRequest 
      */
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void> {
-        this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
-        const popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient);
-        return popupClient.logout(logoutRequest);
+        try{
+            this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
+            const popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient);
+            return popupClient.logout(logoutRequest);
+        } catch (e) {
+            // Since this function is syncronous we need to reject
+            return Promise.reject(e);
+        }
     }
 
     // #endregion
