@@ -138,15 +138,17 @@ export class AuthorizationCodeClient extends BaseClient {
                 await this.cacheManager.removeAccount(AccountEntity.generateAccountCacheKey(logoutRequest.account));
                 this.logger.verbose("Cleared cache items belonging to the account provided in the logout request.");
             } catch (error) {
-                this.logger.verbose("Account provided in logout request was not found.");
+                this.logger.error("Account provided in logout request was not found. Local cache unchanged.");
             }
         } else {
             try {
                 // Clear all accounts and tokens
                 await this.cacheManager.clear();
+                // Clear any stray keys from IndexedDB
+                await this.cryptoUtils.clearKeystore();
                 this.logger.verbose("No account provided in logout request, clearing all cache items.");
             } catch(e) {
-                this.logger.verbose("Failed to clear cache.");
+                this.logger.error("Attempted to clear all MSAL cache items and failed. Local cache unchanged.");
             }
         }
     }

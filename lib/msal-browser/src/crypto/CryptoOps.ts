@@ -126,6 +126,13 @@ export class CryptoOps implements ICrypto {
     }
 
     /**
+     * Removes all cryptographic keys from IndexedDB storage
+     */
+    async clearKeystore(): Promise<boolean> {
+        return this.cache.clear();
+    }
+
+    /**
      * Signs the given object as a jwt payload with private key retrieved by given kid.
      * @param payload 
      * @param kid 

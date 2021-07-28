@@ -68,6 +68,13 @@ export class CryptoProvider implements ICrypto {
     }
 
     /**
+     * Removes all cryptographic keys from Keystore
+     */
+    clearKeystore(): Promise<boolean> {
+        throw new Error("Method not implemented.");
+    }
+
+    /**
      * Signs the given object as a jwt payload with private key retrieved by given kid - currently not implemented for node
      */
     signJwt(): Promise<string> {

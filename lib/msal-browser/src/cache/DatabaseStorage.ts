@@ -138,4 +138,28 @@ export class DatabaseStorage<T>{
             dbDelete.addEventListener("error", e => reject(e));
         });
     }
+
+    async clear(): Promise<boolean> {
+        if (!this.dbOpen) {
+            await this.open();
+        }
+
+        return new Promise<boolean>((resolve: Function, reject: Function) => {
+            if (!this.db) {
+                return reject(BrowserAuthError.createDatabaseNotOpenError());
+            }
+
+            const transaction = this.db.transaction([this.tableName], "readwrite");
+
+            const objectStore = transaction.objectStore(this.tableName);
+
+            const dbDelete = objectStore.clear();
+
+            dbDelete.addEventListener("success", (e: Event) => {
+                const event = e as IDBRequestEvent;
+                resolve(event.target.result === undefined);
+            });
+            dbDelete.addEventListener("error", e => reject(e));
+        });
+    }
 }
