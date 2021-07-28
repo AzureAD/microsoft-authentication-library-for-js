@@ -1011,35 +1011,6 @@ describe("RedirectClient", () => {
             expect(loginUrlSpy.calledWith(validatedRequest)).toBeTruthy();
         });
 
-        it("throws error if called in a popup", (done) => {
-            const oldWindowOpener = window.opener;
-            const oldWindowName = window.name;
-            const newWindow = {
-                ...window
-            };
-            
-            delete window.opener;
-            delete window.name;
-            window.opener = newWindow;
-            window.name = "msal.testPopup"
-
-            sinon.stub(BrowserUtils, "isInIframe").returns(false);
-            pca.acquireTokenRedirect({scopes: ["openid"]}).catch(e => {
-                expect(e).toBeInstanceOf(BrowserAuthError);
-                expect(e.errorCode).toEqual(BrowserAuthErrorMessage.blockAcquireTokenInPopupsError.code);
-                expect(e.errorMessage).toEqual(BrowserAuthErrorMessage.blockAcquireTokenInPopupsError.desc);
-                done();
-            }).finally(() => {
-                window.name = oldWindowName;
-                window.opener = oldWindowOpener;
-            });
-        });
-
-        it("throws an error if inside an iframe", async () => {
-            sinon.stub(BrowserUtils, "isInIframe").returns(true);
-            await expect(pca.acquireTokenRedirect({ scopes: [] })).rejects.toMatchObject(BrowserAuthError.createRedirectInIframeError(true));
-        });
-
         it("navigates to created login url", (done) => {
             sinon.stub(RedirectHandler.prototype, "initiateAuthRequest").callsFake((navigateUrl): Promise<void> => {
                 expect(navigateUrl).toEqual(testNavUrl);
