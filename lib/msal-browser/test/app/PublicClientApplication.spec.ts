@@ -7,7 +7,7 @@ import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, TEST_HASHES, DEFAULT_TENANT_DISCOVERY_RESPONSE, DEFAULT_OPENID_CONFIG_RESPONSE } from "../utils/StringConstants";
 import { ServerError, Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationUrlRequest, AuthorizationCodeClient, ResponseMode, AccountEntity, ProtocolUtils, AuthenticationScheme, RefreshTokenClient, Logger, ServerTelemetryEntity, CommonSilentFlowRequest, LogLevel, CommonAuthorizationCodeRequest } from "@azure/msal-common";
-import { ApiId, InteractionType, WrapperSKU, TemporaryCacheKeys, BrowserConstants } from "../../src/utils/BrowserConstants";
+import { ApiId, InteractionType, WrapperSKU, TemporaryCacheKeys, BrowserConstants, BrowserCacheLocation } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { EventType } from "../../src/event/EventType";
 import { SilentRequest } from "../../src/request/SilentRequest";
@@ -25,7 +25,7 @@ import { RedirectClient } from "../../src/interaction_client/RedirectClient";
 import { PopupClient } from "../../src/interaction_client/PopupClient";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
-import { EndSessionRequest } from "../../src";
+import { EndSessionRequest, BrowserConfigurationAuthError } from "../../src";
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     let pca: PublicClientApplication;
@@ -74,11 +74,94 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
             };
+            const redirectClientSpy = sinon.stub(RedirectClient.prototype, "handleRedirectPromise").callsFake(() => {
+                sinon.stub(pca, "getAllAccounts").returns([testAccount]);
+                return Promise.resolve(testTokenResponse);
+            });
+            let loginSuccessFired = false;
+            sinon.stub(EventHandler.prototype, "emitEvent").callsFake((eventType) => {
+                if (eventType === EventType.LOGIN_SUCCESS) {
+                    loginSuccessFired = true;
+                }
+            });
+            const response = await pca.handleRedirectPromise();
+            expect(response).toEqual(testTokenResponse);
+            expect(redirectClientSpy.calledOnce).toBe(true);
+            expect(loginSuccessFired).toBe(true);
+        });
+
+        it("Emits acquireToken success event if user was already signed in", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            sinon.stub(pca, "getAllAccounts").returns([testAccount]);
             const redirectClientSpy = sinon.stub(RedirectClient.prototype, "handleRedirectPromise").resolves(testTokenResponse);
+            let acquireTokenSuccessFired = false;
+            sinon.stub(EventHandler.prototype, "emitEvent").callsFake((eventType) => {
+                if (eventType === EventType.ACQUIRE_TOKEN_SUCCESS) {
+                    acquireTokenSuccessFired = true;
+                }
+            });
 
             const response = await pca.handleRedirectPromise();
             expect(response).toEqual(testTokenResponse);
             expect(redirectClientSpy.calledOnce).toBe(true);
+            expect(acquireTokenSuccessFired).toBe(true);
+        });
+
+        it("Emits login failure event if user was already signed in", async () => {
+            const redirectClientSpy = sinon.stub(RedirectClient.prototype, "handleRedirectPromise").rejects("Error");
+            let loginFailureFired = false;
+            sinon.stub(EventHandler.prototype, "emitEvent").callsFake((eventType) => {
+                if (eventType === EventType.LOGIN_FAILURE) {
+                    loginFailureFired = true;
+                }
+            });
+
+            await pca.handleRedirectPromise().catch(() => {
+                expect(redirectClientSpy.calledOnce).toBe(true);
+                expect(loginFailureFired).toBe(true);
+            });
+        });
+
+        it("Emits acquireToken failure event if user was already signed in", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            sinon.stub(pca, "getAllAccounts").returns([testAccount]);
+            const redirectClientSpy = sinon.stub(RedirectClient.prototype, "handleRedirectPromise").rejects("Error");
+            let acquireTokenFailureFired = false;
+            sinon.stub(EventHandler.prototype, "emitEvent").callsFake((eventType) => {
+                if (eventType === EventType.ACQUIRE_TOKEN_FAILURE) {
+                    acquireTokenFailureFired = true;
+                }
+            });
+
+            await pca.handleRedirectPromise().catch(() => {
+                expect(redirectClientSpy.calledOnce).toBe(true);
+                expect(acquireTokenFailureFired).toBe(true);
+            });
         });
 
         it("Multiple concurrent calls to handleRedirectPromise return the same promise", async () => {
@@ -240,12 +323,73 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             await expect(pca.acquireTokenRedirect({ scopes: [] })).rejects.toMatchObject(BrowserAuthError.createRedirectInIframeError(true));
         });
 
+        it("throws error if cacheLocation is Memory Storage and storeAuthStateInCookie is false", async () =>{
+            pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                cache: {
+                    cacheLocation: BrowserCacheLocation.MemoryStorage,
+                    storeAuthStateInCookie: false
+                }
+            });
+
+            await expect(pca.acquireTokenRedirect({scopes: []})).rejects.toMatchObject(BrowserConfigurationAuthError.createInMemoryRedirectUnavailableError());
+        });
+
         it("Calls RedirectClient.acquireToken and returns its response", async () => {
             const redirectClientSpy = sinon.stub(RedirectClient.prototype, "acquireToken").resolves();
 
             const response = await pca.acquireTokenRedirect({scopes: ["openid"]});
             expect(response).toEqual(undefined);
             expect(redirectClientSpy.calledOnce).toBe(true);
+        });
+
+        it("Emits acquireToken Start and Failure events if user is already logged in", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+
+            sinon.stub(pca, "getAllAccounts").returns([testAccount]);
+            const redirectClientSpy = sinon.stub(RedirectClient.prototype, "acquireToken").rejects("Error");
+            let acquireTokenStartEmitted = false;
+            let acquireTokenFailureEmitted = false;
+            sinon.stub(EventHandler.prototype, "emitEvent").callsFake((eventType) => {
+                if (eventType === EventType.ACQUIRE_TOKEN_START) {
+                    acquireTokenStartEmitted = true;
+                } else if (eventType === EventType.ACQUIRE_TOKEN_FAILURE) {
+                    acquireTokenFailureEmitted = true;
+                }
+            });
+
+            await pca.acquireTokenRedirect({scopes: ["openid"]}).catch(() => {
+                expect(redirectClientSpy.calledOnce).toBe(true);
+                expect(acquireTokenStartEmitted).toBe(true);
+                expect(acquireTokenFailureEmitted).toBe(true);
+            });
+        });
+
+        it("Emits login Start and Failure events if no user is logged in", async () => {
+            const redirectClientSpy = sinon.stub(RedirectClient.prototype, "acquireToken").rejects("Error");
+            let loginStartEmitted = false;
+            let loginFailureEmitted = false;
+            sinon.stub(EventHandler.prototype, "emitEvent").callsFake((eventType) => {
+                if (eventType === EventType.LOGIN_START) {
+                    loginStartEmitted = true;
+                } else if (eventType === EventType.LOGIN_FAILURE) {
+                    loginFailureEmitted = true;
+                }
+            });
+
+            await pca.acquireTokenRedirect({scopes: ["openid"]}).catch(() => {
+                expect(redirectClientSpy.calledOnce).toBe(true);
+                expect(loginStartEmitted).toBe(true);
+                expect(loginFailureEmitted).toBe(true);
+            });
         });
     });
 
@@ -355,6 +499,135 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(popupClientSpy.calledOnce).toBe(true);
         });
 
+        it("Emits Login Start and Success Events if no user is signed in", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            const popupClientSpy = sinon.stub(PopupClient.prototype, "acquireToken").callsFake(() => {
+                sinon.stub(pca, "getAllAccounts").returns([testAccount]);
+                return Promise.resolve(testTokenResponse);
+            });
+            let loginStartEmitted = false;
+            let loginSuccessEmitted = false;
+            sinon.stub(EventHandler.prototype, "emitEvent").callsFake((eventType) => {
+                if (eventType === EventType.LOGIN_START) {
+                    loginStartEmitted = true;
+                } else if (eventType === EventType.LOGIN_SUCCESS) {
+                    loginSuccessEmitted = true;
+                }
+            });
+
+            const response = await pca.acquireTokenPopup({scopes: ["openid"]});
+            expect(response).toEqual(testTokenResponse);
+            expect(popupClientSpy.calledOnce).toBe(true);
+            expect(loginStartEmitted).toBe(true);
+            expect(loginSuccessEmitted).toBe(true);
+        });
+
+        it("Emits AcquireToken Start and Success Events if user is already signed in", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            sinon.stub(pca, "getAllAccounts").returns([testAccount]);
+            const popupClientSpy = sinon.stub(PopupClient.prototype, "acquireToken").resolves(testTokenResponse);
+            let acquireTokenStartEmitted = false;
+            let acquireTokenSuccessEmitted = false;
+            sinon.stub(EventHandler.prototype, "emitEvent").callsFake((eventType) => {
+                if (eventType === EventType.ACQUIRE_TOKEN_START) {
+                    acquireTokenStartEmitted = true;
+                } else if (eventType === EventType.ACQUIRE_TOKEN_SUCCESS) {
+                    acquireTokenSuccessEmitted = true;
+                }
+            });
+
+            const response = await pca.acquireTokenPopup({scopes: ["openid"]});
+            expect(response).toEqual(testTokenResponse);
+            expect(popupClientSpy.calledOnce).toBe(true);
+            expect(acquireTokenStartEmitted).toBe(true);
+            expect(acquireTokenSuccessEmitted).toBe(true);
+        });
+
+        it("Emits AcquireToken Start and Failure events if a user is already logged in", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+
+            sinon.stub(pca, "getAllAccounts").returns([testAccount]);
+            const popupClientSpy = sinon.stub(PopupClient.prototype, "acquireToken").rejects("Error");
+            let acquireTokenStartEmitted = false;
+            let acquireTokenFailureEmitted = false;
+            sinon.stub(EventHandler.prototype, "emitEvent").callsFake((eventType) => {
+                if (eventType === EventType.ACQUIRE_TOKEN_START) {
+                    acquireTokenStartEmitted = true;
+                } else if (eventType === EventType.ACQUIRE_TOKEN_FAILURE) {
+                    acquireTokenFailureEmitted = true;
+                }
+            });
+
+            await pca.acquireTokenPopup({scopes: ["openid"]}).catch(() => {
+                expect(popupClientSpy.calledOnce).toBe(true);
+                expect(acquireTokenStartEmitted).toBe(true);
+                expect(acquireTokenFailureEmitted).toBe(true);
+            });
+        });
+
+        it("Emits Login Start and Failure events if a user is not logged in", async () => {
+            const popupClientSpy = sinon.stub(PopupClient.prototype, "acquireToken").rejects("Error");
+            let loginStartEmitted = false;
+            let loginFailureEmitted = false;
+            sinon.stub(EventHandler.prototype, "emitEvent").callsFake((eventType) => {
+                if (eventType === EventType.LOGIN_START) {
+                    loginStartEmitted = true;
+                } else if (eventType === EventType.LOGIN_FAILURE) {
+                    loginFailureEmitted = true;
+                }
+            });
+
+            await pca.acquireTokenPopup({scopes: ["openid"]}).catch(() => {
+                expect(popupClientSpy.calledOnce).toBe(true);
+                expect(loginStartEmitted).toBe(true);
+                expect(loginFailureEmitted).toBe(true);
+            });
+        });
+
         it("throws error if called in a popup", (done) => {
             const oldWindowOpener = window.opener;
             const oldWindowName = window.name;
@@ -411,6 +684,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("acquireTokenSilent", () => {
+        it("throws No Account error if no account is provided", async () => {
+            await expect(pca.acquireTokenSilent({scopes: []})).rejects.toMatchObject(BrowserAuthError.createNoAccountError());
+        });
+
         it("Calls SilentCacheClient.acquireToken and returns its response", async () => {
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
@@ -941,6 +1218,22 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("getAccountByHomeId returns null if passed id is null", () => {
             // @ts-ignore
             const account = pca.getAccountByHomeId(null);
+            expect(account).toBe(null);
+        });
+
+        it("getAccountByLocalId returns account specified", () => {
+            const account = pca.getAccountByLocalId(TEST_CONFIG.OID);
+            expect(account).toEqual(testAccountInfo1);
+        });
+
+        it("getAccountByLocalId returns null if passed id doesn't exist", () => {
+            const account = pca.getAccountByLocalId("this-id-doesnt-exist");
+            expect(account).toBe(null);
+        });
+
+        it("getAccountByLocalId returns null if passed id is null", () => {
+            // @ts-ignore
+            const account = pca.getAccountByLocalId(null);
             expect(account).toBe(null);
         });
     });
