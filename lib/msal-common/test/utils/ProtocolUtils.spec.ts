@@ -94,7 +94,7 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
         expect(requestState.userRequestState).toBe(userState);
     });
 
-    it("parseRequestState() correctly splits the state by the resource delimiter", () => {
+    it("parseRequestState returns user state without decoding", () => {
         const requestState = ProtocolUtils.parseRequestState(cryptoInterface, `${encodedLibState}${Constants.RESOURCE_DELIM}${"test%25u00f1"}`);
         expect(requestState.userRequestState).toBe(`${"test%25u00f1"}`);
     });
