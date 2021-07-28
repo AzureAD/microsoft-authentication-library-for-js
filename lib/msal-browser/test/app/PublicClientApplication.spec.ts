@@ -19,6 +19,13 @@ import { EventHandler } from "../../src/event/EventHandler";
 import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient";
 import { Base64Encode } from "../../src/encode/Base64Encode";
 import { XhrClient } from "../../src/network/XhrClient";
+import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
+import { BrowserUtils } from "../../src/utils/BrowserUtils";
+import { RedirectClient } from "../../src/interaction_client/RedirectClient";
+import { PopupClient } from "../../src/interaction_client/PopupClient";
+import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
+import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
+import { EndSessionRequest } from "../../src";
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     let pca: PublicClientApplication;
@@ -46,6 +53,34 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     });
 
     describe("handleRedirectPromise", () => {
+        it("Calls RedirectClient.handleRedirectPromise and returns its response", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            const redirectClientSpy = sinon.stub(RedirectClient.prototype, "handleRedirectPromise").resolves(testTokenResponse);
+
+            const response = await pca.handleRedirectPromise();
+            expect(response).toEqual(testTokenResponse);
+            expect(redirectClientSpy.calledOnce).toBe(true);
+        });
+
         it("Multiple concurrent calls to handleRedirectPromise return the same promise", async () => {
             const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
@@ -175,6 +210,45 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
     });
 
+    describe("acquireTokenRedirect", () => {
+        it("throws error if called in a popup", (done) => {
+            const oldWindowOpener = window.opener;
+            const oldWindowName = window.name;
+            const newWindow = {
+                ...window
+            };
+            
+            delete window.opener;
+            delete window.name;
+            window.opener = newWindow;
+            window.name = "msal.testPopup"
+
+            sinon.stub(BrowserUtils, "isInIframe").returns(false);
+            pca.acquireTokenRedirect({scopes: ["openid"]}).catch(e => {
+                expect(e).toBeInstanceOf(BrowserAuthError);
+                expect(e.errorCode).toEqual(BrowserAuthErrorMessage.blockAcquireTokenInPopupsError.code);
+                expect(e.errorMessage).toEqual(BrowserAuthErrorMessage.blockAcquireTokenInPopupsError.desc);
+                done();
+            }).finally(() => {
+                window.name = oldWindowName;
+                window.opener = oldWindowOpener;
+            });
+        });
+
+        it("throws an error if inside an iframe", async () => {
+            sinon.stub(BrowserUtils, "isInIframe").returns(true);
+            await expect(pca.acquireTokenRedirect({ scopes: [] })).rejects.toMatchObject(BrowserAuthError.createRedirectInIframeError(true));
+        });
+
+        it("Calls RedirectClient.acquireToken and returns its response", async () => {
+            const redirectClientSpy = sinon.stub(RedirectClient.prototype, "acquireToken").resolves();
+
+            const response = await pca.acquireTokenRedirect({scopes: ["openid"]});
+            expect(response).toEqual(undefined);
+            expect(redirectClientSpy.calledOnce).toBe(true);
+        });
+    });
+
     describe("loginPopup", () => {
         beforeEach(() => {
             const popupWindow = {
@@ -183,12 +257,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             // @ts-ignore
             sinon.stub(window, "open").returns(popupWindow);
-        });
-
-        afterEach(() => {
-            window.localStorage.clear();
-            window.sessionStorage.clear();
-            sinon.restore();
         });
 
         it("Uses default request if no request provided", (done) => {
@@ -243,7 +311,202 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
     });
 
+    describe("acquireTokenPopup", () => {
+        beforeEach(() => {
+            const popupWindow = {
+                ...window,
+                close: () => {}
+            };
+            // @ts-ignore
+            sinon.stub(window, "open").returns(popupWindow);
+        });
+
+        afterEach(() => {
+            window.localStorage.clear();
+            window.sessionStorage.clear();
+            sinon.restore();
+        });
+
+        it("Calls PopupClient.acquireToken and returns its response", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            const popupClientSpy = sinon.stub(PopupClient.prototype, "acquireToken").resolves(testTokenResponse);
+
+            const response = await pca.acquireTokenPopup({scopes: ["openid"]});
+            expect(response).toEqual(testTokenResponse);
+            expect(popupClientSpy.calledOnce).toBe(true);
+        });
+
+        it("throws error if called in a popup", (done) => {
+            const oldWindowOpener = window.opener;
+            const oldWindowName = window.name;
+
+            const newWindow = {
+                ...window
+            };
+            
+            delete window.opener;
+            delete window.name;
+            window.opener = newWindow;
+            window.name = "msal.testPopup"
+
+            pca.acquireTokenPopup({scopes: ["openid"]}).catch(e => {
+                expect(e).toBeInstanceOf(BrowserAuthError);
+                expect(e.errorCode).toEqual(BrowserAuthErrorMessage.blockAcquireTokenInPopupsError.code);
+                expect(e.errorMessage).toEqual(BrowserAuthErrorMessage.blockAcquireTokenInPopupsError.desc);
+                done();
+            }).finally(() => {
+                window.name = oldWindowName;
+                window.opener = oldWindowOpener;
+            });
+        });
+    });
+
+    describe("ssoSilent", () => {
+        it("Calls SilentIframeClient.acquireToken and returns its response", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            const silentClientSpy = sinon.stub(SilentIframeClient.prototype, "acquireToken").resolves(testTokenResponse);
+
+            const response = await pca.ssoSilent({scopes: ["openid"]});
+            expect(response).toEqual(testTokenResponse);
+            expect(silentClientSpy.calledOnce).toBe(true);
+        });
+    });
+
     describe("acquireTokenSilent", () => {
+        it("Calls SilentCacheClient.acquireToken and returns its response", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            const silentCacheSpy = sinon.stub(SilentCacheClient.prototype, "acquireToken").resolves(testTokenResponse);
+            const silentRefreshSpy = sinon.spy(SilentRefreshClient.prototype, "acquireToken");
+            const silentIframeSpy = sinon.spy(SilentIframeClient.prototype, "acquireToken");
+
+            const response = await pca.acquireTokenSilent({scopes: ["openid"], account: testAccount});
+            expect(response).toEqual(testTokenResponse);
+            expect(silentCacheSpy.calledOnce).toBe(true);
+            expect(silentRefreshSpy.called).toBe(false);
+            expect(silentIframeSpy.called).toBe(false);
+        });
+
+        it("Calls SilentRefreshClient.acquireToken and returns its response if cache lookup throws", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            const silentCacheSpy = sinon.stub(SilentCacheClient.prototype, "acquireToken").rejects("Expired");
+            const silentRefreshSpy = sinon.stub(SilentRefreshClient.prototype, "acquireToken").resolves(testTokenResponse);
+            const silentIframeSpy = sinon.spy(SilentIframeClient.prototype, "acquireToken");
+
+            const response = await pca.acquireTokenSilent({scopes: ["openid"], account: testAccount});
+            expect(response).toEqual(testTokenResponse);
+            expect(silentCacheSpy.calledOnce).toBe(true);
+            expect(silentRefreshSpy.calledOnce).toBe(true);
+            expect(silentIframeSpy.called).toBe(false);
+        });
+
+        it("Calls SilentIframeClient.acquireToken and returns its response if cache lookup throws and refresh token is expired", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            const silentCacheSpy = sinon.stub(SilentCacheClient.prototype, "acquireToken").rejects("Expired");
+            const silentRefreshSpy = sinon.stub(SilentRefreshClient.prototype, "acquireToken").rejects(new ServerError(BrowserConstants.INVALID_GRANT_ERROR, "Refresh Token expired"));
+            const silentIframeSpy = sinon.stub(SilentIframeClient.prototype, "acquireToken").resolves(testTokenResponse);
+
+            const response = await pca.acquireTokenSilent({scopes: ["openid"], account: testAccount});
+            expect(response).toEqual(testTokenResponse);
+            expect(silentCacheSpy.calledOnce).toBe(true);
+            expect(silentRefreshSpy.calledOnce).toBe(true);
+            expect(silentIframeSpy.calledOnce).toBe(true);
+        });
+
         it("makes one network request with multiple parallel silent requests with same request", async () => {
             const testServerTokenResponse = {
                 token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
@@ -537,6 +800,38 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(tokenResp).toEqual(testTokenResponse);
             expect(createAcqTokenStub.calledWith(expectedRequest)).toBeTruthy();
             expect(silentTokenHelperStub.calledWith(testNavUrl)).toBeTruthy();
+        });
+    });
+
+    describe("logout", () => {
+        it("calls logoutRedirect", (done) => {
+            sinon.stub(pca, "logoutRedirect").callsFake((request) => {
+                expect(request && request.postLogoutRedirectUri).toBe("/logout");
+                done();
+                return Promise.resolve();
+            });
+    
+            pca.logout({postLogoutRedirectUri: "/logout"});
+        });
+    });
+
+    describe("logoutRedirect", () => {
+        it("Calls RedirectClient.logout and returns its response", async () => {
+            const redirectClientSpy = sinon.stub(RedirectClient.prototype, "logout").resolves();
+
+            const response = await pca.logoutRedirect();
+            expect(response).toEqual(undefined);
+            expect(redirectClientSpy.calledOnce).toBe(true);
+        });
+    });
+
+    describe("logoutPopup", () => {
+        it("Calls PopupClient.logout and returns its response", async () => {
+            const popupClientSpy = sinon.stub(PopupClient.prototype, "logout").resolves();
+
+            const response = await pca.logoutPopup();
+            expect(response).toEqual(undefined);
+            expect(popupClientSpy.calledOnce).toBe(true);
         });
     });
 
