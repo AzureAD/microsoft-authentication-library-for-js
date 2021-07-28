@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "fix: fixing the npm audit issues",
-  "packageName": "@azure/msal-react",
-  "email": "samuelkamau@microsoft.com",
-  "dependentChangeType": "patch"
-}

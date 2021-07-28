@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add fix for loginRedirect failure when angular index.html base href is different from the origin (#3875)",
-  "packageName": "@azure/msal-browser",
-  "email": "rishanthakumar@gmail.com",
-  "dependentChangeType": "patch"
-}
