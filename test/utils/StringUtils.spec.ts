@@ -138,7 +138,7 @@ describe("StringUtils.ts Class Unit Tests", () => {
 
     });
 
-    it("queryStringToObject correctly deserializes query string into object", () => {
+    it("queryStringToObject correctly deserializes URI encoded query string into decoded object", () => {
         const serializedObj = "param1=test%2525u00f1";
         const deserializedObj = {
             "param1": "test%25u00f1"
