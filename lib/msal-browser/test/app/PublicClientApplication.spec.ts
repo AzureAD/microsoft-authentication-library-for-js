@@ -2173,6 +2173,170 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 expect(silentTokenHelperStub.calledWith(testNavUrl)).toBeTruthy();
             }
         );
+
+        it("makes one network request with multiple parallel silent requests with same request", async () => {
+            const testServerTokenResponse = {
+                token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
+                scope: TEST_CONFIG.DEFAULT_SCOPES.join(" "),
+                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                ext_expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+                access_token: TEST_TOKENS.ACCESS_TOKEN,
+                refresh_token: TEST_TOKENS.REFRESH_TOKEN,
+                id_token: TEST_TOKENS.IDTOKEN_V2
+            };
+            const testIdTokenClaims: TokenClaims = {
+                "ver": "2.0",
+                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+            };
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || ""
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testIdTokenClaims.oid || "",
+                tenantId: testIdTokenClaims.tid || "",
+                scopes: [...TEST_CONFIG.DEFAULT_SCOPES, "User.Read"],
+                idToken: testServerTokenResponse.id_token,
+                idTokenClaims: testIdTokenClaims,
+                accessToken: testServerTokenResponse.access_token,
+                fromCache: false,
+                expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+            const silentATStub = sinon.stub(RefreshTokenClient.prototype, <any>"acquireTokenByRefreshToken").resolves(testTokenResponse);
+            const tokenRequest: CommonSilentFlowRequest = {
+                scopes: ["User.Read"],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: AuthenticationScheme.BEARER,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false
+            };
+            const expectedTokenRequest: CommonSilentFlowRequest = {
+                ...tokenRequest,
+                scopes: ["User.Read"],
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID,
+                forceRefresh: false
+            };
+            const silentRequest1 = pca.acquireTokenSilent(tokenRequest);
+            const silentRequest2 = pca.acquireTokenSilent(tokenRequest);
+            const silentRequest3 = pca.acquireTokenSilent(tokenRequest);
+            const parallelResponse = await Promise.all([silentRequest1, silentRequest2, silentRequest3]);
+
+            expect(silentATStub.calledWith(expectedTokenRequest)).toBeTruthy();
+            expect(silentATStub.callCount).toEqual(1);
+            expect(parallelResponse[0]).toEqual(testTokenResponse);
+            expect(parallelResponse[1]).toEqual(testTokenResponse);
+            expect(parallelResponse[2]).toEqual(testTokenResponse);
+            expect(parallelResponse).toHaveLength(3);
+        });
+
+        it("makes network requests for each distinct request when acquireTokenSilent is called in parallel", async () => {
+            const testIdTokenClaims: TokenClaims = {
+                "ver": "2.0",
+                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+            };
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || ""
+            };
+            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+            const silentATStub = sinon.stub(RefreshTokenClient.prototype, <any>"acquireTokenByRefreshToken");
+            const tokenRequest1: CommonSilentFlowRequest = {
+                scopes: ["User.Read"],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: AuthenticationScheme.BEARER,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false
+            };
+            const expectedTokenRequest1: CommonSilentFlowRequest = {
+                ...tokenRequest1,
+                scopes: ["User.Read"],
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID,
+                forceRefresh: false
+            };
+            const tokenRequest2: CommonSilentFlowRequest = {
+                scopes: ["Mail.Read"],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: AuthenticationScheme.BEARER,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false
+            };
+            const expectedTokenRequest2: CommonSilentFlowRequest = {
+                ...tokenRequest1,
+                scopes: ["Mail.Read"],
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID,
+                forceRefresh: false
+            };
+            const silentRequest1 = pca.acquireTokenSilent(tokenRequest1);
+            const silentRequest2 = pca.acquireTokenSilent(tokenRequest1);
+            const silentRequest3 = pca.acquireTokenSilent(tokenRequest2);
+            await Promise.all([silentRequest1, silentRequest2, silentRequest3]);
+
+            expect(silentATStub.calledWith(expectedTokenRequest1)).toBeTruthy();
+            expect(silentATStub.calledWith(expectedTokenRequest2)).toBeTruthy();
+            expect(silentATStub.callCount).toEqual(2);
+        });
+
+        it("throws error that SilentFlowClient.acquireToken() throws when making parallel requests", async () => {
+            const testError = {
+                errorCode: "create_login_url_error",
+                errorMessage: "Error in creating a login url"
+            };
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "testTenantId",
+                username: "username@contoso.com"
+            };
+            sinon.stub(RefreshTokenClient.prototype, <any>"acquireTokenByRefreshToken").rejects(testError);
+            try {
+                const tokenRequest = {
+                    scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                    account: testAccount
+                };
+                const silentRequest1 = pca.acquireTokenSilent(tokenRequest);
+                const silentRequest2 = pca.acquireTokenSilent(tokenRequest);
+                const silentRequest3 = pca.acquireTokenSilent(tokenRequest);
+                await Promise.all([silentRequest1, silentRequest2, silentRequest3]);
+            } catch (e) {
+                // Test that error was cached for telemetry purposes and then thrown
+                expect(window.sessionStorage).toHaveLength(1);
+                const failures = window.sessionStorage.getItem(`server-telemetry-${TEST_CONFIG.MSAL_CLIENT_ID}`);
+                const failureObj = JSON.parse(failures || "") as ServerTelemetryEntity;
+                expect(failureObj.failedRequests).toHaveLength(2);
+                expect(failureObj.failedRequests[0]).toEqual(ApiId.acquireTokenSilent_silentFlow);
+                expect(failureObj.errors[0]).toEqual(testError.errorCode);
+                expect(e).toEqual(testError);
+            }
+        });
     });
 
     describe("logoutRedirect", () => {
