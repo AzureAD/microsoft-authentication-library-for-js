@@ -1394,7 +1394,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
                 postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
-                idTokenHint: "id_token_hint"
+                idTokenHint: "id_token_hint",
+                state: "test_state"
             });
 
             expect(removeAccountSpy.calledWith(AccountEntity.generateAccountCacheKey(testAccount))).toBe(true);
@@ -1425,7 +1426,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
                 postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
-                idTokenHint: "id_token_hint"
+                idTokenHint: "id_token_hint",
+                state: "test_state"
             });
 
             expect(removeAccountSpy.calledWith(AccountEntity.generateAccountCacheKey(testAccount))).toBe(true);
@@ -1450,7 +1452,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                 account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
                 postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
-                state:"abcDe"
+                state:"test_state"
             });
 
             expect(removeAccountSpy.calledWith(AccountEntity.generateAccountCacheKey(testAccount))).toBe(true);
