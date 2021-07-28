@@ -70,16 +70,15 @@ export class TokenCache implements ITokenCache {
 
         const idTokenEntity = IdTokenEntity.createIdTokenEntity(homeAccountId, environment, idToken, this.config.auth.clientId, tenantId);
 
-        if (this.isBrowserEnvironment) {
+        if (options.callback) {
+            this.logger.verbose("TokenCache - callback with id token");
+            const idTokenKey = idTokenEntity.generateCredentialKey();
+            options.callback(idTokenKey, JSON.stringify(idTokenEntity));
+        } else if (this.isBrowserEnvironment) {
             this.logger.verbose("TokenCache - loading id token");
             this.storage.setIdTokenCredential(idTokenEntity);
         } else {
-            if (options.callback) {
-                const idTokenKey = idTokenEntity.generateCredentialKey();
-                options.callback(idTokenKey, JSON.stringify(idTokenEntity));
-            } else {
-                throw BrowserAuthError.createUnableToLoadTokenError("Please provide callback to cache id tokens in non-browser environments.");
-            }
+            throw BrowserAuthError.createUnableToLoadTokenError("Please provide callback to cache id tokens in non-browser environments.");
         }
     }
 
@@ -104,17 +103,15 @@ export class TokenCache implements ITokenCache {
 
         const accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(homeAccountId, environment, response.access_token, this.config.auth.clientId, tenantId, scopes, expiresOn, extendedExpiresOn, this.cryptoObj);
 
-        // Cache token to local/session storage if browser, otherwise provide callback
-        if (this.isBrowserEnvironment) {
+        if (options.callback) {
+            this.logger.verbose("TokenCache - callback access token");
+            const accessTokenKey = accessTokenEntity.generateCredentialKey();
+            options.callback(accessTokenKey, JSON.stringify(accessTokenEntity));
+        } else if (this.isBrowserEnvironment) {
             this.logger.verbose("TokenCache - loading access token");
             this.storage.setAccessTokenCredential(accessTokenEntity);
         } else {
-            if (options.callback) {
-                const accessTokenKey = accessTokenEntity.generateCredentialKey();
-                options.callback(accessTokenKey, JSON.stringify(accessTokenEntity));
-            } else {
-                throw BrowserAuthError.createUnableToLoadTokenError("Please provide callback to cache access tokens in non-browser environments");
-            }
+            throw BrowserAuthError.createUnableToLoadTokenError("Please provide callback to cache access tokens in non-browser environments");
         }
     }
 }

@@ -1,5 +1,5 @@
 import sinon from "sinon";
-import { Logger, LogLevel,IdTokenEntity, AccessTokenEntity, ClientInfo, ScopeSet, ServerAuthorizationROPCResponse} from "@azure/msal-common";
+import { Logger, LogLevel,IdTokenEntity, AccessTokenEntity, ClientInfo, ScopeSet, ServerAuthorizationROPCResponse, IdToken} from "@azure/msal-common";
 import { TokenCache, LoadTokenOptions } from "./../../src/cache/TokenCache";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
@@ -205,6 +205,33 @@ describe("TokenCache tests", () => {
             tokenCache.loadTokens(request, response, options); 
 
             expect(browserStorage.getAccessTokenCredential(accessTokenKey)).toEqual(accessTokenEntity);
+        });
+
+        it("loads tokens using callback if provided", (done) => {
+            const testCallback = (key: string, value: string) => {
+                expect(key).toEqual(idTokenKey);
+                expect(value).toEqual(JSON.stringify(idTokenEntity));
+                done();
+            };
+
+            const request: SilentRequest = {
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                account: {
+                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                    environment: testEnvironment,
+                    tenantId: TEST_CONFIG.TENANT,
+                    username: "username",
+                    localAccountId: "localAccountId" 
+                }
+            };
+            const response: ServerAuthorizationROPCResponse = {
+                id_token: testIdToken,
+                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
+            };
+            const options: LoadTokenOptions = {
+                callback: testCallback
+            };
+            tokenCache.loadTokens(request, response, options);
         });
 
         it("throws error if callback not provided in non-browser environment", () => {
