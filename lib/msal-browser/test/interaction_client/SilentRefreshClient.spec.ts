@@ -6,18 +6,23 @@
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID } from "../utils/StringConstants";
-import { Constants, AccountInfo, TokenClaims, AuthenticationResult, AuthenticationScheme, RefreshTokenClient, ServerTelemetryEntity, CommonSilentFlowRequest } from "@azure/msal-common";
-import { ApiId } from "../../src/utils/BrowserConstants";
+import { Constants, AccountInfo, TokenClaims, AuthenticationResult, AuthenticationScheme, RefreshTokenClient, CommonSilentFlowRequest } from "@azure/msal-common";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { BrowserAuthError } from "../../src/error/BrowserAuthError";
+import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
 
 describe("SilentRefreshClient", () => {
     let pca: PublicClientApplication;
+    let silentRefreshClient: SilentRefreshClient;
+
     beforeEach(() => {
         pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         });
+        // @ts-ignore
+        silentRefreshClient = new SilentRefreshClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
     });
 
     afterEach(() => {
@@ -88,6 +93,12 @@ describe("SilentRefreshClient", () => {
             const tokenResp = await pca.acquireTokenSilent(tokenRequest);
             expect(silentATStub.calledWith(expectedTokenRequest)).toBeTruthy();
             expect(tokenResp).toEqual(testTokenResponse);
+        });
+    });
+
+    describe("logout", () => {
+        it("logout throws unsupported error", async () => {
+            await expect(silentRefreshClient.logout).rejects.toMatchObject(BrowserAuthError.createSilentLogoutUnsupportedError());
         });
     });
 });

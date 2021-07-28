@@ -14,15 +14,19 @@ import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { PopupUtils } from "../../src/utils/PopupUtils";
 import { EndSessionPopupRequest } from "../../src/request/EndSessionPopupRequest";
+import { PopupClient } from "../../src/interaction_client/PopupClient";
 
 describe("PopupClient", () => {
     let pca: PublicClientApplication;
+    let popupClient: PopupClient;
     beforeEach(() => {
         pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         });
+        //@ts-ignore
+        popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
     });
 
     afterEach(() => {
@@ -51,7 +55,7 @@ describe("PopupClient", () => {
         it("throws error if interaction is in progress", async () => {
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
 
-            await expect(pca.loginPopup()).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
+            await expect(popupClient.acquireToken({scopes:[]})).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
         });
 
         it("opens popup window before network request by default", async () => {
@@ -75,7 +79,7 @@ describe("PopupClient", () => {
             const popupSpy = sinon.stub(PopupUtils, "openSizedPopup");
 
             try {
-                await pca.acquireTokenPopup(request);
+                await popupClient.acquireToken(request);
             } catch(e) {}
             expect(popupSpy.getCall(0).args).toHaveLength(2);
         });
@@ -89,6 +93,8 @@ describe("PopupClient", () => {
                     asyncPopups: true
                 }
             });
+            //@ts-ignore
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
 
             sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
@@ -110,7 +116,7 @@ describe("PopupClient", () => {
             const popupSpy = sinon.stub(PopupUtils, "openSizedPopup");
 
             try {
-                await pca.acquireTokenPopup(request);
+                await popupClient.acquireToken(request);
             } catch(e) {}
             expect(popupSpy.calledOnce).toBeTruthy();
             expect(popupSpy.getCall(0).args).toHaveLength(2);
@@ -172,7 +178,7 @@ describe("PopupClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
-            const tokenResp = await pca.acquireTokenPopup({
+            const tokenResp = await popupClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES
             });
@@ -192,7 +198,7 @@ describe("PopupClient", () => {
             });
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             try {
-                await pca.acquireTokenPopup({
+                await popupClient.acquireToken({
                     redirectUri: TEST_URIS.TEST_REDIR_URI,
                     scopes: TEST_CONFIG.DEFAULT_SCOPES
                 });
@@ -228,14 +234,14 @@ describe("PopupClient", () => {
         it("throws error if interaction is in progress", async () => {
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
 
-            await expect(pca.logoutPopup()).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
+            await expect(popupClient.logout()).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
         });
 
         it("opens popup window before network request by default", async () => {
             const popupSpy = sinon.stub(PopupUtils, "openSizedPopup");
 
             try {
-                await pca.logoutPopup();
+                await popupClient.logout();
             } catch(e) {}
             expect(popupSpy.getCall(0).args).toHaveLength(2);
         });
@@ -249,6 +255,9 @@ describe("PopupClient", () => {
                     asyncPopups: true
                 }
             });
+            //@ts-ignore
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+
             sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate, popupName) => {
                 expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).toBeTruthy();
                 expect(popupName.startsWith(`msal.${TEST_CONFIG.MSAL_CLIENT_ID}`)).toBeTruthy();
@@ -256,7 +265,7 @@ describe("PopupClient", () => {
                 return null;
             });
 
-            pca.logoutPopup().catch(() => {});
+            popupClient.logout().catch(() => {});
         });
 
         it("catches error and cleans cache before rethrowing", async () => {
@@ -267,7 +276,7 @@ describe("PopupClient", () => {
             sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").throws(testError);
 
             try {
-                await pca.logoutPopup();
+                await popupClient.logout();
             } catch (e) {
                 // Test that error was cached for telemetry purposes and then thrown
                 expect(window.sessionStorage).toHaveLength(1);
@@ -289,6 +298,9 @@ describe("PopupClient", () => {
                     asyncPopups: true
                 }
             });
+            //@ts-ignore
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+
             sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
                 expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).toBeTruthy();
                 expect(urlNavigate).toContain(`post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`);
@@ -298,7 +310,7 @@ describe("PopupClient", () => {
 
             const postLogoutRedirectUri = "https://localhost:8000/logout";
 
-            pca.logoutPopup({
+            popupClient.logout({
                 postLogoutRedirectUri
             }).catch(() => {});
         });
@@ -314,6 +326,9 @@ describe("PopupClient", () => {
                     asyncPopups: true
                 }
             });
+            //@ts-ignore
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+
             sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
                 expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).toBeTruthy();
                 expect(urlNavigate).toContain(`post_logout_redirect_uri=${encodeURIComponent(postLogoutRedirectUri)}`);
@@ -321,7 +336,7 @@ describe("PopupClient", () => {
                 throw "Stop Test";
             });
 
-            pca.logoutPopup().catch(() => {});
+            popupClient.logout().catch(() => {});
         });
 
         it("includes postLogoutRedirectUri as current page if none is set on request", (done) => {
@@ -333,6 +348,9 @@ describe("PopupClient", () => {
                     asyncPopups: true
                 }
             });
+            //@ts-ignore
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+            
             sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
                 expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).toBeTruthy();
                 expect(urlNavigate).toContain(`post_logout_redirect_uri=${encodeURIComponent(window.location.href)}`);
@@ -340,7 +358,7 @@ describe("PopupClient", () => {
                 throw "Stop Test";
             });
 
-            pca.logoutPopup().catch(() => {});
+            popupClient.logout().catch(() => {});
         });
 
         it("redirects main window when logout is complete", (done) => {
@@ -359,7 +377,19 @@ describe("PopupClient", () => {
                 mainWindowRedirectUri: "/home"
             };
 
-            pca.logoutPopup(request);
+            popupClient.logout(request);
+        });
+
+        it("closing the popup does not throw", (done) => {
+            const popupWindow = {...window};
+            sinon.stub(PopupUtils, "openSizedPopup").returns(popupWindow);
+            popupWindow.closed = true;
+            sinon.stub(PopupUtils.prototype, "openPopup").returns(popupWindow);
+            sinon.stub(PopupUtils.prototype, "cleanPopup");
+
+            popupClient.logout().then(() => {
+                done();
+            });
         });
     });
 });

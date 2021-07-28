@@ -10,15 +10,20 @@ import { AccountInfo, TokenClaims, PromptValue, AuthenticationResult, CommonAuth
 import { BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
+import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient";
 
 describe("SilentIframeClient", () => {
     let pca: PublicClientApplication;
+    let silentIframeClient: SilentIframeClient;
+
     beforeEach(() => {
         pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         });
+        // @ts-ignore
+        silentIframeClient = new SilentIframeClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
     });
 
     afterEach(() => {
@@ -166,6 +171,12 @@ describe("SilentIframeClient", () => {
             });
             expect(loadFrameSyncSpy.calledOnce).toBeTruthy();
             expect(tokenResp).toEqual(testTokenResponse);
+        });
+    });
+
+    describe("logout", () => {
+        it("logout throws unsupported error", async () => {
+            await expect(silentIframeClient.logout).rejects.toMatchObject(BrowserAuthError.createSilentLogoutUnsupportedError());
         });
     });
 });
