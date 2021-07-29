@@ -283,4 +283,17 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err.name).toBe("BrowserAuthError");
         expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
+
+    it.only("createUnableToLoadTokenError()", () => {
+        const err: BrowserAuthError = BrowserAuthError.createUnableToLoadTokenError("Load Token Error Detail");
+
+        expect(err instanceof BrowserAuthError).toBe(true);
+        expect(err instanceof AuthError).toBe(true);
+        expect(err instanceof Error).toBe(true);
+        expect(err.errorCode).toBe(BrowserAuthErrorMessage.unableToLoadTokenError.code);
+        expect(err.errorMessage?.includes(BrowserAuthErrorMessage.unableToLoadTokenError.desc)).toBe(true);
+        expect(err.message?.includes(BrowserAuthErrorMessage.unableToLoadTokenError.desc)).toBe(true);
+        expect(err.name).toBe("BrowserAuthError");
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
+    });
 });
