@@ -109,9 +109,10 @@ async function loadTokens() {
         extendedExpiresOn: 2000000000,
         clientInfo: "be064c37-2617-468c-b627-25b4e4817adf.19eea2f8-e17a-470f-954d-d897c47f311c"
     };
+    const msalTokenCache = myMSALObj.getTokenCache();
 
     try {
-        await myMSALObj.getTokenCache().loadTokens(request, response, options);
+        await msalTokenCache.loadTokens(request, response, options);
     } catch(e) {
         console.error(e);
     }
