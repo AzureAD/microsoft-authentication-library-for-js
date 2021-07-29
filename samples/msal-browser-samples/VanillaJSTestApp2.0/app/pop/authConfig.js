@@ -31,8 +31,7 @@ const msalConfig = {
                         console.trace(message);
                         return;	
                 }
-            },
-            logLevel: msal.LogLevel.Verbose
+            }
         }
     }
 };
