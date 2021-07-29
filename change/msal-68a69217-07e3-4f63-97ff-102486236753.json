@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "fix: update package lock files",
-  "packageName": "msal",
-  "email": "samuelkamau@microsoft.com",
-  "dependentChangeType": "none"
-}

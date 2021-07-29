@@ -1,7 +1,7 @@
 import { IdTokenEntity } from "../../../src/cache/entities/IdTokenEntity";
 import { mockIdTokenEntity, mockAccessTokenEntity_1 } from "./cacheConstants";
-import { ClientAuthError, ClientAuthErrorMessage } from "../../../src";
 import { CacheType } from "../../../src/utils/Constants";
+import { ClientAuthError, ClientAuthErrorMessage } from "../../../src/error/ClientAuthError";
 
 describe("IdTokenEntity.ts Unit Tests", () => {
     it("Verify an IdTokenEntity", () => {

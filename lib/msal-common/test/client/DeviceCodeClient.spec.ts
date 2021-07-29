@@ -1,14 +1,5 @@
 import sinon from "sinon";
 import {
-    Authority,
-    Constants,
-    DeviceCodeClient,
-    CommonDeviceCodeRequest,
-    ClientConfiguration,
-    AuthToken,
-    ClientAuthError,
-} from "../../src";
-import {
     AUTHENTICATION_RESULT, AUTHORIZATION_PENDING_RESPONSE,
     DEFAULT_OPENID_CONFIG_RESPONSE,
     DEVICE_CODE_EXPIRED_RESPONSE,
@@ -21,8 +12,14 @@ import {
     RANDOM_TEST_GUID
 } from "../test_kit/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
-import { AADServerParamKeys, GrantType, ThrottlingConstants } from "../../src/utils/Constants";
+import { AADServerParamKeys, GrantType, ThrottlingConstants, Constants } from "../../src/utils/Constants";
 import { ClientTestUtils } from "./ClientTestUtils";
+import { ClientConfiguration } from "../../src/config/ClientConfiguration";
+import { Authority } from "../../src/authority/Authority";
+import { AuthToken } from "../../src/account/AuthToken";
+import { DeviceCodeClient } from "../../src/client/DeviceCodeClient";
+import { CommonDeviceCodeRequest } from "../../src/request/CommonDeviceCodeRequest";
+import { ClientAuthError } from "../../src/error/ClientAuthError";
 
 describe("DeviceCodeClient unit tests", () => {
     let config: ClientConfiguration;

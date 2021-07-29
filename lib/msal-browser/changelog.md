@@ -1,8 +1,38 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Wed, 12 May 2021 18:35:03 GMT and should not be manually modified.
+This log was last generated on Thu, 22 Jul 2021 22:50:22 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.16.0
+
+Thu, 22 Jul 2021 22:50:22 GMT
+
+### Minor changes
+
+- Msal-Browser supports parallel silent requests #3837 (joarroyo@microsoft.com)
+- Persist active account #3755 (thomas.norling@microsoft.com)
+
+### Patches
+
+- Add fix for loginRedirect failure when angular index.html base href is different from the origin (#3875) (rishanthakumar@gmail.com)
+- fix: fixing the npm audit issues (samuelkamau@microsoft.com)
+- Expose isInPopup helper function #3825 (thomas.norling@microsoft.com)
+
+## 2.15.0
+
+Mon, 28 Jun 2021 23:39:48 GMT
+
+### Minor changes
+
+- Add correlationId to log messages #3601 (joarroyo@microsoft.com)
+- Add CCS parameters to headers or form_data #3636 (prkanher@microsoft.com)
+
+### Patches
+
+- Update monitor_window_timeout error message with link to error docs #3783 (thomas.norling@microsoft.com)
+- Refactor event APIs into EventHandler class #3770 (thomas.norling@microsoft.com)
+- Fix logoutPopup parameter type on IPublicClientApplication #3663 (thomas.norling@microsoft.com)
 
 ## 2.14.2
 

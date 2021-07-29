@@ -3,11 +3,11 @@ import { PkceCodes } from "../../src/crypto/ICrypto";
 import { AuthError } from "../../src/error/AuthError";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { LogLevel } from "../../src/logger/Logger";
-import { Constants } from "../../src";
 import { version } from "../../src/packageMetadata";
 import {TEST_CONFIG, TEST_POP_VALUES} from "../test_kit/StringConstants";
 import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
 import { MockCache } from "../cache/entities/cacheConstants";
+import { Constants } from "../../src/utils/Constants";
 
 describe("ClientConfiguration.ts Class Unit Tests", () => {
 
