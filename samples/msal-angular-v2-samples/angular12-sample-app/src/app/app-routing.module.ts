@@ -1,6 +1,7 @@
 import { NgModule } from '@angular/core';
 import { Routes, RouterModule } from '@angular/router';
 import { MsalGuard } from '@azure/msal-angular';
+import { BrowserUtils } from '@azure/msal-browser';
 import { ProfileComponent } from './profile/profile.component';
 import { HomeComponent } from './home/home.component';
 import { FailedComponent } from './failed/failed.component';
@@ -21,12 +22,10 @@ const routes: Routes = [
   }
 ];
 
-const isIframe = window !== window.parent && !window.opener; // Remove this line to use Angular Universal
-
 @NgModule({
   imports: [RouterModule.forRoot(routes, {
-    // Don't perform initial navigation in iframes
-    initialNavigation: !isIframe ? 'enabled' : 'disabled' // Remove this line to use Angular Universal
+    // Don't perform initial navigation in iframes or popups
+    initialNavigation: !BrowserUtils.isInIframe() && !BrowserUtils.isInPopup() ? 'enabled' : 'disabled' // Remove this line to use Angular Universal
   })],
   exports: [RouterModule]
 })
