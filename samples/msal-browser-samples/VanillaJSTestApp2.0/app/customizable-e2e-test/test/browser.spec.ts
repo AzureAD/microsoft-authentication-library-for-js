@@ -305,7 +305,7 @@ describe("Default tests", function () {
             it("Performs loadTokens", async () => {
                 await page.waitForSelector("#loadTokens");
 
-                // Remove id_tokens and accesstokens from cache so we can verify id token loaded
+                // Remove id_tokens and access_tokens from cache so we can verify tokens loaded
                 const tokenStore = await BrowserCache.getTokens();
                 await BrowserCache.removeTokens(tokenStore.idTokens);
                 await BrowserCache.removeTokens(tokenStore.accessTokens);
