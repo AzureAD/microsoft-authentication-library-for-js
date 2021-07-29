@@ -1,0 +1,143 @@
+# Testing
+
+MSAL Browser starting version 2.17.0 has added the `loadTokens()` API, which allows the loading of id tokens and access tokens to the MSAL cache, which can then be read out using `acquireTokenSilent()`. 
+
+**Note: This is an advanced feature that is intended for testing purposes only. Loading tokens to your application's cache may cause your app to break.**
+
+## The loadTokens() API
+
+The `loadToken()` API can be accessed by calling `getTokenCache()` on MSAL Browser's `PublicClientApplication` instance. 
+
+```js
+myMSALObj.getTokenCache().loadTokens(silentRequest, serverResponse, loadTokenOptions);
+```
+
+`loadTokens()` takes in a request of type `SilentRequest`, a response of type `ServerAuthenticationROPCRespones`, and options of type `LoadTokenOptions`.
+
+See the type definitions for each below:
+
+- [`SilentRequest`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#silentrequest)
+- [`ServerAuthenticationROPCResponse`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#serverauthorizationropcresponse)
+
+```js
+export type LoadTokenOptions = {
+    clientInfo?: string,
+    extendedExpiresOn?: number,
+    callback?: TokenCallback
+};
+```
+
+### Loading id tokens
+
+Provide the following to load an id token:
+
+1. A server response with the id token, scopes, token_type, and expires_in value, and
+1. Either:
+    - A `SilentRequest` object with account information, OR
+    - A `SilentRequest` object with the authority AND a `LoadTokenOptions` object with `clientInfo`, OR
+    - A `SilentRequest` object with the authority AND a server response object with `client_info`
+
+See the code examples below:
+
+```js
+const silentRequest: SilentRequest = {
+    scopes: ["User.Read", "email"],
+    account: {
+        homeAccountId: "your-home-account-id",
+        environment: "login.microsoftonline.com",
+        tenantId: "your-tenant-id",
+        username: "test@contoso.com",
+        localAccountId: "your-local-account-id"
+    }
+};
+
+const serverResponse: ServerAuthorizationROPCResponse = {
+    token_type: "Bearer",
+    scopes: "User.Read email",
+    expires_in: 3599,
+    id_token: "id-token-here"
+}
+
+const loadTokenOptions: LoadTokenOptions = {};
+
+OR
+
+const silentRequest: SilentRequest = {
+    scopes: ["User.Read", "email"],
+    authority: "https://login.microsoftonline.com/your-tenant-id"
+};
+
+const serverResponse: ServerAuthorizationROPCResponse = {
+    token_type: "Bearer",
+    scopes: "User.Read email",
+    expires_in: 3599,
+    id_token: "id-token-here",
+}
+
+const loadTokenOptions: LoadTokenOptions = {
+    clientInfo: "client-info-here"
+};
+
+OR
+
+const silentRequest: SilentRequest = {
+    scopes: ["User.Read", "email"],
+    authority: "https://login.microsoftonline.com/your-tenant-id"
+};
+
+const serverResponse: ServerAuthorizationROPCResponse = {
+    token_type: "Bearer",
+    scopes: "User.Read email",
+    expires_in: 3599,
+    id_token: "id-token-here",
+    client_info: "client-info-here"
+}
+
+const loadTokenOptions: LoadTokenOptions = {};
+```
+
+### Loading access tokens
+
+Access tokens can optionally be loaded using `loadTokens()`. Provide the following to load an access token (note that an id token is mandatory and will be loaded when loading access tokens):
+
+1. A server response with and id token, an access token, `expires_in` value, token_type, and scopes, and
+1. Either:
+    - A `SilentRequest` object with account information, OR
+    - A `SilentRequest` object with the authority AND a `LoadTokenOptions` object with `clientInfo`, 
+    - A `SilentRequest` object with the authority AND a server response object with `client_info`
+    and
+1. The `LoadTokenOptions` object must also have an `extendedExpiresOn` value.
+
+See the code examples below:
+```js
+const silentRequest: SilentRequest = {
+    scopes: ["User.Read", "email"],
+    account: {
+        homeAccountId: "your-home-account-id",
+        environment: "login.microsoftonline.com",
+        tenantId: "your-tenant-id",
+        username: "test@contoso.com",
+        localAccountId: "your-local-account-id"
+    }
+};
+
+const serverResponse: ServerAuthorizationROPCResponse = {
+    token_type: "Bearer",
+    scopes: "User.Read email",
+    expires_in: 3599,
+    id_token: "id-token-here",
+    access_token: "access-token-here"
+}
+
+const loadTokenOptions: LoadTokenOptions = {
+    extendedExpiresOn: 6599
+};
+```
+
+### Loading to a callback
+
+`loadTokens()` also provides the ability to provide a callback in the `LoadTokenOptions` object, which will override the default window storage. Callbacks should be provided in the following shape:
+
+```js
+export type TokenCallback = (key: string, value: string) => void;
+```
