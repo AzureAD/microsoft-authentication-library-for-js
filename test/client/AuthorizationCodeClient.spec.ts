@@ -1377,7 +1377,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             );
         });
 
-        it("Returns a uri with given postLogoutUri and correlationId", async () => {
+        it("Returns a uri with given parameters", async () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
@@ -1459,5 +1459,6 @@ describe("AuthorizationCodeClient unit tests", () => {
             const testLogoutUriWithParams = `${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common")}?${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI)}&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}&${AADServerParamKeys.STATE}=abcDe`;
             expect(logoutUri).toBe(testLogoutUriWithParams);
         });
+
     });
 });
