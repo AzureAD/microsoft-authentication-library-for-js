@@ -12,11 +12,10 @@ import { BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
 
 describe("SilentRefreshClient", () => {
-    let pca: PublicClientApplication;
     let silentRefreshClient: SilentRefreshClient;
 
     beforeEach(() => {
-        pca = new PublicClientApplication({
+        const pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
@@ -90,7 +89,7 @@ describe("SilentRefreshClient", () => {
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false
             };
-            const tokenResp = await pca.acquireTokenSilent(tokenRequest);
+            const tokenResp = await silentRefreshClient.acquireToken(tokenRequest);
             expect(silentATStub.calledWith(expectedTokenRequest)).toBeTruthy();
             expect(tokenResp).toEqual(testTokenResponse);
         });

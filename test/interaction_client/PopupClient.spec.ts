@@ -17,10 +17,9 @@ import { EndSessionPopupRequest } from "../../src/request/EndSessionPopupRequest
 import { PopupClient } from "../../src/interaction_client/PopupClient";
 
 describe("PopupClient", () => {
-    let pca: PublicClientApplication;
     let popupClient: PopupClient;
     beforeEach(() => {
-        pca = new PublicClientApplication({
+        const pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
@@ -85,7 +84,7 @@ describe("PopupClient", () => {
         });
 
         it("opens popups asynchronously if configured", async () => {
-            pca = new PublicClientApplication({
+            const pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
@@ -247,7 +246,7 @@ describe("PopupClient", () => {
         });
 
         it("opens popups asynchronously if configured", (done) => {
-            pca = new PublicClientApplication({
+            const pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
@@ -290,7 +289,7 @@ describe("PopupClient", () => {
         });
 
         it("includes postLogoutRedirectUri if one is passed", (done) => {
-            pca = new PublicClientApplication({
+            const pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },
@@ -317,7 +316,7 @@ describe("PopupClient", () => {
 
         it("includes postLogoutRedirectUri if one is configured", (done) => {
             const postLogoutRedirectUri = "https://localhost:8000/logout";
-            pca = new PublicClientApplication({
+            const pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     postLogoutRedirectUri
@@ -340,7 +339,7 @@ describe("PopupClient", () => {
         });
 
         it("includes postLogoutRedirectUri as current page if none is set on request", (done) => {
-            pca = new PublicClientApplication({
+            const pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 },

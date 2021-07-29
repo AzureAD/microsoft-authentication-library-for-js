@@ -209,7 +209,7 @@ export class RedirectClient extends StandardInteractionClient {
 
         try {
             this.eventHandler.emitEvent(EventType.LOGOUT_START, InteractionType.Redirect, logoutRequest);
-            const authClient = await this.createAuthCodeClient(serverTelemetryManager, logoutRequest && logoutRequest.authority, validLogoutRequest?.correlationId);
+            const authClient = await this.createAuthCodeClient(serverTelemetryManager, logoutRequest && logoutRequest.authority, validLogoutRequest.correlationId);
             browserRequestLogger.verbose("Auth code client created");
 
             // create logout string and navigate user window to logout. Auth module will clear cache.

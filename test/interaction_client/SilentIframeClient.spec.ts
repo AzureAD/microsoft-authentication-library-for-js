@@ -6,18 +6,18 @@
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, testNavUrl } from "../utils/StringConstants";
-import { AccountInfo, TokenClaims, PromptValue, AuthenticationResult, CommonAuthorizationUrlRequest, AuthorizationCodeClient, ResponseMode, AuthenticationScheme } from "@azure/msal-common";
+import { AccountInfo, TokenClaims, PromptValue, AuthenticationResult, CommonAuthorizationUrlRequest, AuthorizationCodeClient, ResponseMode, AuthenticationScheme, ServerTelemetryManager } from "@azure/msal-common";
 import { BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { SilentIframeClient } from "../../src/interaction_client/SilentIframeClient";
+import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 
 describe("SilentIframeClient", () => {
-    let pca: PublicClientApplication;
     let silentIframeClient: SilentIframeClient;
 
     beforeEach(() => {
-        pca = new PublicClientApplication({
+        const pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
@@ -35,7 +35,7 @@ describe("SilentIframeClient", () => {
 
     describe("acquireToken", () => {
         it("throws error if loginHint or sid are empty", async () => {
-            await expect(pca.ssoSilent({
+            await expect(silentIframeClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: [TEST_CONFIG.MSAL_CLIENT_ID]
             })).rejects.toMatchObject(BrowserAuthError.createSilentSSOInsufficientInfoError());
@@ -55,7 +55,30 @@ describe("SilentIframeClient", () => {
                 authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
             };
 
-            await expect(pca.ssoSilent(req)).rejects.toMatchObject(BrowserAuthError.createSilentPromptValueError(req.prompt || ""));
+            await expect(silentIframeClient.acquireToken(req)).rejects.toMatchObject(BrowserAuthError.createSilentPromptValueError(req.prompt || ""));
+        });
+
+        it("Errors thrown during token acquisition are cached for telemetry and browserStorage is cleaned", (done) => {
+            sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").resolves(testNavUrl);
+            sinon.stub(SilentHandler.prototype, "monitorIframeForHash").rejects(BrowserAuthError.createMonitorIframeTimeoutError());
+            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER
+            });
+            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+            const telemetryStub = sinon.stub(ServerTelemetryManager.prototype, "cacheFailedRequest").callsFake((e) => {
+                expect(e).toMatchObject(BrowserAuthError.createMonitorIframeTimeoutError());
+            });
+            const browserStorageSpy = sinon.spy(BrowserCacheManager.prototype, "cleanRequestByState");
+
+            silentIframeClient.acquireToken({
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                loginHint: "testLoginHint"
+            }).catch(() => {
+                expect(telemetryStub.calledOnce).toBe(true);
+                expect(browserStorageSpy.calledOnce).toBe(true);
+                done();
+            });
         });
 
         it("successfully returns a token response (login_hint)", async () => {
@@ -107,7 +130,7 @@ describe("SilentIframeClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
-            const tokenResp = await pca.ssoSilent({
+            const tokenResp = await silentIframeClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 loginHint: "testLoginHint"
             });
@@ -164,7 +187,7 @@ describe("SilentIframeClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
-            const tokenResp = await pca.ssoSilent({
+            const tokenResp = await silentIframeClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 sid: TEST_CONFIG.SID

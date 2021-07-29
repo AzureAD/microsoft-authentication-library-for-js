@@ -131,7 +131,9 @@ export const TEST_HASHES = {
     TEST_LOGIN_REQ_ERROR_HASH1: `#error=login_required&error_description=msal+error+description&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
     TEST_LOGIN_REQ_ERROR_HASH2: `#error=login_required&error_description=msal+error+description+login_required&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
     TEST_CONSENT_REQ_ERROR_HASH1: `#error=consent_required&error_description=msal+error+description&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
-    TEST_CONSENT_REQ_ERROR_HASH2: `#error=consent_required&error_description=msal+error+description+consent_required&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`
+    TEST_CONSENT_REQ_ERROR_HASH2: `#error=consent_required&error_description=msal+error+description+consent_required&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
+    TEST_SUCCESS_HASH_NO_STATE: `#id_token=${TEST_TOKENS.IDTOKEN_V2}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`,
+    TEST_SUCCESS_HASH_STATE_NO_META: `#id_token=${TEST_TOKENS.IDTOKEN_V2}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${TEST_STATE_VALUES.ENCODED_LIB_STATE}`,
 };
 
 export const DEFAULT_TENANT_DISCOVERY_RESPONSE = {

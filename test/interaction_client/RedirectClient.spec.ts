@@ -5,13 +5,13 @@
 
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
-import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, TEST_STATE_VALUES, testNavUrlNoRequest, DEFAULT_TENANT_DISCOVERY_RESPONSE, testLogoutUrl } from "../utils/StringConstants";
-import { ServerError, Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationCodeRequest, CommonAuthorizationUrlRequest, AuthToken, PersistentCacheKeys, AuthorizationCodeClient, ResponseMode, ProtocolUtils, AuthenticationScheme, Logger, ServerTelemetryEntity, LogLevel, NetworkResponse, ServerAuthorizationTokenResponse, CcsCredential, CcsCredentialType, CommonEndSessionRequest } from "@azure/msal-common";
+import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, TEST_STATE_VALUES, DEFAULT_TENANT_DISCOVERY_RESPONSE, testLogoutUrl } from "../utils/StringConstants";
+import { ServerError, Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationCodeRequest, CommonAuthorizationUrlRequest, AuthToken, PersistentCacheKeys, AuthorizationCodeClient, ResponseMode, ProtocolUtils, AuthenticationScheme, Logger, ServerTelemetryEntity, LogLevel, NetworkResponse, ServerAuthorizationTokenResponse, CcsCredential, CcsCredentialType, CommonEndSessionRequest, ServerTelemetryManager } from "@azure/msal-common";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
-import { BrowserConstants, TemporaryCacheKeys, ApiId, BrowserCacheLocation } from "../../src/utils/BrowserConstants";
+import { BrowserConstants, TemporaryCacheKeys, ApiId, BrowserCacheLocation, InteractionType } from "../../src/utils/BrowserConstants";
 import { Base64Encode } from "../../src/encode/Base64Encode";
 import { XhrClient } from "../../src/network/XhrClient";
-import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
+import { BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
@@ -19,6 +19,9 @@ import { RedirectRequest } from "../../src/request/RedirectRequest";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { NavigationOptions } from "../../src/navigation/NavigationOptions";
 import { RedirectClient } from "../../src/interaction_client/RedirectClient";
+import { EventHandler } from "../../src/event/EventHandler";
+import { EventType } from "../../src/event/EventType";
+import { BrowserProtocolUtils } from "../../src/utils/BrowserProtocolUtils";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -36,13 +39,17 @@ const loggerOptions = {
 };
 
 describe("RedirectClient", () => {
-    let pca: PublicClientApplication;
+    let redirectClient: RedirectClient;
+
     beforeEach(() => {
-        pca = new PublicClientApplication({
+        const pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         });
+
+        // @ts-ignore
+        redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
     });
 
     afterEach(() => {
@@ -54,7 +61,43 @@ describe("RedirectClient", () => {
 
     describe("handleRedirectPromise", () => {
         it("does nothing if no hash is detected", (done) => {
-            pca.handleRedirectPromise().then(() => {
+            sinon.stub(RedirectClient.prototype, <any>"interactionInProgress").returns(true);
+            redirectClient.handleRedirectPromise().then((response) => {
+                expect(response).toBe(null);
+                expect(window.localStorage.length).toEqual(0);
+                expect(window.sessionStorage.length).toEqual(0);
+                done();
+            });
+        });
+
+        it("cleans temporary cache and return null if no state", (done) => {
+            sinon.stub(RedirectClient.prototype, <any>"interactionInProgress").returns(true);
+            sinon.stub(RedirectClient.prototype, <any>"getRedirectResponseHash").returns(TEST_HASHES.TEST_SUCCESS_HASH_NO_STATE);
+            redirectClient.handleRedirectPromise().then((response) => {
+                expect(response).toBe(null);
+                expect(window.localStorage.length).toEqual(0);
+                expect(window.sessionStorage.length).toEqual(0);
+                done();
+            });
+        });
+
+        it("cleans temporary cache and return null if state is wrong interaction type", (done) => {
+            sinon.stub(RedirectClient.prototype, <any>"interactionInProgress").returns(true);
+            sinon.stub(RedirectClient.prototype, <any>"getRedirectResponseHash").returns(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
+            redirectClient.handleRedirectPromise().then((response) => {
+                expect(response).toBe(null);
+                expect(window.localStorage.length).toEqual(0);
+                expect(window.sessionStorage.length).toEqual(0);
+                done();
+            });
+        });
+
+        it("cleans temporary cache and return null if state cannot be decoded", (done) => {
+            sinon.stub(RedirectClient.prototype, <any>"interactionInProgress").returns(true);
+            //sinon.stub(BrowserProtocolUtils, "extractBrowserRequestState").returns(null);
+            sinon.stub(RedirectClient.prototype, <any>"getRedirectResponseHash").returns(TEST_HASHES.TEST_SUCCESS_HASH_STATE_NO_META);
+            redirectClient.handleRedirectPromise().then((response) => {
+                expect(response).toBe(null);
                 expect(window.localStorage.length).toEqual(0);
                 expect(window.sessionStorage.length).toEqual(0);
                 done();
@@ -135,13 +178,8 @@ describe("RedirectClient", () => {
                 }
             });
             sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                }
-            });
 
-            const tokenResponse = await pca.handleRedirectPromise();
+            const tokenResponse = await redirectClient.handleRedirectPromise();
             expect(tokenResponse?.uniqueId).toEqual(testTokenResponse.uniqueId);
             expect(tokenResponse?.tenantId).toEqual(testTokenResponse.tenantId);
             expect(tokenResponse?.scopes).toEqual(testTokenResponse.scopes);
@@ -150,6 +188,35 @@ describe("RedirectClient", () => {
             expect(tokenResponse?.accessToken).toEqual(testTokenResponse.accessToken);
             expect(tokenResponse?.expiresOn && testTokenResponse.expiresOn && testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse.expiresOn.getMilliseconds()).toBeTruthy();
             expect(window.sessionStorage.length).toEqual(4);
+        });
+
+        it("throws no cached authority error if authority is not in cache", (done) => {
+            const b64Encode = new Base64Encode();
+            const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
+            const browserCrypto = new CryptoOps();
+            const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
+
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`, TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`, "123523");
+            const testTokenReq: CommonAuthorizationCodeRequest = {
+                redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
+                code: "thisIsATestCode",
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID,
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+            };
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`, b64Encode.encode(JSON.stringify(testTokenReq)));
+
+            redirectClient.handleRedirectPromise().catch((e) => {
+                expect(e).toMatchObject(BrowserAuthError.createNoCachedAuthorityError());
+                expect(window.sessionStorage.length).toEqual(1); // telemetry
+                done();
+            });
         });
 
         it("gets hash from cache and processes error", (done) => {
@@ -173,13 +240,7 @@ describe("RedirectClient", () => {
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`, TEST_HASHES.TEST_ERROR_HASH);
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
 
-            pca = new PublicClientApplication({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                }
-            });
-
-            pca.handleRedirectPromise().catch((err) => {
+            redirectClient.handleRedirectPromise().catch((err) => {
                 expect(err instanceof ServerError).toBeTruthy();
                 done();
             });
@@ -265,14 +326,17 @@ describe("RedirectClient", () => {
                 }
             });
             sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
-            pca = new PublicClientApplication({
+            const pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     navigateToLoginRequestUrl: false
                 }
             });
 
-            const tokenResponse = await pca.handleRedirectPromise();
+            // @ts-ignore
+            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+
+            const tokenResponse = await redirectClient.handleRedirectPromise();
             expect(tokenResponse?.uniqueId).toEqual(testTokenResponse.uniqueId);
             expect(tokenResponse?.tenantId).toEqual(testTokenResponse.tenantId);
             expect(tokenResponse?.scopes).toEqual(testTokenResponse.scopes);
@@ -364,7 +428,7 @@ describe("RedirectClient", () => {
                 }
             });
             sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
-            pca = new PublicClientApplication({
+            const pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                 }
@@ -381,7 +445,10 @@ describe("RedirectClient", () => {
             };
             pca.setNavigationClient(navigationClient);
 
-            const tokenResponse = await pca.handleRedirectPromise();
+            // @ts-ignore
+            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+
+            const tokenResponse = await redirectClient.handleRedirectPromise();
             if (!tokenResponse) {
                 expect(tokenResponse).not.toBe(null);
                 throw new Error("Token Response is null!"); // Throw to resolve Typescript complaints below
@@ -478,14 +545,17 @@ describe("RedirectClient", () => {
                 }
             });
             sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
-            pca = new PublicClientApplication({
+            const pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     navigateToLoginRequestUrl: false
                 }
             });
 
-            const tokenResponse = await pca.handleRedirectPromise();
+            // @ts-ignore
+            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+
+            const tokenResponse = await redirectClient.handleRedirectPromise();
             expect(tokenResponse?.uniqueId).toEqual(testTokenResponse.uniqueId);
             expect(tokenResponse?.tenantId).toEqual(testTokenResponse.tenantId);
             expect(tokenResponse?.scopes).toEqual(testTokenResponse.scopes);
@@ -501,7 +571,7 @@ describe("RedirectClient", () => {
             sinon.stub(RedirectClient.prototype, <any>"interactionInProgress").returns(false);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_ALTERNATE_REDIR_URI);
-            expect(await pca.handleRedirectPromise()).toBe(null);
+            expect(await redirectClient.handleRedirectPromise()).toBe(null);
         });
 
         it("navigates and caches hash if navigateToLoginRequestUri is true and interaction type is redirect", async () => {
@@ -514,7 +584,7 @@ describe("RedirectClient", () => {
                 expect(urlNavigate).toEqual(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
                 return Promise.resolve(true);
             });
-            await pca.handleRedirectPromise();
+            await redirectClient.handleRedirectPromise();
             expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
         });
 
@@ -529,7 +599,7 @@ describe("RedirectClient", () => {
                 done();
                 return Promise.resolve(true);
             });
-            pca.handleRedirectPromise();
+            redirectClient.handleRedirectPromise();
             expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
         });
 
@@ -545,7 +615,7 @@ describe("RedirectClient", () => {
                 done();
                 return Promise.resolve(true);
             });
-            pca.handleRedirectPromise();
+            redirectClient.handleRedirectPromise();
             expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
         });
 
@@ -561,7 +631,7 @@ describe("RedirectClient", () => {
                 done();
                 return Promise.resolve(true);
             });
-            pca.handleRedirectPromise();
+            redirectClient.handleRedirectPromise();
             expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
         });
 
@@ -577,7 +647,7 @@ describe("RedirectClient", () => {
                 done();
                 return Promise.resolve(true);
             });
-            pca.handleRedirectPromise();
+            redirectClient.handleRedirectPromise();
             expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
         });
 
@@ -589,7 +659,7 @@ describe("RedirectClient", () => {
             sinon.stub(RedirectClient.prototype, <any>"handleHash").callsFake((responseHash) => {
                 expect(responseHash).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
             });
-            pca.handleRedirectPromise().then(() => {
+            redirectClient.handleRedirectPromise().then(() => {
                 expect(window.location.href).toEqual(loginRequestUrl);
             });
         });
@@ -601,7 +671,7 @@ describe("RedirectClient", () => {
             sinon.stub(RedirectClient.prototype, <any>"handleHash").callsFake((responseHash) => {
                 expect(responseHash).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
             });
-            pca.handleRedirectPromise(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT).then(() => {
+            redirectClient.handleRedirectPromise(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT).then(() => {
                 expect(window.location.href).toEqual(loginRequestUrl);
             });
         });
@@ -615,16 +685,32 @@ describe("RedirectClient", () => {
                 expect(responseHash).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
                 done();
             });
-            pca.handleRedirectPromise();
+            redirectClient.handleRedirectPromise();
+        });
+
+        it("returns null if inside an iframe", (done) => {
+            sinon.stub(RedirectClient.prototype, <any>"interactionInProgress").returns(true);
+            sinon.stub(BrowserUtils, "isInIframe").returns(true);
+            const loginRequestUrl = window.location.href + "/testPage";
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
+
+            redirectClient.handleRedirectPromise().then((response) => {
+                expect(response).toBe(null);
+                done();
+            });
         });
 
         it("clears hash if navigateToLoginRequestUri is false and loginRequestUrl contains custom hash", (done) => {
-            pca = new PublicClientApplication({
+            const pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     navigateToLoginRequestUrl: false
                 }
             });
+            // @ts-ignore
+            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+
             sinon.stub(RedirectClient.prototype, <any>"interactionInProgress").returns(true);
             const loginRequestUrl = window.location.href + "#testHash";
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
@@ -634,7 +720,7 @@ describe("RedirectClient", () => {
                 expect(responseHash).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
                 done();
             });
-            pca.handleRedirectPromise();
+            redirectClient.handleRedirectPromise();
         });
     });
 
@@ -642,7 +728,7 @@ describe("RedirectClient", () => {
         it("throws if interaction is currently in progress", async () => {
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
             // @ts-ignore
-            await expect(pca.loginRedirect(null)).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
+            await expect(redirectClient.acquireToken({scopes: ["openid"]})).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
         });
 
         it("navigates to created login url", (done) => {
@@ -670,25 +756,8 @@ describe("RedirectClient", () => {
                 authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
             };
 
-            pca.loginRedirect(loginRequest);
+            redirectClient.acquireToken(loginRequest);
         });
-
-        it("navigates to created login url, with empty request",
-            (done) => {
-                sinon.stub(RedirectHandler.prototype, "initiateAuthRequest").callsFake((navigateUrl): Promise<void> => {
-                    expect(navigateUrl.startsWith(testNavUrlNoRequest)).toBeTruthy();
-                    return Promise.resolve(done());
-                });
-                sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
-                    challenge: TEST_CONFIG.TEST_CHALLENGE,
-                    verifier: TEST_CONFIG.TEST_VERIFIER
-                });
-                sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
-
-                // @ts-ignore
-                pca.loginRedirect(null);
-            }
-        );
 
         it("Updates cache entries correctly", async () => {
             const emptyRequest: CommonAuthorizationUrlRequest = {
@@ -717,7 +786,7 @@ describe("RedirectClient", () => {
 
             const browserCrypto = new CryptoOps();
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
-            await pca.loginRedirect(emptyRequest);
+            await redirectClient.acquireToken(emptyRequest);
             expect(browserStorage.getTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             expect(browserStorage.getTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(RANDOM_TEST_GUID);
             expect(browserStorage.getTemporaryCache(browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(`${Constants.DEFAULT_AUTHORITY}`);
@@ -765,7 +834,7 @@ describe("RedirectClient", () => {
 
             const browserCrypto = new CryptoOps();
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
-            await pca.loginRedirect(emptyRequest);
+            await redirectClient.acquireToken(emptyRequest);
             expect(browserStorage.getTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             expect(browserStorage.getTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(RANDOM_TEST_GUID);
             expect(browserStorage.getTemporaryCache(browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(`${Constants.DEFAULT_AUTHORITY}`);
@@ -821,7 +890,7 @@ describe("RedirectClient", () => {
 
             const browserCrypto = new CryptoOps();
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
-            await pca.loginRedirect(emptyRequest);
+            await redirectClient.acquireToken(emptyRequest);
             expect(browserStorage.getTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             expect(browserStorage.getTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(RANDOM_TEST_GUID);
             expect(browserStorage.getTemporaryCache(browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(`${Constants.DEFAULT_AUTHORITY}`);
@@ -855,7 +924,7 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps();
             const testLogger = new Logger(loggerOptions);
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
-            await pca.loginRedirect(tokenRequest);
+            await redirectClient.acquireToken(tokenRequest);
             const cachedRequest: CommonAuthorizationCodeRequest = JSON.parse(browserCrypto.base64Decode(browserStorage.getTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, true) || ""));
             expect(cachedRequest.scopes).toEqual([]);
             expect(cachedRequest.codeVerifier).toEqual(TEST_CONFIG.TEST_VERIFIER);
@@ -890,7 +959,7 @@ describe("RedirectClient", () => {
             };
             sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").throws(testError);
             try {
-                await pca.loginRedirect(emptyRequest);
+                await redirectClient.acquireToken(emptyRequest);
             } catch (e) {
                 // Test that error was cached for telemetry purposes and then thrown
                 expect(window.sessionStorage).toHaveLength(1);
@@ -941,7 +1010,7 @@ describe("RedirectClient", () => {
                 nonce: "",
                 authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
             };
-            await pca.loginRedirect(emptyRequest);
+            await redirectClient.acquireToken(emptyRequest);
             const validatedRequest: CommonAuthorizationUrlRequest = {
                 ...emptyRequest,
                 scopes: [],
@@ -996,7 +1065,7 @@ describe("RedirectClient", () => {
                 nonce: "",
                 authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
             };
-            await pca.loginRedirect(loginRequest);
+            await redirectClient.acquireToken(loginRequest);
             const validatedRequest: CommonAuthorizationUrlRequest = {
                 ...loginRequest,
                 scopes: [],
@@ -1030,7 +1099,7 @@ describe("RedirectClient", () => {
                 nonce: "",
                 authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
             };
-            pca.acquireTokenRedirect(loginRequest);
+            redirectClient.acquireToken(loginRequest);
         });
 
         it("passes onRedirectNavigate callback", (done) => {
@@ -1058,7 +1127,7 @@ describe("RedirectClient", () => {
                 state: TEST_STATE_VALUES.USER_STATE,
                 onRedirectNavigate
             };
-            pca.acquireTokenRedirect(loginRequest);
+            redirectClient.acquireToken(loginRequest);
         });
 
         it("Updates cache entries correctly", async () => {
@@ -1086,7 +1155,7 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps();
             const testLogger = new Logger(loggerOptions);
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
-            await pca.loginRedirect(emptyRequest);
+            await redirectClient.acquireToken(emptyRequest);
             expect(browserStorage.getTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             expect(browserStorage.getTemporaryCache(browserStorage.generateNonceKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(RANDOM_TEST_GUID);
             expect(browserStorage.getTemporaryCache(browserStorage.generateAuthorityKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(`${Constants.DEFAULT_AUTHORITY}`);
@@ -1117,7 +1186,7 @@ describe("RedirectClient", () => {
             const browserCrypto = new CryptoOps();
             const testLogger = new Logger(loggerOptions);
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
-            await pca.acquireTokenRedirect(tokenRequest);
+            await redirectClient.acquireToken(tokenRequest);
             const cachedRequest: CommonAuthorizationCodeRequest = JSON.parse(browserCrypto.base64Decode(browserStorage.getTemporaryCache(TemporaryCacheKeys.REQUEST_PARAMS, true) || ""));
             expect(cachedRequest.scopes).toEqual([testScope]);
             expect(cachedRequest.codeVerifier).toEqual(TEST_CONFIG.TEST_VERIFIER);
@@ -1152,7 +1221,7 @@ describe("RedirectClient", () => {
             };
             sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").throws(testError);
             try {
-                await pca.acquireTokenRedirect(emptyRequest);
+                await redirectClient.acquireToken(emptyRequest);
             } catch (e) {
                 // Test that error was cached for telemetry purposes and then thrown
                 expect(window.sessionStorage).toHaveLength(1);
@@ -1204,7 +1273,7 @@ describe("RedirectClient", () => {
                 nonce: "",
                 authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
             };
-            await pca.acquireTokenRedirect(emptyRequest);
+            await redirectClient.acquireToken(emptyRequest);
             const validatedRequest: CommonAuthorizationUrlRequest = {
                 ...emptyRequest,
                 scopes: [...emptyRequest.scopes],
@@ -1260,7 +1329,7 @@ describe("RedirectClient", () => {
                 nonce: "",
                 authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
             };
-            await pca.acquireTokenRedirect(loginRequest);
+            await redirectClient.acquireToken(loginRequest);
             const validatedRequest: CommonAuthorizationUrlRequest = {
                 ...loginRequest,
                 scopes: [...loginRequest.scopes],
@@ -1285,7 +1354,7 @@ describe("RedirectClient", () => {
                 done();
                 return Promise.resolve(true);
             });
-            pca.logoutRedirect();
+            redirectClient.logout();
             const validatedLogoutRequest: CommonEndSessionRequest = {
                 correlationId: RANDOM_TEST_GUID,
                 postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI
@@ -1300,7 +1369,7 @@ describe("RedirectClient", () => {
                 done();
                 return Promise.resolve(true);
             });
-            pca.logoutRedirect({
+            redirectClient.logout({
                 postLogoutRedirectUri
             });
         });
@@ -1313,14 +1382,17 @@ describe("RedirectClient", () => {
                 return Promise.resolve(true);
             });
             
-            const pcaWithPostLogout = new PublicClientApplication({
+            const pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     postLogoutRedirectUri
                 }
             });
 
-            pcaWithPostLogout.logoutRedirect();
+            // @ts-ignore
+            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+
+            redirectClient.logout();
         });
 
         it("doesn't include postLogoutRedirectUri if null is configured", (done) => {
@@ -1330,14 +1402,17 @@ describe("RedirectClient", () => {
                 return Promise.resolve(true);
             });
             
-            const pcaWithPostLogout = new PublicClientApplication({
+            const pca = new PublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID,
                     postLogoutRedirectUri: null
                 }
             });
 
-            pcaWithPostLogout.logoutRedirect();
+            // @ts-ignore
+            redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+
+            redirectClient.logout();
         });
 
         it("doesn't include postLogoutRedirectUri if null is set on request", (done) => {
@@ -1346,7 +1421,7 @@ describe("RedirectClient", () => {
                 done();
                 return Promise.resolve(true);
             });
-            pca.logoutRedirect({
+            redirectClient.logout({
                 postLogoutRedirectUri: null
             });
         });
@@ -1357,7 +1432,7 @@ describe("RedirectClient", () => {
                 done();
                 return Promise.resolve(true);
             });
-            pca.logoutRedirect();
+            redirectClient.logout();
         });
 
         it("doesnt navigate if onRedirectNavigate returns false", (done) => {
@@ -1367,7 +1442,7 @@ describe("RedirectClient", () => {
                 done();
                 return Promise.resolve(true);
             });
-            pca.logoutRedirect({
+            redirectClient.logout({
                 onRedirectNavigate: (url: string) => {
                     expect(url).toEqual(testLogoutUrl);
                     done();
@@ -1388,7 +1463,7 @@ describe("RedirectClient", () => {
                 done();
                 return Promise.resolve(true);
             });
-            pca.logoutRedirect({
+            redirectClient.logout({
                 onRedirectNavigate: (url) => {
                     expect(url).toEqual(testLogoutUrl);
                     return true;
@@ -1400,10 +1475,20 @@ describe("RedirectClient", () => {
             };
             expect(logoutUriSpy.calledWith(validatedLogoutRequest));
         });
-        
-        it("throws an error if inside an iframe", async () => {
-            sinon.stub(BrowserUtils, "isInIframe").returns(true);
-            await expect(pca.logoutRedirect()).rejects.toMatchObject(BrowserAuthError.createRedirectInIframeError(true));
+
+        it("errors thrown are cached for telemetry and logout failure event is raised", (done) => {
+            const testError = BrowserAuthError.createEmptyNavigationUriError();
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((): Promise<boolean> => {
+                return Promise.reject(testError);
+            });
+            const eventSpy = sinon.spy(EventHandler.prototype, "emitEvent");
+            const telemetrySpy = sinon.spy(ServerTelemetryManager.prototype, "cacheFailedRequest");
+            redirectClient.logout().catch((e) => {
+                expect(e).toMatchObject(testError);
+                expect(telemetrySpy.calledWith(testError)).toBe(true);
+                expect(eventSpy.calledWith(EventType.LOGOUT_FAILURE, InteractionType.Redirect, null, testError)).toBe(true);
+                done();
+            });
         });
     });
 });
