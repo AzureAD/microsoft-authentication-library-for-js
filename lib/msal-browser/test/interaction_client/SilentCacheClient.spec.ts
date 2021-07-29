@@ -58,11 +58,10 @@ const testAccount: AccountInfo = {
 
 
 describe("SilentCacheClient", () => {
-    let pca: PublicClientApplication;
     let silentCacheClient: SilentCacheClient;
 
     beforeEach(() => {
-        pca = new PublicClientApplication({
+        const pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }

@@ -5,7 +5,7 @@
 
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
-import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, TEST_HASHES, DEFAULT_TENANT_DISCOVERY_RESPONSE, DEFAULT_OPENID_CONFIG_RESPONSE } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, TEST_HASHES, DEFAULT_TENANT_DISCOVERY_RESPONSE, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrlNoRequest } from "../utils/StringConstants";
 import { ServerError, Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationUrlRequest, AuthorizationCodeClient, ResponseMode, AccountEntity, ProtocolUtils, AuthenticationScheme, RefreshTokenClient, Logger, ServerTelemetryEntity, CommonSilentFlowRequest, LogLevel, CommonAuthorizationCodeRequest } from "@azure/msal-common";
 import { ApiId, InteractionType, WrapperSKU, TemporaryCacheKeys, BrowserConstants, BrowserCacheLocation } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
@@ -26,6 +26,7 @@ import { PopupClient } from "../../src/interaction_client/PopupClient";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
 import { EndSessionRequest, BrowserConfigurationAuthError } from "../../src";
+import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     let pca: PublicClientApplication;
@@ -290,6 +291,21 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
 
             pca.loginRedirect();
+        });
+
+        it("navigates to created login url, with empty request", (done) => {
+            sinon.stub(RedirectHandler.prototype, "initiateAuthRequest").callsFake((navigateUrl): Promise<void> => {
+                expect(navigateUrl.startsWith(testNavUrlNoRequest)).toBeTruthy();
+                return Promise.resolve(done());
+            });
+            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER
+            });
+            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+
+            // @ts-ignore
+            pca.loginRedirect(null);
         });
     });
 
@@ -1099,6 +1115,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const response = await pca.logoutRedirect();
             expect(response).toEqual(undefined);
             expect(redirectClientSpy.calledOnce).toBe(true);
+        });
+
+        it("throws an error if inside an iframe", async () => {
+            sinon.stub(BrowserUtils, "isInIframe").returns(true);
+            await expect(pca.logout()).rejects.toMatchObject(BrowserAuthError.createRedirectInIframeError(true));
         });
     });
 
