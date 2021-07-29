@@ -117,6 +117,7 @@ export abstract class ClientApplication {
             new BrowserCacheManager(this.config.auth.clientId, this.config.cache, this.browserCrypto, this.logger) : 
             DEFAULT_BROWSER_CACHE_MANAGER(this.config.auth.clientId, this.logger);
 
+        // Initialize the token cache manager
         this.tokenCache = new TokenCache(this.config, this.browserStorage, this.logger, this.browserCrypto);
     }
 

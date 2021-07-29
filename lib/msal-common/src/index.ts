@@ -24,7 +24,6 @@ export { AuthToken as IdToken } from "./account/AuthToken";
 export { TokenClaims } from "./account/TokenClaims";
 export { TokenClaims as IdTokenClaims } from "./account/TokenClaims";
 export { CcsCredential, CcsCredentialType } from "./account/CcsCredential";
-export { ClientInfo } from "./account/ClientInfo";
 // Authority
 export { Authority } from "./authority/Authority";
 export { AuthorityOptions } from "./authority/AuthorityOptions";
