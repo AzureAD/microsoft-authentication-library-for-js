@@ -1,5 +1,5 @@
 import sinon from "sinon";
-import { Logger, LogLevel,IdTokenEntity, AccessTokenEntity, ClientInfo, ScopeSet, ServerAuthorizationROPCResponse, IdToken} from "@azure/msal-common";
+import { Logger, LogLevel,IdTokenEntity, AccessTokenEntity, ScopeSet, ServerAuthorizationROPCResponse, IdToken} from "@azure/msal-common";
 import { TokenCache, LoadTokenOptions } from "./../../src/cache/TokenCache";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
@@ -45,7 +45,7 @@ describe("TokenCache tests", () => {
     describe("loadTokens()", () => {
         let tokenCache: TokenCache;
         let testEnvironment: string;
-        let testClientInfo: ClientInfo;
+        let testClientInfo: string;
         let testIdToken: string;
         let idTokenEntity: IdTokenEntity;
         let idTokenKey: string;
@@ -56,13 +56,10 @@ describe("TokenCache tests", () => {
 
         beforeEach(() => {
             tokenCache = new TokenCache(configuration, browserStorage, logger, cryptoObj);
-            testEnvironment = 'login.microsoftonline.com'
+            testEnvironment = 'login.microsoftonline.com';
 
-            testClientInfo = {
-                uid: TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED,
-                utid: TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED
-            }
-
+            testClientInfo = `${TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED}.${TEST_DATA_CLIENT_INFO.TEST_UTID_ENCODED}`;
+            
             testIdToken = TEST_TOKENS.IDTOKEN_V2;
             idTokenEntity = IdTokenEntity.createIdTokenEntity(TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID, testEnvironment, TEST_TOKENS.IDTOKEN_V2, configuration.auth.clientId, TEST_CONFIG.TENANT)
             idTokenKey = idTokenEntity.generateCredentialKey();
@@ -97,7 +94,7 @@ describe("TokenCache tests", () => {
             expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(idTokenEntity);
         });
 
-        it("loads id token with request authority and client info", () => {
+        it("loads id token with request authority and client info provided in options", () => {
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`
@@ -108,6 +105,21 @@ describe("TokenCache tests", () => {
             const options: LoadTokenOptions = {
                 clientInfo: testClientInfo
             };
+            tokenCache.loadTokens(request, response, options);
+
+            expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(idTokenEntity);
+        });
+
+        it("loads id token with request authority and client info provided in response", () => {
+            const request: SilentRequest = {
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`
+            };
+            const response: ServerAuthorizationROPCResponse = {
+                id_token: testIdToken,
+                client_info: testClientInfo
+            };
+            const options: LoadTokenOptions = {};
             tokenCache.loadTokens(request, response, options);
 
             expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(idTokenEntity);
@@ -139,7 +151,20 @@ describe("TokenCache tests", () => {
             };
             const options: LoadTokenOptions = {};
 
-            expect(() => tokenCache.loadTokens(request, response, options)).toThrowError(`${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | Please provide a request with an account, or a request with authority and clientInfo.`);
+            expect(() => tokenCache.loadTokens(request, response, options)).toThrowError(`${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | Please provide a request with an account or a request with authority.`);
+        });
+
+        it("throws error if request does not have account and clientInfo is not provided", () => {
+            const request: SilentRequest = {
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`
+            };
+            const response: ServerAuthorizationROPCResponse = {
+                id_token: testIdToken
+            };
+            const options: LoadTokenOptions = {};
+
+            expect(() => tokenCache.loadTokens(request, response, options)).toThrowError(`${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | Please provide clientInfo in the response or options.`);
         });
 
         it("throws error if server response provided does not have expires_in", () => {
