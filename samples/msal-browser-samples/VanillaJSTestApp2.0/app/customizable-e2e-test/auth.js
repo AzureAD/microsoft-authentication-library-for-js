@@ -107,10 +107,7 @@ async function loadTokens() {
     };
     const options = {
         extendedExpiresOn: 2000000000,
-        clientInfo: {
-            uid: "be064c37-2617-468c-b627-25b4e4817adf",
-            utid: "19eea2f8-e17a-470f-954d-d897c47f311c"
-        }
+        clientInfo: "be064c37-2617-468c-b627-25b4e4817adf.19eea2f8-e17a-470f-954d-d897c47f311c"
     };
 
     try {
