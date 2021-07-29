@@ -9,15 +9,16 @@ MSAL Browser starting version 2.17.0 has added the `loadTokens()` API, which all
 The `loadToken()` API can be accessed by calling `getTokenCache()` on MSAL Browser's `PublicClientApplication` instance. 
 
 ```js
-myMSALObj.getTokenCache().loadTokens(silentRequest, serverResponse, loadTokenOptions);
+const msalTokenCache = myMSALObj.getTokenCache();
+msalTokenCache.loadTokens(silentRequest, serverResponse, loadTokenOptions);
 ```
 
-`loadTokens()` takes in a request of type `SilentRequest`, a response of type `ServerAuthenticationROPCRespones`, and options of type `LoadTokenOptions`.
+`loadTokens()` takes in a request of type `SilentRequest`, a response of type `ServerAuthenticationROPCResponse`, and options of type `LoadTokenOptions`.
 
-See the type definitions for each below:
+See the type definitions for each, which can be imported from `@azure/msal-browser`:
 
 - [`SilentRequest`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#silentrequest)
-- [`ServerAuthenticationROPCResponse`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#serverauthorizationropcresponse)
+- [`ServerAuthorizationROPCResponse`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#serverauthorizationropcresponse)
 
 ```js
 export type LoadTokenOptions = {
