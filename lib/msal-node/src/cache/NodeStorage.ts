@@ -202,7 +202,6 @@ export class NodeStorage extends CacheManager {
      */
     getIdTokenCredential(idTokenKey: string): IdTokenEntity | null {
         const idToken = this.getItem(idTokenKey) as IdTokenEntity;
-
         if (IdTokenEntity.isIdTokenEntity(idToken)) {
             return idToken;
         }
@@ -224,7 +223,6 @@ export class NodeStorage extends CacheManager {
      */
     getAccessTokenCredential(accessTokenKey: string): AccessTokenEntity | null {
         const accessToken = this.getItem(accessTokenKey) as AccessTokenEntity;
-
         if (AccessTokenEntity.isAccessTokenEntity(accessToken)) {
             return accessToken;
         }
@@ -246,7 +244,6 @@ export class NodeStorage extends CacheManager {
      */
     getRefreshTokenCredential(refreshTokenKey: string): RefreshTokenEntity | null {
         const refreshToken = this.getItem(refreshTokenKey) as RefreshTokenEntity;
-
         if (RefreshTokenEntity.isRefreshTokenEntity(refreshToken)) {
             return refreshToken as RefreshTokenEntity;
         }
