@@ -284,7 +284,7 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
-    it.only("createUnableToLoadTokenError()", () => {
+    it("createUnableToLoadTokenError()", () => {
         const err: BrowserAuthError = BrowserAuthError.createUnableToLoadTokenError("Load Token Error Detail");
 
         expect(err instanceof BrowserAuthError).toBe(true);
