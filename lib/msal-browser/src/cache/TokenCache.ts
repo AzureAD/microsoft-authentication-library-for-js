@@ -69,7 +69,7 @@ export class TokenCache implements ITokenCache {
             };
             const authority = new Authority(request.authority, this.config.system.networkClient, this.storage, authorityOptions);
 
-            // If provided, clientInfo from options used before clientInfo in response
+            // "clientInfo" from options takes precedence over "clientInfo" in response
             if (options.clientInfo) {
                 this.logger.trace("TokenCache - homeAccountId from options");
                 this.loadIdToken(response.id_token, options.clientInfo, authority.hostnameAndPort, authority.tenant, options);
