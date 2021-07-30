@@ -55,7 +55,7 @@ jobs:
         key: ${{ runner.os }}-browser-test-tools-${{ hashFiles('samples/package.json') }}
 
     - name: Install Test Tools
-      if: steps.test-tools.outputs.cache-hit != 'true'
+      if: steps.test-tools-cache.outputs.cache-hit != 'true'
       working-directory: samples
       run: npm install
 
