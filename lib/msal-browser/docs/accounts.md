@@ -20,7 +20,7 @@ let homeAccountId = null; // Initialize global accountId (can also be localAccou
 // This callback is passed into `acquireTokenPopup` and `acquireTokenRedirect` to handle the interactive auth response
 function handleResponse(resp) {
     if (resp !== null) {
-        homeAccountId = resp.account.homehomeAccountId; // alternatively: resp.account.homehomeAccountId or resp.account.username
+        homeAccountId = resp.account.homeAccountId; // alternatively: resp.account.homeAccountId or resp.account.username
     } else {
         const currentAccounts = myMSALObj.getAllAccounts();
         if (currentAccounts.length < 1) { // No cached accounts
