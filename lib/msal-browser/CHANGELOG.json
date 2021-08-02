@@ -2,6 +2,55 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Thu, 22 Jul 2021 22:50:22 GMT",
+      "tag": "@azure/msal-browser_v2.16.0",
+      "version": "2.16.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add fix for loginRedirect failure when angular index.html base href is different from the origin (#3875)",
+            "author": "rishanthakumar@gmail.com",
+            "commit": "9da0b3f92216367d68bdb7fea74cd9050d202a76",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "fix: fixing the npm audit issues",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "9b19470078b65bedf2b69246ba764b32b533a268",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Expose isInPopup helper function #3825",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "45e51762597ffde61d70a9e085e77893b339d0e1",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Add support for prompt=create #3773",
+            "author": "joarroyo@microsoft.com",
+            "commit": "c9314cedfe08b643e43e358243dc7f49253f77ef",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Msal-Browser supports parallel silent requests #3837",
+            "author": "joarroyo@microsoft.com",
+            "commit": "3d6a01191deb3fa1da722b4362d52535c350ddd7",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Persist active account #3755",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "db59cc072e50f201f09e03a09a1b7b8355e10ee1",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 28 Jun 2021 23:39:48 GMT",
       "tag": "@azure/msal-browser_v2.15.0",
       "version": "2.15.0",

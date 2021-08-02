@@ -7,15 +7,12 @@ import { ApiId } from "../utils/Constants";
 import {
     DeviceCodeClient,
     AuthenticationResult,
-    CommonDeviceCodeRequest,
-    CommonUsernamePasswordRequest,
-    UsernamePasswordClient
+    CommonDeviceCodeRequest
 } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { ClientApplication } from "./ClientApplication";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { DeviceCodeRequest } from "../request/DeviceCodeRequest";
-import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
 
 /**
  * This class is to be used to acquire tokens for public client applications (desktop, mobile). Public client applications
@@ -66,38 +63,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             const deviceCodeClient = new DeviceCodeClient(deviceCodeConfig);
             this.logger.verbose("Device code client created", validRequest.correlationId);
             return deviceCodeClient.acquireToken(validRequest);
-        } catch (e) {
-            serverTelemetryManager.cacheFailedRequest(e);
-            throw e;
-        }
-    }
-
-    /**
-     * Acquires tokens with password grant by exchanging client applications username and password for credentials
-     *
-     * The latest OAuth 2.0 Security Best Current Practice disallows the password grant entirely.
-     * More details on this recommendation at https://tools.ietf.org/html/draft-ietf-oauth-security-topics-13#section-3.4
-     * Microsoft's documentation and recommendations are at:
-     * https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-authentication-flows#usernamepassword
-     *
-     * @param request - UsenamePasswordRequest
-     */
-    async acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null> {
-        this.logger.info("acquireTokenByUsernamePassword called", request.correlationId);
-        const validRequest: CommonUsernamePasswordRequest = {
-            ...request,
-            ...this.initializeBaseRequest(request)
-        };
-        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByUsernamePassword, validRequest.correlationId!);
-        try {
-            const usernamePasswordClientConfig = await this.buildOauthClientConfiguration(
-                validRequest.authority,
-                validRequest.correlationId,
-                serverTelemetryManager
-            );
-            const usernamePasswordClient = new UsernamePasswordClient(usernamePasswordClientConfig);
-            this.logger.verbose("Username password client created", validRequest.correlationId);
-            return usernamePasswordClient.acquireToken(validRequest);
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
