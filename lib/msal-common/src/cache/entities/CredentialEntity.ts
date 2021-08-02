@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Separators, CredentialType, CacheType, Constants } from "../../utils/Constants";
+import { Separators, CredentialType, CacheType, Constants, AuthenticationScheme } from "../../utils/Constants";
 import { ClientAuthError } from "../../error/ClientAuthError";
 
 /**
@@ -122,6 +122,7 @@ export class CredentialEntity {
 
     /**
      * generates credential key
+     * <home_account_id*>-\<environment>-<credential_type>-<client_id>-<realm\*>-<target\*>-<scheme\*>
      */
     static generateCredentialCacheKey(
         homeAccountId: string,
@@ -136,9 +137,12 @@ export class CredentialEntity {
         const credentialKey = [
             this.generateAccountIdForCacheKey(homeAccountId, environment),
             this.generateCredentialIdForCacheKey(credentialType, clientId, realm, familyId),
-            this.generateTargetForCacheKey(target),
-            this.generateSchemeForCacheKey(credentialType, tokenType)
+            this.generateTargetForCacheKey(target)
         ];
+
+        if (tokenType === AuthenticationScheme.POP) {
+            credentialKey.push(this.generateSchemeForCacheKey(credentialType, tokenType));
+        }
 
         return credentialKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
     }

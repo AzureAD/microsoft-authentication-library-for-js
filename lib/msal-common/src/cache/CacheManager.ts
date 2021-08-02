@@ -227,17 +227,12 @@ export abstract class CacheManager implements ICacheManager {
             environment: credential.environment,
             homeAccountId: credential.homeAccountId,
             realm: credential.realm,
+            tokenType: credential.tokenType
         });
-        
-        /*
-         * Migration code to delete all value (easier to debug, no legacy tokens)
-         *  Log messages that specify migration errors/cache misses
-         */
 
-        console.log("Current token cache", currentTokenCache);
         const currentScopes = ScopeSet.fromString(credential.target);
         const currentAccessTokens: AccessTokenEntity[] = Object.keys(currentTokenCache.accessTokens).map(key => currentTokenCache.accessTokens[key]);
-        console.log("Current ATs: ", currentAccessTokens);
+
         if (currentAccessTokens) {
             currentAccessTokens.forEach((tokenEntity) => {
                 const tokenScopeSet = ScopeSet.fromString(tokenEntity.target);
@@ -322,7 +317,8 @@ export abstract class CacheManager implements ICacheManager {
             filter.familyId,
             filter.realm,
             filter.target,
-            filter.oboAssertion
+            filter.oboAssertion,
+            filter.tokenType
         );
     }
 
@@ -334,6 +330,8 @@ export abstract class CacheManager implements ICacheManager {
      * @param clientId
      * @param realm
      * @param target
+     * @param oboAssertion
+     * @param tokenType
      */
     private getCredentialsFilteredByInternal(
         homeAccountId?: string,
@@ -343,7 +341,8 @@ export abstract class CacheManager implements ICacheManager {
         familyId?: string,
         realm?: string,
         target?: string,
-        oboAssertion?: string
+        oboAssertion?: string,
+        tokenType?: string
     ): CredentialCache {
         const allCacheKeys = this.getKeys();
         const matchingCredentials: CredentialCache = {
@@ -401,6 +400,12 @@ export abstract class CacheManager implements ICacheManager {
              */
             if (!!target && !this.matchTarget(entity, target)) {
                 return;
+            }
+
+            if (credentialType === AuthenticationScheme.POP) {
+                if(!!tokenType && !this.matchTokenType(entity, tokenType)) {
+                    return;
+                }
             }
 
             switch (credType) {
@@ -652,6 +657,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param authScheme
      */
     readAccessTokenFromCache(clientId: string, account: AccountInfo, scopes: ScopeSet, authScheme: AuthenticationScheme): AccessTokenEntity | null {
+        // Distinguish between Bearer and PoP token cache types
         const credentialType = (authScheme === AuthenticationScheme.POP) ? CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME : CredentialType.ACCESS_TOKEN;
 
         const accessTokenFilter: CredentialFilter = {
@@ -661,12 +667,13 @@ export abstract class CacheManager implements ICacheManager {
             clientId,
             realm: account.tenantId,
             target: scopes.printScopesLowerCase(),
+            tokenType: authScheme
         };
 
         const credentialCache: CredentialCache = this.getCredentialsFilteredBy(accessTokenFilter);
 
         const accessTokens = Object.keys(credentialCache.accessTokens).map((key) => credentialCache.accessTokens[key]);
-
+        
         const numAccessTokens = accessTokens.length;
         if (numAccessTokens < 1) {
             return null;
@@ -826,6 +833,15 @@ export abstract class CacheManager implements ICacheManager {
             requestTargetScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
         }
         return entityScopeSet.containsScopeSet(requestTargetScopeSet);
+    }
+
+    /**
+     * Returns true if the credential's tokenType or Authentication Scheme matches the one in the request, false otherwise
+     * @param entity 
+     * @param tokenType 
+     */
+    private matchTokenType(entity: CredentialEntity, tokenType: string): boolean {
+        return !!(entity.tokenType && entity.tokenType === tokenType);
     }
 
     /**
