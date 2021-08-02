@@ -1,5 +1,5 @@
 {
-  "type": "patch",
+  "type": "minor",
   "comment": "Adds state param to logout url #3909",
   "packageName": "@azure/msal-common",
   "email": "bmahal@microsoft.com",
