@@ -566,45 +566,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             const authCodePayload = client.handleFragmentResponse(testSuccessHash, TEST_STATE_VALUES.ENCODED_LIB_STATE);
             expect(authCodePayload.code).toBe("thisIsATestCode");
             expect(authCodePayload.state).toBe(TEST_STATE_VALUES.ENCODED_LIB_STATE);
-        });
-
-        it("returns valid server code response when state is encoded twice", async () => {
-            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
-            if (!config.cryptoInterface) {
-                throw TestError.createTestSetupError("configuration crypto interface not initialized correctly.");
-            }
-            const testSuccessHash = `#code=thisIsATestCode&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${encodeURIComponent(encodeURIComponent(TEST_STATE_VALUES.ENCODED_LIB_STATE))}`;
-            // @ts-ignore
-            config.cryptoInterface.base64Decode = (input: string): string => {
-                switch (input) {
-                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
-                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
-                    case TEST_POP_VALUES.ENCODED_REQ_CNF:
-                        return TEST_POP_VALUES.DECODED_REQ_CNF;
-                    default:
-                        return input;
-                }
-            };
-            // @ts-ignore
-            config.cryptoInterface.base64Encode = (input: string): string => {
-                switch (input) {
-                    case "123-test-uid":
-                        return "MTIzLXRlc3QtdWlk";
-                    case "456-test-utid":
-                        return "NDU2LXRlc3QtdXRpZA==";
-                    case TEST_POP_VALUES.DECODED_REQ_CNF:
-                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
-                    default:
-                        return input;
-                }
-            };
-            const client: AuthorizationCodeClient = new AuthorizationCodeClient(config);
-            const authCodePayload = client.handleFragmentResponse(testSuccessHash, TEST_STATE_VALUES.ENCODED_LIB_STATE);
-            expect(authCodePayload.code).toBe("thisIsATestCode");
-            expect(authCodePayload.state).toBe(TEST_STATE_VALUES.ENCODED_LIB_STATE);
-        });
-
+        });          
+       
         it("throws server error when error is in hash", async () => {
             const testErrorHash = `#error=error_code&error_description=msal+error+description&state=${encodeURIComponent(TEST_STATE_VALUES.ENCODED_LIB_STATE)}`;
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);

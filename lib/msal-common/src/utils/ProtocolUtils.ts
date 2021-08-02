@@ -83,7 +83,7 @@ export class ProtocolUtils {
 
         try {
             // Split the state between library state and user passed state and decode them separately
-            const splitState = decodeURIComponent(state).split(Constants.RESOURCE_DELIM);
+            const splitState = state.split(Constants.RESOURCE_DELIM);
             const libraryState = splitState[0];
             const userState = splitState.length > 1 ? splitState.slice(1).join(Constants.RESOURCE_DELIM) : "";
             const libraryStateString = cryptoObj.base64Decode(libraryState);
