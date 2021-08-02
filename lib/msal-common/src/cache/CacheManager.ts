@@ -402,8 +402,15 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
-            if (credentialType === AuthenticationScheme.POP) {
+            if (credentialType === CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME) {
                 if(!!tokenType && !this.matchTokenType(entity, tokenType)) {
+                    return;
+                }
+
+                // This check avoids matching outdated POP tokens that don't have the <-scheme> in the cache key
+                if(cacheKey.indexOf(AuthenticationScheme.POP) === -1) {
+                    // AccessToken_With_AuthScheme that doesn't have pop in the key is outdated
+                    this.removeItem(cacheKey, CacheSchemaType.CREDENTIAL);
                     return;
                 }
             }
