@@ -58,7 +58,7 @@ export class TokenCache implements ITokenCache {
 
         if (request.account) {
             this.loadIdToken(response.id_token, request.account.homeAccountId, request.account.environment, request.account.tenantId, options);
-            this.loadAccessToken(request, response, options, request.account.homeAccountId, request.account.environment, request.account.tenantId);
+            this.loadAccessToken(request, response, request.account.homeAccountId, request.account.environment, request.account.tenantId, options);
         } else if (request.authority) {
 
             const authorityOptions: AuthorityOptions = {
@@ -73,11 +73,11 @@ export class TokenCache implements ITokenCache {
             if (options.clientInfo) {
                 this.logger.trace("TokenCache - homeAccountId from options");
                 this.loadIdToken(response.id_token, options.clientInfo, authority.hostnameAndPort, authority.tenant, options);
-                this.loadAccessToken(request, response, options, options.clientInfo, authority.hostnameAndPort, authority.tenant);
+                this.loadAccessToken(request, response, options.clientInfo, authority.hostnameAndPort, authority.tenant, options);
             } else if (response.client_info) {
                 this.logger.trace("TokenCache - homeAccountId from response");
                 this.loadIdToken(response.id_token, response.client_info, authority.hostnameAndPort, authority.tenant, options);
-                this.loadAccessToken(request, response, options, response.client_info, authority.hostnameAndPort, authority.tenant);
+                this.loadAccessToken(request, response, response.client_info, authority.hostnameAndPort, authority.tenant, options);
             } else {
                 throw BrowserAuthError.createUnableToLoadTokenError("Please provide clientInfo in the response or options.");
             }
@@ -121,7 +121,7 @@ export class TokenCache implements ITokenCache {
      * @param tenantId 
      * @returns 
      */
-    private loadAccessToken(request: SilentRequest, response: ServerAuthorizationROPCResponse, options: LoadTokenOptions, homeAccountId: string, environment: string, tenantId: string): void {
+    private loadAccessToken(request: SilentRequest, response: ServerAuthorizationROPCResponse, homeAccountId: string, environment: string, tenantId: string, options: LoadTokenOptions): void {
 
         if (!response.access_token) {
             this.logger.verbose("TokenCache - No access token provided for caching");

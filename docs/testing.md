@@ -19,6 +19,7 @@ See the type definitions for each, which can be imported from `@azure/msal-brows
 
 - [`SilentRequest`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#silentrequest)
 - [`ServerAuthorizationROPCResponse`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#serverauthorizationropcresponse)
+    - Note that the server response you receive will also have a refresh token attached. Currently, `loadTokens()` does not load refresh tokens.
 
 ```js
 export type LoadTokenOptions = {
