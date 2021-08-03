@@ -4,7 +4,7 @@
  */
 
 import { AccessTokenEntity, ICrypto, IdTokenEntity, Logger, ScopeSet, Authority, AuthorityOptions, ServerAuthorizationROPCResponse, AccountEntity, AuthToken } from "@azure/msal-common";
-import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
+import { BrowserConfiguration } from "../config/Configuration";
 import { SilentRequest } from "../request/SilentRequest";
 import { BrowserCacheManager } from "./BrowserCacheManager";
 import { ITokenCache } from "./ITokenCache";
