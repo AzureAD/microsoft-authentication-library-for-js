@@ -108,6 +108,9 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 },
                 removeTokenBindingKey: async (): Promise<boolean> => {
                     return Promise.resolve(true);
+                },
+                clearKeystore: async (): Promise<boolean> => {
+                    return Promise.resolve(true);
                 }
             },
             storageInterface: browserStorage,

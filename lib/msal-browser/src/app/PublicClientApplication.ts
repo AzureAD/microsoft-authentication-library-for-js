@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, CommonSilentFlowRequest, RequestThumbprint } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, RequestThumbprint } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
-import { DEFAULT_REQUEST, ApiId, InteractionType } from "../utils/BrowserConstants";
+import { DEFAULT_REQUEST, InteractionType } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
@@ -13,7 +13,7 @@ import { ClientApplication } from "./ClientApplication";
 import { SilentRequest } from "../request/SilentRequest";
 import { EventType } from "../event/EventType";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
-import { version, name } from "../packageMetadata";
+import { SilentCacheClient } from "../interaction_client/SilentCacheClient";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -124,26 +124,15 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} 
      */
     private async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult>{
-        const silentRequest: CommonSilentFlowRequest = {
-            ...request,
-            ...this.initializeBaseRequest(request),
-            account: account,
-            forceRefresh: request.forceRefresh || false
-        };
-        const browserRequestLogger = this.logger.clone(name, version, silentRequest.correlationId);
+        const silentCacheClient = new SilentCacheClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient);
+        const silentRequest = silentCacheClient.initializeSilentRequest(request, account);
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
-        try {
-            // Telemetry manager only used to increment cacheHits here
-            const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);
-            const silentAuthClient = await this.createSilentFlowClient(serverTelemetryManager, silentRequest.authority, silentRequest.correlationId);
-            browserRequestLogger.verbose("Silent auth client created");
-            const cachedToken = await silentAuthClient.acquireCachedToken(silentRequest);
-            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, cachedToken);
-            return cachedToken;
-        } catch (e) {
-            if (e instanceof BrowserAuthError && e.errorCode === BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code) {
+
+        return silentCacheClient.acquireToken(silentRequest).catch(async (error) => {
+            if (error instanceof BrowserAuthError && error.errorCode === BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code) {
                 this.logger.verbose("Signing keypair for bound access token not found. Refreshing bound access token and generating a new crypto keypair.");
             }
+
             try {
                 const tokenRenewalResult = await this.acquireTokenByRefreshToken(silentRequest);
                 this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, tokenRenewalResult);
@@ -152,6 +141,6 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
                 throw tokenRenewalError;
             }
-        }
+        });
     }
 }

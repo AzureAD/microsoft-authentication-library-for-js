@@ -151,10 +151,13 @@ export const mockCrypto = {
         return TEST_POP_VALUES.KID;
     },
     async removeTokenBindingKey(keyId: string): Promise<boolean> {
-        return true;
+        return Promise.resolve(true);
     },
     async signJwt(): Promise<string> {
         return "";
+    },
+    async clearKeystore(): Promise<boolean> {
+        return Promise.resolve(true);
     }
 };
 

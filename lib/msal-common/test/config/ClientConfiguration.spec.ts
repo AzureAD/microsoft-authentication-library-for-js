@@ -117,6 +117,9 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 },
                 async removeTokenBindingKey(): Promise<boolean> {
                     return Promise.resolve(true);
+                },
+                async clearKeystore(): Promise<boolean> {
+                    return Promise.resolve(true);
                 }
             },
             storageInterface: cacheStorageMock,

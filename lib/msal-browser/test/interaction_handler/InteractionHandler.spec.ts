@@ -103,6 +103,9 @@ const cryptoInterface = {
     },
     removeTokenBindingKey: async (): Promise<boolean> => {
         return Promise.resolve(true);
+    },
+    clearKeystore: async (): Promise<boolean> => {
+        return Promise.resolve(true);
     }
 }
 
