@@ -9,7 +9,7 @@ import { BrowserConfiguration } from "../config/Configuration";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
-import { BrowserConstants, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
+import { BrowserConstants, CryptoKeyTypes, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { version } from "../packageMetadata";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserProtocolUtils, BrowserStateObject } from "../utils/BrowserProtocolUtils";
@@ -38,6 +38,10 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     protected async initializeAuthorizationCodeRequest(request: AuthorizationUrlRequest): Promise<CommonAuthorizationCodeRequest> {
         this.logger.verbose("initializeAuthorizationRequest called", request.correlationId);
         const generatedPkceParams = await this.browserCrypto.generatePkceCodes();
+
+        // Generate Session Transport Key for Refresh Token Binding
+        const sessionTransportKeyThumbprint = await this.browserCrypto.getPublicKeyThumbprint(request, CryptoKeyTypes.stk_jwk);
+        request.stkJwk = sessionTransportKeyThumbprint;
 
         const authCodeRequest: CommonAuthorizationCodeRequest = {
             ...request,

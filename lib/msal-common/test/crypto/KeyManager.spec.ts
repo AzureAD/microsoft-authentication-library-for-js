@@ -1,9 +1,4 @@
-import * as Mocha from "mocha";
-import * as chai from "chai";
 import sinon from "sinon";
-import chaiAsPromised from "chai-as-promised";
-const expect = chai.expect;
-chai.use(chaiAsPromised);
 import { ICrypto, PkceCodes, AuthenticationScheme } from "../../src";
 import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS } from "../test_kit/StringConstants";
 import { KeyManager } from "../../src/crypto/KeyManager";
@@ -74,7 +69,7 @@ describe("KeyManager Unit Tests", () => {
         it("Generates the req_cnf correctly", async () => {
             const keyManager = new KeyManager(cryptoInterface);
             const req_cnf = await keyManager.generateCnf(testRequest);
-            expect(req_cnf).to.be.eq(TEST_POP_VALUES.ENCODED_REQ_CNF);
+            expect(req_cnf).toBe(TEST_POP_VALUES.ENCODED_REQ_CNF);
         });
     });
 });

@@ -63,6 +63,9 @@ describe("AuthToken.ts Class Unit Tests", () => {
             },
             async signJwt(): Promise<string> {
                 return "";
+            },
+            async getAsymmetricPublicKey(): Promise<string> {
+                return TEST_POP_VALUES.KID;
             }
         };
     });

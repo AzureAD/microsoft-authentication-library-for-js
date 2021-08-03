@@ -117,6 +117,9 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 },
                 async signJwt(): Promise<string> {
                     return "signedJwt";
+                },
+                async getAsymmetricPublicKey(): Promise<string> {
+                    return TEST_POP_VALUES.KID
                 }
             },
             storageInterface: cacheStorageMock,
