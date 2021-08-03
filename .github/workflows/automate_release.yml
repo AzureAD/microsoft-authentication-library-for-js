@@ -5,6 +5,14 @@ on:
   push:
     branches:
       - dev
+  workflow_dispatch:
+    inputs:
+      versionName:
+        description: 'Name of version '
+        required: true
+      versionCode:
+        description: 'Version #'
+        required: true
 
 jobs:
   release:
@@ -18,8 +26,8 @@ jobs:
 
       # Check out onto desired branch or tag to create release from
       - name: Checkout tag/branch
-        run: git checkout ${{ github.event.inputs.branch }}
+        run: git checkout -b release/v${{ github.event.inputs.versionName }}
 
       # Push changes
-      - name: Push branch
-        run: git push --set-upstream origin ${{ steps.version.outputs.version }}
+      - name: Push new branch
+        run: git push origin release/v${{ github.event.inputs.versionName }}
