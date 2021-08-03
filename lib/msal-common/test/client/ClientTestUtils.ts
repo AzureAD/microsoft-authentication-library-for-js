@@ -155,6 +155,9 @@ export const mockCrypto = {
     },
     async signJwt(): Promise<string> {
         return "";
+    },
+    async getAsymmetricPublicKey(): Promise<string> {
+        return TEST_POP_VALUES.KID
     }
 };
 
@@ -198,6 +201,9 @@ export class ClientTestUtils {
             cryptoInterface: mockCrypto,
             loggerOptions: {
                 loggerCallback: testLoggerCallback,
+            },
+            systemOptions: {
+                tokenRenewalOffsetSeconds: TEST_CONFIG.DEFAULT_TOKEN_RENEWAL_OFFSET
             },
             clientCredentials: {
                 clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,

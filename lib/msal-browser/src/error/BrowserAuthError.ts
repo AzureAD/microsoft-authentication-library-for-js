@@ -63,11 +63,11 @@ export const BrowserAuthErrorMessage = {
     },
     monitorPopupTimeoutError: {
         code: "monitor_window_timeout",
-        desc: "Token acquisition in popup failed due to timeout."
+        desc: "Token acquisition in popup failed due to timeout. For more visit: aka.ms/msaljs/browser-errors."
     },
     monitorIframeTimeoutError: {
         code: "monitor_window_timeout",
-        desc: "Token acquisition in iframe failed due to timeout."
+        desc: "Token acquisition in iframe failed due to timeout. For more visit: aka.ms/msaljs/browser-errors."
     },
     redirectInIframeError: {
         code: "redirect_in_iframe",
@@ -88,6 +88,10 @@ export const BrowserAuthErrorMessage = {
     silentSSOInsufficientInfoError: {
         code: "silent_sso_error",
         desc: "Silent SSO could not be completed - insufficient information was provided. Please provide either a loginHint or sid."
+    },
+    silentLogoutUnsupportedError: {
+        code: "silent_logout_unsupported",
+        desc: "Silent logout not supported. Please call logoutRedirect or logoutPopup instead."
     },
     noAccountError: {
         code: "no_account_error",
@@ -312,6 +316,13 @@ export class BrowserAuthError extends AuthError {
      */
     static createSilentSSOInsufficientInfoError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.silentSSOInsufficientInfoError.code, BrowserAuthErrorMessage.silentSSOInsufficientInfoError.desc);
+    }
+
+    /**
+     * Creates an error thrown when the logout API is called on any of the silent interaction clients
+     */
+    static createSilentLogoutUnsupportedError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.silentLogoutUnsupportedError.code, BrowserAuthErrorMessage.silentLogoutUnsupportedError.desc);
     }
 
     /**

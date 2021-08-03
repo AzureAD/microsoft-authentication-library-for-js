@@ -52,7 +52,7 @@ describe("KeyManager Unit Tests", () => {
             return "";
         },
         async getAsymmetricPublicKey(): Promise<string> {
-            return TEST_POP_VALUES.KID;
+            return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
         }
     };
 

@@ -1,5 +1,5 @@
 import { ConfidentialClientApplication } from './../../src/client/ConfidentialClientApplication';
-import { Authority, ClientConfiguration,  AuthorityFactory, AuthorizationCodeClient,  RefreshTokenClient, StringUtils } from '@azure/msal-common';
+import { Authority, ClientConfiguration,  AuthorityFactory, AuthorizationCodeClient,  RefreshTokenClient, StringUtils, ClientCredentialClient, OnBehalfOfClient, UsernamePasswordClient } from '@azure/msal-common';
 import { TEST_CONSTANTS } from '../utils/TestConstants';
 import { Configuration } from "../../src/config/Configuration";
 import { AuthorizationCodeRequest } from "../../src/request/AuthorizationCodeRequest";
@@ -7,6 +7,7 @@ import { mocked } from 'ts-jest/utils';
 import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
 import { ClientCredentialRequest } from "../../src/request/ClientCredentialRequest";
 import { OnBehalfOfRequest } from "../../src/request/OnBehalfOfRequest";
+import { UsernamePasswordRequest } from '../../src/request/UsernamePasswordRequest';
 
 jest.mock('@azure/msal-common');
 
@@ -16,6 +17,7 @@ mocked(StringUtils.isEmpty).mockImplementation((str) => {
 
 describe('ConfidentialClientApplication', () => {
     const authority: Authority = {
+        regionDiscoveryMetadata: { region_used: undefined, region_source: undefined, region_outcome: undefined },
         resolveEndpointsAsync: () => {
             return new Promise<void>(resolve => {
                 resolve();
@@ -93,8 +95,8 @@ describe('ConfidentialClientApplication', () => {
 
         const authApp = new ConfidentialClientApplication(appConfig);
         await authApp.acquireTokenByClientCredential(request);
-        expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
-        expect(AuthorizationCodeClient).toHaveBeenCalledWith(
+        expect(ClientCredentialClient).toHaveBeenCalledTimes(1);
+        expect(ClientCredentialClient).toHaveBeenCalledWith(
             expect.objectContaining(expectedConfig)
         );
     });
@@ -109,8 +111,25 @@ describe('ConfidentialClientApplication', () => {
 
         const authApp = new ConfidentialClientApplication(appConfig);
         await authApp.acquireTokenOnBehalfOf(request);
-        expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
-        expect(AuthorizationCodeClient).toHaveBeenCalledWith(
+        expect(OnBehalfOfClient).toHaveBeenCalledTimes(1);
+        expect(OnBehalfOfClient).toHaveBeenCalledWith(
+            expect.objectContaining(expectedConfig)
+        );
+    });
+
+    test('acquireTokenByUsernamePassword', async () => {
+        const request: UsernamePasswordRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            username: TEST_CONSTANTS.USERNAME,
+            password: TEST_CONSTANTS.PASSWORD
+        };
+
+        mocked(AuthorityFactory.createDiscoveredInstance).mockReturnValue(Promise.resolve(authority));
+
+        const authApp = new ConfidentialClientApplication(appConfig);
+        await authApp.acquireTokenByUsernamePassword(request);
+        expect(UsernamePasswordClient).toHaveBeenCalledTimes(1);
+        expect(UsernamePasswordClient).toHaveBeenCalledWith(
             expect.objectContaining(expectedConfig)
         );
     });

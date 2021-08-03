@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "fix: fix device code polling bug",
-  "packageName": "@azure/msal-common",
-  "email": "samuelkamau@microsoft.com",
-  "dependentChangeType": "patch"
-}

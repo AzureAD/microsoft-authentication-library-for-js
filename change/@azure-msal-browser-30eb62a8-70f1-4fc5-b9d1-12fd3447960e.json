@@ -1,6 +1,6 @@
 {
-  "type": "patch",
-  "comment": "Fix logoutPopup parameter type on IPublicClientApplication #3663",
+  "type": "minor",
+  "comment": "Refactor acquireToken logic into InteractionClients #3871",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

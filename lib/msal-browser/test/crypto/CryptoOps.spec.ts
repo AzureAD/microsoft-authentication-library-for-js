@@ -187,5 +187,5 @@ describe("CryptoOps.ts Unit Tests", () => {
         expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
         expect(regExp.test(pkThumbprint)).toBe(true);
         expect(Object.keys(dbStorage[pkThumbprint])).not.toHaveLength(0);
-    }, 15000);
+    }, 20000);
 });
