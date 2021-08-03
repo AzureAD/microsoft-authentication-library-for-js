@@ -64,6 +64,22 @@ export const TEST_TOKENS = {
     REFRESH_TOKEN: "thisIsARefreshT0ken"
 };
 
+export const ID_TOKEN_CLAIMS = {
+    ver: "2.0",
+    iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+    sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+    aud: "6cb04018-a3f5-46a7-b995-940c78f5aef3",
+    exp: 1536361411,
+    iat: 1536274711,
+    nbf: 1536274711,
+    name: "Abe Lincoln",
+    preferred_username: "AbeLi@microsoft.com",
+    oid: "00000000-0000-0000-66f3-3332eca7ea81",
+    tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+    nonce: "123523",
+    aio: "Df2UVXL1ix!lMCWMSOJBcFatzcGfvFGhjKv8q5g0x732dR5MB5BisvGQO7YWByjd8iQDLq!eGbIDakyp5mnOrcdqHeYSnltepQmRp6AIZ8jY"
+};
+
 // Test Expiration Vals
 export const TEST_TOKEN_LIFETIMES = {
     DEFAULT_EXPIRES_IN: 3599,
@@ -115,7 +131,9 @@ export const TEST_HASHES = {
     TEST_LOGIN_REQ_ERROR_HASH1: `#error=login_required&error_description=msal+error+description&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
     TEST_LOGIN_REQ_ERROR_HASH2: `#error=login_required&error_description=msal+error+description+login_required&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
     TEST_CONSENT_REQ_ERROR_HASH1: `#error=consent_required&error_description=msal+error+description&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
-    TEST_CONSENT_REQ_ERROR_HASH2: `#error=consent_required&error_description=msal+error+description+consent_required&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`
+    TEST_CONSENT_REQ_ERROR_HASH2: `#error=consent_required&error_description=msal+error+description+consent_required&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
+    TEST_SUCCESS_HASH_NO_STATE: `#id_token=${TEST_TOKENS.IDTOKEN_V2}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`,
+    TEST_SUCCESS_HASH_STATE_NO_META: `#id_token=${TEST_TOKENS.IDTOKEN_V2}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${TEST_STATE_VALUES.ENCODED_LIB_STATE}`,
 };
 
 export const DEFAULT_TENANT_DISCOVERY_RESPONSE = {
