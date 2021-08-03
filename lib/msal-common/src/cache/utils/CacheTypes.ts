@@ -54,7 +54,7 @@ export type CredentialFilter = {
     realm?: string;
     target?: string;
     oboAssertion?: string;
-    tokenType?: string;
+    tokenType?: AuthenticationScheme;
 };
 
 /**

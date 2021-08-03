@@ -342,7 +342,7 @@ export abstract class CacheManager implements ICacheManager {
         realm?: string,
         target?: string,
         oboAssertion?: string,
-        tokenType?: string
+        tokenType?: AuthenticationScheme
     ): CredentialCache {
         const allCacheKeys = this.getKeys();
         const matchingCredentials: CredentialCache = {
@@ -847,7 +847,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param entity 
      * @param tokenType 
      */
-    private matchTokenType(entity: CredentialEntity, tokenType: string): boolean {
+    private matchTokenType(entity: CredentialEntity, tokenType: AuthenticationScheme): boolean {
         return !!(entity.tokenType && entity.tokenType === tokenType);
     }
 
