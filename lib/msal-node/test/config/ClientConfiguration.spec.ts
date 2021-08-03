@@ -83,17 +83,21 @@ describe('ClientConfiguration tests', () => {
                 networkClient: {
                     sendGetRequestAsync: async (
                         url: string,
-                        options?: NetworkRequestOptions
+                        options?: NetworkRequestOptions,
+                        cancellationToken?: number,
+                        proxy?: string,
                     ): Promise<any> => {
-                        if (url && options) {
+                        if (url && options && cancellationToken && proxy) {
                             return testNetworkResult;
                         }
                     },
                     sendPostRequestAsync: async (
                         url: string,
-                        options?: NetworkRequestOptions
+                        options?: NetworkRequestOptions,
+                        cancellationToken?: number,
+                        proxy?: string
                     ): Promise<any> => {
-                        if (url && options) {
+                        if (url && options && cancellationToken && proxy) {
                             return testNetworkResult;
                         }
                     },

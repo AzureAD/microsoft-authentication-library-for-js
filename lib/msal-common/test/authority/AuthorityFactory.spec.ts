@@ -15,14 +15,18 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
     const networkInterface: INetworkModule = {
         sendGetRequestAsync<T>(
             url: string,
-            options?: NetworkRequestOptions
+            options?: NetworkRequestOptions,
+            cancellationToken?: number,
+            proxy?: string,
         ): T {
             // @ts-ignore
             return null;
         },
         sendPostRequestAsync<T>(
             url: string,
-            options?: NetworkRequestOptions
+            options?: NetworkRequestOptions,
+            cancellationToken?: number,
+            proxy?: string,
         ): T {
             // @ts-ignore
             return null;

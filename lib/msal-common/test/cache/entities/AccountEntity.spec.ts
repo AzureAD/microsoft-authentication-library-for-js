@@ -61,13 +61,17 @@ const cryptoInterface: ICrypto = {
 const networkInterface: INetworkModule = {
     sendGetRequestAsync<T>(
         url: string,
-        options?: NetworkRequestOptions
+        options?: NetworkRequestOptions,
+        cancellationToken?: number,
+        proxy?: string,
     ): T {
         return {} as T;
     },
     sendPostRequestAsync<T>(
         url: string,
-        options?: NetworkRequestOptions
+        options?: NetworkRequestOptions,
+        cancellationToken?: number,
+        proxy?: string,
     ): T {
         return {} as T;
     }

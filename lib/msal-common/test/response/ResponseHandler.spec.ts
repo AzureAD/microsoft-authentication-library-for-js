@@ -24,10 +24,10 @@ import { InteractionRequiredAuthError } from "../../src/error/InteractionRequire
 import { ServerError } from "../../src/error/ServerError";
 
 const networkInterface: INetworkModule = {
-    sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+    sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): T {
         return {} as T;
     },
-    sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+    sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): T {
         return {} as T;
     }
 };

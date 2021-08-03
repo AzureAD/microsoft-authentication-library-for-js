@@ -37,11 +37,11 @@ describe("Authority.ts Class Unit Tests", () => {
 
         it("Creates canonical authority uri based on given uri (and normalizes with '/')", () => {
             const networkInterface: INetworkModule = {
-                sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): T {
                     // @ts-ignore
                     return null;
                 },
-                sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): T {
                     // @ts-ignore
                     return null;
                 }
@@ -52,11 +52,11 @@ describe("Authority.ts Class Unit Tests", () => {
 
         it("Throws error if URI is not in valid format", () => {
             const networkInterface: INetworkModule = {
-                sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): T {
                     // @ts-ignore
                     return null;
                 },
-                sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+                sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): T {
                     // @ts-ignore
                     return null;
                 }
@@ -70,11 +70,11 @@ describe("Authority.ts Class Unit Tests", () => {
 
     describe("Getters and setters", () => {
         const networkInterface: INetworkModule = {
-            sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+            sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): T {
                 // @ts-ignore
                 return null;
             },
-            sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+            sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): T {
                 // @ts-ignore
                 return null;
             }
@@ -185,10 +185,10 @@ describe("Authority.ts Class Unit Tests", () => {
 
     describe("Regional authorities", () => {
         const networkInterface: INetworkModule = {
-            sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+            sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): T {
                 return {} as T;
             },
-            sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+            sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): T {
                 return {} as T;
             }
         };
@@ -203,7 +203,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
         it("discovery endpoint metadata is updated with regional information when the region is provided", async () => {
                 const deepCopyOpenIdResponse = JSON.parse(JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE));
-                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): any => {
                     return JSON.parse(JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE));
                 };
 
@@ -218,7 +218,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
         it("region provided by the user overrides the region auto-discovered", async () => {
                 const deepCopyOpenIdResponse = JSON.parse(JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE));
-                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): any => {
                     return JSON.parse(JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE));
                 };
 
@@ -233,7 +233,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
         it("auto discovered region only used when the user provides the AUTO_DISCOVER flag", async () => {
                 const deepCopyOpenIdResponse = JSON.parse(JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE));
-                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): any => {
                     return JSON.parse(JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE));
                 };
 
@@ -248,7 +248,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
         it("fallbacks to the global endpoint when the user provides the AUTO_DISCOVER flag but no region is detected", async () => {
                 const deepCopyOpenIdResponse = JSON.parse(JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE));
-                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): any => {
                     return JSON.parse(JSON.stringify(DEFAULT_OPENID_CONFIG_RESPONSE));
                 };
 
@@ -265,11 +265,11 @@ describe("Authority.ts Class Unit Tests", () => {
     describe("Endpoint discovery", () => {
 
         const networkInterface: INetworkModule = {
-            sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+            sendGetRequestAsync<T>(url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): T {
                 // @ts-ignore
                 return null;
             },
-            sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions): T {
+            sendPostRequestAsync<T>(url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): T {
                 // @ts-ignore
                 return null;
             }
@@ -390,7 +390,7 @@ describe("Authority.ts Class Unit Tests", () => {
 
                 jest.spyOn(AuthorityMetadataEntity.prototype, "isExpired").mockReturnValue(true);
 
-                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): any => {
                     return DEFAULT_OPENID_CONFIG_RESPONSE;
                 };
                 authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
@@ -423,7 +423,7 @@ describe("Authority.ts Class Unit Tests", () => {
             });
 
             it("Gets endpoints from network", async () => {
-                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): any => {
                     return DEFAULT_OPENID_CONFIG_RESPONSE;
                 };
                 authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
@@ -457,7 +457,7 @@ describe("Authority.ts Class Unit Tests", () => {
             });
 
             it("Throws error if openid-configuration network call fails", (done) => {
-                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): any => {
                     throw Error("Unable to reach endpoint");
                 };
                 authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
@@ -477,7 +477,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     cloudDiscoveryMetadata: "",
                     authorityMetadata: ""
                 };
-                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): any => {
                     return DEFAULT_OPENID_CONFIG_RESPONSE;
                 };
                 authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
@@ -506,7 +506,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     cloudDiscoveryMetadata: JSON.stringify(DEFAULT_TENANT_DISCOVERY_RESPONSE.body),
                     authorityMetadata: ""
                 };
-                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): any => {
                     return DEFAULT_OPENID_CONFIG_RESPONSE;
                 };
 
@@ -586,7 +586,7 @@ describe("Authority.ts Class Unit Tests", () => {
                 jest.spyOn(AuthorityMetadataEntity.prototype, "isExpired").mockReturnValue(true);
                 jest.spyOn(Authority.prototype, <any>"updateEndpointMetadata").mockResolvedValue("cache");
 
-                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): any => {
                     return DEFAULT_TENANT_DISCOVERY_RESPONSE;
                 };
                 authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
@@ -619,7 +619,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     cloudDiscoveryMetadata: "",
                     authorityMetadata: ""
                 }
-                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): any => {
                     return DEFAULT_TENANT_DISCOVERY_RESPONSE;
                 };
                 jest.spyOn(Authority.prototype, <any>"updateEndpointMetadata").mockResolvedValue("cache");
@@ -654,7 +654,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     cloudDiscoveryMetadata: "",
                     authorityMetadata: ""
                 }
-                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): any => {
                     return DEFAULT_TENANT_DISCOVERY_RESPONSE;
                 };
                 jest.spyOn(Authority.prototype, <any>"updateEndpointMetadata").mockResolvedValue("cache");
@@ -700,7 +700,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     cloudDiscoveryMetadata: "",
                     authorityMetadata: ""
                 };
-                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): any => {
                     throw Error("Unable to get response");
                 };
                 authority = new Authority(Constants.DEFAULT_AUTHORITY, networkInterface, mockStorage, authorityOptions);
@@ -720,7 +720,7 @@ describe("Authority.ts Class Unit Tests", () => {
                     cloudDiscoveryMetadata: "",
                     authorityMetadata: ""
                 };
-                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions): any => {
+                networkInterface.sendGetRequestAsync = (url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): any => {
                     return {
                         body: { 
                             error: "This endpoint does not exist"

@@ -121,10 +121,10 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
             },
             storageInterface: cacheStorageMock,
             networkInterface: {
-                sendGetRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
+                sendGetRequestAsync: async (url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string,): Promise<any> => {
                     return testNetworkResult;
                 },
-                sendPostRequestAsync: async (url: string, options?: NetworkRequestOptions): Promise<any> => {
+                sendPostRequestAsync: async (url: string, options?: NetworkRequestOptions, cancellationToken?: number, proxy?: string): Promise<any> => {
                     return testNetworkResult;
                 }
             },
