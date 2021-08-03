@@ -116,6 +116,16 @@ export class RedirectHandler extends InteractionHandler {
         authCodeResponse.nonce = cachedNonce || undefined;
         authCodeResponse.state = requestState;
 
+        // Add CCS parameters if available
+        if (authCodeResponse.client_info) {
+            this.authCodeRequest.clientInfo = authCodeResponse.client_info;
+        } else {
+            const cachedCcsCred = this.checkCcsCredentials();
+            if (cachedCcsCred) {
+                this.authCodeRequest.ccsCredential = cachedCcsCred;
+            }
+        }
+
         // Remove throttle if it exists
         if (clientId) {
             ThrottlingUtils.removeThrottle(this.browserStorage, clientId, this.authCodeRequest.authority, this.authCodeRequest.scopes);

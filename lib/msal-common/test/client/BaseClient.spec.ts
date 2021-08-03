@@ -1,10 +1,10 @@
 import { BaseClient } from "../../src/client/BaseClient";
-import { Authority, Constants } from "../../src";
-import { HeaderNames } from "../../src/utils/Constants";
+import { HeaderNames, Constants } from "../../src/utils/Constants";
 import { ClientTestUtils } from "./ClientTestUtils";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
-import sinon from "sinon";
 import { DEFAULT_OPENID_CONFIG_RESPONSE } from "../test_kit/StringConstants";
+import { Authority } from "../../src/authority/Authority";
+import sinon from "sinon";
 
 class TestClient extends BaseClient {
 
@@ -32,8 +32,8 @@ class TestClient extends BaseClient {
         return this.authority;
     }
 
-    createDefaultTokenRequestHeaders(): Record<string, string> {
-        return super.createDefaultTokenRequestHeaders();
+    createTokenRequestHeaders(): Record<string, string> {
+        return super.createTokenRequestHeaders();
     }
 }
 
@@ -76,7 +76,7 @@ describe("BaseClient.ts Class Unit Tests", () => {
         it("Creates default token request headers", async () => {
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new TestClient(config);
-            const headers = client.createDefaultTokenRequestHeaders();
+            const headers = client.createTokenRequestHeaders();
 
             expect(headers[HeaderNames.CONTENT_TYPE]).toBe(Constants.URL_FORM_CONTENT_TYPE);
         });
