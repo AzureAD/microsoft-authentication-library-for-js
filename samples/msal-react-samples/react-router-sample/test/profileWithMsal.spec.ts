@@ -5,7 +5,7 @@ import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../e2eTestUtils/Constants";
 import { BrowserCacheUtils } from "../../../e2eTestUtils/BrowserCacheTestUtils";
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/profile-tests`;
+const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/profileWithMsal-tests`;
 
 async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[]): Promise<void> {
     const tokenStore = await BrowserCache.getTokens();
