@@ -2,7 +2,7 @@
 
 MSAL Browser starting version 2.17.0 has added the `loadTokens()` API, which allows the loading of id tokens and access tokens to the MSAL cache, which can then be read out using `acquireTokenSilent()`. 
 
-**Note: This is an advanced feature that is intended for testing purposes only. Loading tokens to your application's cache may cause your app to break.**
+**Note: This is an advanced feature that is intended for testing purposes in the browser environment only. Loading tokens to your application's cache may cause your app to break.**
 
 ## The loadTokens() API
 
@@ -24,8 +24,7 @@ See the type definitions for each, which can be imported from `@azure/msal-brows
 ```js
 export type LoadTokenOptions = {
     clientInfo?: string,
-    extendedExpiresOn?: number,
-    callback?: TokenCallback
+    extendedExpiresOn?: number
 };
 ```
 
@@ -38,6 +37,8 @@ Provide the following to load an id token:
     - A `SilentRequest` object with account information, OR
     - A `SilentRequest` object with the authority AND a `LoadTokenOptions` object with `clientInfo`, OR
     - A `SilentRequest` object with the authority AND a server response object with `client_info`
+
+An account will also be set in the cache based on the information provided above.
 
 See the code examples below:
 
@@ -134,12 +135,4 @@ const serverResponse: ServerAuthorizationROPCResponse = {
 const loadTokenOptions: LoadTokenOptions = {
     extendedExpiresOn: 6599
 };
-```
-
-### Loading to a callback
-
-`loadTokens()` also provides the ability to provide a callback in the `LoadTokenOptions` object, which will override the default window storage. Callbacks should be provided in the following shape:
-
-```js
-export type TokenCallback = (key: string, value: string) => void;
 ```
