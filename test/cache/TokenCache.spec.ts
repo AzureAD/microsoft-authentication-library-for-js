@@ -3,7 +3,7 @@ import { Logger, LogLevel,IdTokenEntity, AccessTokenEntity, ScopeSet, ServerAuth
 import { TokenCache, LoadTokenOptions } from "./../../src/cache/TokenCache";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
-import { CacheOptions, Configuration } from "../../src/config/Configuration";
+import { BrowserConfiguration, buildConfiguration, CacheOptions, Configuration } from "../../src/config/Configuration";
 import { BrowserCacheLocation } from "../../src/utils/BrowserConstants";
 import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_URIS } from "../utils/StringConstants";
 import { BrowserAuthErrorMessage, SilentRequest } from "../../src";
@@ -11,18 +11,18 @@ import { BrowserAuthErrorMessage, SilentRequest } from "../../src";
 
 describe("TokenCache tests", () => {
 
-    let configuration: Configuration;
+    let configuration: BrowserConfiguration;
     let logger: Logger;
     let browserStorage: BrowserCacheManager;
     let cacheConfig: Required<CacheOptions>;
 
     const cryptoObj = new CryptoOps();
     beforeEach(() => {
-        configuration = {
+        configuration = buildConfiguration({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
-        };
+        }, true);
         cacheConfig = {
             cacheLocation: BrowserCacheLocation.SessionStorage,
             storeAuthStateInCookie: false,

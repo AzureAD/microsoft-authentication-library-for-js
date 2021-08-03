@@ -30,9 +30,9 @@ export class TokenCache implements ITokenCache {
     // Crypto class
     private cryptoObj: ICrypto;
 
-    constructor(configuration: Configuration, storage: BrowserCacheManager, logger: Logger, cryptoObj: ICrypto) {
+    constructor(configuration: BrowserConfiguration, storage: BrowserCacheManager, logger: Logger, cryptoObj: ICrypto) {
         this.isBrowserEnvironment = typeof window !== "undefined";
-        this.config = buildConfiguration(configuration, this.isBrowserEnvironment);
+        this.config = configuration;
         this.storage = storage;
         this.logger = logger;
         this.cryptoObj = cryptoObj;
