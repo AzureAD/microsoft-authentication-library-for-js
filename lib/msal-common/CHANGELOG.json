@@ -2,6 +2,21 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 02 Aug 2021 23:19:21 GMT",
+      "tag": "@azure/msal-common_v4.5.1",
+      "version": "4.5.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix double encoding state #3903",
+            "author": "bmahal@microsoft.com",
+            "commit": "6a650097f99a395c7d7723ac2184a71e759d9b74",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 22 Jul 2021 22:50:22 GMT",
       "tag": "@azure/msal-common_v4.5.0",
       "version": "4.5.0",
