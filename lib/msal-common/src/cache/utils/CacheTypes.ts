@@ -11,6 +11,7 @@ import { AppMetadataEntity } from "../entities/AppMetadataEntity";
 import { ServerTelemetryEntity } from "../entities/ServerTelemetryEntity";
 import { ThrottlingEntity } from "../entities/ThrottlingEntity";
 import { AuthorityMetadataEntity } from "../entities/AuthorityMetadataEntity";
+import { AuthenticationScheme } from "../../utils/Constants";
 
 export type AccountCache = Record<string, AccountEntity>;
 export type IdTokenCache = Record<string, IdTokenEntity>;
