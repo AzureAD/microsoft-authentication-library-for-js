@@ -22,4 +22,4 @@ jobs:
 
       # Push changes
       - name: Push branch
-        run: git push --set-upstream origin release/${{ steps.version.outputs.version }}
+        run: git push --set-upstream origin ${{ steps.version.outputs.version }}
