@@ -1,5 +1,5 @@
 import sinon from "sinon";
-import { Logger, LogLevel,IdTokenEntity, AccessTokenEntity, ScopeSet, ServerAuthorizationROPCResponse, IdToken} from "@azure/msal-common";
+import { Logger, LogLevel,IdTokenEntity, AccessTokenEntity, ScopeSet, ServerAuthorizationROPCResponse, AccountEntity, AuthToken, AccountInfo } from "@azure/msal-common";
 import { TokenCache, LoadTokenOptions } from "./../../src/cache/TokenCache";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
@@ -82,7 +82,7 @@ describe("TokenCache tests", () => {
                     environment: testEnvironment,
                     tenantId: TEST_CONFIG.TENANT,
                     username: "username",
-                    localAccountId: "localAccountId" 
+                    localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID 
                 }
             };
             const response: ServerAuthorizationROPCResponse = {
@@ -108,6 +108,33 @@ describe("TokenCache tests", () => {
             tokenCache.loadTokens(request, response, options);
 
             expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(idTokenEntity);
+        });
+
+        it("sets account when id token is loaded", () => {
+            const request: SilentRequest = {
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`
+            };
+            const response: ServerAuthorizationROPCResponse = {
+                id_token: testIdToken
+            };
+            const options: LoadTokenOptions = {
+                clientInfo: testClientInfo
+            };
+            const testIdAuthToken = new AuthToken(testIdToken, cryptoObj);
+            const testAccount = AccountEntity.createAccount(testClientInfo, TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID, testIdAuthToken, undefined, undefined, undefined, undefined, testEnvironment);
+            const testAccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                environment: testEnvironment,
+                tenantId: TEST_CONFIG.MSAL_TENANT_ID,
+                username: "AbeLi@microsoft.com",
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID
+            };
+            const testAccountKey = AccountEntity.generateAccountCacheKey(testAccountInfo);
+            tokenCache.loadTokens(request, response, options);
+
+            expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(idTokenEntity);
+            expect(browserStorage.getAccount(testAccountKey)).toEqual(testAccount);
         });
 
         it("loads id token with request authority and client info provided in response", () => {
@@ -232,33 +259,6 @@ describe("TokenCache tests", () => {
             expect(browserStorage.getAccessTokenCredential(accessTokenKey)).toEqual(accessTokenEntity);
         });
 
-        it("loads tokens using callback if provided", (done) => {
-            const testCallback = (key: string, value: string) => {
-                expect(key).toEqual(idTokenKey);
-                expect(value).toEqual(JSON.stringify(idTokenEntity));
-                done();
-            };
-
-            const request: SilentRequest = {
-                scopes: TEST_CONFIG.DEFAULT_SCOPES,
-                account: {
-                    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
-                    environment: testEnvironment,
-                    tenantId: TEST_CONFIG.TENANT,
-                    username: "username",
-                    localAccountId: "localAccountId" 
-                }
-            };
-            const response: ServerAuthorizationROPCResponse = {
-                id_token: testIdToken,
-                expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
-            };
-            const options: LoadTokenOptions = {
-                callback: testCallback
-            };
-            tokenCache.loadTokens(request, response, options);
-        });
-
         it("throws error if callback not provided in non-browser environment", () => {
             tokenCache.isBrowserEnvironment = false;
             const request: SilentRequest = {
@@ -278,7 +278,7 @@ describe("TokenCache tests", () => {
             };
             const options: LoadTokenOptions = {};
 
-            expect(() => tokenCache.loadTokens(request, response, options)).toThrowError(`${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | Please provide callback to cache id tokens in non-browser environments.`);
+            expect(() => tokenCache.loadTokens(request, response, options)).toThrowError(`${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | loadTokens is designed to work in browser environments only.`);
         });
 
     });
