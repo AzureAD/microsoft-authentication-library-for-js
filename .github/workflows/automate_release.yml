@@ -8,7 +8,7 @@ on:
 
 jobs:
   release:
-    name: Bump versions and create changelog PR
+    name: Bump versions and create changelog PR --updation
     runs-on: ubuntu-latest
     steps:
       # Check-out repo
