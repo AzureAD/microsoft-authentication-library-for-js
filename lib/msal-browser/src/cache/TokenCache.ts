@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccessTokenEntity, ICrypto, IdTokenEntity, Logger, ScopeSet, Authority, AuthorityOptions, ServerAuthorizationROPCResponse } from "@azure/msal-common";
+import { AccessTokenEntity, ICrypto, IdTokenEntity, Logger, ScopeSet, Authority, AuthorityOptions, ServerAuthorizationROPCResponse, AccountEntity, AuthToken } from "@azure/msal-common";
 import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
 import { SilentRequest } from "../request/SilentRequest";
 import { BrowserCacheManager } from "./BrowserCacheManager";
@@ -12,11 +12,8 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export type LoadTokenOptions = {
     clientInfo?: string,
-    extendedExpiresOn?: number,
-    callback?: TokenCallback
+    extendedExpiresOn?: number
 };
-
-export type TokenCallback = (key: string, value: string) => void;
 
 /**
  * Token cache manager
@@ -97,17 +94,17 @@ export class TokenCache implements ITokenCache {
     private loadIdToken(idToken: string, homeAccountId: string, environment: string, tenantId: string, options: LoadTokenOptions): void {
 
         const idTokenEntity = IdTokenEntity.createIdTokenEntity(homeAccountId, environment, idToken, this.config.auth.clientId, tenantId);
+        const idAuthToken = new AuthToken(idToken, this.cryptoObj);
+        const accountEntity = options.clientInfo ?
+            AccountEntity.createAccount(options.clientInfo, homeAccountId, idAuthToken, undefined, undefined, undefined, undefined, environment) :
+            AccountEntity.createGenericAccount(homeAccountId, idAuthToken, undefined, undefined, undefined, undefined, environment);
 
-        // If provided, callback takes precedence over storage set in config
-        if (options.callback) {
-            this.logger.verbose("TokenCache - callback with id token");
-            const idTokenKey = idTokenEntity.generateCredentialKey();
-            options.callback(idTokenKey, JSON.stringify(idTokenEntity));
-        } else if (this.isBrowserEnvironment) {
+        if (this.isBrowserEnvironment) {
             this.logger.verbose("TokenCache - loading id token");
+            this.storage.setAccount(accountEntity);
             this.storage.setIdTokenCredential(idTokenEntity);
         } else {
-            throw BrowserAuthError.createUnableToLoadTokenError("Please provide callback to cache id tokens in non-browser environments.");
+            throw BrowserAuthError.createUnableToLoadTokenError("loadTokens is designed to work in browser environments only.");
         }
     }
 
@@ -142,16 +139,11 @@ export class TokenCache implements ITokenCache {
 
         const accessTokenEntity = AccessTokenEntity.createAccessTokenEntity(homeAccountId, environment, response.access_token, this.config.auth.clientId, tenantId, scopes, expiresOn, extendedExpiresOn, this.cryptoObj);
 
-        // If provided, callback takes precedence over storage set in config
-        if (options.callback) {
-            this.logger.verbose("TokenCache - callback access token");
-            const accessTokenKey = accessTokenEntity.generateCredentialKey();
-            options.callback(accessTokenKey, JSON.stringify(accessTokenEntity));
-        } else if (this.isBrowserEnvironment) {
+        if (this.isBrowserEnvironment) {
             this.logger.verbose("TokenCache - loading access token");
             this.storage.setAccessTokenCredential(accessTokenEntity);
         } else {
-            throw BrowserAuthError.createUnableToLoadTokenError("Please provide callback to cache access tokens in non-browser environments");
+            throw BrowserAuthError.createUnableToLoadTokenError("loadTokens is designed to work in browser environments only.");
         }
     }
 }

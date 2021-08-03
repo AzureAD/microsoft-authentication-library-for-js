@@ -92,28 +92,3 @@ async function getTokenSilently() {
         });
     }
 }
-
-async function loadTokens() {
-    const request = {
-        scopes: authConfig.request.scopes,
-        authority: authConfig.msalConfig.auth.authority 
-    };
-    const response = {
-        token_type: "Bearer",
-        scopes: authConfig.request.scopes,
-        expires_in: 2000000000,
-        id_token: "idtoken",
-        access_token: "accesstoken"
-    };
-    const options = {
-        extendedExpiresOn: 2000000000,
-        clientInfo: "be064c37-2617-468c-b627-25b4e4817adf.19eea2f8-e17a-470f-954d-d897c47f311c"
-    };
-    const msalTokenCache = myMSALObj.getTokenCache();
-
-    try {
-        await msalTokenCache.loadTokens(request, response, options);
-    } catch(e) {
-        console.error(e);
-    }
-}

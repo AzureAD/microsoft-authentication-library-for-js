@@ -272,7 +272,7 @@ export class ResponseHandler {
         // ADFS does not require client_info in the response
         if (authorityType === AuthorityType.Adfs) {
             this.logger.verbose("Authority type is ADFS, creating ADFS account");
-            return AccountEntity.createGenericAccount(authority, this.homeAccountIdentifier, idToken, oboAssertion, cloudGraphHostName, msGraphhost);
+            return AccountEntity.createGenericAccount(this.homeAccountIdentifier, idToken, authority, oboAssertion, cloudGraphHostName, msGraphhost);
         }
 
         // This fallback applies to B2C as well as they fall under an AAD account type.
@@ -281,8 +281,8 @@ export class ResponseHandler {
         }
 
         return serverTokenResponse.client_info ?
-            AccountEntity.createAccount(serverTokenResponse.client_info, this.homeAccountIdentifier, authority, idToken, oboAssertion, cloudGraphHostName, msGraphhost) :
-            AccountEntity.createGenericAccount(authority, this.homeAccountIdentifier, idToken, oboAssertion, cloudGraphHostName, msGraphhost);
+            AccountEntity.createAccount(serverTokenResponse.client_info, this.homeAccountIdentifier, idToken, authority, oboAssertion, cloudGraphHostName, msGraphhost) :
+            AccountEntity.createGenericAccount(this.homeAccountIdentifier, idToken, authority, oboAssertion, cloudGraphHostName, msGraphhost);
     }
 
     /**
