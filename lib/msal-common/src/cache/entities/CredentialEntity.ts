@@ -37,7 +37,7 @@ export class CredentialEntity {
     realm?: string;
     target?: string;
     oboAssertion?: string;
-    tokenType?: string;
+    tokenType?: AuthenticationScheme;
 
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
@@ -132,7 +132,7 @@ export class CredentialEntity {
         realm?: string,
         target?: string,
         familyId?: string,
-        tokenType?: string
+        tokenType?: AuthenticationScheme
     ): string {
         const credentialKey = [
             this.generateAccountIdForCacheKey(homeAccountId, environment),
@@ -140,8 +140,9 @@ export class CredentialEntity {
             this.generateTargetForCacheKey(target)
         ];
 
+        // PoP Tokens include scheme in cache key
         if (tokenType === AuthenticationScheme.POP) {
-            credentialKey.push(this.generateSchemeForCacheKey(credentialType, tokenType));
+            credentialKey.push(tokenType.toLowerCase());
         }
 
         return credentialKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
@@ -191,17 +192,5 @@ export class CredentialEntity {
      */
     private static generateTargetForCacheKey(scopes?: string): string {
         return (scopes || "").toLowerCase();
-    }
-
-    /**
-     * Generates scheme key component as per schema: <-scheme>
-     */
-    private static generateSchemeForCacheKey(credentialType: string, tokenType?: string): string {
-        const authScheme =
-            ((credentialType === CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME) && tokenType)
-                ? tokenType
-                : "";
-
-        return authScheme.toLowerCase();
     }
 }

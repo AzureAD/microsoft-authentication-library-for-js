@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { AuthenticationScheme } from "../utils/Constants";
+
 /**
  * Deserialized response object from server authorization code request.
  * - token_type: Indicates the token type value. Can be either Bearer or pop.
@@ -24,7 +26,7 @@
  */
 export type ServerAuthorizationTokenResponse = {
     // Success
-    token_type?: string;
+    token_type?: AuthenticationScheme;
     scope?: string;
     expires_in?: number;
     refresh_in?: number;
