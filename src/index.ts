@@ -59,7 +59,7 @@ export {
     // Protocol Mode
     ProtocolMode,
     // Server Response
-    ServerAuthorizationROPCResponse,
+    ExternalTokenResponse,
     // Utils
     StringUtils,
     UrlString
