@@ -75,7 +75,7 @@ describe("PopupClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
 
-            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT);
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
 
             const popupSpy = sinon.stub(PopupUtils, "openSizedPopup");
 
@@ -102,7 +102,7 @@ describe("PopupClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
             
-            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT);
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
 
             const request: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -181,7 +181,7 @@ describe("PopupClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
-            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT);
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
 
             const tokenResp = await popupClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -202,7 +202,7 @@ describe("PopupClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
-            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT);
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
 
             try {
                 await popupClient.acquireToken({

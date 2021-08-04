@@ -303,7 +303,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
-            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT);
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
             
             // @ts-ignore
             pca.loginRedirect(null);
@@ -1067,7 +1067,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             });
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(ProtocolUtils, "setRequestState").returns(TEST_STATE_VALUES.TEST_STATE_SILENT);
-            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT);
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
             const CommonSilentFlowRequest: SilentRequest = {
                 scopes: ["User.Read"],
                 account: testAccount,
@@ -1089,7 +1089,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
                 codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
                 authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
-                stkJwk: TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT
+                stkJwk: TEST_POP_VALUES.KID
             };
             const tokenResp = await pca.acquireTokenSilent(CommonSilentFlowRequest);
 
