@@ -154,7 +154,7 @@ describe("CryptoOps.ts Unit Tests", () => {
         expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
         expect(regExp.test(pkThumbprint)).toBe(true);
         expect(Object.keys(dbStorage[pkThumbprint])).not.toHaveLength(0);
-    });
+    }, 30000);
 
     it("getPublicKeyThumbprint() generates a valid stk_jwk thumbprint", async () => {
         //@ts-ignore
@@ -171,7 +171,6 @@ describe("CryptoOps.ts Unit Tests", () => {
             authority: TEST_CONFIG.validAuthority,
             scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
             correlationId: TEST_CONFIG.CORRELATION_ID,
-            stkJwk: TEST_POP_VALUES.KID
         };
 
         const pkThumbprint = await cryptoObj.getPublicKeyThumbprint(testRequest, keyType);

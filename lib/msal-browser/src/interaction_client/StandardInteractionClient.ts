@@ -9,7 +9,7 @@ import { BrowserConfiguration } from "../config/Configuration";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
-import { BrowserConstants, CryptoKeyTypes, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
+import { BrowserConstants, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { version } from "../packageMetadata";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserProtocolUtils, BrowserStateObject } from "../utils/BrowserProtocolUtils";
@@ -19,6 +19,7 @@ import { INavigationClient } from "../navigation/INavigationClient";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
+import { CryptoKeyTypes } from "../utils/CryptoConstants";
 
 /**
  * Defines the class structure and helper functions used by the "standard", non-brokered auth flows (popup, redirect, silent (RT), silent (iframe))
@@ -40,7 +41,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         const generatedPkceParams = await this.browserCrypto.generatePkceCodes();
 
         // Generate Session Transport Key for Refresh Token Binding
-        const sessionTransportKeyThumbprint = await this.browserCrypto.getPublicKeyThumbprint(request, CryptoKeyTypes.stk_jwk);
+        const sessionTransportKeyThumbprint = await this.browserCrypto.getPublicKeyThumbprint(request, CryptoKeyTypes.STK_JWK);
         request.stkJwk = sessionTransportKeyThumbprint;
 
         const authCodeRequest: CommonAuthorizationCodeRequest = {
