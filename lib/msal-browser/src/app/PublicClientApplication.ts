@@ -12,7 +12,7 @@ import { PopupRequest } from "../request/PopupRequest";
 import { ClientApplication } from "./ClientApplication";
 import { SilentRequest } from "../request/SilentRequest";
 import { EventType } from "../event/EventType";
-import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 import { SilentCacheClient } from "../interaction_client/SilentCacheClient";
 
 /**
@@ -128,11 +128,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         const silentRequest = silentCacheClient.initializeSilentRequest(request, account);
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
 
-        return silentCacheClient.acquireToken(silentRequest).catch(async (error) => {
-            if (error instanceof BrowserAuthError && error.errorCode === BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code) {
-                this.logger.verbose("Signing keypair for bound access token not found. Refreshing bound access token and generating a new crypto keypair.");
-            }
-
+        return silentCacheClient.acquireToken(silentRequest).catch(async () => {
             try {
                 const tokenRenewalResult = await this.acquireTokenByRefreshToken(silentRequest);
                 this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, tokenRenewalResult);

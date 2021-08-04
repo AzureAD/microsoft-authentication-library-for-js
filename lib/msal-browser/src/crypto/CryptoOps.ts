@@ -138,11 +138,9 @@ export class CryptoOps implements ICrypto {
      * @param kid 
      */
     async signJwt(payload: SignedHttpRequest, kid: string): Promise<string> {
-        let cachedKeyPair: CachedKeyPair;
-        try {
-            // Get keypair from cache
-            cachedKeyPair = await this.cache.get(kid);
-        } catch (error) {
+        const cachedKeyPair = await this.cache.get(kid);
+            
+        if (!cachedKeyPair) {
             throw BrowserAuthError.createSigningKeyNotFoundInStorageError(kid);
         }
 
