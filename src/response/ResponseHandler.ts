@@ -157,7 +157,7 @@ export class ResponseHandler {
                     return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj);
                 }
             }
-            this.cacheStorage.saveCacheRecord(cacheRecord);
+            await this.cacheStorage.saveCacheRecord(cacheRecord);
         } finally {
             if (this.persistencePlugin && this.serializableCache && cacheContext) {
                 this.logger.verbose("Persistence enabled, calling afterCacheAccess");
