@@ -6,8 +6,8 @@
 import { StringDict } from "@azure/msal-common";
 import { Base64Decode } from "../encode/Base64Decode";
 import { JsonWebEncryptionError } from "../error/JsonWebEncryptionError";
-import { BROWSER_CRYPTO } from "../utils/BrowserConstants";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
+import { ALGORITHMS } from "../utils/CryptoConstants";
 
 export type JoseHeader = {
     alg: string,
@@ -20,9 +20,9 @@ export type UnwrappingAlgorithmPair = {
 };
 
 const KEY_ALGORITHM_MAP: StringDict = {
-    "RSA-OAEP-256": BROWSER_CRYPTO.RSA_OAEP,
-    "A256GCM": BROWSER_CRYPTO.AES_GCM,
-    "dir": BROWSER_CRYPTO.DIRECT
+    "RSA-OAEP-256": ALGORITHMS.RSA_OAEP,
+    "A256GCM": ALGORITHMS.AES_GCM,
+    "dir": ALGORITHMS.DIRECT
 };
 
 /**
@@ -50,10 +50,10 @@ export class JsonWebEncryption {
         this.header = this.parseJweProtectedHeader(jweComponents[0]);
         this.authenticatedData = this.getAuthenticatedData(jweComponents[0]);
         this.unwrappingAlgorithms = this.setUnwrappingAlgorithms();
-        this.encryptedKey = this.base64Decode.base64URLdecode(jweComponents[1]);
-        this.initializationVector = this.base64Decode.base64URLdecode(jweComponents[2]);
-        this.ciphertext = this.base64Decode.base64URLdecode(jweComponents[3]);
-        this.authenticationTag = this.base64Decode.base64URLdecode(jweComponents[4]);
+        this.encryptedKey = this.decodeElement(jweComponents[1]);
+        this.initializationVector = this.decodeElement(jweComponents[2]);
+        this.ciphertext = this.decodeElement(jweComponents[3]);
+        this.authenticationTag = this.decodeElement(jweComponents[4]);
     }
 
     getAuthenticatedData(str: string): Uint8Array {
@@ -85,7 +85,7 @@ export class JsonWebEncryption {
     }
 
     private parseJweProtectedHeader(encodedHeader: string): JoseHeader {
-        const decodedHeader = this.base64Decode.base64URLdecode(encodedHeader);
+        const decodedHeader = this.decodeElement(encodedHeader);
         try {
             return JSON.parse(decodedHeader);
         } catch (error) {
@@ -108,5 +108,14 @@ export class JsonWebEncryption {
         } else {
             throw JsonWebEncryptionError.createHeaderAlgorithmMismatch(label);
         }
+    }
+
+    /**
+     * Performs Base64URL decoding on a Base54URL encoded JWE fragment
+     * @param encodedFragment 
+     */
+    private decodeElement(encodedFragment: string): string {
+        const encodedString = encodedFragment.replace(/-/g, "+").replace(/_/g, "/");
+        return atob(encodedString);
     }
 }
