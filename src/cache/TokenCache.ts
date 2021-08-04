@@ -46,8 +46,8 @@ export class TokenCache implements ITokenCache {
      * @param response
      * @param options
      */
-    loadTokens(request: SilentRequest, response: ExternalTokenResponse, options: LoadTokenOptions): void {
-        this.logger.info("TokenCache - loadTokens called");
+    loadExternalTokens(request: SilentRequest, response: ExternalTokenResponse, options: LoadTokenOptions): void {
+        this.logger.info("TokenCache - loadExternalTokens called");
 
         if (!response.id_token) {
             throw BrowserAuthError.createUnableToLoadTokenError("Please ensure server response includes id token.");
@@ -104,7 +104,7 @@ export class TokenCache implements ITokenCache {
             this.storage.setAccount(accountEntity);
             this.storage.setIdTokenCredential(idTokenEntity);
         } else {
-            throw BrowserAuthError.createUnableToLoadTokenError("loadTokens is designed to work in browser environments only.");
+            throw BrowserAuthError.createUnableToLoadTokenError("loadExternalTokens is designed to work in browser environments only.");
         }
     }
 
@@ -143,7 +143,7 @@ export class TokenCache implements ITokenCache {
             this.logger.verbose("TokenCache - loading access token");
             this.storage.setAccessTokenCredential(accessTokenEntity);
         } else {
-            throw BrowserAuthError.createUnableToLoadTokenError("loadTokens is designed to work in browser environments only.");
+            throw BrowserAuthError.createUnableToLoadTokenError("loadExternalTokens is designed to work in browser environments only.");
         }
     }
 }

@@ -10,5 +10,5 @@ import { LoadTokenOptions } from "./TokenCache";
 export interface ITokenCache {
 
     /** API to side-load tokens to MSAL cache */
-    loadTokens(request: SilentRequest, response: ExternalTokenResponse, options: LoadTokenOptions): void;
+    loadExternalTokens(request: SilentRequest, response: ExternalTokenResponse, options: LoadTokenOptions): void;
 }

@@ -1,25 +1,25 @@
 # Testing
 
-## The loadTokens() API
+## The loadExternalTokens() API
 
-MSAL Browser starting version 2.17.0 has added the `loadTokens()` API, which allows the loading of id tokens and access tokens to the MSAL cache, which can then be read out using `acquireTokenSilent()`. 
+MSAL Browser starting version 2.17.0 has added the `loadExternalTokens()` API, which allows the loading of id tokens and access tokens to the MSAL cache, which can then be read out using `acquireTokenSilent()`. 
 
 **Note: This is an advanced feature that is intended for testing purposes in the browser environment only. Loading tokens to your application's cache may cause your app to break.**
 
-The `loadToken()` API can be accessed by calling `getTokenCache()` on MSAL Browser's `PublicClientApplication` instance. 
+The `loadExternalTokens()` API can be accessed by calling `getTokenCache()` on MSAL Browser's `PublicClientApplication` instance. 
 
 ```js
 const msalTokenCache = myMSALObj.getTokenCache();
-msalTokenCache.loadTokens(silentRequest, serverResponse, loadTokenOptions);
+msalTokenCache.loadExternalTokens(silentRequest, serverResponse, loadTokenOptions);
 ```
 
-`loadTokens()` takes in a request of type `SilentRequest`, a response of type `ServerAuthenticationROPCResponse`, and options of type `LoadTokenOptions`.
+`loadExternalTokens()` takes in a request of type `SilentRequest`, a response of type `ServerAuthenticationROPCResponse`, and options of type `LoadTokenOptions`.
 
 See the type definitions for each, which can be imported from `@azure/msal-browser`:
 
 - [`SilentRequest`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#silentrequest)
 - [`ServerAuthorizationROPCResponse`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#serverauthorizationropcresponse)
-    - Note that the server response you receive will also have a refresh token attached. Currently, `loadTokens()` does not load refresh tokens.
+    - Note that the server response you receive will also have a refresh token attached. Currently, `loadExternalTokens()` does not load refresh tokens.
 
 ```js
 export type LoadTokenOptions = {
@@ -101,7 +101,7 @@ const loadTokenOptions: LoadTokenOptions = {};
 
 ### Loading access tokens
 
-Access tokens can optionally be loaded using `loadTokens()`. Provide the following to load an access token (note that an id token is mandatory and will be loaded when loading access tokens):
+Access tokens can optionally be loaded using `loadExternalTokens()`. Provide the following to load an access token (note that an id token is mandatory and will be loaded when loading access tokens):
 
 1. A server response with and id token, an access token, `expires_in` value, token_type, and scopes, and
 1. Either:
