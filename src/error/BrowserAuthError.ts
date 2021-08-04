@@ -144,6 +144,10 @@ export const BrowserAuthErrorMessage = {
     failedToParseNetworkResponse: {
         code: "failed_to_parse_response",
         desc: "Failed to parse network response. Check network trace."
+    },
+    signingKeyNotFoundInStorage: {
+        code: "crypto_key_not_found",
+        desc: "Cryptographic Key or Keypair not found in browser storage."
     }
 };
 
@@ -418,5 +422,12 @@ export class BrowserAuthError extends AuthError {
      */
     static createFailedToParseNetworkResponseError(endpoint: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.failedToParseNetworkResponse.code, `${BrowserAuthErrorMessage.failedToParseNetworkResponse.desc} | Attempted to reach: ${endpoint.split("?")[0]}`);
+    }
+
+    /**
+     * Create an error thrown when the queried cryptographic key is not found in IndexedDB
+     */
+    static createSigningKeyNotFoundInStorageError(keyId: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code, `${BrowserAuthErrorMessage.signingKeyNotFoundInStorage.desc} | No match found for KeyId: ${keyId}`);
     }
 }

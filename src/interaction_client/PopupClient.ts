@@ -151,8 +151,12 @@ export class PopupClient extends StandardInteractionClient {
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, requestAuthority);
             this.logger.verbose("Auth code client created");
 
-            // create logout string and navigate user window to logout. Auth module will clear cache.
+            // Create logout string and navigate user window to logout.
             const logoutUri: string = authClient.getLogoutUri(validRequest);
+
+            // Clear cache on logout
+            await authClient.clearCacheOnLogout(validRequest);
+            
             if (!validRequest.account || AccountEntity.accountInfoIsEqual(validRequest.account, this.browserStorage.getActiveAccount(), false)) {
                 this.logger.verbose("Setting active account to null");
                 this.browserStorage.setActiveAccount(null);
