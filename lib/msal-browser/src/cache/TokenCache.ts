@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccessTokenEntity, ICrypto, IdTokenEntity, Logger, ScopeSet, Authority, AuthorityOptions, ServerAuthorizationROPCResponse, AccountEntity, AuthToken } from "@azure/msal-common";
+import { AccessTokenEntity, ICrypto, IdTokenEntity, Logger, ScopeSet, Authority, AuthorityOptions, ExternalTokenResponse, AccountEntity, AuthToken } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { SilentRequest } from "../request/SilentRequest";
 import { BrowserCacheManager } from "./BrowserCacheManager";
@@ -46,7 +46,7 @@ export class TokenCache implements ITokenCache {
      * @param response
      * @param options
      */
-    loadTokens(request: SilentRequest, response: ServerAuthorizationROPCResponse, options: LoadTokenOptions): void {
+    loadTokens(request: SilentRequest, response: ExternalTokenResponse, options: LoadTokenOptions): void {
         this.logger.info("TokenCache - loadTokens called");
 
         if (!response.id_token) {
@@ -118,7 +118,7 @@ export class TokenCache implements ITokenCache {
      * @param tenantId 
      * @returns 
      */
-    private loadAccessToken(request: SilentRequest, response: ServerAuthorizationROPCResponse, homeAccountId: string, environment: string, tenantId: string, options: LoadTokenOptions): void {
+    private loadAccessToken(request: SilentRequest, response: ExternalTokenResponse, homeAccountId: string, environment: string, tenantId: string, options: LoadTokenOptions): void {
 
         if (!response.access_token) {
             this.logger.verbose("TokenCache - No access token provided for caching");
