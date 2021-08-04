@@ -136,9 +136,7 @@ describe("CryptoOps.ts Unit Tests", () => {
     }, 30000);
 
     it("signJwt() throws signingKeyNotFoundInStorage error if signing keypair is not found in storage", async () => {
-        jest.spyOn(DatabaseStorage.prototype, "get").mockImplementation(async (key: string): Promise<CachedKeyPair> => {
-            return Promise.reject();
-        });
+        jest.spyOn(DatabaseStorage.prototype, "get").mockResolvedValue(undefined);
         return await expect(cryptoObj.signJwt({}, "testString")).rejects.toThrow(BrowserAuthError.createSigningKeyNotFoundInStorageError("testString"));
     }, 30000);
 });
