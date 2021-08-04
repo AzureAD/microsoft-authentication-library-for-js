@@ -1,9 +1,9 @@
 import sinon from "sinon";
-import { Logger, LogLevel,IdTokenEntity, AccessTokenEntity, ScopeSet, ServerAuthorizationROPCResponse, AccountEntity, AuthToken, AccountInfo } from "@azure/msal-common";
+import { Logger, LogLevel,IdTokenEntity, AccessTokenEntity, ScopeSet, ExternalTokenResponse, AccountEntity, AuthToken } from "@azure/msal-common";
 import { TokenCache, LoadTokenOptions } from "./../../src/cache/TokenCache";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
-import { BrowserConfiguration, buildConfiguration, CacheOptions, Configuration } from "../../src/config/Configuration";
+import { BrowserConfiguration, buildConfiguration, CacheOptions } from "../../src/config/Configuration";
 import { BrowserCacheLocation } from "../../src/utils/BrowserConstants";
 import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_URIS } from "../utils/StringConstants";
 import { BrowserAuthErrorMessage, SilentRequest } from "../../src";
@@ -42,7 +42,7 @@ describe("TokenCache tests", () => {
         window.localStorage.clear();
     });
 
-    describe("loadTokens()", () => {
+    describe("loadExternalTokens()", () => {
         let tokenCache: TokenCache;
         let testEnvironment: string;
         let testClientInfo: string;
@@ -85,11 +85,11 @@ describe("TokenCache tests", () => {
                     localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID 
                 }
             };
-            const response: ServerAuthorizationROPCResponse = {
+            const response: ExternalTokenResponse = {
                 id_token: testIdToken
             };
             const options: LoadTokenOptions = {};
-            tokenCache.loadTokens(request, response, options); 
+            tokenCache.loadExternalTokens(request, response, options); 
 
             expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(idTokenEntity);
         });
@@ -99,13 +99,13 @@ describe("TokenCache tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`
             };
-            const response: ServerAuthorizationROPCResponse = {
+            const response: ExternalTokenResponse = {
                 id_token: testIdToken
             };
             const options: LoadTokenOptions = {
                 clientInfo: testClientInfo
             };
-            tokenCache.loadTokens(request, response, options);
+            tokenCache.loadExternalTokens(request, response, options);
 
             expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(idTokenEntity);
         });
@@ -115,7 +115,7 @@ describe("TokenCache tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`
             };
-            const response: ServerAuthorizationROPCResponse = {
+            const response: ExternalTokenResponse = {
                 id_token: testIdToken
             };
             const options: LoadTokenOptions = {
@@ -131,7 +131,7 @@ describe("TokenCache tests", () => {
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID
             };
             const testAccountKey = AccountEntity.generateAccountCacheKey(testAccountInfo);
-            tokenCache.loadTokens(request, response, options);
+            tokenCache.loadExternalTokens(request, response, options);
 
             expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(idTokenEntity);
             expect(browserStorage.getAccount(testAccountKey)).toEqual(testAccount);
@@ -142,12 +142,12 @@ describe("TokenCache tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`
             };
-            const response: ServerAuthorizationROPCResponse = {
+            const response: ExternalTokenResponse = {
                 id_token: testIdToken,
                 client_info: testClientInfo
             };
             const options: LoadTokenOptions = {};
-            tokenCache.loadTokens(request, response, options);
+            tokenCache.loadExternalTokens(request, response, options);
 
             expect(browserStorage.getIdTokenCredential(idTokenKey)).toEqual(idTokenEntity);
         });
@@ -163,22 +163,22 @@ describe("TokenCache tests", () => {
                     localAccountId: "localAccountId" 
                 }
             };
-            const response: ServerAuthorizationROPCResponse = {};
+            const response: ExternalTokenResponse = {};
             const options: LoadTokenOptions = {};
 
-            expect(() => tokenCache.loadTokens(request, response, options)).toThrowError(`${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | Please ensure server response includes id token.`);
+            expect(() => tokenCache.loadExternalTokens(request, response, options)).toThrowError(`${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | Please ensure server response includes id token.`);
         });
 
         it("throws error if request does not have account and authority", () => {
             const request: SilentRequest = {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
             };
-            const response: ServerAuthorizationROPCResponse = {
+            const response: ExternalTokenResponse = {
                 id_token: testIdToken
             };
             const options: LoadTokenOptions = {};
 
-            expect(() => tokenCache.loadTokens(request, response, options)).toThrowError(`${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | Please provide a request with an account or a request with authority.`);
+            expect(() => tokenCache.loadExternalTokens(request, response, options)).toThrowError(`${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | Please provide a request with an account or a request with authority.`);
         });
 
         it("throws error if request does not have account and clientInfo is not provided", () => {
@@ -186,12 +186,12 @@ describe("TokenCache tests", () => {
                 scopes: TEST_CONFIG.DEFAULT_SCOPES,
                 authority: `${TEST_URIS.DEFAULT_INSTANCE}${TEST_CONFIG.TENANT}`
             };
-            const response: ServerAuthorizationROPCResponse = {
+            const response: ExternalTokenResponse = {
                 id_token: testIdToken
             };
             const options: LoadTokenOptions = {};
 
-            expect(() => tokenCache.loadTokens(request, response, options)).toThrowError(`${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | Please provide clientInfo in the response or options.`);
+            expect(() => tokenCache.loadExternalTokens(request, response, options)).toThrowError(`${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | Please provide clientInfo in the response or options.`);
         });
 
         it("throws error if server response provided does not have expires_in", () => {
@@ -205,13 +205,13 @@ describe("TokenCache tests", () => {
                     localAccountId: "localAccountId" 
                 }
             };
-            const response: ServerAuthorizationROPCResponse = {
+            const response: ExternalTokenResponse = {
                 id_token: testIdToken,
                 access_token: testAccessToken
             };
             const options: LoadTokenOptions = {};
 
-            expect(() => tokenCache.loadTokens(request, response, options)).toThrowError(`${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | Please ensure server response includes expires_in value.`);
+            expect(() => tokenCache.loadExternalTokens(request, response, options)).toThrowError(`${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | Please ensure server response includes expires_in value.`);
         });
 
         it("throws error if extendedExpiresOn not provided in options", () => {
@@ -225,14 +225,14 @@ describe("TokenCache tests", () => {
                     localAccountId: "localAccountId" 
                 }
             };
-            const response: ServerAuthorizationROPCResponse = {
+            const response: ExternalTokenResponse = {
                 id_token: testIdToken,
                 access_token: testAccessToken,
                 expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
             };
             const options: LoadTokenOptions = {};
 
-            expect(() => tokenCache.loadTokens(request, response, options)).toThrowError(`${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | Please provide an extendedExpiresOn value in the options.`);
+            expect(() => tokenCache.loadExternalTokens(request, response, options)).toThrowError(`${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | Please provide an extendedExpiresOn value in the options.`);
         });
 
         it("loads access tokens from server response and token options", () => {
@@ -246,7 +246,7 @@ describe("TokenCache tests", () => {
                     localAccountId: "localAccountId" 
                 }
             };
-            const response: ServerAuthorizationROPCResponse = {
+            const response: ExternalTokenResponse = {
                 id_token: testIdToken,
                 access_token: testAccessToken,
                 expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN,
@@ -254,7 +254,7 @@ describe("TokenCache tests", () => {
             const options: LoadTokenOptions = {
                 extendedExpiresOn: TEST_TOKEN_LIFETIMES.TEST_ACCESS_TOKEN_EXP
             };
-            tokenCache.loadTokens(request, response, options); 
+            tokenCache.loadExternalTokens(request, response, options); 
 
             expect(browserStorage.getAccessTokenCredential(accessTokenKey)).toEqual(accessTokenEntity);
         });
@@ -271,14 +271,14 @@ describe("TokenCache tests", () => {
                     localAccountId: "localAccountId" 
                 }
             };
-            const response: ServerAuthorizationROPCResponse = {
+            const response: ExternalTokenResponse = {
                 id_token: testIdToken,
                 access_token: testAccessToken,
                 expires_in: TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN
             };
             const options: LoadTokenOptions = {};
 
-            expect(() => tokenCache.loadTokens(request, response, options)).toThrowError(`${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | loadTokens is designed to work in browser environments only.`);
+            expect(() => tokenCache.loadExternalTokens(request, response, options)).toThrowError(`${BrowserAuthErrorMessage.unableToLoadTokenError.code}: ${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | loadExternalTokens is designed to work in browser environments only.`);
         });
 
     });
