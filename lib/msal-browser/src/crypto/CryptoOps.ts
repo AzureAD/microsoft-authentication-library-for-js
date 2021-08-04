@@ -208,7 +208,7 @@ export class CryptoOps implements ICrypto {
                 // Deserialize response_jwe
                 const responseJwe = new JsonWebEncryption(response_jwe);
 
-                const sessionKeyUsages = KEY_USAGES.RT_BINDING.PRIVATE_KEY as KeyUsage[];
+                const sessionKeyUsages = KEY_USAGES.RT_BINDING.DERIVATION_KEY as KeyUsage[];
                 const contentEncryptionKey = await sessionKeyJwe.unwrap(sessionTransportKeypair.privateKey, sessionKeyUsages);
                 
                 // TODO: TEMPORARY CHECK TO GET AROUND LINTER

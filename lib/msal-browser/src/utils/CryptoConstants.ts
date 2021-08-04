@@ -36,12 +36,14 @@ export enum KEY_FORMATS  {
 // Crypto Key Usage sets
 export const KEY_USAGES = {
     AT_BINDING: {
-        KEYPAIR: ["sign", "verify"],
-        PRIVATE_KEY: ["sign"]
+        KEYPAIR: ["sign", "verify"] as KeyUsage[],
+        PRIVATE_KEY: ["sign"] as KeyUsage[]
     },
     RT_BINDING: {
-        KEYPAIR: ["encrypt", "decrypt"],
-        PRIVATE_KEY: ["decrypt"]
+        KEYPAIR: ["encrypt", "decrypt"] as KeyUsage[],
+        PRIVATE_KEY: ["decrypt"] as KeyUsage[],
+        DERIVATION_KEY: ["sign"] as KeyUsage[],
+        SESSION_KEY: ["decrypt"] as KeyUsage[]
     }
 };
 

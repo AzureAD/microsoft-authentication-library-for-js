@@ -35,7 +35,6 @@ const KEY_ALGORITHM_MAP: StringDict = {
  */
 
 export class JsonWebEncryption {
-    private base64Decode: Base64Decode;
     private header: JoseHeader;
     private encryptedKey: string;
     private initializationVector: string;
@@ -45,7 +44,6 @@ export class JsonWebEncryption {
     private unwrappingAlgorithms: UnwrappingAlgorithmPair;
 
     constructor(rawJwe: string) {
-        this.base64Decode = new Base64Decode();
         const jweComponents = rawJwe.split(".");
         this.header = this.parseJweProtectedHeader(jweComponents[0]);
         this.authenticatedData = this.getAuthenticatedData(jweComponents[0]);
@@ -56,7 +54,7 @@ export class JsonWebEncryption {
         this.authenticationTag = this.decodeElement(jweComponents[4]);
     }
 
-    getAuthenticatedData(str: string): Uint8Array {
+    private getAuthenticatedData(str: string): Uint8Array {
         const length = str.length;
         const data = new Uint8Array(length);
 
