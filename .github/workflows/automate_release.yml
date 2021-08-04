@@ -43,10 +43,6 @@ jobs:
             cache: 'npm'
       - run: npm ci
 
-      # Generate change files
-      -  name: Use Node.js
-         run: npm run beachball:change
+      - name: Checkout tag/branch and bump package versions
+        run: git checkout -b release/${{ steps.date.outputs.date }} & npm run beachball:change
 
-      # Bump package versions
-      - name: Bump package versions
-        run: npm run beachball:bump
