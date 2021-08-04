@@ -212,8 +212,11 @@ export class RedirectClient extends StandardInteractionClient {
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, logoutRequest && logoutRequest.authority, validLogoutRequest.correlationId);
             browserRequestLogger.verbose("Auth code client created");
 
-            // create logout string and navigate user window to logout. Auth module will clear cache.
+            // Create logout string and navigate user window to logout.
             const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
+
+            // Clear cache on logout
+            await authClient.clearCacheOnLogout(validLogoutRequest);
             
             if (!validLogoutRequest.account || AccountEntity.accountInfoIsEqual(validLogoutRequest.account, this.browserStorage.getActiveAccount(), false)) {
                 browserRequestLogger.verbose("Setting active account to null");

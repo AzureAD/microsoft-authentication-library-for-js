@@ -23,8 +23,8 @@ export class MockCache {
     }
 
     // clear the cache
-    clearCache(): void {
-        this.cacheManager.clear();
+    async clearCache(): Promise<void> {
+        await this.cacheManager.clear();
     }
 
     // create account entries in the cache
@@ -102,7 +102,8 @@ export class MockCache {
             "homeAccountId": "uid.utid",
             "extendedExpiresOn": "4600",
             "expiresOn": "4600",
-            "tokenType": "pop"
+            "tokenType": "pop",
+            "keyId": "V6N_HMPagNpYS_wxM14X73q3eWzbTr9Z31RyHkIcN0Y"
         };
         const atWithAuthScheme = CacheManager.toObject(new AccessTokenEntity(), atWithAuthSchemeData);
         this.cacheManager.setAccessTokenCredential(atWithAuthScheme);
