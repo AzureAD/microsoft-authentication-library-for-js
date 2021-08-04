@@ -155,9 +155,6 @@ export const mockCrypto = {
     },
     async signJwt(): Promise<string> {
         return "";
-    },
-    async getAsymmetricPublicKey(): Promise<string> {
-        return TEST_POP_VALUES.KID
     }
 };
 
