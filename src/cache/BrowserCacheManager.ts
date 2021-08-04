@@ -38,7 +38,6 @@ export class BrowserCacheManager extends CacheManager {
 
         this.cacheConfig = cacheConfig;
         this.logger = logger;
-
         this.internalStorage = new MemoryStorage();
         this.browserStorage = this.setupBrowserStorage(this.cacheConfig.cacheLocation);
         this.temporaryCacheStorage = this.setupTemporaryCacheStorage(this.cacheConfig.cacheLocation);
@@ -568,11 +567,14 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
-     * Clears all cache entries created by MSAL (except tokens).
+     * Clears all cache entries created by MSAL.
      */
-    clear(): void {
-        this.removeAllAccounts();
+    async clear(): Promise<void> {
+        // Removes all accounts and their credentials
+        await this.removeAllAccounts();
         this.removeAppMetadata();
+
+        // Removes all remaining MSAL cache items
         this.getKeys().forEach((cacheKey: string) => {
             // Check if key contains msal prefix; For now, we are clearing all the cache items created by MSAL.js
             if ((this.browserStorage.containsKey(cacheKey) || this.temporaryCacheStorage.containsKey(cacheKey)) && ((cacheKey.indexOf(Constants.CACHE_PREFIX) !== -1) || (cacheKey.indexOf(this.clientId) !== -1))) {
