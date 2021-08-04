@@ -4,9 +4,8 @@
  */
 
 import { StandardInteractionClient } from "./StandardInteractionClient";
-import { CommonSilentFlowRequest, AuthenticationResult, ServerTelemetryManager, RefreshTokenClient } from "@azure/msal-common";
+import { CommonSilentFlowRequest, AuthenticationResult, ServerTelemetryManager, RefreshTokenClient, AuthError } from "@azure/msal-common";
 import { ApiId } from "../utils/BrowserConstants";
-import { version } from "../packageMetadata";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export class SilentRefreshClient extends StandardInteractionClient {
@@ -19,13 +18,15 @@ export class SilentRefreshClient extends StandardInteractionClient {
             ...request,
             ...this.initializeBaseRequest(request)
         };
-        this.logger = this.logger.clone(name, version, silentRequest.correlationId);
-        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);
-        const refreshTokenClient = await this.createRefreshTokenClient(serverTelemetryManager, silentRequest.authority, silentRequest.correlationId);
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow);
+        const refreshTokenClient = await this.createRefreshTokenClient(serverTelemetryManager, silentRequest.authority);
         this.logger.verbose("Refresh token client created");
         
         // Send request to renew token. Auth module will throw errors if token cannot be renewed.
         return refreshTokenClient.acquireTokenByRefreshToken(silentRequest).catch(e => {
+            if (e instanceof AuthError) {
+                e.setCorrelationId(this.correlationId);
+            }
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         });
@@ -44,9 +45,9 @@ export class SilentRefreshClient extends StandardInteractionClient {
      * @param serverTelemetryManager
      * @param authorityUrl
      */
-    protected async createRefreshTokenClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, correlationId?: string): Promise<RefreshTokenClient> {
+    protected async createRefreshTokenClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<RefreshTokenClient> {
         // Create auth module.
-        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, correlationId);
+        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
         return new RefreshTokenClient(clientConfig);
     }
 }
