@@ -72,6 +72,14 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
         const notImplErr = "Crypto interface - getPublicKeyThumbprint() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
     },
+    async removeTokenBindingKey(): Promise<boolean> {
+        const notImplErr = "Crypto interface - removeTokenBindingKey() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async clearKeystore(): Promise<boolean> {
+        const notImplErr = "Crypto interface - clearKeystore() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
     async signJwt(): Promise<string> {
         const notImplErr = "Crypto interface - signJwt() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
