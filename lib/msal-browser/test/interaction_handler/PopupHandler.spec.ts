@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { PkceCodes, AuthorityFactory, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ProtocolMode, Logger, AuthenticationScheme, AuthorityOptions, ClientConfiguration, AuthError } from "@azure/msal-common";
+import { PkceCodes, AuthorityFactory, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ProtocolMode, Logger, AuthenticationScheme, AuthorityOptions, ClientConfiguration, AuthError, ServerAuthorizationTokenResponse } from "@azure/msal-common";
 import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, TEST_POP_VALUES } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, TEST_POP_VALUES, AUTHENTICATION_RESULT } from "../utils/StringConstants";
 import sinon from "sinon";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
@@ -92,6 +92,9 @@ describe("PopupHandler.ts Unit Tests", () => {
                 },
                 getAsymmetricPublicKey: async (): Promise<string> => {
                     return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT
+                },
+                decryptBoundTokenResponse: async (): Promise<ServerAuthorizationTokenResponse | null> => {
+                    return AUTHENTICATION_RESULT.body;
                 }
             },
             networkInterface: {

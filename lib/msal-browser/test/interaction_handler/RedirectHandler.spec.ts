@@ -4,9 +4,9 @@
  */
 
 import sinon from "sinon";
-import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, CommonAuthorizationCodeRequest, Constants, AuthenticationResult, AuthorizationCodeClient, AuthenticationScheme, ProtocolMode, Logger, Authority, ClientConfiguration, AuthorizationCodePayload, AuthorityOptions, CcsCredential, CcsCredentialType } from "@azure/msal-common";
+import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, CommonAuthorizationCodeRequest, Constants, AuthenticationResult, AuthorizationCodeClient, AuthenticationScheme, ProtocolMode, Logger, Authority, ClientConfiguration, AuthorizationCodePayload, AuthorityOptions, CcsCredential, CcsCredentialType, ServerAuthorizationTokenResponse } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_HASHES, TEST_TOKEN_LIFETIMES, TEST_POP_VALUES, TEST_STATE_VALUES } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_HASHES, TEST_TOKEN_LIFETIMES, TEST_POP_VALUES, TEST_STATE_VALUES, AUTHENTICATION_RESULT } from "../utils/StringConstants";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
@@ -108,6 +108,9 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 },
                 getAsymmetricPublicKey: async (): Promise<string> => {
                     return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT
+                },
+                decryptBoundTokenResponse: async (): Promise<ServerAuthorizationTokenResponse | null> => {
+                    return AUTHENTICATION_RESULT.body;
                 }
             },
             storageInterface: browserStorage,

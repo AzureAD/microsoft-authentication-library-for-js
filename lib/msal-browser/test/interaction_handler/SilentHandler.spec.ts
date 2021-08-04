@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { PkceCodes, AuthorityFactory, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ProtocolMode, Logger, AuthenticationScheme, AuthorityOptions, ClientConfiguration } from "@azure/msal-common";
+import { PkceCodes, AuthorityFactory, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ProtocolMode, Logger, AuthenticationScheme, AuthorityOptions, ClientConfiguration, ServerAuthorizationTokenResponse } from "@azure/msal-common";
 import sinon from "sinon";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { TEST_CONFIG, testNavUrl, TEST_URIS, RANDOM_TEST_GUID, TEST_POP_VALUES } from "../utils/StringConstants";
+import { TEST_CONFIG, testNavUrl, TEST_URIS, RANDOM_TEST_GUID, TEST_POP_VALUES, AUTHENTICATION_RESULT } from "../utils/StringConstants";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import { BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
@@ -92,6 +92,9 @@ describe("SilentHandler.ts Unit Tests", () => {
                 },
                 getAsymmetricPublicKey: async (): Promise<string> => {
                     return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT
+                },
+                decryptBoundTokenResponse: async (): Promise<ServerAuthorizationTokenResponse | null> => {
+                    return AUTHENTICATION_RESULT.body;
                 }
             },
             networkInterface: {

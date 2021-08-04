@@ -4,10 +4,11 @@ import { AuthError } from "../../src/error/AuthError";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { LogLevel } from "../../src/logger/Logger";
 import { version } from "../../src/packageMetadata";
-import {TEST_CONFIG, TEST_POP_VALUES} from "../test_kit/StringConstants";
+import {AUTHENTICATION_RESULT, TEST_CONFIG, TEST_POP_VALUES} from "../test_kit/StringConstants";
 import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
 import { MockCache } from "../cache/entities/cacheConstants";
 import { Constants } from "../../src/utils/Constants";
+import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 
 describe("ClientConfiguration.ts Class Unit Tests", () => {
 
@@ -120,6 +121,9 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 },
                 async getAsymmetricPublicKey(): Promise<string> {
                     return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
+                },
+                async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse | null> {
+                    return AUTHENTICATION_RESULT.body;
                 }
             },
             storageInterface: cacheStorageMock,

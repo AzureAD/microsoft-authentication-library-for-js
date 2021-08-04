@@ -1,5 +1,5 @@
 import sinon from "sinon";
-import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS } from "../test_kit/StringConstants";
+import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS, AUTHENTICATION_RESULT } from "../test_kit/StringConstants";
 import { PopTokenGenerator } from "../../src/crypto/PopTokenGenerator";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { BaseAuthRequest } from "../../src/request/BaseAuthRequest";
@@ -7,6 +7,7 @@ import { TimeUtils } from "../../src/utils/TimeUtils";
 import { UrlString } from "../../src/url/UrlString";
 import { AuthenticationScheme } from "../../src/utils/Constants";
 import { SignedHttpRequest } from "../../src/crypto/SignedHttpRequest";
+import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 
 describe("PopTokenGenerator Unit Tests", () => {
 
@@ -58,6 +59,9 @@ describe("PopTokenGenerator Unit Tests", () => {
         },
         async getAsymmetricPublicKey(): Promise<string> {
             return TEST_POP_VALUES.KID;
+        },
+        async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse | null> {
+            return AUTHENTICATION_RESULT.body;
         }
     };
 

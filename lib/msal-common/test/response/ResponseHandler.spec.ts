@@ -74,6 +74,9 @@ const cryptoInterface: ICrypto = {
     },
     async getAsymmetricPublicKey(): Promise<string> {
         return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
+    },
+    async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse | null> {
+        return AUTHENTICATION_RESULT.body;
     }
 };
 

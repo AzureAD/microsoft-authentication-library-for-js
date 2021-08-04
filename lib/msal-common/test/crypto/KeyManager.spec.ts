@@ -1,6 +1,6 @@
 import sinon from "sinon";
-import { ICrypto, PkceCodes, AuthenticationScheme } from "../../src";
-import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS } from "../test_kit/StringConstants";
+import { ICrypto, PkceCodes, AuthenticationScheme, ServerAuthorizationTokenResponse } from "../../src";
+import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS, AUTHENTICATION_RESULT } from "../test_kit/StringConstants";
 import { KeyManager } from "../../src/crypto/KeyManager";
 
 describe("KeyManager Unit Tests", () => {
@@ -53,6 +53,9 @@ describe("KeyManager Unit Tests", () => {
         },
         async getAsymmetricPublicKey(): Promise<string> {
             return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
+        },
+        async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse | null> {
+            return AUTHENTICATION_RESULT.body;
         }
     };
 
