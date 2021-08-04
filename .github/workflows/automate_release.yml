@@ -44,5 +44,5 @@ jobs:
       - run: npm ci
 
       - name: Checkout tag/branch and bump package versions
-        run: git checkout -b release/${{ steps.date.outputs.date }} & npm run beachball:change
+        run: git checkout release/${{ steps.date.outputs.date }} & npm run beachball:change
 
