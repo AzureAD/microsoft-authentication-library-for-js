@@ -23,6 +23,6 @@ export type BaseAuthRequest = {
     authenticationScheme?: AuthenticationScheme;
     claims?: string;
     shrClaims?: string;
-    resourceRequestMethod?: string;
+    resourceRequestMethod?: string; /*resourceRequest Method*/
     resourceRequestUri?: string;  /*resourcerequesturi*/
 }; 

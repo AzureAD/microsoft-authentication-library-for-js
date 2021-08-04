@@ -23,14 +23,25 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
+      
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
 
       # Check out onto desired branch or tag to create release from
       - name: Checkout tag/branch
-        run: git checkout -b release/v${{ github.event.inputs.versionName }}
+        run: git checkout -b release/${{ steps.date.outputs.date }}
 
       # Push changes
       - name: Push new branch
-        run: git push origin release/v${{ github.event.inputs.versionName }} 
+        run: git push origin release/v${{ steps.date.outputs.date }} 
+
+      # Install node_modules 
+      - name: Use Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v1
+      with:
+        node-version: ${{ matrix.node-version }}
+      - run: npm ci
 
       # Bump package versions
       - name: Bump package versions
