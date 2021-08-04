@@ -14,5 +14,5 @@ import { BaseAuthRequest } from "./BaseAuthRequest";
  */
 export type CommonOnBehalfOfRequest = BaseAuthRequest & {
     oboAssertion: string,
-    skipCache?: boolean;
+    skipCache?: boolean; /* allows to skipCache lookup*/
 };
