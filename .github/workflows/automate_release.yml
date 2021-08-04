@@ -34,7 +34,7 @@ jobs:
 
       # Push changes
       - name: Push new branch
-        run: git push origin release/v${{ steps.date.outputs.date }} 
+        run: git push origin release/${{ steps.date.outputs.date }} 
 
       # Install node_modules 
       - name: Use Node.js
