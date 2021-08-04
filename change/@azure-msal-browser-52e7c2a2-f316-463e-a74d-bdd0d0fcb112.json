@@ -1,5 +1,5 @@
 {
-  "type": "patch",
+  "type": "none",
   "comment": "Fix accesstoken_with_authscheme implementation #3910",
   "packageName": "@azure/msal-browser",
   "email": "hemoral@microsoft.com",
