@@ -107,7 +107,7 @@ export class JsonWebEncryption {
         const additionalData = this.authenticatedData;
 
         const aesGcmParams: AesGcmParams = {
-            name: "AES-GCM",
+            name: CryptoAlgorithms.AES_GCM,
             iv: iv,
             additionalData: additionalData,
             tagLength: authenticationTag.byteLength * 8
