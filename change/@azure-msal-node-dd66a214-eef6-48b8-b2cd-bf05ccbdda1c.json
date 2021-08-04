@@ -1,5 +1,5 @@
 {
-  "type": "none",
+  "type": "patch",
   "comment": "Add removeTokenBindingKey missing method to Node's CryptoProvider #3500",
   "packageName": "@azure/msal-node",
   "email": "hemoral@microsoft.com",
