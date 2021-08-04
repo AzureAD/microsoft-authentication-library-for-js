@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-react
 
-This log was last generated on Thu, 13 May 2021 18:34:08 GMT and should not be manually modified.
+This log was last generated on Mon, 28 Jun 2021 23:39:48 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.1
+
+Mon, 28 Jun 2021 23:39:48 GMT
+
+### Patches
+
+- Change accounts context type to AccountInfo[] #3677 (thomas.norling@microsoft.com)
 
 ## 1.0.0
 

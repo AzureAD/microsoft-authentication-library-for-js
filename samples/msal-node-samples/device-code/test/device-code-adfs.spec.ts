@@ -11,7 +11,7 @@ import { LabClient } from "../../../e2eTestUtils/LabClient";
 import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { AppTypes, AzureEnvironments, FederationProviders, UserTypes } from "../../../e2eTestUtils/Constants";
 import { 
-    enterCredentialsADFS,
+    enterCredentialsADFSWithConsent,
     enterDeviceCode,
     SCREENSHOT_BASE_FOLDER_NAME,
     validateCacheLocation
@@ -32,7 +32,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 const config = require("../config/ADFS.json");
 
 describe('Device Code ADFS PPE Tests', () => {
-    jest.setTimeout(30000);
+    jest.setTimeout(45000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
@@ -41,6 +41,8 @@ describe('Device Code ADFS PPE Tests', () => {
     
     let username: string;
     let accountPwd: string;
+
+    const screenshotFolder = `${SCREENSHOT_BASE_FOLDER_NAME}/device-code/adfs`;
     
     beforeAll(async() => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
@@ -66,9 +68,6 @@ describe('Device Code ADFS PPE Tests', () => {
     });
 
     describe("Acquire Token", () => {
-        let testName: string;
-        let screenshot: Screenshot;
-
         beforeAll(async() => {
             clientConfig = { auth: config.authOptions, cache: { cachePlugin } };
             publicClientApplication = new PublicClientApplication(clientConfig);
@@ -77,6 +76,7 @@ describe('Device Code ADFS PPE Tests', () => {
         beforeEach(async () => {
             context = await browser.createIncognitoBrowserContext();
             page = await context.newPage();
+            page.setDefaultTimeout(5000);
         });
 
         afterEach(async () => {
@@ -86,13 +86,12 @@ describe('Device Code ADFS PPE Tests', () => {
         });
 
         it("Performs acquire token with Device Code flow", async () => {
-            testName = "ADFSAcquireTokenWithDeviceCode";
-            screenshot = new Screenshot(`${SCREENSHOT_BASE_FOLDER_NAME}/${testName}`);
+            const screenshot = new Screenshot(`${screenshotFolder}/BaseCase`);
 
             const deviceCodeCallback = async (deviceCodeResponse: any) => {
                 const { userCode, verificationUri} = deviceCodeResponse;
                 await enterDeviceCode(page, screenshot, userCode, verificationUri);
-                await enterCredentialsADFS(page, screenshot, username, accountPwd);
+                await enterCredentialsADFSWithConsent(page, screenshot, username, accountPwd);
                 await page.waitForSelector("#message");
                 await screenshot.takeScreenshot(page, "SuccessfulDeviceCodeMessage");
             };

@@ -11,13 +11,10 @@ import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
 import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { BROWSER_CRYPTO, CryptoKeyTypes, KEY_FORMAT_JWK, KEY_USAGES, KEY_DERIVATION_SIZES, KEY_DERIVATION_LABELS } from "../utils/BrowserConstants";
+import { CryptoKeyTypes, KEY_FORMATS, CRYPTO_KEY_CONFIG, KEY_USAGES, LENGTHS, KEY_DERIVATION_LABELS, ALGORITHMS } from "../utils/CryptoConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import {JsonWebEncryption} from "./JsonWebEncryption";
+import { JsonWebEncryption } from "./JsonWebEncryption";
 import { KeyDerivation } from "./KeyDerivation";
-
-// Public Exponent used in Key Generation
-const PUBLIC_EXPONENT: Uint8Array = new Uint8Array([0x01, 0x00, 0x01]);
 
 export type CachedKeyPair = {
     publicKey: CryptoKey,
@@ -43,8 +40,6 @@ export class CryptoOps implements ICrypto {
     private b64Encode: Base64Encode;
     private b64Decode: Base64Decode;
     private pkceGenerator: PkceGenerator;
-    private _atBindingKeyOptions: CryptoKeyOptions;
-    private _rtBindingKeyOptions: CryptoKeyOptions;
 
     private static EXTRACTABLE: boolean = true;
 
@@ -61,32 +56,6 @@ export class CryptoOps implements ICrypto {
         this.guidGenerator = new GuidGenerator(this.browserCrypto);
         this.pkceGenerator = new PkceGenerator(this.browserCrypto);
         this.cache = new DatabaseStorage(CryptoOps.DB_NAME, CryptoOps.TABLE_NAME, CryptoOps.DB_VERSION);
-
-        this._atBindingKeyOptions = {
-            keyGenAlgorithmOptions: {
-                name: BROWSER_CRYPTO.PKCS1_V15_KEYGEN_ALG,
-                hash: {
-                    name: BROWSER_CRYPTO.S256_HASH_ALG
-                },
-                modulusLength: BROWSER_CRYPTO.MODULUS_LENGTH,
-                publicExponent: PUBLIC_EXPONENT
-            },
-            keypairUsages: KEY_USAGES.AT_BINDING.KEYPAIR as KeyUsage[],
-            privateKeyUsage: KEY_USAGES.AT_BINDING.PRIVATE_KEY as KeyUsage[]
-        };
-
-        this._rtBindingKeyOptions = {
-            keyGenAlgorithmOptions: {     
-                name: BROWSER_CRYPTO.RSA_OAEP,
-                hash: {
-                    name: BROWSER_CRYPTO.S256_HASH_ALG
-                },
-                modulusLength: BROWSER_CRYPTO.MODULUS_LENGTH,
-                publicExponent: PUBLIC_EXPONENT
-            },
-            keypairUsages: KEY_USAGES.RT_BINDING.KEYPAIR as KeyUsage[],
-            privateKeyUsage: KEY_USAGES.RT_BINDING.PRIVATE_KEY as KeyUsage[]
-        };
     }
 
     /**
@@ -128,11 +97,11 @@ export class CryptoOps implements ICrypto {
         let keyOptions: CryptoKeyOptions;
 
         switch(keyType) {
-            case CryptoKeyTypes.stk_jwk:
-                keyOptions = this._rtBindingKeyOptions;
+            case CryptoKeyTypes.STK_JWK:
+                keyOptions = CRYPTO_KEY_CONFIG.RT_BINDING;
                 break;
             default:
-                keyOptions = this._atBindingKeyOptions;
+                keyOptions = CRYPTO_KEY_CONFIG.AT_BINDING;
         }
         
         // Generate Keypair
@@ -184,7 +153,7 @@ export class CryptoOps implements ICrypto {
         // Generate header
         const header = {
             alg: publicKeyJwk.alg,
-            type: KEY_FORMAT_JWK
+            type: KEY_FORMATS.JWK
         };
         const encodedHeader = this.b64Encode.urlEncode(JSON.stringify(header));
 
@@ -199,7 +168,7 @@ export class CryptoOps implements ICrypto {
 
         // Sign token
         const tokenBuffer = BrowserStringUtils.stringToArrayBuffer(tokenString);
-        const signatureBuffer = await this.browserCrypto.sign(this._atBindingKeyOptions, cachedKeyPair.privateKey, tokenBuffer);
+        const signatureBuffer = await this.browserCrypto.sign(CRYPTO_KEY_CONFIG.AT_BINDING, cachedKeyPair.privateKey, tokenBuffer);
         const encodedSignature = this.b64Encode.urlEncodeArr(new Uint8Array(signatureBuffer));
 
         return `${tokenString}.${encodedSignature}`;
@@ -240,20 +209,21 @@ export class CryptoOps implements ICrypto {
                 // Deserialize response_jwe
                 const responseJwe = new JsonWebEncryption(response_jwe);
 
-                const derivationKeyUsage = KEY_USAGES.RT_BINDING.DERIVATION_KEY as KeyUsage[];
+                const derivationKeyUsage = KEY_USAGES.RT_BINDING.DERIVATION_KEY;
                 const contentEncryptionKey = await sessionKeyJwe.unwrap(sessionTransportKeypair.privateKey, derivationKeyUsage);
                 
                 // Derive the session key from the content encryption key
                 const kdf = new KeyDerivation(
                     contentEncryptionKey,
-                    KEY_DERIVATION_SIZES.DERIVED_KEY_LENGTH,
-                    KEY_DERIVATION_SIZES.PRF_OUTPUT_LENGTH,
-                    KEY_DERIVATION_SIZES.COUNTER_LENGTH
+                    LENGTHS.DERIVED_KEY,
+                    LENGTHS.PRF_OUTPUT,
+                    LENGTHS.COUNTER
                 );
+                
                 const derivedKeyData = await kdf.computeKDFInCounterMode(responseJwe.protectedHeader.ctx, KEY_DERIVATION_LABELS.DECRYPTION);
-                const sessionKeyUsages = KEY_USAGES.RT_BINDING.SESSION_KEY as KeyUsage[];
-                const sessionKeyAlgorithm: AesKeyAlgorithm = { name: "AES-GCM", length: 256 };
-                const sessionKey = await window.crypto.subtle.importKey("raw", derivedKeyData, sessionKeyAlgorithm, false, sessionKeyUsages);
+                const sessionKeyUsages = KEY_USAGES.RT_BINDING.SESSION_KEY;
+                const sessionKeyAlgorithm: AesKeyAlgorithm = { name: ALGORITHMS.AES_GCM, length: LENGTHS.DERIVED_KEY };
+                const sessionKey = await window.crypto.subtle.importKey(KEY_FORMATS.RAW, derivedKeyData, sessionKeyAlgorithm, false, sessionKeyUsages);
                 
                 if (sessionKey) {
                     return null;

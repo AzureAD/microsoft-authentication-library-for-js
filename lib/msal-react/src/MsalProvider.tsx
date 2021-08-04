@@ -11,11 +11,11 @@ import {
     EventMessageUtils,
     InteractionStatus,
     Logger,
-    WrapperSKU
+    WrapperSKU,
+    AccountInfo
 } from "@azure/msal-browser";
 import { MsalContext, IMsalContext } from "./MsalContext";
 import { accountArraysAreEqual } from "./utils/utilities";
-import { AccountIdentifiers } from "./types/AccountIdentifiers";
 import { name as SKU, version } from "./packageMetadata";
 
 export type MsalProviderProps = PropsWithChildren<{
@@ -32,7 +32,7 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
     }, [instance]);
 
     // State hook to store accounts
-    const [accounts, setAccounts] = useState<AccountIdentifiers[]>([]);
+    const [accounts, setAccounts] = useState<AccountInfo[]>([]);
     // State hook to store in progress value
     const [inProgress, setInProgress] = useState<InteractionStatus>(InteractionStatus.Startup);
 

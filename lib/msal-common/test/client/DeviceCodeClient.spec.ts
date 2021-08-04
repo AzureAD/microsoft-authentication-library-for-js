@@ -1,14 +1,5 @@
 import sinon from "sinon";
 import {
-    Authority,
-    Constants,
-    DeviceCodeClient,
-    CommonDeviceCodeRequest,
-    ClientConfiguration,
-    AuthToken,
-    ClientAuthError,
-} from "../../src";
-import {
     AUTHENTICATION_RESULT, AUTHORIZATION_PENDING_RESPONSE,
     DEFAULT_OPENID_CONFIG_RESPONSE,
     DEVICE_CODE_EXPIRED_RESPONSE,
@@ -21,8 +12,14 @@ import {
     RANDOM_TEST_GUID
 } from "../test_kit/StringConstants";
 import { BaseClient } from "../../src/client/BaseClient";
-import { AADServerParamKeys, GrantType, ThrottlingConstants } from "../../src/utils/Constants";
+import { AADServerParamKeys, GrantType, ThrottlingConstants, Constants } from "../../src/utils/Constants";
 import { ClientTestUtils } from "./ClientTestUtils";
+import { ClientConfiguration } from "../../src/config/ClientConfiguration";
+import { Authority } from "../../src/authority/Authority";
+import { AuthToken } from "../../src/account/AuthToken";
+import { DeviceCodeClient } from "../../src/client/DeviceCodeClient";
+import { CommonDeviceCodeRequest } from "../../src/request/CommonDeviceCodeRequest";
+import { ClientAuthError } from "../../src/error/ClientAuthError";
 
 describe("DeviceCodeClient unit tests", () => {
     let config: ClientConfiguration;
@@ -243,7 +240,6 @@ describe("DeviceCodeClient unit tests", () => {
         });
 
         it("Acquires a token successfully after authorization_pending error", async () => {
-            jest.setTimeout(12000);
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
             const tokenRequestStub = sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint");
 
@@ -259,13 +255,12 @@ describe("DeviceCodeClient unit tests", () => {
 
             const client = new DeviceCodeClient(config);
             await client.acquireToken(request);
-        });
+        }, 12000);
     });
 
     describe("Device code exceptions", () => {
 
         it("Throw device code flow cancelled exception if DeviceCodeRequest.cancel=true", async () => {
-            jest.setTimeout(6000);
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
             sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
 
@@ -279,10 +274,9 @@ describe("DeviceCodeClient unit tests", () => {
             const client = new DeviceCodeClient(config);
             request.cancel = true;
             await expect(client.acquireToken(request)).rejects.toMatchObject(ClientAuthError.createDeviceCodeCancelledError());
-        });
+        }, 6000);
 
         it("Throw device code expired exception if device code is expired", async () => {
-            jest.setTimeout(6000);
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_EXPIRED_RESPONSE);
             sinon.stub(BaseClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHORIZATION_PENDING_RESPONSE);
 
@@ -295,10 +289,9 @@ describe("DeviceCodeClient unit tests", () => {
 
             const client = new DeviceCodeClient(config);
             await expect(client.acquireToken(request)).rejects.toMatchObject(ClientAuthError.createDeviceCodeExpiredError());
-        });
+        }, 6000);
 
         it("Throw device code expired exception if the timeout expires", async () => {
-            jest.setTimeout(15000);
             sinon.stub(DeviceCodeClient.prototype, <any>"executePostRequestToDeviceCodeEndpoint").resolves(DEVICE_CODE_RESPONSE);
             const tokenRequestStub = sinon
             .stub(BaseClient.prototype, <any>"executePostToTokenEndpoint")
@@ -315,6 +308,6 @@ describe("DeviceCodeClient unit tests", () => {
             const client = new DeviceCodeClient(config);
             await expect(client.acquireToken(request)).rejects.toMatchObject(ClientAuthError.createUserTimeoutReachedError());
             expect(tokenRequestStub.callCount).toBe(1);
-        });
+        }, 15000);
     });
 });

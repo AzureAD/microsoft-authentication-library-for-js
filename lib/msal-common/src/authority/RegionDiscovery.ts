@@ -6,7 +6,8 @@
 import { INetworkModule } from "../network/INetworkModule";
 import { NetworkResponse } from "../network/NetworkManager";
 import { IMDSBadResponse } from "../response/IMDSBadResponse";
-import { Constants, ResponseCodes } from "../utils/Constants";
+import { Constants, RegionDiscoverySources, ResponseCodes } from "../utils/Constants";
+import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
 
 export class RegionDiscovery {
     // Network interface to make requests with.
@@ -23,32 +24,44 @@ export class RegionDiscovery {
      * 
      * @returns Promise<string | null>
      */
-    public async detectRegion(environmentRegion: string | undefined): Promise<string | null> {
+    public async detectRegion(environmentRegion: string | undefined, regionDiscoveryMetadata: RegionDiscoveryMetadata): Promise<string | null> {
         // Initialize auto detected region with the region from the envrionment 
         let autodetectedRegionName = environmentRegion;
 
-        // Call the local IMDS endpoint for applications running in azure vms
+        // Check if a region was detected from the environment, if not, attempt to get the region from IMDS 
         if (!autodetectedRegionName) {
             try {
-                const response = await this.getRegionFromIMDS(Constants.IMDS_VERSION);
-                if (response.status === ResponseCodes.httpSuccess) {
-                    autodetectedRegionName = response.body;
+                const localIMDSVersionResponse = await this.getRegionFromIMDS(Constants.IMDS_VERSION);
+                if (localIMDSVersionResponse.status === ResponseCodes.httpSuccess) {
+                    autodetectedRegionName = localIMDSVersionResponse.body;
+                    regionDiscoveryMetadata.region_source = RegionDiscoverySources.IMDS;
                 } 
                 
-                if (response.status === ResponseCodes.httpBadRequest) {
-                    const latestIMDSVersion = await this.getCurrentVersion();
-                    if (!latestIMDSVersion) {
+                // If the response using the local IMDS version failed, try to fetch the current version of IMDS and retry. 
+                if (localIMDSVersionResponse.status === ResponseCodes.httpBadRequest) {
+                    const currentIMDSVersion = await this.getCurrentVersion();
+                    if (!currentIMDSVersion) {
+                        regionDiscoveryMetadata.region_source = RegionDiscoverySources.FAILED_AUTO_DETECTION;
                         return null;
                     }
 
-                    const response = await this.getRegionFromIMDS(latestIMDSVersion);
-                    if (response.status === ResponseCodes.httpSuccess) {
-                        autodetectedRegionName = response.body;
+                    const currentIMDSVersionResponse = await this.getRegionFromIMDS(currentIMDSVersion);
+                    if (currentIMDSVersionResponse.status === ResponseCodes.httpSuccess) {
+                        autodetectedRegionName = currentIMDSVersionResponse.body;
+                        regionDiscoveryMetadata.region_source = RegionDiscoverySources.IMDS;
                     }
-                } 
+                }
             } catch(e) {
+                regionDiscoveryMetadata.region_source = RegionDiscoverySources.FAILED_AUTO_DETECTION;
                 return null;
             } 
+        } else {
+            regionDiscoveryMetadata.region_source = RegionDiscoverySources.ENVIRONMENT_VARIABLE;
+        }
+
+        // If no region was auto detected from the environment or from the IMDS endpoint, mark the attempt as a FAILED_AUTO_DETECTION
+        if (!autodetectedRegionName) {
+            regionDiscoveryMetadata.region_source = RegionDiscoverySources.FAILED_AUTO_DETECTION;
         }
 
         return autodetectedRegionName || null;

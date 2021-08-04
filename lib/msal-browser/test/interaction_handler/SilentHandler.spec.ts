@@ -3,11 +3,11 @@
  * Licensed under the MIT License.
  */
 
-import { PkceCodes, AuthorityFactory, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ProtocolMode, Logger, AuthenticationScheme, AuthorityOptions, ClientConfiguration } from "@azure/msal-common";
+import { PkceCodes, AuthorityFactory, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ProtocolMode, Logger, AuthenticationScheme, AuthorityOptions, ClientConfiguration, ServerAuthorizationTokenResponse } from "@azure/msal-common";
 import sinon from "sinon";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { TEST_CONFIG, testNavUrl, TEST_URIS, RANDOM_TEST_GUID, TEST_POP_VALUES } from "../utils/StringConstants";
+import { TEST_CONFIG, testNavUrl, TEST_URIS, RANDOM_TEST_GUID, TEST_POP_VALUES, AUTHENTICATION_RESULT } from "../utils/StringConstants";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import { BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
@@ -47,6 +47,7 @@ const networkInterface = {
 describe("SilentHandler.ts Unit Tests", () => {
     let browserStorage: BrowserCacheManager;
     let authCodeModule: AuthorizationCodeClient;
+    let browserRequestLogger: Logger;
     beforeEach(() => {
         const appConfig: Configuration = {
             auth: {
@@ -88,6 +89,12 @@ describe("SilentHandler.ts Unit Tests", () => {
                 },
                 signJwt: async (): Promise<string> => {
                     return "signedJwt";
+                },
+                getAsymmetricPublicKey: async (): Promise<string> => {
+                    return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT
+                },
+                decryptBoundTokenResponse: async (): Promise<ServerAuthorizationTokenResponse | null> => {
+                    return AUTHENTICATION_RESULT.body;
                 }
             },
             networkInterface: {
@@ -108,6 +115,7 @@ describe("SilentHandler.ts Unit Tests", () => {
         const browserCrypto = new CryptoOps();
         const logger = new Logger(authConfig.loggerOptions!);
         browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, browserCrypto, logger);
+        browserRequestLogger = new Logger(authConfig.loggerOptions!);
     });
 
     afterEach(() => {
@@ -117,7 +125,7 @@ describe("SilentHandler.ts Unit Tests", () => {
     describe("Constructor", () => {
 
         it("creates a subclass of InteractionHandler called SilentHandler", () => {
-            const silentHandler = new SilentHandler(authCodeModule, browserStorage, defaultTokenRequest, DEFAULT_IFRAME_TIMEOUT_MS);
+            const silentHandler = new SilentHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, DEFAULT_IFRAME_TIMEOUT_MS);
             expect(silentHandler instanceof SilentHandler).toBe(true);
             expect(silentHandler instanceof InteractionHandler).toBe(true);
         });
@@ -126,23 +134,22 @@ describe("SilentHandler.ts Unit Tests", () => {
     describe("initiateAuthRequest()", () => {
 
         it("throws error if requestUrl is empty", async () => {
-            const silentHandler = new SilentHandler(authCodeModule, browserStorage, defaultTokenRequest, DEFAULT_IFRAME_TIMEOUT_MS);
+            const silentHandler = new SilentHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, DEFAULT_IFRAME_TIMEOUT_MS);
             await expect(silentHandler.initiateAuthRequest("")).rejects.toMatchObject(BrowserAuthError.createEmptyNavigationUriError());
             //@ts-ignore
             await expect(silentHandler.initiateAuthRequest(null)).rejects.toMatchObject(BrowserAuthError.createEmptyNavigationUriError());
         });
 
         it("Creates a frame asynchronously when created with default timeout", async () => {
-            jest.setTimeout(DEFAULT_IFRAME_TIMEOUT_MS + 1000)
-            const silentHandler = new SilentHandler(authCodeModule, browserStorage, defaultTokenRequest, DEFAULT_IFRAME_TIMEOUT_MS);
+            const silentHandler = new SilentHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, DEFAULT_IFRAME_TIMEOUT_MS);
             const loadFrameSpy = sinon.spy(silentHandler, <any>"loadFrame");
             const authFrame = await silentHandler.initiateAuthRequest(testNavUrl);
             expect(loadFrameSpy.called).toBe(true);
             expect(authFrame instanceof HTMLIFrameElement).toBe(true);
-        });
+        }, DEFAULT_IFRAME_TIMEOUT_MS + 1000);
 
         it("Creates a frame synchronously when created with a timeout of 0", async () => {
-            const silentHandler = new SilentHandler(authCodeModule, browserStorage, defaultTokenRequest, 0);
+            const silentHandler = new SilentHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, 0);
             const loadFrameSyncSpy = sinon.spy(silentHandler, <any>"loadFrameSync");
             const loadFrameSpy = sinon.spy(silentHandler, <any>"loadFrame");
             const authFrame = await silentHandler.initiateAuthRequest(testNavUrl);
@@ -161,7 +168,7 @@ describe("SilentHandler.ts Unit Tests", () => {
                 }
             };
 
-            const silentHandler = new SilentHandler(authCodeModule, browserStorage, defaultTokenRequest, DEFAULT_IFRAME_TIMEOUT_MS);
+            const silentHandler = new SilentHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, DEFAULT_IFRAME_TIMEOUT_MS);
             // @ts-ignore
             silentHandler.monitorIframeForHash(iframe, 500)
                 .catch(() => {
@@ -181,7 +188,7 @@ describe("SilentHandler.ts Unit Tests", () => {
                 }
             };
 
-            const silentHandler = new SilentHandler(authCodeModule, browserStorage, defaultTokenRequest, DEFAULT_IFRAME_TIMEOUT_MS);
+            const silentHandler = new SilentHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, DEFAULT_IFRAME_TIMEOUT_MS);
             // @ts-ignore
             silentHandler.monitorIframeForHash(iframe, 2000)
                 .catch(() => {
@@ -217,7 +224,7 @@ describe("SilentHandler.ts Unit Tests", () => {
                 }
             };
 
-            const silentHandler = new SilentHandler(authCodeModule, browserStorage, defaultTokenRequest, DEFAULT_IFRAME_TIMEOUT_MS);
+            const silentHandler = new SilentHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, DEFAULT_IFRAME_TIMEOUT_MS);
             // @ts-ignore
             silentHandler.monitorIframeForHash(iframe, 1000)
                 .then((hash: string) => {

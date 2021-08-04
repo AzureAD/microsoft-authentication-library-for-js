@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfiguration, Constants, PkceCodes, ClientAuthError, AccountEntity, CredentialEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, ProtocolMode , AuthorityFactory, AuthorityOptions, AuthorityMetadataEntity } from "../../src";
-import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES, TEST_TOKENS } from "../test_kit/StringConstants";
+import { ClientConfiguration, Constants, PkceCodes, ClientAuthError, AccountEntity, CredentialEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, ProtocolMode , AuthorityFactory, AuthorityOptions, AuthorityMetadataEntity, ServerAuthorizationTokenResponse } from "../../src";
+import { AUTHENTICATION_RESULT, RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES, TEST_TOKENS } from "../test_kit/StringConstants";
 
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
@@ -155,6 +155,9 @@ export const mockCrypto = {
     },
     async signJwt(): Promise<string> {
         return "";
+    },
+    async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse | null> {
+        return AUTHENTICATION_RESULT.body;
     }
 };
 
@@ -198,6 +201,9 @@ export class ClientTestUtils {
             cryptoInterface: mockCrypto,
             loggerOptions: {
                 loggerCallback: testLoggerCallback,
+            },
+            systemOptions: {
+                tokenRenewalOffsetSeconds: TEST_CONFIG.DEFAULT_TOKEN_RENEWAL_OFFSET
             },
             clientCredentials: {
                 clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,

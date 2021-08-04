@@ -14,7 +14,7 @@ This section covers creating a self-signed certificate and initializing a confid
 
 ### Generating self-signed certificates
 
-Build and install **OpenSSL** for your **OS** following the guide at [github.com/openssl](https://github.com/openssl/openssl#build-and-install). If you like to skip building and get a binary distributable from the community instead, check the [OpenSSL Wiki: Binaries](https://wiki.openssl.org/index.php/Binaries) page.
+Download and build **OpenSSL** for your **OS** following the guide at [github.com/openssl](https://github.com/openssl/openssl#build-and-install). If you like to skip building and get a binary distributable from the community instead, check the [OpenSSL Wiki: Binaries](https://wiki.openssl.org/index.php/Binaries) page.
 
 Afterwards, add the path to `OpenSSL` to your **environment variables** so that you can call it from anywhere.
 
@@ -51,13 +51,13 @@ After that, the following files should be generated:
 >
 > This command will generate two files: *example.cer* (public key) and *example.pfx* (public key + encrypted private key).
 
-> :information_source: Certificate files come in various file extensions, such as *.crt*, *.csr*, *.cer*, *.pem*, *.pfx*, *.key*. For file type conversions, you can use *OpenSSL*. For more information, see [SSL/TLS Certificate File Types/Extensions](https://docs.microsoft.com/archive/blogs/kaushal/various-ssltls-certificate-file-typesextensions).
+> :information_source: Certificate files come in various file extensions, such as *.crt*, *.csr*, *.cer*, *.pem*, *.pfx*, *.key*. For file type conversions, you can use *OpenSSL*. See below for [pfx to pem conversion](#optional-converting-pfx-to-pem). For other type of conversions, please refer to: [SSL/TLS Certificate File Types/Extensions](https://docs.microsoft.com/archive/blogs/kaushal/various-ssltls-certificate-file-typesextensions).
 
 ### Trusting self-signed certificates
 
 You'll need to add your self-signed certificates to the *credential manager* / *key chain* of your **OS**. You may still see a warning in your browser afterwards (e.g. Chrome).
 
-* For Windows users, follow the guide here: [Installing the trusted root certificate](https://docs.microsoft.com/skype-sdk/sdn/articles/installing-the-trusted-root-certificate) and here [How to: View certificates with the MMC snap-in](https://docs.microsoft.com/dotnet/framework/wcf/feature-details/how-to-view-certificates-with-the-mmc-snap-in).
+* For Windows users, follow the guide here: [How to: View certificates with the MMC snap-in](https://docs.microsoft.com/dotnet/framework/wcf/feature-details/how-to-view-certificates-with-the-mmc-snap-in).
 
 * For Linux and MacOS users, use community guides -with judgment- to learn about how to install certificates.
 
@@ -84,17 +84,8 @@ const config = {
         clientId: "YOUR_CLIENT_ID",
         authority: "https://login.microsoftonline.com/YOUR_TENANT_ID",
         clientCertificate: {
-            thumbprint: "CERT_THUMBPRINT",
+            thumbprint: "CERT_THUMBPRINT", // a 40-digit hexadecimal string
             privateKey: "CERT_PRIVATE_KEY",
-        }
-    },
-    system: {
-        loggerOptions: {
-            loggerCallback(loglevel, message, containsPii) {
-                console.log(message);
-            },
-            piiLoggingEnabled: false,
-            logLevel: msal.LogLevel.Verbose,
         }
     }
 };
@@ -109,11 +100,13 @@ Both `thumbprint` and `privateKey` are expected to be strings. `privateKey` is f
 -----BEGIN ENCRYPTED PRIVATE KEY-----
 MIIJQwIBADANBgkqhkiG9w0BAQEFAASCCS0wggkpAgEAAoICAQDkpKPrsfpIijS3
 z2HCpDsa7dxOsKIrm7F1AtGBjyB0yVDjlh/FA7jT5sd2ypBh3FVsZGJudQsLRKfE
-// more lines...
+// ...
 -----END ENCRYPTED PRIVATE KEY-----
 ```
 
-If you have encrypted your private key with a *pass phrase* as recommended, you'll need to decrypt it before passing to **MSAL Node**. This can be done using Node's [crypto module](https://nodejs.org/docs/latest-v12.x/api/crypto.html):
+> :information_source: Alternatively, your private key may begin with `-----BEGIN PRIVATE KEY-----` (pkcs#12) or `-----BEGIN RSA PRIVATE KEY-----` (pkcs#1). These formats are also permissible.
+
+If you have encrypted your private key (or if your private key is already encrypted) with a *pass phrase* as recommended, you'll need to decrypt it before passing to **MSAL Node**. This can be done using Node's [crypto module](https://nodejs.org/docs/latest-v12.x/api/crypto.html):
 
 First, ensure that your private key is of type `pkcs8`:
 
@@ -149,7 +142,7 @@ const privateKey = privateKeyObject.export({
 });
 ```
 
-### Creating an HTTPS server
+### (Optional) Creating an HTTPS server
 
 Setup a **HTTPS** server by importing the generated **certificate** and **public key** files and passing them as `options` to `https.createServer()` method. This is shown below:
 
@@ -177,6 +170,104 @@ Setup a **HTTPS** server by importing the generated **certificate** and **public
 ```
 
 For an implementation, see the code sample: [auth-code-with-certs](../../../samples/msal-node-samples/auth-code-with-certs)
+
+### (Optional) Converting pfx to pem
+
+OpenSSL can be used for converting `pfx` encoded certificate files to `pem`:
+
+```bash
+    openssl pkcs12 -in certificate.pfx -out certificate.pem
+```
+
+If the conversion needs to happen programmatically, then you may have to rely on a 3rd party package, as Node.js offers no native method for this. For instance, using a popular TLS implementation like [node-forge](https://www.npmjs.com/package/node-forge), you can do:
+
+```javascript
+const forge = require('node-forge');
+
+/**
+ * @param {string} pfx: certificate + private key combination in pfx format
+ * @param {string} passphrase: passphrase used to encrypt pfx file
+ * @returns {Object}
+ */
+function convertPFX(pfx, passphrase = null) {
+
+    const asn = forge.asn1.fromDer(forge.util.decode64(pfx));   
+    const p12 = forge.pkcs12.pkcs12FromAsn1(asn, true, passphrase);
+    
+    // Retrieve key data
+    const keyData = p12.getBags({ bagType: forge.pki.oids.pkcs8ShroudedKeyBag })[forge.pki.oids.pkcs8ShroudedKeyBag]
+        .concat(p12.getBags({ bagType: forge.pki.oids.keyBag })[forge.pki.oids.keyBag]);
+    
+    // Retrieve certificate data
+    const certBags = p12.getBags({ bagType: forge.pki.oids.certBag })[forge.pki.oids.certBag];
+    const certificate = forge.pki.certificateToPem(certBags[0].cert)
+    
+    // Convert a Forge private key to an ASN.1 RSAPrivateKey
+    const rsaPrivateKey = forge.pki.privateKeyToAsn1(keyData[0].key);
+    
+    // Wrap an RSAPrivateKey ASN.1 object in a PKCS#8 ASN.1 PrivateKeyInfo
+    const privateKeyInfo = forge.pki.wrapRsaPrivateKey(rsaPrivateKey);
+    
+    // Convert a PKCS#8 ASN.1 PrivateKeyInfo to PEM
+    const privateKey = forge.pki.privateKeyInfoToPem(privateKeyInfo);
+    
+    console.log("Converted certificate: \n", certificate);
+    console.log("Converted key: \n", privateKey);
+    
+    return {
+        certificate: certificate,
+        key: privateKey
+    };
+}
+```
+
+### Common issues
+
+In some cases, you may receive an error from Azure AD when trying to authenticate using certificates, such as the `AADSTS700027: Client assertion contains an invalid signature` error, indicating that the certificates and/or private keys that you use to initialize MSAL Node are malformed. A common reason for this is that the certificate / private key string that you are supplying to MSAL Node contains unexpected characters, such as *return carriages* (`\r`) or *newlines* (`\n`):
+
+```text
+-----BEGIN CERTIFICATE-----\nMIIDDzCCAfegAwIBAgIJAMkyzQVK88NHMA0GCSqGSIb3DQEBBQUAMIGCMQswCQYDVQQGEwJTRTESMBAGA1UECBMJU3RvY2tob2xtMQ4wDAYDVQQHEwVLaXN0YTEQMA4G0fbkqbKulrchGbNgkankZtEVg4PGjobZq7B+njvcVa7SsWF/WLq5AUbw==\r\n-----END CERTIFICATE-----
+```
+
+Alternatively, your certificate / key file may contain *bag attributes*:
+
+```text
+Bag Attributes
+    localKeyID: 28 B5 8E 16 11 88 E9 00 58 D5 76 30 12 B9 59 B8 E4 CE 7C AA
+subject=/C=UK/ST=Suffolk/L=Ipswich/O=Example plc/CN=alice
+issuer=/C=UK/ST=Suffolk/L=Ipswich/O=Example plc/CN=Certificate Authority/emailAddress=ca@example.com\n
+-----BEGIN CERTIFICATE-----
+MIIDDzCCAfegAwIBAgIJAMkyzQVK88NHMA0GCSqGSIb3DQEBBQUAMIGCMQswCQYD
+VQQGEwJTRTESMBAGA1UECBMJU3RvY2tob2xtMQ4wDAYDVQQHEwVLaXN0YTEQMA4G
+0fbkqbKulrchGbNgkankZtEVg4PGjo+Y8MdMjtfSZB29hwYvfMX09jzJ68ZqmpYQ
+njvcVtLbEZN5OGCkaslb/f2OxLbsUNgIbws538WnaaufDvKmQe2kUdWmpl9Wn9Bf
+bZq7B+njvcVa7SsWF/WLq5AUbw==
+-----END CERTIFICATE-----
+```
+
+In such cases, you are responsible for cleaning the strings before you pass them to MSAL Node configuration. For instance:
+
+```javascript
+const msal = require('@azure/msal-node');
+const fs = require('fs');
+
+const privateKeySource = fs.readFileSync('./certs/example.key');
+const privateKey = Buffer.from(privateKeySource, 'base64').toString().replace(/\r/g, "").replace(/\n/g, "");
+
+const config = {
+    auth: {
+        clientId: "YOUR_CLIENT_ID",
+        authority: "https://login.microsoftonline.com/YOUR_TENANT_ID",
+        clientCertificate: {
+            thumbprint: "CERT_THUMBPRINT", // a 40-digit hexadecimal string
+            privateKey: privateKey,
+        }
+    }
+};
+
+// Create msal application object
+const cca = new msal.ConfidentialClientApplication(config);
+```
 
 ## More Information
 

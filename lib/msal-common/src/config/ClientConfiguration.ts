@@ -82,6 +82,7 @@ export type AuthOptions = {
  */
 export type SystemOptions = {
     tokenRenewalOffsetSeconds?: number;
+    preventCorsPreflight?: boolean;
 };
 
 /**
@@ -90,11 +91,13 @@ export type SystemOptions = {
  * - loggerCallback                - Callback for logger
  * - piiLoggingEnabled             - Sets whether pii logging is enabled
  * - logLevel                      - Sets the level at which logging happens
+ * - correlationId                 - Sets the correlationId printed by the logger
  */
 export type LoggerOptions = {
     loggerCallback?: ILoggerCallback,
     piiLoggingEnabled?: boolean,
-    logLevel?: LogLevel
+    logLevel?: LogLevel,
+    correlationId?: string
 };
 
 /**
@@ -119,7 +122,8 @@ export type ClientCredentials = {
 };
 
 export const DEFAULT_SYSTEM_OPTIONS: Required<SystemOptions> = {
-    tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC
+    tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
+    preventCorsPreflight: false
 };
 
 const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {
@@ -127,7 +131,8 @@ const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {
         // allow users to not set loggerCallback
     },
     piiLoggingEnabled: false,
-    logLevel: LogLevel.Info
+    logLevel: LogLevel.Info,
+    correlationId: ""
 };
 
 const DEFAULT_NETWORK_IMPLEMENTATION: INetworkModule = {

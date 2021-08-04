@@ -1,7 +1,13 @@
 import sinon from "sinon";
-import { ICrypto, PkceCodes, UrlString, SignedHttpRequest, TimeUtils, BaseAuthRequest, AuthenticationScheme } from "../../src";
-import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS } from "../test_kit/StringConstants";
+import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS, AUTHENTICATION_RESULT } from "../test_kit/StringConstants";
 import { PopTokenGenerator } from "../../src/crypto/PopTokenGenerator";
+import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
+import { BaseAuthRequest } from "../../src/request/BaseAuthRequest";
+import { TimeUtils } from "../../src/utils/TimeUtils";
+import { UrlString } from "../../src/url/UrlString";
+import { AuthenticationScheme } from "../../src/utils/Constants";
+import { SignedHttpRequest } from "../../src/crypto/SignedHttpRequest";
+import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 
 describe("PopTokenGenerator Unit Tests", () => {
 
@@ -53,6 +59,9 @@ describe("PopTokenGenerator Unit Tests", () => {
         },
         async getAsymmetricPublicKey(): Promise<string> {
             return TEST_POP_VALUES.KID;
+        },
+        async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse | null> {
+            return AUTHENTICATION_RESULT.body;
         }
     };
 
@@ -70,7 +79,7 @@ describe("PopTokenGenerator Unit Tests", () => {
             sinon.stub(TimeUtils, "nowSeconds").returns(currTime);
         });
 
-        it("Signs the proof-of-possession JWT token with all PoP parameters in the request", async(done) => {
+        it("Signs the proof-of-possession JWT token with all PoP parameters in the request", (done) => {
             const popTokenGenerator = new PopTokenGenerator(cryptoInterface);
             const accessToken = TEST_POP_VALUES.SAMPLE_POP_AT;
             const resourceReqMethod = "POST";
