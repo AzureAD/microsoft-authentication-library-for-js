@@ -24,5 +24,5 @@ export type BaseAuthRequest = {
     claims?: string;
     shrClaims?: string;
     resourceRequestMethod?: string;
-    resourceRequestUri?: string;
-};
+    resourceRequestUri?: string;  /*resourcerequesturi*/
+}; 

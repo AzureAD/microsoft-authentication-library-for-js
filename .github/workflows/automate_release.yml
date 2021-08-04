@@ -30,4 +30,8 @@ jobs:
 
       # Push changes
       - name: Push new branch
-        run: git push origin release/v${{ github.event.inputs.versionName }}
+        run: git push origin release/v${{ github.event.inputs.versionName }} 
+
+      # Bump package versions
+      - name: Bump package versions
+        run: npm run beachball:bump
