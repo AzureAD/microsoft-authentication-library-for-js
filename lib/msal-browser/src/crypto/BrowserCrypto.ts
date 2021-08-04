@@ -5,7 +5,7 @@
 
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { ALGORITHMS, KEY_FORMATS } from "../utils/CryptoConstants";
+import { CryptoAlgorithms, CryptoKeyFormats } from "../utils/CryptoConstants";
 import { CryptoKeyOptions } from "./CryptoOps";
 /**
  * See here for more info on RsaHashedKeyGenParams: https://developer.mozilla.org/en-US/docs/Web/API/RsaHashedKeyGenParams
@@ -28,7 +28,7 @@ export class BrowserCrypto {
      */
     async sha256Digest(dataString: string): Promise<ArrayBuffer> {
         const data = BrowserStringUtils.stringToUtf8Arr(dataString);
-        return this.hasIECrypto() ? this.getMSCryptoDigest(ALGORITHMS.S256_HASH_ALG, data) : this.getSubtleCryptoDigest(ALGORITHMS.S256_HASH_ALG, data);
+        return this.hasIECrypto() ? this.getMSCryptoDigest(CryptoAlgorithms.S256_HASH_ALG, data) : this.getSubtleCryptoDigest(CryptoAlgorithms.S256_HASH_ALG, data);
     }
 
     /**
@@ -67,7 +67,7 @@ export class BrowserCrypto {
      * @param format 
      */
     async exportJwk(key: CryptoKey): Promise<JsonWebKey> {
-        return this.hasIECrypto() ? this.msCryptoExportJwk(key) : window.crypto.subtle.exportKey(KEY_FORMATS.JWK, key);
+        return this.hasIECrypto() ? this.msCryptoExportJwk(key) : window.crypto.subtle.exportKey(CryptoKeyFormats.JWK, key);
     }
 
     /**
@@ -83,7 +83,7 @@ export class BrowserCrypto {
 
         return this.hasIECrypto() ? 
             this.msCryptoImportKey(keyOptions, keyBuffer, extractable, usages)
-            : window.crypto.subtle.importKey(KEY_FORMATS.JWK, key, keyOptions.keyGenAlgorithmOptions, extractable, usages);
+            : window.crypto.subtle.importKey(CryptoKeyFormats.JWK, key, keyOptions.keyGenAlgorithmOptions, extractable, usages);
     }
 
     /**
@@ -174,7 +174,7 @@ export class BrowserCrypto {
      */
     private async msCryptoExportJwk(key: CryptoKey): Promise<JsonWebKey> {
         return new Promise((resolve: Function, reject: Function) => {
-            const msExportKey = window["msCrypto"].subtle.exportKey(KEY_FORMATS.JWK, key);
+            const msExportKey = window["msCrypto"].subtle.exportKey(CryptoKeyFormats.JWK, key);
             msExportKey.addEventListener("complete", (e: { target: { result: ArrayBuffer; }; }) => {
                 const resultBuffer: ArrayBuffer = e.target.result;
 
@@ -207,7 +207,7 @@ export class BrowserCrypto {
      */
     private async msCryptoImportKey(keyOptions: CryptoKeyOptions, keyBuffer: ArrayBuffer, extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKey> {
         return new Promise((resolve: Function, reject: Function) => {
-            const msImportKey = window["msCrypto"].subtle.importKey(KEY_FORMATS.JWK, keyBuffer, keyOptions.keyGenAlgorithmOptions, extractable, usages);
+            const msImportKey = window["msCrypto"].subtle.importKey(CryptoKeyFormats.JWK, keyBuffer, keyOptions.keyGenAlgorithmOptions, extractable, usages);
             msImportKey.addEventListener("complete", (e: { target: { result: CryptoKey | PromiseLike<CryptoKey>; }; }) => {
                 resolve(e.target.result);
             });
