@@ -26,6 +26,9 @@ const msalConfig = {
                         return;	
                     case msal.LogLevel.Warning:	
                         console.warn(message);	
+                        return;
+                    case msal.LogLevel.Trace:
+                        console.trace(message);
                         return;	
                 }
             }
