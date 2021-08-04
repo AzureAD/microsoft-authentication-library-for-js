@@ -43,8 +43,8 @@ jobs:
             cache: 'npm'
       - run: npm ci
 
-      #Generate change files
-       - name: Use Node.js
+      # Generate change files
+      -  name: Use Node.js
          run: npm run beachball:change
 
       # Bump package versions
