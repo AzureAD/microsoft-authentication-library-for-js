@@ -4,17 +4,21 @@
  */
 
 // Cryptographic Algorithms used/supported
-export enum ALGORITHMS  {
+export enum CryptoAlgorithms  {
     PKCS1_V15_KEYGEN_ALG = "RSASSA-PKCS1-v1_5",
     RSA_OAEP = "RSA-OAEP",
     AES_GCM = "AES-GCM",
+    HMAC = "HMAC",
     DIRECT = "dir",
     S256_HASH_ALG = "SHA-256",
 }
 
 // Numerical constants relating to biy/bytelength
-export enum LENGTHS {
-    MODULUS = 2048
+export enum CryptoLengths {
+    MODULUS = 2048,
+    DERIVED_KEY = 256, // L
+    PRF_OUTPUT = 256, // h
+    COUNTER = 256 // r
 }
 
 // Public Exponent used in Key Generation
@@ -29,8 +33,9 @@ export enum CryptoKeyTypes {
 /**
  * JWK Key Format string (Type MUST be defined for window crypto APIs)
  */
-export enum KEY_FORMATS  {
-    JWK = "jwk"
+export enum CryptoKeyFormats  {
+    JWK = "jwk",
+    RAW = "raw"
 }
 
 // Crypto Key Usage sets
@@ -50,11 +55,11 @@ export const KEY_USAGES = {
 export const CRYPTO_KEY_CONFIG = {
     AT_BINDING: {
         keyGenAlgorithmOptions: {
-            name: ALGORITHMS.PKCS1_V15_KEYGEN_ALG,
+            name: CryptoAlgorithms.PKCS1_V15_KEYGEN_ALG,
             hash: {
-                name: ALGORITHMS.S256_HASH_ALG
+                name: CryptoAlgorithms.S256_HASH_ALG
             },
-            modulusLength: LENGTHS.MODULUS,
+            modulusLength: CryptoLengths.MODULUS,
             publicExponent: PUBLIC_EXPONENT
         },
         keypairUsages: KEY_USAGES.AT_BINDING.KEYPAIR as KeyUsage[],
@@ -62,14 +67,19 @@ export const CRYPTO_KEY_CONFIG = {
     },
     RT_BINDING: {
         keyGenAlgorithmOptions: {     
-            name: ALGORITHMS.RSA_OAEP,
+            name: CryptoAlgorithms.RSA_OAEP,
             hash: {
-                name: ALGORITHMS.S256_HASH_ALG
+                name: CryptoAlgorithms.S256_HASH_ALG
             },
-            modulusLength: LENGTHS.MODULUS,
+            modulusLength: CryptoLengths.MODULUS,
             publicExponent: PUBLIC_EXPONENT
         },
         keypairUsages: KEY_USAGES.RT_BINDING.KEYPAIR as KeyUsage[],
         privateKeyUsage: KEY_USAGES.RT_BINDING.PRIVATE_KEY as KeyUsage[]
     }
 };
+
+export enum KeyDerivationLabels {
+    DECRYPTION = "AzureAD-SecureConversation-BoundRT-AES-GCM-SHA256",
+    SIGNING = "AzureAD-SecureConversation-BoundRT-HS256"
+}

@@ -11,7 +11,7 @@ import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
 import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { CryptoKeyTypes, KEY_FORMATS, CRYPTO_KEY_CONFIG, KEY_USAGES, LENGTHS, KEY_DERIVATION_LABELS, ALGORITHMS } from "../utils/CryptoConstants";
+import { CryptoKeyTypes, CryptoKeyFormats, CRYPTO_KEY_CONFIG, KEY_USAGES, CryptoLengths, KeyDerivationLabels, CryptoAlgorithms } from "../utils/CryptoConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { JsonWebEncryption } from "./JsonWebEncryption";
 import { KeyDerivation } from "./KeyDerivation";
@@ -153,7 +153,7 @@ export class CryptoOps implements ICrypto {
         // Generate header
         const header = {
             alg: publicKeyJwk.alg,
-            type: KEY_FORMATS.JWK
+            type: CryptoKeyFormats.JWK
         };
         const encodedHeader = this.b64Encode.urlEncode(JSON.stringify(header));
 
@@ -215,15 +215,15 @@ export class CryptoOps implements ICrypto {
                 // Derive the session key from the content encryption key
                 const kdf = new KeyDerivation(
                     contentEncryptionKey,
-                    LENGTHS.DERIVED_KEY,
-                    LENGTHS.PRF_OUTPUT,
-                    LENGTHS.COUNTER
+                    CryptoLengths.DERIVED_KEY,
+                    CryptoLengths.PRF_OUTPUT,
+                    CryptoLengths.COUNTER
                 );
                 
-                const derivedKeyData = await kdf.computeKDFInCounterMode(responseJwe.protectedHeader.ctx, KEY_DERIVATION_LABELS.DECRYPTION);
+                const derivedKeyData = await kdf.computeKDFInCounterMode(responseJwe.protectedHeader.ctx, KeyDerivationLabels.DECRYPTION);
                 const sessionKeyUsages = KEY_USAGES.RT_BINDING.SESSION_KEY;
-                const sessionKeyAlgorithm: AesKeyAlgorithm = { name: ALGORITHMS.AES_GCM, length: LENGTHS.DERIVED_KEY };
-                const sessionKey = await window.crypto.subtle.importKey(KEY_FORMATS.RAW, derivedKeyData, sessionKeyAlgorithm, false, sessionKeyUsages);
+                const sessionKeyAlgorithm: AesKeyAlgorithm = { name: CryptoAlgorithms.AES_GCM, length: CryptoLengths.DERIVED_KEY };
+                const sessionKey = await window.crypto.subtle.importKey(CryptoKeyFormats.RAW, derivedKeyData, sessionKeyAlgorithm, false, sessionKeyUsages);
                 
                 if (sessionKey) {
                     return null;
