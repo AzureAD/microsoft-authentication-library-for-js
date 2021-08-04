@@ -48,13 +48,14 @@ const routes: Routes = [
   }
 ];
 
-const isIframe = BrowserUtils.isInIframe() && !window.opener && window.location.href.indexOf("logout") < 0; // Remove this line to use Angular Universal
+// Don't perform initial navigation in iframes or popups, except for logout
+const initialNavigation = (!BrowserUtils.isInIframe() && !BrowserUtils.isInPopup()) || window.location.href.indexOf("logout") > 0; // Remove this line to use Angular Universal
 
 @NgModule({
   imports: [RouterModule.forRoot(routes, {
     useHash: true,
-    // Don't perform initial navigation in iframes ort popups, except for logout
-    initialNavigation: !isIframe ? 'enabled' : 'disabled' // Remove this line to use Angular Universal
+    // Don't perform initial navigation in iframes or popups, except for logout
+    initialNavigation: initialNavigation ? 'enabled' : 'disabled' // Remove this line to use Angular Universal
   })],
   exports: [RouterModule]
 })

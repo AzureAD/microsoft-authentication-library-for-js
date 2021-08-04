@@ -29,8 +29,7 @@ var crypto = require('crypto');
 var constants = require('constants');
 const base64url = require('base64url');
 
-var aadutils = require('./aadutils');
-var jwkToPem = require('jwk-to-pem');
+var jose = require('node-jose');
 
 /******************************************************************************
  * utility functions
@@ -299,7 +298,7 @@ var decryptCEKHelper = (alg, encrypted_cek, key, log) => {
         key_to_use = key['privatePemKey'];
       } else {
         log.info('converting jwk to RSA privatePemKey to decrypt cek');
-        key_to_use = jwkToPem(key, {private: true});
+        return { "error": "converting jwk to RSA privatePemKey to decrypt cek", cek: key };
       }
     } else if (alg === 'A128KW' || alg === 'A256KW') {
       log.info('using symmetric key to decrypt cek');
@@ -362,8 +361,9 @@ var decryptCEK = (header, encrypted_cek, jweKeyStore, log) => {
   for(var i = 0; i < jweKeyStore.length; i++) {
     if (jweKeyStore[i].kty === algKtyMapper[header.alg]) {
       var result = decryptCEKHelper(header.alg, encrypted_cek, jweKeyStore[i], log);
-      if (!result.error && result.cek)
+      if (result.cek) {
         return result;
+      }
     }
   }
 
@@ -507,8 +507,24 @@ exports.decrypt = (jweString, jweKeyStore, log, callback) => {
      *  cek decryption
      ***************************************************************************/
     var cek_result = decryptCEK(header, encrypted_cek, jweKeyStore, log);
-    if (cek_result.error)
+    if (cek_result.error) {
+      if (cek_result.error === "converting jwk to RSA privatePemKey to decrypt cek") {
+        jose.JWK.asKey(cek_result.cek, "pem").then((pemKey) => {
+          let cek;
+          if (header.alg === 'RSA1_5')
+            cek = crypto.privateDecrypt({ key: pemKey.toPEM(true), padding: constants.RSA_PKCS1_PADDING }, encrypted_cek);
+          else if (header.alg === 'RSA-OAEP')
+            cek = crypto.privateDecrypt({ key: pemKey.toPEM(true), padding: constants.RSA_PKCS1_OAEP_PADDING }, encrypted_cek);
+          var decryptedPemResult = decryptContent(header, cek, cipherText, iv, authTag, aad, log);
+          if (!decryptedPemResult.error) {
+            log.info('In jwe.decrypt: successfully decrypted id_token');
+          }
+          return callback(decryptedPemResult.error, decryptedPemResult.content);
+        });
+        return;
+      }
       return callback(cek_result.error);
+    }
 
     /****************************************************************************
      *  content decryption
@@ -516,8 +532,9 @@ exports.decrypt = (jweString, jweKeyStore, log, callback) => {
     var content_result = decryptContent(header, cek_result.cek, cipherText, iv, authTag, aad, log);
   }
 
-  if (!content_result.error)
+  if (!content_result.error) {
     log.info('In jwe.decrypt: successfully decrypted id_token');
+  }
   
   return callback(content_result.error, content_result.content);
 };

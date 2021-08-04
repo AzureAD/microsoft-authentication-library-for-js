@@ -40,11 +40,26 @@ export class AppComponent implements OnInit, OnDestroy {
       )
       .subscribe(() => {
         this.setLoginDisplay();
+        this.checkAndSetActiveAccount();
       })
   }
 
   setLoginDisplay() {
     this.loginDisplay = this.authService.instance.getAllAccounts().length > 0;
+  }
+
+  checkAndSetActiveAccount(){
+    /**
+     * If no active account set but there are accounts signed in, sets first account to active account
+     * To use active account set here, subscribe to inProgress$ first in your component
+     * Note: Basic usage demonstrated. Your app may require more complicated account selection logic
+     */
+    let activeAccount = this.authService.instance.getActiveAccount();
+
+    if (!activeAccount && this.authService.instance.getAllAccounts().length > 0) {
+      let accounts = this.authService.instance.getAllAccounts();
+      this.authService.instance.setActiveAccount(accounts[0]);
+    }
   }
 
   loginRedirect() {

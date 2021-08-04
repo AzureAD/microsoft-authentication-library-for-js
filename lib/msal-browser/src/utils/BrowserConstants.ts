@@ -69,7 +69,16 @@ export enum TemporaryCacheKeys {
     URL_HASH = "urlHash",
     REQUEST_PARAMS = "request.params",
     SCOPES = "scopes",
-    INTERACTION_STATUS_KEY = "interaction.status"
+    INTERACTION_STATUS_KEY = "interaction.status",
+    CCS_CREDENTIAL = "ccs.credential"
+}
+
+/**
+ * Cache keys stored in-memory
+ */
+export enum InMemoryCacheKeys {
+    WRAPPER_SKU = "wrapper.sku",
+    WRAPPER_VER = "wrapper.version"
 }
 
 /**
@@ -137,41 +146,8 @@ export const DEFAULT_REQUEST: RedirectRequest|PopupRequest = {
     scopes: OIDC_DEFAULT_SCOPES
 };
 
-/**
- * JWK Key Format string (Type MUST be defined for window crypto APIs)
- */
-export const KEY_FORMAT_JWK = "jwk";
-
 // Supported wrapper SKUs
 export enum WrapperSKU {
     React = "@azure/msal-react",
     Angular = "@azure/msal-angular"
 }
-
-// Supported Cryptographic Key Types
-export enum CryptoKeyTypes {
-    req_cnf = "req_cnf",
-    stk_jwk = "stk_jwk"
-}
-
-// Crypto Key Usage sets
-export const KEY_USAGES = {
-    AT_BINDING: {
-        KEYPAIR: ["sign", "verify"],
-        PRIVATE_KEY: ["sign"]
-    },
-    RT_BINDING: {
-        KEYPAIR: ["encrypt", "decrypt"],
-        PRIVATE_KEY: ["decrypt"]
-    }
-};
-
-// Cryptographic Constants
-export const BROWSER_CRYPTO = {
-    PKCS1_V15_KEYGEN_ALG: "RSASSA-PKCS1-v1_5",
-    RSA_OAEP: "RSA-OAEP",
-    AES_GCM: "AES-GCM",
-    DIRECT: "dir",
-    S256_HASH_ALG: "SHA-256",
-    MODULUS_LENGTH: 2048
-};

@@ -1,8 +1,9 @@
 import { AuthToken } from "../../src/account/AuthToken";
 import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES } from "../test_kit/StringConstants";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
-import { ClientAuthErrorMessage, ClientAuthError, StringUtils } from "../../src";
 import { DecodedAuthToken } from "../../src/account/DecodedAuthToken";
+import { ClientAuthErrorMessage, ClientAuthError } from "../../src/error/ClientAuthError";
+import { StringUtils } from "../../src/utils/StringUtils";
 
 // Set up stubs
 const idTokenClaims = {
@@ -63,7 +64,7 @@ describe("AuthToken.ts Class Unit Tests", () => {
             async signJwt(): Promise<string> {
                 return "";
             },
-            getAsymmetricPublicKey: async(): Promise<string> => {
+            async getAsymmetricPublicKey(): Promise<string> {
                 return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
             }
         };

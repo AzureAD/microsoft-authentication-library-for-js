@@ -3,7 +3,7 @@ import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES } from "../test_kit/Stri
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { Constants } from "../../src/utils/Constants";
 import sinon from "sinon";
-import { ClientAuthError, ClientAuthErrorMessage } from "../../src";
+import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 
 describe("ProtocolUtils.ts Class Unit Tests", () => {
 
@@ -50,7 +50,7 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
             async signJwt(): Promise<string> {
                 return "";
             },
-            getAsymmetricPublicKey: async(): Promise<string> => {
+            async getAsymmetricPublicKey(): Promise<string> {
                 return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
             }
         };
@@ -96,4 +96,10 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
         const requestState = ProtocolUtils.parseRequestState(cryptoInterface, testState);
         expect(requestState.userRequestState).toBe(userState);
     });
+
+    it("parseRequestState returns user state without decoding", () => {
+        const requestState = ProtocolUtils.parseRequestState(cryptoInterface, `${encodedLibState}${Constants.RESOURCE_DELIM}${"test%25u00f1"}`);
+        expect(requestState.userRequestState).toBe(`${"test%25u00f1"}`);
+    });
+    
 });
