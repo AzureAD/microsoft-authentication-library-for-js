@@ -5,7 +5,7 @@
 
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
-import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, testNavUrl, TEST_STATE_VALUES } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, testNavUrl, TEST_STATE_VALUES, TEST_POP_VALUES } from "../utils/StringConstants";
 import { Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationUrlRequest, AuthorizationCodeClient, ResponseMode, AuthenticationScheme, ServerTelemetryEntity } from "@azure/msal-common";
 import { BrowserConstants, TemporaryCacheKeys, ApiId } from "../../src/utils/BrowserConstants";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
@@ -75,6 +75,8 @@ describe("PopupClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
 
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT);
+
             const popupSpy = sinon.stub(PopupUtils, "openSizedPopup");
 
             try {
@@ -99,6 +101,8 @@ describe("PopupClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
+            
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT);
 
             const request: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -177,6 +181,8 @@ describe("PopupClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT);
+
             const tokenResp = await popupClient.acquireToken({
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: TEST_CONFIG.DEFAULT_SCOPES
@@ -196,6 +202,8 @@ describe("PopupClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT);
+
             try {
                 await popupClient.acquireToken({
                     redirectUri: TEST_URIS.TEST_REDIR_URI,

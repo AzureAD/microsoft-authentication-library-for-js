@@ -105,6 +105,9 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 },
                 signJwt: async (): Promise<string> => {
                     return "signedJwt";
+                },
+                getAsymmetricPublicKey: async (): Promise<string> => {
+                    return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT
                 }
             },
             storageInterface: browserStorage,
