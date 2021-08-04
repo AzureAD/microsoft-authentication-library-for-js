@@ -25,6 +25,7 @@ import { RedirectClient } from "../interaction_client/RedirectClient";
 import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
 import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient";
 import { TokenCache } from "../cache/TokenCache";
+import { ITokenCache } from "../cache/ITokenCache";
 
 export abstract class ClientApplication {
 
@@ -505,7 +506,7 @@ export abstract class ClientApplication {
     /**
      * Gets the token cache for the application.
      */
-    getTokenCache(): TokenCache {
+    getTokenCache(): ITokenCache {
         return this.tokenCache;
     }
 
