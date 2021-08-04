@@ -13,12 +13,12 @@ const msalTokenCache = myMSALObj.getTokenCache();
 msalTokenCache.loadExternalTokens(silentRequest, serverResponse, loadTokenOptions);
 ```
 
-`loadExternalTokens()` takes in a request of type `SilentRequest`, a response of type `ServerAuthenticationROPCResponse`, and options of type `LoadTokenOptions`.
+`loadExternalTokens()` takes in a request of type `SilentRequest`, a response of type `ExternalTokenResponse`, and options of type `LoadTokenOptions`.
 
 See the type definitions for each, which can be imported from `@azure/msal-browser`:
 
 - [`SilentRequest`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#silentrequest)
-- [`ServerAuthorizationROPCResponse`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#serverauthorizationropcresponse)
+- [`ExternalTokenResponse`](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#externaltokenresponse)
     - Note that the server response you receive will also have a refresh token attached. Currently, `loadExternalTokens()` does not load refresh tokens.
 
 ```js
@@ -54,7 +54,7 @@ const silentRequest: SilentRequest = {
     }
 };
 
-const serverResponse: ServerAuthorizationROPCResponse = {
+const serverResponse: ExternalTokenResponse = {
     token_type: "Bearer",
     scopes: "User.Read email",
     expires_in: 3599,
@@ -70,7 +70,7 @@ const silentRequest: SilentRequest = {
     authority: "https://login.microsoftonline.com/your-tenant-id"
 };
 
-const serverResponse: ServerAuthorizationROPCResponse = {
+const serverResponse: ExternalTokenResponse = {
     token_type: "Bearer",
     scopes: "User.Read email",
     expires_in: 3599,
@@ -88,7 +88,7 @@ const silentRequest: SilentRequest = {
     authority: "https://login.microsoftonline.com/your-tenant-id"
 };
 
-const serverResponse: ServerAuthorizationROPCResponse = {
+const serverResponse: ExternalTokenResponse = {
     token_type: "Bearer",
     scopes: "User.Read email",
     expires_in: 3599,
@@ -124,7 +124,7 @@ const silentRequest: SilentRequest = {
     }
 };
 
-const serverResponse: ServerAuthorizationROPCResponse = {
+const serverResponse: ExternalTokenResponse = {
     token_type: "Bearer",
     scopes: "User.Read email",
     expires_in: 3599,
