@@ -12,7 +12,7 @@ export abstract class BasePersistence {
 
     public async verifyPersistence(): Promise<boolean> {
         // We are using a different location for the test to avoid overriding the functional cache
-        const persistenceValidator = await this.createForPersistenceValidation();
+        const persistenceValidator = await this.createForPersistenceValidation(); /*persistence validator*/
 
         try {
             await persistenceValidator.save(Constants.PERSISTENCE_TEST_DATA);

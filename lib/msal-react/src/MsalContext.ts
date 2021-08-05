@@ -7,7 +7,7 @@ import * as React from "react";
 import { IPublicClientApplication, stubbedPublicClientApplication, Logger, InteractionStatus, AccountInfo } from "@azure/msal-browser";
 
 export interface IMsalContext {
-    instance: IPublicClientApplication;
+    instance: IPublicClientApplication;  /* instance of IPublic client app type*/
     inProgress: InteractionStatus;
     accounts: AccountInfo[];
     logger: Logger;

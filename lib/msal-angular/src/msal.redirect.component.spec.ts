@@ -48,6 +48,6 @@ describe('MsalRedirectComponent', () => {
 
     const component = new MsalRedirectComponent(authService);
     component.ngOnInit();
-    expect(PublicClientApplication.prototype.handleRedirectPromise).toHaveBeenCalled();
+    expect(PublicClientApplication.prototype.handleRedirectPromise).toHaveBeenCalled(); /*test for redirect component*/
   })
 })

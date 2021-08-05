@@ -18,7 +18,7 @@ export class Deserializer {
         const deserializedCache = StringUtils.isEmpty(jsonFile)
             ? {}
             : JSON.parse(jsonFile);
-        return deserializedCache;
+        return deserializedCache;  /* returning the deserialized cache*/
     }
 
     /**

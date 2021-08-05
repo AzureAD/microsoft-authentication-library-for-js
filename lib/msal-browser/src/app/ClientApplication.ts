@@ -582,7 +582,10 @@ export abstract class ClientApplication {
         const serverTelemetryManager = this.initializeServerTelemetryManager(apiId, silentRequest.correlationId);
 
         try {
-            // Create auth code request and generate PKCE params
+            /*
+             *  Create auth code request and generate PKCE params
+             * generating auth code request
+             */
             const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
 
             // Initialize the client

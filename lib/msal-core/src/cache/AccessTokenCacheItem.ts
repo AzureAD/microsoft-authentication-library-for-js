@@ -12,7 +12,7 @@ import { AccessTokenValue } from "./AccessTokenValue";
 export class AccessTokenCacheItem {
 
     key: AccessTokenKey;
-    value: AccessTokenValue;
+    value: AccessTokenValue; /* access toke val*/
 
     constructor(key: AccessTokenKey, value: AccessTokenValue) {
         this.key = key;
