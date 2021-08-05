@@ -19,10 +19,6 @@ jobs:
     name: Bump versions and create changelog PR --updation
     runs-on: ubuntu-latest
     steps:
-      # Check-out repo
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
       
       - name: Get current date
         id: date
@@ -32,17 +28,31 @@ jobs:
       - name: Checkout tag/branch
         run: git checkout -b release/${{ steps.date.outputs.date }}
 
+      # Check-out repo
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: release/${{ steps.date.outputs.date }} 
+
+
       # Push changes
       - name: Push new branch
         run: git push origin release/${{ steps.date.outputs.date }} 
 
       # Install node_modules 
       - name: Use Node.js
-        uses: actions/setup-node@v1
+        uses: actions/setup-node@v
         with:
             cache: 'npm'
       - run: npm ci
 
       - name: Checkout tag/branch and bump package versions
-        run: git checkout release/${{ steps.date.outputs.date }} & npm run beachball:change
+        run: | 
+          git checkout release/${{ steps.date.outputs.date }} 
+          npm run beachball:bump
+
+      - name: Commit and push changes
+        uses: stefanzweifel/git-auto-commit-action@v4.7.2
+        with:
+          commit_message: "Committing changes to the release branch"
 
