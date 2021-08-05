@@ -16,6 +16,7 @@
 1. [I don't understand the redirect flow. How does the handleRedirectPromise function work?](#i-dont-understand-the-redirect-flow-how-does-the-handleredirectpromise-function-work)
 1. [How can I support authentication with personal Microsoft accounts only?](#how-can-i-support-authentication-with-personal-microsoft-accounts-only)
 1. [How do I get an authorization code from the library?](#how-do-i-get-an-authorization-code-from-the-library)
+1. [How do I implement self-service sign-up?](#how-do-i-implement-self-service-sign-up)
 
 **[Single-Sign-On](#Single-Sign-On)**
 
