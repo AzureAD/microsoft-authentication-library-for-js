@@ -46,7 +46,7 @@ jobs:
       - name: git push
         run: |
           git pull origin release/${{ steps.date.outputs.date }}
-          git push --set-upstream origin release/${{ steps.date.outputs.date }}
+          git push 
 
       - name: Commit and push changes
         uses: stefanzweifel/git-auto-commit-action@v4.7.2
