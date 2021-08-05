@@ -45,7 +45,7 @@ jobs:
 
       - name: git push
         run: |
-          git pull origin master
+          git pull origin release/${{ steps.date.outputs.date }}
           git push --set-upstream origin release/${{ steps.date.outputs.date }}
 
       - name: Commit and push changes
