@@ -31,7 +31,7 @@ jobs:
 
       # Check out onto desired branch or tag to create release from
       - name: Checkout tag/branch
-        run: git checkout -b release/${{ steps.date.outputs.date }}
+        run: git checkout release/${{ steps.date.outputs.date }}
 
       # Install node_modules 
       - name: Use Node.js
@@ -42,6 +42,9 @@ jobs:
 
       - name: bump package versions
         run: npm run beachball:bump
+
+      - name: bump package versions
+        run: git push --set-upstream origin release/${{ steps.date.outputs.date }}
 
       - name: Commit and push changes
         uses: stefanzweifel/git-auto-commit-action@v4.7.2
