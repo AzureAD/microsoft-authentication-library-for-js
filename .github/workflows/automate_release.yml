@@ -28,11 +28,11 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          ref: release/date
+          ref: release/${{ steps.date.outputs.date }} 
 
       # Check out onto desired branch or tag to create release from
       - name: Checkout tag/branch
-        run: git checkout -b release/date
+        run: git checkout -b release/${{ steps.date.outputs.date }}
 
       # Install node_modules 
       - name: Use Node.js
@@ -43,7 +43,7 @@ jobs:
 
       - name: Checkout tag/branch and bump package versions
         run: | 
-          git checkout release/date
+          git checkout release/${{ steps.date.outputs.date }} 
           npm run beachball:bump
 
       - name: Commit and push changes
@@ -53,5 +53,5 @@ jobs:
 
        # Push changes
       - name: Push new branch
-        run: git push origin release/date 
+        run: git push origin release/${{ steps.date.outputs.date }} 
 
