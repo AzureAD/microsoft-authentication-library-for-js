@@ -27,7 +27,7 @@ jobs:
       # Check-out repo
       - uses: actions/checkout@v2
         with:
-          fetch-depth: 0
+          fetch-depth: 1
 
       # Check out onto desired branch or tag to create release from
       - name: Checkout tag/branch
