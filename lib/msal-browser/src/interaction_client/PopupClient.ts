@@ -36,9 +36,6 @@ export class PopupClient extends StandardInteractionClient {
                 return this.acquireTokenPopupAsync(validRequest, popupName, popup);
             }
         } catch (e) {
-            if (e instanceof AuthError) {
-                e.setCorrelationId(this.correlationId);
-            }
             return Promise.reject(e);
         }
     }
@@ -68,9 +65,6 @@ export class PopupClient extends StandardInteractionClient {
             const mainWindowRedirectUri = logoutRequest && logoutRequest.mainWindowRedirectUri;
             return this.logoutPopupAsync(validLogoutRequest, popupName, authority, popup, mainWindowRedirectUri);
         } catch (e) {
-            if (e instanceof AuthError) {
-                e.setCorrelationId(this.correlationId);
-            }
             // Since this function is synchronous we need to reject
             return Promise.reject(e);
         }
@@ -124,6 +118,10 @@ export class PopupClient extends StandardInteractionClient {
             if (popup) {
                 // Close the synchronous popup if an error is thrown before the window unload event is registered
                 popup.close();
+            }
+
+            if (e instanceof AuthError) {
+                e.setCorrelationId(this.correlationId);
             }
 
             serverTelemetryManager.cacheFailedRequest(e);
@@ -198,6 +196,10 @@ export class PopupClient extends StandardInteractionClient {
             if (popup) {
                 // Close the synchronous popup if an error is thrown before the window unload event is registered
                 popup.close();
+            }
+
+            if (e instanceof AuthError) {
+                e.setCorrelationId(this.correlationId);
             }
             
             this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY));

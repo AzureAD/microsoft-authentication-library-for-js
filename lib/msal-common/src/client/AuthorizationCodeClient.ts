@@ -37,6 +37,7 @@ export class AuthorizationCodeClient extends BaseClient {
 
     constructor(configuration: ClientConfiguration) {
         super(configuration);
+        console.log("HERE");
     }
 
     /**

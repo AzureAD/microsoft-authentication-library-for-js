@@ -42,7 +42,7 @@ export class RedirectClient extends StandardInteractionClient {
             this.logger.verbosePii(`Redirect start page: ${redirectStartPage}`);
 
             // Show the UI once the url has been created. Response will come back in the hash, which will be handled in the handleRedirectCallback function.
-            return interactionHandler.initiateAuthRequest(navigateUrl, {
+            return await interactionHandler.initiateAuthRequest(navigateUrl, {
                 navigationClient: this.navigationClient,
                 redirectTimeout: this.config.system.redirectNavigationTimeout,
                 redirectStartPage: redirectStartPage,
