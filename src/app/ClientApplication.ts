@@ -44,6 +44,7 @@ export abstract class ClientApplication {
     // Input configuration by developer/user
     protected config: BrowserConfiguration;
 
+    // Token cache implementation
     private tokenCache: TokenCache;
 
     // Logger
@@ -110,7 +111,7 @@ export abstract class ClientApplication {
             new BrowserCacheManager(this.config.auth.clientId, this.config.cache, this.browserCrypto, this.logger) : 
             DEFAULT_BROWSER_CACHE_MANAGER(this.config.auth.clientId, this.logger);
 
-        // Initialize the token cache manager
+        // Initialize the token cache
         this.tokenCache = new TokenCache(this.config, this.browserStorage, this.logger, this.browserCrypto);
     }
 
