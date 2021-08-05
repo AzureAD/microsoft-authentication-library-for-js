@@ -44,7 +44,7 @@ export class AccessTokenEntity extends CredentialEntity {
     extendedExpiresOn?: string;
     refreshOn?: string;
     keyId?: string; // for POP and SSH tokenTypes
-    tokenType?: string;
+    tokenType?: AuthenticationScheme;
 
     /**
      * Create AccessTokenEntity
@@ -68,7 +68,7 @@ export class AccessTokenEntity extends CredentialEntity {
         extExpiresOn: number,
         cryptoUtils: ICrypto,
         refreshOn?: number,
-        tokenType?: string,
+        tokenType?: AuthenticationScheme,
         oboAssertion?: string
     ): AccessTokenEntity {
         const atEntity: AccessTokenEntity = new AccessTokenEntity();
