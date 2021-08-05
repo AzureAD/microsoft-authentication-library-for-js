@@ -36,6 +36,21 @@ export const mockAccessTokenEntity_2 = {
     extendedExpiresOn: "4600"
 };
 
+export const mockAccessTokenWithAuthSchemeEntity = {
+    homeAccountId: "uid.utid",
+    environment: "login.microsoftonline.com",
+    credentialType: "AccessToken_With_AuthScheme",
+    clientId: "mock_client_id",
+    secret: "a pop access token",
+    realm: "microsoft",
+    target: "scope1 scope2 scope3",
+    cachedAt: "1000",
+    expiresOn: "4600",
+    extendedExpiresOn: "4600",
+    tokenType: "pop",
+    keyId: "someKeyId123"
+};
+
 export const mockIdTokenEntity = {
     homeAccountId: "uid.utid",
     environment: "login.microsoftonline.com",
@@ -95,6 +110,13 @@ export class mockCache {
         return at;
     }
 
+    static createMockPopAT(): AccessTokenEntity {
+        const popAt = new AccessTokenEntity();
+        Object.assign(popAt, mockAccessTokenWithAuthSchemeEntity);
+
+        return popAt;
+    }
+
     static createMockIdT(): IdTokenEntity {
         const idt = new IdTokenEntity();
         Object.assign(idt, mockIdTokenEntity);
@@ -136,6 +158,7 @@ export const MockCache = {
     atOneKey: mockCache.createMockATOne().generateCredentialKey(),
     atTwo: mockCache.createMockATTwo(),
     atTwoKey: mockCache.createMockATTwo().generateCredentialKey(),
+    popAt: mockCache.createMockPopAT(),
     idT: mockCache.createMockIdT(),
     idTKey: mockCache.createMockIdT().generateCredentialKey(),
     rt: mockCache.createMockRT(),
