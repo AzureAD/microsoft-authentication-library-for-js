@@ -31,7 +31,7 @@ jobs:
 
       # Check out onto desired branch or tag to create release from
       - name: Checkout tag/branch
-        run: git checkout -b release/${{ steps.date.outputs.date }}
+        run: git checkout -b releasev/${{ steps.date.outputs.date }}
 
       # Install node_modules 
       - name: Use Node.js
@@ -43,10 +43,8 @@ jobs:
       - name: bump package versions
         run: npm run beachball:bump
 
-      - name: git push
-        run: |
-          git pull origin release/${{ steps.date.outputs.date }}
-          git push 
+      - name: Push to release branch
+        run: git push --set-upstream origin releasev/${{ steps.date.outputs.date }}
 
       - name: Commit and push changes
         uses: stefanzweifel/git-auto-commit-action@v4.7.2
@@ -55,7 +53,7 @@ jobs:
 
        # Push changes
       - name: Push new branch
-        run: git push origin release/${{ steps.date.outputs.date }} 
+        run: git push origin releasev/${{ steps.date.outputs.date }} 
 
         # Create PR to master
       - name: Create PR
@@ -65,5 +63,5 @@ jobs:
             -H 'Accept: application/vnd.github.v3+json' \
             -H 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
             https://api.github.com/repos/AzureAD/microsoft-authentication-library-for-js/pulls \
-            -d '{ "title":"${{ steps.date.outputs.date }} release branch merge", "head":"release/${{ steps.date.outputs.date }}", "base":"master", "body":"PR created by the 'automate_release' GitHub action. Please review." }'
+            -d '{ "title":"${{ steps.date.outputs.date }} release branch merge", "head":"releasev/${{ steps.date.outputs.date }}", "base":"master", "body":"PR created by the 'automate_release' GitHub action. Please review." }'
             --fail
