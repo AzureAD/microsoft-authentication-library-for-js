@@ -55,3 +55,13 @@ jobs:
       - name: Push new branch
         run: git push origin release/${{ steps.date.outputs.date }} 
 
+        # Create PR to master
+      - name: Create PR
+        run: |
+          curl \ 
+            -X POST \
+            -H 'Accept: application/vnd.github.v3+json' \
+            -H 'authorization: Bearer ${{ secrets.GITHUB_TOKEN }}' \
+            https://api.github.com/repos/AzureAD/microsoft-authentication-library-for-js/pulls \
+            -d '{ "title":"${{ steps.date.outputs.date }} release branch merge", "head":"release/${{ steps.date.outputs.date }}", "base":"master", "body":"PR created by the 'automate_release' GitHub action. Please review." }'
+            --fail
