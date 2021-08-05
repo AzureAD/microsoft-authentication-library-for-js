@@ -43,7 +43,11 @@ jobs:
       - name: bump package versions
         run: npm run beachball:bump
 
-  
+      - name: git push
+        run: |
+          git pull 
+          git push --set-upstream origin release/${{ steps.date.outputs.date }}
+
       - name: Commit and push changes
         uses: stefanzweifel/git-auto-commit-action@v4.7.2
         with:
