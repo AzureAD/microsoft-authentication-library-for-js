@@ -15,10 +15,10 @@ Review our [scenario docs](https://docs.microsoft.com/azure/active-directory/dev
 | [silent-flow](./silent-flow/README.md)                     | web app (confidential client)     | authorization code                  |
 | [on-behalf-of](./on-behalf-of/README.md)                   | web app (confidential client)     | on-behalf-of                        |
 | [refresh-token](./refresh-token/README.md)                 | web app (confidential client)     | refresh token                       |
-| [username-password](./username-password/README.md)         | console app (public client)       | resource owner password credentials |
-| [username-password-cca](./username-password-cca/README.md) | console app (confidential client) | resource owner password credentials |
+| [username-password](./username-password/README.md)         | console/daemon app (public client)       | resource owner password credentials |
+| [username-password-cca](./username-password-cca/README.md) | console/daemon app (confidential client) | resource owner password credentials |
 | [device-code](./device-code/README.md)                     | headless app (public client)      | device code                         |
-| [client-credentials](./client-credentials/README.md)       | console app (confidential client) | client credentials                  |
+| [client-credentials](./client-credentials/README.md)       | console/daemon app (confidential client) | client credentials                  |
 | [b2c-auth-code](./b2c-auth-code/README.md)                 | web app (confidential client)     | authorization code                  |
 | [b2c-auth-code-pkce](./b2c-auth-code-pkce/README.md)       | web app (public client)           | authorization code with PKCE        |
 | [b2c-silent-flow](./b2c-silent-flow/README.md)             | web app (public client)           | authorization code with PKCE        |
