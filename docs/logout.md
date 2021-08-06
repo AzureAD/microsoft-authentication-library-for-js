@@ -97,7 +97,7 @@ Azure AD and Azure AD B2C support the [OAuth front-channel logout feature](https
 
 The page used for front-channel logout should be built as follows:
 
-1. On page load, automatically invoke the MSAL `logout` or `logoutRedirect` API.
+1. On page load, automatically invoke the MSAL `logoutRedirect` API.
 2. In the `PublicClientApplication` configuration, set `system.allowRedirectInIframe` to `true`.
 3. When invoking `logout`, we recommend preventing the redirect in the iframe to the logout page (see [above](#skipping-the-server-sign-out)).
 
