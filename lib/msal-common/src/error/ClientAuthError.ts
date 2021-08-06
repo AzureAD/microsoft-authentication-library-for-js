@@ -181,6 +181,10 @@ export const ClientAuthErrorMessage = {
     accessTokenEntityNullError: {
         code: "access_token_entity_null",
         desc: "Access token entity is null, please check logs and cache to ensure a valid access token is present."
+    },
+    bindingKeyNotRemovedError: {
+        code: "binding_key_not_removed",
+        desc: "Could not remove the credential's binding key from storage."
     }
 };
 
@@ -503,5 +507,9 @@ export class ClientAuthError extends AuthError {
      */
     static createNoAuthCodeInServerResponseError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.noAuthorizationCodeFromServer.code, ClientAuthErrorMessage.noAuthorizationCodeFromServer.desc);
+    }
+
+    static createBindingKeyNotRemovedError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.bindingKeyNotRemovedError.code, ClientAuthErrorMessage.bindingKeyNotRemovedError.desc);
     }
 }
