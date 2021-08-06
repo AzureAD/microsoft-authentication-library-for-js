@@ -2,6 +2,62 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 02 Aug 2021 23:19:21 GMT",
+      "tag": "@azure/msal-common_v4.5.1",
+      "version": "4.5.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix double encoding state #3903",
+            "author": "bmahal@microsoft.com",
+            "commit": "6a650097f99a395c7d7723ac2184a71e759d9b74",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Thu, 22 Jul 2021 22:50:22 GMT",
+      "tag": "@azure/msal-common_v4.5.0",
+      "version": "4.5.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Adding ROPC for confidential client apps (#3838)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "c467d18adff33f98071837ee0fd51d4259236b9f",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "feat: add regional authority telemetry #3662",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "aeeeac862e2fcd5d441bc196545f7a8a70f0a0e2",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Add support for prompt=create #3773",
+            "author": "joarroyo@microsoft.com",
+            "commit": "c9314cedfe08b643e43e358243dc7f49253f77ef",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Add constant for active account cache key #3755",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "f30e039bb2559a3a2ce79a22cede11dcf892a4fa",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Fix double query string for logout endpoint #3814",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "c74a548e4fda00217c7da6918e9b559392f89b5f",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 28 Jun 2021 23:39:48 GMT",
       "tag": "@azure/msal-common_v4.4.0",
       "version": "4.4.0",

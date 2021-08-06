@@ -146,6 +146,7 @@ describe('ClientConfiguration tests', () => {
 
     test('client capabilities are handled as expected', async () => {
         const authority: Authority = {
+            regionDiscoveryMetadata: { region_used: undefined, region_source: undefined, region_outcome: undefined },
             resolveEndpointsAsync: () => {
                 return new Promise<void>(resolve => {
                     resolve();

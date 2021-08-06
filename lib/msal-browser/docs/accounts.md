@@ -20,7 +20,7 @@ let homeAccountId = null; // Initialize global accountId (can also be localAccou
 // This callback is passed into `acquireTokenPopup` and `acquireTokenRedirect` to handle the interactive auth response
 function handleResponse(resp) {
     if (resp !== null) {
-        homeAccountId = resp.account.homehomeAccountId; // alternatively: resp.account.homehomeAccountId or resp.account.username
+        homeAccountId = resp.account.homeAccountId; // alternatively: resp.account.homeAccountId or resp.account.username
     } else {
         const currentAccounts = myMSALObj.getAllAccounts();
         if (currentAccounts.length < 1) { // No cached accounts
@@ -78,7 +78,7 @@ Note: As of version 2.16.0 the active account is stored in the cache location co
 * The current msal-browser default [sample](../../../samples/msal-browser-samples/VanillaJSTestApp2.0) has a working single account scenario.
 * If you have a multiple accounts scenario, please modify the [sample](../../../samples/msal-browser-samples/VanillaJSTestApp2.0/app/default/auth.js) (in `handleResponse()`) to list all cached accounts and choose a specific account.
 * If an application wants to retrieve an account based on the `username`, it needs to save the `username` (from the response of a `loginAPI` for a specific user) prior to using `getAccountByUsername()` API.
-* `getAllAccounts()` will return multiple accounts if you have made several interactive token requests and the user has selected different accounts in two or more of those interactions. You may need to pass `prompt: "select_account"` or `prompt: "login"` to the acquireToken API in order for AAD to display the account selection screen after the first interaction.
+* `getAllAccounts()` will return multiple accounts if you have made several interactive token requests and the user has selected different accounts in two or more of those interactions. You may need to pass `prompt: "select_account"` or `prompt: "login"` to the interactive acquireToken or login API in order for AAD to display the account selection screen after the first interaction.
 * The account APIs return local account state and do not necessarily reflect server state. They return accounts that have previously signed into this app using MSAL.js and the server session may or may not still be active.
 * Two apps hosted on different domains do not share account state due to browser storage being segemented by domain.
 * `getAllAccounts()` is not ordered and is not guaranteed to be in the same order across multiple calls

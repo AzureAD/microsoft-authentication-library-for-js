@@ -9,12 +9,14 @@
 1. [Will MSAL 2.x support B2C?](#will-msal-2x-support-b2c)
 1. [Is MSAL.js 2.x compatible with Azure App Proxy](#is-msaljs-2x-compatible-with-azure-app-proxy)
 1. [Can I use MSAL.js 2.x with Microsoft Graph JavaScript SDK?](#can-i-use-msaljs-2x-with-microsoft-graph-javascript-sdk)
+1. [Can I provision a single-page application via command-line?](#can-i-provision-a-single-page-application-via-command-line)
 
 **[Authentication](#Authentication)**
 
 1. [I don't understand the redirect flow. How does the handleRedirectPromise function work?](#i-dont-understand-the-redirect-flow-how-does-the-handleredirectpromise-function-work)
 1. [How can I support authentication with personal Microsoft accounts only?](#how-can-i-support-authentication-with-personal-microsoft-accounts-only)
 1. [How do I get an authorization code from the library?](#how-do-i-get-an-authorization-code-from-the-library)
+1. [How do I implement self-service sign-up?](#how-do-i-implement-self-service-sign-up)
 
 **[Single-Sign-On](#Single-Sign-On)**
 
@@ -87,9 +89,9 @@ Keep [these steps](./docs/internet-explorer.md) in mind when using MSAL.js with 
 MSAL.js also supports the following environments:
 
 - WebViews
-- Chromium Extensions
 - Office Add-ins
-- Teams Applications
+- Chromium Extensions (see the [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/ChromiumExtensionSample))
+- Teams Applications (see the [sample](https://github.com/pnp/teams-dev-samples/tree/main/samples/tab-sso/src/nodejs))
 
 ### Known Issues with Certain Browsers
 
@@ -104,7 +106,9 @@ Please refer to our migration guide [here](https://github.com/AzureAD/microsoft-
 
 ## Does this library work for iframed applications?
 
-We are currently working on support for iframed applications as well as solutions for applications affected by ITP 2.x changes. You can monitor the first of those tickets [here](#1410).
+MSAL.js can be used in iframed applications under certain conditions. For more information, please refer to: [Using MSAL in iframed apps](./docs/iframe-usage.md)
+
+We are also working on solutions for applications affected by ITP 2.x changes.
 
 ## Will MSAL 2.x support B2C?
 
@@ -117,6 +121,43 @@ Unfortunately, at this time MSAL.js 2.x is not compatible with [Azure App Proxy]
 ## Can I use MSAL.js 2.x with Microsoft Graph JavaScript SDK?
 
 Yes, MSAL.js 2.x can be used as a custom authentication provider for the [Microsoft Graph JavaScript SDK](https://github.com/microsoftgraph/msgraph-sdk-javascript). For an implementation, please refer to the sample: [JavaScript SPA calling Graph API](https://github.com/Azure-Samples/ms-identity-javascript-tutorial/tree/main/2-Authorization-I/1-call-graph).
+
+## Can I provision a single-page application via command-line?
+
+Yes, we recommend the new [Powershell Graph SDK](https://github.com/microsoftgraph/msgraph-sdk-powershell) for doing so. For instance, the script below creates an Azure AD application with redirect URI of type **SPA** and **User.Read** permission for Microsoft Graph in a tenant specified by the user, and then provisions a service principal in the same tenant based on this application object:
+
+```Powershell
+Import-Module Microsoft.Graph.Applications
+
+Set-ExecutionPolicy -ExecutionPolicy RemoteSigned -Scope CurrentUser
+
+Connect-MgGraph -TenantId "ENTER_TENANT_ID_HERE" -Scopes "Application.ReadWrite.All"
+
+# User.Read delegated permission for Microsoft Graph
+$mgUserReadScope = @{
+    "Id" = "e1fe6dd8-ba31-4d61-89e7-88639da4683d" # permission Id
+    "Type" = "Scope"
+}
+
+# Add additional permissions to array below
+$mgResourceAccess = @($mgUserReadScope)
+
+[object[]]$requiredResourceAccess = @{
+    "ResourceAppId" = "00000003-0000-0000-c000-000000000000" # MS Graph App Id
+    "ResourceAccess" = $mgResourceAccess
+}
+
+# Create the application
+$msalApplication = New-MgApplication -displayName myMsalSpa `
+    -SignInAudience AzureADMyOrg `
+    -Spa @{RedirectUris = "http://localhost:3000", "http://localhost:3000/redirect"} `
+    -RequiredResourceAccess $requiredResourceAccess
+
+# Provision the service principal
+New-MgServicePrincipal -AppId $msalApplication.AppId
+```
+
+For a full implementation, please refer to the app creation scripts in the [Vanilla JS Quickstart Sample](https://github.com/Azure-Samples/ms-identity-javascript-v2/blob/master/AppCreationScripts/AppCreationScripts.md)
 
 # Authentication
 
