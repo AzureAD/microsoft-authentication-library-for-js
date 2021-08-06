@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { BaseAuthRequest, ICrypto, PkceCodes, SignedHttpRequest, ServerAuthorizationTokenResponse } from "@azure/msal-common";
+import { BaseAuthRequest, ICrypto, PkceCodes, SignedHttpRequest, ServerAuthorizationTokenResponse, BoundServerAuthorizationTokenResponse } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
@@ -11,10 +11,8 @@ import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
 import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { CryptoKeyTypes, CryptoKeyFormats, CRYPTO_KEY_CONFIG, KEY_USAGES, CryptoLengths, KeyDerivationLabels, CryptoAlgorithms } from "../utils/CryptoConstants";
-import { BrowserAuthError } from "../error/BrowserAuthError";
-import { JsonWebEncryption } from "./JsonWebEncryption";
-import { KeyDerivation } from "./KeyDerivation";
+import { CryptoKeyTypes, KEY_FORMATS, CRYPTO_KEY_CONFIG } from "../utils/CryptoConstants";
+import { BoundTokenResponse } from "./BoundTokenResponse";
 
 export type CachedKeyPair = {
     publicKey: CryptoKey,
@@ -153,7 +151,7 @@ export class CryptoOps implements ICrypto {
         // Generate header
         const header = {
             alg: publicKeyJwk.alg,
-            type: CryptoKeyFormats.JWK
+            type: KEY_FORMATS.JWK
         };
         const encodedHeader = this.b64Encode.urlEncode(JSON.stringify(header));
 
@@ -193,47 +191,9 @@ export class CryptoOps implements ICrypto {
      * @param request 
      */
     async decryptBoundTokenResponse(
-        boundServerTokenResponse: ServerAuthorizationTokenResponse,
+        boundServerTokenResponse: BoundServerAuthorizationTokenResponse,
         request: BaseAuthRequest): Promise<ServerAuthorizationTokenResponse | null> {
-        
-        const { session_key_jwe, response_jwe } = boundServerTokenResponse;
-
-        if (session_key_jwe && response_jwe) {
-            const kid = request.stkJwk;
-
-            if (kid) {
-                // Retrieve Session Transport KeyPair from Key Store
-                const sessionTransportKeypair: CachedKeyPair = await this.cache.get(kid);
-                // Deserialize session_key_jwe
-                const sessionKeyJwe = new JsonWebEncryption(session_key_jwe);
-                // Deserialize response_jwe
-                const responseJwe = new JsonWebEncryption(response_jwe);
-
-                const derivationKeyUsage = KEY_USAGES.RT_BINDING.DERIVATION_KEY;
-                const contentEncryptionKey = await sessionKeyJwe.unwrap(sessionTransportKeypair.privateKey, derivationKeyUsage);
-                
-                // Derive the session key from the content encryption key
-                const kdf = new KeyDerivation(
-                    contentEncryptionKey,
-                    CryptoLengths.DERIVED_KEY,
-                    CryptoLengths.PRF_OUTPUT,
-                    CryptoLengths.COUNTER
-                );
-                
-                const derivedKeyData = await kdf.computeKDFInCounterMode(responseJwe.protectedHeader.ctx, KeyDerivationLabels.DECRYPTION);
-                const sessionKeyUsages = KEY_USAGES.RT_BINDING.SESSION_KEY;
-                const sessionKeyAlgorithm: AesKeyAlgorithm = { name: CryptoAlgorithms.AES_GCM, length: CryptoLengths.DERIVED_KEY };
-                const sessionKey = await window.crypto.subtle.importKey(CryptoKeyFormats.RAW, derivedKeyData, sessionKeyAlgorithm, false, sessionKeyUsages);
-                
-                if (sessionKey) {
-                    return null;
-                }
-                return null;
-            } else {
-                throw BrowserAuthError.createMissingStkKidError();
-            }
-        }
-
-        return null;
+        const response = new BoundTokenResponse(boundServerTokenResponse, request, this.cache);
+        return await response.decrypt();
     }
 }
