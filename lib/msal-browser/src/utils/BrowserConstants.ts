@@ -74,6 +74,14 @@ export enum TemporaryCacheKeys {
 }
 
 /**
+ * Cache keys stored in-memory
+ */
+export enum InMemoryCacheKeys {
+    WRAPPER_SKU = "wrapper.sku",
+    WRAPPER_VER = "wrapper.version"
+}
+
+/**
  * API Codes for Telemetry purposes. 
  * Before adding a new code you must claim it in the MSAL Telemetry tracker as these number spaces are shared across all MSALs
  * 0-99 Silent Flow
