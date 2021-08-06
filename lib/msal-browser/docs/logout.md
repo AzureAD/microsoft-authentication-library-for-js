@@ -90,14 +90,14 @@ await msalInstance.logoutPopup({
 
 Azure AD and Azure AD B2C support the [OAuth front-channel logout feature](https://openid.net/specs/openid-connect-frontchannel-1_0.html), which enables single-sign out across all applications when a user initiates logout. To take advantage of this feature with MSAL.js, perform the following steps:
 
-1. In your application, create a dedicated logout page (see below for details). Note, this page will be loaded in a hidden iframe, and for Azure AD and MSA users, will include the `iss` and `sid` query parameters.
+1. In your application, create a dedicated logout page. This page **should not** perform any other function, such as acquiring tokens on page load (see below for details). Note, this page will be loaded in a hidden iframe, and for Azure AD and MSA users, will include the `iss` and `sid` query parameters.
 2. In the Azure Portal, navigate to the **Authentication** page for your application, and register the page from step one under **Front-channel logout URL**. Note, this page must be loaded via `https`.
 
 ### Requirements for front-channel logout page
 
 The page used for front-channel logout should be built as follows:
 
-1. On page load, automatically invoke the MSAL `logout` or `logoutRedirect` API. 
+1. On page load, automatically invoke the MSAL `logout` or `logoutRedirect` API.
 2. In the `PublicClientApplication` configuration, set `system.allowRedirectInIframe` to `true`.
 3. When invoking `logout`, we recommend preventing the redirect in the iframe to the logout page (see [above](#skipping-the-server-sign-out)).
 
