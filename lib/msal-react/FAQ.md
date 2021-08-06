@@ -13,6 +13,7 @@
 
 1. [How do I handle the redirect flow in a react app?](#how-do-i-handle-the-redirect-flow-in-a-react-app)
 1. [What can I do outside of @azure/msal-react context?](#what-can-i-do-outside-of-azuremsal-react-context)
+1. [How do I implement self-service sign-up?](#how-do-i-implement-self-service-sign-up)
 
 **[B2C](#B2C)**
 
@@ -94,6 +95,9 @@ This means the following APIs are off-limits outside the context of `MsalProvide
 - `acquireTokenRedirect`
 
 **Note:** If you do choose to use any other `@azure/msal-browser` API outside of the react context you should still use the same `PublicClientApplication` instance you pass into `MsalProvider`.
+
+## How do I implement self-service sign-up?
+MSAL React supports self-service sign-up in the auth code flow. Please see our docs [here](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#popuprequest) for supported prompt values in the request and their expected outcomes, and [here](http://aka.ms/s3u) for an overview of self-service sign-up and configuration changes that need to be made to your Azure tenant. Please note that that self-service sign-up is not available in B2C and test environments.
 
 ## B2C
 
