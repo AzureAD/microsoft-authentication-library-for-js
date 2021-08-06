@@ -38,7 +38,7 @@ jobs:
         path: |
           node_modules
           lib/*/node_modules
-        key: ${{ runner.os }}-${{ hashFiles('package-lock.json', 'lib/**/package-lock.json') }}
+        key: ${{ runner.os }}-${{ hashFiles('package-lock.json', 'lib/*/package-lock.json') }}
 
     - name: Clean Install
       if: steps.lib-cache.outputs.cache-hit != 'true'
