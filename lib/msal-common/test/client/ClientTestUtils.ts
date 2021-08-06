@@ -114,7 +114,7 @@ export class MockStorageClass extends CacheManager {
     getAuthorityMetadataKeys(): string[] {
         return this.getKeys();
     }
-    clear(): void {
+    async clear(): Promise<void> {
         this.store = {};
     }
 }
@@ -150,8 +150,14 @@ export const mockCrypto = {
     async getPublicKeyThumbprint(): Promise<string> {
         return TEST_POP_VALUES.KID;
     },
+    async removeTokenBindingKey(keyId: string): Promise<boolean> {
+        return Promise.resolve(true);
+    },
     async signJwt(): Promise<string> {
         return "";
+    },
+    async clearKeystore(): Promise<boolean> {
+        return Promise.resolve(true);
     }
 };
 
@@ -195,6 +201,9 @@ export class ClientTestUtils {
             cryptoInterface: mockCrypto,
             loggerOptions: {
                 loggerCallback: testLoggerCallback,
+            },
+            systemOptions: {
+                tokenRenewalOffsetSeconds: TEST_CONFIG.DEFAULT_TOKEN_RENEWAL_OFFSET
             },
             clientCredentials: {
                 clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,

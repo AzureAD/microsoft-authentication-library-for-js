@@ -11,6 +11,7 @@ import { AppMetadataEntity } from "../entities/AppMetadataEntity";
 import { ServerTelemetryEntity } from "../entities/ServerTelemetryEntity";
 import { ThrottlingEntity } from "../entities/ThrottlingEntity";
 import { AuthorityMetadataEntity } from "../entities/AuthorityMetadataEntity";
+import { AuthenticationScheme } from "../../utils/Constants";
 
 export type AccountCache = Record<string, AccountEntity>;
 export type IdTokenCache = Record<string, IdTokenEntity>;
@@ -43,7 +44,7 @@ export type AccountFilter = {
 };
 
 /**
- * Credential: <home_account_id*>-<environment>-<credential_type>-<client_id>-<realm*>-<target*>
+ * Credential: <home_account_id*>-<environment>-<credential_type>-<client_id>-<realm*>-<target*>-<scheme*>
  */
 export type CredentialFilter = {
     homeAccountId?: string;
@@ -54,6 +55,7 @@ export type CredentialFilter = {
     realm?: string;
     target?: string;
     oboAssertion?: string;
+    tokenType?: AuthenticationScheme;
 };
 
 /**

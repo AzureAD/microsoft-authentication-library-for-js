@@ -1,8 +1,30 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Wed, 12 May 2021 18:35:03 GMT and should not be manually modified.
+This log was last generated on Thu, 22 Jul 2021 22:50:22 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.3.0
+
+Thu, 22 Jul 2021 22:50:22 GMT
+
+### Minor changes
+
+- feat: add regional authority telemetry, #3662 (samuelkamau@microsoft.com)
+- ROPC added for Confidential Clients (#3838) (sameera.gajjarapu@microsoft.com)
+
+## 1.2.0
+
+Mon, 28 Jun 2021 23:39:48 GMT
+
+### Minor changes
+
+- Add correlationId to log messages #3601 (joarroyo@microsoft.com)
+
+### Patches
+
+- fix: have the log level propagate to msal-common (samuelkamau@microsoft.com)
+- fix: update the client capabilities type in configuration #3678 (samuelkamau@microsoft.com)
 
 ## 1.1.0
 
