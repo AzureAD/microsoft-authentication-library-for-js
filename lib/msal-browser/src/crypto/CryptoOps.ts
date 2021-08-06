@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { BaseAuthRequest, ICrypto, PkceCodes, SignedHttpRequest, ServerAuthorizationTokenResponse } from "@azure/msal-common";
+import { BaseAuthRequest, ICrypto, PkceCodes, SignedHttpRequest, ServerAuthorizationTokenResponse, BoundServerAuthorizationTokenResponse } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
@@ -11,9 +11,8 @@ import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
 import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { CryptoKeyTypes, KEY_FORMATS, CRYPTO_KEY_CONFIG, KEY_USAGES } from "../utils/CryptoConstants";
-import { BrowserAuthError } from "../error/BrowserAuthError";
-import { JsonWebEncryption } from "./JsonWebEncryption";
+import { CryptoKeyTypes, KEY_FORMATS, CRYPTO_KEY_CONFIG } from "../utils/CryptoConstants";
+import { BoundTokenResponse } from "./BoundTokenResponse";
 
 export type CachedKeyPair = {
     publicKey: CryptoKey,
@@ -192,36 +191,9 @@ export class CryptoOps implements ICrypto {
      * @param request 
      */
     async decryptBoundTokenResponse(
-        boundServerTokenResponse: ServerAuthorizationTokenResponse,
+        boundServerTokenResponse: BoundServerAuthorizationTokenResponse,
         request: BaseAuthRequest): Promise<ServerAuthorizationTokenResponse | null> {
-        
-        const { session_key_jwe, response_jwe } = boundServerTokenResponse;
-
-        if (session_key_jwe && response_jwe) {
-            const kid = request.stkJwk;
-
-            if (kid) {
-                // Retrieve Session Transport KeyPair from Key Store
-                const sessionTransportKeypair: CachedKeyPair = await this.cache.get(kid);
-                // Deserialize session_key_jwe
-                const sessionKeyJwe = new JsonWebEncryption(session_key_jwe);
-                // Deserialize response_jwe
-                const responseJwe = new JsonWebEncryption(response_jwe);
-
-                const sessionKeyUsages = KEY_USAGES.RT_BINDING.DERIVATION_KEY as KeyUsage[];
-                const contentEncryptionKey = await sessionKeyJwe.unwrap(sessionTransportKeypair.privateKey, sessionKeyUsages);
-                
-                // TODO: TEMPORARY CHECK TO GET AROUND LINTER
-                if(responseJwe && contentEncryptionKey) {
-                    return null;
-                }
-
-                return null;
-            } else {
-                throw BrowserAuthError.createMissingStkKidError();
-            }
-        }
-
-        return null;
+        const response = new BoundTokenResponse(boundServerTokenResponse, request, this.cache);
+        return await response.decrypt();
     }
 }
