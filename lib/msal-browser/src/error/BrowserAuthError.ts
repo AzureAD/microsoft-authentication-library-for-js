@@ -89,6 +89,10 @@ export const BrowserAuthErrorMessage = {
         code: "silent_sso_error",
         desc: "Silent SSO could not be completed - insufficient information was provided. Please provide either a loginHint or sid."
     },
+    silentLogoutUnsupportedError: {
+        code: "silent_logout_unsupported",
+        desc: "Silent logout not supported. Please call logoutRedirect or logoutPopup instead."
+    },
     noAccountError: {
         code: "no_account_error",
         desc: "No account object provided to acquireTokenSilent and no active account has been set. Please call setActiveAccount or provide an account on the request."
@@ -140,6 +144,10 @@ export const BrowserAuthErrorMessage = {
     failedToParseNetworkResponse: {
         code: "failed_to_parse_response",
         desc: "Failed to parse network response. Check network trace."
+    },
+    signingKeyNotFoundInStorage: {
+        code: "crypto_key_not_found",
+        desc: "Cryptographic Key or Keypair not found in browser storage."
     }
 };
 
@@ -315,6 +323,13 @@ export class BrowserAuthError extends AuthError {
     }
 
     /**
+     * Creates an error thrown when the logout API is called on any of the silent interaction clients
+     */
+    static createSilentLogoutUnsupportedError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.silentLogoutUnsupportedError.code, BrowserAuthErrorMessage.silentLogoutUnsupportedError.desc);
+    }
+
+    /**
      * Creates an error thrown when the account object is not provided in the acquireTokenSilent API.
      */
     static createNoAccountError(): BrowserAuthError {
@@ -407,5 +422,12 @@ export class BrowserAuthError extends AuthError {
      */
     static createFailedToParseNetworkResponseError(endpoint: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.failedToParseNetworkResponse.code, `${BrowserAuthErrorMessage.failedToParseNetworkResponse.desc} | Attempted to reach: ${endpoint.split("?")[0]}`);
+    }
+
+    /**
+     * Create an error thrown when the queried cryptographic key is not found in IndexedDB
+     */
+    static createSigningKeyNotFoundInStorageError(keyId: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code, `${BrowserAuthErrorMessage.signingKeyNotFoundInStorage.desc} | No match found for KeyId: ${keyId}`);
     }
 }
