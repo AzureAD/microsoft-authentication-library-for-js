@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add external token server response type #3895",
+  "packageName": "@azure/msal-common",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "patch"
+}
