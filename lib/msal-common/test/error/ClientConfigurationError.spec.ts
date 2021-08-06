@@ -1,6 +1,7 @@
 import { ClientConfigurationError, ClientConfigurationErrorMessage } from "../../src/error/ClientConfigurationError";
-import { ClientAuthError, AuthError } from "../../src";
 import { TEST_CONFIG } from "../test_kit/StringConstants";
+import { ClientAuthError } from "../../src/error/ClientAuthError";
+import { AuthError } from "../../src/error/AuthError";
 
 describe("ClientConfigurationError.ts Class Unit Tests", () => {
 

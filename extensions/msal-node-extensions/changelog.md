@@ -1,8 +1,33 @@
 # Change Log - @azure/msal-node-extensions
 
-This log was last generated on Fri, 05 Mar 2021 21:26:46 GMT and should not be manually modified.
+This log was last generated on Thu, 22 Jul 2021 22:50:22 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.9
+
+Thu, 22 Jul 2021 22:50:22 GMT
+
+### Changes
+
+- feat: add the persistence creator (#3859) (samuelkamau@microsoft.com)
+- fix: bump up the msal-common version (samuelkamau@microsoft.com)
+
+## 1.0.0-alpha.8
+
+Tue, 29 Jun 2021 00:28:30 GMT
+
+### Changes
+
+- verifyPersistence returns the right value on failure(#3787) (sameera.gajjarapu@microsoft.com)
+
+## 1.0.0-alpha.7
+
+Wed, 23 Jun 2021 00:01:49 GMT
+
+### Changes
+
+- Add logs to test beachball (sameera.gajjarapu@microsoft.com)
 
 ## 1.0.0-alpha.6
 

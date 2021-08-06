@@ -163,6 +163,14 @@ describe("UserAgentApplication.ts Class", function () {
         };
     };
 
+    afterEach(() => {
+        sinon.restore();
+        window.activeRenewals = {};
+        window.renewStates = [];
+        window.callbackMappedToRenewStates = {};
+        window.promiseMappedToRenewStates = {};
+    });
+
     describe("Telemetry in UserAgenApplication", () => {
         it("configure telemtry in UAA happy case smoke test", () => {
             msal = new UserAgentApplication({
@@ -1066,7 +1074,6 @@ describe("UserAgentApplication.ts Class", function () {
     });
 
     describe("Cache Storage Unit Tests", function () {
-
         beforeEach(function () {
             cacheStorage = new AuthCache(TEST_CONFIG.MSAL_CLIENT_ID, "sessionStorage", true);
             const config: Configuration = {
@@ -2829,7 +2836,6 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         afterEach(function() {
-            cacheStorage.clear();
             sinon.restore();
         });
 
@@ -2837,6 +2843,33 @@ describe("UserAgentApplication.ts Class", function () {
             const acquireTokenSilentPromise = msal.acquireTokenSilent({scopes: [TEST_CONFIG.MSAL_CLIENT_ID]});
             expect(acquireTokenSilentPromise instanceof Promise).to.be.true;
             acquireTokenSilentPromise.catch(error => {});
+        });
+
+        it("acquireTokenSilent returns even if a new UserAgentApplication instance is instantiated", (done) => {
+            // Tests a bug whereby the instantiation of a 2nd UserAgentApplication was causing in-progress acquireTokenSilent calls on other instances to hang
+            const request = {
+                scopes: [TEST_CONFIG.MSAL_CLIENT_ID], 
+                loginHint: TEST_LOGIN_HINT,
+                forceRefresh: true
+            }
+            const TEST_LIBRARY_STATE_SILENT = RequestUtils.generateLibraryState(Constants.interactionTypeSilent);
+            sinon.stub(RequestUtils, "validateAndGenerateState").returns(TEST_LIBRARY_STATE_SILENT + "|");
+            sinon.stub(CryptoUtils, "createNewGuid").returns("123523")
+            sinon.stub(WindowUtils, "monitorIframeForHash").callsFake(() => {
+                const secondUserAgentApplication = new UserAgentApplication({
+                    auth: {
+                        clientId: "second-test-client-id"
+                    }
+                });
+                return Promise.resolve(testHashesForState(TEST_LIBRARY_STATE_SILENT).TEST_SUCCESS_ACCESS_TOKEN_HASH);
+            });
+
+            msal.acquireTokenSilent(request).then((result) => {
+                expect(result.accessToken).to.be.equal(TEST_TOKENS.ACCESSTOKEN);
+                done();
+            }).catch((e) => {
+                console.log(e);
+            });
         });
     });
 

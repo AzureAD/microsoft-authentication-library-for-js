@@ -11,7 +11,7 @@ With B2C:
 - Users **can** authenticate with their social identities.
 - Users **can** be authorized to access **B2C protected** resources (but not AAD protected resources).
 - Users **cannot** obtain tokens for Microsoft APIs (e.g. MS Graph API) using [delegated permissions](#b2c-and-delegated-permissions).
-- Applications **can** obtain tokens for Microsoft APIs using [application permissions](#b2c-and-application-permissions) (management scenarios).
+- Applications **can** obtain tokens for Microsoft APIs using [application permissions](#b2c-and-application-permissions) (user management scenarios).
 
 ## B2C App Configuration
 
@@ -109,7 +109,7 @@ msal.loginRedirect({
 });
 ```
 
-Read more [here](https://docs.microsoft.com/en-us/azure/active-directory-b2c/authorization-code-flow#2-get-an-access-token)
+Read more [here](https://docs.microsoft.com/azure/active-directory-b2c/authorization-code-flow#2-get-an-access-token)
 
 2. Expose your own custom scope on your app registration and request this scope:
 
@@ -136,3 +136,7 @@ MSAL.js will only process tokens which it originally requested. If your flow req
 ```
 3. App is redirected to B2C service where the user enters credentials/signs up
 4. B2C service redirects back to your app which calls `await msal.handleRedirectPromise()` to process the response and save the tokens
+
+### B2C and iframe usage
+
+**Azure AD B2C** offers an [embedded sign-in experience](https://docs.microsoft.com/azure/active-directory-b2c/embedded-login), which allows rendering a custom login UI in an iframe. Since MSAL prevents redirect in iframes by default, you'll need to set the [allowRedirectInIframe](./configuration.md#system-config-options) configuration option to **true** in order to make use of this feature. For other considerations when using iframes, please refer to: [Using MSAL in iframed apps](./iframe-usage.md)

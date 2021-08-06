@@ -22,6 +22,8 @@ import { ClientAuthError, ClientAuthErrorMessage } from "../error/ClientAuthErro
 import { ServerError } from "../error/ServerError";
 import { TimeUtils } from "../utils/TimeUtils";
 import { UrlString } from "../url/UrlString";
+import { CcsCredentialType } from "../account/CcsCredential";
+import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
 
 /**
  * OAuth2.0 refresh token client
@@ -113,7 +115,11 @@ export class RefreshTokenClient extends BaseClient {
         const refreshTokenRequest: CommonRefreshTokenRequest = {
             ...request,
             refreshToken: refreshToken.secret,
-            authenticationScheme: request.authenticationScheme || AuthenticationScheme.BEARER
+            authenticationScheme: request.authenticationScheme || AuthenticationScheme.BEARER,
+            ccsCredential: {
+                credential: request.account.homeAccountId,
+                type: CcsCredentialType.HOME_ACCOUNT_ID
+            }
         };
 
         return this.acquireToken(refreshTokenRequest);
@@ -129,7 +135,7 @@ export class RefreshTokenClient extends BaseClient {
 
         const requestBody = await this.createTokenRequestBody(request);
         const queryParameters = this.createTokenQueryParameters(request);
-        const headers: Record<string, string> = this.createDefaultTokenRequestHeaders();
+        const headers: Record<string, string> = this.createTokenRequestHeaders(request.ccsCredential);
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
@@ -200,6 +206,22 @@ export class RefreshTokenClient extends BaseClient {
 
         if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
+        }
+
+        if (this.config.systemOptions.preventCorsPreflight && request.ccsCredential) {
+            switch (request.ccsCredential.type) {
+                case CcsCredentialType.HOME_ACCOUNT_ID:
+                    try {
+                        const clientInfo = buildClientInfoFromHomeAccountId(request.ccsCredential.credential);
+                        parameterBuilder.addCcsOid(clientInfo);
+                    } catch (e) {
+                        this.logger.verbose("Could not parse home account ID for CCS Header: " + e);
+                    }
+                    break;
+                case CcsCredentialType.UPN:
+                    parameterBuilder.addCcsUpn(request.ccsCredential.credential);
+                    break;
+            }
         }
 
         return parameterBuilder.createQueryString();
