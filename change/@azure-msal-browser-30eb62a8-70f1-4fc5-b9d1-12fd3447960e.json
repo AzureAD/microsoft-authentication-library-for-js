@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Persist active account #3755",
+  "comment": "Refactor acquireToken logic into InteractionClients #3871",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

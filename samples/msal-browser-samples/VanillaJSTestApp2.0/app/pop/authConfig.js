@@ -26,6 +26,9 @@ const msalConfig = {
                         return;	
                     case msal.LogLevel.Warning:	
                         console.warn(message);	
+                        return;
+                    case msal.LogLevel.Trace:
+                        console.trace(message);
                         return;	
                 }
             }
@@ -56,16 +59,13 @@ const tokenRequest = {
 
 const silentRequest = {
     scopes: ["openid", "profile", "User.Read", "Mail.Read"],
-    authenticationScheme: msal.AuthenticationScheme.POP,
-    resourceRequestMethod: "POST",
-    resourceRequestUri: graphConfig.graphMeEndpoint
 };
 
 const popTokenRequest = {
     scopes: ["openid", "profile", "User.Read", "Mail.Read"],
     authenticationScheme: msal.AuthenticationScheme.POP,
     resourceRequestMethod: "POST",
-    resourceRequestUri: graphConfig.graphMeEndpoint
+    resourceRequestUri: popConfig.endpoint
 }
 
 const bearerTokenRequest = {

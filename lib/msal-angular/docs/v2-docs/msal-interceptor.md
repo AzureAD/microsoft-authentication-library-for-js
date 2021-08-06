@@ -135,7 +135,8 @@ Scopes can be specified for a resource in the following ways:
         interactionType: InteractionType.Redirect,
         protectedResourceMap: new Map<string, Array<string> | null>([
             ["https://graph.microsoft.com/v1.0/me", ["user.read", "profile"]],
-            ["https://myapplication.com/unprotected", null]
+            ["https://myapplication.com/unprotected", null],
+            ["https://myapplication.com/unprotected/post", [{ httpMethod: 'POST', scopes: null }]],
             ["https://myapplication.com", ["custom.scope"]]
         ]),
     }
