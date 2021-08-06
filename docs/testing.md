@@ -2,7 +2,7 @@
 
 ## The loadExternalTokens() API
 
-MSAL Browser starting version 2.17.0 has added the `loadExternalTokens()` API, which allows the loading of id tokens and access tokens to the MSAL cache, which can then be read out using `acquireTokenSilent()`. 
+MSAL Browser starting version 2.17.0 has added the `loadExternalTokens()` API, which allows the loading of id tokens and access tokens to the MSAL cache, which can then be fetched  using `acquireTokenSilent()`. 
 
 **Note: This is an advanced feature that is intended for testing purposes in the browser environment only. Loading tokens to your application's cache may cause your app to break.**
 
