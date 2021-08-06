@@ -68,22 +68,20 @@ jobs:
       uses: actions/cache@v2
       id: test-tools-cache
       with: 
-        path: |
-          samples/node_modules
-          samples/msal-angular-v2-samples/node_modules
-        key: ${{ runner.os }}-angular-e2e-${{ hashFiles('samples/package.json', 'samples/msal-angular-v2-samples/package.json') }}
+        path: samples/node_modules
+        key: ${{ runner.os }}-angular-e2e-${{ hashFiles('samples/package-lock.json') }}
 
     - name: Install Test Tools
       if: steps.test-tools-cache.outputs.cache-hit != 'true'
-      working-directory: samples/msal-angular-v2-samples
-      run: npm install
+      working-directory: samples
+      run: npm ci
 
     - name: Restore node_modules for sample
       uses: actions/cache@v2
       id: sample-cache
       with: 
         path: samples/msal-angular-v2-samples/${{ matrix.sample }}/node_modules
-        key: ${{ runner.os }}-${{ matrix.sample }}-${{ hashFiles(format('samples/msal-angular-v2-samples/{0}/package.json', matrix.sample)) }}
+        key: ${{ runner.os }}-${{ matrix.sample }}-${{ hashFiles(format('samples/msal-angular-v2-samples/{0}/package.json', matrix.sample), 'samples/package-lock.json') }}
 
     - name: Install ${{ matrix.sample }}
       if: steps.sample-cache.outputs.cache-hit != 'true'
