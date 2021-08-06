@@ -32,7 +32,7 @@ The [`maintenance`](https://github.com/AzureAD/microsoft-authentication-library-
 
 - [Active Directory Authentication Library for JavaScript](maintenance/adal-angular): A browser-based, framework-agnostic core library that enables authentication and token acquisition with the Microsoft Identity platform in JavaScript applications. Implements the OAuth 1.0 Implicit Grant Flow.
 
-- [Active Directory Authentication Library for AngularJS](maintenance/msal-angularjs): A wrapper of the core 1.x library for apps using the AngularJS framework.
+- [Microsoft Authentication Library for AngularJS](maintenance/msal-angularjs): A wrapper of the core 1.x library for apps using the AngularJS framework.
 
 - [Azure Active Directory Passport.js Plug-In](maintenance/passport-azure-ad): a collection of [Passport](http://passportjs.org/) strategies to help you integrate with Azure Active Directory. It includes OpenID Connect, WS-Federation, and SAML-P authentication and authorization.
 
