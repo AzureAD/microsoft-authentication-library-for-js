@@ -11,45 +11,66 @@ import { CachedKeyPair } from "./CryptoOps";
 import { JsonWebEncryption } from "./JsonWebEncryption";
 import { KeyDerivation } from "./KeyDerivation";
 
+/**
+ * This class represents a Bound Server Authorization Response that has been encrypted using a server-generated
+ * Session Key that is itself protected by an MSAL generated Session Transport Keypair, as specified in the Bound Refresh Token Protocol v1.
+ * The BoundTokenResponse class also exposes the APIs responsible for decrypting the Session Key JWE and Response components of a Bound Token Response.
+ */
 export class BoundTokenResponse {
-
     private sessionKeyJwe: JsonWebEncryption;
     private responseJwe: JsonWebEncryption;
+    private keyDerivation: KeyDerivation;
     private keyStore: DatabaseStorage<CachedKeyPair>;
     private keyId: string;
 
     constructor(boundTokenResponse: BoundServerAuthorizationTokenResponse, request: BaseAuthRequest, keyStore: DatabaseStorage<CachedKeyPair>) {
         this.sessionKeyJwe = new JsonWebEncryption(boundTokenResponse.session_key_jwe);
         this.responseJwe = new JsonWebEncryption(boundTokenResponse.response_jwe);
+        this.keyDerivation = new KeyDerivation(CryptoLengths.DERIVED_KEY, CryptoLengths.PRF_OUTPUT, CryptoLengths.COUNTER);
         this.keyStore = keyStore;
         this.keyId = request.stkJwk!;
     }
 
+    /**
+     * Decrypts the encrypted server response that is bound to the browser through
+     * a Session Transport Key
+     */
     async decrypt(): Promise<ServerAuthorizationTokenResponse | null> {
-        // Retrieve Session Transport KeyPair from Key Store
+        // Retrieve Session Transport Key from KeyStore
         const sessionTransportKeypair: CachedKeyPair = await this.keyStore.get(this.keyId);
-        const contentEncryptionKey = await this.sessionKeyJwe.unwrap(
-            sessionTransportKeypair.privateKey,
-            KEY_USAGES.RT_BINDING.SESSION_KEY
-        );
-    
-        // Derive the session key from the content encryption key
-        const kdf = new KeyDerivation(
-            contentEncryptionKey,
-            CryptoLengths.DERIVED_KEY,
-            CryptoLengths.PRF_OUTPUT,
-            CryptoLengths.COUNTER
-        );
-
-        const derivedKeyData = await kdf.computeKDFInCounterMode(this.responseJwe.protectedHeader.ctx, KeyDerivationLabels.DECRYPTION);
-        const sessionKeyUsages = KEY_USAGES.RT_BINDING.SESSION_KEY;
-        const sessionKeyAlgorithm: AesKeyAlgorithm = { name: CryptoAlgorithms.AES_GCM, length: CryptoLengths.DERIVED_KEY };
-        const sessionKey = await window.crypto.subtle.importKey(CryptoKeyFormats.RAW, derivedKeyData, sessionKeyAlgorithm, false, sessionKeyUsages);
-
+        const sessionKey = await this.getSessionKey(sessionTransportKeypair.privateKey);
         if (sessionKey) {
             return null;
         } else {
             throw BrowserAuthError.createMissingStkKidError();
         }
+    }
+
+    /**
+     * Unwraps session key material from session_key_jwe and derives the server-generated
+     * session key.
+     * @param unwrappingKey Private CryptoKey from Session Transport Key which the response is bound to 
+     */
+    private async getSessionKey(unwrappingKey: CryptoKey): Promise<CryptoKey> {
+        // Unwrap Content Encryption Key from Session Key JWE
+        const contentEncryptionKey = await this.sessionKeyJwe.unwrap(
+            unwrappingKey,
+            KEY_USAGES.RT_BINDING.DERIVATION_KEY
+        );
+        // Derive Session Key
+        const sessionKeyBytes = await this.keyDerivation.computeKDFInCounterMode(
+            contentEncryptionKey,
+            this.responseJwe.protectedHeader.ctx,
+            KeyDerivationLabels.DECRYPTION
+        );
+
+        const algorithm: AesKeyAlgorithm = { name: CryptoAlgorithms.AES_GCM, length: CryptoLengths.DERIVED_KEY };
+        return await window.crypto.subtle.importKey(
+            CryptoKeyFormats.RAW,
+            sessionKeyBytes,
+            algorithm,
+            false,
+            KEY_USAGES.RT_BINDING.SESSION_KEY
+        );
     }
 }

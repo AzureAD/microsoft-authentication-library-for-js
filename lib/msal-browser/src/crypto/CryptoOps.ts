@@ -11,7 +11,7 @@ import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
 import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { CryptoKeyTypes, KEY_FORMATS, CRYPTO_KEY_CONFIG } from "../utils/CryptoConstants";
+import { CryptoKeyFormats, CryptoKeyTypes, CRYPTO_KEY_CONFIG } from "../utils/CryptoConstants";
 import { BoundTokenResponse } from "./BoundTokenResponse";
 
 export type CachedKeyPair = {
@@ -151,7 +151,7 @@ export class CryptoOps implements ICrypto {
         // Generate header
         const header = {
             alg: publicKeyJwk.alg,
-            type: KEY_FORMATS.JWK
+            type: CryptoKeyFormats.JWK
         };
         const encodedHeader = this.b64Encode.urlEncode(JSON.stringify(header));
 
