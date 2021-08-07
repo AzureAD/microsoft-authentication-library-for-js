@@ -1,7 +1,15 @@
+<<<<<<< HEAD
 import { buildClientInfo } from "../../src/account/ClientInfo";
 import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_POP_VALUES, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES } from "../test_kit/StringConstants";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
 import { ClientAuthError, ClientAuthErrorMessage, ServerAuthorizationTokenResponse } from "../../src";
+=======
+import { buildClientInfo, buildClientInfoFromHomeAccountId, ClientInfo } from "../../src/account/ClientInfo";
+import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_POP_VALUES, AUTHENTICATION_RESULT } from "../test_kit/StringConstants";
+import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
+import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
+import { Constants, ServerAuthorizationTokenResponse } from "../../src";
+>>>>>>> bound-rt/decrypt-response
 
 describe("ClientInfo.ts Class Unit Tests", () => {
 
@@ -47,7 +55,7 @@ describe("ClientInfo.ts Class Unit Tests", () => {
                     return "";
                 },
                 async getAsymmetricPublicKey(): Promise<string> {
-                    return TEST_POP_VALUES.KID;
+                    return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT
                 },
                 async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
                     return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES;
@@ -79,6 +87,29 @@ describe("ClientInfo.ts Class Unit Tests", () => {
 
             expect(clientInfo.uid).toBe(TEST_DATA_CLIENT_INFO.TEST_UID);
             expect(clientInfo.utid).toBe(TEST_DATA_CLIENT_INFO.TEST_UTID);
+        });
+    });
+
+    describe("buildClientInfoFromHomeAccountId", () => {
+        it("throws error if homeAccountId is not in the correct format", () => {
+            expect(() => buildClientInfoFromHomeAccountId("")).toThrowError(ClientAuthError);
+            expect(() => buildClientInfoFromHomeAccountId("")).toThrowError(ClientAuthErrorMessage.clientInfoDecodingError.desc);
+        });
+
+        it("Builds partial clientInfo from homeAccountId with only single string", () => {
+            const expectedClientInfo: ClientInfo = {
+                uid: TEST_DATA_CLIENT_INFO.TEST_UID,
+                utid: Constants.EMPTY_STRING
+            };
+            expect(buildClientInfoFromHomeAccountId(TEST_DATA_CLIENT_INFO.TEST_UID)).toMatchObject(expectedClientInfo);
+        });
+
+        it("successfully returns client info built from homeAccountId", () => {
+            const expectedClientInfo: ClientInfo = {
+                uid: TEST_DATA_CLIENT_INFO.TEST_UID,
+                utid: TEST_DATA_CLIENT_INFO.TEST_UTID
+            };
+            expect(buildClientInfoFromHomeAccountId(TEST_DATA_CLIENT_INFO.TEST_DECODED_HOME_ACCOUNT_ID)).toMatchObject(expectedClientInfo);
         });
     });
 });

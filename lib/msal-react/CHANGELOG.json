@@ -2,6 +2,41 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Mon, 28 Jun 2021 23:39:48 GMT",
+      "tag": "@azure/msal-react_v1.0.1",
+      "version": "1.0.1",
+      "comments": {
+        "none": [
+          {
+            "comment": "Component governance dependency updates #3655",
+            "author": "joarroyo@microsoft.com",
+            "commit": "d06ce5f5f4aa774e447d01e9cbf17d05a730bc47",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "fix: update package lock files",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "0199e41269b79de70f7d0da0fb12448db534f784",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "Upgrade Jest to v27 #3719",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "6c34aa5be3ee9536bd2febd2b7781fcdf0d28786",
+            "package": "@azure/msal-react"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Change accounts context type to AccountInfo[] #3677",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "5ba1ef16fac7b8f7c88505f86cef63f35044c817",
+            "package": "@azure/msal-react"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 13 May 2021 18:34:08 GMT",
       "tag": "@azure/msal-react_v1.0.0",
       "version": "1.0.0",

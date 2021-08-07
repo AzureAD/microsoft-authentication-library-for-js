@@ -13,9 +13,13 @@ import {
 import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { AccountInfo } from "../../src/account/AccountInfo";
 import { MockCache } from "./MockCache";
-import { AuthorityMetadataEntity, CacheManager, AppMetadataEntity, IdTokenEntity, RefreshTokenEntity } from "../../src";
 import { mockCrypto } from "../client/ClientTestUtils";
 import { TestError } from "../test_kit/TestErrors";
+import { CacheManager } from "../../src/cache/CacheManager";
+import { AuthorityMetadataEntity } from "../../src/cache/entities/AuthorityMetadataEntity";
+import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
+import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity";
+import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity";
 
 describe("CacheManager.ts test cases", () => {
     let mockCache = new MockCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, mockCrypto);

@@ -3,8 +3,9 @@ import {
     Configuration,
 } from '../../src/config/Configuration';
 import { HttpClient } from '../../src/network/HttpClient';
-import { TEST_CONSTANTS } from '../utils/TestConstants';
-import { LogLevel, NetworkRequestOptions } from '@azure/msal-common';
+import { TEST_CONSTANTS, AUTHENTICATION_RESULT } from '../utils/TestConstants';
+import { Authority, AuthorityFactory, LogLevel, NetworkRequestOptions, AuthToken } from '@azure/msal-common';
+import { ClientCredentialRequest, ConfidentialClientApplication } from '../../src';
 
 describe('ClientConfiguration tests', () => {
     test('builds configuration and assigns default functions', () => {
@@ -141,5 +142,56 @@ describe('ClientConfiguration tests', () => {
         // auth options
         expect(config.auth!.authority).toEqual(TEST_CONSTANTS.AUTHORITY);
         expect(config.auth!.clientId).toEqual(TEST_CONSTANTS.CLIENT_ID);
+    });
+
+    test('client capabilities are handled as expected', async () => {
+        const authority: Authority = {
+            regionDiscoveryMetadata: { region_used: undefined, region_source: undefined, region_outcome: undefined },
+            resolveEndpointsAsync: () => {
+                return new Promise<void>(resolve => {
+                    resolve();
+                });
+            },
+            discoveryComplete: () => {
+                return true;
+            },
+            getPreferredCache: () => {
+                return TEST_CONSTANTS.PREFERRED_CACHE;
+            }
+        } as Authority;
+
+        const appConfig: Configuration = {
+            auth: {
+                clientId: TEST_CONSTANTS.CLIENT_ID,
+                authority: TEST_CONSTANTS.AUTHORITY,
+                clientSecret: TEST_CONSTANTS.CLIENT_SECRET,
+                clientCapabilities: ["TEST-CAPABILITY"]
+            },
+            system: {
+                networkClient: {
+                    sendGetRequestAsync: jest.fn(async (): Promise<any> => AUTHENTICATION_RESULT),
+                    sendPostRequestAsync: jest.fn(async (): Promise<any> => AUTHENTICATION_RESULT)
+                }
+            }
+        };
+
+        const request: ClientCredentialRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            skipCache: true
+        };
+
+        jest.spyOn(AuthorityFactory, 'createDiscoveredInstance').mockReturnValue(Promise.resolve(authority));
+        jest.spyOn(AuthToken, 'extractTokenClaims').mockReturnValue({});
+        
+        await (new ConfidentialClientApplication(appConfig)).acquireTokenByClientCredential(request);
+        
+        expect(appConfig.system?.networkClient?.sendPostRequestAsync).toHaveBeenCalledWith(
+            undefined,
+            expect.objectContaining(
+                {
+                    "body": expect.stringContaining('TEST-CAPABILITY')
+                }
+            )
+        );
     });
 });

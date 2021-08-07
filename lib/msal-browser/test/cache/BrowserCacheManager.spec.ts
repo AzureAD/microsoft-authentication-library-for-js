@@ -7,7 +7,7 @@ import sinon from "sinon";
 import { BrowserAuthErrorMessage } from "../../src/error/BrowserAuthError";
 import { TEST_CONFIG, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_URIS, TEST_STATE_VALUES, DEFAULT_OPENID_CONFIG_RESPONSE } from "../utils/StringConstants";
 import { CacheOptions } from "../../src/config/Configuration";
-import { Constants, PersistentCacheKeys, CommonAuthorizationCodeRequest as AuthorizationCodeRequest, ProtocolUtils, Logger, LogLevel, AuthenticationScheme, AuthorityMetadataEntity, AccountEntity, Authority, StubbedNetworkModule, CacheManager, IdToken, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, CredentialType, ProtocolMode } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, CommonAuthorizationCodeRequest as AuthorizationCodeRequest, ProtocolUtils, Logger, LogLevel, AuthenticationScheme, AuthorityMetadataEntity, AccountEntity, Authority, StubbedNetworkModule, IdToken, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, ServerTelemetryEntity, ThrottlingEntity, CredentialType, ProtocolMode, AccountInfo } from "@azure/msal-common";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
@@ -899,7 +899,7 @@ describe("BrowserCacheManager tests", () => {
                 const testNonce = "testNonce";
                 const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
                 ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
-                browserStorage.updateCacheEntries(stateString, testNonce, `${Constants.DEFAULT_AUTHORITY}/`);
+                browserStorage.updateCacheEntries(stateString, testNonce, `${Constants.DEFAULT_AUTHORITY}/`, "", null);
 
                 const stateKey = browserStorage.generateStateKey(stateString);
                 const nonceKey = browserStorage.generateNonceKey(stateString);
@@ -916,7 +916,7 @@ describe("BrowserCacheManager tests", () => {
             () => {
                 const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
                 const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
-                browserStorage.updateCacheEntries(stateString, "nonce", `${TEST_URIS.DEFAULT_INSTANCE}/`);
+                browserStorage.updateCacheEntries(stateString, "nonce", `${TEST_URIS.DEFAULT_INSTANCE}/`, "", null);
                 browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, "TestRequestParams");
                 browserStorage.setItem(TemporaryCacheKeys.ORIGIN_URI, TEST_URIS.TEST_REDIR_URI);
 
@@ -1052,6 +1052,132 @@ describe("BrowserCacheManager tests", () => {
             browserStorage.setTemporaryCache(`${TemporaryCacheKeys.REQUEST_STATE}.${RANDOM_TEST_GUID}`, state, true);
             browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
             expect(browserStorage.getKeys()).toHaveLength(0);
+        });
+
+        describe("getAccountInfoByFilter", () => {
+            cacheConfig = {
+                cacheLocation: BrowserCacheLocation.SessionStorage,
+                storeAuthStateInCookie: false,
+                secureCookies: false
+            };
+            logger = new Logger({
+                loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {},
+                piiLoggingEnabled: true
+            });
+            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
+
+            const accountEntity1 = {
+                homeAccountId: "test-home-accountId-1",
+                localAccountId: "test-local-accountId-1",
+                username: "user-1@example.com",
+                environment: "test-environment-1",
+                realm: "test-tenantId-1",
+                name: "name-1",
+                idTokenClaims: {},
+                authorityType: "AAD"
+            }
+
+            const accountEntity2 = {
+                homeAccountId: "test-home-accountId-2",
+                localAccountId: "test-local-accountId-2",
+                username: "user-2@example.com",
+                environment: "test-environment-2",
+                realm: "test-tenantId-2",
+                name: "name-2",
+                idTokenClaims: {},
+                authorityType: "AAD"
+            }
+
+            const account1: AccountInfo = {
+                homeAccountId: accountEntity1.homeAccountId,
+                localAccountId: accountEntity1.localAccountId,
+                username: accountEntity1.username,
+                environment: accountEntity1.environment,
+                tenantId: accountEntity1.realm,
+                name: accountEntity1.name,
+                idTokenClaims: accountEntity1.idTokenClaims
+            };
+
+            const account2: AccountInfo = {
+                homeAccountId: accountEntity2.homeAccountId,
+                localAccountId: accountEntity2.localAccountId,
+                username: accountEntity2.username,
+                environment: accountEntity2.environment,
+                tenantId: accountEntity2.realm,
+                name: accountEntity2.name,
+                idTokenClaims: accountEntity2.idTokenClaims
+            };
+            const cacheKey1 = AccountEntity.generateAccountCacheKey(account1);
+            const cacheKey2 = AccountEntity.generateAccountCacheKey(account2);
+
+            beforeEach(() => {
+                browserStorage.setItem(cacheKey1, JSON.stringify(accountEntity1));
+                browserStorage.setItem(cacheKey2, JSON.stringify(accountEntity2));
+            });
+
+            afterEach(() => {
+                browserStorage.clear();
+            });
+
+            it("Matches accounts by username", () => {
+                expect(browserStorage.getAllAccounts()).toHaveLength(2);
+                const account1Filter = {username: account1.username};
+                const account2Filter = {username: account2.username};
+                expect(browserStorage.getAccountInfoByFilter(account1Filter)).toHaveLength(1);
+                expect(browserStorage.getAccountInfoByFilter(account1Filter)).toContainEqual(account1);
+                expect(browserStorage.getAccountInfoByFilter(account2Filter)).toHaveLength(1);
+                expect(browserStorage.getAccountInfoByFilter(account2Filter)).toContainEqual(account2);
+            });
+
+            it("Matches accounts by homeAccountId", () => {
+                expect(browserStorage.getAllAccounts()).toHaveLength(2);
+                const account1Filter = {homeAccountId: account1.homeAccountId};
+                const account2Filter = {homeAccountId: account2.homeAccountId};
+                expect(browserStorage.getAccountInfoByFilter(account1Filter)).toHaveLength(1);
+                expect(browserStorage.getAccountInfoByFilter(account1Filter)).toContainEqual(account1);
+                expect(browserStorage.getAccountInfoByFilter(account2Filter)).toHaveLength(1);
+                expect(browserStorage.getAccountInfoByFilter(account2Filter)).toContainEqual(account2);
+            });
+
+            it("Matches accounts by localAccountId", () => {
+                expect(browserStorage.getAllAccounts()).toHaveLength(2);
+                const account1Filter = {localAccountId: account1.localAccountId};
+                const account2Filter = {localAccountId: account2.localAccountId};
+                expect(browserStorage.getAccountInfoByFilter(account1Filter)).toHaveLength(1);
+                expect(browserStorage.getAccountInfoByFilter(account1Filter)).toContainEqual(account1);
+                expect(browserStorage.getAccountInfoByFilter(account2Filter)).toHaveLength(1);
+                expect(browserStorage.getAccountInfoByFilter(account2Filter)).toContainEqual(account2);
+            });
+
+            it("Matches accounts by tenantId", () => {
+                expect(browserStorage.getAllAccounts()).toHaveLength(2);
+                const account1Filter = {tenantId: account1.tenantId};
+                const account2Filter = {tenantId: account2.tenantId};
+                expect(browserStorage.getAccountInfoByFilter(account1Filter)).toHaveLength(1);
+                expect(browserStorage.getAccountInfoByFilter(account1Filter)).toContainEqual(account1);
+                expect(browserStorage.getAccountInfoByFilter(account2Filter)).toHaveLength(1);
+                expect(browserStorage.getAccountInfoByFilter(account2Filter)).toContainEqual(account2);
+            });
+
+            it("Matches accounts by environment", () => {
+                expect(browserStorage.getAllAccounts()).toHaveLength(2);
+                const account1Filter = {environment: account1.environment};
+                const account2Filter = {environment: account2.environment};
+                expect(browserStorage.getAccountInfoByFilter(account1Filter)).toHaveLength(1);
+                expect(browserStorage.getAccountInfoByFilter(account1Filter)).toContainEqual(account1);
+                expect(browserStorage.getAccountInfoByFilter(account2Filter)).toHaveLength(1);
+                expect(browserStorage.getAccountInfoByFilter(account2Filter)).toContainEqual(account2);
+            });
+
+            it("Matches accounts by all filters", () => {
+                expect(browserStorage.getAllAccounts()).toHaveLength(2);
+                const account1Filter = account1;
+                const account2Filter = account2;
+                expect(browserStorage.getAccountInfoByFilter(account1Filter)).toHaveLength(1);
+                expect(browserStorage.getAccountInfoByFilter(account1Filter)).toContainEqual(account1);
+                expect(browserStorage.getAccountInfoByFilter(account2Filter)).toHaveLength(1);
+                expect(browserStorage.getAccountInfoByFilter(account2Filter)).toContainEqual(account2);
+            });
         });
     });
 });
