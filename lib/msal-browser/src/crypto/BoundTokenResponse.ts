@@ -38,8 +38,7 @@ export class BoundTokenResponse {
         // Retrieve Session Transport Key from KeyStore
         const sessionTransportKeypair: CachedKeyPair = await this.keyStore.get(this.keyId);
         const sessionKey = await this.getSessionKey(sessionTransportKeypair.privateKey);
-        const response = await this.responseJwe.decrypt(sessionKey);
-        return JSON.parse(response);
+        return await this.responseJwe.getDecryptedResponse(sessionKey);
     }
 
     /**

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { StringDict } from "@azure/msal-common";
+import { ServerAuthorizationTokenResponse, StringDict } from "@azure/msal-common";
 import { JsonWebEncryptionError } from "../error/JsonWebEncryptionError";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { CryptoAlgorithms, CryptoKeyFormats } from "../utils/CryptoConstants";
@@ -97,24 +97,61 @@ export class JsonWebEncryption {
             keyUsages);
     }
 
-    async decrypt(decryptionKey: CryptoKey): Promise<string> {
-        const cipherText = new Uint8Array(BrowserStringUtils.stringToArrayBuffer(this.ciphertext));
-        const authenticationTag = new Uint8Array(BrowserStringUtils.stringToArrayBuffer(this.authenticationTag));
-        const encryptedData = new Uint8Array(cipherText.byteLength + authenticationTag.byteLength);
-        encryptedData.set(cipherText, 0);
-        encryptedData.set(authenticationTag, cipherText.byteLength);
-        const iv = new Uint8Array(BrowserStringUtils.stringToArrayBuffer(this.initializationVector));
-        const additionalData = this.authenticatedData;
+    /**
+     * Returns decrypted response_jwe as a
+     * bearer ServerAuthorizationServerTokenResponse
+     * @param decryptionKey 
+     * @returns 
+     */
+    async getDecryptedResponse(decryptionKey: CryptoKey): Promise<ServerAuthorizationTokenResponse> {
+        const responseBuffer = await this.decrypt(decryptionKey);
+        const responseBytes = new Uint8Array(responseBuffer);
+        const responseString = BrowserStringUtils.utf8ArrToString(responseBytes);
+        return JSON.parse(responseString);
+    }
 
-        const aesGcmParams: AesGcmParams = {
+    /**
+     * Encodes JWE segments into byte arrays and organizes them into
+     * AES-GCM parameters
+     * @param decryptionKey 
+     * @returns 
+     */
+    private async decrypt(decryptionKey: CryptoKey): Promise<ArrayBuffer> {
+        const ciphertextBytes = new Uint8Array(BrowserStringUtils.stringToArrayBuffer(this.ciphertext));
+        const authenticationTagBytes = new Uint8Array(BrowserStringUtils.stringToArrayBuffer(this.authenticationTag));
+        const encryptedData = this.concatenateEncryptedData(ciphertextBytes, authenticationTagBytes);
+        const aesGcmParams = this.buildAesGcmParams(
+            this.initializationVector,
+            (authenticationTagBytes.length * 8),
+            this.authenticatedData
+        );
+        return await window.crypto.subtle.decrypt(aesGcmParams, decryptionKey, encryptedData);
+    }
+
+    private buildAesGcmParams(initializationVector: string, tagLength: number, additionalData: Uint8Array): AesGcmParams {
+        const iv = new Uint8Array(BrowserStringUtils.stringToArrayBuffer(initializationVector));
+
+        return {
             name: CryptoAlgorithms.AES_GCM,
             iv: iv,
             additionalData: additionalData,
-            tagLength: authenticationTag.byteLength * 8
+            tagLength: tagLength
         };
+    }
 
-        const responseBuffer = await window.crypto.subtle.decrypt(aesGcmParams, decryptionKey, encryptedData);
-        return BrowserStringUtils.utf8ArrToString(new Uint8Array(responseBuffer));
+    /**
+     * Server AES-GCM encryption result splits the encrypted message
+     * into ciphertext and authentication tag. This method concatenates these two byte arrays
+     * to form the encrypted data input as expected by the SubtleCrypto.decrypt() API.
+     * @param ciphertext 
+     * @param authenticationTag 
+     * @returns 
+     */
+    private concatenateEncryptedData(ciphertextBytes: Uint8Array, authenticationTagBytes: Uint8Array): Uint8Array {
+        const encryptedData = new Uint8Array(ciphertextBytes.length + authenticationTagBytes.length);
+        encryptedData.set(ciphertextBytes, 0);
+        encryptedData.set(authenticationTagBytes, ciphertextBytes.byteLength);
+        return encryptedData;
     }
 
     private parseJweProtectedHeader(encodedHeader: string): JoseHeader {

@@ -128,8 +128,16 @@ export class ResponseHandler {
                 session_key_jwe: serverTokenResponse.session_key_jwe,
                 response_jwe: serverTokenResponse.response_jwe
             };
-            decryptedTokenResponse = await this.cryptoObj.decryptBoundTokenResponse(boundServerTokenResponse, request) || serverTokenResponse;
+            try {
+                this.logger.verbose("Starting bound token response decryption");
+                decryptedTokenResponse = await this.cryptoObj.decryptBoundTokenResponse(boundServerTokenResponse, request);
+                this.logger.verbose("Bound token response successfully decrypted");
+            } catch (decryptionError) {
+                this.logger.error("Bound server token repsonse decryption failed");
+                throw decryptionError;
+            }
         } else {
+            this.logger.verbose("Server token response is unencrypted");
             decryptedTokenResponse = serverTokenResponse;
         }
 
