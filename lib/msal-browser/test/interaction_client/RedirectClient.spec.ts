@@ -166,6 +166,7 @@ describe("RedirectClient", () => {
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -313,6 +314,7 @@ describe("RedirectClient", () => {
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -415,6 +417,7 @@ describe("RedirectClient", () => {
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.body.access_token!,
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in! * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -532,6 +535,7 @@ describe("RedirectClient", () => {
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
