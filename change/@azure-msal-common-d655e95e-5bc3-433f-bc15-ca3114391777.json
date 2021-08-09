@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fixed bug where msal-node doesn't work when behind a proxy",
+  "packageName": "@azure/msal-common",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}
