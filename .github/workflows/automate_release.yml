@@ -26,8 +26,9 @@ jobs:
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
 
       # Check-out repo
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v1
         with:
+          token: ${{secrets.PERSONAL_ACCESS_TOKEN}} 
           fetch-depth: 0
 
       # Check out onto desired branch or tag to create release from
