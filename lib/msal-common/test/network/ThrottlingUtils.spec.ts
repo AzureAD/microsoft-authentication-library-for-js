@@ -10,8 +10,8 @@ import { ThrottlingEntity } from "../../src/cache/entities/ThrottlingEntity";
 import { NetworkResponse } from "../../src/network/NetworkManager";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 import { MockStorageClass, mockCrypto }  from "../client/ClientTestUtils";
-import { ServerError } from "../../src";
 import { THUMBPRINT, THROTTLING_ENTITY, TEST_CONFIG } from "../test_kit/StringConstants";
+import { ServerError } from "../../src/error/ServerError";
 
 describe("ThrottlingUtils", () => {
     describe("generateThrottlingStorageKey", () => {

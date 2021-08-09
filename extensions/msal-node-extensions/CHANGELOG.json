@@ -2,6 +2,57 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Thu, 22 Jul 2021 22:50:22 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.9",
+      "version": "1.0.0-alpha.9",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "feat: add the persistence creator (#3859)",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "a916871108c93904a62e7729edb0e2287719a532",
+            "package": "@azure/msal-node-extensions"
+          },
+          {
+            "comment": "fix: bump up the msal-common version",
+            "author": "samuelkamau@microsoft.com",
+            "commit": "2bf61e9e1ed3697352269537f7e24ebbac4d926b",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 29 Jun 2021 00:28:30 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.8",
+      "version": "1.0.0-alpha.8",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "verifyPersistence returns the right value on failure(#3787)",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "dc8086acc0ccc91e066e886adffd5895911d33f0",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Wed, 23 Jun 2021 00:01:49 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.7",
+      "version": "1.0.0-alpha.7",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Add logs to test beachball",
+            "author": "sameera.gajjarapu@microsoft.com",
+            "commit": "cc28e43b3dcdb45f2469b14cf52a223f7d59b0d9",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
       "date": "Fri, 05 Mar 2021 21:26:46 GMT",
       "tag": "@azure/msal-node-extensions_v1.0.0-alpha.6",
       "version": "1.0.0-alpha.6",

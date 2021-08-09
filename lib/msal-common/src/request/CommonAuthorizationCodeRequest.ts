@@ -5,6 +5,7 @@
 
 import { BaseAuthRequest } from "./BaseAuthRequest";
 import { StringDict } from "../utils/MsalTypes";
+import { CcsCredential } from "../account/CcsCredential";
 
 /**
  * Request object passed by user to acquire a token from the server exchanging a valid authorization code (second leg of OAuth2.0 Authorization Code flow)
@@ -24,4 +25,6 @@ export type CommonAuthorizationCodeRequest = BaseAuthRequest & {
     redirectUri: string;
     codeVerifier?: string;
     tokenQueryParameters?: StringDict;
+    clientInfo?: string;
+    ccsCredential?: CcsCredential;
 };

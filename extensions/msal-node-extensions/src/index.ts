@@ -11,3 +11,6 @@ export { KeychainPersistence } from "./persistence/KeychainPersistence";
 export { LibSecretPersistence } from "./persistence/LibSecretPersistence";
 export { IPersistence } from "./persistence/IPersistence";
 export { CrossPlatformLockOptions } from "./lock/CrossPlatformLockOptions";
+export { PersistenceCreator } from "./persistence/PersistenceCreator";
+export { IPersistenceConfiguration } from "./persistence/IPersistenceConfiguration";
+export { Environment } from "./utils/Environment";

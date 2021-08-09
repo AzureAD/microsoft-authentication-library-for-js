@@ -42,7 +42,7 @@ cca
     });
 ```
 
-> NOTE: If you provide the value `"AUTO_DISCOVER"` in the `azureRegion` field, the msal library which will try to discover the region the application has been deployed to and use that region. If no region is auto discovered the library will fall back to using the global authority.
+> NOTE: If you provide the value `"TryAutoDetect"` in the `azureRegion` field, the msal library which will try to discover the region the application has been deployed to and use that region. If no region is auto discovered the library will fall back to using the global authority.
 
 ## Sample
 You can find a working sample of this feature in the client-credentials [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/client-credentials)

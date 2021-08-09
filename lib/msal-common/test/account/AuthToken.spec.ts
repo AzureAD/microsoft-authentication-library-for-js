@@ -1,8 +1,10 @@
 import { AuthToken } from "../../src/account/AuthToken";
 import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES } from "../test_kit/StringConstants";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
-import { ClientAuthErrorMessage, ClientAuthError, StringUtils, ServerAuthorizationTokenResponse } from "../../src";
 import { DecodedAuthToken } from "../../src/account/DecodedAuthToken";
+import { ClientAuthErrorMessage, ClientAuthError } from "../../src/error/ClientAuthError";
+import { StringUtils } from "../../src/utils/StringUtils";
+import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 
 // Set up stubs
 const idTokenClaims = {
@@ -64,10 +66,10 @@ describe("AuthToken.ts Class Unit Tests", () => {
                 return "";
             },
             async getAsymmetricPublicKey(): Promise<string> {
-                return TEST_POP_VALUES.KID;
+                return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
             },
             async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
-                return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES;
+                return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES
             }
         };
     });

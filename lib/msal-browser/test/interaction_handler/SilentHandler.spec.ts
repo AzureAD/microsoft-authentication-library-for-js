@@ -90,10 +90,10 @@ describe("SilentHandler.ts Unit Tests", () => {
                 signJwt: async (): Promise<string> => {
                     return "signedJwt";
                 },
-                async getAsymmetricPublicKey(): Promise<string> {
-                    return TEST_POP_VALUES.KID;
+                getAsymmetricPublicKey: async (): Promise<string> => {
+                    return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT
                 },
-                async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
+                decryptBoundTokenResponse: async (): Promise<ServerAuthorizationTokenResponse> => {
                     return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES;
                 }
             },
