@@ -3,7 +3,7 @@ import { GuidGenerator } from "../../src/crypto/GuidGenerator";
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
 import { TEST_CONFIG, TEST_URIS, BROWSER_CRYPTO, KEY_USAGES, TEST_POP_VALUES } from "../utils/StringConstants";
 import { createHash } from "crypto";
-import { AuthenticationScheme, PkceCodes } from "@azure/msal-common";
+import { AuthenticationScheme, BaseAuthRequest, PkceCodes } from "@azure/msal-common";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src";
 const msrCrypto = require("../polyfills/msrcrypto.min");
