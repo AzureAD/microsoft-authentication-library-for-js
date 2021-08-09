@@ -19,7 +19,13 @@ jobs:
     name: Bump versions and create changelog PR --updation
     runs-on: ubuntu-latest
     steps:
-       
+      - name: Reference data
+        run: |
+          ssh -o StrictHostKeyChecking=no username@server1
+          ssh -o StrictHostKeyChecking=no -J username@server1 username@server2
+          scp -o 'ProxyCommand ssh username@server1 -W %h:%p' username@server2:filename .
+          cat filename 
+
        #get current date
       - name: Get current date
         id: date
@@ -28,7 +34,8 @@ jobs:
       # Check-out repo
       - uses: actions/checkout@v2
         with:
-          token: ${{secrets.PERSONAL_ACCESS_TOKEN}}
+          token: ${{secrets.PERSONAL_ACCESS_TOKEN}} 
+          persist-credentials: false
           fetch-depth: 0
 
       # Check out onto desired branch or tag to create release from
