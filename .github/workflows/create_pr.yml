@@ -4,7 +4,7 @@ name: Create PR master->release
 on:
   push:
     branches:
-      - releasevv/${{ steps.date.outputs.date }}
+      - releasevvv/${{ steps.date.outputs.date }}
 
 jobs:
   release:
