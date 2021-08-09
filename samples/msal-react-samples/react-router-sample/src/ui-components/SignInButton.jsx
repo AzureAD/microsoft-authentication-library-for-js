@@ -3,6 +3,7 @@ import { useMsal } from "@azure/msal-react";
 import Button from "@material-ui/core/Button";
 import MenuItem from '@material-ui/core/MenuItem';
 import Menu from '@material-ui/core/Menu';
+import { loginRequest } from "../authConfig";
 
 export const SignInButton = () => {
     const { instance } = useMsal();
@@ -14,9 +15,9 @@ export const SignInButton = () => {
         setAnchorEl(null);
 
         if (loginType === "popup") {
-            instance.loginPopup();
+            instance.loginPopup(loginRequest);
         } else if (loginType === "redirect") {
-            instance.loginRedirect();
+            instance.loginRedirect(loginRequest);
         }
     }
 

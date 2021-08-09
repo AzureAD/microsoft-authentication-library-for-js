@@ -73,7 +73,9 @@ export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload";
 export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse";
 export { ServerAuthorizationTokenResponse } from "./response/ServerAuthorizationTokenResponse";
 export { BoundServerAuthorizationTokenResponse } from "./response/BoundServerAuthorizationTokenResponse";
+export { ExternalTokenResponse } from "./response/ExternalTokenResponse";
 export { DeviceCodeResponse } from "./response/DeviceCodeResponse";
+export { ScopeSet } from "./request/ScopeSet";
 // Logger Callback
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";
 // Errors
