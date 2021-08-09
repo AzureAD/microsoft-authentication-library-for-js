@@ -238,7 +238,7 @@ export const testLogoutUrl = `https://login.microsoftonline.com/common/oauth2/v2
 export const AUTHENTICATION_RESULT = {
     status: 200,
     body: {
-        "token_type": "Bearer",
+        "token_type": AuthenticationScheme.BEARER,
         "scope": "openid profile User.Read email",
         "expires_in": 3599,
         "ext_expires_in": 3599,
