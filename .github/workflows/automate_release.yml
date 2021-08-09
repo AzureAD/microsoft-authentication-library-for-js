@@ -27,7 +27,7 @@ jobs:
       # Check-out repo
       - uses: actions/checkout@v2
         with:
-          token: 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
+          token: ${{secrets.PERSONAL_ACCESS_TOKEN}}
           fetch-depth: 0
 
       # Check out onto desired branch or tag to create release from
