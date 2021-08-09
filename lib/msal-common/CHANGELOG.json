@@ -2,6 +2,41 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 09 Aug 2021 16:05:31 GMT",
+      "tag": "@azure/msal-common_v5.0.0",
+      "version": "5.0.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fixed bug where msal-node breaks when behind a proxy (2600)",
+            "author": "rginsburg@microsoft.com",
+            "commit": "271ec569c9d49f4b72ad604d70bfa90c3348e1c3",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Fix accesstoken_with_authscheme implementation #3910",
+            "author": "hemoral@microsoft.com",
+            "commit": "9aceb4219ebad900277aa6a59ca1ff93c5a21e0a",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Add external token server response type #3895",
+            "author": "joarroyo@microsoft.com",
+            "commit": "cef2629499cf997f9167fe3ecc7628cf32513dfc",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "major": [
+          {
+            "comment": "Remove token binding key from key store when refreshing pop token #3500",
+            "author": "hemoral@microsoft.com",
+            "commit": "6592652877f31405c8ed73a66f03eada90a78c0a",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 02 Aug 2021 23:19:21 GMT",
       "tag": "@azure/msal-common_v4.5.1",
       "version": "4.5.1",

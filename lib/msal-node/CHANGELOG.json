@@ -2,6 +2,35 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Mon, 09 Aug 2021 16:05:31 GMT",
+      "tag": "@azure/msal-node_v1.3.1",
+      "version": "1.3.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fixed bug where msal-node breaks when behind a proxy (2600)",
+            "author": "rginsburg@microsoft.com",
+            "commit": "271ec569c9d49f4b72ad604d70bfa90c3348e1c3",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Add removeTokenBindingKey missing method to Node's CryptoProvider #3500",
+            "author": "hemoral@microsoft.com",
+            "commit": "6592652877f31405c8ed73a66f03eada90a78c0a",
+            "package": "@azure/msal-node"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Fix accesstoken_with_authscheme implementation #3910",
+            "author": "hemoral@microsoft.com",
+            "commit": "9aceb4219ebad900277aa6a59ca1ff93c5a21e0a",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 22 Jul 2021 22:50:22 GMT",
       "tag": "@azure/msal-node_v1.3.0",
       "version": "1.3.0",

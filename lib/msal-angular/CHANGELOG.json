@@ -2,6 +2,21 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Mon, 09 Aug 2021 16:05:31 GMT",
+      "tag": "@azure/msal-angular_v2.0.3",
+      "version": "2.0.3",
+      "comments": {
+        "none": [
+          {
+            "comment": "Update docs with self-service sign up FAQ #3934",
+            "author": "joliuac@gmail.com",
+            "commit": "323d7eabbbd95c499d2c2a2446cdea4531af71c5",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 22 Jul 2021 22:50:22 GMT",
       "tag": "@azure/msal-angular_v2.0.2",
       "version": "2.0.2",

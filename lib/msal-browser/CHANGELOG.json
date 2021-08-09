@@ -2,6 +2,49 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 09 Aug 2021 16:05:31 GMT",
+      "tag": "@azure/msal-browser_v2.17.0",
+      "version": "2.17.0",
+      "comments": {
+        "none": [
+          {
+            "comment": "Fix accesstoken_with_authscheme implementation #3910",
+            "author": "hemoral@microsoft.com",
+            "commit": "9aceb4219ebad900277aa6a59ca1ff93c5a21e0a",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update FAQ #3934",
+            "author": "joliuac@gmail.com",
+            "commit": "323d7eabbbd95c499d2c2a2446cdea4531af71c5",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Add API to sideload tokens to msal-browser #3895",
+            "author": "joarroyo@microsoft.com",
+            "commit": "cef2629499cf997f9167fe3ecc7628cf32513dfc",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Refactor acquireToken logic into InteractionClients #3871",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "8ac64949f23346cdbdac6f8a2f6c8293d016ee32",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Remove token binding key from key store when refreshing pop token #3500",
+            "author": "hemoral@microsoft.com",
+            "commit": "6592652877f31405c8ed73a66f03eada90a78c0a",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 22 Jul 2021 22:50:22 GMT",
       "tag": "@azure/msal-browser_v2.16.0",
       "version": "2.16.0",

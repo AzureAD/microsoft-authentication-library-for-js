@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Thu, 22 Jul 2021 22:50:22 GMT and should not be manually modified.
+This log was last generated on Mon, 09 Aug 2021 16:05:31 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.17.0
+
+Mon, 09 Aug 2021 16:05:31 GMT
+
+### Minor changes
+
+- Add API to sideload tokens to msal-browser #3895 (joarroyo@microsoft.com)
+- Refactor acquireToken logic into InteractionClients #3871 (thomas.norling@microsoft.com)
+
+### Patches
+
+- Remove token binding key from key store when refreshing pop token #3500 (hemoral@microsoft.com)
 
 ## 2.16.0
 
