@@ -9,6 +9,13 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConstants, InteractionType, TemporaryCacheKeys } from "./BrowserConstants";
 
+export type PopupDimensions = {
+    height: number;
+    width: number;
+    top: number;
+    left: number;
+};
+
 export class PopupUtils {
     private browserStorage: BrowserCacheManager;
     private logger: Logger;
@@ -34,7 +41,7 @@ export class PopupUtils {
      * @ignore
      * @hidden
      */
-    openPopup(urlNavigate: string, popupName: string, popup?: Window|null): Window {
+    openPopup(urlNavigate: string, popupName: string, popup?: Window|null, dimensions?: PopupDimensions): Window {
         try {
             let popupWindow;
             // Popup window passed in, setting url to navigate to
@@ -45,7 +52,11 @@ export class PopupUtils {
             } else if (typeof popup === "undefined") {
                 // Popup will be undefined if it was not passed in
                 this.logger.verbosePii(`Opening popup window to: ${urlNavigate}`);
-                popupWindow = PopupUtils.openSizedPopup(urlNavigate, popupName);
+                if (dimensions) {
+                    popupWindow = PopupUtils.openSizedPopup(urlNavigate, popupName, dimensions);
+                } else {
+                    popupWindow = PopupUtils.openSizedPopup(urlNavigate, popupName);
+                }
             }
 
             // Popup will be null if popups are blocked
@@ -66,7 +77,7 @@ export class PopupUtils {
         }
     }
 
-    static openSizedPopup(urlNavigate: string, popupName: string): Window|null {
+    static openSizedPopup(urlNavigate: string, popupName: string, dimensions?: PopupDimensions): Window|null {
         /**
          * adding winLeft and winTop to account for dual monitor
          * using screenLeft and screenTop for IE8 and earlier
@@ -82,6 +93,9 @@ export class PopupUtils {
         const left = Math.max(0, ((width / 2) - (BrowserConstants.POPUP_WIDTH / 2)) + winLeft);
         const top = Math.max(0, ((height / 2) - (BrowserConstants.POPUP_HEIGHT / 2)) + winTop);
 
+        if (dimensions) {
+            return window.open(urlNavigate, popupName, `width=${dimensions.width}, height=${dimensions.height}, top=${dimensions.top}, left=${dimensions.left}, scrollbars=yes`);
+        }
         return window.open(urlNavigate, popupName, `width=${BrowserConstants.POPUP_WIDTH}, height=${BrowserConstants.POPUP_HEIGHT}, top=${top}, left=${left}, scrollbars=yes`);
     }
 
