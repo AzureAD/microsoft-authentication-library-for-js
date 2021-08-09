@@ -57,18 +57,20 @@ export class PopupClient extends StandardInteractionClient {
             const popupName = PopupUtils.generateLogoutPopupName(this.config.auth.clientId, validLogoutRequest);
             const authority = logoutRequest && logoutRequest.authority;
             const mainWindowRedirectUri = logoutRequest && logoutRequest.mainWindowRedirectUri;
-            let popup;
 
             // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
             if (this.config.system.asyncPopups) {
                 this.logger.verbose("asyncPopups set to true", validLogoutRequest.correlationId);
+                if (logoutRequest && logoutRequest.popupDimensions) {
+                    return this.logoutPopupAsync(validLogoutRequest, popupName, authority, null, mainWindowRedirectUri, logoutRequest.popupDimensions);
+                }
+                return this.logoutPopupAsync(validLogoutRequest, popupName, authority, null, mainWindowRedirectUri);
             } else {
                 // asyncPopups flag is set to false. Opens popup before logging out.
                 this.logger.verbose("asyncPopup set to false, opening popup", validLogoutRequest.correlationId);
-                popup = PopupUtils.openSizedPopup("about:blank", popupName);
+                const popup = logoutRequest && logoutRequest.popupDimensions ? PopupUtils.openSizedPopup("about:blank", popupName, logoutRequest.popupDimensions) : PopupUtils.openSizedPopup("about:blank", popupName);
+                return this.logoutPopupAsync(validLogoutRequest, popupName, authority, popup, mainWindowRedirectUri);
             }
-
-            return this.logoutPopupAsync(validLogoutRequest, popupName, authority, popup, mainWindowRedirectUri);
         } catch (e) {
             // Since this function is synchronous we need to reject
             return Promise.reject(e);
@@ -167,7 +169,7 @@ export class PopupClient extends StandardInteractionClient {
 
             const popupUtils = new PopupUtils(this.browserStorage, this.logger);
             // Open the popup window to requestUrl.
-            const popupWindow = dimensions ? popupUtils.openPopup(logoutUri, popupName, popup) : popupUtils.openPopup(logoutUri, popupName, popup, dimensions);
+            const popupWindow = dimensions ? popupUtils.openPopup(logoutUri, popupName, popup, dimensions) : popupUtils.openPopup(logoutUri, popupName, popup);
             this.eventHandler.emitEvent(EventType.POPUP_OPENED, InteractionType.Popup, {popupWindow}, null);
 
             try {
