@@ -46,8 +46,8 @@ describe("AuthorityFactory.ts Class Unit Tests", () => {
         }
     });
 
-    afterEach(() => {
-        mockCache.clearCache();
+    afterEach(async () => {
+        await mockCache.clearCache();
         jest.clearAllMocks();
     });
 

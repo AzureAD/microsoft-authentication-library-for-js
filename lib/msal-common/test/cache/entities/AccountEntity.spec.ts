@@ -55,6 +55,12 @@ const cryptoInterface: ICrypto = {
     },
     async signJwt(): Promise<string> {
         return "";
+    },
+    async removeTokenBindingKey(): Promise<boolean> {
+        return Promise.resolve(true);
+    },
+    async clearKeystore(): Promise<boolean> {
+        return Promise.resolve(true);
     }
 };
 
@@ -157,8 +163,8 @@ describe("AccountEntity.ts Unit Tests", () => {
         const acc = AccountEntity.createAccount(
             TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
             homeAccountId,
-            authority,
-            idToken
+            idToken,
+            authority
         );
 
         expect(acc.generateAccountKey()).toEqual(`${homeAccountId}-login.windows.net-${idTokenClaims.tid}`);
@@ -196,8 +202,8 @@ describe("AccountEntity.ts Unit Tests", () => {
         const acc = AccountEntity.createAccount(
             TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
             homeAccountId,
-            authority,
-            idToken
+            idToken,
+            authority
         );
 
         expect(acc.generateAccountKey()).toEqual(`${homeAccountId}-login.windows.net-${idTokenClaims.tid}`);
@@ -236,8 +242,8 @@ describe("AccountEntity.ts Unit Tests", () => {
         const acc = AccountEntity.createAccount(
             TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
             homeAccountId,
-            authority,
-            idToken
+            idToken,
+            authority
         );
         expect(acc.generateAccountKey()).toEqual(`${homeAccountId}-login.windows.net-${idTokenClaims.tid}`);
         expect(acc.homeAccountId).toBe(homeAccountId);
@@ -281,8 +287,8 @@ describe("AccountEntity.ts Unit Tests", () => {
         const acc = AccountEntity.createAccount(
             TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
             homeAccountId,
-            authority,
-            idToken
+            idToken,
+            authority
         );
 
         expect(acc.generateAccountKey()).toEqual(`${homeAccountId}-login.windows.net-${idTokenClaims.tid}`);
@@ -324,9 +330,9 @@ describe("AccountEntity.ts Unit Tests", () => {
 
         const homeAccountId = "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
         const acc = AccountEntity.createGenericAccount(
-            authority,
             homeAccountId,
-            idToken
+            idToken,
+            authority
         );
 
         expect(acc.generateAccountKey()).toEqual(`${idTokenClaims.sub.toLowerCase()}-login.windows.net-`);
@@ -378,8 +384,8 @@ describe("AccountEntity.ts Unit Tests", () => {
             acc = AccountEntity.createAccount(
                 TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO_GUIDS,
                 homeAccountId,
-                authority,
-                idToken
+                idToken,
+                authority
             );
         })
 
@@ -576,9 +582,9 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
 
         const homeAccountId = "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
         const acc = AccountEntity.createGenericAccount(
-            authority,
             homeAccountId,
-            idToken
+            idToken,
+            authority
         );
 
         expect(acc.generateAccountKey()).toEqual(`${idTokenClaims.sub.toLowerCase()}-myadfs.com-`);
@@ -622,9 +628,9 @@ describe("AccountEntity.ts Unit Tests for ADFS", () => {
 
         const homeAccountId = "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ".toLowerCase();
         const acc = AccountEntity.createGenericAccount(
-            authority,
             homeAccountId,
-            idToken
+            idToken,
+            authority
         );
 
         expect(acc.generateAccountKey()).toEqual(`${idTokenClaims.sub.toLowerCase()}-myadfs.com-`);
