@@ -1,17 +1,31 @@
 # Bump package version numbers and create a release branch
 name: Create PR master->release
-
 on:
   push:
     branches:
-      - releasevvv/${{ steps.date.outputs.date }}
+      - releasevvvv/${{ steps.date.outputs.date }}
 
 jobs:
   release:
-    name: Bump versions and create changelog PR --updation
-    runs-on: ubuntu-latest
-    steps:
-      
+
+      name: Bump versions and create changelog PR --updation
+      runs-on: ubuntu-latest
+
+      steps: 
+      - name: Get current date
+        id: date
+        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
+
+      # Check-out repo
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      # Check out onto desired branch or tag to create release from
+      - name: Checkout tag/branch
+        run: git checkout -b releasevvv/${{ steps.date.outputs.date }} 
+
+
       - name: Create PR to master
         uses: technote-space/create-pr-action@v2
         with:
