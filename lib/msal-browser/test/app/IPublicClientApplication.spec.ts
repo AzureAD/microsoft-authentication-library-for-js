@@ -87,6 +87,15 @@ describe("IPublicClientApplication.ts Class Unit Tests", () => {
             });
         });
 
+        it("getTokenCache throws", () => {
+            try {
+                stubbedPublicClientApplication.getTokenCache();
+            } catch (e) {
+                expect(e.errorCode).toEqual(BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled.code);
+                expect(e.errorMessage).toEqual(BrowserConfigurationAuthErrorMessage.stubPcaInstanceCalled.desc);
+            };
+        });
+
         it("getLogger throws", () => {
             try {
                 stubbedPublicClientApplication.getLogger();
