@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add API to sideload tokens to msal-browser #3895",
+  "packageName": "@azure/msal-browser",
+  "email": "joarroyo@microsoft.com",
+  "dependentChangeType": "patch"
+}
