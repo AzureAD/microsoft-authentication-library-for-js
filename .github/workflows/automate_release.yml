@@ -53,13 +53,4 @@ jobs:
 
        # Push changes
       - name: Push new branch
-        run: git push origin releasev/${{ steps.date.outputs.date }} 
-
-        # Create PR to master
-      - name: Create PR
-        uses: technote-space/create-pr-action@v2
-        with:
-         COMMIT_MESSAGE: 'PR to publish'
-         COMMIT_NAME: 'GitHub Actions'
-         PR_BRANCH_NAME: 'dev'
-         PR_TITLE: 'creating PR to master from release branch'
+        run: git push origin releasev/${{ steps.date.outputs.date }}
