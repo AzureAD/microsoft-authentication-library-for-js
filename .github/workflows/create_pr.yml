@@ -1,0 +1,21 @@
+# Bump package version numbers and create a release branch
+name: Create PR master->release
+
+on:
+  push:
+    branches:
+      - releasevv/${{ steps.date.outputs.date }}
+
+jobs:
+  release:
+    name: Bump versions and create changelog PR --updation
+    runs-on: ubuntu-latest
+    steps:
+      
+      - name: Create PR to master
+        uses: technote-space/create-pr-action@v2
+        with:
+          COMMIT_MESSAGE: 'PR to publish'
+          COMMIT_NAME: 'GitHub Actions'
+          PR_BRANCH_NAME: 'master'
+          PR_TITLE: 'creating PR to master'
