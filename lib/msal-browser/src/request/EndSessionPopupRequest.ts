@@ -4,7 +4,7 @@
  */
 
 import { CommonEndSessionRequest } from "@azure/msal-common";
-import { PopupDimensions } from "../utils/PopupUtils";
+import { PopupConfiguration } from "../utils/PopupUtils";
 
 /**
  * EndSessionPopupRequest
@@ -18,5 +18,5 @@ import { PopupDimensions } from "../utils/PopupUtils";
 export type EndSessionPopupRequest = Partial<CommonEndSessionRequest> & {
     authority?: string;
     mainWindowRedirectUri?: string;
-    popupDimensions?: PopupDimensions;
+    popupConfiguration?: PopupConfiguration;
 };

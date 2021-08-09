@@ -8,7 +8,7 @@ import { InteractionHandler, InteractionParams } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { PopupDimensions, PopupUtils } from "../utils/PopupUtils";
+import { PopupConfiguration, PopupUtils } from "../utils/PopupUtils";
 import { BrowserUtils } from "../utils/BrowserUtils";
 
 export type PopupParams = InteractionParams & {
@@ -34,15 +34,15 @@ export class PopupHandler extends InteractionHandler {
      * Opens a popup window with given request Url.
      * @param requestUrl
      */
-    initiateAuthRequest(requestUrl: string, params: PopupParams, dimensions?: PopupDimensions): Window {
+    initiateAuthRequest(requestUrl: string, params: PopupParams, popupConfig?: PopupConfiguration): Window {
         // Check that request url is not empty.
         if (!StringUtils.isEmpty(requestUrl)) {
             // Set interaction status in the library.
             this.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
             this.browserRequestLogger.infoPii(`Navigate to: ${requestUrl}`);
             // Open the popup window to requestUrl.
-            if (dimensions) {
-                return this.popupUtils.openPopup(requestUrl, params.popupName, params.popup, dimensions);
+            if (popupConfig) {
+                return this.popupUtils.openPopup(requestUrl, params.popupName, params.popup, popupConfig);
             }
             return this.popupUtils.openPopup(requestUrl, params.popupName, params.popup);
         } else {

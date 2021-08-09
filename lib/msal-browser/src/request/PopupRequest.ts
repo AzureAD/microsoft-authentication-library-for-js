@@ -4,7 +4,7 @@
  */
 
 import { CommonAuthorizationUrlRequest } from "@azure/msal-common";
-import { PopupDimensions } from "../utils/PopupUtils";
+import { PopupConfiguration } from "../utils/PopupUtils";
 
 /**
  * PopupRequest: Request object passed by user to retrieve a Code from the
@@ -32,5 +32,5 @@ import { PopupDimensions } from "../utils/PopupUtils";
  */
 export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode"|"scopes"|"codeChallenge"|"codeChallengeMethod">> & {
     scopes: Array<string>;
-    popupDimensions?: PopupDimensions;
+    popupConfiguration?: PopupConfiguration;
 };
