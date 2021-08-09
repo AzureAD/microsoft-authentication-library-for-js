@@ -3,10 +3,10 @@ import { GuidGenerator } from "../../src/crypto/GuidGenerator";
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
 import { TEST_CONFIG, TEST_URIS, TEST_POP_VALUES } from "../utils/StringConstants";
 import { createHash } from "crypto";
-import { AuthenticationScheme, PkceCodes } from "@azure/msal-common";
+import { AuthenticationScheme, BaseAuthRequest, PkceCodes } from "@azure/msal-common";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { CRYPTO_KEY_CONFIG } from "../../src/utils/CryptoConstants";
-
+import { BrowserAuthError } from "../../src";
 const msrCrypto = require("../polyfills/msrcrypto.min");
 
 
@@ -22,6 +22,12 @@ describe("CryptoOps.ts Unit Tests", () => {
         jest.spyOn(DatabaseStorage.prototype, "put").mockImplementation(async (key: string, payload: CachedKeyPair): Promise<void> => {
             dbStorage[key] = payload;
         });
+
+        jest.spyOn(DatabaseStorage.prototype, "delete").mockImplementation(async (key: string): Promise<boolean> => {
+            delete dbStorage[key];
+            return Promise.resolve(true);
+        });
+
         cryptoObj = new CryptoOps();
 
         oldWindowCrypto = window.crypto;
@@ -99,6 +105,7 @@ describe("CryptoOps.ts Unit Tests", () => {
     });
 
     it("getPublicKeyThumbprint() generates a valid request thumbprint", async () => {
+        jest.setTimeout(30000);
         //@ts-ignore
         jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
             expect(algorithm).toBe("SHA-256");
@@ -160,5 +167,22 @@ describe("CryptoOps.ts Unit Tests", () => {
         expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
         expect(regExp.test(pkThumbprint)).toBe(true);
         expect(Object.keys(dbStorage[pkThumbprint])).not.toHaveLength(0);
+    }, 30000);
+
+    it("removeTokenBindingKey() removes the specified key from storage", async () => {
+        //@ts-ignore
+        jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
+            expect(algorithm).toBe("SHA-256");
+            return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
+        });
+        const pkThumbprint = await cryptoObj.getPublicKeyThumbprint({resourceRequestMethod: "POST", resourceRequestUri: TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS} as BaseAuthRequest);
+        const keyDeleted = await cryptoObj.removeTokenBindingKey(pkThumbprint);
+        expect(dbStorage[pkThumbprint]).toBe(undefined);
+        expect(keyDeleted).toBe(true);
+    }, 30000);
+
+    it("signJwt() throws signingKeyNotFoundInStorage error if signing keypair is not found in storage", async () => {
+        jest.spyOn(DatabaseStorage.prototype, "get").mockResolvedValue(undefined);
+        return await expect(cryptoObj.signJwt({}, "testString")).rejects.toThrow(BrowserAuthError.createSigningKeyNotFoundInStorageError("testString"));
     }, 30000);
 });

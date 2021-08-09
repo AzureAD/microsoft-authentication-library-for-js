@@ -1332,62 +1332,30 @@ describe("AuthorizationCodeClient unit tests", () => {
 
     describe("getLogoutUri()", () => {
 
-        it("Returns a uri and clears the cache", async () => {
+        it("Returns a uri", async () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
-            const removeAccountSpy = sinon.stub(MockStorageClass.prototype, "clear").returns();
             const logoutUri = client.getLogoutUri({account: null, correlationId: RANDOM_TEST_GUID});
 
-            expect(removeAccountSpy.calledOnce).toBe(true);
             expect(logoutUri).toBe(
                 `${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common")}?${AADServerParamKeys.CLIENT_REQUEST_ID}=${RANDOM_TEST_GUID}`
             );
         });
 
-        it("Returns a uri and clears the cache of relevant account info", async () => {
-            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
-            const client = new AuthorizationCodeClient(config);
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
-                environment: "login.windows.net",
-                tenantId: "testTenantId",
-                username: "test@contoso.com",
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID
-            };
-
-            const removeAccountSpy = sinon.stub(CacheManager.prototype, "removeAccount").returns(true);
-            const logoutUri = client.getLogoutUri({account: testAccount, correlationId: RANDOM_TEST_GUID});
-
-            expect(removeAccountSpy.calledWith(AccountEntity.generateAccountCacheKey(testAccount))).toBe(true);
-            expect(logoutUri).toBe(
-                `${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common")}?${AADServerParamKeys.CLIENT_REQUEST_ID}=${RANDOM_TEST_GUID}`
-            );
-        });
 
         it("Returns a uri with given postLogoutUri and correlationId", async () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
-                environment: "login.windows.net",
-                tenantId: "testTenantId",
-                username: "test@contoso.com",
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID
-            };
 
-            const removeAccountSpy = sinon.stub(CacheManager.prototype, "removeAccount").returns(true);
             const logoutUri = client.getLogoutUri({
-                account: testAccount,
                 correlationId: RANDOM_TEST_GUID,
                 postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
                 idTokenHint: "id_token_hint"
             });
 
-            expect(removeAccountSpy.calledWith(AccountEntity.generateAccountCacheKey(testAccount))).toBe(true);
             const testLogoutUriWithParams = `${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common")}?${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI)}&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}&${AADServerParamKeys.ID_TOKEN_HINT}=id_token_hint`;
             expect(logoutUri).toBe(testLogoutUriWithParams);
         });
@@ -1402,6 +1370,33 @@ describe("AuthorizationCodeClient unit tests", () => {
             });
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
+
+            const logoutUri = client.getLogoutUri({
+                correlationId: RANDOM_TEST_GUID,
+                postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
+                idTokenHint: "id_token_hint"
+            });
+
+            const testLogoutUriWithParams = `https://login.windows.net/common/oauth2/v2.0/logout?param1=value1&${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI)}&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}&${AADServerParamKeys.ID_TOKEN_HINT}=id_token_hint`;
+            expect(logoutUri).toBe(testLogoutUriWithParams);
+        });
+    });
+
+    describe("clearCacheOnLogout", () => {
+        it("Clears the cache", async() => {
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(config);
+            const clearCacheSpy = sinon.stub(MockStorageClass.prototype, "clear").resolves();
+
+            client.clearCacheOnLogout({ account: null, correlationId: RANDOM_TEST_GUID});
+            expect(clearCacheSpy.calledOnce).toBe(true);
+        });
+
+        it("Clears the cache for the account provided", async () => {
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
+            const client = new AuthorizationCodeClient(config);
             const testAccount: AccountInfo = {
                 homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
                 environment: "login.windows.net",
@@ -1410,17 +1405,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                 localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID
             };
 
-            const removeAccountSpy = sinon.stub(CacheManager.prototype, "removeAccount").returns(true);
-            const logoutUri = client.getLogoutUri({
-                account: testAccount,
-                correlationId: RANDOM_TEST_GUID,
-                postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
-                idTokenHint: "id_token_hint"
-            });
-
+            const removeAccountSpy = sinon.stub(CacheManager.prototype, "removeAccount").returns(Promise.resolve(true));
+            await client.clearCacheOnLogout({account: testAccount, correlationId: RANDOM_TEST_GUID});
             expect(removeAccountSpy.calledWith(AccountEntity.generateAccountCacheKey(testAccount))).toBe(true);
-            const testLogoutUriWithParams = `https://login.windows.net/common/oauth2/v2.0/logout?param1=value1&${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI)}&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}&${AADServerParamKeys.ID_TOKEN_HINT}=id_token_hint`;
-            expect(logoutUri).toBe(testLogoutUriWithParams);
         });
     });
 });
