@@ -50,6 +50,12 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
             async signJwt(): Promise<string> {
                 return "";
             },
+            async removeTokenBindingKey(): Promise<boolean> {
+                return Promise.resolve(true);
+            },
+            async clearKeystore(): Promise<boolean> {
+                return Promise.resolve(true);
+            },
             async getAsymmetricPublicKey(): Promise<string> {
                 return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
             }
