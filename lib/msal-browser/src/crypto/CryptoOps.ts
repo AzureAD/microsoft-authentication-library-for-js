@@ -13,6 +13,7 @@ import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { CryptoKeyFormats, CryptoKeyTypes, CRYPTO_KEY_CONFIG } from "../utils/CryptoConstants";
 import { BoundTokenResponse } from "./BoundTokenResponse";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export type CachedKeyPair = {
     publicKey: CryptoKey,
@@ -125,7 +126,7 @@ export class CryptoOps implements ICrypto {
         const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importJwk(keyOptions, privateKeyJwk, false, keyOptions.privateKeyUsage);
 
         // Store Keypair data in keystore
-        this.cache.put(publicJwkHash, {
+        await this.cache.put(publicJwkHash, {
             privateKey: unextractablePrivateKey,
             publicKey: keyPair.publicKey,
             requestMethod: request.resourceRequestMethod,
@@ -136,13 +137,31 @@ export class CryptoOps implements ICrypto {
     }
 
     /**
+     * Removes cryptographic keypair from key store matching the keyId passed in
+     * @param kid 
+     */
+    async removeTokenBindingKey(kid: string): Promise<boolean> {
+        return this.cache.delete(kid);
+    }
+
+    /**
+     * Removes all cryptographic keys from IndexedDB storage
+     */
+    async clearKeystore(): Promise<boolean> {
+        return this.cache.clear();
+    }
+
+    /**
      * Signs the given object as a jwt payload with private key retrieved by given kid.
      * @param payload 
      * @param kid 
      */
     async signJwt(payload: SignedHttpRequest, kid: string): Promise<string> {
-        // Get keypair from cache
-        const cachedKeyPair: CachedKeyPair = await this.cache.get(kid);
+        const cachedKeyPair = await this.cache.get(kid);
+            
+        if (!cachedKeyPair) {
+            throw BrowserAuthError.createSigningKeyNotFoundInStorageError(kid);
+        }
 
         // Get public key as JWK
         const publicKeyJwk = await this.browserCrypto.exportJwk(cachedKeyPair.publicKey);

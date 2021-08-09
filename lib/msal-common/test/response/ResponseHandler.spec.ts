@@ -1,7 +1,7 @@
 import sinon from "sinon";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 import { ResponseHandler } from "../../src/response/ResponseHandler";
-import { AUTHENTICATION_RESULT, RANDOM_TEST_GUID, TEST_CONFIG, ID_TOKEN_CLAIMS, TEST_DATA_CLIENT_INFO, TEST_STATE_VALUES, TEST_POP_VALUES, POP_AUTHENTICATION_RESULT, TEST_URIS, TEST_TOKEN_LIFETIMES, TEST_TOKENS } from "../test_kit/StringConstants";
+import { AUTHENTICATION_RESULT, RANDOM_TEST_GUID, TEST_CONFIG, ID_TOKEN_CLAIMS, TEST_DATA_CLIENT_INFO, TEST_STATE_VALUES, TEST_POP_VALUES, POP_AUTHENTICATION_RESULT, TEST_URIS, TEST_TOKEN_LIFETIMES, TEST_TOKENS, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES } from "../test_kit/StringConstants";
 import { Authority } from "../../src/authority/Authority";
 import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
@@ -72,11 +72,17 @@ const cryptoInterface: ICrypto = {
     async signJwt(): Promise<string> {
         return signedJwt;
     },
+    async removeTokenBindingKey(): Promise<boolean> {
+        return Promise.resolve(true);
+    },
+    async clearKeystore(): Promise<boolean> {
+        return Promise.resolve(true);
+    },
     async getAsymmetricPublicKey(): Promise<string> {
         return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
     },
-    async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse | null> {
-        return AUTHENTICATION_RESULT.body;
+    async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
+        return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES;
     }
 };
 

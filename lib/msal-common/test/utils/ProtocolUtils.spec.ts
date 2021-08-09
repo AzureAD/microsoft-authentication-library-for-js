@@ -1,5 +1,5 @@
 import { ProtocolUtils } from "../../src/utils/ProtocolUtils";
-import { AUTHENTICATION_RESULT, RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES } from "../test_kit/StringConstants";
+import { DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES, RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES } from "../test_kit/StringConstants";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { Constants } from "../../src/utils/Constants";
 import sinon from "sinon";
@@ -51,11 +51,17 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
             async signJwt(): Promise<string> {
                 return "";
             },
+            async removeTokenBindingKey(): Promise<boolean> {
+                return Promise.resolve(true);
+            },
+            async clearKeystore(): Promise<boolean> {
+                return Promise.resolve(true);
+            },
             async getAsymmetricPublicKey(): Promise<string> {
                 return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
             },
-            async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse | null> {
-                return AUTHENTICATION_RESULT.body;
+            async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
+                return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES;
             }
         };
     });

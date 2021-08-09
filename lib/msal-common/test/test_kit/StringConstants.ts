@@ -5,7 +5,7 @@
 
 // This file contains the string constants used by the test classes.
 
-import { Constants } from "../../src/utils/Constants";
+import { AuthenticationScheme, Constants } from "../../src/utils/Constants";
 import { RequestThumbprint, ThrottlingEntity, AccountInfo } from "../../src";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 
@@ -325,7 +325,7 @@ export const B2C_OPENID_CONFIG_RESPONSE = {
 export const AUTHENTICATION_RESULT = {
     status: 200,
     body: {
-        "token_type": "Bearer",
+        "token_type": AuthenticationScheme.BEARER,
         "scope": "openid profile User.Read email",
         "expires_in": 3599,
         "ext_expires_in": 3599,
@@ -339,7 +339,7 @@ export const AUTHENTICATION_RESULT = {
 export const POP_AUTHENTICATION_RESULT = {
     status: 200,
     body: {
-        "token_type": "pop",
+        "token_type": AuthenticationScheme.POP,
         "scope": "openid profile User.Read email",
         "expires_in": 3599,
         "ext_expires_in": 3599,
@@ -353,7 +353,7 @@ export const POP_AUTHENTICATION_RESULT = {
 export const AUTHENTICATION_RESULT_WITH_FOCI = {
     status: 200,
     body: {
-        "token_type": "Bearer",
+        "token_type": AuthenticationScheme.BEARER,
         "scope": "openid profile User.Read email",
         "expires_in": 3599,
         "ext_expires_in": 3599,
@@ -368,7 +368,7 @@ export const AUTHENTICATION_RESULT_WITH_FOCI = {
 export const AUTHENTICATION_RESULT_DEFAULT_SCOPES = {
     status: 200,
     body: {
-        "token_type": "Bearer",
+        "token_type": AuthenticationScheme.BEARER,
         "scope": "openid profile offline_access User.Read",
         "expires_in": 3599,
         "ext_expires_in": 3599,
@@ -379,8 +379,8 @@ export const AUTHENTICATION_RESULT_DEFAULT_SCOPES = {
     }
 };
 
-export const DECRYPTED_RT_BOUND_AUTHENTICATION_RESULT_DEFAULT_SCOPES = {
-    "token_type": "Bearer",
+export const DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES = {
+    "token_type": AuthenticationScheme.BEARER,
     "scope": "openid profile offline_access User.Read",
     "expires_in": 3599,
     "ext_expires_in": 3599,
@@ -393,7 +393,7 @@ export const DECRYPTED_RT_BOUND_AUTHENTICATION_RESULT_DEFAULT_SCOPES = {
 export const CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT = {
     status: 200,
     body: {
-        "token_type": "Bearer",
+        "token_type": AuthenticationScheme.BEARER,
         "expires_in": 3599,
         "ext_expires_in": 3599,
         "access_token": "thisIs.an.accessT0ken",

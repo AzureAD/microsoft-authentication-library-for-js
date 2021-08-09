@@ -1,5 +1,5 @@
 import sinon from "sinon";
-import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS, AUTHENTICATION_RESULT } from "../test_kit/StringConstants";
+import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES } from "../test_kit/StringConstants";
 import { PopTokenGenerator } from "../../src/crypto/PopTokenGenerator";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { BaseAuthRequest } from "../../src/request/BaseAuthRequest";
@@ -57,11 +57,17 @@ describe("PopTokenGenerator Unit Tests", () => {
         async signJwt(): Promise<string> {
             return "";
         },
+        async removeTokenBindingKey(): Promise<boolean> {
+            return Promise.resolve(true);
+        },
+        async clearKeystore(): Promise<boolean> {
+            return Promise.resolve(true);
+        },
         async getAsymmetricPublicKey(): Promise<string> {
             return TEST_POP_VALUES.KID;
         },
-        async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse | null> {
-            return AUTHENTICATION_RESULT.body;
+        async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
+            return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES;
         }
     };
 

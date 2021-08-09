@@ -1,6 +1,6 @@
 import sinon from "sinon";
 import { ICrypto, PkceCodes, AuthenticationScheme, ServerAuthorizationTokenResponse } from "../../src";
-import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS, DECRYPTED_RT_BOUND_AUTHENTICATION_RESULT_DEFAULT_SCOPES } from "../test_kit/StringConstants";
+import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES } from "../test_kit/StringConstants";
 import { KeyManager } from "../../src/crypto/KeyManager";
 
 describe("KeyManager Unit Tests", () => {
@@ -50,12 +50,18 @@ describe("KeyManager Unit Tests", () => {
         },
         async signJwt(): Promise<string> {
             return "";
+        },     
+        async removeTokenBindingKey(): Promise<boolean> {
+            return Promise.resolve(true);
+        },
+        async clearKeystore(): Promise<boolean> {
+            return Promise.resolve(true);
         },
         async getAsymmetricPublicKey(): Promise<string> {
             return TEST_POP_VALUES.KID;
         },
         async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
-            return DECRYPTED_RT_BOUND_AUTHENTICATION_RESULT_DEFAULT_SCOPES;
+            return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES;
         }
     };
 

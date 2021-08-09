@@ -1,5 +1,5 @@
 import { AuthToken } from "../../src/account/AuthToken";
-import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES, AUTHENTICATION_RESULT } from "../test_kit/StringConstants";
+import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES } from "../test_kit/StringConstants";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
 import { DecodedAuthToken } from "../../src/account/DecodedAuthToken";
 import { ClientAuthErrorMessage, ClientAuthError } from "../../src/error/ClientAuthError";
@@ -65,11 +65,17 @@ describe("AuthToken.ts Class Unit Tests", () => {
             async signJwt(): Promise<string> {
                 return "";
             },
+            async removeTokenBindingKey(): Promise<boolean> {
+                return Promise.resolve(true);
+            },
+            async clearKeystore(): Promise<boolean> {
+                return Promise.resolve(true);
+            },
             async getAsymmetricPublicKey(): Promise<string> {
                 return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
             },
-            async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse | null> {
-                return AUTHENTICATION_RESULT.body;
+            async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
+                return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES;
             }
         };
     });
