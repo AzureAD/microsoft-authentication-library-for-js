@@ -19,7 +19,8 @@ jobs:
     name: Bump versions and create changelog PR --updation
     runs-on: ubuntu-latest
     steps:
-      
+       
+       #get current system date
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
