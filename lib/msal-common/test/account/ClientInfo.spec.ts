@@ -47,8 +47,16 @@ describe("ClientInfo.ts Class Unit Tests", () => {
                 async signJwt(): Promise<string> {
                     return "";
                 },
+<<<<<<< HEAD
                 async getAsymmetricPublicKey(): Promise<string> {
                     return TEST_POP_VALUES.KID;
+=======
+                async removeTokenBindingKey(): Promise<boolean> {
+                    return Promise.resolve(true);
+                },
+                async clearKeystore(): Promise<boolean> {
+                    return Promise.resolve(true);
+>>>>>>> dev
                 }
             };
         });

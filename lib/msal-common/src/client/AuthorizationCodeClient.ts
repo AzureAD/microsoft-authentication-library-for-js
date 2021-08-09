@@ -112,7 +112,7 @@ export class AuthorizationCodeClient extends BaseClient {
     }
 
     /**
-     * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
+     * Used to log out the current user, and redirect the user to the postLogoutRedirectUri.
      * Default behaviour is to redirect the user to `window.location.href`.
      * @param authorityUri
      */
@@ -121,19 +121,36 @@ export class AuthorizationCodeClient extends BaseClient {
         if (!logoutRequest) {
             throw ClientConfigurationError.createEmptyLogoutRequestError();
         }
-
-        if (logoutRequest.account) {
-            // Clear given account.
-            this.cacheManager.removeAccount(AccountEntity.generateAccountCacheKey(logoutRequest.account));
-        } else {
-            // Clear all accounts and tokens
-            this.cacheManager.clear();
-        }
-
         const queryString = this.createLogoutUrlQueryString(logoutRequest);
 
         // Construct logout URI.
         return UrlString.appendQueryString(this.authority.endSessionEndpoint, queryString);
+    }
+
+    /**
+     * Clears cache items belonging to the account provided. If no account is provided, clears all MSAL-generated cache items.
+     * @param logoutRequest 
+     */
+    async clearCacheOnLogout(logoutRequest: CommonEndSessionRequest): Promise<void> {
+        if (logoutRequest.account) {
+            // Clear given account.
+            try {
+                await this.cacheManager.removeAccount(AccountEntity.generateAccountCacheKey(logoutRequest.account));
+                this.logger.verbose("Cleared cache items belonging to the account provided in the logout request.");
+            } catch (error) {
+                this.logger.error("Account provided in logout request was not found. Local cache unchanged.");
+            }
+        } else {
+            try {
+                // Clear all accounts and tokens
+                await this.cacheManager.clear();
+                // Clear any stray keys from IndexedDB
+                await this.cryptoUtils.clearKeystore();
+                this.logger.verbose("No account provided in logout request, clearing all cache items.");
+            } catch(e) {
+                this.logger.error("Attempted to clear all MSAL cache items and failed. Local cache unchanged.");
+            }
+        }
     }
 
     /**

@@ -51,6 +51,20 @@
             "home_account_id": "uid.utid",
             "extended_expires_on": "4600",
             "expires_on": "4600"
+        },
+        "uid.utid-login.microsoftonline.com-accesstoken_with_authscheme-mock_client_id-microsoft-scope4 scope5-pop": {
+            "environment": "login.microsoftonline.com",
+            "credential_type": "AccessToken_With_AuthScheme",
+            "secret": "a POP-protected access token",
+            "realm": "microsoft",
+            "target": "scope4 scope5",
+            "client_id": "mock_client_id",
+            "cached_at": "1000",
+            "home_account_id": "uid.utid",
+            "extended_expires_on": "4600",
+            "expires_on": "4600",
+            "keyId": "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs",
+            "tokenType": "pop"
         }
     },
     "IdToken": {
