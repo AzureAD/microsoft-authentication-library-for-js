@@ -1,7 +1,7 @@
 import { RefreshTokenEntity } from "../../../src/cache/entities/RefreshTokenEntity";
-import { mockCache, mockRefreshTokenEntity, mockRefreshTokenEntityWithFamilyId, mockAppMetaDataEntity, mockRefreshTokenWithAuthSchemeEntity } from "./cacheConstants";
-import { ClientAuthError, ClientAuthErrorMessage } from "../../../src";
+import { mockRefreshTokenEntity, mockRefreshTokenEntityWithFamilyId, mockAppMetaDataEntity, mockCache, mockRefreshTokenWithAuthSchemeEntity } from "./cacheConstants";
 import { CacheType } from "../../../src/utils/Constants";
+import { ClientAuthError, ClientAuthErrorMessage } from "../../../src/error/ClientAuthError";
 
 describe("RefreshTokenEntity.ts Unit Tests", () => {
     describe("RefreshToken credential entity", () => {

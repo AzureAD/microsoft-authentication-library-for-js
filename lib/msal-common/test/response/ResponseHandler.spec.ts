@@ -73,7 +73,7 @@ const cryptoInterface: ICrypto = {
         return signedJwt;
     },
     async getAsymmetricPublicKey(): Promise<string> {
-        return TEST_POP_VALUES.KID;
+        return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT
     },
     async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
         return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES;
@@ -107,7 +107,7 @@ const testIdTokenClaims: TokenClaims = {
     "nonce": "123523",
 };
 const testAccount: AccountInfo = {
-    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+    homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
     localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
     environment: "login.windows.net",
     tenantId: testIdTokenClaims.tid || "",
@@ -140,7 +140,7 @@ describe("ResponseHandler.ts", () => {
         });
         sinon.stub(ResponseHandler.prototype, <any>"generateAccountEntity").returns(new AccountEntity());
         sinon.stub(AccountEntity.prototype, "getAccountInfo").returns({
-            homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+            homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
             localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
             environment: "login.windows.net",
             tenantId: "testTenantId",

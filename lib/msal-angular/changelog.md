@@ -1,8 +1,27 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Thu, 13 May 2021 18:34:08 GMT and should not be manually modified.
+This log was last generated on Thu, 22 Jul 2021 22:50:22 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.0.2
+
+Thu, 22 Jul 2021 22:50:22 GMT
+
+### Patches
+
+- allow unprotect resources on certain http methods #3878 (daniel.vargastr@gmail.com)
+- fix: fixing the npm audit issues (samuelkamau@microsoft.com)
+
+## 2.0.1
+
+Mon, 28 Jun 2021 23:39:48 GMT
+
+### Patches
+
+- Don't use normalized url in Angular custom nav client #3757 (janutter@microsoft.com)
+- MsalInterceptor relative url fix #3729 (joarroyo@microsoft.com)
+- Add window check to msal-guard #3664 (joarroyo@microsoft.com)
 
 ## 2.0.0
 

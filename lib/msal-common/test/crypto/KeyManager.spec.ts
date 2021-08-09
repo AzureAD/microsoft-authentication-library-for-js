@@ -52,7 +52,7 @@ describe("KeyManager Unit Tests", () => {
             return "";
         },
         async getAsymmetricPublicKey(): Promise<string> {
-            return TEST_POP_VALUES.KID;
+            return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT
         },
         async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
             return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES;

@@ -59,7 +59,7 @@ npm install @azure/msal-browser
 
 <!-- CDN_LATEST -->
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/browser/2.14.2/js/msal-browser.min.js"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/browser/2.16.1/js/msal-browser.min.js"></script>
 ```
 
 See [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/cdn-usage.md) for more info on how to use this package from the Microsoft CDN.
@@ -107,10 +107,17 @@ Here is a complete list of samples for the MSAL.js 2.x library:
 | [Multiple Resources Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/multipleResources) | A vanilla JS sample showing usage of MSAL 2.0 with authentication on page load with a redirect. | `npm start -- -s multipleResources` |
 | [On Page Load Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/onPageLoad) | A vanilla JS sample showing usage of MSAL 2.0 with authentication on page load with a redirect. | `npm start -- -s onPageLoad` |
 | [ssoSilent() Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/ssoSilent) | A vanilla JS sample showing usage of the ssoSilent API, allowing you to sign in a user silently if a context exists on the authentication server. | `npm start -- -s ssoSilent` |
-| [Internet Explorer 11 Sample]() | A vanilla JS sample showing usage of `@azure/msal-browser` in an application designed to run in Internet Explorer 11. | `npm start -- -s ie11-sample` |
+| [Internet Explorer 11 Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/app/ie11-sample) | A vanilla JS sample showing usage of `@azure/msal-browser` in an application designed to run in Internet Explorer 11. | `npm start -- -s ie11-sample` |
 | [Angular 10 Sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular10-browser-sample) | An Angular 10 sample showing usage of MSAL 2.0 with the Microsoft Graph API. | `npm start` |
 
 More instructions to run the samples can be found in the [`README.md` file](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-browser-samples/VanillaJSTestApp2.0/Readme.md) of the VanillaJSTestApp2.0 folder.
+
+More advanced samples backed with a tutorial can be found in the [Azure Samples](https://github.com/Azure-Samples) space on GitHub:
+
+- [JavaScript SPA calling Express.js web API](https://github.com/Azure-Samples/ms-identity-javascript-tutorial/tree/main/3-Authorization-II/1-call-api)
+- [JavaScript SPA calling Microsoft Graph via Express.js web API using on-behalf-of flow](https://github.com/Azure-Samples/ms-identity-javascript-tutorial/tree/main/4-AdvancedGrants/1-call-api-graph)
+- [React & Redux SPA calling Microsoft Graph via ASP.NET Core web API using on-behalf-of flow](https://github.com/Azure-Samples/ms-identity-javascript-react-spa-dotnetcore-webapi-obo)
+- [Deployment tutorial for Azure App Service and Azure Storage](https://github.com/Azure-Samples/ms-identity-javascript-tutorial/tree/main/5-Deployment)
 
 ## Build and Test
 

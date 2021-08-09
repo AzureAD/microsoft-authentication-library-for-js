@@ -5,6 +5,7 @@
 
 import { BaseAuthRequest } from "./BaseAuthRequest";
 import { StringDict } from "../utils/MsalTypes";
+import { CcsCredential } from "../account/CcsCredential";
 
 /**
  * CommonRefreshTokenRequest
@@ -22,6 +23,7 @@ import { StringDict } from "../utils/MsalTypes";
 export type CommonRefreshTokenRequest = BaseAuthRequest & {
     refreshToken: string;
     tokenQueryParameters?: StringDict;
+    ccsCredential?: CcsCredential;
     stkKid?: string;
     skKid?: string;
     tokenType?: string;

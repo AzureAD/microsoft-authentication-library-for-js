@@ -19,7 +19,7 @@ const privateKeySource = fs.readFileSync('./certs/example.key');
 
 const privateKeyObject = crypto.createPrivateKey({
     key: privateKeySource,
-    passphrase: "2255",
+    passphrase: "2255", // enter your certificate passphrase here
     format: 'pem'
 });
 
@@ -86,11 +86,11 @@ app.get('/redirect', (req, res) => {
 
 const SERVER_PORT = process.env.PORT || 3000;
 
-// Initialize an HTTPS server with certificates
+// (Optional) Initialize an HTTPS server with certificates
 const options = {
     key: fs.readFileSync(path.join(__dirname + "/certs/example.key")),
     cert: fs.readFileSync(path.join(__dirname + "/certs/example.crt")),
-    passphrase: "2255"
+    passphrase: "2255" // enter your certificate passphrase here 
 };
 
 const server = https.createServer(options, app);

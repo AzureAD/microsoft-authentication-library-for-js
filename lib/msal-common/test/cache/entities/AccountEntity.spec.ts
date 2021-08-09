@@ -7,9 +7,15 @@ import { NetworkRequestOptions, INetworkModule } from "../../../src/network/INet
 import { ICrypto, PkceCodes } from "../../../src/crypto/ICrypto";
 import { RANDOM_TEST_GUID, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_TOKENS, TEST_URIS, TEST_POP_VALUES, PREFERRED_CACHE_ALIAS, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES } from "../../test_kit/StringConstants";
 import sinon from "sinon";
-import { Authority, AuthorityOptions, AuthorityType, ClientAuthError, ClientAuthErrorMessage, Logger, LogLevel, ProtocolMode, ServerAuthorizationTokenResponse } from "../../../src";
 import { MockStorageClass, mockCrypto } from "../../client/ClientTestUtils";
 import { AccountInfo } from "../../../src/account/AccountInfo";
+import { AuthorityOptions } from "../../../src/authority/AuthorityOptions";
+import { ProtocolMode } from "../../../src/authority/ProtocolMode";
+import { LogLevel, Logger } from "../../../src/logger/Logger";
+import { Authority } from "../../../src/authority/Authority";
+import { ClientAuthError, ClientAuthErrorMessage } from "../../../src/error/ClientAuthError";
+import { AuthorityType } from "../../../src/authority/AuthorityType";
+import { ServerAuthorizationTokenResponse } from "../../../src/response/ServerAuthorizationTokenResponse";
 
 const cryptoInterface: ICrypto = {
     createNewGuid(): string {
@@ -52,7 +58,7 @@ const cryptoInterface: ICrypto = {
         return "";
     },
     async getAsymmetricPublicKey(): Promise<string> {
-        return TEST_POP_VALUES.KID;
+        return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT
     },
     async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
         return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES;

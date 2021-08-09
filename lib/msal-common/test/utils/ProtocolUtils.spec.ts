@@ -1,9 +1,10 @@
 import { ProtocolUtils } from "../../src/utils/ProtocolUtils";
-import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES } from "../test_kit/StringConstants";
+import { DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES, RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES } from "../test_kit/StringConstants";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { Constants } from "../../src/utils/Constants";
 import sinon from "sinon";
-import { ClientAuthError, ClientAuthErrorMessage, ServerAuthorizationTokenResponse } from "../../src";
+import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
+import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 
 describe("ProtocolUtils.ts Class Unit Tests", () => {
 
@@ -51,7 +52,7 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
                 return "";
             },
             async getAsymmetricPublicKey(): Promise<string> {
-                return TEST_POP_VALUES.KID;
+                return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT
             },
             async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
                 return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES;
@@ -99,4 +100,10 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
         const requestState = ProtocolUtils.parseRequestState(cryptoInterface, testState);
         expect(requestState.userRequestState).toBe(userState);
     });
+
+    it("parseRequestState returns user state without decoding", () => {
+        const requestState = ProtocolUtils.parseRequestState(cryptoInterface, `${encodedLibState}${Constants.RESOURCE_DELIM}${"test%25u00f1"}`);
+        expect(requestState.userRequestState).toBe(`${"test%25u00f1"}`);
+    });
+    
 });

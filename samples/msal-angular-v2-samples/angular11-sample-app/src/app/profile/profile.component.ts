@@ -24,7 +24,10 @@ export class ProfileComponent implements OnInit {
   ) { }
 
   ngOnInit() {
-    this.getProfile();
+    // Ensures http calls are made client-side
+    if (typeof window !== "undefined") {
+      this.getProfile();
+    }
   }
 
   getProfile() {
