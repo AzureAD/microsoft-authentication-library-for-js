@@ -215,13 +215,13 @@ export class RedirectClient extends StandardInteractionClient {
             // Create logout string and navigate user window to logout.
             const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
 
-            // Clear cache on logout
-            await authClient.clearCacheOnLogout(validLogoutRequest);
-            
             if (!validLogoutRequest.account || AccountEntity.accountInfoIsEqual(validLogoutRequest.account, this.browserStorage.getActiveAccount(), false)) {
                 browserRequestLogger.verbose("Setting active account to null");
                 this.browserStorage.setActiveAccount(null);
             }
+
+            // Clear cache on logout
+            await authClient.clearCacheOnLogout(validLogoutRequest);
             
             const navigationOptions: NavigationOptions = {
                 apiId: ApiId.logout,

@@ -152,13 +152,13 @@ export class PopupClient extends StandardInteractionClient {
             // Create logout string and navigate user window to logout.
             const logoutUri: string = authClient.getLogoutUri(validRequest);
 
-            // Clear cache on logout
-            await authClient.clearCacheOnLogout(validRequest);
-            
             if (!validRequest.account || AccountEntity.accountInfoIsEqual(validRequest.account, this.browserStorage.getActiveAccount(), false)) {
                 browserRequestLogger.verbose("Setting active account to null");
                 this.browserStorage.setActiveAccount(null);
             }
+
+            // Clear cache on logout
+            await authClient.clearCacheOnLogout(validRequest);
 
             this.eventHandler.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Popup, validRequest);
 
