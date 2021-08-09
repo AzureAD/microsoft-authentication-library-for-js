@@ -1,22 +1,8 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 09 Aug 2021 16:05:31 GMT and should not be manually modified.
+This log was last generated on Mon, 02 Aug 2021 23:19:21 GMT and should not be manually modified.
 
 <!-- Start content -->
-
-## 5.0.0
-
-Mon, 09 Aug 2021 16:05:31 GMT
-
-### Major changes
-
-- Remove token binding key from key store when refreshing pop token #3500 (hemoral@microsoft.com)
-
-### Patches
-
-- Fixed bug where msal-node breaks when behind a proxy (2600) (rginsburg@microsoft.com)
-- Fix accesstoken_with_authscheme implementation #3910 (hemoral@microsoft.com)
-- Add external token server response type #3895 (joarroyo@microsoft.com)
 
 ## 4.5.1
 

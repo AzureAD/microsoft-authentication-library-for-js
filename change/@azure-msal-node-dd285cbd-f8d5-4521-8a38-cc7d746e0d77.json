@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fixed bug where msal-node breaks when behind a proxy (2600)",
+  "packageName": "@azure/msal-node",
+  "email": "rginsburg@microsoft.com",
+  "dependentChangeType": "patch"
+}

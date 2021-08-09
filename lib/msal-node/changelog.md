@@ -1,17 +1,8 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Mon, 09 Aug 2021 16:05:31 GMT and should not be manually modified.
+This log was last generated on Thu, 22 Jul 2021 22:50:22 GMT and should not be manually modified.
 
 <!-- Start content -->
-
-## 1.3.1
-
-Mon, 09 Aug 2021 16:05:31 GMT
-
-### Patches
-
-- Fixed bug where msal-node breaks when behind a proxy (2600) (rginsburg@microsoft.com)
-- Add removeTokenBindingKey missing method to Node's CryptoProvider #3500 (hemoral@microsoft.com)
 
 ## 1.3.0
 
