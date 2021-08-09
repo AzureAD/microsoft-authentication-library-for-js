@@ -20,10 +20,10 @@ export class BoundTokenResponse {
     private sessionKeyJwe: JsonWebEncryption;
     private responseJwe: JsonWebEncryption;
     private keyDerivation: KeyDerivation;
-    private keyStore: DatabaseStorage<CachedKeyPair>;
+    private keyStore: DatabaseStorage;
     private keyId: string;
 
-    constructor(boundTokenResponse: BoundServerAuthorizationTokenResponse, request: BaseAuthRequest, keyStore: DatabaseStorage<CachedKeyPair>) {
+    constructor(boundTokenResponse: BoundServerAuthorizationTokenResponse, request: BaseAuthRequest, keyStore: DatabaseStorage) {
         this.sessionKeyJwe = new JsonWebEncryption(boundTokenResponse.session_key_jwe);
         this.responseJwe = new JsonWebEncryption(boundTokenResponse.response_jwe);
         this.keyDerivation = new KeyDerivation(CryptoLengths.DERIVED_KEY, CryptoLengths.PRF_OUTPUT, CryptoLengths.COUNTER);
@@ -37,7 +37,7 @@ export class BoundTokenResponse {
      */
     async decrypt(): Promise<ServerAuthorizationTokenResponse> {
         // Retrieve Session Transport Key from KeyStore
-        const sessionTransportKeypair: CachedKeyPair = await this.keyStore.get(this.keyId);
+        const sessionTransportKeypair: CachedKeyPair = await this.keyStore.get<CryptoKeyPair>(DBTableNames.asymmetricKeys, this.keyId);
         const sessionKey = await this.getSessionKey(sessionTransportKeypair.privateKey);
         const decryptedResponse = await this.responseJwe.getDecryptedResponse(sessionKey);
         await this.keyStore.put<CryptoKey>(DBTableNames.symmetricKeys, this.keyId, sessionKey);

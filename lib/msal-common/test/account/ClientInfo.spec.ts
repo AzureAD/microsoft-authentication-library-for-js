@@ -1,15 +1,7 @@
-<<<<<<< HEAD
-import { buildClientInfo } from "../../src/account/ClientInfo";
+import { buildClientInfo, buildClientInfoFromHomeAccountId, ClientInfo } from "../../src/account/ClientInfo";
 import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_POP_VALUES, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES } from "../test_kit/StringConstants";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
-import { ClientAuthError, ClientAuthErrorMessage, ServerAuthorizationTokenResponse } from "../../src";
-=======
-import { buildClientInfo, buildClientInfoFromHomeAccountId, ClientInfo } from "../../src/account/ClientInfo";
-import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_POP_VALUES, AUTHENTICATION_RESULT } from "../test_kit/StringConstants";
-import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
-import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
-import { Constants, ServerAuthorizationTokenResponse } from "../../src";
->>>>>>> bound-rt/decrypt-response
+import { ClientAuthError, ClientAuthErrorMessage, Constants, ServerAuthorizationTokenResponse } from "../../src";
 
 describe("ClientInfo.ts Class Unit Tests", () => {
 
