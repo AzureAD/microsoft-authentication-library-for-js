@@ -5,29 +5,30 @@ on:
   push:
     branches:
       - dev
+  workflow_dispatch:
+    inputs:
+      versionName:
+        description: 'Name of version '
+        required: true
+      versionCode:
+        description: 'Version #'
+        required: true
 
 jobs:
   release:
     name: Bump versions and create changelog PR --updation
     runs-on: ubuntu-latest
     steps:
-      - name: Reference data
-        run: |
-          ssh -o StrictHostKeyChecking=no username@server1
-          ssh -o StrictHostKeyChecking=no -J username@server1 username@server2
-          scp -o 'ProxyCommand ssh username@server1 -W %h:%p' username@server2:filename .
-          cat filename 
-
+       
        #get current date
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
 
       # Check-out repo
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v1
         with:
           token: ${{secrets.PERSONAL_ACCESS_TOKEN}} 
-          persist-credentials: false
           fetch-depth: 0
 
       # Check out onto desired branch or tag to create release from
