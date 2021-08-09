@@ -3,7 +3,7 @@ name: Create PR master->release
 on:
   push:
     branches:
-      - releasevvvv/${{ steps.date.outputs.date }}
+      - releasev2/${{ steps.date.outputs.date }}
 
 jobs:
   release:
@@ -23,7 +23,7 @@ jobs:
 
       # Check out onto desired branch or tag to create release from
       - name: Checkout tag/branch
-        run: git checkout -b releasevvv/${{ steps.date.outputs.date }} 
+        run: git checkout -b releasev2/${{ steps.date.outputs.date }} 
 
 
       - name: Create PR to master
