@@ -20,7 +20,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
        
-       #get current system date
+       #get current date
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
