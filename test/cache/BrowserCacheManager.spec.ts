@@ -224,7 +224,7 @@ describe("BrowserCacheManager tests", () => {
                 });
 
                 it("getAccount returns AccountEntity", () => {
-                    const testAccount = AccountEntity.createAccount(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, "homeAccountId", authority, new IdToken(TEST_TOKENS.IDTOKEN_V2, browserCrypto), "oboAssertion", "cloudGraphHost", "msGraphHost");
+                    const testAccount = AccountEntity.createAccount(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, "homeAccountId", new IdToken(TEST_TOKENS.IDTOKEN_V2, browserCrypto), authority, "oboAssertion", "cloudGraphHost", "msGraphHost");
 
                     browserLocalStorage.setAccount(testAccount);
                     browserSessionStorage.setAccount(testAccount);
