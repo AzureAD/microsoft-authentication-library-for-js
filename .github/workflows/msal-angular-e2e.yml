@@ -92,6 +92,8 @@ jobs:
 
     - name: Build ${{ matrix.sample }}
       working-directory: samples/msal-angular-v2-samples/${{ matrix.sample }}
+      env:
+        NODE_OPTIONS: "--max-old-space-size=4096"
       run: npm run build
 
     - name: E2E Tests
