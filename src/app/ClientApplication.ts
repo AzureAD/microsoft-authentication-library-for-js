@@ -26,6 +26,7 @@ import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
 import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient";
 import { TokenCache } from "../cache/TokenCache";
 import { ITokenCache } from "../cache/ITokenCache";
+import { PerformanceManager } from "../telemetry/PerformanceManager";
 
 export abstract class ClientApplication {
 
@@ -57,6 +58,8 @@ export abstract class ClientApplication {
 
     // Redirect Response Object
     private redirectResponse: Map<string, Promise<AuthenticationResult | null>>;
+
+    protected performanceManager: PerformanceManager;
 
     /**
      * @constructor
@@ -113,6 +116,9 @@ export abstract class ClientApplication {
 
         // Initialize the token cache
         this.tokenCache = new TokenCache(this.config, this.browserStorage, this.logger, this.browserCrypto);
+
+        // Initialize performance manager
+        this.performanceManager = new PerformanceManager(this.logger);
     }
 
     // #region Redirect Flow
@@ -311,24 +317,32 @@ export abstract class ClientApplication {
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     protected async acquireTokenByRefreshToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
+        const endMeasurement = this.performanceManager.startMeasurement("acquireTokenByRefreshToken");
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, request);
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
         const silentRefreshClient = new SilentRefreshClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, request.correlationId);
 
-        return silentRefreshClient.acquireToken(request).catch(e => {
-            const isServerError = e instanceof ServerError;
-            const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
-            const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
-            if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
-                this.logger.verbose("Refresh token expired or invalid, attempting acquire token by iframe", request.correlationId);
+        return silentRefreshClient.acquireToken(request)
+            .then((result: AuthenticationResult) => {
+                endMeasurement();
+                return result;
+            })
+            .catch(e => {
+                const isServerError = e instanceof ServerError;
+                const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
+                const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
+                if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
+                    this.logger.verbose("Refresh token expired or invalid, attempting acquire token by iframe", request.correlationId);
 
-                const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenSilent_authCode);
-                return silentIframeClient.acquireToken(request);
-            }
-            throw e;
-        });
+                    const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenSilent_authCode);
+                    endMeasurement();
+                    return silentIframeClient.acquireToken(request);
+                }
+                endMeasurement();
+                throw e;
+            });
     }
 
     // #endregion
