@@ -60,9 +60,9 @@ export class PopupClient extends StandardInteractionClient {
             if (this.config.system.asyncPopups) {
                 this.logger.verbose("asyncPopups set to true");
                 if (logoutRequest && logoutRequest.popupConfiguration) {
-                    return this.logoutPopupAsync(validLogoutRequest, popupName, authority, null, mainWindowRedirectUri, logoutRequest.popupConfiguration);
+                    return this.logoutPopupAsync(validLogoutRequest, popupName, authority, undefined, mainWindowRedirectUri, logoutRequest.popupConfiguration);
                 }
-                return this.logoutPopupAsync(validLogoutRequest, popupName, authority, null, mainWindowRedirectUri);
+                return this.logoutPopupAsync(validLogoutRequest, popupName, authority, undefined, mainWindowRedirectUri);
             } else {
                 // asyncPopups flag is set to false. Opens popup before logging out.
                 this.logger.verbose("asyncPopup set to false, opening popup");

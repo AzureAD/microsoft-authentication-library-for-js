@@ -50,6 +50,19 @@ describe("PopupUtils Tests", () => {
 
             expect(windowOpenSpy.calledWith("about:blank", "popup")).toBe(true);
         });
+
+        it("opens a popup with dimensions and position from popupConfig", () => {
+            const testPopupConfig = {
+                height: 100,
+                width: 100,
+                top: 100,
+                left: 100
+            };
+            const windowOpenSpy = sinon.stub(window, "open");
+            PopupUtils.openSizedPopup("about:blank", "popup", testPopupConfig);
+
+            expect(windowOpenSpy.calledWith("about:blank", "popup", `width=100, height=100, top=100, left=100, scrollbars=yes`)).toBe(true);
+        });
     });
 
     describe("unloadWindow", () => {
