@@ -145,6 +145,10 @@ export const BrowserAuthErrorMessage = {
         code: "failed_to_parse_response",
         desc: "Failed to parse network response. Check network trace."
     },
+    unableToLoadTokenError: {
+        code: "unable_to_load_token",
+        desc: "Error loading token to cache."
+    },
     signingKeyNotFoundInStorage: {
         code: "crypto_key_not_found",
         desc: "Cryptographic Key or Keypair not found in browser storage."
@@ -424,6 +428,13 @@ export class BrowserAuthError extends AuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.failedToParseNetworkResponse.code, `${BrowserAuthErrorMessage.failedToParseNetworkResponse.desc} | Attempted to reach: ${endpoint.split("?")[0]}`);
     }
 
+    /**
+     * Create an error thrown when the necessary information is not available to sideload tokens 
+     */
+    static createUnableToLoadTokenError(errorDetail: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.unableToLoadTokenError.code, `${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | ${errorDetail}`);
+    }
+  
     /**
      * Create an error thrown when the queried cryptographic key is not found in IndexedDB
      */
