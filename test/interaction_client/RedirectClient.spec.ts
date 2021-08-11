@@ -47,6 +47,7 @@ describe("RedirectClient", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         });
+        sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
 
         // @ts-ignore
         redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
@@ -88,6 +89,21 @@ describe("RedirectClient", () => {
                 expect(response).toBe(null);
                 expect(window.localStorage.length).toEqual(0);
                 expect(window.sessionStorage.length).toEqual(0);
+                done();
+            });
+        });
+
+        it("cleans temporary cache and rethrows if error is thrown", (done) => {
+            sinon.stub(RedirectClient.prototype, <any>"interactionInProgress").returns(true);
+            const testError = {
+                errorCode: "Unexpected error!",
+                errorDesc: "Unexpected error"
+            }
+            sinon.stub(RedirectClient.prototype, <any>"getRedirectResponseHash").throws(testError);
+            redirectClient.handleRedirectPromise().catch((e) => {
+                expect(e).toMatchObject(testError);
+                expect(window.localStorage.length).toEqual(0);
+                expect(window.sessionStorage.length).toEqual(1); // telemetry
                 done();
             });
         });
@@ -744,7 +760,6 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             const loginRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: ["user.read"],
@@ -776,7 +791,6 @@ describe("RedirectClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
 
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -824,7 +838,6 @@ describe("RedirectClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
 
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -880,7 +893,6 @@ describe("RedirectClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
 
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -914,7 +926,6 @@ describe("RedirectClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
 
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -955,9 +966,10 @@ describe("RedirectClient", () => {
 
             const testError = {
                 errorCode: "create_login_url_error",
-                errorMessage: "Error in creating a login url"
+                errorMessage: "Error in creating a login url",
+                correlationId: TEST_CONFIG.CORRELATION_ID
             };
-            sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").throws(testError);
+            sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").throws(new BrowserAuthError(testError.errorCode, testError.errorMessage));
             try {
                 await redirectClient.acquireToken(emptyRequest);
             } catch (e) {
@@ -968,7 +980,7 @@ describe("RedirectClient", () => {
                 expect(failureObj.failedRequests).toHaveLength(2);
                 expect(failureObj.failedRequests[0]).toEqual(ApiId.acquireTokenRedirect);
                 expect(failureObj.errors[0]).toEqual(testError.errorCode);
-                expect(e).toEqual(testError);
+                expect(e).toMatchObject(testError);
             }
         });
 
@@ -994,7 +1006,6 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -1157,7 +1168,6 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -1198,7 +1208,6 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             const loginRequest: RedirectRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: ["user.read", "openid", "profile"],
@@ -1229,7 +1238,6 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             const loginRequest: RedirectRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: ["user.read", "openid", "profile"],
@@ -1255,7 +1263,6 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -1286,7 +1293,6 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -1366,7 +1372,6 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -1420,7 +1425,6 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -1596,6 +1600,21 @@ describe("RedirectClient", () => {
                 expect(e).toMatchObject(testError);
                 expect(telemetrySpy.calledWith(testError)).toBe(true);
                 expect(eventSpy.calledWith(EventType.LOGOUT_FAILURE, InteractionType.Redirect, null, testError)).toBe(true);
+                done();
+            });
+        });
+
+        it("unexpected non-msal error does not add correlationId", (done) => {
+            const testError = {
+                errorCode: "Unexpected error",
+                errorDesc: "Unexpected error"
+            };
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((): Promise<boolean> => {
+                return Promise.reject(testError);
+            });
+            redirectClient.logout().catch((e) => {
+                expect(e).toMatchObject(testError);
+                expect(e).not.toHaveProperty("correlationId");
                 done();
             });
         });
