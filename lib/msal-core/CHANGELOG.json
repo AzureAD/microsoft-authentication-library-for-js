@@ -2,6 +2,21 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Wed, 11 Aug 2021 21:11:46 GMT",
+      "tag": "msal_v1.4.13",
+      "version": "1.4.13",
+      "comments": {
+        "patch": [
+          {
+            "comment": "comments added ",
+            "author": "bmahal@microsoft.com",
+            "commit": "4ce5241abe89caa54204cbcc737c20d3055c56d4",
+            "package": "msal"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 22 Jul 2021 22:50:22 GMT",
       "tag": "msal_v1.4.12",
       "version": "1.4.12",
