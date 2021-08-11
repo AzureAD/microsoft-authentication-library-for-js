@@ -29,16 +29,14 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
+          ref: master
       
       - name: Setup bot git information
         run: |
           git config user.email "bmahal@microsoft.com"
           git config user.name "bmahall"
 
-      # Check out onto desired branch or tag to create release from
-      - name: Checkout tag/branch
-        run: git checkout -b releasev8/${{ steps.date.outputs.date }}
-
+  
       # Install node_modules here
       - name: Use Node.js
         uses: actions/setup-node@v2
@@ -57,20 +55,12 @@ jobs:
           ver=$(jq -r .version package.json)
           echo version: $ver
 
-      - name: Commit changes
-        run: |
-          git add .
-          git commit -m "Version bump"
-
-      - name: Push to release branch
-        run: git push --set-upstream origin releasev8/${{ steps.date.outputs.date }}
-
 
       - name: Create Pull Request
         id: pr
         uses: peter-evans/create-pull-request@v3
         with:
-          base: dev
+          base: master
           commit-message: Release ; version bump; PR->master
           committer: GitHub <noreply@github.com>
           author: ${{ github.actor }} <${{ github.actor }}@microsoft.com>
