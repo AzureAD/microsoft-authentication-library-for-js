@@ -1059,7 +1059,6 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -1114,7 +1113,6 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
