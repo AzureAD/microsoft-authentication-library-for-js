@@ -43,6 +43,7 @@ export class RedirectHandler extends InteractionHandler {
 
             // Set interaction status in the library.
             this.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
+            this.browserStorage.setTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, this.authCodeRequest.correlationId, true);
             this.browserStorage.cacheCodeRequest(this.authCodeRequest, this.browserCrypto);
             this.browserRequestLogger.infoPii(`RedirectHandler.initiateAuthRequest: Navigate to: ${requestUrl}`);
             const navigationOptions: NavigationOptions = {
@@ -115,6 +116,16 @@ export class RedirectHandler extends InteractionHandler {
 
         authCodeResponse.nonce = cachedNonce || undefined;
         authCodeResponse.state = requestState;
+
+        // Add CCS parameters if available
+        if (authCodeResponse.client_info) {
+            this.authCodeRequest.clientInfo = authCodeResponse.client_info;
+        } else {
+            const cachedCcsCred = this.checkCcsCredentials();
+            if (cachedCcsCred) {
+                this.authCodeRequest.ccsCredential = cachedCcsCred;
+            }
+        }
 
         // Remove throttle if it exists
         if (clientId) {

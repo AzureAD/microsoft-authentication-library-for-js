@@ -30,6 +30,8 @@ export { EndSessionRequest } from "./request/EndSessionRequest";
 export { EndSessionPopupRequest } from "./request/EndSessionPopupRequest";
 export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
 
+export { LoadTokenOptions } from "./cache/TokenCache";
+
 // Events
 export { EventMessage, EventPayload, EventError, EventCallbackFunction, EventMessageUtils, PopupEvent } from "./event/EventMessage";
 export { EventType } from "./event/EventType";
@@ -58,6 +60,8 @@ export {
     LogLevel,
     // Protocol Mode
     ProtocolMode,
+    // Server Response
+    ExternalTokenResponse,
     // Utils
     StringUtils,
     UrlString
