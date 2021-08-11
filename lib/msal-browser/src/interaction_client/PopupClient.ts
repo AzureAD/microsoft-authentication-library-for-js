@@ -28,6 +28,7 @@ export class PopupClient extends StandardInteractionClient {
             // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
             if (this.config.system.asyncPopups) {
                 this.logger.verbose("asyncPopups set to true, acquiring token");
+                // Passes on popup position and dimensions if in request
                 if (request.popupConfiguration) {
                     return this.acquireTokenPopupAsync(validRequest, popupName, undefined, request.popupConfiguration);
                 }
@@ -59,6 +60,7 @@ export class PopupClient extends StandardInteractionClient {
             // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
             if (this.config.system.asyncPopups) {
                 this.logger.verbose("asyncPopups set to true");
+                // Passes on popup position and dimensions if in request
                 if (logoutRequest && logoutRequest.popupConfiguration) {
                     return this.logoutPopupAsync(validLogoutRequest, popupName, authority, undefined, mainWindowRedirectUri, logoutRequest.popupConfiguration);
                 }
@@ -77,8 +79,10 @@ export class PopupClient extends StandardInteractionClient {
 
     /**
      * Helper which obtains an access_token for your API via opening a popup window in the user's browser
+     * @param validRequest
      * @param popupName
      * @param popup
+     * @param popupConfig
      *
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
@@ -137,10 +141,12 @@ export class PopupClient extends StandardInteractionClient {
 
     /**
      * 
-     * @param request 
+     * @param validRequest 
      * @param popupName 
      * @param requestAuthority
      * @param popup 
+     * @param mainWindowRedirectUri 
+     * @param popupConfig 
      */
     private async logoutPopupAsync(validRequest: CommonEndSessionRequest, popupName: string, requestAuthority?: string, popup?: Window|null, mainWindowRedirectUri?: string, popupConfig?: PopupConfiguration): Promise<void> {
         this.logger.verbose("logoutPopupAsync called");
