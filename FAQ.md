@@ -36,6 +36,7 @@
 1. [Where is the authority string on Azure AD Portal?](#where-is-the-authority-domain-string-on-azure-ad-portal)
 1. [What should I set my redirectUri to?](#what-should-i-set-my-redirecturi-to)
 1. [Why is fragment the only valid field for responseMode in msal-browser?](#why-is-fragment-the-only-valid-field-for-responsemode-in-msal-browser)
+1. [How do I configure the position and dimensions of popups?](#how-do-i-configure-the-position-and-dimensions-of-popups)
 
 **[Tokens](#Tokens)**
 
@@ -249,6 +250,28 @@ Additional notes:
 ## Why is `fragment` the only valid field for `responseMode` in `msal-browser`?
 
 The library is built to specifically use the fragment response mode. This is a security consideration as the fragment of the URL is not sent to the server and modifying/clearing the fragment does not result in a new page load. We are considering implementing support for other `responseMode` types in the future, specifically to use multiple libraries in the same app.
+
+## How do I configure the position and dimensions of popups?
+
+A popup window's position and dimension can be configured by passing the height, width, top position, and left position in the request. See the request documentation for [PopupRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#popuprequest) and [EndSessionPopupRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#endsessionpopuprequest) for more details. 
+
+```javascript
+const loginRequest = {
+    scopes: ["user.read", "mail.send"],
+    popupConfiguration: {
+        height: 100,
+        width: 100,
+        top: 100,
+        left: 100
+    }
+};
+
+try {
+    const loginResponse = await msalInstance.loginPopup(loginRequest);
+} catch (err) {
+    // handle error
+}
+```
 
 # Tokens
 

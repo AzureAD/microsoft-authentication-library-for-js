@@ -15,6 +15,7 @@ import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { PopupUtils } from "../../src/utils/PopupUtils";
 import { EndSessionPopupRequest } from "../../src/request/EndSessionPopupRequest";
 import { PopupClient } from "../../src/interaction_client/PopupClient";
+import { PopupRequest } from "../../src/request/PopupRequest";
 
 describe("PopupClient", () => {
     let popupClient: PopupClient;
@@ -83,6 +84,36 @@ describe("PopupClient", () => {
             expect(popupSpy.getCall(0).args).toHaveLength(2);
         });
 
+        it("opens popup window with window position and dimensions before network request by default if popupConfigurations passed in request", async () => {
+            const request: PopupRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["scope"],
+                loginHint: "AbeLi@microsoft.com",
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                nonce: "",
+                popupConfiguration: {
+                    height: 100,
+                    width: 100,
+                    top: 100,
+                    left: 100
+                }
+            };
+
+            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER
+            });
+
+            const popupSpy = sinon.stub(PopupUtils, "openSizedPopup");
+
+            try {
+                await popupClient.acquireToken(request);
+            } catch(e) {}
+            expect(popupSpy.getCall(0).args).toHaveLength(3);
+        });
+
         it("opens popups asynchronously if configured", async () => {
             const pca = new PublicClientApplication({
                 auth: {
@@ -123,6 +154,48 @@ describe("PopupClient", () => {
             expect(popupSpy.getCall(0).args[0]).toContain(`client_id=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
             expect(popupSpy.getCall(0).args[0]).toContain(`redirect_uri=${encodeURIComponent(request.redirectUri)}`);
             expect(popupSpy.getCall(0).args[0]).toContain(`login_hint=${encodeURIComponent(request.loginHint || "")}`);
+        });
+
+        it("opens popups with position and dimensions asynchronously if configured", async () => {
+            const pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    asyncPopups: true
+                }
+            });
+            //@ts-ignore
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+
+            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER
+            });
+
+            const request: PopupRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["scope"],
+                loginHint: "AbeLi@microsoft.com",
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                nonce: "",
+                popupConfiguration: {
+                    height: 100,
+                    width: 100,
+                    top: 100,
+                    left: 100
+                }
+            };
+
+            const popupSpy = sinon.stub(PopupUtils, "openSizedPopup");
+
+            try {
+                await popupClient.acquireToken(request);
+            } catch(e) {}
+            expect(popupSpy.calledOnce).toBeTruthy();
+            expect(popupSpy.getCall(0).args).toHaveLength(3);
         });
 
         it("resolves the response successfully", async () => {
@@ -245,6 +318,24 @@ describe("PopupClient", () => {
             expect(popupSpy.getCall(0).args).toHaveLength(2);
         });
 
+        it("opens popup window with window position and dimensions before network request by default if popupConfigurations passed in request", async () => {
+            const request: EndSessionPopupRequest = {
+                popupConfiguration: {
+                    height: 100,
+                    width: 100,
+                    top: 100,
+                    left: 100
+                }
+            };
+
+            const popupSpy = sinon.stub(PopupUtils, "openSizedPopup");
+
+            try {
+                await popupClient.logout(request);
+            } catch(e) {}
+            expect(popupSpy.getCall(0).args).toHaveLength(3);
+        });
+
         it("opens popups asynchronously if configured", (done) => {
             const pca = new PublicClientApplication({
                 auth: {
@@ -265,6 +356,38 @@ describe("PopupClient", () => {
             });
 
             popupClient.logout().catch(() => {});
+        });
+
+        it("opens popups with position and dimensions asynchronously if configured", (done) => {
+            const pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    asyncPopups: true
+                }
+            });
+            //@ts-ignore
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+
+            const request: EndSessionPopupRequest = {
+                popupConfiguration: {
+                    height: 100,
+                    width: 100,
+                    top: 100,
+                    left: 100
+                }
+            };
+
+            sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate, popupName, popupConfig) => {
+                expect(urlNavigate.startsWith(TEST_URIS.TEST_END_SESSION_ENDPOINT)).toBeTruthy();
+                expect(popupName.startsWith(`msal.${TEST_CONFIG.MSAL_CLIENT_ID}`)).toBeTruthy();
+                expect(popupConfig).toBeTruthy();
+                done();
+                return null;
+            });
+
+            popupClient.logout(request).catch(() => {});
         });
 
         it("catches error and cleans cache before rethrowing", async () => {

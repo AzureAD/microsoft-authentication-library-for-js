@@ -9,6 +9,9 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConstants, InteractionType, TemporaryCacheKeys } from "./BrowserConstants";
 
+/**
+ * Popup configurations for setting dimensions and position of popup window
+ */
 export type PopupConfiguration = {
     height: number;
     width: number;
@@ -38,6 +41,7 @@ export class PopupUtils {
      * @param title
      * @param popUpWidth
      * @param popUpHeight
+     * @param popupConfig
      * @ignore
      * @hidden
      */
@@ -77,6 +81,13 @@ export class PopupUtils {
         }
     }
 
+    /**
+     * Helper function to set popup window dimensions and position
+     * @param urlNavigate 
+     * @param popupName 
+     * @param popupConfig 
+     * @returns 
+     */
     static openSizedPopup(urlNavigate: string, popupName: string, popupConfig?: PopupConfiguration): Window|null {
         /**
          * adding winLeft and winTop to account for dual monitor
