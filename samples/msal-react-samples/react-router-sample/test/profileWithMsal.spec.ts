@@ -5,7 +5,7 @@ import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../e2eTestUtils/Constants";
 import { BrowserCacheUtils } from "../../../e2eTestUtils/BrowserCacheTestUtils";
 
-const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/profile-tests`;
+const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/profileWithMsal-tests`;
 
 async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[]): Promise<void> {
     const tokenStore = await BrowserCache.getTokens();
@@ -15,7 +15,7 @@ async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[
     expect(await BrowserCache.getAccountFromCache(tokenStore.idTokens[0])).not.toBeNull();
     expect(await BrowserCache.accessTokenForScopesExists(tokenStore.accessTokens, scopes)).toBeTruthy;
     const storage = await BrowserCache.getWindowStorage();
-    expect(Object.keys(storage).length).toBe(5);
+    expect(Object.keys(storage).length).toBe(6);
     const telemetryCacheEntry = await BrowserCache.getTelemetryCacheEntry("3fba556e-5d4a-48e3-8e1a-fd57c12cb82e");
     expect(telemetryCacheEntry).not.toBeNull;
     expect(telemetryCacheEntry["cacheHits"]).toBe(1);

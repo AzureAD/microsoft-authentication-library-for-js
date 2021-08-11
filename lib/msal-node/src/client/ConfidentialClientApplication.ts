@@ -15,7 +15,8 @@ import {
     AuthenticationResult,
     StringUtils,
     ClientAuthError,
-    AzureRegionConfiguration
+    AzureRegionConfiguration,
+    AuthError
 } from "@azure/msal-common";
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
@@ -77,6 +78,9 @@ export class ConfidentialClientApplication extends ClientApplication implements 
             this.logger.verbose("Client credential client created", validRequest.correlationId);
             return clientCredentialClient.acquireToken(validRequest);
         } catch(e) {
+            if (e instanceof AuthError) {
+                e.setCorrelationId(validRequest.correlationId);
+            }
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }
@@ -99,13 +103,20 @@ export class ConfidentialClientApplication extends ClientApplication implements 
             ...request,
             ...this.initializeBaseRequest(request)
         };
-        const clientCredentialConfig = await this.buildOauthClientConfiguration(
-            validRequest.authority,
-            validRequest.correlationId
-        );
-        const oboClient = new OnBehalfOfClient(clientCredentialConfig);
-        this.logger.verbose("On behalf of client created", validRequest.correlationId);
-        return oboClient.acquireToken(validRequest);
+        try {
+            const clientCredentialConfig = await this.buildOauthClientConfiguration(
+                validRequest.authority,
+                validRequest.correlationId
+            );
+            const oboClient = new OnBehalfOfClient(clientCredentialConfig);
+            this.logger.verbose("On behalf of client created", validRequest.correlationId);
+            return oboClient.acquireToken(validRequest);
+        } catch (e) {
+            if (e instanceof AuthError) {
+                e.setCorrelationId(validRequest.correlationId);
+            }
+            throw e;
+        }
     }
 
     private setClientCredential(configuration: Configuration): void {

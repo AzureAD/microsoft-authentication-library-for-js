@@ -217,10 +217,18 @@ export class UserAgentApplication {
         this.cacheStorage = new AuthCache(this.clientId, this.config.cache.cacheLocation, this.inCookie);
 
         // Initialize window handling code
-        window.activeRenewals = {};
-        window.renewStates = [];
-        window.callbackMappedToRenewStates = { };
-        window.promiseMappedToRenewStates = { };
+        if (!window.activeRenewals) {
+            window.activeRenewals = {};
+        }
+        if (!window.renewStates) {
+            window.renewStates = [];
+        }
+        if (!window.callbackMappedToRenewStates) {
+            window.callbackMappedToRenewStates = {};
+        }
+        if (!window.promiseMappedToRenewStates) {
+            window.promiseMappedToRenewStates = {};
+        }
         window.msal = this;
 
         const urlHash = window.location.hash;
@@ -1000,7 +1008,7 @@ export class UserAgentApplication {
         if (!window.callbackMappedToRenewStates[expectedState]) {
             window.callbackMappedToRenewStates[expectedState] = (response: AuthResponse, error: AuthError) => {
                 // reset active renewals
-                window.activeRenewals[requestSignature] = null;
+                delete window.activeRenewals[requestSignature];
 
                 // for all promiseMappedtoRenewStates for a given 'state' - call the reject/resolve with error/token respectively
                 for (let i = 0; i < window.promiseMappedToRenewStates[expectedState].length; ++i) {
@@ -1019,8 +1027,8 @@ export class UserAgentApplication {
                 }
 
                 // reset
-                window.promiseMappedToRenewStates[expectedState] = null;
-                window.callbackMappedToRenewStates[expectedState] = null;
+                delete window.promiseMappedToRenewStates[expectedState];
+                delete window.callbackMappedToRenewStates[expectedState];
             };
         }
     }

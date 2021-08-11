@@ -159,7 +159,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
                 cacheContext = new TokenCacheContext(this, true);
                 await this.persistence.beforeCacheAccess(cacheContext);
             }
-            this.storage.removeAccount(AccountEntity.generateAccountCacheKey(account));
+            await this.storage.removeAccount(AccountEntity.generateAccountCacheKey(account));
         } finally {
             if (this.persistence && cacheContext) {
                 await this.persistence.afterCacheAccess(cacheContext);

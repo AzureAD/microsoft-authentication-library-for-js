@@ -19,11 +19,14 @@ import {
     CommonRefreshTokenRequest,
     CommonAuthorizationCodeRequest,
     CommonAuthorizationUrlRequest,
+    CommonUsernamePasswordRequest,
+    UsernamePasswordClient,
     AuthenticationScheme,
     ResponseMode,
     AuthorityOptions,
     OIDC_DEFAULT_SCOPES,
-    AzureRegionConfiguration
+    AzureRegionConfiguration,
+    AuthError
 } from "@azure/msal-common";
 import { Configuration, buildAppConfiguration } from "../config/Configuration";
 import { CryptoProvider } from "../crypto/CryptoProvider";
@@ -36,6 +39,7 @@ import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 import { RefreshTokenRequest } from "../request/RefreshTokenRequest";
 import { SilentFlowRequest } from "../request/SilentFlowRequest";
 import { version, name } from "../packageMetadata";
+import { UsernamePasswordRequest } from "../request/UsernamePasswordRequest";
 
 /**
  * Base abstract class for all ClientApplications - public and confidential
@@ -99,7 +103,7 @@ export abstract class ClientApplication {
             responseMode: request.responseMode || ResponseMode.QUERY,
             authenticationScheme: AuthenticationScheme.BEARER
         };
-        
+
         const authClientConfig = await this.buildOauthClientConfiguration(
             validRequest.authority,
             validRequest.correlationId
@@ -139,6 +143,9 @@ export abstract class ClientApplication {
             this.logger.verbose("Auth code client created", validRequest.correlationId);
             return authorizationCodeClient.acquireToken(validRequest);
         } catch (e) {
+            if (e instanceof AuthError) {
+                e.setCorrelationId(validRequest.correlationId);
+            }
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }
@@ -172,6 +179,9 @@ export abstract class ClientApplication {
             this.logger.verbose("Refresh token client created", validRequest.correlationId);
             return refreshTokenClient.acquireToken(validRequest);
         } catch (e) {
+            if (e instanceof AuthError) {
+                e.setCorrelationId(validRequest.correlationId);
+            }
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }
@@ -205,6 +215,44 @@ export abstract class ClientApplication {
             this.logger.verbose("Silent flow client created", validRequest.correlationId);
             return silentFlowClient.acquireToken(validRequest);
         } catch (e) {
+            if (e instanceof AuthError) {
+                e.setCorrelationId(validRequest.correlationId);
+            }
+            serverTelemetryManager.cacheFailedRequest(e);
+            throw e;
+        }
+    }
+
+    /**
+     * Acquires tokens with password grant by exchanging client applications username and password for credentials
+     *
+     * The latest OAuth 2.0 Security Best Current Practice disallows the password grant entirely.
+     * More details on this recommendation at https://tools.ietf.org/html/draft-ietf-oauth-security-topics-13#section-3.4
+     * Microsoft's documentation and recommendations are at:
+     * https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-authentication-flows#usernamepassword
+     *
+     * @param request - UsenamePasswordRequest
+     */
+    async acquireTokenByUsernamePassword(request: UsernamePasswordRequest): Promise<AuthenticationResult | null> {
+        this.logger.info("acquireTokenByUsernamePassword called", request.correlationId);
+        const validRequest: CommonUsernamePasswordRequest = {
+            ...request,
+            ...this.initializeBaseRequest(request)
+        };
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByUsernamePassword, validRequest.correlationId!);
+        try {
+            const usernamePasswordClientConfig = await this.buildOauthClientConfiguration(
+                validRequest.authority,
+                validRequest.correlationId,
+                serverTelemetryManager
+            );
+            const usernamePasswordClient = new UsernamePasswordClient(usernamePasswordClientConfig);
+            this.logger.verbose("Username password client created", validRequest.correlationId);
+            return usernamePasswordClient.acquireToken(validRequest);
+        } catch (e) {
+            if (e instanceof AuthError) {
+                e.setCorrelationId(validRequest.correlationId);
+            }
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }
@@ -244,6 +292,8 @@ export abstract class ClientApplication {
         this.logger.verbose(`building oauth client configuration with the authority: ${authority}`, requestCorrelationId);
 
         const discoveredAuthority = await this.createAuthority(authority, azureRegionConfiguration, requestCorrelationId);
+
+        serverTelemetryManager?.updateRegionDiscoveryMetadata(discoveredAuthority.regionDiscoveryMetadata);
 
         return {
             authOptions: {
@@ -335,7 +385,7 @@ export abstract class ClientApplication {
             knownAuthorities: this.config.auth.knownAuthorities!,
             cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata!,
             authorityMetadata: this.config.auth.authorityMetadata!,
-            azureRegionConfiguration 
+            azureRegionConfiguration
         };
         return await AuthorityFactory.createDiscoveredInstance(authorityString, this.config.system!.networkClient!, this.storage, authorityOptions);
     }

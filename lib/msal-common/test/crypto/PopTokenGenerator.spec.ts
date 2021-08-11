@@ -1,7 +1,12 @@
 import sinon from "sinon";
-import { ICrypto, PkceCodes, UrlString, SignedHttpRequest, TimeUtils, BaseAuthRequest, AuthenticationScheme } from "../../src";
 import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS } from "../test_kit/StringConstants";
 import { PopTokenGenerator } from "../../src/crypto/PopTokenGenerator";
+import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
+import { BaseAuthRequest } from "../../src/request/BaseAuthRequest";
+import { TimeUtils } from "../../src/utils/TimeUtils";
+import { UrlString } from "../../src/url/UrlString";
+import { AuthenticationScheme } from "../../src/utils/Constants";
+import { SignedHttpRequest } from "../../src/crypto/SignedHttpRequest";
 
 describe("PopTokenGenerator Unit Tests", () => {
 
@@ -50,6 +55,12 @@ describe("PopTokenGenerator Unit Tests", () => {
         },
         async signJwt(): Promise<string> {
             return "";
+        },
+        async removeTokenBindingKey(): Promise<boolean> {
+            return Promise.resolve(true);
+        },
+        async clearKeystore(): Promise<boolean> {
+            return Promise.resolve(true);
         }
     };
 

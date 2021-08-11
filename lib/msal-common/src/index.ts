@@ -23,6 +23,7 @@ export { AuthToken } from "./account/AuthToken";
 export { AuthToken as IdToken } from "./account/AuthToken";
 export { TokenClaims } from "./account/TokenClaims";
 export { TokenClaims as IdTokenClaims } from "./account/TokenClaims";
+export { CcsCredential, CcsCredentialType } from "./account/CcsCredential";
 // Authority
 export { Authority } from "./authority/Authority";
 export { AuthorityOptions } from "./authority/AuthorityOptions";
@@ -71,7 +72,9 @@ export { AuthenticationResult } from "./response/AuthenticationResult";
 export { AuthorizationCodePayload } from "./response/AuthorizationCodePayload";
 export { ServerAuthorizationCodeResponse } from "./response/ServerAuthorizationCodeResponse";
 export { ServerAuthorizationTokenResponse } from "./response/ServerAuthorizationTokenResponse";
+export { ExternalTokenResponse } from "./response/ExternalTokenResponse";
 export { DeviceCodeResponse } from "./response/DeviceCodeResponse";
+export { ScopeSet } from "./request/ScopeSet";
 // Logger Callback
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";
 // Errors

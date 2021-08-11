@@ -82,6 +82,7 @@ export type AuthOptions = {
  */
 export type SystemOptions = {
     tokenRenewalOffsetSeconds?: number;
+    preventCorsPreflight?: boolean;
 };
 
 /**
@@ -121,7 +122,8 @@ export type ClientCredentials = {
 };
 
 export const DEFAULT_SYSTEM_OPTIONS: Required<SystemOptions> = {
-    tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC
+    tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
+    preventCorsPreflight: false
 };
 
 const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {
@@ -177,11 +179,13 @@ export function buildClientConfiguration(
         persistencePlugin: persistencePlugin,
         serializableCache: serializableCache
     }: ClientConfiguration): CommonClientConfiguration {
-
+    
+    const loggerOptions = { ...DEFAULT_LOGGER_IMPLEMENTATION, ...userLoggerOption };
+    
     return {
         authOptions: buildAuthOptions(userAuthOptions),
         systemOptions: { ...DEFAULT_SYSTEM_OPTIONS, ...userSystemOptions },
-        loggerOptions: { ...DEFAULT_LOGGER_IMPLEMENTATION, ...userLoggerOption },
+        loggerOptions: loggerOptions,
         storageInterface: storageImplementation || new DefaultStorageClass(userAuthOptions.clientId, DEFAULT_CRYPTO_IMPLEMENTATION),
         networkInterface: networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
