@@ -50,7 +50,7 @@ const nonce = await fetchServerNonce();
 
 // Use MSAL to generate the pop token for the payload.
 // This popToken should be used immediately and not be cached by the application.
-const popToken = await signedHttpRequest.signPopToken(payload, publicKeyThumbprint, { nonce });
+const popToken = await signedHttpRequest.signRequest(payload, publicKeyThumbprint, { nonce });
 
 // Initiate http request using pop token
 const headers = new Headers();
