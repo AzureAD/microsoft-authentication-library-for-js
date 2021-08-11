@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "upn test fix",
+  "packageName": "@azure/msal-browser",
+  "email": "ellymakuba@gmail.com",
+  "dependentChangeType": "patch"
+}
