@@ -37,7 +37,7 @@ jobs:
 
       # Check out onto desired branch or tag to create release from
       - name: Checkout tag/branch
-        run: git checkout -b releasev3/${{ steps.date.outputs.date }}
+        run: git checkout -b releasev4/${{ steps.date.outputs.date }}
 
       # Install node_modules here
       - name: Use Node.js
@@ -52,9 +52,8 @@ jobs:
       - name: Retrieve version from package.json
         id: version
         run: |
-          ver=$(jq -r .name package.json)
+          ver=$(jq -r .version package.json)
           echo version: $ver
-          echo "::set-output name=version::$ver"
 
       - name: Commit changes
         run: |
@@ -62,20 +61,12 @@ jobs:
           git commit -m "Version bump"
 
       - name: Push to release branch
-        run: git push --set-upstream origin releasev3/${{ steps.date.outputs.date }}
-
-       # Push changes
-      - name: Push new branch
-        run: git push origin releasev3/${{ steps.date.outputs.date }}
+        run: git push --set-upstream origin releasev4/${{ steps.date.outputs.date }}
 
 
       - name: Commit and push changes
         uses: stefanzweifel/git-auto-commit-action@v4.7.2
         with:
-          commit_message: "Committing changes to the release branch"
-          author: ${{ github.actor }} 
+          commit_message: "Committing changes to the release branch:- ${{version}}"
+          commit_author: ${{ github.actor }} 
           branch: master
-          title: 'New release' 
-          body: |
-            New release 
-          draft: false
