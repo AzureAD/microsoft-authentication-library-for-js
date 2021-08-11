@@ -34,12 +34,21 @@ export class SignedHttpRequest {
      * @param claims Additional claims to include/override in the signed JWT 
      * @returns Pop token signed with the corresponding private key
      */
-    async signPopToken(payload: string, publicKeyThumbprint: string, claims?: object): Promise<string> {
+    async signRequest(payload: string, publicKeyThumbprint: string, claims?: object): Promise<string> {
         return this.popTokenGenerator.signPayload(
             payload, 
             publicKeyThumbprint,
             this.shrParameters, 
             claims
         );
+    }
+
+    /**
+     * Removes cached keys from browser for given public key thumbprint
+     * @param publicKeyThumbprint Public key digest (from generatePublicKeyThumbprint API)
+     * @returns If keys are properly deleted
+     */
+    async removeKeys(publicKeyThumbprint: string): Promise<boolean> {
+        return this.cryptoOpts.removeTokenBindingKey(publicKeyThumbprint);
     }
 }
