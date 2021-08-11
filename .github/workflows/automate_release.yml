@@ -37,7 +37,7 @@ jobs:
 
       # Check out onto desired branch or tag to create release from
       - name: Checkout tag/branch
-        run: git checkout -b releasev6/${{ steps.date.outputs.date }}
+        run: git checkout -b releasev7/${{ steps.date.outputs.date }}
 
       # Install node_modules here
       - name: Use Node.js
@@ -61,19 +61,19 @@ jobs:
           git commit -m "Version bump"
 
       - name: Push to release branch
-        run: git push --set-upstream origin releasev6/${{ steps.date.outputs.date }}
+        run: git push --set-upstream origin releasev7/${{ steps.date.outputs.date }}
 
 
       - name: Create Pull Request
         id: pr
         uses: peter-evans/create-pull-request@v3
         with:
-          base: releasev6/${{ steps.date.outputs.date }}
+          base: releasev7/${{ steps.date.outputs.date }}
           commit-message: Release ; version bump; PR->master
           committer: GitHub <noreply@github.com>
           author: ${{ github.actor }} <${{ github.actor }}@microsoft.com>
           branch: dev
-          title: 'Creating PR From :releasev6/${{ steps.date.outputs.date }}' 
+          title: 'Creating PR From :releasev7/${{ steps.date.outputs.date }}' 
           body: |
             New release PR
           draft: false
