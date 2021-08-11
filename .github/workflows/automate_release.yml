@@ -37,7 +37,7 @@ jobs:
 
       # Check out onto desired branch or tag to create release from
       - name: Checkout tag/branch
-        run: git checkout -b releasev4/${{ steps.date.outputs.date }}
+        run: git checkout -b releasev5/${{ steps.date.outputs.date }}
 
       # Install node_modules here
       - name: Use Node.js
@@ -61,12 +61,19 @@ jobs:
           git commit -m "Version bump"
 
       - name: Push to release branch
-        run: git push --set-upstream origin releasev4/${{ steps.date.outputs.date }}
+        run: git push --set-upstream origin releasev5/${{ steps.date.outputs.date }}
 
 
-      - name: Commit and push changes
-        uses: stefanzweifel/git-auto-commit-action@v4.7.2
+      - name: Create Pull Request
+        id: pr
+        uses: peter-evans/create-pull-request@v3
         with:
-            commit_message: "Committing changes to the release branch:- $ver"
-            commit_author: ${{ github.actor }} 
-            branch: master
+          base: releasev5/${{ steps.date.outputs.date }}
+          commit-message: Release ; version bump; PR->master
+          committer: GitHub <noreply@github.com>
+          author: ${{ github.actor }} <${{ github.actor }}@microsoft.com>
+          branch: master
+          title: 'Creating PR From :releasev5/${{ steps.date.outputs.date }}' 
+          body: |
+            New release PR
+          draft: false
