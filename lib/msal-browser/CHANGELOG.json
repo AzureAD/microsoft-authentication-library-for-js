@@ -2,6 +2,21 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 11 Aug 2021 21:11:46 GMT",
+      "tag": "@azure/msal-browser_v2.16.1",
+      "version": "2.16.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "comments added",
+            "author": "bmahal@microsoft.com",
+            "commit": "4ce5241abe89caa54204cbcc737c20d3055c56d4",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 22 Jul 2021 22:50:22 GMT",
       "tag": "@azure/msal-browser_v2.16.0",
       "version": "2.16.0",

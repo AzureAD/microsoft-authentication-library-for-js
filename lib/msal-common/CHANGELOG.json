@@ -2,6 +2,41 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 11 Aug 2021 21:11:46 GMT",
+      "tag": "@azure/msal-common_v4.6.0",
+      "version": "4.6.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "comments added in common",
+            "author": "bmahal@microsoft.com",
+            "commit": "4ce5241abe89caa54204cbcc737c20d3055c56d4",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "comment added",
+            "author": "bmahal@microsoft.com",
+            "commit": "f961a37bd2e30ace3f1e17e7395e4d2ea12589bc",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Fix double encoding state #3903",
+            "author": "bmahal@microsoft.com",
+            "commit": "6494db505a0fc525fcf09f187c5af787c8667bd8",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Adds state param to logout url #3909",
+            "author": "bmahal@microsoft.com",
+            "commit": "6494db505a0fc525fcf09f187c5af787c8667bd8",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 22 Jul 2021 22:50:22 GMT",
       "tag": "@azure/msal-common_v4.5.0",
       "version": "4.5.0",

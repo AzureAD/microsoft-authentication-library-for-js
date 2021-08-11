@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "comments added here",
-  "packageName": "@azure/msal-react",
-  "email": "bmahal@microsoft.com",
-  "dependentChangeType": "patch"
-}
