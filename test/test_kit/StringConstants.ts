@@ -5,7 +5,7 @@
 
 // This file contains the string constants used by the test classes.
 
-import { Constants } from "../../src/utils/Constants";
+import { AuthenticationScheme, Constants } from "../../src/utils/Constants";
 import { RequestThumbprint, ThrottlingEntity, AccountInfo } from "../../src";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 
@@ -44,7 +44,7 @@ export const ID_TOKEN_CLAIMS = {
     aud: "6cb04018-a3f5-46a7-b995-940c78f5aef3",
     exp: 1536361411,
     iat: 1536274711,
-    nbf: "1536274711",
+    nbf: 1536274711,
     name: "Abe Lincoln",
     preferred_username: "AbeLi@microsoft.com",
     oid: "00000000-0000-0000-66f3-3332eca7ea81",
@@ -68,7 +68,8 @@ export const TEST_DATA_CLIENT_INFO = {
     TEST_INVALID_JSON_CLIENT_INFO: "{\"uid\":\"123-test-uid\"\"utid\":\"456-test-utid\"}",
     TEST_RAW_CLIENT_INFO: "eyJ1aWQiOiIxMjMtdGVzdC11aWQiLCJ1dGlkIjoiNDU2LXRlc3QtdXRpZCJ9",
     TEST_CLIENT_INFO_B64ENCODED: "eyJ1aWQiOiIxMjM0NSIsInV0aWQiOiI2Nzg5MCJ9",
-    TEST_HOME_ACCOUNT_ID: "MTIzLXRlc3QtdWlk.NDU2LXRlc3QtdXRpZA==",
+    TEST_ENCODED_HOME_ACCOUNT_ID: "MTIzLXRlc3QtdWlk.NDU2LXRlc3QtdXRpZA==",
+    TEST_DECODED_HOME_ACCOUNT_ID: "123-test-uid.456-test-utid",
     TEST_LOCAL_ACCOUNT_ID: "00000000-0000-0000-66f3-3332eca7ea81s",
     TEST_CACHE_RAW_CLIENT_INFO: "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ==",
     TEST_CACHE_DECODED_CLIENT_INFO: "{\"uid\":\"uid\", \"utid\":\"utid\"}",
@@ -135,7 +136,8 @@ export const TEST_CONFIG = {
     TEST_OS: "win32",
     TEST_CPU: "x86",
     TEST_ASSERTION_TYPE: "jwt_bearer",
-    THE_FAMILY_ID: "1"
+    THE_FAMILY_ID: "1",
+    DEFAULT_TOKEN_RENEWAL_OFFSET: 300
 };
 
 export const RANDOM_TEST_GUID = "11553a9b-7116-48b1-9d48-f6d4a8ff8371";
@@ -321,7 +323,7 @@ export const B2C_OPENID_CONFIG_RESPONSE = {
 export const AUTHENTICATION_RESULT = {
     status: 200,
     body: {
-        "token_type": "Bearer",
+        "token_type": AuthenticationScheme.BEARER,
         "scope": "openid profile User.Read email",
         "expires_in": 3599,
         "ext_expires_in": 3599,
@@ -335,7 +337,7 @@ export const AUTHENTICATION_RESULT = {
 export const POP_AUTHENTICATION_RESULT = {
     status: 200,
     body: {
-        "token_type": "pop",
+        "token_type": AuthenticationScheme.POP,
         "scope": "openid profile User.Read email",
         "expires_in": 3599,
         "ext_expires_in": 3599,
@@ -349,7 +351,7 @@ export const POP_AUTHENTICATION_RESULT = {
 export const AUTHENTICATION_RESULT_WITH_FOCI = {
     status: 200,
     body: {
-        "token_type": "Bearer",
+        "token_type": AuthenticationScheme.BEARER,
         "scope": "openid profile User.Read email",
         "expires_in": 3599,
         "ext_expires_in": 3599,
@@ -364,7 +366,7 @@ export const AUTHENTICATION_RESULT_WITH_FOCI = {
 export const AUTHENTICATION_RESULT_DEFAULT_SCOPES = {
     status: 200,
     body: {
-        "token_type": "Bearer",
+        "token_type": AuthenticationScheme.BEARER,
         "scope": "openid profile offline_access User.Read",
         "expires_in": 3599,
         "ext_expires_in": 3599,
@@ -378,7 +380,7 @@ export const AUTHENTICATION_RESULT_DEFAULT_SCOPES = {
 export const CONFIDENTIAL_CLIENT_AUTHENTICATION_RESULT = {
     status: 200,
     body: {
-        "token_type": "Bearer",
+        "token_type": AuthenticationScheme.BEARER,
         "expires_in": 3599,
         "ext_expires_in": 3599,
         "access_token": "thisIs.an.accessT0ken",

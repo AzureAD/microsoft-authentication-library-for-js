@@ -28,7 +28,8 @@ import { ScopeSet } from "../../src/request/ScopeSet";
 import { CredentialCache } from "../../src/cache/utils/CacheTypes";
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ClientAuthError } from "../../src/error/ClientAuthError";
-import { ClientConfiguration, AuthenticationResult } from "../../src";
+import { AuthenticationResult } from "../../src/response/AuthenticationResult";
+import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 
 describe("OnBehalfOf unit tests", () => {
     let config: ClientConfiguration;
@@ -171,7 +172,7 @@ describe("OnBehalfOf unit tests", () => {
 
         // mock account
         const idToken: AuthToken = new AuthToken(TEST_TOKENS.IDTOKEN_V2, config.cryptoInterface!);
-        const expectedAccountEntity: AccountEntity = AccountEntity.createAccount(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, "123-test-uid.456-test-uid", config.authOptions.authority, idToken);
+        const expectedAccountEntity: AccountEntity = AccountEntity.createAccount(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, "123-test-uid.456-test-uid", idToken, config.authOptions.authority);
 
         sinon.stub(OnBehalfOfClient.prototype, <any>"readAccountFromCache").returns(expectedAccountEntity);
 

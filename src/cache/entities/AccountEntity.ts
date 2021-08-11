@@ -138,11 +138,12 @@ export class AccountEntity {
     static createAccount(
         clientInfo: string,
         homeAccountId: string,
-        authority: Authority,
         idToken: AuthToken,
+        authority?: Authority,
         oboAssertion?: string,
         cloudGraphHostName?: string,
-        msGraphHost?: string
+        msGraphHost?: string,
+        environment?: string
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
@@ -150,8 +151,9 @@ export class AccountEntity {
         account.clientInfo = clientInfo;
         account.homeAccountId = homeAccountId;
 
-        const env = authority.getPreferredCache();
-        if (StringUtils.isEmpty(env)) {
+        const env = environment || (authority && authority.getPreferredCache());
+
+        if (!env) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
         }
 
@@ -186,24 +188,25 @@ export class AccountEntity {
      * @param idToken
      */
     static createGenericAccount(
-        authority: Authority,
         homeAccountId: string,
         idToken: AuthToken,
+        authority?: Authority,
         oboAssertion?: string,
         cloudGraphHostName?: string,
-        msGraphHost?: string
+        msGraphHost?: string,
+        environment?: string
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
-        account.authorityType = (authority.authorityType === AuthorityType.Adfs) ? CacheAccountType.ADFS_ACCOUNT_TYPE : CacheAccountType.GENERIC_ACCOUNT_TYPE;
+        account.authorityType = (authority && authority.authorityType === AuthorityType.Adfs) ? CacheAccountType.ADFS_ACCOUNT_TYPE : CacheAccountType.GENERIC_ACCOUNT_TYPE;
         account.homeAccountId = homeAccountId;
         // non AAD scenarios can have empty realm
         account.realm = "";
         account.oboAssertion = oboAssertion;
 
-        const env = authority.getPreferredCache();
+        const env = environment || authority && authority.getPreferredCache();
 
-        if (StringUtils.isEmpty(env)) {
+        if (!env) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
         }
 
@@ -245,10 +248,12 @@ export class AccountEntity {
 
         // for cases where there is clientInfo
         if (serverClientInfo) {
-            const clientInfo = buildClientInfo(serverClientInfo, cryptoObj);
-            if (!StringUtils.isEmpty(clientInfo.uid) && !StringUtils.isEmpty(clientInfo.utid)) {
-                return `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`;
-            }
+            try {
+                const clientInfo = buildClientInfo(serverClientInfo, cryptoObj);
+                if (!StringUtils.isEmpty(clientInfo.uid) && !StringUtils.isEmpty(clientInfo.utid)) {
+                    return `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`;
+                }
+            } catch (e) {}
         }
 
         // default to "sub" claim
