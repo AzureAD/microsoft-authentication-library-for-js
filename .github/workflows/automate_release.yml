@@ -67,6 +67,6 @@ jobs:
       - name: Commit and push changes
         uses: stefanzweifel/git-auto-commit-action@v4.7.2
         with:
-            commit_message: "Committing changes to the release branch:- ${{version}}"
+            commit_message: "Committing changes to the release branch:- $ver"
             commit_author: ${{ github.actor }} 
             branch: master
