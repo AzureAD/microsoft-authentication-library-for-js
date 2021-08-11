@@ -26,5 +26,5 @@ export type CommonAuthorizationCodeRequest = BaseAuthRequest & {
     codeVerifier?: string;
     tokenQueryParameters?: StringDict;
     clientInfo?: string;
-    ccsCredential?: CcsCredential;
+    ccsCredential?: CcsCredential; /* enter ccs credential here*/
 };
