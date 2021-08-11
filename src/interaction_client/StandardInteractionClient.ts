@@ -285,6 +285,9 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                     this.logger.verbose("No SSO params used and ADAL token retrieved, setting ADAL upn as loginHint");
                     validatedRequest.loginHint = adalIdToken.claims.upn;
                 }
+                else {
+                    this.logger.verbose("No SSO params used and ADAL token retrieved, however, no account hint claim found. Enable preferred_username or upn id token claim to get SSO.");
+                }
             }
         }
 
