@@ -64,4 +64,7 @@ const options = {
 const response = await fetch(resourceRequestUri, options);
 const json = await response.json();
 
+// Delete keys from cache
+await signedHttpRequest.removeKeys(publicKeyThumbprint);
+
 ```
