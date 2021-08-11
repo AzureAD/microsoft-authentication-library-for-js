@@ -25,6 +25,11 @@ jobs:
         id: date
         run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
 
+      - name: Setup bot git information
+        run: |
+          git config user.email "bmahal@microsoft.com"
+          git config user.name "bmahall"
+
       # Check-out repo
       - uses: actions/checkout@v2
         with:
