@@ -32,7 +32,7 @@ jobs:
 
       # Check out onto desired branch or tag to create release from
       - name: Checkout tag/branch
-        run: git checkout -b releasev2/${{ steps.date.outputs.date }}
+        run: git checkout -b releasev3/${{ steps.date.outputs.date }}
 
       # Install node_modules here
       - name: Use Node.js
@@ -57,11 +57,11 @@ jobs:
           git commit -m "Version bump"
 
       - name: Push to release branch
-        run: git push --set-upstream origin releasev2/${{ steps.date.outputs.date }}
+        run: git push --set-upstream origin releasev3/${{ steps.date.outputs.date }}
 
        # Push changes
       - name: Push new branch
-        run: git push origin release2/${{ steps.date.outputs.date }}
+        run: git push origin releasev3/${{ steps.date.outputs.date }}
 
 
       - name: Commit and push changes
