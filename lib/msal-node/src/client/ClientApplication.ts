@@ -25,7 +25,8 @@ import {
     ResponseMode,
     AuthorityOptions,
     OIDC_DEFAULT_SCOPES,
-    AzureRegionConfiguration
+    AzureRegionConfiguration,
+    AuthError
 } from "@azure/msal-common";
 import { Configuration, buildAppConfiguration } from "../config/Configuration";
 import { CryptoProvider } from "../crypto/CryptoProvider";
@@ -142,6 +143,9 @@ export abstract class ClientApplication {
             this.logger.verbose("Auth code client created", validRequest.correlationId);
             return authorizationCodeClient.acquireToken(validRequest);
         } catch (e) {
+            if (e instanceof AuthError) {
+                e.setCorrelationId(validRequest.correlationId);
+            }
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }
@@ -175,6 +179,9 @@ export abstract class ClientApplication {
             this.logger.verbose("Refresh token client created", validRequest.correlationId);
             return refreshTokenClient.acquireToken(validRequest);
         } catch (e) {
+            if (e instanceof AuthError) {
+                e.setCorrelationId(validRequest.correlationId);
+            }
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }
@@ -208,6 +215,9 @@ export abstract class ClientApplication {
             this.logger.verbose("Silent flow client created", validRequest.correlationId);
             return silentFlowClient.acquireToken(validRequest);
         } catch (e) {
+            if (e instanceof AuthError) {
+                e.setCorrelationId(validRequest.correlationId);
+            }
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }
@@ -240,6 +250,9 @@ export abstract class ClientApplication {
             this.logger.verbose("Username password client created", validRequest.correlationId);
             return usernamePasswordClient.acquireToken(validRequest);
         } catch (e) {
+            if (e instanceof AuthError) {
+                e.setCorrelationId(validRequest.correlationId);
+            }
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }

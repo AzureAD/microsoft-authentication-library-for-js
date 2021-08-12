@@ -2,7 +2,7 @@ import { Component } from "react";
 
 // Msal imports
 import { MsalAuthenticationTemplate, MsalContext } from "@azure/msal-react";
-import { InteractionType, InteractionStatus } from "@azure/msal-browser";
+import { InteractionType, InteractionStatus, InteractionRequiredAuthError } from "@azure/msal-browser";
 import { loginRequest } from "../authConfig";
 
 // Sample app imports
@@ -33,7 +33,14 @@ class ProfileContent extends Component {
 
     componentDidMount() {
         if (!this.state.graphData && this.context.inProgress === InteractionStatus.None) {
-            callMsGraph().then(response => this.setState({graphData: response}));
+            callMsGraph().then(response => this.setState({graphData: response})).catch((e) => {
+                if (e instanceof InteractionRequiredAuthError) {
+                    this.context.instance.acquireTokenRedirect({
+                        ...loginRequest,
+                        account: this.context.instance.getActiveAccount()
+                    });
+                }
+            });
         }
     }
   
