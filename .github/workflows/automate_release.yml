@@ -64,8 +64,8 @@ jobs:
           commit-message: Release ; version bump; PR->master
           committer: GitHub <noreply@github.com>
           author: ${{ github.actor }} <${{ github.actor }}@microsoft.com>
-          branch: releasev8/${{ steps.date.outputs.date }}
-          title: 'Creating PR From :releasev8/${{ steps.date.outputs.date }}' 
+          branch: releasev9/${{ steps.date.outputs.date }}
+          title: 'Creating PR From :releasev9/${{ steps.date.outputs.date }}' 
           body: |
             New release PR
           draft: false

@@ -36,7 +36,7 @@ export abstract class BaseClient {
     protected cacheManager: CacheManager;
 
     // Network Interface
-    protected networkClient: INetworkModule;
+    protected networkClient: INetworkModule; /* this is network interface */
 
     // Server Telemetry Manager
     protected serverTelemetryManager: ServerTelemetryManager | null;
