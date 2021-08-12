@@ -36,6 +36,9 @@ jobs:
           git config user.email "bmahal@microsoft.com"
           git config user.name "bmahall"
 
+      # Check out onto desired branch or tag to create release from
+      - name: Checkout tag/branch
+        run: git checkout -b releasev8/${{ steps.date.outputs.date }}
   
       # Install node_modules here
       - name: Use Node.js
