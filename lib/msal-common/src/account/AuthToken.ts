@@ -34,7 +34,7 @@ export class AuthToken {
      */
     static extractTokenClaims(encodedToken: string, crypto: ICrypto): TokenClaims {
 
-        const decodedToken: DecodedAuthToken = StringUtils.decodeAuthToken(encodedToken);
+        const decodedToken: DecodedAuthToken = StringUtils.decodeAuthToken(encodedToken); /* decode token */
 
         // token will be decoded to get the username
         try {
