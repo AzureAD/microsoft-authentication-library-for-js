@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Add SignedHttpRequest class",
+  "comment": "Add SignedHttpRequest class #3058",
   "packageName": "@azure/msal-browser",
   "email": "janutter@microsoft.com",
   "dependentChangeType": "patch"
