@@ -71,6 +71,12 @@ const cryptoInterface: ICrypto = {
     },
     async signJwt(): Promise<string> {
         return signedJwt;
+    },
+    async removeTokenBindingKey(): Promise<boolean> {
+        return Promise.resolve(true);
+    },
+    async clearKeystore(): Promise<boolean> {
+        return Promise.resolve(true);
     }
 };
 
