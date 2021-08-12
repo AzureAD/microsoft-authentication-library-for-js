@@ -8,12 +8,12 @@ import { PopTokenGenerator, SignedHttpRequestParameters } from "@azure/msal-comm
 
 export class SignedHttpRequest {
     private popTokenGenerator: PopTokenGenerator;
-    private cryptoOpts: CryptoOps;
+    private cryptoOps: CryptoOps;
     private shrParameters: SignedHttpRequestParameters;
 
     constructor(shrParameters: SignedHttpRequestParameters) {
-        this.cryptoOpts = new CryptoOps();
-        this.popTokenGenerator = new PopTokenGenerator(this.cryptoOpts);
+        this.cryptoOps = new CryptoOps();
+        this.popTokenGenerator = new PopTokenGenerator(this.cryptoOps);
         this.shrParameters = shrParameters;
     }
 
@@ -49,6 +49,6 @@ export class SignedHttpRequest {
      * @returns If keys are properly deleted
      */
     async removeKeys(publicKeyThumbprint: string): Promise<boolean> {
-        return this.cryptoOpts.removeTokenBindingKey(publicKeyThumbprint);
+        return this.cryptoOps.removeTokenBindingKey(publicKeyThumbprint);
     }
 }
