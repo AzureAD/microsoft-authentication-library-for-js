@@ -4,9 +4,9 @@ This sample demonstrates how to implement an MSAL Node [confidential client appl
 
 ## Prerequisites
 
-- ROPC grant cannot be used with personal Microsoft accounts
+- ROPC grant cannot be used with personal Microsoft accounts (MSA)
 - ROPC grant cannot be used if the user needs to perform multi-factor authentication
-- ROPC grant cannot be used with non-OpenID-compliant authorization servers (e.g. ADFS 2016)
+- MSAL Node supports ROPC only when the authorization server is OpenID-compliant (e.g. ADFS 2016 is supported, but WS-Federation is not).
 
 ## Setup
 

@@ -28,7 +28,9 @@ const cca = new msal.ConfidentialClientApplication(config);
 // With client credentials flows permissions need to be granted in the portal by a tenant administrator. 
 // The scope is always in the format "<resource>/.default"
 const clientCredentialRequest = {
-    scopes: ["https://graph.microsoft.com/.default"]
+    scopes: ["https://graph.microsoft.com/.default"],
+    azureRegion: "REGION_NAME", // (optional) specify the region you will deploy your application to here (e.g. "westus2")
+    skipCache: true, // (optional) this skips the cache and forces MSAL to get a new token from Azure AD
 };
 
 cca.acquireTokenByClientCredential(clientCredentialRequest).then((response) => {

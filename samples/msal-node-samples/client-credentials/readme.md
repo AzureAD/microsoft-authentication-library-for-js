@@ -2,7 +2,9 @@
 
 This sample demonstrates how to implement an MSAL Node [confidential client application](../../../lib/msal-node/docs/initialize-confidential-client-application.md) to acquire an access token with application permissions using the [OAuth 2.0 Client Credentials Grant](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-client-creds-grant-flow)
 
-The **Client Credentials** flow is most commonly used for a daemon or command line app that calls web APIs and does not have any user interaction.
+The **Client Credentials** flow is most commonly used for a daemon or a command-line app that calls web APIs and does not have any user interaction.
+
+MSAL Node also supports specifying a **regional authority** for acquiring tokens when using the client credentials flow. For more information on this, please refer to: [Regional Authorities](../../../lib/msal-node/docs/regional-authorities.md)
 
 ## Setup
 
@@ -42,16 +44,7 @@ const config = {
         clientId: "ENTER_CLIENT_ID",
         authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO",
         clientSecret: "ENTER_CLIENT_SECRET",
-    },
-    system: {
-        loggerOptions: {
-            loggerCallback(loglevel, message, containsPii) {
-                console.log(message);
-            },
-            piiLoggingEnabled: false,
-            logLevel: msal.LogLevel.Verbose,
-        }
-    }
+    }
 };
 ```
 

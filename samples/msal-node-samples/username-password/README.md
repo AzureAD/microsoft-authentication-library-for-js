@@ -8,7 +8,7 @@ See this flow at work: [MSAL.js Jest/Puppeteer Testing Example](../../msal-brows
 
 - ROPC grant cannot be used with personal Microsoft accounts
 - ROPC grant cannot be used if the user needs to perform multi-factor authentication
-- ROPC grant cannot be used with non-OpenID-compliant authorization servers (e.g. ADFS 2016)
+- MSAL Node supports ROPC only when the authorization server is OpenID-compliant (e.g. ADFS 2016 is supported, but WS-Federation is not).
 
 ## Setup
 
@@ -27,6 +27,8 @@ Locate the folder where `package.json` resides in your terminal. Then type:
    - Under **Supported account types**, select **Accounts in this organizational directory only**.
 1. Select **Register** to create the application.
 1. In the app's registration screen, find and note the **Application (client) ID** and **Directory (Tenant) ID**. You use these values in your app's configuration file(s) later.
+1. In the app's registration screen, select the **Authentication** blade to the left.
+   - In the **Advanced settings** section, flip the switch for **Treat application as a public client** to **Yes**.
 
 Before running the sample, you will need to replace the values in the configuration object:
 
