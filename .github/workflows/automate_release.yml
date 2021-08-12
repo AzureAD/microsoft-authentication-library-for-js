@@ -50,7 +50,7 @@ jobs:
       - name: Test Release
         run: |
           npm run beachball:bump
-          
+
       - name: Retrieve version from package.json
         id: version
         run: |
@@ -71,4 +71,3 @@ jobs:
           body: |
             New release PR
           draft: false
-          branch-suffix: timestamp
