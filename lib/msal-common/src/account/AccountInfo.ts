@@ -19,7 +19,7 @@ export type AccountInfo = {
     environment: string;
     tenantId: string;
     username: string;
-    localAccountId: string;
-    name?: string;
+    localAccountId: string; /* local acc id */
+    name?: string; /* name */
     idTokenClaims?: object;
 };

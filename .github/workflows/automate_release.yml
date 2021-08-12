@@ -36,8 +36,6 @@ jobs:
           git config user.email "bmahal@microsoft.com"
           git config user.name "bmahall"
 
-     
-  
       # Install node_modules here
       - name: Use Node.js
         uses: actions/setup-node@v2
@@ -47,7 +45,7 @@ jobs:
             cache: 'npm'
       - run: npm ci
 
-      - name: Test Release
+      - name: Bump versions
         run: |
           npm run beachball:bump
 
