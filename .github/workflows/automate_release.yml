@@ -46,14 +46,20 @@ jobs:
             cache: 'npm'
       - run: npm ci
 
-      - name: bump package versions
-        run: npm run beachball:bump
 
       - name: Retrieve version from package.json
         id: version
         run: |
           ver=$(jq -r .version package.json)
           echo version: $ver
+
+      - name: Commit changes
+        run: |
+          git add .
+          git commit -m "Version bump"
+
+      - name: Push to release branch
+        run: git push --set-upstream origin releasev8/${{ steps.date.outputs.date }}
 
 
       - name: Create Pull Request
