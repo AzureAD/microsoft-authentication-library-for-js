@@ -81,6 +81,29 @@ describe("SilentIframeClient", () => {
             });
         });
 
+        it("Unexpected non-msal errors do not add correlationId and browserStorage is cleaned", (done) => {
+            sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").resolves(testNavUrl);
+            const testError = {
+                errorCode: "Unexpected error",
+                errorDesc: "Unexpected error"
+            }
+            sinon.stub(SilentHandler.prototype, "monitorIframeForHash").rejects(testError);
+            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER
+            });
+            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+
+            silentIframeClient.acquireToken({
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                loginHint: "testLoginHint"
+            }).catch((e) => {
+                expect(e).toMatchObject(testError);
+                expect(e).not.toHaveProperty("correlationId");
+                done();
+            });
+        });
+
         it("successfully returns a token response (login_hint)", async () => {
             const testServerTokenResponse = {
                 token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
