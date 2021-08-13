@@ -25,7 +25,7 @@ export type PopupSize = {
 export type PopupPosition = {
     top: number;
     left: number;
-}
+};
 
 export class PopupUtils {
     private browserStorage: BrowserCacheManager;
