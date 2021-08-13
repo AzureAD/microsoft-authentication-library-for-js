@@ -138,6 +138,35 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
+    it("createPopupWindowAttributeError()", () => {
+        const err: BrowserAuthError = BrowserAuthError.createPopupWindowAttributeError();
+
+        expect(err instanceof BrowserAuthError).toBe(true);
+        expect(err instanceof AuthError).toBe(true);
+        expect(err instanceof Error).toBe(true);
+        expect(err.errorCode).toBe(BrowserAuthErrorMessage.popUpWindowAttributeError.code);
+        expect(err.errorMessage?.includes(BrowserAuthErrorMessage.popUpWindowAttributeError.desc)).toBe(true);
+        expect(err.message?.includes(BrowserAuthErrorMessage.popUpWindowAttributeError.desc)).toBe(true);
+        expect(err.name).toBe("BrowserAuthError");
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
+    });
+
+    it("createPopupWindowAttributeError() with error message", () => {
+        const testErrMessage = "Test Error message";
+        const err: BrowserAuthError = BrowserAuthError.createPopupWindowAttributeError(testErrMessage);
+
+        expect(err instanceof BrowserAuthError).toBe(true);
+        expect(err instanceof AuthError).toBe(true);
+        expect(err instanceof Error).toBe(true);
+        expect(err.errorCode).toBe(BrowserAuthErrorMessage.popUpWindowAttributeError.code);
+        expect(err.errorMessage?.includes(BrowserAuthErrorMessage.popUpWindowAttributeError.desc)).toBe(true);
+        expect(err.errorMessage?.includes(testErrMessage)).toBe(true);
+        expect(err.message?.includes(BrowserAuthErrorMessage.popUpWindowAttributeError.desc)).toBe(true);
+        expect(err.message?.includes(testErrMessage)).toBe(true);
+        expect(err.name).toBe("BrowserAuthError");
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
+    });
+
     it("createEmptyWindowCreatedError()", () => {
         const err: BrowserAuthError = BrowserAuthError.createEmptyWindowCreatedError();
 

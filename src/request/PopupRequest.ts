@@ -4,7 +4,7 @@
  */
 
 import { CommonAuthorizationUrlRequest } from "@azure/msal-common";
-import { PopupConfiguration } from "../utils/PopupUtils";
+import { PopupWindowAttributes } from "../utils/PopupUtils";
 
 /**
  * PopupRequest: Request object passed by user to retrieve a Code from the
@@ -29,9 +29,9 @@ import { PopupConfiguration } from "../utils/PopupUtils";
  * - tokenQueryParameters       - String to string map of custom query parameters added to the /token call
  * - claims                     - In cases where Azure AD tenant admin has enabled conditional access policies, and the policy has not been met, exceptions will contain claims that need to be consented to.
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
- * - popupConfiguration         - Configuration for height, width, top position, and left position of the popup window
+ * - popupWindowAttributes      - Optional popup window attributes. popupSize with height and width, and popupPosition with top and left can be set.
  */
 export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode"|"scopes"|"codeChallenge"|"codeChallengeMethod">> & {
     scopes: Array<string>;
-    popupConfiguration?: PopupConfiguration;
+    popupWindowAttributes?: PopupWindowAttributes;
 };
