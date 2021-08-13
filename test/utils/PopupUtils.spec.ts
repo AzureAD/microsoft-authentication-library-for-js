@@ -46,14 +46,14 @@ describe("PopupUtils Tests", () => {
     describe("openSizedPopup", () => {
         it("opens a popup with urlNavigate", () => {
             const windowOpenSpy = sinon.stub(window, "open");
-            PopupUtils.openSizedPopup("http://localhost/", "popup", {});
+            PopupUtils.openSizedPopup("http://localhost/", "popup", {}, testLogger);
 
             expect(windowOpenSpy.calledWith("http://localhost/", "popup")).toBe(true);
         });
 
         it("opens a popup with about:blank", () => {
             const windowOpenSpy = sinon.stub(window, "open");
-            PopupUtils.openSizedPopup("about:blank", "popup", {});
+            PopupUtils.openSizedPopup("about:blank", "popup", {}, testLogger);
 
             expect(windowOpenSpy.calledWith("about:blank", "popup")).toBe(true);
         });
@@ -70,14 +70,14 @@ describe("PopupUtils Tests", () => {
                 }
             };
             const windowOpenSpy = sinon.stub(window, "open");
-            PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
+            PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes, testLogger);
 
             expect(windowOpenSpy.calledWith("about:blank", "popup", `width=100, height=100, top=100, left=100, scrollbars=yes`)).toBe(true);
         });
 
         it("opens a popup with default size and position if empty object passed in for popupWindowAttributes", () => {
             const windowOpenSpy = sinon.stub(window, "open");
-            PopupUtils.openSizedPopup("about:blank", "popup", {});
+            PopupUtils.openSizedPopup("about:blank", "popup", {}, testLogger);
 
             expect(windowOpenSpy.calledWith("about:blank", "popup", `width=${testPopupWondowDefaults.width}, height=${testPopupWondowDefaults.height}, top=${testPopupWondowDefaults.top}, left=${testPopupWondowDefaults.left}, scrollbars=yes`)).toBe(true);
         });
@@ -94,7 +94,7 @@ describe("PopupUtils Tests", () => {
                 }
             };
             const windowOpenSpy = sinon.stub(window, "open");
-            PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
+            PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes, testLogger);
 
             expect(windowOpenSpy.calledWith("about:blank", "popup", `width=${testPopupWondowDefaults.width}, height=${testPopupWondowDefaults.height}, top=${testPopupWondowDefaults.top}, left=${testPopupWondowDefaults.left}, scrollbars=yes`)).toBe(true);
         });
@@ -107,7 +107,7 @@ describe("PopupUtils Tests", () => {
                 }
             };
             const windowOpenSpy = sinon.stub(window, "open");
-            PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
+            PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes, testLogger);
 
             expect(windowOpenSpy.calledWith("about:blank", "popup", `width=100, height=100, top=${testPopupWondowDefaults.top}, left=${testPopupWondowDefaults.left}, scrollbars=yes`)).toBe(true);
         });
@@ -120,77 +120,35 @@ describe("PopupUtils Tests", () => {
                 }
             };
             const windowOpenSpy = sinon.stub(window, "open");
-            PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
+            PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes, testLogger);
 
             expect(windowOpenSpy.calledWith("about:blank", "popup", `width=${testPopupWondowDefaults.width}, height=${testPopupWondowDefaults.height}, top=100, left=100, scrollbars=yes`)).toBe(true);
         });
 
-        it("throws an error when invalid popupSize height passed in", () => {
+        it("opens a popup with default size when invalid popupSize height and width passed in", () => {
             const testPopupWindowAttributes = {
                 popupSize: {
                     height: -1,
-                    width: 0,
+                    width: 99999,
                 }
             };
-            sinon.stub(window, "open");
+            const windowOpenSpy = sinon.stub(window, "open");
+            PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes, testLogger);
 
-            try {
-                PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
-            } catch (e) {
-                expect(e.errorCode).toBe(BrowserAuthErrorMessage.popupWindowAttributeError.code);
-                expect(e.errorMessage).toBe(`${BrowserAuthErrorMessage.popupWindowAttributeError.desc} Details: Invalid popup window size. Popup window should be smaller than parent window.`);
-            }
+            expect(windowOpenSpy.calledWith("about:blank", "popup", `width=${testPopupWondowDefaults.width}, height=${testPopupWondowDefaults.height}, top=${testPopupWondowDefaults.top}, left=${testPopupWondowDefaults.left}, scrollbars=yes`)).toBe(true);
         });
 
-        it("throws an error when invalid popupSize width passed in", () => {
-            const testPopupWindowAttributes = {
-                popupSize: {
-                    height: 100,
-                    width: 999999,
-                }
-            };
-            sinon.stub(window, "open");
-
-            try {
-                PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
-            } catch (e) {
-                expect(e.errorCode).toBe(BrowserAuthErrorMessage.popupWindowAttributeError.code);
-                expect(e.errorMessage).toBe(`${BrowserAuthErrorMessage.popupWindowAttributeError.desc} Details: Invalid popup window size. Popup window should be smaller than parent window.`);
-            }
-        });
-
-        it("throws an error when invalid popupPosition top passed in", () => {
+        it("opens a popup with default position when invalid popupPosition top and left passed in", () => {
             const testPopupWindowAttributes = {
                 popupPosition: {
                     top: -1,
-                    left: 100
+                    left: 99999
                 }
             };
-            sinon.stub(window, "open");
+            const windowOpenSpy = sinon.stub(window, "open");
+            PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes, testLogger);
 
-            try {
-                PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
-            } catch (e) {
-                expect(e.errorCode).toBe(BrowserAuthErrorMessage.popupWindowAttributeError.code);
-                expect(e.errorMessage).toBe(`${BrowserAuthErrorMessage.popupWindowAttributeError.desc} Details: Invalid popup window position. Popup window should not be positioned off-screen.`);
-            }
-        });
-
-        it("throws an error when invalid popupPosition left passed in", () => {
-            const testPopupWindowAttributes = {
-                popupPosition: {
-                    top: 100,
-                    left: 999999
-                }
-            };
-            sinon.stub(window, "open");
-
-            try {
-                PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
-            } catch (e) {
-                expect(e.errorCode).toBe(BrowserAuthErrorMessage.popupWindowAttributeError.code);
-                expect(e.errorMessage).toBe(`${BrowserAuthErrorMessage.popupWindowAttributeError.desc} Details: Invalid popup window position. Popup window should not be positioned off-screen.`);
-            }
+            expect(windowOpenSpy.calledWith("about:blank", "popup", `width=${testPopupWondowDefaults.width}, height=${testPopupWondowDefaults.height}, top=${testPopupWondowDefaults.top}, left=${testPopupWondowDefaults.left}, scrollbars=yes`)).toBe(true);
         });
     });
 

@@ -64,7 +64,7 @@ export class PopupUtils {
             } else if (typeof popup === "undefined") {
                 // Popup will be undefined if it was not passed in
                 this.logger.verbosePii(`Opening popup window to: ${urlNavigate}`);
-                popupWindow = PopupUtils.openSizedPopup(urlNavigate, popupName, popupWindowAttributes);
+                popupWindow = PopupUtils.openSizedPopup(urlNavigate, popupName, popupWindowAttributes, this.logger);
             }
 
             // Popup will be null if popups are blocked
@@ -92,7 +92,7 @@ export class PopupUtils {
      * @param popupWindowAttributes 
      * @returns 
      */
-    static openSizedPopup(urlNavigate: string, popupName: string, popupWindowAttributes: PopupWindowAttributes): Window|null {
+    static openSizedPopup(urlNavigate: string, popupName: string, popupWindowAttributes: PopupWindowAttributes, logger: Logger): Window|null {
         /**
          * adding winLeft and winTop to account for dual monitor
          * using screenLeft and screenTop for IE8 and earlier
@@ -107,14 +107,26 @@ export class PopupUtils {
         const winHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
 
         if (popupWindowAttributes.popupPosition) {
-            if (popupWindowAttributes.popupPosition.top < 0 || popupWindowAttributes.popupPosition.top > winHeight || popupWindowAttributes.popupPosition.left < 0 || popupWindowAttributes.popupPosition.top > winWidth) {
-                throw BrowserAuthError.createPopupWindowAttributeError("Invalid popup window position. Popup window should not be positioned off-screen.");
+            if (popupWindowAttributes.popupPosition.top < 0 || popupWindowAttributes.popupPosition.top > winHeight) {
+                logger.error("Invalid popup window position. Popup window should not be positioned off-screen.");
+                popupWindowAttributes.popupPosition.top = 0;
+            }
+
+            if (popupWindowAttributes.popupPosition.left < 0 || popupWindowAttributes.popupPosition.left > winWidth) {
+                logger.error("Invalid popup window position. Popup window should not be positioned off-screen.");
+                popupWindowAttributes.popupPosition.left = 0;
             }
         }
 
         if (popupWindowAttributes.popupSize) {
-            if (popupWindowAttributes.popupSize.height < 0 || popupWindowAttributes.popupSize.height > winHeight || popupWindowAttributes.popupSize.width < 0 || popupWindowAttributes.popupSize.width > winWidth) {
-                throw BrowserAuthError.createPopupWindowAttributeError("Invalid popup window size. Popup window should be smaller than parent window.");
+            if (popupWindowAttributes.popupSize.height < 0 || popupWindowAttributes.popupSize.height > winHeight) {
+                logger.error("Invalid popup window size. Popup window height should be smaller than parent window.");
+                popupWindowAttributes.popupSize.height = 0;
+            }
+
+            if (popupWindowAttributes.popupSize.width < 0 || popupWindowAttributes.popupSize.width > winWidth) {
+                logger.error("Invalid popup window size. Popup window width should be smaller than parent window.");
+                popupWindowAttributes.popupSize.width = 0;
             }
         }
 
