@@ -34,7 +34,7 @@ export class PopupClient extends StandardInteractionClient {
             } else {
                 // asyncPopups flag is set to false. Opens popup before acquiring token.
                 this.logger.verbose("asyncPopup set to false, opening popup before acquiring token");
-                const popup = PopupUtils.openSizedPopup("about:blank", popupName, popupWindowAttributes);
+                const popup = PopupUtils.openSizedPopup("about:blank", popupName, popupWindowAttributes, this.logger);
                 return this.acquireTokenPopupAsync(validRequest, popupName, popupWindowAttributes, popup);
             }
         } catch (e) {
@@ -64,7 +64,7 @@ export class PopupClient extends StandardInteractionClient {
             } else {
                 // asyncPopups flag is set to false. Opens popup before logging out.
                 this.logger.verbose("asyncPopup set to false, opening popup");
-                const popup = PopupUtils.openSizedPopup("about:blank", popupName, popupWindowAttributes);
+                const popup = PopupUtils.openSizedPopup("about:blank", popupName, popupWindowAttributes, this.logger);
                 return this.logoutPopupAsync(validLogoutRequest, popupName, popupWindowAttributes, authority, popup, mainWindowRedirectUri);
             }
         } catch (e) {
