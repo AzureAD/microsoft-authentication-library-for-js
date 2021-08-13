@@ -137,8 +137,8 @@ describe("PopupUtils Tests", () => {
             try {
                 PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
             } catch (e) {
-                expect(e.errorCode).toBe(BrowserAuthErrorMessage.popUpWindowAttributeError.code);
-                expect(e.errorMessage).toBe(`${BrowserAuthErrorMessage.popUpWindowAttributeError.desc} Details: Invalid popup window size. Popup window should be smaller than parent window.`);
+                expect(e.errorCode).toBe(BrowserAuthErrorMessage.popupWindowAttributeError.code);
+                expect(e.errorMessage).toBe(`${BrowserAuthErrorMessage.popupWindowAttributeError.desc} Details: Invalid popup window size. Popup window should be smaller than parent window.`);
             }
         });
 
@@ -154,8 +154,8 @@ describe("PopupUtils Tests", () => {
             try {
                 PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
             } catch (e) {
-                expect(e.errorCode).toBe(BrowserAuthErrorMessage.popUpWindowAttributeError.code);
-                expect(e.errorMessage).toBe(`${BrowserAuthErrorMessage.popUpWindowAttributeError.desc} Details: Invalid popup window size. Popup window should be smaller than parent window.`);
+                expect(e.errorCode).toBe(BrowserAuthErrorMessage.popupWindowAttributeError.code);
+                expect(e.errorMessage).toBe(`${BrowserAuthErrorMessage.popupWindowAttributeError.desc} Details: Invalid popup window size. Popup window should be smaller than parent window.`);
             }
         });
 
@@ -171,8 +171,8 @@ describe("PopupUtils Tests", () => {
             try {
                 PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
             } catch (e) {
-                expect(e.errorCode).toBe(BrowserAuthErrorMessage.popUpWindowAttributeError.code);
-                expect(e.errorMessage).toBe(`${BrowserAuthErrorMessage.popUpWindowAttributeError.desc} Details: Invalid popup window position. Popup window should not be positioned off-screen.`);
+                expect(e.errorCode).toBe(BrowserAuthErrorMessage.popupWindowAttributeError.code);
+                expect(e.errorMessage).toBe(`${BrowserAuthErrorMessage.popupWindowAttributeError.desc} Details: Invalid popup window position. Popup window should not be positioned off-screen.`);
             }
         });
 
@@ -188,8 +188,8 @@ describe("PopupUtils Tests", () => {
             try {
                 PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
             } catch (e) {
-                expect(e.errorCode).toBe(BrowserAuthErrorMessage.popUpWindowAttributeError.code);
-                expect(e.errorMessage).toBe(`${BrowserAuthErrorMessage.popUpWindowAttributeError.desc} Details: Invalid popup window position. Popup window should not be positioned off-screen.`);
+                expect(e.errorCode).toBe(BrowserAuthErrorMessage.popupWindowAttributeError.code);
+                expect(e.errorMessage).toBe(`${BrowserAuthErrorMessage.popupWindowAttributeError.desc} Details: Invalid popup window position. Popup window should not be positioned off-screen.`);
             }
         });
     });

@@ -49,11 +49,11 @@ export const BrowserAuthErrorMessage = {
         code: "interaction_in_progress",
         desc: "Interaction is currently in progress. Please ensure that this interaction has been completed before calling an interactive API.  For more visit: aka.ms/msaljs/browser-errors."
     },
-    popUpWindowError: {
+    popupWindowError: {
         code: "popup_window_error",
         desc: "Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser."
     },
-    popUpWindowAttributeError: {
+    popupWindowAttributeError: {
         code: "popup_window_attribute_error",
         desc: "Error opening popup window due to invalid attributes."
     },
@@ -253,9 +253,9 @@ export class BrowserAuthError extends AuthError {
      * @param errDetail 
      */
     static createPopupWindowError(errDetail?: string): BrowserAuthError {
-        let errorMessage = BrowserAuthErrorMessage.popUpWindowError.desc;
+        let errorMessage = BrowserAuthErrorMessage.popupWindowError.desc;
         errorMessage = !StringUtils.isEmpty(errDetail) ? `${errorMessage} Details: ${errDetail}` : errorMessage;
-        return new BrowserAuthError(BrowserAuthErrorMessage.popUpWindowError.code, errorMessage);
+        return new BrowserAuthError(BrowserAuthErrorMessage.popupWindowError.code, errorMessage);
     }
 
     /**
@@ -263,9 +263,9 @@ export class BrowserAuthError extends AuthError {
      * @param errDetail 
      */
     static createPopupWindowAttributeError(errDetail?: string): BrowserAuthError {
-        let errorMessage = BrowserAuthErrorMessage.popUpWindowAttributeError.desc;
+        let errorMessage = BrowserAuthErrorMessage.popupWindowAttributeError.desc;
         errorMessage = !StringUtils.isEmpty(errDetail) ? `${errorMessage} Details: ${errDetail}` : errorMessage;
-        return new BrowserAuthError(BrowserAuthErrorMessage.popUpWindowAttributeError.code, errorMessage);
+        return new BrowserAuthError(BrowserAuthErrorMessage.popupWindowAttributeError.code, errorMessage);
     }
 
     /**
