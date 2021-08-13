@@ -258,11 +258,15 @@ A popup window's position and dimension can be configured by passing the height,
 ```javascript
 const loginRequest = {
     scopes: ["user.read", "mail.send"],
-    popupConfiguration: {
-        height: 100,
-        width: 100,
-        top: 100,
-        left: 100
+    popupWindowAttributes: {
+        popupSize: {
+            height: 100,
+            width: 100
+        },
+        popupPosition: {
+            top: 100,
+            left: 100
+        }
     }
 };
 

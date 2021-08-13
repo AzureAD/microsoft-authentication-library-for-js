@@ -259,7 +259,7 @@ export class BrowserAuthError extends AuthError {
     }
 
     /**
-     * Creates an error thrown when the popup window could not be opened because invalid attributes passed in request.
+     * Creates an error thrown when the popup window is not opened because invalid attributes passed in request.
      * @param errDetail 
      */
     static createPopupWindowAttributeError(errDetail?: string): BrowserAuthError {

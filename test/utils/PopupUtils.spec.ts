@@ -43,7 +43,7 @@ describe("PopupUtils Tests", () => {
         sinon.restore();
     });
     
-    describe.only("openSizedPopup", () => {
+    describe("openSizedPopup", () => {
         it("opens a popup with urlNavigate", () => {
             const windowOpenSpy = sinon.stub(window, "open");
             PopupUtils.openSizedPopup("http://localhost/", "popup", {});
@@ -73,6 +73,13 @@ describe("PopupUtils Tests", () => {
             PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
 
             expect(windowOpenSpy.calledWith("about:blank", "popup", `width=100, height=100, top=100, left=100, scrollbars=yes`)).toBe(true);
+        });
+
+        it("opens a popup with default size and position if empty object passed in for popupWindowAttributes", () => {
+            const windowOpenSpy = sinon.stub(window, "open");
+            PopupUtils.openSizedPopup("about:blank", "popup", {});
+
+            expect(windowOpenSpy.calledWith("about:blank", "popup", `width=${testPopupWondowDefaults.width}, height=${testPopupWondowDefaults.height}, top=${testPopupWondowDefaults.top}, left=${testPopupWondowDefaults.left}, scrollbars=yes`)).toBe(true);
         });
 
         it("opens a popup with default size and position if attributes are set to zero", () => {
