@@ -29,7 +29,7 @@ import { ClientAuthError } from "../../error/ClientAuthError";
  */
 export class RefreshTokenEntity extends CredentialEntity {
     familyId?: string;
-    tokenType?: string;
+    tokenType?: AuthenticationScheme;
     stkKid?: string; // Session Transport Key Key ID for Bound Refresh Tokens
     skKid?: string; // Session Key Key ID for Bound Refresh Tokens
 
@@ -54,7 +54,7 @@ export class RefreshTokenEntity extends CredentialEntity {
         oboAssertion?: string,
         stkKid?: string,
         skKid?: string,
-        tokenType?: string
+        tokenType?: AuthenticationScheme
     ): RefreshTokenEntity {
         const rtEntity = new RefreshTokenEntity();
 

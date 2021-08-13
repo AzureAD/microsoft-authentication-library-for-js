@@ -145,6 +145,14 @@ export const BrowserAuthErrorMessage = {
         code: "failed_to_parse_response",
         desc: "Failed to parse network response. Check network trace."
     },
+    unableToLoadTokenError: {
+        code: "unable_to_load_token",
+        desc: "Error loading token to cache."
+    },
+    signingKeyNotFoundInStorage: {
+        code: "crypto_key_not_found",
+        desc: "Cryptographic Key or Keypair not found in browser storage."
+    },
     missingStkKid: {
         code: "no_stk_kid_in_request",
         desc: "Failed to decrypt bound token response because the token request does not contain the session transport key thumbprint."
@@ -429,10 +437,24 @@ export class BrowserAuthError extends AuthError {
     }
 
     /**
+     * Create an error thrown when the necessary information is not available to sideload tokens
+     */
+    static createUnableToLoadTokenError(errorDetail: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.unableToLoadTokenError.code, `${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | ${errorDetail}`);
+    }
+ 
+    /**
      * Create an error when stk kid is not part of the request
      */
     static createMissingStkKidError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.missingStkKid.code, BrowserAuthErrorMessage.missingStkKid.desc);
+    }
+
+    /**
+     * Create an error thrown when the queried cryptographic key is not found in IndexedDB
+     */
+    static createSigningKeyNotFoundInStorageError(keyId: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code, `${BrowserAuthErrorMessage.signingKeyNotFoundInStorage.desc} | No match found for KeyId: ${keyId}`);
     }
 
     /**

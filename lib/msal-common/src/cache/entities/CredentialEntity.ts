@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Separators, CredentialType, CacheType, Constants } from "../../utils/Constants";
+import { Separators, CredentialType, CacheType, Constants, AuthenticationScheme } from "../../utils/Constants";
 import { ClientAuthError } from "../../error/ClientAuthError";
 
 /**
@@ -11,7 +11,7 @@ import { ClientAuthError } from "../../error/ClientAuthError";
  *
  * Key:Value Schema:
  *
- * Key: <home_account_id*>-<environment>-<credential_type>-<client_id>-<realm*>-<target*>
+ * Key: <home_account_id*>-<environment>-<credential_type>-<client_id>-<realm*>-<target*>-<scheme>
  *
  * Value Schema:
  * {
@@ -24,7 +24,7 @@ import { ClientAuthError } from "../../error/ClientAuthError";
  *      realm: Full tenant or organizational identifier that the account belongs to
  *      target: Permissions that are included in the token, or for refresh tokens, the resource identifier.
  *      oboAssertion: access token passed in as part of OBO request
- *      tokenType: Authentication scheme under which the credential (access or refresh token) was issued (pop or Bearer).
+ *      tokenType: Matches the authentication scheme for which the token was issued (i.e. Bearer or pop)
  * }
  */
 export class CredentialEntity {
@@ -37,7 +37,7 @@ export class CredentialEntity {
     realm?: string;
     target?: string;
     oboAssertion?: string;
-    tokenType?: string;
+    tokenType?: AuthenticationScheme;
 
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
@@ -127,6 +127,7 @@ export class CredentialEntity {
 
     /**
      * generates credential key
+     * <home_account_id*>-\<environment>-<credential_type>-<client_id>-<realm\*>-<target\*>-<scheme\*>
      */
     static generateCredentialCacheKey(
         homeAccountId: string,
@@ -136,14 +137,18 @@ export class CredentialEntity {
         realm?: string,
         target?: string,
         familyId?: string,
-        tokenType?: string
+        tokenType?: AuthenticationScheme
     ): string {
         const credentialKey = [
             this.generateAccountIdForCacheKey(homeAccountId, environment),
             this.generateCredentialIdForCacheKey(credentialType, clientId, realm, familyId),
-            this.generateTargetForCacheKey(target),
-            this.generateSchemeForCacheKey(credentialType, tokenType)
+            this.generateTargetForCacheKey(target)
         ];
+
+        // PoP Tokens include scheme in cache key
+        if (tokenType === AuthenticationScheme.POP) {
+            credentialKey.push(tokenType.toLowerCase());
+        }
 
         return credentialKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
     }
@@ -172,16 +177,15 @@ export class CredentialEntity {
         credentialType: CredentialType,
         clientId: string,
         realm?: string,
-        familyId?: string,
-        tokenType?: string
+        familyId?: string
     ): string {
         let clientOrFamilyId: string = "";
         if (credentialType === CredentialType.REFRESH_TOKEN ||
             credentialType === CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME) {
-                clientOrFamilyId = familyId || clientId;
-            } else {
-                clientOrFamilyId = clientId;
-            }
+            clientOrFamilyId = familyId || clientId;
+        } else {
+            clientOrFamilyId = clientId;
+        }
         const credentialId: Array<string> = [
             credentialType,
             clientOrFamilyId,
@@ -197,18 +201,4 @@ export class CredentialEntity {
     private static generateTargetForCacheKey(scopes?: string): string {
         return (scopes || "").toLowerCase();
     }
-
-    /**
-     * Generates scheme key component as per schema: <-scheme>
-     */
-     private static generateSchemeForCacheKey(credentialType: string, tokenType?: string): string {
-        const authScheme =
-            ((credentialType === CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME
-                || credentialType === CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME)
-                && tokenType)
-                ? tokenType
-                : "";
-
-        return authScheme.toLowerCase();
-     }
 }

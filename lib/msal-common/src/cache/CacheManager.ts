@@ -5,7 +5,7 @@
 
 import { AccountCache, AccountFilter, CredentialFilter, CredentialCache, ValidCredentialType, AppMetadataFilter, AppMetadataCache } from "./utils/CacheTypes";
 import { CacheRecord } from "./entities/CacheRecord";
-import { CacheSchemaType, CredentialType, Constants, APP_METADATA, THE_FAMILY_ID, AUTHORITY_METADATA_CONSTANTS, AuthenticationScheme } from "../utils/Constants";
+import { CacheSchemaType, CredentialType, Constants, APP_METADATA, THE_FAMILY_ID, AUTHORITY_METADATA_CONSTANTS, AuthenticationScheme, CryptoKeyTypes } from "../utils/Constants";
 import { CredentialEntity } from "./entities/CredentialEntity";
 import { ScopeSet } from "../request/ScopeSet";
 import { AccountEntity } from "./entities/AccountEntity";
@@ -159,7 +159,7 @@ export abstract class CacheManager implements ICacheManager {
     /**
      * Function which clears cache.
      */
-    abstract clear(): void;
+    abstract clear(): Promise<void>;
 
     /**
      * Returns all accounts in cache
@@ -190,7 +190,7 @@ export abstract class CacheManager implements ICacheManager {
      * saves a cache record
      * @param cacheRecord
      */
-    saveCacheRecord(cacheRecord: CacheRecord): void {
+    async saveCacheRecord(cacheRecord: CacheRecord): Promise<void> {
         if (!cacheRecord) {
             throw ClientAuthError.createNullOrUndefinedCacheRecord();
         }
@@ -204,7 +204,7 @@ export abstract class CacheManager implements ICacheManager {
         }
 
         if (!!cacheRecord.accessToken) {
-            this.saveAccessToken(cacheRecord.accessToken);
+            await this.saveAccessToken(cacheRecord.accessToken);
         }
 
         if (!!cacheRecord.refreshToken) {
@@ -220,23 +220,28 @@ export abstract class CacheManager implements ICacheManager {
      * saves access token credential
      * @param credential
      */
-    private saveAccessToken(credential: AccessTokenEntity): void {
+    private async saveAccessToken(credential: AccessTokenEntity): Promise<void> {
         const currentTokenCache = this.getCredentialsFilteredBy({
             clientId: credential.clientId,
             credentialType: credential.credentialType,
             environment: credential.environment,
             homeAccountId: credential.homeAccountId,
             realm: credential.realm,
+            tokenType: credential.tokenType
         });
+
         const currentScopes = ScopeSet.fromString(credential.target);
         const currentAccessTokens: AccessTokenEntity[] = Object.keys(currentTokenCache.accessTokens).map(key => currentTokenCache.accessTokens[key]);
+
         if (currentAccessTokens) {
+            const removedAccessTokens: Array<Promise<boolean>> = [];
             currentAccessTokens.forEach((tokenEntity) => {
                 const tokenScopeSet = ScopeSet.fromString(tokenEntity.target);
                 if (tokenScopeSet.intersectingScopeSets(currentScopes)) {
-                    this.removeCredential(tokenEntity);
+                    removedAccessTokens.push(this.removeCredential(tokenEntity));
                 }
             });
+            await Promise.all(removedAccessTokens);
         }
         this.setAccessTokenCredential(credential);
     }
@@ -314,7 +319,8 @@ export abstract class CacheManager implements ICacheManager {
             filter.familyId,
             filter.realm,
             filter.target,
-            filter.oboAssertion
+            filter.oboAssertion,
+            filter.tokenType
         );
     }
 
@@ -326,6 +332,8 @@ export abstract class CacheManager implements ICacheManager {
      * @param clientId
      * @param realm
      * @param target
+     * @param oboAssertion
+     * @param tokenType
      */
     private getCredentialsFilteredByInternal(
         homeAccountId?: string,
@@ -335,7 +343,8 @@ export abstract class CacheManager implements ICacheManager {
         familyId?: string,
         realm?: string,
         target?: string,
-        oboAssertion?: string
+        oboAssertion?: string,
+        tokenType?: AuthenticationScheme
     ): CredentialCache {
         const allCacheKeys = this.getKeys();
         const matchingCredentials: CredentialCache = {
@@ -393,6 +402,19 @@ export abstract class CacheManager implements ICacheManager {
              */
             if (!!target && !this.matchTarget(entity, target)) {
                 return;
+            }
+
+            if (credentialType === CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME) {
+                if(!!tokenType && !this.matchTokenType(entity, tokenType)) {
+                    return;
+                }
+
+                // This check avoids matching outdated POP tokens that don't have the <-scheme> in the cache key
+                if(cacheKey.indexOf(AuthenticationScheme.POP) === -1) {
+                    // AccessToken_With_AuthScheme that doesn't have pop in the key is outdated
+                    this.removeItem(cacheKey, CacheSchemaType.CREDENTIAL);
+                    return;
+                }
             }
 
             switch (credType) {
@@ -499,16 +521,19 @@ export abstract class CacheManager implements ICacheManager {
     /**
      * Removes all accounts and related tokens from cache.
      */
-    removeAllAccounts(): boolean {
+    async removeAllAccounts(): Promise<boolean> {
         const allCacheKeys = this.getKeys();
+        const removedAccounts: Array<Promise<boolean>> = [];
+
         allCacheKeys.forEach((cacheKey) => {
             const entity = this.getAccount(cacheKey);
             if (!entity) {
                 return;
             }
-            this.removeAccount(cacheKey);
+            removedAccounts.push(this.removeAccount(cacheKey));
         });
-
+        
+        await Promise.all(removedAccounts);
         return true;
     }
 
@@ -516,21 +541,23 @@ export abstract class CacheManager implements ICacheManager {
      * returns a boolean if the given account is removed
      * @param account
      */
-    removeAccount(accountKey: string): boolean {
+    async removeAccount(accountKey: string): Promise<boolean> {
         const account = this.getAccount(accountKey);
         if (!account) {
             throw ClientAuthError.createNoAccountFoundError();
         }
-        return (this.removeAccountContext(account) && this.removeItem(accountKey, CacheSchemaType.ACCOUNT));
+        return (await this.removeAccountContext(account) && this.removeItem(accountKey, CacheSchemaType.ACCOUNT));
     }
 
     /**
      * returns a boolean if the given account is removed
      * @param account
      */
-    removeAccountContext(account: AccountEntity): boolean {
+    async removeAccountContext(account: AccountEntity): Promise<boolean> {
         const allCacheKeys = this.getKeys();
         const accountId = account.generateAccountId();
+        const removedCredentials: Array<Promise<boolean>> = [];
+
         allCacheKeys.forEach((cacheKey) => {
             // don't parse any non-credential type cache entities
             const credType = CredentialEntity.getCredentialType(cacheKey);
@@ -540,10 +567,11 @@ export abstract class CacheManager implements ICacheManager {
             const cacheEntity = this.getSpecificCredential(cacheKey, credType);
 
             if (!!cacheEntity && accountId === cacheEntity.generateAccountId()) {
-                this.removeCredential(cacheEntity);
+                removedCredentials.push(this.removeCredential(cacheEntity));
             }
         });
 
+        await Promise.all(removedCredentials);
         return true;
     }
 
@@ -551,8 +579,37 @@ export abstract class CacheManager implements ICacheManager {
      * returns a boolean if the given credential is removed
      * @param credential
      */
-    removeCredential(credential: CredentialEntity): boolean {
+    async removeCredential(credential: CredentialEntity): Promise<boolean> {
         const key = credential.generateCredentialKey();
+
+        // Remove Token Binding Key from key store for AT Auth Scheme Credentials
+        if (credential.credentialType.toLowerCase() === CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase()) {
+            const accessTokenWithAuthSchemeEntity = credential as AccessTokenEntity;
+            const kid = accessTokenWithAuthSchemeEntity.keyId;
+
+            if (kid) {
+                try {
+                    await this.cryptoImpl.removeTokenBindingKey(kid, CryptoKeyTypes.req_cnf);
+                } catch (error) {
+                    throw ClientAuthError.createBindingKeyNotRemovedError();
+                }
+            }
+        }
+
+        // Remove Token Binding Keys from key store for RT with Auth Scheme Credentials
+        if (credential.credentialType.toLowerCase() === CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME.toLowerCase()) {
+            const refreshTokenWithAuthSchemeEntity = credential as RefreshTokenEntity;
+            const kid = refreshTokenWithAuthSchemeEntity.stkKid;
+
+            if (kid) {
+                try {
+                    await this.cryptoImpl.removeTokenBindingKey(kid, CryptoKeyTypes.stk_jwk);
+                } catch (error) {
+                    throw ClientAuthError.createBindingKeyNotRemovedError();
+                }
+            }
+        }
+
         return this.removeItem(key, CacheSchemaType.CREDENTIAL);
     }
 
@@ -643,6 +700,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param authScheme
      */
     readAccessTokenFromCache(clientId: string, account: AccountInfo, scopes: ScopeSet, authScheme: AuthenticationScheme): AccessTokenEntity | null {
+        // Distinguish between Bearer and PoP token cache types
         const credentialType = (authScheme === AuthenticationScheme.POP) ? CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME : CredentialType.ACCESS_TOKEN;
 
         const accessTokenFilter: CredentialFilter = {
@@ -652,12 +710,13 @@ export abstract class CacheManager implements ICacheManager {
             clientId,
             realm: account.tenantId,
             target: scopes.printScopesLowerCase(),
+            tokenType: authScheme
         };
 
         const credentialCache: CredentialCache = this.getCredentialsFilteredBy(accessTokenFilter);
 
         const accessTokens = Object.keys(credentialCache.accessTokens).map((key) => credentialCache.accessTokens[key]);
-
+        
         const numAccessTokens = accessTokens.length;
         if (numAccessTokens < 1) {
             return null;
@@ -820,6 +879,15 @@ export abstract class CacheManager implements ICacheManager {
     }
 
     /**
+     * Returns true if the credential's tokenType or Authentication Scheme matches the one in the request, false otherwise
+     * @param entity 
+     * @param tokenType 
+     */
+    private matchTokenType(entity: CredentialEntity, tokenType: AuthenticationScheme): boolean {
+        return !!(entity.tokenType && entity.tokenType === tokenType);
+    }
+
+    /**
      * returns if a given cache entity is of the type appmetadata
      * @param key
      */
@@ -959,7 +1027,7 @@ export class DefaultStorageClass extends CacheManager {
         const notImplErr = "Storage interface - getKeys() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
-    clear(): void {
+    async clear(): Promise<void> {
         const notImplErr = "Storage interface - clear() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }

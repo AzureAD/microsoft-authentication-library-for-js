@@ -28,7 +28,8 @@ const msalConfig = {
                         console.warn(message);	
                         return;	
                 }
-            }
+            },
+            logLevel: msal.LogLevel.Verbose
         }
     }
 };

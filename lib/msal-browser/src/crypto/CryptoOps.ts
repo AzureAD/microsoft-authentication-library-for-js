@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { BaseAuthRequest, ICrypto, PkceCodes, SignedHttpRequest, ServerAuthorizationTokenResponse, BoundServerAuthorizationTokenResponse } from "@azure/msal-common";
+import { BaseAuthRequest, ICrypto, CryptoKeyTypes, PkceCodes, SignedHttpRequest, ServerAuthorizationTokenResponse, BoundServerAuthorizationTokenResponse } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
@@ -12,8 +12,9 @@ import { BrowserCrypto } from "./BrowserCrypto";
 import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { DBTableNames } from "../utils/BrowserConstants";
-import { CryptoKeyFormats, CryptoKeyTypes, CRYPTO_KEY_CONFIG } from "../utils/CryptoConstants";
+import { CryptoKeyFormats, CRYPTO_KEY_CONFIG } from "../utils/CryptoConstants";
 import { BoundTokenResponse } from "./BoundTokenResponse";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export type CachedKeyPair = {
     publicKey: CryptoKey,
@@ -96,7 +97,7 @@ export class CryptoOps implements ICrypto {
         let keyOptions: CryptoKeyOptions;
 
         switch(keyType) {
-            case CryptoKeyTypes.STK_JWK:
+            case CryptoKeyTypes.stk_jwk:
                 keyOptions = CRYPTO_KEY_CONFIG.RT_BINDING;
                 break;
             default:
@@ -141,6 +142,28 @@ export class CryptoOps implements ICrypto {
     }
 
     /**
+     * Removes cryptographic keypair from key store matching the keyId passed in
+     * @param kid 
+     */
+    async removeTokenBindingKey(kid: string, keyType: CryptoKeyTypes): Promise<boolean> {
+        // Remove asymmetric keypair
+        let keysRemoved = await this.cache.delete(DBTableNames.asymmetricKeys, kid);
+
+        if(keyType === CryptoKeyTypes.stk_jwk) {
+            keysRemoved = keysRemoved && await this.cache.delete(DBTableNames.symmetricKeys, kid);
+        }
+
+        return keysRemoved;
+    }
+
+    /**
+     * Removes all cryptographic keys from IndexedDB storage
+     */
+    async clearKeystore(): Promise<boolean> {
+        return this.cache.clear();
+    }
+
+    /**
      * Signs the given object as a jwt payload with private key retrieved by given kid.
      * @param payload 
      * @param kid 
@@ -148,6 +171,10 @@ export class CryptoOps implements ICrypto {
     async signJwt(payload: SignedHttpRequest, kid: string): Promise<string> {
         // Get keypair from cache
         const cachedKeyPair: CachedKeyPair = await this.cache.get<CachedKeyPair>(DBTableNames.asymmetricKeys, kid);
+            
+        if (!cachedKeyPair) {
+            throw BrowserAuthError.createSigningKeyNotFoundInStorageError(kid);
+        }
 
         // Get public key as JWK
         const publicKeyJwk = await this.browserCrypto.exportJwk(cachedKeyPair.publicKey);

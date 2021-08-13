@@ -72,6 +72,12 @@ const cryptoInterface: ICrypto = {
     async signJwt(): Promise<string> {
         return signedJwt;
     },
+    async removeTokenBindingKey(): Promise<boolean> {
+        return Promise.resolve(true);
+    },
+    async clearKeystore(): Promise<boolean> {
+        return Promise.resolve(true);
+    },
     async getAsymmetricPublicKey(): Promise<string> {
         return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT
     },
