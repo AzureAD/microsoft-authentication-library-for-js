@@ -4,7 +4,7 @@
  */
 
 import { CommonEndSessionRequest } from "@azure/msal-common";
-import { PopupConfiguration } from "../utils/PopupUtils";
+import { PopupWindowAttributes } from "../utils/PopupUtils";
 
 /**
  * EndSessionPopupRequest
@@ -14,10 +14,10 @@ import { PopupConfiguration } from "../utils/PopupUtils";
  * - correlationId          - Unique GUID set per request to trace a request end-to-end for telemetry purposes.
  * - idTokenHint            - ID Token used by B2C to validate logout if required by the policy
  * - mainWindowRedirectUri  - URI to navigate the main window to after logout is complete
- * - popupConfiguration     - Configuration for height, width, top position, and left position of the popup window
+ * - popupWindowAttributes  - Optional popup window attributes. popupSize with height and width, and popupPosition with top and left can be set.
  */
 export type EndSessionPopupRequest = Partial<CommonEndSessionRequest> & {
     authority?: string;
     mainWindowRedirectUri?: string;
-    popupConfiguration?: PopupConfiguration;
+    popupWindowAttributes?: PopupWindowAttributes;
 };

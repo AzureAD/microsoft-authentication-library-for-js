@@ -8,7 +8,7 @@ import { PopupUtils } from "../../src/utils/PopupUtils";
 import { AccountInfo, AuthenticationScheme, Logger, LogLevel, ResponseMode } from "@azure/msal-common";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { TEST_CONFIG } from "./StringConstants";
-import { BrowserCacheLocation } from "../../src";
+import { BrowserAuthErrorMessage, BrowserCacheLocation } from "../../src";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 
@@ -31,37 +31,159 @@ const browserCrypto = new CryptoOps();
 
 const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
 
+const testPopupWondowDefaults = {
+    height: BrowserConstants.POPUP_HEIGHT,
+    width: BrowserConstants.POPUP_WIDTH,
+    top: 84,
+    left: 270.5
+};
+
 describe("PopupUtils Tests", () => {
     afterEach(() => {
         sinon.restore();
     });
     
-    describe("openSizedPopup", () => {
+    describe.only("openSizedPopup", () => {
         it("opens a popup with urlNavigate", () => {
             const windowOpenSpy = sinon.stub(window, "open");
-            PopupUtils.openSizedPopup("http://localhost/", "popup");
+            PopupUtils.openSizedPopup("http://localhost/", "popup", {});
 
             expect(windowOpenSpy.calledWith("http://localhost/", "popup")).toBe(true);
         });
 
         it("opens a popup with about:blank", () => {
             const windowOpenSpy = sinon.stub(window, "open");
-            PopupUtils.openSizedPopup("about:blank", "popup");
+            PopupUtils.openSizedPopup("about:blank", "popup", {});
 
             expect(windowOpenSpy.calledWith("about:blank", "popup")).toBe(true);
         });
 
-        it("opens a popup with dimensions and position from popupConfig", () => {
-            const testPopupConfig = {
-                height: 100,
-                width: 100,
-                top: 100,
-                left: 100
+        it("opens a popup with popupWindowAttributes set", () => {
+            const testPopupWindowAttributes = {
+                popupSize: {
+                    height: 100,
+                    width: 100,
+                },
+                popupPosition: {
+                    top: 100,
+                    left: 100
+                }
             };
             const windowOpenSpy = sinon.stub(window, "open");
-            PopupUtils.openSizedPopup("about:blank", "popup", testPopupConfig);
+            PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
 
             expect(windowOpenSpy.calledWith("about:blank", "popup", `width=100, height=100, top=100, left=100, scrollbars=yes`)).toBe(true);
+        });
+
+        it("opens a popup with default size and position if attributes are set to zero", () => {
+            const testPopupWindowAttributes = {
+                popupSize: {
+                    height: 0,
+                    width: 0,
+                },
+                popupPosition: {
+                    top: 0,
+                    left: 0
+                }
+            };
+            const windowOpenSpy = sinon.stub(window, "open");
+            PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
+
+            expect(windowOpenSpy.calledWith("about:blank", "popup", `width=${testPopupWondowDefaults.width}, height=${testPopupWondowDefaults.height}, top=${testPopupWondowDefaults.top}, left=${testPopupWondowDefaults.left}, scrollbars=yes`)).toBe(true);
+        });
+
+        it("opens a popup with set popupSize and default popupPosition", () => {
+            const testPopupWindowAttributes = {
+                popupSize: {
+                    height: 100,
+                    width: 100,
+                }
+            };
+            const windowOpenSpy = sinon.stub(window, "open");
+            PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
+
+            expect(windowOpenSpy.calledWith("about:blank", "popup", `width=100, height=100, top=${testPopupWondowDefaults.top}, left=${testPopupWondowDefaults.left}, scrollbars=yes`)).toBe(true);
+        });
+
+        it("opens a popup with set popupPosition and default popupSize", () => {
+            const testPopupWindowAttributes = {
+                popupPosition: {
+                    top: 100,
+                    left: 100
+                }
+            };
+            const windowOpenSpy = sinon.stub(window, "open");
+            PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
+
+            expect(windowOpenSpy.calledWith("about:blank", "popup", `width=${testPopupWondowDefaults.width}, height=${testPopupWondowDefaults.height}, top=100, left=100, scrollbars=yes`)).toBe(true);
+        });
+
+        it("throws an error when invalid popupSize height passed in", () => {
+            const testPopupWindowAttributes = {
+                popupSize: {
+                    height: -1,
+                    width: 0,
+                }
+            };
+            sinon.stub(window, "open");
+
+            try {
+                PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
+            } catch (e) {
+                expect(e.errorCode).toBe(BrowserAuthErrorMessage.popUpWindowAttributeError.code);
+                expect(e.errorMessage).toBe(`${BrowserAuthErrorMessage.popUpWindowAttributeError.desc} Details: Invalid popup window size. Popup window should be smaller than parent window.`);
+            }
+        });
+
+        it("throws an error when invalid popupSize width passed in", () => {
+            const testPopupWindowAttributes = {
+                popupSize: {
+                    height: 100,
+                    width: 999999,
+                }
+            };
+            sinon.stub(window, "open");
+
+            try {
+                PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
+            } catch (e) {
+                expect(e.errorCode).toBe(BrowserAuthErrorMessage.popUpWindowAttributeError.code);
+                expect(e.errorMessage).toBe(`${BrowserAuthErrorMessage.popUpWindowAttributeError.desc} Details: Invalid popup window size. Popup window should be smaller than parent window.`);
+            }
+        });
+
+        it("throws an error when invalid popupPosition top passed in", () => {
+            const testPopupWindowAttributes = {
+                popupPosition: {
+                    top: -1,
+                    left: 100
+                }
+            };
+            sinon.stub(window, "open");
+
+            try {
+                PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
+            } catch (e) {
+                expect(e.errorCode).toBe(BrowserAuthErrorMessage.popUpWindowAttributeError.code);
+                expect(e.errorMessage).toBe(`${BrowserAuthErrorMessage.popUpWindowAttributeError.desc} Details: Invalid popup window position. Popup window should not be positioned off-screen.`);
+            }
+        });
+
+        it("throws an error when invalid popupPosition left passed in", () => {
+            const testPopupWindowAttributes = {
+                popupPosition: {
+                    top: 100,
+                    left: 999999
+                }
+            };
+            sinon.stub(window, "open");
+
+            try {
+                PopupUtils.openSizedPopup("about:blank", "popup", testPopupWindowAttributes);
+            } catch (e) {
+                expect(e.errorCode).toBe(BrowserAuthErrorMessage.popUpWindowAttributeError.code);
+                expect(e.errorMessage).toBe(`${BrowserAuthErrorMessage.popUpWindowAttributeError.desc} Details: Invalid popup window position. Popup window should not be positioned off-screen.`);
+            }
         });
     });
 
@@ -81,7 +203,7 @@ describe("PopupUtils Tests", () => {
                     done();
                 }
             }
-            popupUtils.openPopup("http://localhost", "name", popupWindow);
+            popupUtils.openPopup("http://localhost", "name", {}, popupWindow);
             popupUtils.unloadWindow(new Event("test"));
         });
     });

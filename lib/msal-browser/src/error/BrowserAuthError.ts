@@ -53,6 +53,10 @@ export const BrowserAuthErrorMessage = {
         code: "popup_window_error",
         desc: "Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser."
     },
+    popUpWindowAttributeError: {
+        code: "popup_window_attribute_error",
+        desc: "Error opening popup window due to invalid attributes."
+    },
     emptyWindowError: {
         code: "empty_window_error",
         desc: "window.open returned null or undefined window object."
@@ -252,6 +256,16 @@ export class BrowserAuthError extends AuthError {
         let errorMessage = BrowserAuthErrorMessage.popUpWindowError.desc;
         errorMessage = !StringUtils.isEmpty(errDetail) ? `${errorMessage} Details: ${errDetail}` : errorMessage;
         return new BrowserAuthError(BrowserAuthErrorMessage.popUpWindowError.code, errorMessage);
+    }
+
+    /**
+     * Creates an error thrown when the popup window could not be opened because invalid attributes passed in request.
+     * @param errDetail 
+     */
+    static createPopupWindowAttributeError(errDetail?: string): BrowserAuthError {
+        let errorMessage = BrowserAuthErrorMessage.popUpWindowAttributeError.desc;
+        errorMessage = !StringUtils.isEmpty(errDetail) ? `${errorMessage} Details: ${errDetail}` : errorMessage;
+        return new BrowserAuthError(BrowserAuthErrorMessage.popUpWindowAttributeError.code, errorMessage);
     }
 
     /**
