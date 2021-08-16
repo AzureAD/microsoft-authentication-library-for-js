@@ -277,9 +277,16 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             if (adalIdTokenString) {
                 const adalIdToken = new IdToken(adalIdTokenString, this.browserCrypto);
                 this.browserStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
-                if (adalIdToken.claims && adalIdToken.claims.upn) {
+                if (adalIdToken.claims && adalIdToken.claims.preferred_username) {
+                    this.logger.verbose("No SSO params used and ADAL token retrieved, setting ADAL preferred_username as loginHint");
+                    validatedRequest.loginHint = adalIdToken.claims.preferred_username;
+                }
+                else if (adalIdToken.claims && adalIdToken.claims.upn) {
                     this.logger.verbose("No SSO params used and ADAL token retrieved, setting ADAL upn as loginHint");
                     validatedRequest.loginHint = adalIdToken.claims.upn;
+                }
+                else {
+                    this.logger.verbose("No SSO params used and ADAL token retrieved, however, no account hint claim found. Enable preferred_username or upn id token claim to get SSO.");
                 }
             }
         }
