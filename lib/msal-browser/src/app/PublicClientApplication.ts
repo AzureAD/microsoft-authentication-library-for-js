@@ -97,7 +97,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             homeAccountIdentifier: account.homeAccountId,
             authenticationScheme: request.authenticationScheme,
             resourceRequestMethod: request.resourceRequestMethod,
-            resourceRequestUri: request.resourceRequestUri
+            resourceRequestUri: request.resourceRequestUri,
+            shrClaims: request.shrClaims
         };
         const silentRequestKey = JSON.stringify(thumbprint);
         const cachedResponse = this.activeSilentTokenRequests.get(silentRequestKey);

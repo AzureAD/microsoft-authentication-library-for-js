@@ -16,4 +16,5 @@ export type RequestThumbprint = {
     authenticationScheme?: AuthenticationScheme;
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
+    shrClaims?: string;
 };
