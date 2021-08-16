@@ -40,6 +40,7 @@ export const testResult: AuthenticationResult = {
     idTokenClaims: {},
     accessToken: "test-access-token",
     fromCache: false,
+    correlationId: "test-correlation-id",
     expiresOn: new Date(Date.now() + (3600000)),
     account: testAccount,
     tokenType: "Bearer"

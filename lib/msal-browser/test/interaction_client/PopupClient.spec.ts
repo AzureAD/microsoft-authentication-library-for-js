@@ -8,7 +8,7 @@ import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, testNavUrl, TEST_STATE_VALUES } from "../utils/StringConstants";
 import { Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationUrlRequest, AuthorizationCodeClient, ResponseMode, AuthenticationScheme, ServerTelemetryEntity, AccountEntity, CommonEndSessionRequest, PersistentCacheKeys } from "@azure/msal-common";
 import { BrowserConstants, TemporaryCacheKeys, ApiId } from "../../src/utils/BrowserConstants";
-import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
+import { BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { NavigationClient } from "../../src/navigation/NavigationClient";
@@ -160,6 +160,7 @@ describe("PopupClient", () => {
                 idToken: testServerTokenResponse.id_token,
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.access_token,
+                correlationId: RANDOM_TEST_GUID,
                 fromCache: false,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                 account: testAccount,
