@@ -161,6 +161,7 @@ describe("PopupClient", () => {
                 idToken: testServerTokenResponse.id_token,
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.access_token,
+                correlationId: RANDOM_TEST_GUID,
                 fromCache: false,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                 account: testAccount,
