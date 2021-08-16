@@ -81,7 +81,7 @@ describe("PopupClient", () => {
             try {
                 await popupClient.acquireToken(request);
             } catch(e) {}
-            expect(popupSpy.getCall(0).args).toHaveLength(3);
+            expect(popupSpy.getCall(0).args).toHaveLength(4);
         });
 
         it("opens popups asynchronously if configured", async () => {
@@ -119,7 +119,7 @@ describe("PopupClient", () => {
                 await popupClient.acquireToken(request);
             } catch(e) {}
             expect(popupSpy.calledOnce).toBeTruthy();
-            expect(popupSpy.getCall(0).args).toHaveLength(3);
+            expect(popupSpy.getCall(0).args).toHaveLength(4);
             expect(popupSpy.getCall(0).args[0].startsWith(TEST_URIS.TEST_AUTH_ENDPT)).toBeTruthy();
             expect(popupSpy.getCall(0).args[0]).toContain(`client_id=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
             expect(popupSpy.getCall(0).args[0]).toContain(`redirect_uri=${encodeURIComponent(request.redirectUri)}`);
@@ -243,7 +243,7 @@ describe("PopupClient", () => {
             try {
                 await popupClient.logout();
             } catch(e) {}
-            expect(popupSpy.getCall(0).args).toHaveLength(3);
+            expect(popupSpy.getCall(0).args).toHaveLength(4);
         });
 
         it("opens popups asynchronously if configured", (done) => {
