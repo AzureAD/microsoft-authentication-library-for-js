@@ -387,6 +387,7 @@ export class ResponseHandler {
             accessToken: accessToken,
             fromCache: fromTokenCache,
             expiresOn: expiresOn,
+            correlationId: request.correlationId,
             extExpiresOn: extExpiresOn,
             familyId: familyId,
             tokenType: cacheRecord.accessToken?.tokenType || Constants.EMPTY_STRING,
