@@ -198,6 +198,7 @@ describe("ResponseHandler.ts", () => {
                 idTokenClaims: testIdTokenClaims,
                 accessToken: "",
                 fromCache: false,
+                correlationId: "CORRELATION_ID",
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -235,6 +236,7 @@ describe("ResponseHandler.ts", () => {
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testResponse.access_token || "",
                 fromCache: false,
+                correlationId: "CORRELATION_ID",
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -271,6 +273,7 @@ describe("ResponseHandler.ts", () => {
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testResponse.access_token || "",
                 fromCache: false,
+                correlationId: "CORRELATION_ID",
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
