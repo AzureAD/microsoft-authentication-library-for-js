@@ -94,7 +94,10 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             clientId: this.config.auth.clientId,
             authority: request.authority || "",
             scopes: request.scopes,
-            homeAccountIdentifier: account.homeAccountId
+            homeAccountIdentifier: account.homeAccountId,
+            authenticationScheme: request.authenticationScheme,
+            resourceRequestMethod: request.resourceRequestMethod,
+            resourceRequestUri: request.resourceRequestUri
         };
         const silentRequestKey = JSON.stringify(thumbprint);
         const cachedResponse = this.activeSilentTokenRequests.get(silentRequestKey);
