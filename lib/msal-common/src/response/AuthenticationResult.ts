@@ -32,6 +32,7 @@ export type AuthenticationResult = {
     fromCache: boolean;
     expiresOn: Date | null;
     tokenType: string;
+    correlationId: string;
     extExpiresOn?: Date;
     state?: string;
     familyId?: string;
