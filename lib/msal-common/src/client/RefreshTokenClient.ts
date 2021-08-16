@@ -122,6 +122,7 @@ export class RefreshTokenClient extends BaseClient {
             },
             stkKid: refreshToken.stkKid,
             skKid: refreshToken.skKid,
+            stkJwk: refreshToken.stkKid,
             tokenType: refreshToken.tokenType
         };
 
@@ -143,12 +144,13 @@ export class RefreshTokenClient extends BaseClient {
         
         // Check if the Refresh Token is bound
         const isBoundRefreshToken = request.tokenType === AuthenticationScheme.POP && request.stkKid && request.skKid;
-        
-        const requestBody = 
-            (isBoundRefreshToken) ? 
-                await this.createBoundTokenRequestBody(request) :
-                await this.createTokenRequestBody(request);
-        const body = `request=${requestBody}&grant_type=${GrantType.JWT_BEARER}`;
+        let body: string;
+        if (isBoundRefreshToken) {
+            const requestBody = await this.createBoundTokenRequestBody(request);
+            body = `request=${requestBody}&grant_type=${GrantType.JWT_BEARER}&client_info=1`;
+        } else {
+            body = await this.createTokenRequestBody(request);
+        }
 
         const queryParameters = this.createTokenQueryParameters(request);
         const headers: Record<string, string> = this.createTokenRequestHeaders(request.ccsCredential);
@@ -252,31 +254,29 @@ export class RefreshTokenClient extends BaseClient {
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
-        parameterBuilder.addScopes(request.scopes);
+        parameterBuilder.addScopesUnencoded(request.scopes);
 
         parameterBuilder.addGrantType(GrantType.REFRESH_TOKEN_GRANT);
 
-        // parameterBuilder.addClientInfo();
+        parameterBuilder.addRefreshToken(request.refreshToken);
 
-        // parameterBuilder.addLibraryInfo(this.config.libraryInfo);
-
-        // parameterBuilder.addThrottling();
-        
         // TODO: These are hardcoded
         parameterBuilder.addIssuer("https://login.microsoftonline.com/5d97b14d-c396-4aee-b524-c86d33e9b660/v2.0");
         parameterBuilder.addAudience("https://login.microsoftonline.com/");
         parameterBuilder.addExpiration(TimeUtils.nowSeconds() + 3000);
+
+        parameterBuilder.addClientInfo();
+
+        parameterBuilder.addLibraryInfo(this.config.libraryInfo);
+
+        parameterBuilder.addThrottling();
         
-        /*
-         * if (this.serverTelemetryManager) {
-         *     parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
-         * }
-         */
+        if (this.serverTelemetryManager) {
+            parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
+        }
 
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);
-
-        parameterBuilder.addRefreshToken(request.refreshToken);
 
         if (this.config.clientCredentials.clientSecret) {
             parameterBuilder.addClientSecret(this.config.clientCredentials.clientSecret);

@@ -123,11 +123,13 @@ export class ResponseHandler {
 
         let decryptedTokenResponse: ServerAuthorizationTokenResponse;
 
-        if (serverTokenResponse.session_key_jwe && serverTokenResponse.response_jwe && request.stkJwk) {
-            const boundServerTokenResponse: BoundServerAuthorizationTokenResponse = {
-                session_key_jwe: serverTokenResponse.session_key_jwe,
-                response_jwe: serverTokenResponse.response_jwe
-            };
+        // Bound token response handling
+        if (serverTokenResponse.response_jwe) {
+            const boundServerTokenResponse: BoundServerAuthorizationTokenResponse = { response_jwe: serverTokenResponse.response_jwe };
+            if(serverTokenResponse.session_key_jwe) {
+                boundServerTokenResponse.session_key_jwe = serverTokenResponse.session_key_jwe;
+            }
+
             try {
                 this.logger.verbose("Starting bound token response decryption");
                 decryptedTokenResponse = await this.cryptoObj.decryptBoundTokenResponse(boundServerTokenResponse, request);
@@ -227,7 +229,6 @@ export class ResponseHandler {
         if (StringUtils.isEmpty(env)) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
         }
-
         // IdToken: non AAD scenarios can have empty realm
         let cachedIdToken: IdTokenEntity | undefined;
         let cachedAccount: AccountEntity | undefined;

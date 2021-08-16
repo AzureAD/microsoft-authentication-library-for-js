@@ -4,6 +4,7 @@
  */
 
 import { INetworkModule, NetworkRequestOptions, NetworkResponse } from "@azure/msal-common";
+import { ContentTypes, HeaderNames } from "@azure/msal-common/dist/utils/Constants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { HTTP_REQUEST_TYPE } from "../utils/BrowserConstants";
 
@@ -69,14 +70,29 @@ export class FetchClient implements INetworkModule {
         }
 
         try {
+            const headers = this.getHeaderDict(response.headers);
             return {
-                headers: this.getHeaderDict(response.headers),
-                body: await response.json() as T,
+                headers: headers,
+                body: await this.parseBody<T>(headers, response),
                 status: response.status
             };
         } catch (e) {
             throw BrowserAuthError.createFailedToParseNetworkResponseError(url);
         }
+    }
+
+    private async parseBody<T>(headers: Record<string, string>, response: Response): Promise<T> {
+        const contentType = headers[HeaderNames.CONTENT_TYPE.toLowerCase()];
+
+        if (contentType.indexOf(ContentTypes.JSON) !== -1) {
+            return response.json() as Promise<T>;
+        }
+
+        if (contentType.indexOf(ContentTypes.JOSE) !== -1) {
+            return { response_jwe: await response.text() } as unknown as T;
+        }
+        
+        throw new Error("Unsupported content-type: " + contentType);
     }
 
     /**

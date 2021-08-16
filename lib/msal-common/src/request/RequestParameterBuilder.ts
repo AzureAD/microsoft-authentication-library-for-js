@@ -53,6 +53,12 @@ export class RequestParameterBuilder {
         this.parameters.set(AADServerParamKeys.SCOPE, encodeURIComponent(scopeSet.printScopes()));
     }
 
+    addScopesUnencoded(scopes: string[], addOidcScopes: boolean = true): void {
+        const requestScopes = addOidcScopes ? [...scopes || [], ...OIDC_DEFAULT_SCOPES] : scopes || [];
+        const scopeSet = new ScopeSet(requestScopes);
+        this.parameters.set(AADServerParamKeys.SCOPE, scopeSet.printScopes());
+    }
+
     /**
      * add clientId
      * @param clientId

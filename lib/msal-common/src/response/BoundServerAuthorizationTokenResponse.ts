@@ -18,5 +18,5 @@
  */
 export type BoundServerAuthorizationTokenResponse = {
     response_jwe: string;
-    session_key_jwe: string;
+    session_key_jwe?: string;
 };

@@ -17,14 +17,14 @@ import { KeyDerivation } from "./KeyDerivation";
  * The BoundTokenResponse class also exposes the APIs responsible for decrypting the Session Key JWE and Response components of a Bound Token Response.
  */
 export class BoundTokenResponse {
-    private sessionKeyJwe: JsonWebEncryption;
+    private sessionKeyJwe: JsonWebEncryption | null;
     private responseJwe: JsonWebEncryption;
     private keyDerivation: KeyDerivation;
     private keyStore: DatabaseStorage;
     private keyId: string;
 
     constructor(boundTokenResponse: BoundServerAuthorizationTokenResponse, request: BaseAuthRequest, keyStore: DatabaseStorage) {
-        this.sessionKeyJwe = new JsonWebEncryption(boundTokenResponse.session_key_jwe);
+        this.sessionKeyJwe = (boundTokenResponse.session_key_jwe) ? new JsonWebEncryption(boundTokenResponse.session_key_jwe) : null;
         this.responseJwe = new JsonWebEncryption(boundTokenResponse.response_jwe);
         this.keyDerivation = new KeyDerivation(CryptoLengths.DERIVED_KEY, CryptoLengths.PRF_OUTPUT, CryptoLengths.COUNTER);
         this.keyStore = keyStore;
@@ -55,12 +55,18 @@ export class BoundTokenResponse {
      */
     private async getSessionKey(unwrappingKey: CryptoKey): Promise<CryptoKey> {
         // Unwrap Content Encryption Key from Session Key JWE
-        const contentEncryptionKey = await this.sessionKeyJwe.unwrap(
-            unwrappingKey,
-            KEY_USAGES.RT_BINDING.DERIVATION_KEY
-        );
+        let contentEncryptionKey: CryptoKey;
+        
+        if (this.sessionKeyJwe) {
+            contentEncryptionKey = await this.sessionKeyJwe.unwrap(
+                unwrappingKey,
+                KEY_USAGES.RT_BINDING.DERIVATION_KEY
+            );
+            await this.keyStore.put<CryptoKey>(DBTableNames.symmetricKeys, this.keyId, contentEncryptionKey);
 
-        await this.keyStore.put<CryptoKey>(DBTableNames.symmetricKeys, this.keyId, contentEncryptionKey);
+        } else {
+            contentEncryptionKey = await this.keyStore.get(DBTableNames.symmetricKeys, this.keyId);
+        }
         
         // Derive Session Key
         const sessionKeyBytes = await this.keyDerivation.computeKDFInCounterMode(

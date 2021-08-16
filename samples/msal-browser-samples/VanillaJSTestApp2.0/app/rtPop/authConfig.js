@@ -31,7 +31,7 @@ const msalConfig = {
                         return;	
                 }
             },
-            level: msal.LogLevel.Verbose
+            logLevel: msal.LogLevel.Verbose
         }
     }
 };

@@ -67,6 +67,11 @@ export enum HeaderNames {
     CCS_HEADER = "X-AnchorMailbox"
 }
 
+export enum ContentTypes {
+    JSON = "application/json",
+    JOSE = "application/jose"
+}
+
 /**
  * Persistent cache keys MSAL which stay while user is logged in.
  */
