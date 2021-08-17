@@ -43,7 +43,7 @@ export class CryptoOps implements ICrypto {
 
     private static EXTRACTABLE: boolean = true;
 
-    private static DB_VERSION = 1;
+    private static DB_VERSION = 2;
     private static DB_NAME = "msal.db";
     private static TABLE_NAMES = [DBTableNames.asymmetricKeys, DBTableNames.symmetricKeys];
     private cache: DatabaseStorage;

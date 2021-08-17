@@ -21,7 +21,7 @@ interface IDBRequestEvent extends Event {
 /**
  * Storage wrapper for IndexedDB storage in browsers: https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API
  */
-export class DatabaseStorage{
+export class DatabaseStorage {
     private db: IDBDatabase|undefined;
     private dbName: string;
     private tableNames: Array<DBTableNames>;
