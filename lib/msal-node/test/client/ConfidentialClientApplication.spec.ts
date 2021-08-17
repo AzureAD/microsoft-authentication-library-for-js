@@ -8,6 +8,7 @@ import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
 import { ClientCredentialRequest } from "../../src/request/ClientCredentialRequest";
 import { OnBehalfOfRequest } from "../../src/request/OnBehalfOfRequest";
 import { UsernamePasswordRequest } from '../../src/request/UsernamePasswordRequest';
+import { AuthError } from "@azure/msal-common";
 
 jest.mock('@azure/msal-common');
 
@@ -132,5 +133,27 @@ describe('ConfidentialClientApplication', () => {
         expect(UsernamePasswordClient).toHaveBeenCalledWith(
             expect.objectContaining(expectedConfig)
         );
+    });
+
+    test.only('acquireTokenByClientCredential handles AuthErrors as expected', async () => {
+        const request: ClientCredentialRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            skipCache: false
+        };
+
+        mocked(AuthorityFactory.createDiscoveredInstance).mockReturnValue(Promise.resolve(authority));
+        jest
+            .spyOn(ClientCredentialClient.prototype, 'acquireToken')
+            .mockImplementation(() => {
+                throw new AuthError();
+            });
+        
+        try {
+            const authApp = new ConfidentialClientApplication(appConfig);
+            await authApp.acquireTokenByClientCredential(request);
+        } catch (e) {
+            expect(e).toBeInstanceOf(AuthError);
+            expect(AuthError.prototype.setCorrelationId).toHaveBeenCalledTimes(1);
+        }
     });
 });
