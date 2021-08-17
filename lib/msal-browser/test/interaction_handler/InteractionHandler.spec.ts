@@ -25,7 +25,7 @@ import {
     ServerAuthorizationTokenResponse,
 } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES, TEST_POP_VALUES, TEST_STATE_VALUES, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES, TEST_POP_VALUES, TEST_STATE_VALUES, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES, RANDOM_TEST_GUID } from "../utils/StringConstants";
 import { BrowserAuthError } from "../../src/error/BrowserAuthError";
 import sinon from "sinon";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
@@ -219,6 +219,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 fromCache: false,
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000)),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
@@ -286,6 +287,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 fromCache: false,
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000)),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
