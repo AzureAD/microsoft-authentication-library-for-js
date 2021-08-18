@@ -3,7 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { StringUtils, CommonAuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient, AuthorityFactory, Authority, INetworkModule, ClientAuthError, CcsCredential, Logger } from "@azure/msal-common";
+import { AuthorizationCodePayload , StringUtils, CommonAuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient, AuthorityFactory, Authority, INetworkModule, ClientAuthError, CcsCredential, Logger } from "@azure/msal-common";
+
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -52,6 +53,47 @@ export abstract class InteractionHandler {
         }
         const authCodeResponse = this.authModule.handleFragmentResponse(locationHash, requestState);
 
+        // Get cached items
+        const nonceKey = this.browserStorage.generateNonceKey(requestState);
+        const cachedNonce = this.browserStorage.getTemporaryCache(nonceKey);
+
+        // Assign code to request
+        this.authCodeRequest.code = authCodeResponse.code;
+
+        // Check for new cloud instance
+        if (authCodeResponse.cloud_instance_host_name) {
+            await this.updateTokenEndpointAuthority(authCodeResponse.cloud_instance_host_name, authority, networkModule);
+        }
+
+        authCodeResponse.nonce = cachedNonce || undefined;
+        authCodeResponse.state = requestState;
+
+        // Add CCS parameters if available
+        if (authCodeResponse.client_info) {
+            this.authCodeRequest.clientInfo = authCodeResponse.client_info;
+        } else {
+            const cachedCcsCred = this.checkCcsCredentials();
+            if (cachedCcsCred) {
+                this.authCodeRequest.ccsCredential = cachedCcsCred;
+            }
+        }
+
+        // Acquire token with retrieved code.
+        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, authCodeResponse);
+        this.browserStorage.cleanRequestByState(state);
+        return tokenResponse;
+    }
+
+    async handleCodeResponseFromServer(authCodeResponse: AuthorizationCodePayload, state: string, authority: Authority, networkModule: INetworkModule): Promise<AuthenticationResult> {
+        this.browserRequestLogger.trace("InteractionHandler.handleCodeResponseFromServer called");
+
+        // Handle code response.
+        const stateKey = this.browserStorage.generateStateKey(state);
+        const requestState = this.browserStorage.getTemporaryCache(stateKey);
+        if (!requestState) {
+            throw ClientAuthError.createStateNotFoundError("Cached State");
+        }
+        
         // Get cached items
         const nonceKey = this.browserStorage.generateNonceKey(requestState);
         const cachedNonce = this.browserStorage.getTemporaryCache(nonceKey);

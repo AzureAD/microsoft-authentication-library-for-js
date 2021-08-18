@@ -26,6 +26,7 @@ import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
 import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient";
 import { TokenCache } from "../cache/TokenCache";
 import { ITokenCache } from "../cache/ITokenCache";
+import { SilentAuthCodeClient } from "../interaction_client/SilentAuthCodeClient";
 
 export abstract class ClientApplication {
 
@@ -289,10 +290,25 @@ export abstract class ClientApplication {
         this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
         try {
-            const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, request.correlationId);
-            const silentTokenResult = await silentIframeClient.acquireToken(request);
-            this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
-            return silentTokenResult;
+            if (request.authCodePayload) {
+                if (!request.authCodePayload) {
+                    throw "Code required";
+                }
+
+                if (!request.nonce) {
+                    throw "Nonce required";
+                }
+
+                const silentAuthCodeClient = new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, request.correlationId);
+                const silentTokenResult = await silentAuthCodeClient.acquireToken(request);
+                this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
+                return silentTokenResult;
+            } else {
+                const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, request.correlationId);
+                const silentTokenResult = await silentIframeClient.acquireToken(request);
+                this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
+                return silentTokenResult;
+            }
         } catch (e) {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
             throw e;
