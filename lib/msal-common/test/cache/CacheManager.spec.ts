@@ -15,10 +15,10 @@ import { ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { AccountInfo } from "../../src/account/AccountInfo";
 import { MockCache } from "./MockCache";
 import { AuthorityMetadataEntity, CacheManager } from "../../src";
-import { mockCrypto } from "../client/ClientTestUtils";
+import { mockCrypto, mockPerf } from "../client/ClientTestUtils";
 
 describe("CacheManager.ts test cases", () => {
-    let mockCache = new MockCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, mockCrypto);
+    let mockCache = new MockCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, mockCrypto, mockPerf);
     let authorityMetadataStub: sinon.SinonStub;
     beforeEach(() => {
         mockCache.initializeCache();

@@ -16,6 +16,7 @@ import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManag
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { version, name } from "../packageMetadata";
 import { ClientAuthError } from "../error/ClientAuthError";
+import { IPerformanceManager } from "../telemetry/performance/IPerformanceManager";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -42,6 +43,9 @@ export abstract class BaseClient {
     // Network Manager
     protected networkManager: NetworkManager;
 
+    // Performance Manager
+    protected performanceManager: IPerformanceManager;
+
     // Default authority object
     public authority: Authority;
 
@@ -66,6 +70,9 @@ export abstract class BaseClient {
 
         // Set TelemetryManager
         this.serverTelemetryManager = this.config.serverTelemetryManager;
+
+        // set PerformanceManager
+        this.performanceManager = this.config.performanceInterface;
 
         // set Authority
         this.authority = this.config.authOptions.authority;

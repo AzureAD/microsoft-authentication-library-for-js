@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { IPerformanceManager } from "@azure/msal-common";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 
 interface IDBOpenDBRequestEvent extends Event {
@@ -26,12 +27,14 @@ export class DatabaseStorage<T>{
     private tableName: string;
     private version: number;
     private dbOpen: boolean;
+    private perfManager: IPerformanceManager;
 
-    constructor(dbName: string, tableName: string, version: number) {
+    constructor(dbName: string, tableName: string, version: number, perfManager: IPerformanceManager) {
         this.dbName = dbName;
         this.tableName = tableName;
         this.version = version;
         this.dbOpen = false;
+        this.perfManager = perfManager;
     }
 
     /**
@@ -61,6 +64,7 @@ export class DatabaseStorage<T>{
      * @param key 
      */
     async get(key: string): Promise<T> {
+        const endMeasurement = this.perfManager.startMeasurement("databaseStorage.get");
         if (!this.dbOpen) {
             await this.open();
         }
@@ -68,6 +72,7 @@ export class DatabaseStorage<T>{
         return new Promise<T>((resolve, reject) => {
             // TODO: Add timeouts?
             if (!this.db) {
+                endMeasurement();
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
             }
 
@@ -77,9 +82,13 @@ export class DatabaseStorage<T>{
             const dbGet = objectStore.get(key);
             dbGet.addEventListener("success", (e: Event) => {
                 const event = e as IDBRequestEvent;
+                endMeasurement();
                 resolve(event.target.result);
             });
-            dbGet.addEventListener("error", e => reject(e));
+            dbGet.addEventListener("error", e => {
+                endMeasurement();
+                reject(e);
+            });
         });
     }
 

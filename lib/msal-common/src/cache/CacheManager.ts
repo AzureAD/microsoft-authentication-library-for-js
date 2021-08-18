@@ -22,6 +22,7 @@ import { ThrottlingEntity } from "./entities/ThrottlingEntity";
 import { AuthToken } from "../account/AuthToken";
 import { ICrypto } from "../crypto/ICrypto";
 import { AuthorityMetadataEntity } from "./entities/AuthorityMetadataEntity";
+import { IPerformanceManager } from "../telemetry/performance/IPerformanceManager";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -29,10 +30,12 @@ import { AuthorityMetadataEntity } from "./entities/AuthorityMetadataEntity";
 export abstract class CacheManager implements ICacheManager {
     protected clientId: string;
     protected cryptoImpl: ICrypto;
+    protected perfManager: IPerformanceManager;
 
-    constructor(clientId: string, cryptoImpl: ICrypto) {
+    constructor(clientId: string, cryptoImpl: ICrypto, perfManager: IPerformanceManager) {
         this.clientId = clientId;
         this.cryptoImpl = cryptoImpl;
+        this.perfManager = perfManager;
     }
 
     /**
@@ -337,6 +340,7 @@ export abstract class CacheManager implements ICacheManager {
         target?: string,
         oboAssertion?: string
     ): CredentialCache {
+        const endMeasurement = this.perfManager.startMeasurement("getCredentialFilteredByInternal");
         const allCacheKeys = this.getKeys();
         const matchingCredentials: CredentialCache = {
             idTokens: {},
@@ -408,7 +412,7 @@ export abstract class CacheManager implements ICacheManager {
                     break;
             }
         });
-
+        endMeasurement();
         return matchingCredentials;
     }
 
@@ -580,6 +584,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param authScheme
      */
     readCacheRecord(account: AccountInfo, clientId: string, scopes: ScopeSet, environment: string, authScheme: AuthenticationScheme): CacheRecord {
+        const endMeasurement = this.perfManager.startMeasurement("readCacheRecord");
         const cachedAccount = this.readAccountFromCache(account);
         const cachedIdToken = this.readIdTokenFromCache(clientId, account);
         const cachedAccessToken = this.readAccessTokenFromCache(clientId, account, scopes, authScheme);
@@ -590,13 +595,16 @@ export abstract class CacheManager implements ICacheManager {
             cachedAccount.idTokenClaims = new AuthToken(cachedIdToken.secret, this.cryptoImpl).claims;
         }
 
-        return {
+        const cacheRecord = {
             account: cachedAccount,
             idToken: cachedIdToken,
             accessToken: cachedAccessToken,
             refreshToken: cachedRefreshToken,
             appMetadata: cachedAppMetadata,
         };
+
+        endMeasurement();
+        return cacheRecord;
     }
 
     /**
@@ -604,8 +612,11 @@ export abstract class CacheManager implements ICacheManager {
      * @param account
      */
     readAccountFromCache(account: AccountInfo): AccountEntity | null {
+        const endMeasurement = this.perfManager.startMeasurement("readAccountFromCache");
         const accountKey: string = AccountEntity.generateAccountCacheKey(account);
-        return this.getAccount(accountKey);
+        const accountEntity = this.getAccount(accountKey);
+        endMeasurement();
+        return accountEntity;
     }
 
     /**
@@ -615,6 +626,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param inputRealm
      */
     readIdTokenFromCache(clientId: string, account: AccountInfo): IdTokenEntity | null {
+        const endMeasurement = this.perfManager.startMeasurement("readIdTokenFromCache");
         const idTokenFilter: CredentialFilter = {
             homeAccountId: account.homeAccountId,
             environment: account.environment,
@@ -628,11 +640,13 @@ export abstract class CacheManager implements ICacheManager {
         const numIdTokens = idTokens.length;
 
         if (numIdTokens < 1) {
+            endMeasurement();
             return null;
         } else if (numIdTokens > 1) {
+            endMeasurement();
             throw ClientAuthError.createMultipleMatchingTokensInCacheError();
         }
-
+        endMeasurement();
         return idTokens[0] as IdTokenEntity;
     }
 
@@ -644,6 +658,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param authScheme
      */
     readAccessTokenFromCache(clientId: string, account: AccountInfo, scopes: ScopeSet, authScheme: AuthenticationScheme): AccessTokenEntity | null {
+        const endMeasurement = this.perfManager.startMeasurement("readAccessTokenFromCache");
         const credentialType = (authScheme === AuthenticationScheme.POP) ? CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME : CredentialType.ACCESS_TOKEN;
 
         const accessTokenFilter: CredentialFilter = {
@@ -661,11 +676,14 @@ export abstract class CacheManager implements ICacheManager {
 
         const numAccessTokens = accessTokens.length;
         if (numAccessTokens < 1) {
+            endMeasurement();
             return null;
         } else if (numAccessTokens > 1) {
+            endMeasurement();
             throw ClientAuthError.createMultipleMatchingTokensInCacheError();
         }
 
+        endMeasurement();
         return accessTokens[0] as AccessTokenEntity;
     }
 
@@ -676,6 +694,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param familyRT
      */
     readRefreshTokenFromCache(clientId: string, account: AccountInfo, familyRT: boolean): RefreshTokenEntity | null {
+        const endMeasurement = this.perfManager.startMeasurement("readRefreshTokenFromCache");
         const id = familyRT ? THE_FAMILY_ID : undefined;
         const refreshTokenFilter: CredentialFilter = {
             homeAccountId: account.homeAccountId,
@@ -690,10 +709,11 @@ export abstract class CacheManager implements ICacheManager {
 
         const numRefreshTokens = refreshTokens.length;
         if (numRefreshTokens < 1) {
+            endMeasurement();
             return null;
         }
         // address the else case after remove functions address environment aliases
-
+        endMeasurement();
         return refreshTokens[0] as RefreshTokenEntity;
     }
 

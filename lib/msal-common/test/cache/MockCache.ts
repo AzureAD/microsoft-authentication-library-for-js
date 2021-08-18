@@ -3,14 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { AccessTokenEntity, AccountEntity, AppMetadataEntity, CacheManager, ICrypto, IdTokenEntity, RefreshTokenEntity } from "../../src";
+import { AccessTokenEntity, AccountEntity, AppMetadataEntity, CacheManager, ICrypto, IdTokenEntity, IPerformanceManager, RefreshTokenEntity } from "../../src";
 import { MockStorageClass } from "../client/ClientTestUtils";
 
 export class MockCache {
     cacheManager: MockStorageClass;
 
-    constructor(clientId: string, cryptoImpl: ICrypto) {
-        this.cacheManager = new MockStorageClass(clientId, cryptoImpl);
+    constructor(clientId: string, cryptoImpl: ICrypto, perfManager: IPerformanceManager) {
+        this.cacheManager = new MockStorageClass(clientId, cryptoImpl, perfManager);
     }
 
     // initialize the cache

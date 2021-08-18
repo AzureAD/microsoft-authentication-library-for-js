@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { BaseAuthRequest, ICrypto, PkceCodes, SignedHttpRequest } from "@azure/msal-common";
+import { BaseAuthRequest, ICrypto, IPerformanceManager, PkceCodes, SignedHttpRequest } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
@@ -31,6 +31,7 @@ export class CryptoOps implements ICrypto {
     private b64Encode: Base64Encode;
     private b64Decode: Base64Decode;
     private pkceGenerator: PkceGenerator;
+    private perfManager: IPerformanceManager;
 
     private static POP_KEY_USAGES: Array<KeyUsage> = ["sign", "verify"];
     private static EXTRACTABLE: boolean = true;
@@ -40,14 +41,15 @@ export class CryptoOps implements ICrypto {
     private static TABLE_NAME =`${CryptoOps.DB_NAME}.keys`;
     private cache: DatabaseStorage<CachedKeyPair>;
 
-    constructor() {
+    constructor(perfManager: IPerformanceManager) {
         // Browser crypto needs to be validated first before any other classes can be set.
         this.browserCrypto = new BrowserCrypto();
         this.b64Encode = new Base64Encode();
         this.b64Decode = new Base64Decode();
         this.guidGenerator = new GuidGenerator(this.browserCrypto);
         this.pkceGenerator = new PkceGenerator(this.browserCrypto);
-        this.cache = new DatabaseStorage(CryptoOps.DB_NAME, CryptoOps.TABLE_NAME, CryptoOps.DB_VERSION);
+        this.perfManager = perfManager;
+        this.cache = new DatabaseStorage(CryptoOps.DB_NAME, CryptoOps.TABLE_NAME, CryptoOps.DB_VERSION, this.perfManager);
     }
 
     /**
@@ -103,7 +105,7 @@ export class CryptoOps implements ICrypto {
         // Generate Thumbprint for Private Key
         const privateKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.privateKey);
         // Re-import private key to make it unextractable
-        const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importJwk(privateKeyJwk, false, ["sign"]);
+        const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importJwk(privateKeyJwk, false, ["sign"], this.perfManager);
 
         // Store Keypair data in keystore
         this.cache.put(publicJwkHash, {
@@ -122,11 +124,14 @@ export class CryptoOps implements ICrypto {
      * @param kid 
      */
     async signJwt(payload: SignedHttpRequest, kid: string): Promise<string> {
+        const endMeasurement = this.perfManager.startMeasurement("cryptoOps.signJwt");
         // Get keypair from cache
         const cachedKeyPair: CachedKeyPair = await this.cache.get(kid);
 
         // Get public key as JWK
+        const endExportJwkMeasurement = this.perfManager.startMeasurement("browserCrypto.exportJwk");
         const publicKeyJwk = await this.browserCrypto.exportJwk(cachedKeyPair.publicKey);
+        endExportJwkMeasurement();
         const publicKeyJwkString = BrowserCrypto.getJwkString(publicKeyJwk);
 
         // Generate header
@@ -134,22 +139,24 @@ export class CryptoOps implements ICrypto {
             alg: publicKeyJwk.alg,
             type: KEY_FORMAT_JWK
         };
-        const encodedHeader = this.b64Encode.urlEncode(JSON.stringify(header));
+        const encodedHeader = this.b64Encode.urlEncode(JSON.stringify(header), this.perfManager);
 
         // Generate payload
         payload.cnf = {
             jwk: JSON.parse(publicKeyJwkString)
         };
-        const encodedPayload = this.b64Encode.urlEncode(JSON.stringify(payload));
+        const encodedPayload = this.b64Encode.urlEncode(JSON.stringify(payload), this.perfManager);
 
         // Form token string
         const tokenString = `${encodedHeader}.${encodedPayload}`;
 
         // Sign token
-        const tokenBuffer = BrowserStringUtils.stringToArrayBuffer(tokenString);
-        const signatureBuffer = await this.browserCrypto.sign(cachedKeyPair.privateKey, tokenBuffer);
+        const tokenBuffer = BrowserStringUtils.stringToArrayBuffer(tokenString, this.perfManager);
+        const signatureBuffer = await this.browserCrypto.sign(cachedKeyPair.privateKey, tokenBuffer, this.perfManager);
         const encodedSignature = this.b64Encode.urlEncodeArr(new Uint8Array(signatureBuffer));
 
-        return `${tokenString}.${encodedSignature}`;
+        const signedJwt = `${tokenString}.${encodedSignature}`;
+        endMeasurement();
+        return signedJwt;
     }
 }

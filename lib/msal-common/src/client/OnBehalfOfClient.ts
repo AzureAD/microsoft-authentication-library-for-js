@@ -82,6 +82,7 @@ export class OnBehalfOfClient extends BaseClient {
 
         return await ResponseHandler.generateAuthenticationResult(
             this.cryptoUtils,
+            this.performanceManager,
             this.authority,
             {
                 account: cachedAccount,
@@ -174,6 +175,7 @@ export class OnBehalfOfClient extends BaseClient {
             this.config.authOptions.clientId,
             this.cacheManager,
             this.cryptoUtils,
+            this.performanceManager,
             this.logger,
             this.config.serializableCache,
             this.config.persistencePlugin

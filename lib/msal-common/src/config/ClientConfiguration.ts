@@ -14,6 +14,7 @@ import { CacheManager, DefaultStorageClass } from "../cache/CacheManager";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 import { ICachePlugin } from "../cache/interface/ICachePlugin";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
+import { DEFAULT_PERFORMANCE_MANAGER_IMPLEMENTATION, IPerformanceManager } from "../telemetry/performance/IPerformanceManager";
 
 // Token renewal offset default in seconds
 const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
@@ -30,6 +31,7 @@ const DEFAULT_TOKEN_RENEWAL_OFFSET_SEC = 300;
  * - storageInterface           - Storage implementation
  * - systemOptions              - Additional library options
  * - clientCredentials          - Credentials options for confidential clients
+ * - performanceInterface       - Implementation of performance manager
  */
 export type ClientConfiguration = {
     authOptions: AuthOptions,
@@ -41,6 +43,7 @@ export type ClientConfiguration = {
     clientCredentials?: ClientCredentials,
     libraryInfo?: LibraryInfo
     serverTelemetryManager?: ServerTelemetryManager | null,
+    performanceInterface?: IPerformanceManager,
     persistencePlugin?: ICachePlugin | null,
     serializableCache?: ISerializableTokenCache | null
 };
@@ -54,6 +57,7 @@ export type CommonClientConfiguration = {
     cryptoInterface : Required<ICrypto>,
     libraryInfo : LibraryInfo,
     serverTelemetryManager: ServerTelemetryManager | null,
+    performanceInterface: IPerformanceManager,
     clientCredentials: ClientCredentials,
     persistencePlugin: ICachePlugin | null,
     serializableCache: ISerializableTokenCache | null
@@ -171,20 +175,23 @@ export function buildClientConfiguration(
         clientCredentials: clientCredentials,
         libraryInfo: libraryInfo,
         serverTelemetryManager: serverTelemetryManager,
+        performanceInterface: performanceManagerImplementation,
         persistencePlugin: persistencePlugin,
         serializableCache: serializableCache
     }: ClientConfiguration): CommonClientConfiguration {
 
+    const perfManager = performanceManagerImplementation || DEFAULT_PERFORMANCE_MANAGER_IMPLEMENTATION;
     return {
         authOptions: buildAuthOptions(userAuthOptions),
         systemOptions: { ...DEFAULT_SYSTEM_OPTIONS, ...userSystemOptions },
         loggerOptions: { ...DEFAULT_LOGGER_IMPLEMENTATION, ...userLoggerOption },
-        storageInterface: storageImplementation || new DefaultStorageClass(userAuthOptions.clientId, DEFAULT_CRYPTO_IMPLEMENTATION),
+        storageInterface: storageImplementation || new DefaultStorageClass(userAuthOptions.clientId, DEFAULT_CRYPTO_IMPLEMENTATION, perfManager),
         networkInterface: networkImplementation || DEFAULT_NETWORK_IMPLEMENTATION,
         cryptoInterface: cryptoImplementation || DEFAULT_CRYPTO_IMPLEMENTATION,
         clientCredentials: clientCredentials || DEFAULT_CLIENT_CREDENTIALS,
         libraryInfo: { ...DEFAULT_LIBRARY_INFO, ...libraryInfo },
         serverTelemetryManager: serverTelemetryManager || null,
+        performanceInterface: perfManager,
         persistencePlugin: persistencePlugin || null,
         serializableCache: serializableCache || null
     };

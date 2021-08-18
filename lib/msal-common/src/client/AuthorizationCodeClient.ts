@@ -70,6 +70,7 @@ export class AuthorizationCodeClient extends BaseClient {
             this.config.authOptions.clientId,
             this.cacheManager,
             this.cryptoUtils,
+            this.performanceManager,
             this.logger,
             this.config.serializableCache,
             this.config.persistencePlugin
@@ -87,7 +88,7 @@ export class AuthorizationCodeClient extends BaseClient {
      */
     handleFragmentResponse(hashFragment: string, cachedState: string): AuthorizationCodePayload {
         // Handle responses.
-        const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.cacheManager, this.cryptoUtils, this.logger, null, null);
+        const responseHandler = new ResponseHandler(this.config.authOptions.clientId, this.cacheManager, this.cryptoUtils, this.performanceManager, this.logger, null, null);
 
         // Deserialize hash fragment response parameters.
         const hashUrlString = new UrlString(hashFragment);
@@ -215,7 +216,7 @@ export class AuthorizationCodeClient extends BaseClient {
         parameterBuilder.addClientInfo();
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
-            const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
+            const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils, this.performanceManager);
             const cnfString = await popTokenGenerator.generateCnf(request);
             parameterBuilder.addPopToken(cnfString);
         }

@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { IPerformanceManager } from "@azure/msal-common";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 
 /**
@@ -15,11 +16,14 @@ export class Base64Encode {
      * Returns URL Safe b64 encoded string from a plaintext string.
      * @param input 
      */
-    urlEncode(input: string): string {
-        return encodeURIComponent(this.encode(input)
+    urlEncode(input: string, perfManager: IPerformanceManager): string {
+        const endMeasurement = perfManager.startMeasurement("urlEncode");
+        const encodedComponent = encodeURIComponent(this.encode(input)
             .replace(/=/g, "")
             .replace(/\+/g, "-")
             .replace(/\//g, "_"));
+        endMeasurement();
+        return encodedComponent;
     }
 
     /**

@@ -32,6 +32,7 @@ import { TokenCacheContext } from "../cache/persistence/TokenCacheContext";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
+import { IPerformanceManager } from "../telemetry/performance/IPerformanceManager";
 
 /**
  * Class that handles response parsing.
@@ -40,15 +41,17 @@ export class ResponseHandler {
     private clientId: string;
     private cacheStorage: CacheManager;
     private cryptoObj: ICrypto;
+    private perfManager: IPerformanceManager;
     private logger: Logger;
     private homeAccountIdentifier: string;
     private serializableCache: ISerializableTokenCache | null;
     private persistencePlugin: ICachePlugin | null;
 
-    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, logger: Logger, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null) {
+    constructor(clientId: string, cacheStorage: CacheManager, cryptoObj: ICrypto, perfManager: IPerformanceManager, logger: Logger, serializableCache: ISerializableTokenCache | null, persistencePlugin: ICachePlugin | null) {
         this.clientId = clientId;
         this.cacheStorage = cacheStorage;
         this.cryptoObj = cryptoObj;
+        this.perfManager = perfManager;
         this.logger = logger;
         this.serializableCache = serializableCache;
         this.persistencePlugin = persistencePlugin;
@@ -154,7 +157,7 @@ export class ResponseHandler {
                 const account = this.cacheStorage.getAccount(key);
                 if (!account) {
                     this.logger.warning("Account used to refresh tokens not in persistence, refreshed tokens will not be stored in the cache");
-                    return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj);
+                    return ResponseHandler.generateAuthenticationResult(this.cryptoObj, this.perfManager, authority, cacheRecord, false, request, idTokenObj, requestStateObj);
                 }
             }
             this.cacheStorage.saveCacheRecord(cacheRecord);
@@ -164,7 +167,7 @@ export class ResponseHandler {
                 await this.persistencePlugin.afterCacheAccess(cacheContext);
             }
         }
-        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj);
+        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, this.perfManager, authority, cacheRecord, false, request, idTokenObj, requestStateObj);
     }
 
     /**
@@ -296,13 +299,15 @@ export class ResponseHandler {
      * @param stateString
      */
     static async generateAuthenticationResult(
-        cryptoObj: ICrypto, 
+        cryptoObj: ICrypto,
+        perfManager: IPerformanceManager, 
         authority: Authority,
         cacheRecord: CacheRecord, 
         fromTokenCache: boolean, 
         request: BaseAuthRequest,
         idTokenObj?: AuthToken,
         requestState?: RequestStateObject): Promise<AuthenticationResult> {
+        const endMeasurement = perfManager.startMeasurement("responseHandler.generateAuthenticationResult");
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
         let expiresOn: Date;
@@ -310,7 +315,7 @@ export class ResponseHandler {
         let familyId: string = Constants.EMPTY_STRING;
         if (cacheRecord.accessToken) {
             if (cacheRecord.accessToken.tokenType === AuthenticationScheme.POP) {
-                const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(cryptoObj);
+                const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(cryptoObj, perfManager);
                 accessToken = await popTokenGenerator.signPopToken(cacheRecord.accessToken.secret, request);
             } else {
                 accessToken = cacheRecord.accessToken.secret;
@@ -319,6 +324,7 @@ export class ResponseHandler {
             expiresOn = new Date(Number(cacheRecord.accessToken.expiresOn) * 1000);
             extExpiresOn = new Date(Number(cacheRecord.accessToken.extendedExpiresOn) * 1000);
         } else {
+            endMeasurement();
             throw ClientAuthError.createAccessTokenEntityNullError();
         }
 
@@ -328,7 +334,7 @@ export class ResponseHandler {
         const uid = idTokenObj?.claims.oid || idTokenObj?.claims.sub || Constants.EMPTY_STRING;
         const tid = idTokenObj?.claims.tid || Constants.EMPTY_STRING;
 
-        return {
+        const result = {
             authority: authority.canonicalAuthority,
             uniqueId: uid,
             tenantId: tid,
@@ -346,5 +352,7 @@ export class ResponseHandler {
             cloudGraphHostName: cacheRecord.account?.cloudGraphHostName || Constants.EMPTY_STRING,
             msGraphHost: cacheRecord.account?.msGraphHost || Constants.EMPTY_STRING
         };
+        endMeasurement();
+        return result;
     }
 }
