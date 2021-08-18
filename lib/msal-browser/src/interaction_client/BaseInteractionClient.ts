@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, INetworkModule, Logger, AuthenticationResult } from "@azure/msal-common";
+import { ICrypto, INetworkModule, Logger, AuthenticationResult, AccountInfo, AccountEntity } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
@@ -37,4 +37,30 @@ export abstract class BaseInteractionClient {
     abstract acquireToken(request: RedirectRequest|PopupRequest|SsoSilentRequest): Promise<AuthenticationResult|void>;
 
     abstract logout(request: EndSessionRequest): Promise<void>;
+
+    protected async clearCacheOnLogout(account?: AccountInfo| null): Promise<void> {
+        if (account) {
+            if (AccountEntity.accountInfoIsEqual(account, this.browserStorage.getActiveAccount(), false)) {
+                this.logger.verbose("Setting active account to null");
+                this.browserStorage.setActiveAccount(null);
+            }
+            // Clear given account.
+            try {
+                await this.browserStorage.removeAccount(AccountEntity.generateAccountCacheKey(account));
+                this.logger.verbose("Cleared cache items belonging to the account provided in the logout request.");
+            } catch (error) {
+                this.logger.error("Account provided in logout request was not found. Local cache unchanged.");
+            }
+        } else {
+            try {
+                // Clear all accounts and tokens
+                await this.browserStorage.clear();
+                // Clear any stray keys from IndexedDB
+                await this.browserCrypto.clearKeystore();
+                this.logger.verbose("No account provided in logout request, clearing all cache items.");
+            } catch(e) {
+                this.logger.error("Attempted to clear all MSAL cache items and failed. Local cache unchanged.");
+            }
+        }
+    }
 }

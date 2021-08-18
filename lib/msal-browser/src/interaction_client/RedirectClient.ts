@@ -211,25 +211,20 @@ export class RedirectClient extends StandardInteractionClient {
 
         try {
             this.eventHandler.emitEvent(EventType.LOGOUT_START, InteractionType.Redirect, logoutRequest);
-            const authClient = await this.createAuthCodeClient(serverTelemetryManager, logoutRequest && logoutRequest.authority);
-            this.logger.verbose("Auth code client created");
-
-            // Create logout string and navigate user window to logout.
-            const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
-
-            if (!validLogoutRequest.account || AccountEntity.accountInfoIsEqual(validLogoutRequest.account, this.browserStorage.getActiveAccount(), false)) {
-                this.logger.verbose("Setting active account to null");
-                this.browserStorage.setActiveAccount(null);
-            }
-
+                        
             // Clear cache on logout
-            await authClient.clearCacheOnLogout(validLogoutRequest);
+            await this.clearCacheOnLogout(validLogoutRequest.account);
             
             const navigationOptions: NavigationOptions = {
                 apiId: ApiId.logout,
                 timeout: this.config.system.redirectNavigationTimeout,
                 noHistory: false
             };
+            const authClient = await this.createAuthCodeClient(serverTelemetryManager, logoutRequest && logoutRequest.authority);
+            this.logger.verbose("Auth code client created");
+
+            // Create logout string and navigate user window to logout.
+            const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
             
             this.eventHandler.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
             // Check if onRedirectNavigate is implemented, and invoke it if so
