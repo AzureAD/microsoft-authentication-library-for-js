@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, NetworkResponse } from "@azure/msal-common";
+import { AuthenticationScheme, Constants, NetworkResponse } from "@azure/msal-common";
 import { version } from "../../src/packageMetadata";
 
 /**
@@ -39,8 +39,8 @@ export const TEST_CONFIG = {
     STATE: "1234",
     TEST_VERIFIER: "Y5LnOOlAWK0kt370Bjm0ZcrW9Sc2pMXR1slip9TFZXoyUV8Y8lCn0WHXyyQ1QcTnALMbrUAj85dC7WIe6gYqc8o8jsHCezP3xiUNB143A5IfwtSfO6Kb8oy7pNqcT9vN",
     TEST_CHALLENGE: "JsjesZmxJwehdhNY9kvyr0QOeSMEvryY_EHZo3BKrqg",
-    TOKEN_TYPE_BEARER: "Bearer",
-    TOKEN_TYPE_POP: "pop",
+    TOKEN_TYPE_BEARER: AuthenticationScheme.BEARER,
+    TOKEN_TYPE_POP: AuthenticationScheme.POP,
     DEFAULT_SCOPES: ["openid", "profile"],
     CORRELATION_ID: RANDOM_TEST_GUID,
     SID: "session-id",
@@ -62,6 +62,22 @@ export const TEST_TOKENS = {
     ACCESS_TOKEN: "this.isan.accesstoken",
     POP_TOKEN: "eyJ0eXAiOiJKV1QiLCJub25jZSI6InFMZmZKT255c2dnVnhhdGxSbVhvR0dnYkx3NDV5LTdsWkswaHJWSm9zeDQiLCJhbGciOiJSUzI1NiIsIng1dCI6InZhcF9pdmtIdHRMRmNubm9CWEF3SjVIWDBLNCIsImtpZCI6InZhcF9pdmtIdHRMRmNubm9CWEF3SjVIWDBLNCJ9.eyJhdWQiOiIwMDAwMDAwMy0wMDAwLTAwMDAtYzAwMC0wMDAwMDAwMDAwMDAiLCJpc3MiOiJodHRwczovL3N0cy53aW5kb3dzLXBwZS5uZXQvMTllZWEyZjgtZTE3YS00NzBmLTk1NGQtZDg5N2M0N2YzMTFjLyIsImlhdCI6MTYxODAwNzU2MCwibmJmIjoxNjE4MDA3NTYwLCJleHAiOjE2MTgwMTE0NjAsImFjY3QiOjAsImFjciI6IjEiLCJhY3JzIjpbInVybjp1c2VyOnJlZ2lzdGVyc2VjdXJpdHlpbmZvIiwidXJuOm1pY3Jvc29mdDpyZXExIiwidXJuOm1pY3Jvc29mdDpyZXEyIiwidXJuOm1pY3Jvc29mdDpyZXEzIiwiYzEiLCJjMiIsImMzIiwiYzQiLCJjNSIsImM2IiwiYzciLCJjOCIsImM5IiwiYzEwIiwiYzExIiwiYzEyIiwiYzEzIiwiYzE0IiwiYzE1IiwiYzE2IiwiYzE3IiwiYzE4IiwiYzE5IiwiYzIwIiwiYzIxIiwiYzIyIiwiYzIzIiwiYzI0IiwiYzI1Il0sImFpbyI6IkUyTmdZRGo3Y0dVWEczT1p4OXhXSjVNRWg5MXU2NVFTZnAzVXYycVpLSHByaHRtVkY2d0EiLCJhbXIiOlsicHdkIl0sImFwcF9kaXNwbGF5bmFtZSI6IlBLLU1TQUxUZXN0Mi4wIiwiYXBwaWQiOiIzZmJhNTU2ZS01ZDRhLTQ4ZTMtOGUxYS1mZDU3YzEyY2I4MmUiLCJhcHBpZGFjciI6IjAiLCJjbmYiOnsia2lkIjoiVjZOX0hNUGFnTnBZU193eE0xNFg3M3EzZVd6YlRyOVozMVJ5SGtJY04wWSIsInhtc19rc2wiOiJzdyJ9LCJmYW1pbHlfbmFtZSI6IkJhc2ljIFVzZXIiLCJnaXZlbl9uYW1lIjoiQ2xvdWQgSURMQUIiLCJpZHR5cCI6InVzZXIiLCJpcGFkZHIiOiIyNC4xNy4yNDYuMjA5IiwibmFtZSI6IkNsb3VkIElETEFCIEJhc2ljIFVzZXIiLCJvaWQiOiJiZTA2NGMzNy0yNjE3LTQ2OGMtYjYyNy0yNWI0ZTQ4MTdhZGYiLCJwbGF0ZiI6IjMiLCJwdWlkIjoiMTAwMzQwMDAwMDU0NzdCQSIsInJoIjoiMC5BQUFBLUtMdUdYcmhEMGVWVGRpWHhIOHhIRzVWdWo5S1hlTklqaHI5VjhFc3VDNEJBTmsuIiwic2NwIjoiRmlsZXMuUmVhZCBNYWlsLlJlYWQgb3BlbmlkIHByb2ZpbGUgVXNlci5SZWFkIGVtYWlsIiwic2lnbmluX3N0YXRlIjpbImttc2kiXSwic3ViIjoidExjaFl1bUczSXZZT1VrQlprU0EzbWhnOEVfYnNGZDhuU2licUlOX0UxVSIsInRpZCI6IjE5ZWVhMmY4LWUxN2EtNDcwZi05NTRkLWQ4OTdjNDdmMzExYyIsInVuaXF1ZV9uYW1lIjoiSURMQUJAbXNpZGxhYjAuY2NzY3RwLm5ldCIsInVwbiI6IklETEFCQG1zaWRsYWIwLmNjc2N0cC5uZXQiLCJ1dGkiOiJ5a2tPd3dyTkFVT1k5SUVXejRITEFBIiwidmVyIjoiMS4wIiwid2lkcyI6WyJiNzlmYmY0ZC0zZWY5LTQ2ODktODE0My03NmIxOTRlODU1MDkiXSwieG1zX3N0Ijp7InN1YiI6Imx2QnRkdmVkdDRkT1pyeGZvQjdjbV9UTkU3THFucG5lcGFHc3EtUmZkS2MifSwieG1zX3RjZHQiOjE1NDQ1NzQzNjN9.VPBqUrMDc-H1T4paZoSbGaec0lBoJqSiu13chxJmgee1lDxUFr2pM52tqzPPH6N_Yk-VQ0_AKTyvfnbAQw4mryhp3SJytZbU7FedrXX7oq2laLh9s0K_Hz1EZSj5xg3SSUxXmKEjdePN6d0_5MLlt1P-LcL2PAGgkEEBhUfDm6pAxyTMO8Mw1DUYbq7kr_IzyQ71V-kuoYHDjazghSIwOkidoWMCPP-HIENVbFEKUDKFGDiOzU76IagUBAYUQ4JD1bC9hHA-OO6AV8xLK7UoPyx9UH7fLbiImzhARBxMkmAQu9v2kwn5Hl9hoBEBhlu48YOYOr4O3GxwKisff87R9Q",
     REFRESH_TOKEN: "thisIsARefreshT0ken"
+};
+
+export const ID_TOKEN_CLAIMS = {
+    ver: "2.0",
+    iss: "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+    sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+    aud: "6cb04018-a3f5-46a7-b995-940c78f5aef3",
+    exp: 1536361411,
+    iat: 1536274711,
+    nbf: 1536274711,
+    name: "Abe Lincoln",
+    preferred_username: "AbeLi@microsoft.com",
+    oid: "00000000-0000-0000-66f3-3332eca7ea81",
+    tid: "3338040d-6c67-4c5b-b112-36a304b66dad",
+    nonce: "123523",
+    aio: "Df2UVXL1ix!lMCWMSOJBcFatzcGfvFGhjKv8q5g0x732dR5MB5BisvGQO7YWByjd8iQDLq!eGbIDakyp5mnOrcdqHeYSnltepQmRp6AIZ8jY"
 };
 
 // Test Expiration Vals
@@ -115,7 +131,9 @@ export const TEST_HASHES = {
     TEST_LOGIN_REQ_ERROR_HASH1: `#error=login_required&error_description=msal+error+description&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
     TEST_LOGIN_REQ_ERROR_HASH2: `#error=login_required&error_description=msal+error+description+login_required&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
     TEST_CONSENT_REQ_ERROR_HASH1: `#error=consent_required&error_description=msal+error+description&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
-    TEST_CONSENT_REQ_ERROR_HASH2: `#error=consent_required&error_description=msal+error+description+consent_required&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`
+    TEST_CONSENT_REQ_ERROR_HASH2: `#error=consent_required&error_description=msal+error+description+consent_required&state=${TEST_STATE_VALUES.TEST_STATE_REDIRECT}`,
+    TEST_SUCCESS_HASH_NO_STATE: `#id_token=${TEST_TOKENS.IDTOKEN_V2}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}`,
+    TEST_SUCCESS_HASH_STATE_NO_META: `#id_token=${TEST_TOKENS.IDTOKEN_V2}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${TEST_STATE_VALUES.ENCODED_LIB_STATE}`,
 };
 
 export const DEFAULT_TENANT_DISCOVERY_RESPONSE = {

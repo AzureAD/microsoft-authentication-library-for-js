@@ -36,6 +36,11 @@ export class AuthError extends Error {
      */
     subError: string;
 
+    /**
+     * CorrelationId associated with the error
+     */
+    correlationId: string;
+
     constructor(errorCode?: string, errorMessage?: string, suberror?: string) {
         const errorString = errorMessage ? `${errorCode}: ${errorMessage}` : errorCode;
         super(errorString);
@@ -45,6 +50,10 @@ export class AuthError extends Error {
         this.errorMessage = errorMessage || "";
         this.subError = suberror || "";
         this.name = AuthError.AUTH_ERROR_NAME;
+    }
+
+    setCorrelationId(correlationId: string): void {
+        this.correlationId = correlationId;
     }
 
     /**

@@ -105,6 +105,12 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 },
                 signJwt: async (): Promise<string> => {
                     return "signedJwt";
+                },
+                removeTokenBindingKey: async (): Promise<boolean> => {
+                    return Promise.resolve(true);
+                },
+                clearKeystore: async (): Promise<boolean> => {
+                    return Promise.resolve(true);
                 }
             },
             storageInterface: browserStorage,
@@ -270,6 +276,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 fromCache: false,
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000)),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
@@ -338,6 +345,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 fromCache: false,
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000)),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
