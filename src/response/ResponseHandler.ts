@@ -164,7 +164,7 @@ export class ResponseHandler {
                 await this.persistencePlugin.afterCacheAccess(cacheContext);
             }
         }
-        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj);
+        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, serverTokenResponse.spa_code);
     }
 
     /**
@@ -302,7 +302,9 @@ export class ResponseHandler {
         fromTokenCache: boolean, 
         request: BaseAuthRequest,
         idTokenObj?: AuthToken,
-        requestState?: RequestStateObject): Promise<AuthenticationResult> {
+        requestState?: RequestStateObject,
+        spaCode?: string
+    ): Promise<AuthenticationResult> {
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
         let expiresOn: Date | null = null;
@@ -344,7 +346,8 @@ export class ResponseHandler {
             tokenType: cacheRecord.accessToken?.tokenType || Constants.EMPTY_STRING,
             state: requestState ? requestState.userRequestState : Constants.EMPTY_STRING,
             cloudGraphHostName: cacheRecord.account?.cloudGraphHostName || Constants.EMPTY_STRING,
-            msGraphHost: cacheRecord.account?.msGraphHost || Constants.EMPTY_STRING
+            msGraphHost: cacheRecord.account?.msGraphHost || Constants.EMPTY_STRING,
+            spaCode
         };
     }
 }
