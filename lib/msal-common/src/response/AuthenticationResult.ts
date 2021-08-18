@@ -37,5 +37,6 @@ export type AuthenticationResult = {
     state?: string;
     familyId?: string;
     cloudGraphHostName?: string;
-    msGraphHost?: string; 
+    msGraphHost?: string;
+    spaCode?: string;
 };

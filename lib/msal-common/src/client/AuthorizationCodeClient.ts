@@ -29,14 +29,18 @@ import { AccountInfo } from "../account/AccountInfo";
 import { buildClientInfoFromHomeAccountId, buildClientInfo } from "../account/ClientInfo";
 import { CcsCredentialType, CcsCredential } from "../account/CcsCredential";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { RequestValidator } from "../request/RequestValidator";
 
 /**
  * Oauth2.0 Authorization Code client
  */
 export class AuthorizationCodeClient extends BaseClient {
+    // Flag to indicate if client is for hybrid spa auth code redemption
+    private hybridSpa: boolean;
 
-    constructor(configuration: ClientConfiguration) {
+    constructor(configuration: ClientConfiguration, hybridSpa: boolean = false) {
         super(configuration);
+        this.hybridSpa = hybridSpa;
     }
 
     /**
@@ -208,8 +212,17 @@ export class AuthorizationCodeClient extends BaseClient {
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
-        // validate the redirectUri (to be a non null value)
-        parameterBuilder.addRedirectUri(request.redirectUri);
+        /*
+         * For hybrid spa flow, there will be a code but no verifier
+         * In this scenario, don't include redirect uri as auth code will not be bound to redirect URI
+         */
+        if (this.hybridSpa) {
+            // Just validate
+            RequestValidator.validateRedirectUri(request.redirectUri);
+        } else {
+            // Validate and include redirect uri
+            parameterBuilder.addRedirectUri(request.redirectUri);
+        }
 
         // Add scope array, parameter builder will add default scopes and dedupe
         parameterBuilder.addScopes(request.scopes);
@@ -253,6 +266,11 @@ export class AuthorizationCodeClient extends BaseClient {
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);
 
+        const nonce = request.nonce || this.config.cryptoInterface.createNewGuid();
+        if (nonce) {
+            parameterBuilder.addNonce(nonce);
+        }
+
         if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
             parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
         }
@@ -289,6 +307,10 @@ export class AuthorizationCodeClient extends BaseClient {
             }
         }
 
+        if (request.tokenBodyParameters) {
+            parameterBuilder.addExtraQueryParameters(request.tokenBodyParameters);
+        }
+        
         return parameterBuilder.createQueryString();
     }
 

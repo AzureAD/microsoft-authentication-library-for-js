@@ -35,7 +35,8 @@ export type ServerAuthorizationTokenResponse = {
     refresh_token?: string;
     id_token?: string;
     client_info?: string;
-    foci?: string
+    foci?: string;
+    spa_code?: string;
     // Error
     error?: string;
     error_description?: string;

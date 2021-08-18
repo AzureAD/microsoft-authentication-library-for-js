@@ -25,7 +25,8 @@
     }
   },
   "packages": [
-    "lib/*"
+    "lib/*",
+    "samples/msal-browser-samples/HybridSample/"
   ],
   "version": "independent",
   "concurrency": 3

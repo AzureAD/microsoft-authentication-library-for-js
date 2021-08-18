@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>{{title}}</title>
+    <link rel='stylesheet' href='/stylesheets/style.css' />
+    <script src='/msal/msal-browser.js'></script>
+    <script type="text/javascript">
+        const msalInstance = new msal.PublicClientApplication({
+            auth: {
+                clientId: "9f6e06e8-b890-42d2-ae2b-669f1ab70b50",
+                redirectUri: "http://localhost:3000/client-redirect",
+                authority: "https://login.microsoftonline.com/common"
+            }
+        })
+
+        msalInstance.handleRedirectPromise()
+            .then(result => {
+                const params = new URLSearchParams(document.location.search);
+                const sid = params.get("sid");
+                const code = params.get("code");
+                const nonce = params.get("nonce");
+                console.log('MSAL: Not logged in');
+
+                if (code && nonce) {
+                    if (msalInstance.getAllAccounts().length > 0) {
+                        console.log('Logged in: ', msalInstance.getAllAccounts()[0])
+                    } else {
+                        
+                        return msalInstance.ssoSilent({
+                            nonce,
+                            authCodePayload: {
+                                code
+                            }
+                        })
+                            .catch((error) => {
+                                console.log('MSAL: Redirect')
+                                return msalInstance.loginRedirect({
+                                    loginHint: "janutter@microsoft.com"
+                                })
+                            })
+                            
+                    }
+                }
+            })
+            .then((result) => {
+                console.log('result', result);
+            })
+    </script>
+  </head>
+  <body>
+    {{{body}}}
+  </body>
+</html>
