@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, Logger } from "@azure/msal-common";
+import { ICrypto, Logger, AccountEntity, CacheManager } from "@azure/msal-common";
 import { InteractionType } from "../utils/BrowserConstants";
 import { EventCallbackFunction, EventError, EventMessage, EventPayload } from "./EventMessage";
 import { EventType } from "./EventType";
@@ -13,11 +13,13 @@ export class EventHandler {
     private eventCallbacks: Map<string, EventCallbackFunction>;
     private logger: Logger;
     private browserCrypto: ICrypto;
+    private boundStorageListener: (e: StorageEvent) => void;
 
     constructor(logger: Logger, browserCrypto: ICrypto) {
         this.eventCallbacks = new Map();
         this.logger = logger;
         this.browserCrypto = browserCrypto;
+        this.boundStorageListener = this.handleAccountCacheChange.bind(this);
     }
 
     /**
@@ -26,6 +28,10 @@ export class EventHandler {
      */
     addEventCallback(callback: EventCallbackFunction): string | null {
         if (typeof window !== "undefined") {
+            if (this.eventCallbacks.size === 0) {
+                this.logger.verbose("Adding account storage listener.");
+                window.addEventListener("storage", this.boundStorageListener);
+            }
             const callbackId = this.browserCrypto.createNewGuid();
             this.eventCallbacks.set(callbackId, callback);
             this.logger.verbose(`Event callback registered with id: ${callbackId}`);
@@ -43,6 +49,10 @@ export class EventHandler {
     removeEventCallback(callbackId: string): void {
         this.eventCallbacks.delete(callbackId);
         this.logger.verbose(`Event callback ${callbackId} removed.`);
+        if (this.eventCallbacks.size === 0) {
+            this.logger.verbose("Removing account storage listener.");
+            window.removeEventListener("storage", this.boundStorageListener);
+        }
     }
 
     /**
@@ -71,4 +81,31 @@ export class EventHandler {
         }
     }
 
+    /**
+     * Emit account added/removed events when cached accounts are changed in a different tab or frame
+     */
+    private handleAccountCacheChange(e: StorageEvent): void {
+        try {
+            const cacheValue = e.newValue || e.oldValue;
+            if (!cacheValue) {
+                return;
+            }
+            const parsedValue = JSON.parse(cacheValue);
+            if (typeof parsedValue !== "object" || !AccountEntity.isAccountEntity(parsedValue)) {
+                return;
+            }
+            const accountEntity = CacheManager.toObject<AccountEntity>(new AccountEntity(), parsedValue);
+            const accountInfo = accountEntity.getAccountInfo();
+            if (!e.oldValue && e.newValue) {
+                this.logger.info("Account was added to cache in a different window");
+                this.emitEvent(EventType.ACCOUNT_ADDED, undefined, accountInfo);
+            } else if (!e.newValue && e.oldValue) {
+                this.logger.info("Account was removed from cache in a different window");
+                this.emitEvent(EventType.ACCOUNT_REMOVED, undefined, accountInfo);
+            }
+        } catch (e) {
+            return;
+        }
+
+    }
 }
