@@ -249,7 +249,7 @@ export class RefreshTokenClient extends BaseClient {
      * Helper function to create the token request body
      * @param request
      */
-    private async createTokenRequestBodyObject(request: CommonRefreshTokenRequest): Promise<any> {
+    private async createTokenRequestBodyObject(request: CommonRefreshTokenRequest): Promise<Object> {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
