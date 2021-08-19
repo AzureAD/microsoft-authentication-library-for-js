@@ -32,7 +32,7 @@ const util = require('./util/util');
 const cp = util.commonParameters;
 const testRequire = util.testRequire;
 
-const xmldom = require('xmldom');
+const xmldom = require('@xmldom/xmldom');
 const DOMParser = xmldom.DOMParser;
 
 const WSTrustRequest = testRequire('wstrust-request');
