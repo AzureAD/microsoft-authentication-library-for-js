@@ -98,10 +98,10 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param serverTelemetryManager
      * @param authorityUrl
      */
-    protected async createAuthCodeClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, hybridSpa?: boolean): Promise<AuthorizationCodeClient> {
+    protected async createAuthCodeClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<AuthorizationCodeClient> {
         // Create auth module.
         const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
-        return new AuthorizationCodeClient(clientConfig, hybridSpa);
+        return new AuthorizationCodeClient(clientConfig);
     }
 
     /**

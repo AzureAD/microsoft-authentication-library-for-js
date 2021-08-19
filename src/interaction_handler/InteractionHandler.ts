@@ -38,7 +38,7 @@ export abstract class InteractionHandler {
      * Function to handle response parameters from hash.
      * @param locationHash
      */
-    async handleCodeResponse(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule): Promise<AuthenticationResult> {
+    async handleCodeResponseFromHash(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule): Promise<AuthenticationResult> {
         this.browserRequestLogger.verbose("InteractionHandler.handleCodeResponse called");
         // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {
@@ -53,37 +53,17 @@ export abstract class InteractionHandler {
         }
         const authCodeResponse = this.authModule.handleFragmentResponse(locationHash, requestState);
 
-        // Get cached items
-        const nonceKey = this.browserStorage.generateNonceKey(requestState);
-        const cachedNonce = this.browserStorage.getTemporaryCache(nonceKey);
-
-        // Assign code to request
-        this.authCodeRequest.code = authCodeResponse.code;
-
-        // Check for new cloud instance
-        if (authCodeResponse.cloud_instance_host_name) {
-            await this.updateTokenEndpointAuthority(authCodeResponse.cloud_instance_host_name, authority, networkModule);
-        }
-
-        authCodeResponse.nonce = cachedNonce || undefined;
-        authCodeResponse.state = requestState;
-
-        // Add CCS parameters if available
-        if (authCodeResponse.client_info) {
-            this.authCodeRequest.clientInfo = authCodeResponse.client_info;
-        } else {
-            const cachedCcsCred = this.checkCcsCredentials();
-            if (cachedCcsCred) {
-                this.authCodeRequest.ccsCredential = cachedCcsCred;
-            }
-        }
-
-        // Acquire token with retrieved code.
-        const tokenResponse = await this.authModule.acquireToken(this.authCodeRequest, authCodeResponse);
-        this.browserStorage.cleanRequestByState(state);
-        return tokenResponse;
+        return this.handleCodeResponseFromServer(authCodeResponse, state, authority, networkModule);
     }
 
+    /**
+     * Process auth code response from AAD
+     * @param authCodeResponse 
+     * @param state 
+     * @param authority 
+     * @param networkModule 
+     * @returns 
+     */
     async handleCodeResponseFromServer(authCodeResponse: AuthorizationCodePayload, state: string, authority: Authority, networkModule: INetworkModule): Promise<AuthenticationResult> {
         this.browserRequestLogger.trace("InteractionHandler.handleCodeResponseFromServer called");
 
