@@ -1,38 +1,50 @@
-const fs = require("fs");
-const cachePath = './App/data/cache.json' // replace this string with the path to your valid cache file.
+module.exports = (persistence, session = {}) => {
+    return {
+        beforeCacheAccess: async (cacheContext) => {
+            return new Promise(async (resolve, reject) => {
+                persistence.get("sess:" + session.id, (err, sessionData) => {
+                    if (err) {
+                        console.log(err);
+                        reject();
+                    }
 
-const beforeCacheAccess = async (cacheContext) => {
-    return new Promise(async (resolve, reject) => {
-        if (fs.existsSync(cachePath)) {
-            fs.readFile(cachePath, "utf-8", (err, data) => {
-                if (err) {
-                    reject();
-                } else {
-                    cacheContext.tokenCache.deserialize(data);
-                    resolve();
-                }
+                    if (sessionData) {
+                        persistence.get(JSON.parse(sessionData).account.homeAccountId, (err, cacheData) => {
+                            if (err) {
+                                console.log(err);
+                                reject();
+                            }
+                            cacheContext.tokenCache.deserialize(cacheData);
+                            resolve();
+                        });
+                    } else {
+                        resolve();
+                        return;
+                    }
+                });
             });
-        } else {
-            fs.writeFile(cachePath, cacheContext.tokenCache.serialize(), (err) => {
-                if (err) {
-                    reject();
+        },
+        afterCacheAccess: async (cacheContext) => {
+            return new Promise((resolve, reject) => {
+
+                if (cacheContext.cacheHasChanged) {
+                    const kvStore = cacheContext.tokenCache.getKVStore();
+
+                    // getting it from account entity
+                    const homeAccountId = Object.values(kvStore)[1]["homeAccountId"];
+
+                    persistence.set(homeAccountId, cacheContext.tokenCache.serialize(), (err, data) => {
+                        if (err) {
+                            console.log(err);
+                            reject();
+                        }
+                        resolve();
+                    });
+                } else {
+                    resolve();
+                    return;
                 }
             });
         }
-    });
-};
-
-const afterCacheAccess = async (cacheContext) => {
-    if (cacheContext.cacheHasChanged) {
-        await fs.writeFile(cachePath, cacheContext.tokenCache.serialize(), (err) => {
-            if (err) {
-                console.log(err);
-            }
-        });
-    }
-};
-
-module.exports = {
-    beforeCacheAccess,
-    afterCacheAccess
+    };
 };

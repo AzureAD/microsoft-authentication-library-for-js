@@ -54,10 +54,11 @@ import * as constants from './Constants';
 export class AuthProvider {
 
     appSettings: AppSettings;
-    private msalConfig: Configuration;
+    msalConfig: Configuration;
+    msalClient: ConfidentialClientApplication;
+
     private cryptoProvider: CryptoProvider;
     private tokenValidator: TokenValidator;
-    private msalClient: ConfidentialClientApplication;
 
     constructor(appSettings: AppSettings, cache: ICachePlugin = null) {
         ConfigurationUtils.validateAppSettings(appSettings);
@@ -267,8 +268,12 @@ export class AuthProvider {
         }
 
         try {
+
+            const tokenCache = await this.msalClient.getTokenCache();
+            const account = await tokenCache.getAccountByHomeId(req.session.account.homeAccountId);
+
             const silentRequest = {
-                account: req.session.account,
+                account: account,
                 scopes: scopes,
             };
 
