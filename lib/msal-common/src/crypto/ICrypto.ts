@@ -8,6 +8,7 @@ import { BaseAuthRequest } from "../request/BaseAuthRequest";
 import { CommonRefreshTokenRequest } from "../request/CommonRefreshTokenRequest";
 import { BoundServerAuthorizationTokenResponse } from "../response/BoundServerAuthorizationTokenResponse";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
+import { CryptoKeyTypes } from "../utils/Constants";
 import { SignedHttpRequest } from "./SignedHttpRequest";
 
 /**
@@ -51,6 +52,15 @@ export interface ICrypto {
      * @param request
      */
     getPublicKeyThumbprint(request: BaseAuthRequest, keyType?: string): Promise<string>;
+    /**
+     * Removes cryptographic keypair from key store matching the keyId passed in
+     * @param kid 
+     */
+    removeTokenBindingKey(kid: string, keyType: CryptoKeyTypes): Promise<boolean>;
+    /**
+     * Removes all cryptographic keys from IndexedDB storage
+     */
+    clearKeystore(): Promise<boolean>;
     /** 
      * Returns a signed proof-of-possession token with a given acces token that contains a cnf claim with the required kid.
      * @param accessToken 
@@ -95,6 +105,14 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     },
     async getPublicKeyThumbprint(): Promise<string> {
         const notImplErr = "Crypto interface - getPublicKeyThumbprint() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async removeTokenBindingKey(): Promise<boolean> {
+        const notImplErr = "Crypto interface - removeTokenBindingKey() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async clearKeystore(): Promise<boolean> {
+        const notImplErr = "Crypto interface - clearKeystore() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
     },
     async signJwt(): Promise<string> {

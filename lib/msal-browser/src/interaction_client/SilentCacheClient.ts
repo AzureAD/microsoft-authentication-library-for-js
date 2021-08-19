@@ -5,11 +5,10 @@
 
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { CommonSilentFlowRequest, AuthenticationResult, SilentFlowClient, ServerTelemetryManager, AccountInfo } from "@azure/msal-common";
-import { version } from "../packageMetadata";
 import { SilentRequest } from "../request/SilentRequest";
 import { EventType } from "../event/EventType";
 import { InteractionType, ApiId } from "../utils/BrowserConstants";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
 
 export class SilentCacheClient extends StandardInteractionClient {
     /**
@@ -17,15 +16,21 @@ export class SilentCacheClient extends StandardInteractionClient {
      * @param silentRequest 
      */
     async acquireToken(silentRequest: CommonSilentFlowRequest): Promise<AuthenticationResult> {
-        this.logger = this.logger.clone(name, version, silentRequest.correlationId);
-
         // Telemetry manager only used to increment cacheHits here
-        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow, silentRequest.correlationId);
-        const silentAuthClient = await this.createSilentFlowClient(serverTelemetryManager, silentRequest.authority, silentRequest.correlationId);
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow);
+        const silentAuthClient = await this.createSilentFlowClient(serverTelemetryManager, silentRequest.authority);
         this.logger.verbose("Silent auth client created");
-        const cachedToken = await silentAuthClient.acquireCachedToken(silentRequest);
-        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, cachedToken);
-        return cachedToken;
+        
+        try {
+            const cachedToken = await silentAuthClient.acquireCachedToken(silentRequest);
+            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, cachedToken);
+            return cachedToken;
+        } catch (error) {
+            if (error instanceof BrowserAuthError && error.errorCode === BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code) {
+                this.logger.verbose("Signing keypair for bound access token not found. Refreshing bound access token and generating a new crypto keypair.");
+            }
+            throw error;
+        }
     }
     
     /**
@@ -41,9 +46,9 @@ export class SilentCacheClient extends StandardInteractionClient {
      * @param serverTelemetryManager
      * @param authorityUrl
      */
-    protected async createSilentFlowClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, correlationId?: string): Promise<SilentFlowClient> {
+    protected async createSilentFlowClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<SilentFlowClient> {
         // Create auth module.
-        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, correlationId);
+        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
         return new SilentFlowClient(clientConfig);
     }
 

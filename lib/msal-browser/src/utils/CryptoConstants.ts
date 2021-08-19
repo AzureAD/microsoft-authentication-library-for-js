@@ -24,12 +24,6 @@ export enum CryptoLengths {
 // Public Exponent used in Key Generation
 export const PUBLIC_EXPONENT = new Uint8Array([0x01, 0x00, 0x01]);
 
-// Supported Cryptographic Key Types
-export enum CryptoKeyTypes {
-    REQ_CNF = "req_cnf",
-    STK_JWK = "stk_jwk"
-}
-
 /**
  * JWK Key Format string (Type MUST be defined for window crypto APIs)
  */

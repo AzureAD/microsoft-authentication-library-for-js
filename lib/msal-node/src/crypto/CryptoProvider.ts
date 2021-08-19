@@ -60,6 +60,21 @@ export class CryptoProvider implements ICrypto {
     }
 
     /**
+     * Removes cryptographic keypair from key store matching the keyId passed in
+     * @param kid 
+     */
+    removeTokenBindingKey(): Promise<boolean> {
+        throw new Error("Method not implemented.");
+    }
+
+    /**
+     * Removes all cryptographic keys from Keystore
+     */
+    clearKeystore(): Promise<boolean> {
+        throw new Error("Method not implemented.");
+    }
+
+    /**
      * Signs the given object as a jwt payload with private key retrieved by given kid - currently not implemented for node
      */
     signJwt(): Promise<string> {

@@ -82,6 +82,30 @@ describe("SilentIframeClient", () => {
             });
         });
 
+        it("Unexpected non-msal errors do not add correlationId and browserStorage is cleaned", (done) => {
+            sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").resolves(testNavUrl);
+            const testError = {
+                errorCode: "Unexpected error",
+                errorDesc: "Unexpected error"
+            }
+            sinon.stub(SilentHandler.prototype, "monitorIframeForHash").rejects(testError);
+            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER
+            });
+            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT);
+
+            silentIframeClient.acquireToken({
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                loginHint: "testLoginHint"
+            }).catch((e) => {
+                expect(e).toMatchObject(testError);
+                expect(e).not.toHaveProperty("correlationId");
+                done();
+            });
+        });
+
         it("successfully returns a token response (login_hint)", async () => {
             const testServerTokenResponse = {
                 token_type: TEST_CONFIG.TOKEN_TYPE_BEARER,
@@ -118,6 +142,7 @@ describe("SilentIframeClient", () => {
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -177,6 +202,7 @@ describe("SilentIframeClient", () => {
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER

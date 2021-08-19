@@ -116,7 +116,7 @@ export class MockStorageClass extends CacheManager {
     getAuthorityMetadataKeys(): string[] {
         return this.getKeys();
     }
-    clear(): void {
+    async clear(): Promise<void> {
         this.store = {};
     }
 }
@@ -152,11 +152,17 @@ export const mockCrypto = {
     async getPublicKeyThumbprint(): Promise<string> {
         return TEST_POP_VALUES.KID;
     },
-    async getAsymmetricPublicKey(): Promise<string> {
-        return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
-    },
     async signJwt(): Promise<string> {
         return "";
+    },
+    async removeTokenBindingKey(keyId: string): Promise<boolean> {
+        return Promise.resolve(true);
+    },
+    async clearKeystore(): Promise<boolean> {
+        return Promise.resolve(true);
+    },
+    async getAsymmetricPublicKey(): Promise<string> {
+        return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
     },
     async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
         return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES;
