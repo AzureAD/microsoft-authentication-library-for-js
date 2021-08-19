@@ -175,9 +175,9 @@ describe("InteractionHandler.ts Unit Tests", () => {
 
         it("throws error if given location hash is empty", async () => {
             const interactionHandler = new TestInteractionHandler(authCodeModule, browserStorage);
-            expect(interactionHandler.handleCodeResponse("", "", authorityInstance, authConfig.networkInterface!)).rejects.toMatchObject(BrowserAuthError.createEmptyHashError(""));
+            expect(interactionHandler.handleCodeResponseFromHash("", "", authorityInstance, authConfig.networkInterface!)).rejects.toMatchObject(BrowserAuthError.createEmptyHashError(""));
             //@ts-ignore
-            expect(interactionHandler.handleCodeResponse(null, "", authorityInstance, authConfig.networkInterface)).rejects.toMatchObject(BrowserAuthError.createEmptyHashError(null));
+            expect(interactionHandler.handleCodeResponseFromHash(null, "", authorityInstance, authConfig.networkInterface)).rejects.toMatchObject(BrowserAuthError.createEmptyHashError(null));
         });
         
         // TODO: Need to improve these tests
@@ -238,7 +238,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             const acquireTokenSpy = sinon.stub(AuthorizationCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
             const interactionHandler = new TestInteractionHandler(authCodeModule, browserStorage);
             await interactionHandler.initiateAuthRequest("testNavUrl");
-            const tokenResponse = await interactionHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT, TEST_STATE_VALUES.TEST_STATE_REDIRECT, authorityInstance, authConfig.networkInterface!);
+            const tokenResponse = await interactionHandler.handleCodeResponseFromHash(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT, TEST_STATE_VALUES.TEST_STATE_REDIRECT, authorityInstance, authConfig.networkInterface!);
             expect(updateAuthoritySpy.calledWith(authority)).toBe(true);
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(acquireTokenSpy.calledWith(testAuthCodeRequest, testCodeResponse)).toBe(true);
@@ -308,7 +308,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
             const acquireTokenSpy = sinon.stub(AuthorizationCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
             const interactionHandler = new TestInteractionHandler(authCodeModule, browserStorage);
             await interactionHandler.initiateAuthRequest("testNavUrl");
-            const tokenResponse = await interactionHandler.handleCodeResponse(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT, TEST_STATE_VALUES.TEST_STATE_REDIRECT, authorityInstance, authConfig.networkInterface!);
+            const tokenResponse = await interactionHandler.handleCodeResponseFromHash(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT, TEST_STATE_VALUES.TEST_STATE_REDIRECT, authorityInstance, authConfig.networkInterface!);
             expect(updateAuthoritySpy.calledWith(authority)).toBe(true);
             expect(tokenResponse).toEqual(testTokenResponse);
             expect(acquireTokenSpy.calledWith(testAuthCodeRequest, testCodeResponse)).toBe(true);

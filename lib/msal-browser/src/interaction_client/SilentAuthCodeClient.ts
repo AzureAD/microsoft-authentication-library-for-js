@@ -57,7 +57,8 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             };
 
             // Initialize the client
-            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentRequest.authority, true);
+            const clientConfig = await this.getClientConfiguration(serverTelemetryManager, silentRequest.authority);
+            const authClient: AuthorizationCodeClient = new AuthorizationCodeClient(clientConfig, true);
             this.logger.verbose("Auth code client created");
 
             // Create silent handler
