@@ -117,11 +117,11 @@ app.get('/profile', authProvider.isAuthenticated, authProvider.getToken, mainCon
 
 ### Session support
 
-Session support in this sample is provided by the [express-session](https://www.npmjs.com/package/express-session) package using in-memory session store. **in-memory session store** is unfit for production, and you should either use a [compatible session store](https://github.com/expressjs/session#compatible-session-stores) or implement your own storage solution.
+Session support in this sample is provided by the [express-session](https://www.npmjs.com/package/express-session) package, using [Redis](https://redis.io/) and [node-redis](https://github.com/NodeRedis/node-redis) to persist the session cache. There are other [compatible session stores](https://github.com/expressjs/session#compatible-session-stores) that you may use instead of Redis, e.g. MongoDB or SQL.
 
-### Persistent caching
+### Token caching
 
-MSAL Node has an in-memory cache by default. The demo app also features a [persistent cache plugin](./demo/App/utils/cachePlugin.js) in order to save the cache to disk. This plugin is not meant to be production-ready. As such, you might want to implement persistent caching using a 3rd party library like [redis](https://redis.io/).
+MSAL Node has an in-memory cache by default. The demo app also features a [persistent cache plugin](./demo/App/utils/cachePlugin.js) in order to save the cache to disk. It illustrates a distributed caching pattern where MSAL's token cache is persisted separately and only the currently served user's tokens (and other authentication artifacts) are loaded into MSAL's memory. See also: [Token cache serialization](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki/token-cache-serialization#important).
 
 ## More information
 

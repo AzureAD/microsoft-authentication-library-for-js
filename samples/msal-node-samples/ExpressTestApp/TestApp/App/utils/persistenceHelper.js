@@ -1,3 +1,10 @@
+/**
+* Simple persistence client helper, using Redis (node-redis).
+* You must have redis installed on your machine and redis server listening.
+* For demo purposes, the client does not set sliding expiration, see the docs:
+* https://redis.io/commands/setex
+*/
+
 module.exports = (client) => {
     return {
         get: (key, callback) => {
