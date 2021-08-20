@@ -59,7 +59,9 @@ export class Logger {
     private packageVersion: string;
 
     constructor(loggerOptions: LoggerOptions, packageName?: string, packageVersion?: string) {
-        const defaultLoggerCallback = () => {};
+        const defaultLoggerCallback = () => {
+            return;
+        };
         this.localCallback = loggerOptions.loggerCallback || defaultLoggerCallback;
         this.piiLoggingEnabled = loggerOptions.piiLoggingEnabled || false;
         this.level = loggerOptions.logLevel || LogLevel.Info;
