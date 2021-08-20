@@ -115,6 +115,8 @@ describe('MsalGuard', () => {
         }
     ])
 
+    routeStateMock = { snapshot: {}, url: '/path#code=' };
+
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
         //@ts-ignore
         of("test")
@@ -144,6 +146,8 @@ describe('MsalGuard', () => {
             }
         }
     ])
+
+    routeStateMock = { snapshot: {}, url: '/code=' };
 
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
         //@ts-ignore
