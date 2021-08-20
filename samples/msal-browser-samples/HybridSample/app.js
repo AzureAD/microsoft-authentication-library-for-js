@@ -5,7 +5,7 @@ var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var logger = require('morgan');
 const msal = require('@azure/msal-node');
-
+const dotenv = require("dotenv");
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
@@ -33,13 +33,15 @@ app.use('/users', usersRouter);
 
 /** MSAL */
 
+dotenv.config();
+
 app.use('/msal', express.static(path.join(__dirname, './node_modules/@azure/msal-browser/lib')))
 
 const config = {
     auth: {
-        clientId: "9f6e06e8-b890-42d2-ae2b-669f1ab70b50",
+        clientId: process.env.MSAL_CLIENT_ID,
         authority: "https://login.microsoftonline.com/common",
-        clientSecret: ""
+        clientSecret: process.env.MSAL_CLIENT_SECRET
     },
     system: {
         loggerOptions: {
