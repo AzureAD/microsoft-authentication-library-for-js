@@ -73,6 +73,7 @@ describe('MsalGuard', () => {
     testLoginFailedRoute = undefined;
     testConfiguration = { };
     browserSystemOptions = { };
+    routeStateMock = { snapshot: {}, url: '/' };
     initializeMsal();
   });
 
