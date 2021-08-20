@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, UrlString, AccountEntity, AuthError, ServerTelemetryManager } from "@azure/msal-common";
+import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, UrlString, AuthError, ServerTelemetryManager } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { ApiId, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -248,6 +248,7 @@ export class RedirectClient extends StandardInteractionClient {
             }
             serverTelemetryManager.cacheFailedRequest(e);
             this.eventHandler.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Redirect, null, e);
+            this.eventHandler.emitEvent(EventType.LOGOUT_END, InteractionType.Redirect);
             throw e;
         }
 
