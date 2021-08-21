@@ -37,9 +37,7 @@ const hasCommonElem = (array1, array2) => {
 exports.verify = function(jwtString, PEMKey, options, callback) {
 
   /**
-   ********************************************************************
    * Checking parameters
-   *******************************************************************
    */
 
   /*
@@ -81,9 +79,7 @@ exports.verify = function(jwtString, PEMKey, options, callback) {
     return done(new Error("options.algorithms must be an array containing at least one algorithm"));
 
   /**
-   ********************************************************************
    * Checking jwtString structure, getting header, payload and signature
-   *******************************************************************
    */
 
   // split jwtString, make sure we have three parts and we have signature
@@ -118,9 +114,7 @@ exports.verify = function(jwtString, PEMKey, options, callback) {
     return done(new Error("missing signature in the token"));
 
   /**
-   ********************************************************************
    * validate algorithm and signature
-   *******************************************************************
    */
 
   // header.alg should be one of the algorithms provided in options.algorithms
@@ -138,9 +132,7 @@ exports.verify = function(jwtString, PEMKey, options, callback) {
   }
 
   /**
-   ********************************************************************
    * validate payload content
-   *******************************************************************
    */
 
   /*
@@ -220,9 +212,7 @@ exports.verify = function(jwtString, PEMKey, options, callback) {
   }
 
   /**
-   ********************************************************************
    * return the payload content
-   *******************************************************************
    */
 
   return done(null, payload);

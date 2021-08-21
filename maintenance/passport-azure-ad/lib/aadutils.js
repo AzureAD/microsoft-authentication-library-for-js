@@ -260,13 +260,12 @@ exports.concatUrl = (url, rest) => {
 };
 
 /*
- * This is a list maintained by the AAD server team, will need to keep an eye on this
- * as things change.  Not ideal, but it is what it is
- * in general, a change like this (adding a new cookie attribute)
+ * This is a list maintained by the AAD server team.
+ * In general, a change like this (adding a new cookie attribute)
  * should be backward compatible as RFC 6265 specifies that browsers should
  * ignore unknown cookie attributes. However, for the specific case of the
  * SameSite attribute, some browsers incorrectly implemented the attribute or
- *  implemented an earlier draft which had contradictory behavior.
+ * implemented an earlier draft which had contradictory behavior.
  * For these browsers which attempted to support SameSite,
  * but have bugs in their support, we want to omit the SameSite=None attribute.
  * See Chromium official guidance here:  https://www.chromium.org/updates/same-site/incompatible-clients

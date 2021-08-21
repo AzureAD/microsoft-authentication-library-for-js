@@ -12,9 +12,7 @@ const base64url = require("base64url");
 const jose = require("node-jose");
 
 /**
- *****************************************************************************
  * utility functions
- ****************************************************************************
  */
 
 /**
@@ -64,9 +62,7 @@ const xor = (a, b) => {
 };
 
 /**
- *****************************************************************************
  * AES key unwrap algorithms
- ****************************************************************************
  */
 
 /**
@@ -80,23 +76,19 @@ const xor = (a, b) => {
 const AESKeyUnWrap = (algorithm, wrapped_cek, kek) => {
 
   /**
-   ***************************************************************************
    * Inputs: CipherText, (n+1) 64-bit values {C0, C1, ..., Cn}, and 
    *         Key, K (the KEK)
    * Outputs: Plaintext, n 64-bit values {P0, P1, K, Pn}
-   **************************************************************************
    */
   const C = wrapped_cek;
   const n = C.length/8-1;
   const K = kek;
 
   /**
-   ***************************************************************************
    * 1) Initialize variables
    *    Set A = C[0]
    *    For i = 1 to b
    *      R[i] = C[i]
-   **************************************************************************
    */
   let A = C.slice(0,8);
   const R = [createBuffer(1)];
@@ -104,14 +96,12 @@ const AESKeyUnWrap = (algorithm, wrapped_cek, kek) => {
     R.push(C.slice(8*i, 8*i+8));
 
   /**
-   ***************************************************************************
    * 2) compute intermediate values
    *    For j = 5 to 0
    *      For i = n to 1
    *        B = AES-1(K, (A^t) | R[i]) where t = n*j+i
    *        A = MSB(64, B)
    *        R[i] = LSB(64, B)
-   **************************************************************************
    */
   for(let j=5; j >= 0; j--) {
     for(let i=n; i >= 1; i--) {
@@ -137,7 +127,6 @@ const AESKeyUnWrap = (algorithm, wrapped_cek, kek) => {
   }
 
   /**
-   ***************************************************************************
    * 3) Output results.
    *    If A is an appropriate initial value
    *    Then
@@ -145,7 +134,6 @@ const AESKeyUnWrap = (algorithm, wrapped_cek, kek) => {
    *        P[i] = R[i]
    *    Else
    *      Return an error
-   **************************************************************************
    */
   
   // check A
@@ -161,9 +149,7 @@ const AESKeyUnWrap = (algorithm, wrapped_cek, kek) => {
 };
 
 /**
- *****************************************************************************
  * AES-CBC-HMAC-SHA2 decryption
- ****************************************************************************
  */
 
 /**
@@ -271,9 +257,7 @@ const decrypt_AES_CBC_HMAC_SHA2 = (algorithm, key, cipherText, iv, aad, authTag)
 };
 
 /**
- *****************************************************************************
  * JWE decryption
- ****************************************************************************
  */
 
 /**
@@ -468,15 +452,13 @@ const decryptContentForDir = (header, jweKeyStore, cipherText, iv, authTag, aad,
  */
 exports.decrypt = (jweString, jweKeyStore, log, callback) => {
   /**
-   ***************************************************************************
-   *   JWE compact format structure
-   ****************************************************************************
+   * JWE compact format structure
+   *
    * BASE64URL(UTF8(JWE Protected Header)) || '.' ||
    * BASE64URL(JWE Encrypted Key) || '.' || 
    * BASE64URL(JWE Initialization Vector) || '.' || 
    * BASE64URL(JWE Ciphertext) || '.' || 
    * BASE64URL(JWE Authentication Tag)
-   **************************************************************************
    */
   const parts = jweString.split(".");
   if (parts.length !== 5)
@@ -505,9 +487,7 @@ exports.decrypt = (jweString, jweKeyStore, log, callback) => {
     content_result = decryptContentForDir(header, jweKeyStore, cipherText, iv, authTag, aad, log);
   } else {
     /**
-     ***************************************************************************
      *  cek decryption
-     **************************************************************************
      */
     cek_result = decryptCEK(header, encrypted_cek, jweKeyStore, log);
     if (cek_result.error) {
@@ -530,9 +510,7 @@ exports.decrypt = (jweString, jweKeyStore, log, callback) => {
     }
 
     /**
-     ***************************************************************************
      *  content decryption
-     **************************************************************************
      */
     content_result = decryptContent(header, cek_result.cek, cipherText, iv, authTag, aad, log);
   }

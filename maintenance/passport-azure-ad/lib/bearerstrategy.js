@@ -49,7 +49,6 @@ const ttl = 1800; // 30 minutes cache
  * can be used by later middleware for access control.  This is typically used
  * to pass any scope associated with the token.
  * 
- *
  * Options:
  *
  *   - `identityMetadata`   (1) Required
@@ -163,7 +162,7 @@ const ttl = 1800; // 30 minutes cache
  */
 function Strategy(options, verifyFn) {
   passport.Strategy.call(this);
-  this.name = "oauth-bearer"; // Me, a name I call myself.
+  this.name = "oauth-bearer";
 
   if (!options)
     throw new Error("In BearerStrategy constructor: options is required");
@@ -174,9 +173,7 @@ function Strategy(options, verifyFn) {
   this._options = options;
 
   /*
-   * ---------------------------------------------------------------------------
    *  Set up the default values
-   * ---------------------------------------------------------------------------
    */
 
   // clock skew. Must be a postive integer
@@ -219,9 +216,7 @@ function Strategy(options, verifyFn) {
     options.issuer = [options.issuer];
 
   /*
-   * ---------------------------------------------------------------------------
    *  validate the things in options
-   * ---------------------------------------------------------------------------
    */
 
   // clientID should not be empty
@@ -237,9 +232,7 @@ function Strategy(options, verifyFn) {
     throw new Error("In BearerStrategy constructor: scope must be a non-empty array");
 
   /*
-   * ---------------------------------------------------------------------------
    *  treatment of common endpoint and issuer
-   * ---------------------------------------------------------------------------
    */
 
   // check if we are using the common endpoint
@@ -250,11 +243,9 @@ function Strategy(options, verifyFn) {
     log.warn("Production environments should always validate the issuer.");
 
   /*
-   * ---------------------------------------------------------------------------
    *  B2C. 
    *  (1) policy must be provided and must have the valid prefix
    *  (2) common endpoint is not supported
-   * ---------------------------------------------------------------------------
    */
 
   // for B2C, 
@@ -380,7 +371,7 @@ Strategy.prototype.authenticate = function authenticateStrategy(req, options) {
    * Some introduction to async.waterfall (from the following link):
    * http://stackoverflow.com/questions/28908180/what-is-a-simple-implementation-of-async-waterfall
    *
-   *   Runs the tasks array of functions in series, each passing their results 
+   * Runs the tasks array of functions in series, each passing their results 
    * to the next in the array. However, if any of the tasks pass an error to 
    * their own callback, the next function is not executed, and the main callback
    * is immediately called with the error.
@@ -513,7 +504,7 @@ Strategy.prototype.authenticate = function authenticateStrategy(req, options) {
      * the `user` obejct into req.user, so the following middleware can use it.
      * This is basically how bearerStrategy works.
      */
-    () => {
+    (next) => { // eslint-disable-line no-unused-vars -- Next used in async.waterfall
       let token;
 
       // token could be in header or body. query is not supported.

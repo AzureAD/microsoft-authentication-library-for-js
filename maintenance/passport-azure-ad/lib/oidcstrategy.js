@@ -408,12 +408,10 @@ function Strategy(options, verify) {
     options.clockSkew = CONSTANTS.CLOCK_SKEW;
 
   /**
-   ***************************************************************************************
    * Take care of identityMetadata
    * (1) Check if it is common endpoint
    * (2) For B2C, one cannot use the common endpoint. tenant name or guid must be specified
    * (3) We add telemetry to identityMetadata automatically
-   **************************************************************************************
    */
 
   // check existence
@@ -439,7 +437,6 @@ function Strategy(options, verify) {
   );
 
   /**
-   ***************************************************************************************
    * Take care of issuer and audience
    * (1) We use user provided `issuer`, and the issuer value from metadata if the metadata
    *     comes from tenant-specific endpoint (in other words, either the identityMetadata
@@ -451,7 +448,6 @@ function Strategy(options, verify) {
    *     must be set to false
    * (2) `validateIssuer` is true by default. we validate issuer unless validateIssuer is set false
    * (3) `audience` must be the clientID of this app
-   **************************************************************************************
    */
   if (options.validateIssuer !== false)
     options.validateIssuer = true;
@@ -468,10 +464,9 @@ function Strategy(options, verify) {
   options.allowMultiAudiencesInToken = false;
 
   /**
-   ***************************************************************************************
    * Take care of scope
-   **************************************************************************************
    */
+
   // make scope an array
   if (!options.scope)
     options.scope = [];
@@ -483,18 +478,15 @@ function Strategy(options, verify) {
   options.scope = options.scope.join(" ");
 
   /**
-   ***************************************************************************************
    * Check if we are using v2 endpoint, v2 doesn't have an userinfo endpoint
-   **************************************************************************************
    */
   if (options.identityMetadata.indexOf("/v2.0/") !== -1)
     options._isV2 = true;
 
   /**
-   ***************************************************************************************
    * validate other necessary option items provided, we validate them here and only once
-   **************************************************************************************
    */
+
   // change responseType 'id_token code' to 'code id_token' since the former is not supported by B2C
   if (options.responseType === "id_token code")
     options.responseType = "code id_token";
@@ -525,7 +517,7 @@ function Strategy(options, verify) {
       // for B2C, clientSecret is required to redeem authorization code.
       throw new Error("clientSecret must be provided for B2C hybrid flow and authorization code flow.");
     } else if (!options.clientSecret) {
-      /*
+      /**
        * for non-B2C, we can use either clientSecret or clientAssertion to redeem authorization code.
        * Therefore, we need either clientSecret, or privatePEMKey and thumbprint (so we can create clientAssertion).
        */
@@ -612,28 +604,22 @@ Strategy.prototype.authenticate = function authenticateStrategy(req, options) {
   async.waterfall(
     [
       /**
-       ****************************************************************************
        * Step 1. Collect information from the req and save the info into params
-       ***************************************************************************
        */
       (next) => {
         return self.collectInfoFromReq(params, req, next, response);
       },
 
       /**
-       ****************************************************************************
        * Step 2. Load metadata, use the information from 'params' and 'self._options'
        * to configure 'oauthConfig' and 'optionsToValidate'
-       ***************************************************************************
        */
       (next) => {
         return self.setOptions(params, oauthConfig, optionsToValidate, next);
       },
 
       /**
-       ****************************************************************************
        * Step 3. Handle the flows
-       *----------------------------------------------------------------------------
        * (1) implicit flow (response_type = 'id_token')
        *     This case we get a 'id_token'
        * (2) hybrid flow (response_type = 'id_token code')
@@ -642,7 +628,6 @@ Strategy.prototype.authenticate = function authenticateStrategy(req, options) {
        *     This case we get a 'code', we will use it to get 'access_token' and 'id_token'
        * (4) for any other request, we will ask for authorization and initialize
        *     the authorization process
-       ***************************************************************************
        */
       (next) => {
         if (params.err) {
@@ -689,18 +674,14 @@ Strategy.prototype.collectInfoFromReq = function (params, req, next, response) {
    */
 
   /*
-   * -------------------------------------------------------------------------
    * we shouldn't get any access_token or refresh_token from the request
-   * -------------------------------------------------------------------------
    */
   if ((req.query && (req.query.access_token || req.query.refresh_token)) ||
     (req.body && (req.body.access_token || req.body.refresh_token)))
     return next(new Error("In collectInfoFromReq: neither access token nor refresh token is expected in the incoming request"));
 
   /*
-   * -------------------------------------------------------------------------
    * we might get err, id_token, code, state from the request
-   * -------------------------------------------------------------------------
    */
   let source = null;
 
@@ -729,11 +710,9 @@ Strategy.prototype.collectInfoFromReq = function (params, req, next, response) {
   }
 
   /*
-   * -------------------------------------------------------------------------
    * If we received code, id_token or err, we must have received state, now we
    * find the state/nonce/policy tuple from session.
    * If we received none of them, find policy in query
-   * -------------------------------------------------------------------------
    */
   if (params.id_token || params.code || params.err) {
     if (!params.state)
@@ -791,10 +770,8 @@ Strategy.prototype.collectInfoFromReq = function (params, req, next, response) {
     return next(new Error("In collectInfoFromReq: we are using common endpoint for B2C but tenantIdOrName is not provided"));
 
   /*
-   * -------------------------------------------------------------------------
    * calculate metadataUrl, create a cachekey and an Metadata object instance
    * we will fetch the metadata, save it into the object using the cachekey
-   * -------------------------------------------------------------------------
    */
   let metadataUrl = self._options.identityMetadata;
 
@@ -836,9 +813,7 @@ Strategy.prototype.setOptions = function setOptions(params, oauthConfig, options
 
   async.waterfall([
     /*
-     * ------------------------------------------------------------------------
      * load metadata
-     * ------------------------------------------------------------------------
      */
     (next) => {
       memoryCache.wrap(params.cachekey, (cacheCallback) => {
@@ -852,9 +827,7 @@ Strategy.prototype.setOptions = function setOptions(params, oauthConfig, options
     },
 
     /*
-     * ------------------------------------------------------------------------
      * set oauthConfig: the information we need for oauth flow like redeeming code/access_token
-     * ------------------------------------------------------------------------
      */
     (metadata, next) => {
       if (!metadata.oidc)
@@ -909,11 +882,9 @@ Strategy.prototype.setOptions = function setOptions(params, oauthConfig, options
     },
 
     /*
-     * ------------------------------------------------------------------------
      * set optionsToValidate: the information we need for id_token validation.
      * we do this only if params has id_token or code, otherwise there is no
      * id_token to validate
-     * ------------------------------------------------------------------------
      */
     (metadata, next) => {
       if (!params.id_token && !params.code)
