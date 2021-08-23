@@ -1318,18 +1318,20 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
 
-        it("Returns a uri with given postLogoutUri and correlationId", async () => {
+        it("Returns a uri with given parameters", async () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
             const logoutUri = client.getLogoutUri({
                 correlationId: RANDOM_TEST_GUID,
-                postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
-                idTokenHint: "id_token_hint"
+                postLogoutRedirectUri: 
+                TEST_URIS.TEST_LOGOUT_URI,
+                idTokenHint: "id_token_hint",
+                state: "test_state" 
             });
-
-            const testLogoutUriWithParams = `${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common")}?${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI)}&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}&${AADServerParamKeys.ID_TOKEN_HINT}=id_token_hint`;
+          
+            const testLogoutUriWithParams = `${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common")}?${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI)}&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}&${AADServerParamKeys.ID_TOKEN_HINT}=id_token_hint&${AADServerParamKeys.STATE}=test_state`;
             expect(logoutUri).toBe(testLogoutUriWithParams);
         });
 
@@ -1347,12 +1349,18 @@ describe("AuthorizationCodeClient unit tests", () => {
             const logoutUri = client.getLogoutUri({
                 correlationId: RANDOM_TEST_GUID,
                 postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
-                idTokenHint: "id_token_hint"
+                idTokenHint: "id_token_hint",
+                state: "test_state",
+                extraQueryParameters: {
+                    testParam: "test_val"
+                }
             });
-
-            const testLogoutUriWithParams = `https://login.windows.net/common/oauth2/v2.0/logout?param1=value1&${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI)}&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}&${AADServerParamKeys.ID_TOKEN_HINT}=id_token_hint`;
+          
+            const testLogoutUriWithParams = `https://login.windows.net/common/oauth2/v2.0/logout?param1=value1&${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI)}&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}&${AADServerParamKeys.ID_TOKEN_HINT}=id_token_hint&${AADServerParamKeys.STATE}=test_state&testParam=test_val`;
             expect(logoutUri).toBe(testLogoutUriWithParams);
         });
+
+
     });
 
     describe("clearCacheOnLogout", () => {
