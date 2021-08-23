@@ -24,10 +24,10 @@
  * and \n's in the content.
  */
 
-/* eslint-disable max-len */
-const CERT_REGEX = /-----BEGIN\sCERTIFICATE-----\s+([a-zA-Z0-9+/=\r\n]+)\s+-----END\sCERTIFICATE-----/;
-const PRIVATE_KEY_REGEX = /-----BEGIN\sPRIVATE\sKEY-----\s+([a-zA-Z0-9+/=\r\n]+)\s+-----END\sPRIVATE\sKEY-----/;
-/* eslint-enable max-len */
+/* eslint-disable max-len no-useless-escape*/
+const CERT_REGEX = /-----BEGIN\sCERTIFICATE-----\s+([a-zA-Z0-9+\/=\r\n]+)\s+-----END\sCERTIFICATE-----/;
+const PRIVATE_KEY_REGEX = /-----BEGIN\sPRIVATE\sKEY-----\s+([a-zA-Z0-9+\/=\r\n]+)\s+-----END\sPRIVATE\sKEY-----/;
+/* eslint-enable max-len no-useless-escape*/
 
 function getFirstCapturingGroup(str, regex) {
   if (typeof str !== "string") {
