@@ -76,7 +76,9 @@ export class StringUtils {
         params.forEach((pair) => {
             if (pair.trim()) {
                 const [key, value] = pair.split(/=(.+)/g, 2); // Split on the first occurence of the '=' character
-                obj[decode(key)] = decode(value);
+                if (key && value) {
+                    obj[decode(key)] = decode(value);
+                }
             }
         });
         return obj as T;
