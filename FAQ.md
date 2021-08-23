@@ -253,7 +253,9 @@ The library is built to specifically use the fragment response mode. This is a s
 
 ## How do I configure the position and dimensions of popups?
 
-A popup window's position and dimension can be configured by passing the height, width, top position, and left position in the request. See the request documentation for [PopupRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#popuprequest) and [EndSessionPopupRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#endsessionpopuprequest) for more details. 
+A popup window's position and dimension can be configured by passing the height, width, top position, and left position in the request. If no configurations are passed, MSAL defaults will be used. See the request documentation for [PopupRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#popuprequest) and [EndSessionPopupRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#endsessionpopuprequest) for more details. 
+
+Note that popup dimensions should be positioned on screen and sized smaller than the parent window. Popups that are positioned off-screen or larger than the parent window will use MSAL defaults instead.
 
 ```javascript
 const loginRequest = {
