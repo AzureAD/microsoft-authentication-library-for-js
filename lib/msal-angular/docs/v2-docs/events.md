@@ -105,6 +105,48 @@ export class AppComponent implements OnInit, OnDestroy {
 
 An example of error handling can also be found on our [MSAL Angular v2 B2C Sample App](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/4d79b8ebacd7e4d9acf80fd69d602346dee6bf3c/samples/msal-angular-v2-samples/angular11-b2c-sample/src/app/app.component.ts#L68).
 
+## Syncing logged in state across tabs and windows
+
+If you would like to update your UI when a user logs in or out of your app in a different tab or window you can subscribe to the `ACCOUNT_ADDED` and `ACCOUNT_REMOVED` events. The payload will be the `AccountInfo` object that was added or removed.
+
+```javascript
+import { MsalBroadcastService } from '@azure/msal-angular';
+import { EventMessage, EventType } from '@azure/msal-browser';
+
+export class AppComponent implements OnInit, OnDestroy {
+  private readonly _destroying$ = new Subject<void>();
+
+  constructor(
+    //...
+    private msalBroadcastService: MsalBroadcastService
+  ) {}
+
+  ngOnInit(): void {
+    this.msalBroadcastService.msalSubject$
+      .pipe(
+        // Optional filtering of events
+        filter((msg: EventMessage) => msg.eventType === EventType.ACCOUNT_ADDED || msg.eventType === EventType.ACCOUNT_REMOVED), 
+        takeUntil(this._destroying$)
+      )
+      .subscribe((result: EventMessage) => {
+        if (this.authService.msalInstance.getAllAccounts().length === 0) {
+          // Account logged out in a different tab, redirect to homepage
+          window.location.pathname = "/";
+        } else {
+          // Update UI to show user is signed in. result.payload contains the account that was logged in
+        }
+      });
+  }
+
+  ngOnDestroy(): void {
+    this._destroying$.next(null);
+    this._destroying$.complete();
+  }
+}
+```
+
+A full example can also be found in our [samples](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/samples/msal-angular-v2-samples/angular12-sample-app/src/app/app.component.ts).
+
 ## The inProgress$ Observable
 
 The `inProgress$` observable is also handled by the `MsalBroadcastService`, and should be subscribed to when application needs to know the status of interactions, particularly to check that interactions are completed. We recommend checking that the status of interactions is `InteractionStatus.None` before functions involving user accounts. 
