@@ -4,7 +4,7 @@ name: Automate Release
 on:
   push:
     branches:
-      - dev
+      - master
   workflow_dispatch:
     inputs:
       versionName:
@@ -48,8 +48,8 @@ jobs:
           commit-message: Release ; version bump; PR->master
           committer: GitHub <noreply@github.com>
           author: ${{ github.actor }} <${{ github.actor }}@microsoft.com>
-          branch: release/${{ steps.date.outputs.date }}
-          title: 'Creating PR From :release/${{ steps.date.outputs.date }}' 
+          branch: releasev2/${{ steps.date.outputs.date }}
+          title: 'Creating PR From :releasev2/${{ steps.date.outputs.date }}' 
           body: |
             New release PR
           draft: false
