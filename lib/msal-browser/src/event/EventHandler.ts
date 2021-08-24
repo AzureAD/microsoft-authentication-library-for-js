@@ -14,7 +14,7 @@ export class EventHandler {
     private logger: Logger;
     private browserCrypto: ICrypto;
 
-    constructor(logger: Logger, browserCrypto: ICrypto) {
+    constructor(logger: Logger, browserCrypto: ICrypto) { /* constructor for Eventhandler Class*/
         this.eventCallbacks = new Map();
         this.logger = logger;
         this.browserCrypto = browserCrypto;
