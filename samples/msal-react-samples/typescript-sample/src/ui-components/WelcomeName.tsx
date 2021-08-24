@@ -11,7 +11,7 @@ const WelcomeName = () => {
         if (account && account.name) {
             setName(account.name.split(" ")[0]);
         } else {
-            setName(null);
+            setName("");
         }
     }, [account]);
 
