@@ -493,7 +493,8 @@ export abstract class ClientApplication {
 
             // Handle response from hash string.
             const result = await interactionHandler.handleCodeResponse(hash, state, authClient.authority, this.networkClient);
-
+            /* called handle code response*/ 
+            
             // If logged in, emit acquire token events
             const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
             if (isLoggingIn) {
@@ -509,7 +510,7 @@ export abstract class ClientApplication {
             } else {
                 this.eventHandler.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Popup, null, e);
             }
-            
+            // closing the popup in case of an error
             if (popup) {
                 // Close the synchronous popup if an error is thrown before the window unload event is registered
                 popup.close();

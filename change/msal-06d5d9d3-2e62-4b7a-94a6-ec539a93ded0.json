@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "updating client application and automate workflow",
+  "packageName": "msal",
+  "email": "bmahal@microsoft.com",
+  "dependentChangeType": "patch"
+}

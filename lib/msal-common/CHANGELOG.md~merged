@@ -1,0 +1,33 @@
+# Change Log - @azure/msal-common
+
+<<<<<<< HEAD
+This log was last generated on Wed, 11 Aug 2021 20:45:13 GMT and should not be manually modified.
+=======
+This log was last generated on Wed, 11 Aug 2021 21:11:46 GMT and should not be manually modified.
+>>>>>>> b02c190cd8469cd3771a56bc47bdf1ae6e4f6f84
+
+<!-- Start content -->
+
+## 4.6.0
+
+<<<<<<< HEAD
+Wed, 11 Aug 2021 20:45:13 GMT
+=======
+Wed, 11 Aug 2021 21:11:46 GMT
+>>>>>>> b02c190cd8469cd3771a56bc47bdf1ae6e4f6f84
+
+### Minor changes
+
+- Adds state param to logout url #3909 (bmahal@microsoft.com)
+
+### Patches
+
+<<<<<<< HEAD
+- Fix double encoding state #3903 (bmahal@microsoft.com)
+- comments added in common (bmahal@microsoft.com)
+- comment added (bmahal@microsoft.com)
+=======
+- comments added in common (bmahal@microsoft.com)
+- comment added (bmahal@microsoft.com)
+- Fix double encoding state #3903 (bmahal@microsoft.com)
+>>>>>>> b02c190cd8469cd3771a56bc47bdf1ae6e4f6f84
