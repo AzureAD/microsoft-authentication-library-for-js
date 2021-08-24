@@ -82,7 +82,7 @@ export class PopupClient extends StandardInteractionClient {
      *
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
-    private async acquireTokenPopupAsync(validRequest: AuthorizationUrlRequest, popupName: string, popupWindowAttributes: PopupWindowAttributes, popup?: Window|null, ): Promise<AuthenticationResult> {
+    private async acquireTokenPopupAsync(validRequest: AuthorizationUrlRequest, popupName: string, popupWindowAttributes: PopupWindowAttributes, popup?: Window|null): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenPopupAsync called");
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup);
 
@@ -172,7 +172,7 @@ export class PopupClient extends StandardInteractionClient {
 
             const popupUtils = new PopupUtils(this.browserStorage, this.logger);
             // Open the popup window to requestUrl.
-            const popupWindow = popupUtils.openPopup(logoutUri, popupName, popupWindowAttributes, popup);
+            const popupWindow = popupUtils.openPopup(logoutUri, {popupName, popupWindowAttributes, popup});
             this.eventHandler.emitEvent(EventType.POPUP_OPENED, InteractionType.Popup, {popupWindow}, null);
 
             try {

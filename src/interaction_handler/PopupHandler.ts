@@ -42,7 +42,7 @@ export class PopupHandler extends InteractionHandler {
             this.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
             this.browserRequestLogger.infoPii(`Navigate to: ${requestUrl}`);
             // Open the popup window to requestUrl.
-            return this.popupUtils.openPopup(requestUrl, params.popupName, params.popupWindowAttributes, params.popup);
+            return this.popupUtils.openPopup(requestUrl, params);
         } else {
             // Throw error if request URL is empty.
             this.browserRequestLogger.error("Navigate url is empty");

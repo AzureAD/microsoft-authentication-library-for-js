@@ -6,6 +6,7 @@
 import { CommonEndSessionRequest, Constants, Logger, StringUtils } from "@azure/msal-common";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { BrowserAuthError } from "../error/BrowserAuthError";
+import { PopupParams } from "../interaction_handler/PopupHandler";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConstants, InteractionType, TemporaryCacheKeys } from "./BrowserConstants";
 
@@ -53,18 +54,18 @@ export class PopupUtils {
      * @ignore
      * @hidden
      */
-    openPopup(urlNavigate: string, popupName: string, popupWindowAttributes: PopupWindowAttributes, popup?: Window|null): Window {
+    openPopup(urlNavigate: string, popupParams: PopupParams): Window {
         try {
             let popupWindow;
             // Popup window passed in, setting url to navigate to
-            if (popup) {
-                popupWindow = popup;
+            if (popupParams.popup) {
+                popupWindow = popupParams.popup;
                 this.logger.verbosePii(`Navigating popup window to: ${urlNavigate}`);
                 popupWindow.location.assign(urlNavigate);
-            } else if (typeof popup === "undefined") {
+            } else if (typeof popupParams.popup === "undefined") {
                 // Popup will be undefined if it was not passed in
                 this.logger.verbosePii(`Opening popup window to: ${urlNavigate}`);
-                popupWindow = PopupUtils.openSizedPopup(urlNavigate, popupName, popupWindowAttributes, this.logger);
+                popupWindow = PopupUtils.openSizedPopup(urlNavigate, popupParams.popupName, popupParams.popupWindowAttributes, this.logger);
             }
 
             // Popup will be null if popups are blocked
@@ -106,36 +107,32 @@ export class PopupUtils {
         const winWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
         const winHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
 
-        if (popupWindowAttributes.popupPosition) {
-            if (popupWindowAttributes.popupPosition.top < 0 || popupWindowAttributes.popupPosition.top > winHeight) {
-                logger.error("Invalid popup window position. Popup window should not be positioned off-screen.");
-                popupWindowAttributes.popupPosition.top = 0;
-            }
+        let width = popupWindowAttributes.popupSize?.width;
+        let height = popupWindowAttributes.popupSize?.height;
+        let top = popupWindowAttributes.popupPosition?.top;
+        let left = popupWindowAttributes.popupPosition?.left;
 
-            if (popupWindowAttributes.popupPosition.left < 0 || popupWindowAttributes.popupPosition.left > winWidth) {
-                logger.error("Invalid popup window position. Popup window should not be positioned off-screen.");
-                popupWindowAttributes.popupPosition.left = 0;
-            }
+        if (!width || width < 0 || width > winWidth) {
+            logger.verbose("Default popup window width used. Window width not configured or invalid.");
+            width = BrowserConstants.POPUP_WIDTH;
         }
 
-        if (popupWindowAttributes.popupSize) {
-            if (popupWindowAttributes.popupSize.height < 0 || popupWindowAttributes.popupSize.height > winHeight) {
-                logger.error("Invalid popup window size. Popup window height should be smaller than parent window.");
-                popupWindowAttributes.popupSize.height = 0;
-            }
-
-            if (popupWindowAttributes.popupSize.width < 0 || popupWindowAttributes.popupSize.width > winWidth) {
-                logger.error("Invalid popup window size. Popup window width should be smaller than parent window.");
-                popupWindowAttributes.popupSize.width = 0;
-            }
+        if (!height || height < 0 || height > winHeight) {
+            logger.verbose("Default popup window height used. Window height not configured or invalid.");
+            height = BrowserConstants.POPUP_HEIGHT;
         }
 
-        const validHeight = popupWindowAttributes.popupSize?.height || BrowserConstants.POPUP_HEIGHT;
-        const validWidth = popupWindowAttributes.popupSize?.width || BrowserConstants.POPUP_WIDTH;
-        const validTop = popupWindowAttributes.popupPosition?.top || Math.max(0, ((winHeight / 2) - (BrowserConstants.POPUP_HEIGHT / 2)) + winTop);
-        const validLeft = popupWindowAttributes.popupPosition?.left || Math.max(0, ((winWidth / 2) - (BrowserConstants.POPUP_WIDTH / 2)) + winLeft);
+        if (!top || top < 0 || top > winHeight) {
+            logger.verbose("Default popup window top position used. Window top not configured or invalid.");
+            top = Math.max(0, ((winHeight / 2) - (BrowserConstants.POPUP_HEIGHT / 2)) + winTop);
+        }
 
-        return window.open(urlNavigate, popupName, `width=${validWidth}, height=${validHeight}, top=${validTop}, left=${validLeft}, scrollbars=yes`);
+        if (!left || left < 0 || left > winWidth) {
+            logger.verbose("Default popup window left position used. Window left not configured or invalid.");
+            left = Math.max(0, ((winWidth / 2) - (BrowserConstants.POPUP_WIDTH / 2)) + winLeft);
+        }
+
+        return window.open(urlNavigate, popupName, `width=${width}, height=${height}, top=${top}, left=${left}, scrollbars=yes`);
     }
 
     /**
