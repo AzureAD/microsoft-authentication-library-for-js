@@ -8,7 +8,7 @@ import { PopupUtils } from "../../src/utils/PopupUtils";
 import { AccountInfo, AuthenticationScheme, Logger, LogLevel, ResponseMode } from "@azure/msal-common";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
 import { TEST_CONFIG } from "./StringConstants";
-import { BrowserAuthErrorMessage, BrowserCacheLocation } from "../../src";
+import { BrowserCacheLocation } from "../../src";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
 
@@ -168,7 +168,12 @@ describe("PopupUtils Tests", () => {
                     done();
                 }
             }
-            popupUtils.openPopup("http://localhost", "name", {}, popupWindow);
+            const popupParams = {
+                popupName: "name",
+                popupWindowAttributes: {},
+                popup: popupWindow
+            };
+            popupUtils.openPopup("http://localhost", popupParams);
             popupUtils.unloadWindow(new Event("test"));
         });
     });
