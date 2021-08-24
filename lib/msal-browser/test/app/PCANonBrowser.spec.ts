@@ -10,7 +10,7 @@ describe("Non-browser environment", () => {
     it("Constructor doesnt throw if window is undefined", () => {
         new PublicClientApplication({
             auth: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID /*stores client id*/
             }
         });
     });
