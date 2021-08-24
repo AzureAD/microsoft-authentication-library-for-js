@@ -53,7 +53,7 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         return [];	
     },	
     getAccountByHomeId: () => {
-        return null;
+        return null; /* account from home id*/
     },
     getAccountByUsername: () => {	
         return null;	
