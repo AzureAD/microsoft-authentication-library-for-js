@@ -29,33 +29,17 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          ref: master
       
-      - name: Setup bot git information
-        run: |
-          git config user.email "bmahal@microsoft.com"
-          git config user.name "bmahall"
 
       # Install node_modules here
       - name: Use Node.js
         uses: actions/setup-node@v2
-        env: 
-          RUNNING_NODE_CI: 1
         with:
             cache: 'npm'
       - run: npm ci
 
-      - name: Bump versions
-        run: |
-          npm run beachball:bump
-
-      - name: Retrieve version from package.json
-        id: version
-        run: |
-          ver=$(jq -r .version package.json)
-          echo version: $ver
-
-
+      - name: bump package versions
+        run: npm run beachball:bump
 
       - name: Create Pull Request
         id: pr
@@ -64,8 +48,8 @@ jobs:
           commit-message: Release ; version bump; PR->master
           committer: GitHub <noreply@github.com>
           author: ${{ github.actor }} <${{ github.actor }}@microsoft.com>
-          branch: releasev9/${{ steps.date.outputs.date }}
-          title: 'Creating PR From :releasev9/${{ steps.date.outputs.date }}' 
+          branch: release/${{ steps.date.outputs.date }}
+          title: 'Creating PR From :release/${{ steps.date.outputs.date }}' 
           body: |
             New release PR
           draft: false
