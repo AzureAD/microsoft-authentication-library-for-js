@@ -4,7 +4,7 @@ name: Automate Release
 on:
   push:
     branches:
-      - master
+      - dev
   workflow_dispatch:
     inputs:
       versionName:
