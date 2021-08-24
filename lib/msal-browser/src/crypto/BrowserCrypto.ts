@@ -10,7 +10,7 @@ import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
  * See here for more info on RsaHashedKeyGenParams: https://developer.mozilla.org/en-US/docs/Web/API/RsaHashedKeyGenParams
  */
 // RSA KeyGen Algorithm
-const PKCS1_V15_KEYGEN_ALG = "RSASSA-PKCS1-v1_5";
+const PKCS1_V15_KEYGEN_ALG = "RSASSA-PKCS1-v1_5"; /* key gen algo*/
 // SHA-256 hashing algorithm
 const S256_HASH_ALG = "SHA-256";
 // MOD length for PoP tokens
