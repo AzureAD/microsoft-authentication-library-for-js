@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Merge pull request #12 from bmahall/feature-2-test",
+  "packageName": "@azure/msal-common",
+  "email": "bmahal@microsoft.com",
+  "dependentChangeType": "patch"
+}
