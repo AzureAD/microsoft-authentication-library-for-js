@@ -23,6 +23,10 @@ import { AuthorizationUrlRequest } from "../../request/AuthorizationUrlRequest";
 import { BrokerStateObject } from "../../utils/BrowserProtocolUtils";
 import { PublicClientApplication } from "../../app/PublicClientApplication";
 import { ExperimentalBrowserConfiguration, ExperimentalConfiguration, buildExperimentalConfiguration } from "../../config/ExperimentalConfiguration";
+import { RedirectClient } from "../../interaction_client/RedirectClient";
+import { PopupClient } from "../../interaction_client/PopupClient";
+import { SilentIframeClient } from "../../interaction_client/SilentIframeClient";
+import { BrokerInteractionClient } from "../../interaction_client/BrokerInteractionClient";
 
 /**
  * Broker Application class to manage brokered requests.
@@ -261,27 +265,29 @@ export class BrokerClientApplication extends PublicClientApplication {
             clientPort.postMessage(brokerRedirectResp);
             clientPort.close();
             this.logger.info(`Sending redirect response: ${brokerRedirectResp}`);
-
+            
+            
             // Initialize the brokered redirect request with the required parameters.
             const redirectRequest = validMessage.request as BrokerRedirectRequest;
+            const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, redirectRequest.correlationId);
             redirectRequest.redirectUri = validMessage.embeddedAppOrigin;
             redirectRequest.embeddedAppClientId = validMessage.embeddedClientId;
-            redirectRequest.brokerRedirectUri = this.getRedirectUri();
-
+            redirectRequest.brokerRedirectUri = redirectClient.getRedirectUri();
+            redirectRequest.redirectStartPage = this.experimentalConfig.brokerOptions.brokerRedirectParams?.redirectStartPage;
+            redirectRequest.onRedirectNavigate = this.experimentalConfig.brokerOptions.brokerRedirectParams?.onRedirectNavigate;
+            
             // Update parameters in request with required broker parameters
             const validatedBrokerRequest = this.initializeBrokeredRequest(redirectRequest, InteractionType.Redirect, validMessage.embeddedAppOrigin);
-
-            // Call acquireTokenRedirect()
-            this.acquireTokenRedirectAsync(
-                validatedBrokerRequest, 
-                this.experimentalConfig.brokerOptions.brokerRedirectParams?.redirectStartPage, 
-                this.experimentalConfig.brokerOptions.brokerRedirectParams?.onRedirectNavigate);
+            
+            // Call redirectClient.acquireToken()
+            return redirectClient.acquireToken(validatedBrokerRequest);
+            
         } catch (err) {
             const brokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, null, err);
             this.logger.info(`Found auth error in popup: ${err}`);
             clientPort.postMessage(brokerAuthResponse);
             clientPort.close();
-        }        
+        }
     }
 
     /**
@@ -293,15 +299,16 @@ export class BrokerClientApplication extends PublicClientApplication {
         try {
             // Initialize the brokered popup request with required parameters
             const popupRequest = validMessage.request as BrokerPopupRequest;
+            const popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, popupRequest.correlationId);
             popupRequest.redirectUri = validMessage.embeddedAppOrigin;
             popupRequest.embeddedAppClientId = validMessage.embeddedClientId;
-            popupRequest.brokerRedirectUri = this.getRedirectUri();
-
+            popupRequest.brokerRedirectUri = popupClient.getRedirectUri();
+            
             // Update parameters in request with required broker parameters
             const validatedBrokerRequest = this.initializeBrokeredRequest(popupRequest, InteractionType.Popup, validMessage.embeddedAppOrigin);
 
             // Call acquireTokenPopup() and send the response back to the embedded application. 
-            const response = (await this.acquireTokenPopupAsync(validatedBrokerRequest, "")) as BrokerAuthenticationResult;
+            const response = (await popupClient.acquireTokenPopupAsync(validatedBrokerRequest, "")) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, response);
             this.logger.infoPii(`Sending auth response`);
             clientPort.postMessage(brokerAuthResponse);
@@ -323,22 +330,23 @@ export class BrokerClientApplication extends PublicClientApplication {
         try {
             // Initialize the brokered silent iframe request with required parameters
             const silentRequest = validMessage.request as BrokerSsoSilentRequest;
+            const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, silentRequest.correlationId);
             silentRequest.redirectUri = validMessage.embeddedAppOrigin;
             silentRequest.embeddedAppClientId = validMessage.embeddedClientId;
-            silentRequest.brokerRedirectUri = this.getRedirectUri();
+            silentRequest.brokerRedirectUri = silentIframeClient.getRedirectUri();
 
             // Update parameters in request with required broker parameters
             const brokeredSilentRequest = this.initializeBrokeredRequest(silentRequest, InteractionType.Silent, validMessage.embeddedAppOrigin);
 
             // Call ssoSilent() and send the response back to the embedded application. 
-            const response: BrokerAuthenticationResult = (await this.acquireTokenByIframe(brokeredSilentRequest, ApiId.ssoSilent)) as BrokerAuthenticationResult;
-            const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, response);
+            const response: BrokerAuthenticationResult = (await silentIframeClient.acquireTokenByIframe(brokeredSilentRequest)) as BrokerAuthenticationResult;
+            const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Silent, response);
             this.logger.infoPii(`Sending auth response`);
             clientPort.postMessage(brokerAuthResponse);
             clientPort.close();
         } catch (err) {
             const brokerAuthResponse = new BrokerAuthResponse(InteractionType.Silent, null, err);
-            this.logger.info(`Found auth error in silent: ${err}`);
+            this.logger.info(`Found auth error in ssoSilent: ${err}`);
             clientPort.postMessage(brokerAuthResponse);
             clientPort.close();
         }
@@ -376,7 +384,7 @@ export class BrokerClientApplication extends PublicClientApplication {
             }
         } catch (err) {
             const brokerAuthResponse = new BrokerAuthResponse(InteractionType.Silent, null, err);
-            this.logger.info(`Found auth error: ${err}`);
+            this.logger.info(`Found auth error in silent: ${err}`);
             clientPort.postMessage(brokerAuthResponse);
             clientPort.close();
         }
@@ -388,7 +396,8 @@ export class BrokerClientApplication extends PublicClientApplication {
      */
     protected async createAuthCodeClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<AuthorizationCodeClient> {
         // Create auth module.
-        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
+        const brokerInteractionClient = new BrokerInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.experimentalConfig);
+        const clientConfig = await brokerInteractionClient.getClientConfiguration(serverTelemetryManager, authorityUrl);
 
         return new BrokerAuthorizationCodeClient(clientConfig);
     }
@@ -399,7 +408,8 @@ export class BrokerClientApplication extends PublicClientApplication {
      */
     protected async createRefreshTokenClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<RefreshTokenClient> {
         // Create auth module.
-        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
+        const brokerInteractionClient = new BrokerInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.experimentalConfig);
+        const clientConfig = await brokerInteractionClient.getClientConfiguration(serverTelemetryManager, authorityUrl);
         return new BrokerRefreshTokenClient(clientConfig);
     }
 

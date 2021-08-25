@@ -44,7 +44,18 @@ export class SilentIframeClient extends StandardInteractionClient {
             ...request,
             prompt: PromptValue.NONE
         }, InteractionType.Silent);
+        return this.acquireTokenByIframe(silentRequest);
+    }
 
+    async acquireTokenByIframe(request: AuthorizationUrlRequest): Promise<AuthenticationResult> {
+        let silentRequest: AuthorizationUrlRequest = request;
+        if (!request.state || !request.nonce || !request.authority) {
+            silentRequest = this.initializeAuthorizationRequest({
+                ...request,
+                prompt: PromptValue.NONE
+            }, InteractionType.Silent);
+        }
+        this.browserStorage.updateCacheEntries(silentRequest.state, silentRequest.nonce, silentRequest.authority, silentRequest.loginHint || "", silentRequest.account || null);
         const serverTelemetryManager = this.initializeServerTelemetryManager(this.apiId);
 
         try {

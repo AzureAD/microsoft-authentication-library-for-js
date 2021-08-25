@@ -13,6 +13,10 @@ export const BrokerAuthErrorMessage = {
         code: "no_tokens_to_cache",
         desc: "The broker did not have any tokens for the client to cache."
     },
+    noEmbeddedAppError: {
+        code: "no_embedded_app",
+        desc: "The embedded application object was not created. Please ensure you have configured your application correctly for an embedded application: https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/broker-v2/lib/msal-browser/docs/broker.md#brokered-application-configuration"
+    },
     brokerResponseInvalidError: {
         code: "broker_response_invalid",
         desc: "The broker response did not have the expected values."
@@ -46,6 +50,11 @@ export class BrokerAuthError extends BrowserAuthError {
     static createNoTokensToCacheError(): BrokerAuthError {
         return new BrokerAuthError(BrokerAuthErrorMessage.noTokensToCacheError.code,
             `${BrokerAuthErrorMessage.noTokensToCacheError.desc}`);
+    }
+
+    static createNoEmbeddedAppError(): BrokerAuthError {
+        return new BrokerAuthError(BrokerAuthErrorMessage.noEmbeddedAppError.code, 
+            BrokerAuthErrorMessage.noEmbeddedAppError.desc);
     }
 
     /**

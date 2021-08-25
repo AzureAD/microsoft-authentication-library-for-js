@@ -22,7 +22,7 @@ import { EventType } from "../event/EventType";
 export class PublicClientApplication extends ClientApplication implements IPublicClientApplication {
 
     // Active requests
-    private activeSilentTokenRequests: Map<string, Promise<AuthenticationResult>>;
+    protected activeSilentTokenRequests: Map<string, Promise<AuthenticationResult>>;
 
     /**
      * @constructor
@@ -123,7 +123,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @param {@link (AccountInfo:type)}
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} 
      */
-    private async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult>{
+    protected async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult>{
         const silentCacheClient = new SilentCacheClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient);
         const silentRequest = silentCacheClient.initializeSilentRequest(request, account);
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);

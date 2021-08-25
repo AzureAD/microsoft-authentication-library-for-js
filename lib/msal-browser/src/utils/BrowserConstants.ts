@@ -79,10 +79,7 @@ export enum TemporaryCacheKeys {
  */
 export enum InMemoryCacheKeys {
     WRAPPER_SKU = "wrapper.sku",
-    WRAPPER_VER = "wrapper.version"
-}
-
-export enum MemoryCacheKeys {
+    WRAPPER_VER = "wrapper.version",
     BROKER_RESPONSE = "broker.response"
 }
 

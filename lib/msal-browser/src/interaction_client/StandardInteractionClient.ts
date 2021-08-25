@@ -110,7 +110,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param requestAuthority
      * @param requestCorrelationId
      */
-    protected async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string): Promise<ClientConfiguration> {
+    async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string): Promise<ClientConfiguration> {
         this.logger.verbose("getClientConfiguration called");
         const discoveredAuthority = await this.getDiscoveredAuthority(requestAuthority);
 
@@ -291,8 +291,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             }
         }
 
-        this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority, validatedRequest.loginHint || "", validatedRequest.account || null);
-
         return validatedRequest;
     }
 
@@ -331,7 +329,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @returns Redirect URL
      *
      */
-    protected getRedirectUri(requestRedirectUri?: string): string {
+    getRedirectUri(requestRedirectUri?: string): string {
         this.logger.verbose("getRedirectUri called");
         const redirectUri = requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
         return UrlString.getAbsoluteUrl(redirectUri, BrowserUtils.getCurrentUri());
