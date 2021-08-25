@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-export type CcsCredential = {
+export type CcsCredential = { /* store ccs credential*/
     credential: string,
     type: CcsCredentialType
 };
