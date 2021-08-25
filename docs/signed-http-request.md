@@ -68,3 +68,14 @@ const json = await response.json();
 await signedHttpRequest.removeKeys(publicKeyThumbprint);
 
 ```
+
+### Server Nonces
+
+The `SignedHttpRequest` API will support the ability to set custom claims in the SHR, including nonce, such as via server nonce. To acquire a server nonce, perform the following steps:
+
+1. Generate the public key thumbprint and acquire the bound payload.
+2. Invoke `SignedHttpRequest.signRequest()` without providing a nonce value. This will generate an SHR with a library-generated `nonce` claim (currently a guid).
+3. Invoke the network request using the SHR to the resource server.
+4. The resource server will respond with an error and a new `nonce` value to use in a header.
+5. The application will need to parse this header and reinvoke `SignedHttpRequest.signRequest()`, this time passing the parsed `nonce` value (in the future, MSAL will provide a helper function for parsing the header).
+6. Reinvoke the network request using the SHR to the resource server.
