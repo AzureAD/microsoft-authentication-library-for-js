@@ -2,6 +2,65 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 25 Aug 2021 18:51:38 GMT",
+      "tag": "@azure/msal-common_v4.7.0",
+      "version": "4.7.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "updated comment",
+            "author": "bmahal@microsoft.com",
+            "commit": "b8f507d8ae813bdec7529285d3713e0c31f9fdfa",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "change in common",
+            "author": "bmahal@microsoft.com",
+            "commit": "4525f51f2437b863f88ce09928d90646b2ade3af",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "comment added",
+            "author": "bmahal@microsoft.com",
+            "commit": "56834203bfc115facb257293fd562dcedb1944d2",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "updated comment",
+            "author": "bmahal@microsoft.com",
+            "commit": "a7725bdbed7e96db1f4221dd4d8d4eb57197955f",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "new comment   ",
+            "author": "bmahal@microsoft.com",
+            "commit": "e4a143a4fff8658523e4edda4b461aec8895901d",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "updating client application and automate workflow",
+            "author": "bmahal@microsoft.com",
+            "commit": "23b5d4a43d832445c4708383df78c70478f99058",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "updating base client",
+            "author": "bmahal@microsoft.com",
+            "commit": "5b0c19c0792b235df2b57a08a0bc6338f9173371",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Merge pull request #12 from bmahall/feature-2-test",
+            "author": "bmahal@microsoft.com",
+            "commit": "c7d4ffd544eb733fdf79cacc1928c89419a6f662",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 11 Aug 2021 21:11:46 GMT",
       "tag": "@azure/msal-common_v4.6.0",
       "version": "4.6.0",

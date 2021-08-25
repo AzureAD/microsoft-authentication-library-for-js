@@ -2,6 +2,21 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Wed, 25 Aug 2021 18:51:38 GMT",
+      "tag": "@azure/msal-angular_v2.0.4",
+      "version": "2.0.4",
+      "comments": {
+        "patch": [
+          {
+            "comment": "updating client application and automate workflow",
+            "author": "bmahal@microsoft.com",
+            "commit": "23b5d4a43d832445c4708383df78c70478f99058",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 11 Aug 2021 21:11:46 GMT",
       "tag": "@azure/msal-angular_v2.0.3",
       "version": "2.0.3",
