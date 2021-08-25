@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "updating client application and automate workflow",
-  "packageName": "@azure/msal-common",
-  "email": "bmahal@microsoft.com",
-  "dependentChangeType": "patch"
-}

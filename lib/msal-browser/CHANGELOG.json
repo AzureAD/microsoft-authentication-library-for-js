@@ -2,6 +2,70 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 25 Aug 2021 18:51:38 GMT",
+      "tag": "@azure/msal-browser_v2.17.0",
+      "version": "2.17.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "updating client application and automate workflow",
+            "author": "bmahal@microsoft.com",
+            "commit": "23b5d4a43d832445c4708383df78c70478f99058",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Merge pull request #12 from bmahall/feature-2-test",
+            "author": "bmahal@microsoft.com",
+            "commit": "c7d4ffd544eb733fdf79cacc1928c89419a6f662",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "author": "bmahal@microsoft.com",
+            "commit": "3b96f8fd65eb90c2b9a847527b4ffb05e9d42131",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "new comment and updation of script",
+            "author": "bmahal@microsoft.com",
+            "commit": "1c38c3dd23b762fc37443a280994713cfc8e64ac",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "new comment",
+            "author": "bmahal@microsoft.com",
+            "commit": "de84163818da23285d262e2b23b97f3b25124334",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "commentn ",
+            "author": "bmahal@microsoft.com",
+            "commit": "3b96f8fd65eb90c2b9a847527b4ffb05e9d42131",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Bump @azure/msal-common to v4.7.0",
+            "author": "bmahal@microsoft.com",
+            "commit": "c7d4ffd544eb733fdf79cacc1928c89419a6f662",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "added logger ",
+            "author": "bmahal@microsoft.com",
+            "commit": "e4a143a4fff8658523e4edda4b461aec8895901d",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "comment and changes",
+            "author": "bmahal@microsoft.com",
+            "commit": "56834203bfc115facb257293fd562dcedb1944d2",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Wed, 11 Aug 2021 21:11:46 GMT",
       "tag": "@azure/msal-browser_v2.16.1",
       "version": "2.16.1",
