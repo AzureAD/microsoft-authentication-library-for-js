@@ -15,9 +15,9 @@
  * - localAccountId         - The user's account ID
  */
 export type AccountInfo = {
-    homeAccountId: string; /* home accoutn id*/
+    homeAccountId: string; /* home account id*/
     environment: string;
-    tenantId: string;
+    tenantId: string; /* tenant id*/
     username: string;
     localAccountId: string; /* local acc id */
     name?: string; /* name */
