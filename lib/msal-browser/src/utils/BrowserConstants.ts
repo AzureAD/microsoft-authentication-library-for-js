@@ -41,6 +41,17 @@ export const BrowserConstants = {
     MSAL_SKU: "msal.js.browser",
 };
 
+export const WamConstants = {
+    CHANNEL_ID: "53ee284d-920a-4b59-9d30-a60315b26836",
+    PREFERRED_EXTENSION_ID: "ppnbnpeolgkicgegkbkbjmhlideopiji"
+};
+
+export enum WamExtensionMethod {
+    HandshakeRequest = "Handshake",
+    HandshakeResponse = "HandshakeResponse",
+    Response = "Response"
+}
+
 export enum BrowserCacheLocation {
     LocalStorage = "localStorage",
     SessionStorage = "sessionStorage",
