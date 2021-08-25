@@ -39,7 +39,8 @@ jobs:
       - run: npm ci
 
       - name: bump package versions
-        run: beachball bump -b origin/dev --bumpDeps false && node release-scripts/updateVersion.js
+        run: node node_modules/beachball/bin/beachball bump -b origin/dev --bumpDeps false && node release-scripts/updateVersion.js
+  
 
       - name: Create Pull Request
         id: pr
