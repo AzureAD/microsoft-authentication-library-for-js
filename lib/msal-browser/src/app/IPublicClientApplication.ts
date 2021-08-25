@@ -40,6 +40,7 @@ export interface IPublicClientApplication {
 }
 
 export const stubbedPublicClientApplication: IPublicClientApplication = {
+    /* acquire token popup */
     acquireTokenPopup: () => {
         return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());
     },
