@@ -11,17 +11,17 @@ const RedisStore = require('connect-redis')(session); // persist session in redi
 
 const msalWrapper = require('msal-express-wrapper/dist/AuthProvider');
 const appSettings = require('../appSettings.json');
-
 const router = require('./routes/router');
 
 const SERVER_PORT = process.env.PORT || 4000;
-
 
 /**
 * Instantiate the redis client, which is used in persistenceHelper.
 * This provides basic set, get, delete and check methods for the cachePlugin.
 */
 const redisClient = redis.createClient();
+redisClient.on('error', console.error);
+
 const persistenceHelper = require('./utils/persistenceHelper')(redisClient);
 const cachePlugin = require('./utils/cachePlugin')(persistenceHelper);
 
@@ -55,12 +55,12 @@ const authProvider = new msalWrapper.AuthProvider(appSettings, cachePlugin);
 
 /**
 * When using a distributed token cache, msal's in-memory cache should only load
-* the cache blob for the currently served user from persistence store (here, redis). 
+* the cache blob for the currently served user from persistence store (here, Redis). 
 * This custom middleware first passes the session variable to cachePlugin object, and 
-* then initializes msal's token cache.
+* then re-initializes msal's token cache plugin.
 */
 function initializeTokenCachePlugin(req, res, next) {
-    const cachePlugin = require('./utils/cachePlugin')(persistenceHelper, req.session);
+    const cachePlugin = require('./utils/cachePlugin')(persistenceHelper, req.session.id);
     authProvider.msalClient.tokenCache.persistence = cachePlugin;
     next();
 }

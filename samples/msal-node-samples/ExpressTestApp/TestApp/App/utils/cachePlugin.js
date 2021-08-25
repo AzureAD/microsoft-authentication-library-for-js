@@ -4,20 +4,20 @@
 * https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.icacheplugin.html
 */
 
-module.exports = (persistence, session = {}) => {
+module.exports = (persistenceHelper, sessionId) => {
     return {
         beforeCacheAccess: async (cacheContext) => {
             return new Promise(async (resolve, reject) => {
                 
                 // express session ids start with the string "sess:"
-                persistence.get("sess:" + session.id, (err, sessionData) => {
+                persistenceHelper.get("sess:" + sessionId, (err, sessionData) => {
                     if (err) {
                         console.log(err);
                         reject();
                     }
 
                     if (sessionData) {
-                        persistence.get(JSON.parse(sessionData).account.homeAccountId, (err, cacheData) => {
+                        persistenceHelper.get(JSON.parse(sessionData).account.homeAccountId, (err, cacheData) => {
                             if (err) {
                                 console.log(err);
                                 reject();
@@ -41,7 +41,7 @@ module.exports = (persistence, session = {}) => {
                     // getting homeAccountId from account entity in kvStore
                     const homeAccountId = Object.values(kvStore)[1]["homeAccountId"];
 
-                    persistence.set(homeAccountId, cacheContext.tokenCache.serialize(), (err, data) => {
+                    persistenceHelper.set(homeAccountId, cacheContext.tokenCache.serialize(), (err, data) => {
                         if (err) {
                             console.log(err);
                             reject();
