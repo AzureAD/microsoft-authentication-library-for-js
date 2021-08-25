@@ -549,6 +549,7 @@ export abstract class ClientApplication {
         this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
         try {
+            /* acquire toke by iframe*/
             const silentTokenResult = await this.acquireTokenByIframe(request, ApiId.ssoSilent);
             this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
             return silentTokenResult;

@@ -20,7 +20,7 @@ export interface IPublicClientApplication {
     acquireTokenSilent(silentRequest: SilentRequest): Promise<AuthenticationResult>;
     addEventCallback(callback: Function): string | null;
     removeEventCallback(callbackId: string): void;
-    getAccountByHomeId(homeAccountId: string): AccountInfo | null;
+    getAccountByHomeId(homeAccountId: string): AccountInfo | null; /* default null*/
     getAccountByLocalId(localId: string): AccountInfo | null;
     getAccountByUsername(userName: string): AccountInfo | null;
     getAllAccounts(): AccountInfo[];
