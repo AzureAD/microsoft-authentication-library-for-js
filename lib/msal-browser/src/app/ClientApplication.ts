@@ -502,6 +502,7 @@ export abstract class ClientApplication {
             } else {
                 this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Popup, result);
             }
+            this.logger.verbose("returning result", result);
 
             return result;
         } catch (e) {
@@ -519,6 +520,7 @@ export abstract class ClientApplication {
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequestByState(validRequest.state);
             throw e;
+
         }
     }
 
