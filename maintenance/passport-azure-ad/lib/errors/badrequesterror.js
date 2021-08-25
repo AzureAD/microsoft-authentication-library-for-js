@@ -1,4 +1,9 @@
-'use strict';
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+"use strict";
 
 /**
  * `BadRequestError` error.
@@ -8,7 +13,7 @@
 function BadRequestError(message) {
   Error.call(this);
   Error.captureStackTrace(this, BadRequestError);
-  this.name = 'BadRequestError';
+  this.name = "BadRequestError";
   this.message = message || null;
 }
 
