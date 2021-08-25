@@ -17,7 +17,7 @@ export type CachedKeyPair = {
     publicKey: CryptoKey,
     privateKey: CryptoKey,
     requestMethod?: string,
-    requestUri?: string
+    requestUri?: string /* request Uri*/
 };
 
 /**

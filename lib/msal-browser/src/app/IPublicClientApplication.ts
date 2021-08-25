@@ -50,10 +50,10 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());	
     },	
     getAllAccounts: () => {
-        return [];	 /* get all accounts*/
+        return [];	
     },	
     getAccountByHomeId: () => {
-        return null; /* account from home id*/
+        return null;
     },
     getAccountByUsername: () => {	
         return null;	

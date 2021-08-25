@@ -35,7 +35,7 @@ export class BrowserStorage implements IWindowStorage {
     }
 
     removeItem(key: string): void {
-        this.windowStorage.removeItem(key);
+        this.windowStorage.removeItem(key); /* remove item*/
     }
 
     getKeys(): string[] {
