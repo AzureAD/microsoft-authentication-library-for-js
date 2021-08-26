@@ -75,11 +75,7 @@ describe("AuthToken.ts Class Unit Tests", () => {
                 return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
             },
             async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
-<<<<<<< HEAD
-                return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES
-=======
                 return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES;
->>>>>>> bound-rt/decrypt-response
             }
         };
     });
