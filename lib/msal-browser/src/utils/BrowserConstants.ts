@@ -153,6 +153,8 @@ export enum WrapperSKU {
     Angular = "@azure/msal-angular"
 }
 
+export const MSAL_DB_NAME = "msal.db";
+
 // IndexedDB table names for key storage
 export enum DBTableNames  {
     asymmetricKeys = "asymmetricKeys",

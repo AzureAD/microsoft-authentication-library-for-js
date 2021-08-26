@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { BaseAuthRequest, ICrypto, CryptoKeyTypes, PkceCodes, SignedHttpRequest, ServerAuthorizationTokenResponse, BoundServerAuthorizationTokenResponse } from "@azure/msal-common";
+import { BaseAuthRequest, ICrypto, CryptoKeyTypes, PkceCodes, SignedHttpRequest, ServerAuthorizationTokenResponse, BoundServerAuthorizationTokenResponse, CommonRefreshTokenRequest, BoundRefreshTokenRedemptionPayload } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
@@ -12,10 +12,11 @@ import { CtxGenerator } from "./CtxGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
 import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { DBTableNames } from "../utils/BrowserConstants";
+import { DBTableNames, MSAL_DB_NAME } from "../utils/BrowserConstants";
 import { CryptoKeyFormats, CRYPTO_KEY_CONFIG } from "../utils/CryptoConstants";
 import { BoundTokenResponse } from "./BoundTokenResponse";
 import { BrowserAuthError } from "../error/BrowserAuthError";
+import { BoundTokenRequest } from "./BoundTokenRequest";
 
 export type CachedKeyPair = {
     publicKey: CryptoKey,
@@ -46,7 +47,7 @@ export class CryptoOps implements ICrypto {
     private static EXTRACTABLE: boolean = true;
 
     private static DB_VERSION = 2;
-    private static DB_NAME = "msal.db";
+    private static DB_NAME = MSAL_DB_NAME;
     private static TABLE_NAMES = [DBTableNames.asymmetricKeys, DBTableNames.symmetricKeys];
     private cache: DatabaseStorage;
 
@@ -109,7 +110,7 @@ export class CryptoOps implements ICrypto {
         
         switch(keyType) {
             case CryptoKeyTypes.stk_jwk:
-                keyOptions = CRYPTO_KEY_CONFIG.RT_BINDING;
+                keyOptions = CRYPTO_KEY_CONFIG.RT_BINDING_STK_JWK;
                 break;
             default:
                 keyOptions = CRYPTO_KEY_CONFIG.AT_BINDING;
@@ -240,55 +241,13 @@ export class CryptoOps implements ICrypto {
         return await boundResponse.decrypt();
     }
 
-    async signBoundTokenRequest(request: CommonRefreshTokenRequest, payload: string): Promise<string> {
-        const { stkKid, skKid } = request;
-
-        if (stkKid && skKid) {
-            // Retrieve Session Key from Key Store
-            const contentEncryptionKey: CryptoKey = await this.cache.get<CryptoKey>(DBTableNames.symmetricKeys, skKid);
-            
-            // Derive session key using content encryption key
-            const kdf = new KeyDerivation(CryptoLengths.DERIVED_KEY, CryptoLengths.PRF_OUTPUT, CryptoLengths.COUNTER);
-
-            // Generate CTX
-            const ctx = new CtxGenerator(this.browserCrypto).generateCtx();
-            const ctxString = bytesToBase64(ctx);
-            
-            const payloadBytes = BrowserStringUtils.stringToUtf8Arr(JSON.stringify(payload));
-            const inputData = new Uint8Array(ctx.byteLength + payloadBytes.byteLength);
-            inputData.set(ctx, 0);
-            inputData.set(payloadBytes, ctx.byteLength);
-            const hashedInputData = new Uint8Array(await window.crypto.subtle.digest({ name: "SHA-256" }, inputData));
-            const derivedKeyData = new Uint8Array(await kdf.computeKDFInCounterMode(contentEncryptionKey, hashedInputData, KeyDerivationLabels.SIGNING));
-
-            const sessionKeyUsages = KEY_USAGES.RT_BINDING.DERIVATION_KEY as KeyUsage[];
-            const sessionKeyAlgorithm: HmacImportParams = { name: "HMAC", hash: "SHA-256" };
-            const sessionKey = await window.crypto.subtle.importKey("raw", derivedKeyData, sessionKeyAlgorithm, false, sessionKeyUsages);
-
-            const header = {
-                ctx: ctxString,
-                alg: "HS256"
-            };
-
-            const encodedHeader = this.b64Encode.urlEncode(JSON.stringify(header));
-            const encodedPayload = this.b64Encode.urlEncode(JSON.stringify(payload));
-
-            const jwtString = `${encodedHeader}.${encodedPayload}`;
-
-            // Sign token
-            const tokenBuffer = BrowserStringUtils.stringToArrayBuffer(jwtString);
-            const cryptoKeyOptions = { ...CRYPTO_KEY_CONFIG.RT_BINDING };
-            cryptoKeyOptions.keyGenAlgorithmOptions.name = CryptoAlgorithms.HMAC;
-            const signatureBuffer = await this.browserCrypto.sign(
-                cryptoKeyOptions,
-                sessionKey,
-                tokenBuffer
-            );
-
-            const encodedSignature = this.b64Encode.urlEncodeArr(new Uint8Array(signatureBuffer));
-            const jwt = `${jwtString}.${encodedSignature}`;
-            return jwt;
-        }
-        return payload;
+    /**
+     * Returns the signed token refresh request
+     * @param request
+     * @param payload
+     */
+    async signBoundTokenRequest(request: CommonRefreshTokenRequest, payload: BoundRefreshTokenRedemptionPayload): Promise<string> {
+        const boundRequest = new BoundTokenRequest(request, payload, this.cache, this.browserCrypto);
+        return await boundRequest.sign();
     }
 }
