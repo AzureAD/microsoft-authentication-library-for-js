@@ -9,14 +9,8 @@ const data = {
     clientId: process.env.MSAL_CLIENT_ID
 }
 
-console.log('data', data);
-
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', data);
-});
-
-router.get('/client-redirect', function(req, res, next) {
   res.render('index', data);
 });
 

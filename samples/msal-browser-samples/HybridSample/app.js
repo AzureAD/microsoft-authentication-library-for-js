@@ -4,11 +4,10 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var bodyParser = require('body-parser');
 var logger = require('morgan');
-const msal = require('@azure/msal-node');
-const dotenv = require("dotenv");
 
 var indexRouter = require('./routes/index');
 var usersRouter = require('./routes/users');
+var authRouter = require('./routes/auth');
 
 var app = express();
 
@@ -30,73 +29,7 @@ app.use(bodyParser.json())
 
 app.use('/', indexRouter);
 app.use('/users', usersRouter);
-
-/** MSAL */
-
-dotenv.config();
-
-app.use('/msal', express.static(path.join(__dirname, './node_modules/@azure/msal-browser/lib')))
-
-const config = {
-    auth: {
-        clientId: process.env.MSAL_CLIENT_ID,
-        authority: "https://login.microsoftonline.com/common",
-        clientSecret: process.env.MSAL_CLIENT_SECRET
-    },
-    system: {
-        loggerOptions: {
-            loggerCallback(loglevel, message, containsPii) {
-                console.log(message);
-            },
-            piiLoggingEnabled: false,
-            logLevel: msal.LogLevel.Verbose,
-        }
-    }
-};
-
-
-// Create msal application object
-const cca = new msal.ConfidentialClientApplication(config);
-app.get('/login', (req, res) => {
-    const authCodeUrlParameters = {
-        scopes: ["user.read"],
-        redirectUri: "http://localhost:3000/redirect",
-        responseMode: "form_post"
-    };
-
-    // get url to sign user in and consent to scopes needed for application
-    cca.getAuthCodeUrl(authCodeUrlParameters).then((response) => {
-        console.log(response);
-        res.redirect(response);
-    }).catch((error) => console.log(JSON.stringify(error)));
-});
-
-app.post('/redirect', (req, res) => {
-    const tokenRequest = {
-        code: req.body.code,
-        scopes: ["user.read"],
-        redirectUri: "http://localhost:3000/redirect",
-        tokenQueryParameters: {
-            dc: "ESTS-PUB-WUS2-AZ1-FD000-TEST1",
-            hybridspa: "true"
-        },
-        tokenBodyParameters: {
-            return_spa_code: "1"
-        }
-    };
-
-    cca.acquireTokenByCode(tokenRequest).then((response) => {
-        console.log("\nResponse: \n:", response);
-        res.redirect(`/?sid=${response.idTokenClaims.sid}&code=${response.spaCode}&nonce=${response.idTokenClaims.nonce}`)
-    }).catch((error) => {
-        console.log(error);
-        res.status(500).send(error);
-    });
-});
-
-/** MSAL */
-
-
+app.use('/auth', authRouter);
 
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
