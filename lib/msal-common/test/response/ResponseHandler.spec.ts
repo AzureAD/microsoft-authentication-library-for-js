@@ -1,7 +1,7 @@
 import sinon from "sinon";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 import { ResponseHandler } from "../../src/response/ResponseHandler";
-import { AUTHENTICATION_RESULT, RANDOM_TEST_GUID, TEST_CONFIG, ID_TOKEN_CLAIMS, TEST_DATA_CLIENT_INFO, TEST_STATE_VALUES, TEST_POP_VALUES, POP_AUTHENTICATION_RESULT, TEST_URIS, TEST_TOKEN_LIFETIMES, TEST_TOKENS, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES } from "../test_kit/StringConstants";
+import { AUTHENTICATION_RESULT, RANDOM_TEST_GUID, TEST_CONFIG, ID_TOKEN_CLAIMS, TEST_DATA_CLIENT_INFO, TEST_STATE_VALUES, TEST_POP_VALUES, POP_AUTHENTICATION_RESULT, TEST_URIS, TEST_TOKEN_LIFETIMES, TEST_TOKENS, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES, RANDOM_TEST_CTX, SIGNED_BOUND_TOKEN_REQUEST } from "../test_kit/StringConstants";
 import { Authority } from "../../src/authority/Authority";
 import { INetworkModule, NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
@@ -35,6 +35,9 @@ const signedJwt = "SignedJwt";
 const cryptoInterface: ICrypto = {
     createNewGuid(): string {
         return RANDOM_TEST_GUID;
+    },
+    createNewCtx(): Uint8Array {
+        return RANDOM_TEST_CTX;
     },
     base64Decode(input: string): string {
         switch (input) {
@@ -83,6 +86,9 @@ const cryptoInterface: ICrypto = {
     },
     async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
         return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES;
+    },
+    async signBoundTokenRequest(): Promise<string> {
+        return SIGNED_BOUND_TOKEN_REQUEST;
     }
 };
 

@@ -1,5 +1,5 @@
 import { buildClientInfo, buildClientInfoFromHomeAccountId, ClientInfo } from "../../src/account/ClientInfo";
-import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_POP_VALUES, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES } from "../test_kit/StringConstants";
+import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_POP_VALUES, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES, RANDOM_TEST_CTX, SIGNED_BOUND_TOKEN_REQUEST } from "../test_kit/StringConstants";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
 import { ClientAuthError, ClientAuthErrorMessage, Constants, ServerAuthorizationTokenResponse } from "../../src";
 
@@ -11,6 +11,9 @@ describe("ClientInfo.ts Class Unit Tests", () => {
             cryptoInterface = {
                 createNewGuid(): string {
                     return RANDOM_TEST_GUID;
+                },
+                createNewCtx(): Uint8Array {
+                    return RANDOM_TEST_CTX;
                 },
                 base64Decode(input: string): string {
                     switch (input) {
@@ -57,6 +60,9 @@ describe("ClientInfo.ts Class Unit Tests", () => {
                 },
                 async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
                     return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES;
+                },
+                async signBoundTokenRequest(): Promise<string> {
+                    return SIGNED_BOUND_TOKEN_REQUEST;
                 }
             };
         });

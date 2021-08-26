@@ -1,5 +1,5 @@
 import { ProtocolUtils } from "../../src/utils/ProtocolUtils";
-import { DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES, RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES } from "../test_kit/StringConstants";
+import { DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES, RANDOM_TEST_GUID, RANDOM_TEST_CTX, TEST_CONFIG, TEST_POP_VALUES, SIGNED_BOUND_TOKEN_REQUEST } from "../test_kit/StringConstants";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { Constants } from "../../src/utils/Constants";
 import sinon from "sinon";
@@ -18,6 +18,9 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
         cryptoInterface = {
             createNewGuid(): string {
                 return RANDOM_TEST_GUID;
+            },
+            createNewCtx(): Uint8Array {
+                return RANDOM_TEST_CTX;
             },
             base64Decode(input: string): string {
                 switch (input) {
@@ -62,6 +65,9 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
             },
             async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
                 return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES;
+            },
+            async signBoundTokenRequest(): Promise<string> {
+                return SIGNED_BOUND_TOKEN_REQUEST;
             }
         };
     });

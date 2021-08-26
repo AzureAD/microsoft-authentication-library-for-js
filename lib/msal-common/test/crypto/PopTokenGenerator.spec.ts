@@ -1,5 +1,5 @@
 import sinon from "sinon";
-import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES } from "../test_kit/StringConstants";
+import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES, RANDOM_TEST_CTX, SIGNED_BOUND_TOKEN_REQUEST } from "../test_kit/StringConstants";
 import { PopTokenGenerator } from "../../src/crypto/PopTokenGenerator";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { BaseAuthRequest } from "../../src/request/BaseAuthRequest";
@@ -18,6 +18,9 @@ describe("PopTokenGenerator Unit Tests", () => {
     const cryptoInterface: ICrypto = {
         createNewGuid(): string {
             return RANDOM_TEST_GUID;
+        },
+        createNewCtx(): Uint8Array {
+            return RANDOM_TEST_CTX;
         },
         base64Decode(input: string): string {
             switch (input) {
@@ -68,6 +71,9 @@ describe("PopTokenGenerator Unit Tests", () => {
         },
         async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
             return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES;
+        },
+        async signBoundTokenRequest(): Promise<string> {
+            return SIGNED_BOUND_TOKEN_REQUEST;
         }
     };
 
