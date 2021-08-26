@@ -95,16 +95,16 @@ export class ThrottlingUtils {
         ) * 1000);
     }
 
-    static removeThrottle(cacheManager: CacheManager, clientId: string, request: BaseAuthRequest, homeAccountIdentifier?: string): boolean {
+    static removeThrottle(cacheManager: CacheManager, clientId: string, authority: string, scopes: Array<string>, homeAccountIdentifier?: string, request?: BaseAuthRequest): boolean {
         const thumbprint: RequestThumbprint = {
             clientId: clientId,
-            authority: request.authority,
-            scopes: request.scopes,
+            authority: authority,
+            scopes: scopes,
             homeAccountIdentifier: homeAccountIdentifier,
-            authenticationScheme: request.authenticationScheme,
-            resourceRequestMethod: request.resourceRequestMethod,
-            resourceRequestUri: request.resourceRequestUri,
-            shrClaims: request.shrClaims
+            authenticationScheme: request?.authenticationScheme,
+            resourceRequestMethod: request?.resourceRequestMethod,
+            resourceRequestUri: request?.resourceRequestUri,
+            shrClaims: request?.shrClaims
         };
 
         const key = this.generateThrottlingStorageKey(thumbprint);
