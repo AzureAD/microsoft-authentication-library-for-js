@@ -64,7 +64,7 @@ export class Logger {
         };
         this.localCallback = loggerOptions.loggerCallback || defaultLoggerCallback;
         this.piiLoggingEnabled = loggerOptions.piiLoggingEnabled || false;
-        this.level = this.validateLogLevel(loggerOptions);
+        this.level = typeof(loggerOptions.logLevel) === "number" ? loggerOptions.logLevel : LogLevel.Info;
         this.correlationId = loggerOptions.correlationId || "";
 
         this.packageName = packageName || Constants.EMPTY_STRING;
@@ -76,25 +76,6 @@ export class Logger {
      */
     public clone(packageName: string, packageVersion: string, correlationId?: string): Logger {
         return new Logger({loggerCallback: this.localCallback, piiLoggingEnabled: this.piiLoggingEnabled, logLevel: this.level, correlationId: correlationId || this.correlationId}, packageName, packageVersion);
-    }
-
-    /**
-     * Returns the validated confitured log level or the default level if
-     * configured level is invalid
-     */
-    private validateLogLevel(loggerOptions: LoggerOptions): number {
-        // Set default log level
-        let logLevel = LogLevel.Info;
-        const configuredLogLevel = loggerOptions.logLevel;
-        // Check if configured log level is a number
-        if (typeof(configuredLogLevel) === "number") {
-            // Check if configured log level is a supported log level
-            if (Object.keys(LogLevel).indexOf(`${configuredLogLevel}`) !== -1) {
-                logLevel = configuredLogLevel;
-            }
-        }
-
-        return logLevel;
     }
 
     /**

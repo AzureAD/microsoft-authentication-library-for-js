@@ -187,50 +187,6 @@ describe("Logger.ts Class Unit Tests", () => {
             expect(logStore[LogLevel.Verbose]).toBe(undefined);
             expect(logStore[LogLevel.Trace]).toBe(undefined);
         });
-
-        it("Creates a logger with level Info if logLevel passed in is below the lowest LogLevel", () => {
-            loggerOptions = {
-                loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
-                    logStore[level] = message;
-                },
-                piiLoggingEnabled: true,
-                //@ts-ignore
-                logLevel: -1
-            };
-            const logger = new Logger(loggerOptions);
-            logger.error("Message");
-            logger.warning("Message");
-            logger.info("Message");
-            logger.verbose("Message");
-            logger.trace("Message")
-            expect(logStore[LogLevel.Error]).toBeTruthy();
-            expect(logStore[LogLevel.Warning]).toBeTruthy();
-            expect(logStore[LogLevel.Info]).toBeTruthy();
-            expect(logStore[LogLevel.Verbose]).toBe(undefined);
-            expect(logStore[LogLevel.Trace]).toBe(undefined);
-        });
-
-        it("Creates a logger with level Info if logLevel passed in is higher than the highest LogLevel", () => {
-            loggerOptions = {
-                loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {
-                    logStore[level] = message;
-                },
-                piiLoggingEnabled: true,
-                //@ts-ignore
-                logLevel: 100
-            };
-            const logger = new Logger(loggerOptions);
-            logger.error("Message");
-            logger.warning("Message");
-            logger.info("Message");
-            logger.verbose("Message");
-            logger.trace("Message")
-            expect(logStore[LogLevel.Error]).toBeTruthy();
-            expect(logStore[LogLevel.Warning]).toBeTruthy();
-            expect(logStore[LogLevel.Info]).toBeTruthy();
-            expect(logStore[LogLevel.Verbose]).toBe(undefined);
-            expect(logStore[LogLevel.Trace]).toBe(undefined);
-        });
     });
 
     describe("clone() tests", () => {
