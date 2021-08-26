@@ -1,16 +1,50 @@
 # Token caching in MSAL Node
 
-When MSAL Node acquires a token, it caches it in-memory for future usage. MSAL Node manages the token lifetime and refreshing for you. However, MSAL's in-memory token cache is not suitable production. You as a developer are responsible for persisting the token cache. If you are developing a:
+When MSAL Node acquires a token, it caches it in memory for future usage. MSAL Node manages the token lifetime and refreshing for you.
 
-* Desktop app (public client): Use [MSAL Node Extensions]() to perform cross-platform token cache serialization and persistence.
-* Headless app (public client): Use [MSAL Node Extensions]() to perform cross-platform token cache serialization and persistence.
-* Daemon app (confidential client): 
-* Web app (confidential client): Use distributed token caching 
-* Web API (confidential client):
+```javascript
+const express = require("express");
+const msal = require('@azure/msal-node');
 
-## Persistence
+const SERVER_PORT = process.env.PORT || 3000;
+const REDIRECT_URI = "http://localhost:3000/redirect";
 
-MSAL Node's token schema is compatible with other MSALs. It looks like the following:
+// Before running the sample, you will need to replace the values in the config, 
+// including the clientSecret
+const config = {
+    auth: {
+        clientId: "Enter_the_Application_Id_Here",
+        authority: "Enter_the_Cloud_Instance_Id_HereEnter_the_Tenant_Info_Here",
+        clientSecret: "Enter_the_Client_Secret_Here"
+    },
+    cache: {
+        myCachePlugin
+    }
+};
+
+// Create msal application object
+const cca = new msal.ConfidentialClientApplication(config);
+
+// Create Express App and Routes
+const app = express();
+
+app.get('/getMyWebApi', (req, res) => {
+    callWebApi(accessToken, (response) => {
+        response
+    });
+});
+
+app.listen(SERVER_PORT, () => console.log(`Msal Node Auth Code Sample app listening on port ${SERVER_PORT}!`))
+```
+
+In-memory token cache is not suitable for production. In production, you should serialize and persist the token cache. Depending on the type of application, you have several alternatives:
+
+* Desktop apps, Headless apps (public client): Use [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md), which provide persistence solutions on Windows, Linux and Mac OS
+* Web apps, web APIs, daemon apps (confidential client): Use the [distributed token caching](#performance-and-security) pattern to persist the cache on your choice of storage environment (Redis, MongoDB, SQL databases etc.)
+
+## Token schema
+
+MSAL Node's token schema is compatible with other MSALs. By default, all authentication artifacts by all users and apps are grouped in a single cache blob, grouped by the type of the authentication artifact:
 
 ```json
 {
@@ -22,12 +56,14 @@ MSAL Node's token schema is compatible with other MSALs. It looks like the follo
 }
 ```
 
-Events are fired when the cache is accessed, apps can choose whether to serialize or deserialize the cache. This often constitutes two actions:
+## Persistence
+
+MSAL Node fires events are when the cache is accessed, apps can choose whether to serialize or deserialize the cache. This often constitutes two actions:
 
 1. Deserialize the cache from disk to MSAL's memory before accessing the cache
-2. If cache in-memory has changed, serialize the cache to disk
+2. If the cache in memory has changed, serialize the cache
 
-For that MSAL accepts a custom cache plugin in configuration. This should implement [ICachePlugin]():
+For that, MSAL accepts a custom cache plugin in configuration. This should implement [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.icacheplugin.html):
 
 ```typescript
 interface ICachePlugin {
@@ -36,66 +72,32 @@ interface ICachePlugin {
 }
 ```
 
-For an implementation, [see]()
+If you are developing for a public client app (such as desktop, headless etc.), [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md) handles this for you.
 
 ## Performance and security
 
-On confidential client applications that handle users (web apps that sign in users and call web APIs, and web APIs calling downstream web APIs), there can be many users and the users are processed in parallel. For security and performance reasons, our recommendation is to serialize one cache per user. Serialization events compute a cache key based on the identity of the processed user and serialize/deserialize a token cache for that user.
+On confidential client applications that handle users (web apps that sign in users and call web APIs, and web APIs calling downstream web APIs), there can be many users and the users are processed in parallel. For security and performance reasons, our recommendation is to serialize one cache blob per user. Use a cache key for partitioning the cache, such as:
 
-1. First time user signs-in via auth code flow, token cache is populated
-2. Dev serializes token cache and puts in storage, say a key value store like Redis. Will need a way to get JSON blob later for this end user, perhaps by keeping the key they used to store the token cache in a cookie, or maybe storing in the session, which the web framework will handle for them.
-3. User comes back a later time, making a request to a different machine where the in-memory cache is not present. The request has the cache key in a cookie or in the user’s session. Dev uses key to query storage, and loads the token cache, and deserializes into MSAL Node confidential client app.  
-4. Dev can now use acquire token silent to refresh tokens.
+* For web apps: **homeAccountId** (if using ADFS, **localAccountId** instead)
+* For daemon apps using client credentials grant: **tenantId**
+* For web APIs using OBO: **oboAssertion**
+
+[ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.icacheplugin.html):
 
 ```javascript
-module.exports = (persistenceClient, sessionId = {}) => {
+module.exports = (persistenceHelper, sessionId) => {
     return {
         beforeCacheAccess: async (cacheContext) => {
             return new Promise(async (resolve, reject) => {
-                
-                // express session ids start with the string "sess:"
-                persistenceClient.get("sess:" + sessionId, (err, sessionData) => {
-                    if (err) {
-                        console.log(err);
-                        reject();
-                    }
-
-                    if (sessionData) {
-                        persistenceClient.get(JSON.parse(sessionData).account.homeAccountId, (err, cacheData) => {
-                            if (err) {
-                                console.log(err);
-                                reject();
-                            }
-                            cacheContext.tokenCache.deserialize(cacheData);
-                            resolve();
-                        });
-                    } else {
-                        resolve();
-                        return;
-                    }
-                });
+                // get cache from persistence store given given key
+                // load the cache into msal's memory
             });
         },
         afterCacheAccess: async (cacheContext) => {
             return new Promise((resolve, reject) => {
-
-                if (cacheContext.cacheHasChanged) {
-                    const kvStore = cacheContext.tokenCache.getKVStore();
-
-                    // getting homeAccountId from account entity in kvStore
-                    const homeAccountId = Object.values(kvStore)[1]["homeAccountId"];
-
-                    persistenceClient.set(homeAccountId, cacheContext.tokenCache.serialize(), (err, data) => {
-                        if (err) {
-                            console.log(err);
-                            reject();
-                        }
-                        resolve();
-                    });
-                } else {
-                    resolve();
-                    return;
-                }
+    
+                // if in-memory cache has changed
+                    // write cache to disk using a key such as homeAccountId
             });
         }
     };
@@ -104,9 +106,9 @@ module.exports = (persistenceClient, sessionId = {}) => {
 
 ## More information
 
-See the sample: [Express MVC web app with distributed token cache]()
+See the sample: [Express MVC web app with distributed token cache](../../../samples/msal-node-samples/ExpressTestApp/README.md)
 
 Read more on token caching:
 
-- []()
-- []()
+* [Token cache serialization](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki/token-cache-serialization)
+* [App scenarios and authentication flows](https://docs.microsoft.com/azure/active-directory/develop/authentication-flows-app-scenarios)
