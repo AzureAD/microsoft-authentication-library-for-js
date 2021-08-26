@@ -28,7 +28,7 @@ import {
     AzureRegionConfiguration,
     AuthError
 } from "@azure/msal-common";
-import { Configuration, buildAppConfiguration } from "../config/Configuration";
+import { Configuration, buildAppConfiguration, NodeConfiguration } from "../config/Configuration";
 import { CryptoProvider } from "../crypto/CryptoProvider";
 import { NodeStorage } from "../cache/NodeStorage";
 import { Constants as NodeConstants, ApiId } from "../utils/Constants";
@@ -61,7 +61,7 @@ export abstract class ClientApplication {
     /**
      * Platform configuration initialized by the application
      */
-    protected config: Configuration;
+    protected config: NodeConfiguration;
     /**
      * Client assertion passed by the user for confidential client flows
      */
@@ -77,12 +77,12 @@ export abstract class ClientApplication {
     protected constructor(configuration: Configuration) {
         this.config = buildAppConfiguration(configuration);
         this.cryptoProvider = new CryptoProvider();
-        this.logger = new Logger(this.config.system!.loggerOptions!, name, version);
+        this.logger = new Logger(this.config.system.loggerOptions, name, version);
         this.storage = new NodeStorage(this.logger, this.config.auth.clientId, this.cryptoProvider);
         this.tokenCache = new TokenCache(
             this.storage,
             this.logger,
-            this.config.cache!.cachePlugin
+            this.config.cache.cachePlugin
         );
     }
 
@@ -130,7 +130,7 @@ export abstract class ClientApplication {
             ...this.initializeBaseRequest(request),
             authenticationScheme: AuthenticationScheme.BEARER
         };
-        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByCode, validRequest.correlationId!);
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByCode, validRequest.correlationId);
         try {
             const authClientConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
@@ -239,7 +239,7 @@ export abstract class ClientApplication {
             ...request,
             ...this.initializeBaseRequest(request)
         };
-        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByUsernamePassword, validRequest.correlationId!);
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByUsernamePassword, validRequest.correlationId);
         try {
             const usernamePasswordClientConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
@@ -302,15 +302,15 @@ export abstract class ClientApplication {
                 clientCapabilities: this.config.auth.clientCapabilities
             },
             loggerOptions: {
-                logLevel: this.config.system!.loggerOptions!.logLevel,
-                loggerCallback: this.config.system!.loggerOptions!
+                logLevel: this.config.system.loggerOptions.logLevel,
+                loggerCallback: this.config.system.loggerOptions
                     .loggerCallback,
-                piiLoggingEnabled: this.config.system!.loggerOptions!
+                piiLoggingEnabled: this.config.system.loggerOptions
                     .piiLoggingEnabled,
                 correlationId: requestCorrelationId
             },
             cryptoInterface: this.cryptoProvider,
-            networkInterface: this.config.system!.networkClient,
+            networkInterface: this.config.system.networkClient,
             storageInterface: this.storage,
             serverTelemetryManager: serverTelemetryManager,
             clientCredentials: {
@@ -323,7 +323,7 @@ export abstract class ClientApplication {
                 cpu: process.arch || "",
                 os: process.platform || "",
             },
-            persistencePlugin: this.config.cache!.cachePlugin,
+            persistencePlugin: this.config.cache.cachePlugin,
             serializableCache: this.tokenCache,
         };
     }
@@ -352,7 +352,7 @@ export abstract class ClientApplication {
             ...authRequest,
             scopes: [...((authRequest && authRequest.scopes) || []), ...OIDC_DEFAULT_SCOPES],
             correlationId: authRequest && authRequest.correlationId || this.cryptoProvider.createNewGuid(),
-            authority: authRequest.authority || this.config.auth.authority!
+            authority: authRequest.authority || this.config.auth.authority
         };
     }
 
@@ -381,12 +381,12 @@ export abstract class ClientApplication {
     private async createAuthority(authorityString: string, azureRegionConfiguration?: AzureRegionConfiguration, requestCorrelationId?: string): Promise<Authority> {
         this.logger.verbose("createAuthority called", requestCorrelationId);
         const authorityOptions: AuthorityOptions = {
-            protocolMode: this.config.auth.protocolMode!,
-            knownAuthorities: this.config.auth.knownAuthorities!,
-            cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata!,
-            authorityMetadata: this.config.auth.authorityMetadata!,
+            protocolMode: this.config.auth.protocolMode,
+            knownAuthorities: this.config.auth.knownAuthorities,
+            cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
+            authorityMetadata: this.config.auth.authorityMetadata,
             azureRegionConfiguration
         };
-        return await AuthorityFactory.createDiscoveredInstance(authorityString, this.config.system!.networkClient!, this.storage, authorityOptions);
+        return await AuthorityFactory.createDiscoveredInstance(authorityString, this.config.system.networkClient, this.storage, authorityOptions);
     }
 }
