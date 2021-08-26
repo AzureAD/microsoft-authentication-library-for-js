@@ -89,6 +89,12 @@ describe("SilentHandler.ts Unit Tests", () => {
                 },
                 signJwt: async (): Promise<string> => {
                     return "signedJwt";
+                },
+                removeTokenBindingKey: async (): Promise<boolean> => {
+                    return Promise.resolve(true);
+                },
+                clearKeystore: async (): Promise<boolean> => {
+                    return Promise.resolve(true);
                 }
             },
             networkInterface: {

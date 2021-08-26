@@ -49,6 +49,12 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
             },
             async signJwt(): Promise<string> {
                 return "";
+            },
+            async removeTokenBindingKey(): Promise<boolean> {
+                return Promise.resolve(true);
+            },
+            async clearKeystore(): Promise<boolean> {
+                return Promise.resolve(true);
             }
         };
     });
@@ -93,4 +99,10 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
         const requestState = ProtocolUtils.parseRequestState(cryptoInterface, testState);
         expect(requestState.userRequestState).toBe(userState);
     });
+
+    it("parseRequestState returns user state without decoding", () => {
+        const requestState = ProtocolUtils.parseRequestState(cryptoInterface, `${encodedLibState}${Constants.RESOURCE_DELIM}${"test%25u00f1"}`);
+        expect(requestState.userRequestState).toBe(`${"test%25u00f1"}`);
+    });
+    
 });

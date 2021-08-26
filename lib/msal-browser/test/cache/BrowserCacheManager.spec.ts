@@ -128,9 +128,9 @@ describe("BrowserCacheManager tests", () => {
             msalCacheKey2 = browserSessionStorage.generateCacheKey("cacheKey2");
         });
 
-        afterEach(() => {
-            browserSessionStorage.clear();
-            browserLocalStorage.clear();
+        afterEach(async () => {
+            await browserSessionStorage.clear();
+            await browserLocalStorage.clear();
         });
 
         it("setTemporaryCache", () => {
@@ -183,11 +183,11 @@ describe("BrowserCacheManager tests", () => {
             expect(browserLocalStorage.getKeys()).toEqual([msalCacheKey, msalCacheKey2]);
         });
 
-        it("clear()", () => {
+        it("clear()", async () => {
             browserSessionStorage.setTemporaryCache("cacheKey", cacheVal, true);
             browserLocalStorage.setTemporaryCache("cacheKey", cacheVal, true);
-            browserSessionStorage.clear();
-            browserLocalStorage.clear();
+            await browserSessionStorage.clear();
+            await browserLocalStorage.clear();
             expect(browserSessionStorage.getKeys()).toHaveLength(0);
             expect(browserLocalStorage.getKeys()).toHaveLength(0);
         });
@@ -224,7 +224,7 @@ describe("BrowserCacheManager tests", () => {
                 });
 
                 it("getAccount returns AccountEntity", () => {
-                    const testAccount = AccountEntity.createAccount(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, "homeAccountId", authority, new IdToken(TEST_TOKENS.IDTOKEN_V2, browserCrypto), "oboAssertion", "cloudGraphHost", "msGraphHost");
+                    const testAccount = AccountEntity.createAccount(TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO, "homeAccountId", new IdToken(TEST_TOKENS.IDTOKEN_V2, browserCrypto), authority, "oboAssertion", "cloudGraphHost", "msGraphHost");
 
                     browserLocalStorage.setAccount(testAccount);
                     browserSessionStorage.setAccount(testAccount);
@@ -553,7 +553,7 @@ describe("BrowserCacheManager tests", () => {
                     }
                 );
 
-                it("clear() removes AuthorityMetadataEntity from in-memory storage", () => {
+                it("clear() removes AuthorityMetadataEntity from in-memory storage", async () => {
                     browserSessionStorage.setAuthorityMetadata(key, testObj);
                     browserLocalStorage.setAuthorityMetadata(key, testObj);
 
@@ -562,8 +562,8 @@ describe("BrowserCacheManager tests", () => {
                     expect(browserLocalStorage.getAuthorityMetadataKeys()).toEqual(expect.arrayContaining([key]));
                     expect(browserSessionStorage.getAuthorityMetadataKeys()).toEqual(expect.arrayContaining([key]));
 
-                    browserSessionStorage.clear();
-                    browserLocalStorage.clear();
+                    await  browserSessionStorage.clear();
+                    await browserLocalStorage.clear();
                     expect(browserSessionStorage.getAuthorityMetadata(key)).toBeNull();
                     expect(browserLocalStorage.getAuthorityMetadata(key)).toBeNull();
                     expect(browserLocalStorage.getAuthorityMetadataKeys().length).toBe(0);
@@ -638,9 +638,9 @@ describe("BrowserCacheManager tests", () => {
             msalCacheKey = browserSessionStorage.generateCacheKey("cacheKey");
         });
 
-        afterEach(() => {
-            browserSessionStorage.clear();
-            browserLocalStorage.clear();
+        afterEach(async () => {
+            await browserSessionStorage.clear();
+            await browserLocalStorage.clear();
         });
 
         it("setTempCache()", () => {
@@ -704,20 +704,20 @@ describe("BrowserCacheManager tests", () => {
             expect(clearCookieSpy.calledThrice).toBe(true);
         });
 
-        it("clear()", () => {
+        it("clear()", async () => {
             // sessionStorage
             browserSessionStorage.setItem(msalCacheKey, cacheVal);
-            browserSessionStorage.clear();
+            await browserSessionStorage.clear();
             expect(browserSessionStorage.getKeys()).toHaveLength(0);
             expect(document.cookie).toHaveLength(0);
             // localStorage
             browserLocalStorage.setTemporaryCache(msalCacheKey, cacheVal);
-            browserLocalStorage.clear();
+            await browserLocalStorage.clear();
             expect(browserLocalStorage.getKeys()).toHaveLength(0);
             expect(document.cookie).toHaveLength(0);
             // browser memory
             browserMemoryStorage.setTemporaryCache(msalCacheKey, cacheVal);
-            browserMemoryStorage.clear();
+            await browserMemoryStorage.clear();
             expect(browserMemoryStorage.getKeys()).toHaveLength(0);
             expect(document.cookie).toHaveLength(0);
         });
@@ -786,21 +786,21 @@ describe("BrowserCacheManager tests", () => {
             expect(clearCookieSpy.calledThrice).toBe(true);
         });
 
-        it("clear() with item that contains ==", () => {
+        it("clear() with item that contains ==", async () => {
             msalCacheKey = `${Constants.CACHE_PREFIX}.${TEST_STATE_VALUES.ENCODED_LIB_STATE}`;
             // sessionStorage
             browserSessionStorage.setTemporaryCache(msalCacheKey, cacheVal);
-            browserSessionStorage.clear();
+            await browserSessionStorage.clear();
             expect(browserSessionStorage.getKeys()).toHaveLength(0);
             expect(document.cookie).toHaveLength(0);
             // localStorage
             browserLocalStorage.setTemporaryCache(msalCacheKey, cacheVal);
-            browserLocalStorage.clear();
+            await browserLocalStorage.clear();
             expect(browserLocalStorage.getKeys()).toHaveLength(0);
             expect(document.cookie).toHaveLength(0);
             // browser memory
             browserMemoryStorage.setTemporaryCache(msalCacheKey, cacheVal);
-            browserMemoryStorage.clear();
+            await browserMemoryStorage.clear();
             expect(browserMemoryStorage.getKeys()).toHaveLength(0);
             expect(document.cookie).toHaveLength(0);
         });

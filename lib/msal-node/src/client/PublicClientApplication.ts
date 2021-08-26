@@ -7,7 +7,8 @@ import { ApiId } from "../utils/Constants";
 import {
     DeviceCodeClient,
     AuthenticationResult,
-    CommonDeviceCodeRequest
+    CommonDeviceCodeRequest,
+    AuthError
 } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { ClientApplication } from "./ClientApplication";
@@ -53,7 +54,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     public async acquireTokenByDeviceCode(request: DeviceCodeRequest): Promise<AuthenticationResult | null> {
         this.logger.info("acquireTokenByDeviceCode called", request.correlationId);
         const validRequest: CommonDeviceCodeRequest = Object.assign(request, this.initializeBaseRequest(request));
-        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByDeviceCode, validRequest.correlationId!);
+        const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByDeviceCode, validRequest.correlationId);
         try {
             const deviceCodeConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
@@ -64,6 +65,9 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             this.logger.verbose("Device code client created", validRequest.correlationId);
             return deviceCodeClient.acquireToken(validRequest);
         } catch (e) {
+            if (e instanceof AuthError) {
+                e.setCorrelationId(validRequest.correlationId);
+            }
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }
