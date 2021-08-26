@@ -420,6 +420,14 @@ export class AuthorizationCodeClient extends BaseClient {
         if (request.idTokenHint) {
             parameterBuilder.addIdTokenHint(request.idTokenHint);
         }
+        
+        if(request.state) {
+            parameterBuilder.addState(request.state);
+        }
+
+        if (request.extraQueryParameters) {
+            parameterBuilder.addExtraQueryParameters(request.extraQueryParameters);
+        }
 
         return parameterBuilder.createQueryString();
     }
