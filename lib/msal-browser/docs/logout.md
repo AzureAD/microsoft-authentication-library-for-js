@@ -21,6 +21,7 @@ These APIs will clear the token cache of any user and session data, then navigat
 1. The URI is registered as a reply url on the app registration
 1. The URI is provided as the `postLogoutRedirectUri` on either the `PublicClientApplication` config or the logout request
 1. The user has an active session with the identity provider
+1. (MSA Scenarios) A front channel logout url is configured on the app registration
 
 If any of the above conditions are not met the page (or the popup window) will remain on the identity provider's logout page.
 
