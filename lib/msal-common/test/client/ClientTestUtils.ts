@@ -63,7 +63,6 @@ export class MockStorageClass extends CacheManager {
     setRefreshTokenCredential(value: RefreshTokenEntity): void {
         const key = value.generateCredentialKey();
         this.store[key] = value;
-        debugger;
     }
 
     // AppMetadata

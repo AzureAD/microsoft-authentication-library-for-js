@@ -60,7 +60,7 @@ export class BoundTokenResponse {
         if (this.sessionKeyJwe) {
             contentEncryptionKey = await this.sessionKeyJwe.unwrap(
                 unwrappingKey,
-                KEY_USAGES.RT_BINDING.DERIVATION_KEY
+                KEY_USAGES.RT_BINDING.SIGN
             );
             await this.keyStore.put<CryptoKey>(DBTableNames.symmetricKeys, this.keyId, contentEncryptionKey);
 
