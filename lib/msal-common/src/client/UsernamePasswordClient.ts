@@ -64,7 +64,11 @@ export class UsernamePasswordClient extends BaseClient {
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
-            scopes: request.scopes
+            scopes: request.scopes,
+            authenticationScheme: request.authenticationScheme,
+            resourceRequestMethod: request.resourceRequestMethod,
+            resourceRequestUri: request.resourceRequestUri,
+            shrClaims: request.shrClaims
         };
         const requestBody = this.createTokenRequestBody(request);
         const headers: Record<string, string> = this.createTokenRequestHeaders({
