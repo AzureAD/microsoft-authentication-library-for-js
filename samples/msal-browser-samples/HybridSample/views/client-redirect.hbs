@@ -1,0 +1,56 @@
+<a href="/">Go Back</a>
+
+<script src="/auth/lib/msal-browser.js"></script>
+<script type="text/javascript">
+    const msalInstance = new msal.PublicClientApplication({
+        auth: {
+            clientId: "{{clientId}}",
+            redirectUri: "http://localhost:3000/auth/client-redirect",
+            authority: "https://login.microsoftonline.com/common"
+        }
+    })
+
+    msalInstance.handleRedirectPromise()
+        .then(result => {
+            if (result) {
+                console.log('MSAL: Returning from login');
+                return result;
+            }
+            
+            const params = new URLSearchParams(document.location.search);
+            const sid = params.get("sid");
+            const code = params.get("code");
+            const nonce = params.get("nonce");
+            const loginHint = decodeURIComponent(params.get("login-hint"));
+
+            if (code && nonce) {
+                console.log('MSAL: ssoSilent hybrid parameters present');
+            } else {
+                console.log('MSAL: ssoSilent hybrid parameters not present');
+            }
+
+            console.log('MSAL: Initiating ssoSilent');
+            return msalInstance.ssoSilent({
+                nonce,
+                authCodePayload: {
+                    code
+                },
+                loginHint
+            })
+                .then(result => {
+                    console.log('MSAL: ssoSilent completed successfully');
+                    return result;
+                })
+                .catch((error) => {
+                    console.log('MSAL: ssoSilent failed, redirecting')
+                    return msalInstance.loginRedirect({
+                        loginHint
+                    })
+                })
+        })
+        .then(result => {
+            if (result) {
+                console.log('MSAL: ', result);
+            }
+        })
+</script>
