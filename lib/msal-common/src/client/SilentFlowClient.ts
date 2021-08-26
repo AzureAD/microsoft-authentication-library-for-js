@@ -30,11 +30,13 @@ export class SilentFlowClient extends BaseClient {
      */
     async acquireToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
         try {
-            return await this.acquireCachedToken(request);
+            const result = await this.acquireCachedToken(request);
+            return result;
         } catch (e) {
             if (e instanceof ClientAuthError && e.errorCode === ClientAuthErrorMessage.tokenRefreshRequired.code) {
                 const refreshTokenClient = new RefreshTokenClient(this.config);
-                return refreshTokenClient.acquireTokenByRefreshToken(request);
+                const result = refreshTokenClient.acquireTokenByRefreshToken(request);
+                return result;
             } else {
                 throw e;
             }
@@ -46,13 +48,16 @@ export class SilentFlowClient extends BaseClient {
      * @param request
      */
     async acquireCachedToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
+        const endMeasurement = this.performanceManager.startMeasurement("silentFlowClient.acquireCachedToken");
         // Cannot renew token if no request object is given.
         if (!request) {
+            endMeasurement();
             throw ClientConfigurationError.createEmptyTokenRequestError();
         }
 
         // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
         if (!request.account) {
+            endMeasurement();
             throw ClientAuthError.createNoAccountInSilentRequestError();
         }
         const requestScopes = new ScopeSet(request.scopes || []);
@@ -66,6 +71,7 @@ export class SilentFlowClient extends BaseClient {
             TimeUtils.isTokenExpired(cacheRecord.accessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds) ||
             (cacheRecord.accessToken.refreshOn && TimeUtils.isTokenExpired(cacheRecord.accessToken.refreshOn, 0))) {
             // Must refresh due to request parameters, or expired or non-existent access_token
+            endMeasurement();
             throw ClientAuthError.createRefreshRequiredError();
         }
 
@@ -73,7 +79,9 @@ export class SilentFlowClient extends BaseClient {
             this.config.serverTelemetryManager.incrementCacheHits();
         }
 
-        return await this.generateResultFromCacheRecord(cacheRecord, request);
+        const result = await this.generateResultFromCacheRecord(cacheRecord, request);
+        endMeasurement();
+        return result;
     }
 
     /**
@@ -81,17 +89,21 @@ export class SilentFlowClient extends BaseClient {
      * @param cacheRecord
      */
     private async generateResultFromCacheRecord(cacheRecord: CacheRecord, request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
+        const endMeasurement = this.performanceManager.startMeasurement("silentFlowClient.generateResultFromCacheRecord");
         let idTokenObj: AuthToken | undefined;
         if (cacheRecord.idToken) {
             idTokenObj = new AuthToken(cacheRecord.idToken.secret, this.config.cryptoInterface);
         }
-        return await ResponseHandler.generateAuthenticationResult(
+        const result = await ResponseHandler.generateAuthenticationResult(
             this.cryptoUtils,
+            this.performanceManager,
             this.authority,
             cacheRecord,
             true,
             request,
             idTokenObj
         );
+        endMeasurement();
+        return result;
     }
 }

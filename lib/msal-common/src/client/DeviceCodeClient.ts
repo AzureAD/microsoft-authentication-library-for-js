@@ -43,6 +43,7 @@ export class DeviceCodeClient extends BaseClient {
             this.config.authOptions.clientId,
             this.cacheManager,
             this.cryptoUtils,
+            this.performanceManager,
             this.logger,
             this.config.serializableCache,
             this.config.persistencePlugin

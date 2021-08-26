@@ -6,7 +6,7 @@
 import "mocha";
 import chai, { config } from "chai";
 import chaiAsPromised from "chai-as-promised";
-import sinon from "sinon";
+import sinon, { mock } from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, testNavUrlNoRequest } from "../utils/StringConstants";
 import { ServerError, Constants, AccountInfo, TokenClaims, PromptValue, AuthenticationResult, AuthorizationCodeRequest, AuthorizationUrlRequest, AuthToken, PersistentCacheKeys, AuthorizationCodeClient, ResponseMode, AccountEntity, ProtocolUtils, AuthenticationScheme, RefreshTokenClient, Logger, ServerTelemetryEntity, SilentFlowRequest, EndSessionRequest as CommonEndSessionRequest, LogLevel, NetworkResponse, ServerAuthorizationTokenResponse } from "@azure/msal-common";
@@ -28,6 +28,8 @@ import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { NavigationOptions } from "../../src/navigation/NavigationOptions";
 import { PopupUtils } from "../../src/utils/PopupUtils";
 import { EndSessionPopupRequest } from "../../src/request/EndSessionPopupRequest";
+import { PerformanceMeasurement } from "../../src/telemetry/PerformanceMeasurement";
+import { BrowserPerformanceManager } from "../../src/telemetry/BrowserPerformanceManager";
 
 chai.use(chaiAsPromised);
 const expect = chai.expect;
@@ -49,10 +51,19 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
 
     let dbStorage = {};
 
+    const mockPerf = {
+        startMeasurement(): Function {
+            return () => {};
+        }
+    }
+
     let pca: PublicClientApplication;
     beforeEach(() => {
         sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
             dbStorage = {};
+        });
+        sinon.stub(BrowserPerformanceManager.prototype, "startMeasurement").callsFake((measureName: string): Function => {
+            return () => {};
         });
         pca = new PublicClientApplication({
             auth: {
@@ -420,7 +431,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             it("gets hash from cache and processes response", async () => {
                 const b64Encode = new Base64Encode();
                 const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-                const browserCrypto = new CryptoOps();
+                const browserCrypto = new CryptoOps(mockPerf);
                 const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
 
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
@@ -487,10 +498,10 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
                 pca = new PublicClientApplication({
                     auth: {
-                        clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        knownAuthorities: [Constants.DEFAULT_AUTHORITY]
                     }
                 });
-
                 const tokenResponse = await pca.handleRedirectPromise();
                 expect(tokenResponse.uniqueId).to.be.eq(testTokenResponse.uniqueId);
                 expect(tokenResponse.tenantId).to.be.eq(testTokenResponse.tenantId);
@@ -505,7 +516,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             it("Multiple concurrent calls to handleRedirectPromise return the same promise", async () => {
                 const b64Encode = new Base64Encode();
                 const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-                const browserCrypto = new CryptoOps();
+                const browserCrypto = new CryptoOps(mockPerf);
                 const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
 
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
@@ -572,7 +583,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
                 pca = new PublicClientApplication({
                     auth: {
-                        clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                        clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        knownAuthorities: [Constants.DEFAULT_AUTHORITY]
                     }
                 });
 
@@ -622,7 +634,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 };
 
                 const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-                const browserCrypto = new CryptoOps();
+                const browserCrypto = new CryptoOps(mockPerf);
                 const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
 
                 window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`, browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest)));
@@ -647,7 +659,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             it("processes hash if navigateToLoginRequestUri is false and request origin is the same", async () => {
                 const b64Encode = new Base64Encode();
                 const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-                const browserCrypto = new CryptoOps();
+                const browserCrypto = new CryptoOps(mockPerf);
                 const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
 
                 window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
@@ -721,7 +733,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 pca = new PublicClientApplication({
                     auth: {
                         clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                        navigateToLoginRequestUrl: false
+                        navigateToLoginRequestUrl: false,
+                        knownAuthorities: [Constants.DEFAULT_AUTHORITY]
                     }
                 });
 
@@ -814,6 +827,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 pca = new PublicClientApplication({
                     auth: {
                         clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        knownAuthorities: [Constants.DEFAULT_AUTHORITY]
                     }
                 });
 
@@ -848,7 +862,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             it("processes hash if navigateToLoginRequestUri is false and request origin is different", async () => {
                 const b64Encode = new Base64Encode();
                 const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-                const browserCrypto = new CryptoOps();
+                const browserCrypto = new CryptoOps(mockPerf);
                 const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
 
                 window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
@@ -922,7 +936,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 pca = new PublicClientApplication({
                     auth: {
                         clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                        navigateToLoginRequestUrl: false
+                        navigateToLoginRequestUrl: false,
+                        knownAuthorities: [Constants.DEFAULT_AUTHORITY]
                     }
                 });
 

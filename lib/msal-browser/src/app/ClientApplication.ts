@@ -4,7 +4,7 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { Authority, StringUtils, UrlString, ServerAuthorizationCodeResponse, CommonAuthorizationCodeRequest, AuthorizationCodeClient, PromptValue, ServerError, InteractionRequiredAuthError, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, AuthenticationScheme, CommonSilentFlowRequest, CommonEndSessionRequest, AccountEntity, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthorityOptions } from "@azure/msal-common";
+import { Authority, StringUtils, UrlString, ServerAuthorizationCodeResponse, CommonAuthorizationCodeRequest, AuthorizationCodeClient, PromptValue, ServerError, InteractionRequiredAuthError, AccountInfo, AuthorityFactory, ServerTelemetryManager, SilentFlowClient, ClientConfiguration, BaseAuthRequest, ServerTelemetryRequest, PersistentCacheKeys, IdToken, ProtocolUtils, ResponseMode, Constants, INetworkModule, AuthenticationResult, Logger, ThrottlingUtils, RefreshTokenClient, AuthenticationScheme, CommonSilentFlowRequest, CommonEndSessionRequest, AccountEntity, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthorityOptions, IPerformanceManager } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
 import { TemporaryCacheKeys, InteractionType, ApiId, BrowserConstants, BrowserCacheLocation, WrapperSKU } from "../utils/BrowserConstants";
@@ -27,6 +27,7 @@ import { PopupUtils } from "../utils/PopupUtils";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { NavigationOptions } from "../navigation/NavigationOptions";
+import { BrowserPerformanceManager } from "../telemetry/BrowserPerformanceManager";
 
 export abstract class ClientApplication {
 
@@ -50,6 +51,9 @@ export abstract class ClientApplication {
 
     // Flag to indicate if in browser environment
     protected isBrowserEnvironment: boolean;
+
+    // Browser Performance Manager
+    protected performanceManager: IPerformanceManager;
 
     // Sets the account to use if no account info is given
     private activeLocalAccountId: string | null;
@@ -112,17 +116,20 @@ export abstract class ClientApplication {
         // Initialize redirectResponse Map
         this.redirectResponse = new Map();
 
+        // Initialize the browser performance manager
+        this.performanceManager = new BrowserPerformanceManager(this.logger);
+        
         if (!this.isBrowserEnvironment) {
-            this.browserStorage = DEFAULT_BROWSER_CACHE_MANAGER(this.config.auth.clientId, this.logger);
+            this.browserStorage = DEFAULT_BROWSER_CACHE_MANAGER(this.config.auth.clientId, this.logger, this.performanceManager);
             this.browserCrypto = DEFAULT_CRYPTO_IMPLEMENTATION;
             return;
         }
 
         // Initialize the crypto class.
-        this.browserCrypto = new CryptoOps();
+        this.browserCrypto = new CryptoOps(this.performanceManager);
 
         // Initialize the browser storage class.
-        this.browserStorage = new BrowserCacheManager(this.config.auth.clientId, this.config.cache, this.browserCrypto, this.logger);
+        this.browserStorage = new BrowserCacheManager(this.config.auth.clientId, this.config.cache, this.browserCrypto, this.logger, this.performanceManager);
     }
 
     // #region Redirect Flow
@@ -151,7 +158,7 @@ export abstract class ClientApplication {
                 response = this.handleRedirectResponse(hash)
                     .then((result: AuthenticationResult | null) => {
                         if (result) {
-                        // Emit login event if number of accounts change
+                            // Emit login event if number of accounts change
                             const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
                             if (isLoggingIn) {
                                 this.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect, result);
@@ -222,7 +229,7 @@ export abstract class ClientApplication {
         const loginRequestUrl = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.ORIGIN_URI, true) || "";
         const loginRequestUrlNormalized = UrlString.removeHashFromUrl(loginRequestUrl);
         const currentUrlNormalized = UrlString.removeHashFromUrl(window.location.href);
-
+        
         if (loginRequestUrlNormalized === currentUrlNormalized && this.config.auth.navigateToLoginRequestUrl) {
             // We are on the page we need to navigate to - handle hash
             this.logger.verbose("Current page is loginRequestUrl, handling hash");
@@ -272,7 +279,6 @@ export abstract class ClientApplication {
                 return this.handleHash(responseHash, state);
             }
         }
-
         return null;
     }
 
@@ -317,7 +323,6 @@ export abstract class ClientApplication {
         if (platformStateObj.interactionType !== interactionType) {
             throw BrowserAuthError.createStateInteractionTypeMismatchError();
         }
-
         this.logger.verbose("Returning state from hash");
         return serverParams.state;
     }
@@ -559,14 +564,17 @@ export abstract class ClientApplication {
      * @param apiId - ApiId of the calling function. Used for telemetry.
      */
     private async acquireTokenByIframe(request: SsoSilentRequest, apiId: ApiId): Promise<AuthenticationResult> {
+        const endMeasurement = this.performanceManager.startMeasurement("acquireTokenByIframe");
         this.logger.verbose("acquireTokenByIframe called");
         // Check that we have some SSO data
         if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
+            endMeasurement();
             throw BrowserAuthError.createSilentSSOInsufficientInfoError();
         }
 
         // Check that prompt is set to none, throw error if it is set to anything else.
         if (request.prompt && request.prompt !== PromptValue.NONE) {
+            endMeasurement();
             throw BrowserAuthError.createSilentPromptValueError(request.prompt);
         }
 
@@ -588,10 +596,13 @@ export abstract class ClientApplication {
             // Create authorize request url
             const navigateUrl = await authClient.getAuthCodeUrl(silentRequest);
 
-            return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient);
+            const result = await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient);
+            endMeasurement();
+            return result;
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequestByState(silentRequest.state);
+            endMeasurement();
             throw e;
         }
     }
@@ -608,6 +619,7 @@ export abstract class ClientApplication {
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     protected async acquireTokenByRefreshToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
+        const endMeasurement = this.performanceManager.startMeasurement("acquireTokenByRefreshToken");
         this.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, request);
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
@@ -619,7 +631,9 @@ export abstract class ClientApplication {
         try {
             const refreshTokenClient = await this.createRefreshTokenClient(serverTelemetryManager, silentRequest.authority);
             // Send request to renew token. Auth module will throw errors if token cannot be renewed.
-            return await refreshTokenClient.acquireTokenByRefreshToken(silentRequest);
+            const result = await refreshTokenClient.acquireTokenByRefreshToken(silentRequest);
+            endMeasurement();
+            return result;
         } catch (e) {
             serverTelemetryManager.cacheFailedRequest(e);
             const isServerError = e instanceof ServerError;
@@ -627,8 +641,11 @@ export abstract class ClientApplication {
             const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
                 this.logger.verbose("Refresh token expired or invalid, attempting acquire token by iframe");
-                return await this.acquireTokenByIframe(request, ApiId.acquireTokenSilent_authCode);
+                const result = await this.acquireTokenByIframe(request, ApiId.acquireTokenSilent_authCode);
+                endMeasurement();
+                return result;
             }
+            endMeasurement();
             throw e;
         }
     }
@@ -949,6 +966,7 @@ export abstract class ClientApplication {
      * @param requestAuthority
      */
     async getDiscoveredAuthority(requestAuthority?: string): Promise<Authority> {
+        const endMeasurement = this.performanceManager.startMeasurement("getDiscoveredAuthority");
         this.logger.verbose("getDiscoveredAuthority called");
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode,
@@ -959,11 +977,15 @@ export abstract class ClientApplication {
 
         if (requestAuthority) {
             this.logger.verbose("Creating discovered authority with request authority");
-            return await AuthorityFactory.createDiscoveredInstance(requestAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions);
+            const discoveredInstance = await AuthorityFactory.createDiscoveredInstance(requestAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions);
+            endMeasurement();
+            return discoveredInstance;
         }
 
         this.logger.verbose("Creating discovered authority with configured authority");
-        return await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient, this.browserStorage, authorityOptions);
+        const discoveredInstance = await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient, this.browserStorage, authorityOptions);
+        endMeasurement();
+        return discoveredInstance;
     }
 
     /**
@@ -992,10 +1014,13 @@ export abstract class ClientApplication {
      * @param authorityUrl
      */
     protected async createSilentFlowClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<SilentFlowClient> {
+        const endMeasurement = this.performanceManager.startMeasurement("createSilentFlowClient");
         this.logger.verbose("createSilentFlowClient called");
         // Create auth module.
         const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
-        return new SilentFlowClient(clientConfig);
+        const silentFlowClient = new SilentFlowClient(clientConfig);
+        endMeasurement();
+        return silentFlowClient;
     }
 
     /**
@@ -1035,6 +1060,7 @@ export abstract class ClientApplication {
             cryptoInterface: this.browserCrypto,
             networkInterface: this.networkClient,
             storageInterface: this.browserStorage,
+            performanceInterface: this.performanceManager,
             serverTelemetryManager: serverTelemetryManager,
             libraryInfo: {
                 sku: BrowserConstants.MSAL_SKU,
@@ -1068,6 +1094,7 @@ export abstract class ClientApplication {
      * * @param interactionType
      */
     protected preflightBrowserEnvironmentCheck(interactionType: InteractionType): void {
+        const endMeasurement = this.performanceManager.startMeasurement("preflightBrowserEnvironmentCheck");
         this.logger.verbose("preflightBrowserEnvironmentCheck started");
         // Block request if not in browser environment
         BrowserUtils.blockNonBrowserEnvironment(this.isBrowserEnvironment);
@@ -1085,8 +1112,10 @@ export abstract class ClientApplication {
         if (interactionType === InteractionType.Redirect &&
             this.config.cache.cacheLocation === BrowserCacheLocation.MemoryStorage &&
             !this.config.cache.storeAuthStateInCookie) {
+            endMeasurement();
             throw BrowserConfigurationAuthError.createInMemoryRedirectUnavailableError();
         }
+        endMeasurement();
     }
 
     /**
@@ -1094,6 +1123,7 @@ export abstract class ClientApplication {
      * @param request
      */
     protected initializeBaseRequest(request: Partial<BaseAuthRequest>): BaseAuthRequest {
+        const endMeasurement = this.performanceManager.startMeasurement("initializeBaseRequest");
         this.logger.verbose("Initializing BaseAuthRequest");
         const authority = request.authority || this.config.auth.authority;
 
@@ -1114,7 +1144,7 @@ export abstract class ClientApplication {
             authority,
             scopes
         };
-
+        endMeasurement();
         return validatedRequest;
     }
 
@@ -1125,6 +1155,7 @@ export abstract class ClientApplication {
      * @param forceRefresh
      */
     protected initializeServerTelemetryManager(apiId: number, correlationId: string, forceRefresh?: boolean): ServerTelemetryManager {
+        const endMeasurement = this.performanceManager.startMeasurement("initializeServerTelemetryManager");
         this.logger.verbose("initializeServerTelemetryManager called");
         const telemetryPayload: ServerTelemetryRequest = {
             clientId: this.config.auth.clientId,
@@ -1135,7 +1166,9 @@ export abstract class ClientApplication {
             wrapperVer: this.wrapperVer
         };
 
-        return new ServerTelemetryManager(telemetryPayload, this.browserStorage);
+        const serverTelemetryManager = new ServerTelemetryManager(telemetryPayload, this.browserStorage);
+        endMeasurement();
+        return serverTelemetryManager;
     }
 
     /**

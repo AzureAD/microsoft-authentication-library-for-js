@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { IPerformanceManager } from "@azure/msal-common/dist/telemetry/performance/IPerformanceManager";
+
 /**
  * Utility functions for strings in a browser. See here for implementation details:
  * https://developer.mozilla.org/en-US/docs/Web/API/WindowBase64/Base64_encoding_and_decoding#Solution_2_%E2%80%93_JavaScript's_UTF-16_%3E_UTF-8_%3E_base64
@@ -72,12 +74,14 @@ export class BrowserStringUtils {
      * Converst string to ArrayBuffer
      * @param dataString 
      */
-    static stringToArrayBuffer(dataString: string): ArrayBuffer {
+    static stringToArrayBuffer(dataString: string, perfManager: IPerformanceManager): ArrayBuffer {
+        const endMeasurement = perfManager.startMeasurement("stringToArrayBuffer");
         const data = new ArrayBuffer(dataString.length);
         const dataView = new Uint8Array(data);
         for (let i: number = 0; i < dataString.length; i++) {
             dataView[i] = dataString.charCodeAt(i);
         }
+        endMeasurement();
         return data;
     }
 

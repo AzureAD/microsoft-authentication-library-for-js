@@ -155,10 +155,16 @@ export const mockCrypto = {
     }
 };
 
+export const mockPerf = {
+    startMeasurement(measureName: string): Function {
+        return () => {}
+    }
+}
+
 export class ClientTestUtils {
     
     static async createTestClientConfiguration(): Promise<ClientConfiguration>{
-        const mockStorage = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
+        const mockStorage = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto, mockPerf);
 
         const testLoggerCallback = (): void => {
             return;
@@ -193,6 +199,7 @@ export class ClientTestUtils {
             storageInterface: mockStorage,
             networkInterface: mockHttpClient,
             cryptoInterface: mockCrypto,
+            performanceInterface: mockPerf,
             loggerOptions: {
                 loggerCallback: testLoggerCallback,
             },

@@ -6,6 +6,7 @@
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
+import { IPerformanceManager } from "@azure/msal-common";
 /**
  * See here for more info on RsaHashedKeyGenParams: https://developer.mozilla.org/en-US/docs/Web/API/RsaHashedKeyGenParams
  */
@@ -90,9 +91,9 @@ export class BrowserCrypto {
      * @param extractable 
      * @param usages 
      */
-    async importJwk(key: JsonWebKey, extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKey> {
+    async importJwk(key: JsonWebKey, extractable: boolean, usages: Array<KeyUsage>, perfManager: IPerformanceManager): Promise<CryptoKey> {
         const keyString = BrowserCrypto.getJwkString(key);
-        const keyBuffer = BrowserStringUtils.stringToArrayBuffer(keyString);
+        const keyBuffer = BrowserStringUtils.stringToArrayBuffer(keyString, perfManager);
 
         return this.hasIECrypto() ? 
             this.msCryptoImportKey(keyBuffer, extractable, usages) 
@@ -104,10 +105,13 @@ export class BrowserCrypto {
      * @param key 
      * @param data 
      */
-    async sign(key: CryptoKey, data: ArrayBuffer): Promise<ArrayBuffer> {
-        return this.hasIECrypto() ?
+    async sign(key: CryptoKey, data: ArrayBuffer, perfManager: IPerformanceManager): Promise<ArrayBuffer> {
+        const endMeasurement = perfManager.startMeasurement("browserCrypto.sign");
+        const signedData = this.hasIECrypto() ?
             this.msCryptoSign(key, data)
             : window.crypto.subtle.sign(this._keygenAlgorithmOptions, key, data);
+        endMeasurement();
+        return signedData;
     }
 
     /**

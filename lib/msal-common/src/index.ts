@@ -86,3 +86,4 @@ export { TimeUtils } from "./utils/TimeUtils";
 // Telemetry
 export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager";
 export { ServerTelemetryRequest } from "./telemetry/server/ServerTelemetryRequest";
+export { IPerformanceManager } from "./telemetry/performance/IPerformanceManager";

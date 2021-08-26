@@ -3,7 +3,11 @@ import { Base64Encode } from "../../src/encode/Base64Encode";
 import { TEST_DATA_CLIENT_INFO } from "../utils/StringConstants";
 
 describe("Base64Encode.ts Unit Tests", () => {
-
+    const mockPerf = {
+        startMeasurement(measureName: string): Function {
+            return () => {}
+        }
+    };
     let b64Encode: Base64Encode;
     beforeEach(() => {
         b64Encode = new Base64Encode();
@@ -51,19 +55,19 @@ describe("Base64Encode.ts Unit Tests", () => {
              * BASE64("fooba") = "Zm9vYmE="
              * BASE64("foobar") = "Zm9vYmFy"
              */
-            expect(b64Encode.urlEncode("")).to.be.empty;
-            expect(b64Encode.urlEncode("f")).to.be.eq("Zg");
-            expect(b64Encode.urlEncode("fo")).to.be.eq("Zm8");
-            expect(b64Encode.urlEncode("foo")).to.be.eq("Zm9v");
-            expect(b64Encode.urlEncode("foob")).to.be.eq("Zm9vYg");
-            expect(b64Encode.urlEncode("fooba")).to.be.eq("Zm9vYmE");
-            expect(b64Encode.urlEncode("foobar")).to.be.eq("Zm9vYmFy");
+            expect(b64Encode.urlEncode("", mockPerf)).to.be.empty;
+            expect(b64Encode.urlEncode("f", mockPerf)).to.be.eq("Zg");
+            expect(b64Encode.urlEncode("fo", mockPerf)).to.be.eq("Zm8");
+            expect(b64Encode.urlEncode("foo", mockPerf)).to.be.eq("Zm9v");
+            expect(b64Encode.urlEncode("foob", mockPerf)).to.be.eq("Zm9vYg");
+            expect(b64Encode.urlEncode("fooba", mockPerf)).to.be.eq("Zm9vYmE");
+            expect(b64Encode.urlEncode("foobar", mockPerf)).to.be.eq("Zm9vYmFy");
         });
 
         it("MSAL Test Vectors", () => {
             // Client Info B64
-            expect(b64Encode.urlEncode(TEST_DATA_CLIENT_INFO.TEST_UID)).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED);
-            expect(b64Encode.urlEncode(TEST_DATA_CLIENT_INFO.TEST_UTID)).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_UTID_URLENCODED);
+            expect(b64Encode.urlEncode(TEST_DATA_CLIENT_INFO.TEST_UID, mockPerf)).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_UID_ENCODED);
+            expect(b64Encode.urlEncode(TEST_DATA_CLIENT_INFO.TEST_UTID, mockPerf)).to.be.eq(TEST_DATA_CLIENT_INFO.TEST_UTID_URLENCODED);
         });
     });
 });

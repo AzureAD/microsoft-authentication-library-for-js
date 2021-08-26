@@ -7,6 +7,7 @@ chai.use(chaiAsPromised);
 import { ICrypto, PkceCodes, UrlString, SignedHttpRequest, TimeUtils, IUri, BaseAuthRequest, AuthenticationScheme } from "../../src";
 import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS, TEST_TOKENS } from "../utils/StringConstants";
 import { PopTokenGenerator } from "../../src/crypto/PopTokenGenerator";
+import { mockPerf } from "../client/ClientTestUtils";
 
 describe("PopTokenGenerator Unit Tests", () => {
 
@@ -67,7 +68,7 @@ describe("PopTokenGenerator Unit Tests", () => {
             resourceRequestUrl: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS
         };
         it("Generates the req_cnf correctly", async () => {
-            const popTokenGenerator = new PopTokenGenerator(cryptoInterface);
+            const popTokenGenerator = new PopTokenGenerator(cryptoInterface, mockPerf);
             const req_cnf = await popTokenGenerator.generateCnf(testRequest);
             expect(req_cnf).to.be.eq(TEST_POP_VALUES.ENCODED_REQ_CNF);
         });
@@ -84,7 +85,7 @@ describe("PopTokenGenerator Unit Tests", () => {
         let testRequest: BaseAuthRequest;
         
         before(() => {
-            popTokenGenerator = new PopTokenGenerator(cryptoInterface);
+            popTokenGenerator = new PopTokenGenerator(cryptoInterface, mockPerf);
             accessToken = TEST_POP_VALUES.SAMPLE_POP_AT;
             resourceReqMethod = "POST";
             resourceUrl = TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS;
@@ -100,7 +101,7 @@ describe("PopTokenGenerator Unit Tests", () => {
         });
 
         it("Signs the proof-of-possession JWT token with all PoP parameters in the request", async(done) => {
-            const popTokenGenerator = new PopTokenGenerator(cryptoInterface);
+            const popTokenGenerator = new PopTokenGenerator(cryptoInterface, mockPerf);
             const accessToken = TEST_POP_VALUES.SAMPLE_POP_AT;
             const resourceReqMethod = "POST";
             const resourceUrl = TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS;
@@ -140,7 +141,7 @@ describe("PopTokenGenerator Unit Tests", () => {
         });
 
         it("Signs the proof-of-possession JWT token when PoP parameters are undefined", (done) => {
-            const popTokenGenerator = new PopTokenGenerator(cryptoInterface);
+            const popTokenGenerator = new PopTokenGenerator(cryptoInterface, mockPerf);
             const accessToken = TEST_POP_VALUES.SAMPLE_POP_AT;
             const currTime = TimeUtils.nowSeconds();
             const popRequest = { ...testRequest, authenticationScheme: AuthenticationScheme.POP };

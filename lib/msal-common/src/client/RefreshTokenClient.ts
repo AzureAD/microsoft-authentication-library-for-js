@@ -39,6 +39,7 @@ export class RefreshTokenClient extends BaseClient {
             this.config.authOptions.clientId,
             this.cacheManager,
             this.cryptoUtils,
+            this.performanceManager,
             this.logger,
             this.config.serializableCache,
             this.config.persistencePlugin
@@ -193,7 +194,7 @@ export class RefreshTokenClient extends BaseClient {
         }
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
-            const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
+            const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils, this.performanceManager);
 
             parameterBuilder.addPopToken(await popTokenGenerator.generateCnf(request));
         }

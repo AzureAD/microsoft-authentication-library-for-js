@@ -10,6 +10,7 @@ import { TimeUtils } from "../utils/TimeUtils";
 import { UrlString } from "../url/UrlString";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
+import { IPerformanceManager } from "../telemetry/performance/IPerformanceManager";
 
 /**
  * See eSTS docs for more info.
@@ -31,9 +32,11 @@ enum KeyLocation {
 export class PopTokenGenerator {
 
     private cryptoUtils: ICrypto;
+    private perfManager: IPerformanceManager;
 
-    constructor(cryptoUtils: ICrypto) {
+    constructor(cryptoUtils: ICrypto, perfManager: IPerformanceManager) {
         this.cryptoUtils = cryptoUtils;
+        this.perfManager = perfManager;
     }
 
     async generateCnf(request: BaseAuthRequest): Promise<string> {
@@ -46,6 +49,7 @@ export class PopTokenGenerator {
     }
 
     async signPopToken(accessToken: string, request: BaseAuthRequest): Promise<string> {
+        const endMeasurement = this.perfManager.startMeasurement("popTokenGenerator.signPopToken");
         const tokenClaims: TokenClaims | null = AuthToken.extractTokenClaims(accessToken, this.cryptoUtils);
 
         // Deconstruct request to extract SHR parameters
@@ -55,10 +59,11 @@ export class PopTokenGenerator {
         const resourceUrlComponents = resourceUrlString?.getUrlComponents();
 
         if (!tokenClaims?.cnf?.kid) {
+            endMeasurement();
             throw ClientAuthError.createTokenClaimsRequiredError();
         }
 
-        return await this.cryptoUtils.signJwt({
+        const shr = await this.cryptoUtils.signJwt({
             at: accessToken,
             ts: TimeUtils.nowSeconds(),
             m: resourceRequestMethod?.toUpperCase(),
@@ -68,5 +73,7 @@ export class PopTokenGenerator {
             q: (resourceUrlComponents?.QueryString) ? [[], resourceUrlComponents.QueryString] : undefined,
             client_claims: shrClaims || undefined
         }, tokenClaims.cnf.kid);
+        endMeasurement();
+        return shr;
     }
 }

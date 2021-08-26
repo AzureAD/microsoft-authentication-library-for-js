@@ -5,12 +5,19 @@ import { GuidGenerator } from "../../src/crypto/GuidGenerator";
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
 import crypto from "crypto";
 import { PkceCodes } from "@azure/msal-common";
-import { TEST_URIS } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
+import { BrowserPerformanceManager } from "../../src/telemetry/BrowserPerformanceManager";
 
 describe("CryptoOps.ts Unit Tests", () => {
     let cryptoObj: CryptoOps;
     let dbStorage = {};
+    const mockPerf = {
+        startMeasurement(measureName: string): Function {
+            return () => {}
+        }
+    };
+
     beforeEach(() => {
         sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
             dbStorage = {};
@@ -19,7 +26,7 @@ describe("CryptoOps.ts Unit Tests", () => {
         sinon.stub(DatabaseStorage.prototype, "put").callsFake(async (key: string, payload: CachedKeyPair): Promise<void> => {
             dbStorage[key] = payload;
         });
-        cryptoObj = new CryptoOps();
+        cryptoObj = new CryptoOps(mockPerf);
     });
 
     afterEach(() => {
@@ -90,9 +97,20 @@ describe("CryptoOps.ts Unit Tests", () => {
             expect(algorithm).to.be.eq("SHA-256");
             return crypto.createHash("SHA256").update(Buffer.from(data)).digest();
         });
+        sinon.stub(BrowserPerformanceManager.prototype, "startMeasurement").callsFake((measureName: string) => {
+            return () => {};
+        })
         const generateKeyPairSpy = sinon.spy(BrowserCrypto.prototype, "generateKeyPair");
         const exportJwkSpy = sinon.spy(BrowserCrypto.prototype, "exportJwk");
-        const pkThumbprint = await cryptoObj.getPublicKeyThumbprint("POST", TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS);
+        const pkThumbprint = await cryptoObj.getPublicKeyThumbprint(
+            {
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                resourceRequestMethod: "POST", 
+                resourceRequestUri: TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS
+            }
+        );
         /**
          * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
          */
