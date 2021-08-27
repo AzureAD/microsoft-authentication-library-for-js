@@ -219,7 +219,8 @@ export class UrlString {
      * Check if the hash of the URL string contains known properties
      */
     static hashContainsKnownProperties(hash: string): boolean {
-        if (StringUtils.isEmpty(hash)) {
+        if (StringUtils.isEmpty(hash) || hash.indexOf("=") < 0) {
+            // Hash doesn't contain key/value pairs
             return false;
         }
 
