@@ -63,6 +63,7 @@ From the repository's root directory, navigate to a sample application:
 
 - By using MSAL Node, you are working with the Microsoft identity platform. Read about [App Registration](https://docs.microsoft.com/azure/active-directory/develop/quickstart-register-app#register-an-application) and register one to use with this code.
 - Install [Node.js](https://nodejs.org/en/) if needed.
+- Build MSAL Node. See the [guide](../../lib/msal-node/README.md#build-and-test).
 
 ### Configure the application
 
@@ -77,17 +78,7 @@ const config = {
         authority: "YOUR_AUTHORITY_URL",
         knownAuthorities: ["YOUR_KNOWN_AUTHORITY"], // typically applies to apps on Azure AD B2C
         clientSecret: "YOUR_CLIENT_SECRET" // only applies to Confidential Client applications, such as backend web applications
-    },
-    system: {
-        // You can add the loggerOptions below if you'd like to see MSAL's debug logs during execution.
-        loggerOptions: {
-            loggerCallback(loglevel, message, containsPii) {
-                console.log(message);
-            },
-            piiLoggingEnabled: false,
-            logLevel: msal.LogLevel.Verbose,
-        }
-    }
+    }
 };
 ```
 
