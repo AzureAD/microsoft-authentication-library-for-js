@@ -961,6 +961,7 @@ describe("UserAgentApplication.ts Class", function () {
 
             setAuthInstanceStubs();
             setTestCacheItems();
+            cacheStorage.setInteractionInProgress(true);
         });
 
         afterEach(function() {
@@ -2078,6 +2079,7 @@ describe("UserAgentApplication.ts Class", function () {
 
             setAuthInstanceStubs();
             setTestCacheItems();
+            cacheStorage.setInteractionInProgress(true);
             
             delete window.location;
             window.location = {
@@ -2440,6 +2442,7 @@ describe("UserAgentApplication.ts Class", function () {
 
             setAuthInstanceStubs();
             setTestCacheItems();
+            cacheStorage.setInteractionInProgress(true);
         });
 
         afterEach(function() {
