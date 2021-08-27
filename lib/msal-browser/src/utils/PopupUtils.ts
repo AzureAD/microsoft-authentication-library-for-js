@@ -8,7 +8,7 @@ import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { PopupParams } from "../interaction_handler/PopupHandler";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
-import { BrowserConstants, InteractionType, TemporaryCacheKeys } from "./BrowserConstants";
+import { BrowserConstants, InteractionType } from "./BrowserConstants";
 
 /**
  * Popup configurations for setting dimensions and position of popup window
@@ -81,7 +81,7 @@ export class PopupUtils {
             return popupWindow;
         } catch (e) {
             this.logger.error("error opening popup " + e.message);
-            this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY));
+            this.browserStorage.setInteractionInProgress(false);
             throw BrowserAuthError.createPopupWindowError(e.toString());
         }
     }
@@ -160,7 +160,7 @@ export class PopupUtils {
         window.removeEventListener("beforeunload", this.unloadWindow);
 
         // Interaction is completed - remove interaction status.
-        this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY));
+        this.browserStorage.setInteractionInProgress(false);
     }
 
     /**

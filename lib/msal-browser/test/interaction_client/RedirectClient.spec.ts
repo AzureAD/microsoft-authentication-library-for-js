@@ -22,6 +22,7 @@ import { RedirectClient } from "../../src/interaction_client/RedirectClient";
 import { EventHandler } from "../../src/event/EventHandler";
 import { EventType } from "../../src/event/EventType";
 import { BrowserProtocolUtils } from "../../src/utils/BrowserProtocolUtils";
+import { BrowserStorage } from "../../src/cache/BrowserStorage";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -62,7 +63,7 @@ describe("RedirectClient", () => {
 
     describe("handleRedirectPromise", () => {
         it("does nothing if no hash is detected", (done) => {
-            sinon.stub(RedirectClient.prototype, <any>"interactionInProgress").returns(true);
+            sinon.stub(BrowserCacheManager.prototype, "isInteractionInProgress").returns(true);
             redirectClient.handleRedirectPromise().then((response) => {
                 expect(response).toBe(null);
                 expect(window.localStorage.length).toEqual(0);
@@ -72,7 +73,7 @@ describe("RedirectClient", () => {
         });
 
         it("cleans temporary cache and return null if no state", (done) => {
-            sinon.stub(RedirectClient.prototype, <any>"interactionInProgress").returns(true);
+            sinon.stub(BrowserCacheManager.prototype, "isInteractionInProgress").returns(true);
             sinon.stub(RedirectClient.prototype, <any>"getRedirectResponseHash").returns(TEST_HASHES.TEST_SUCCESS_HASH_NO_STATE);
             redirectClient.handleRedirectPromise().then((response) => {
                 expect(response).toBe(null);
@@ -83,7 +84,7 @@ describe("RedirectClient", () => {
         });
 
         it("cleans temporary cache and return null if state is wrong interaction type", (done) => {
-            sinon.stub(RedirectClient.prototype, <any>"interactionInProgress").returns(true);
+            sinon.stub(BrowserCacheManager.prototype, "isInteractionInProgress").returns(true);
             sinon.stub(RedirectClient.prototype, <any>"getRedirectResponseHash").returns(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
             redirectClient.handleRedirectPromise().then((response) => {
                 expect(response).toBe(null);
@@ -94,7 +95,7 @@ describe("RedirectClient", () => {
         });
 
         it("cleans temporary cache and rethrows if error is thrown", (done) => {
-            sinon.stub(RedirectClient.prototype, <any>"interactionInProgress").returns(true);
+            sinon.stub(BrowserCacheManager.prototype, "isInteractionInProgress").returns(true);
             const testError = {
                 errorCode: "Unexpected error!",
                 errorDesc: "Unexpected error"
@@ -109,7 +110,7 @@ describe("RedirectClient", () => {
         });
 
         it("cleans temporary cache and return null if state cannot be decoded", (done) => {
-            sinon.stub(RedirectClient.prototype, <any>"interactionInProgress").returns(true);
+            sinon.stub(BrowserCacheManager.prototype, "isInteractionInProgress").returns(true);
             //sinon.stub(BrowserProtocolUtils, "extractBrowserRequestState").returns(null);
             sinon.stub(RedirectClient.prototype, <any>"getRedirectResponseHash").returns(TEST_HASHES.TEST_SUCCESS_HASH_STATE_NO_META);
             redirectClient.handleRedirectPromise().then((response) => {
@@ -130,7 +131,7 @@ describe("RedirectClient", () => {
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`, TEST_CONFIG.validAuthority);
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`, TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
-            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, TEST_CONFIG.MSAL_CLIENT_ID);
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`, "123523");
             const testTokenReq: CommonAuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
@@ -216,7 +217,7 @@ describe("RedirectClient", () => {
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`, TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
-            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, TEST_CONFIG.MSAL_CLIENT_ID);
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`, "123523");
             const testTokenReq: CommonAuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
@@ -255,7 +256,7 @@ describe("RedirectClient", () => {
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`, TEST_CONFIG.validAuthority);
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`, TEST_HASHES.TEST_ERROR_HASH);
-            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, TEST_CONFIG.MSAL_CLIENT_ID);
 
             redirectClient.handleRedirectPromise().catch((err) => {
                 expect(err instanceof ServerError).toBeTruthy();
@@ -273,7 +274,7 @@ describe("RedirectClient", () => {
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`, TEST_CONFIG.validAuthority);
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
-            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, TEST_CONFIG.MSAL_CLIENT_ID);
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`, "123523");
 
             const testTokenReq: CommonAuthorizationCodeRequest = {
@@ -376,7 +377,7 @@ describe("RedirectClient", () => {
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_ALTERNATE_REDIR_URI);
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`, TEST_CONFIG.validAuthority);
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
-            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, TEST_CONFIG.MSAL_CLIENT_ID);
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`, "123523");
 
             const testTokenReq: CommonAuthorizationCodeRequest = {
@@ -494,7 +495,7 @@ describe("RedirectClient", () => {
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_ALTERNATE_REDIR_URI);
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`, TEST_CONFIG.validAuthority);
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
-            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, TEST_CONFIG.MSAL_CLIENT_ID);
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`, "123523");
 
             const testTokenReq: CommonAuthorizationCodeRequest = {
@@ -588,14 +589,14 @@ describe("RedirectClient", () => {
         });
 
         it("returns null if interaction is not in progress", async () => {
-            sinon.stub(RedirectClient.prototype, <any>"interactionInProgress").returns(false);
+            sinon.stub(BrowserCacheManager.prototype, "isInteractionInProgress").returns(false);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_ALTERNATE_REDIR_URI);
             expect(await redirectClient.handleRedirectPromise()).toBe(null);
         });
 
         it("navigates and caches hash if navigateToLoginRequestUri is true and interaction type is redirect", async () => {
-            sinon.stub(RedirectClient.prototype, <any>"interactionInProgress").returns(true);
+            sinon.stub(BrowserCacheManager.prototype, "isInteractionInProgress").returns(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_ALTERNATE_REDIR_URI);
             sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
@@ -609,7 +610,7 @@ describe("RedirectClient", () => {
         });
 
         it("navigates to root and caches hash if navigateToLoginRequestUri is true", (done) => {
-            sinon.stub(RedirectClient.prototype, <any>"interactionInProgress").returns(true);
+            sinon.stub(BrowserCacheManager.prototype, "isInteractionInProgress").returns(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeTruthy();
@@ -624,7 +625,7 @@ describe("RedirectClient", () => {
         });
 
         it("navigates to root and caches hash if navigateToLoginRequestUri is true and loginRequestUrl is 'null'", (done) => {
-            sinon.stub(RedirectClient.prototype, <any>"interactionInProgress").returns(true);
+            sinon.stub(BrowserCacheManager.prototype, "isInteractionInProgress").returns(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, "null");
             sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
@@ -640,7 +641,7 @@ describe("RedirectClient", () => {
         });
 
         it("navigates and caches hash if navigateToLoginRequestUri is true and loginRequestUrl contains query string", (done) => {
-            sinon.stub(RedirectClient.prototype, <any>"interactionInProgress").returns(true);
+            sinon.stub(BrowserCacheManager.prototype, "isInteractionInProgress").returns(true);
             const loginRequestUrl = window.location.href + "?testQueryString=1";
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
@@ -656,7 +657,7 @@ describe("RedirectClient", () => {
         });
 
         it("navigates and caches hash if navigateToLoginRequestUri is true and loginRequestUrl contains query string and hash", (done) => {
-            sinon.stub(RedirectClient.prototype, <any>"interactionInProgress").returns(true);
+            sinon.stub(BrowserCacheManager.prototype, "isInteractionInProgress").returns(true);
             const loginRequestUrl = window.location.href + "?testQueryString=1#testHash";
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
@@ -672,7 +673,7 @@ describe("RedirectClient", () => {
         });
 
         it("replaces custom hash if navigateToLoginRequestUri is true and loginRequestUrl contains custom hash", () => {
-            sinon.stub(RedirectClient.prototype, <any>"interactionInProgress").returns(true);
+            sinon.stub(BrowserCacheManager.prototype, "isInteractionInProgress").returns(true);
             const loginRequestUrl = window.location.href + "#testHash";
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
@@ -685,7 +686,7 @@ describe("RedirectClient", () => {
         });
 
         it("replaces custom hash if navigateToLoginRequestUri is true and loginRequestUrl contains custom hash (passed in)", () => {
-            sinon.stub(RedirectClient.prototype, <any>"interactionInProgress").returns(true);
+            sinon.stub(BrowserCacheManager.prototype, "isInteractionInProgress").returns(true);
             const loginRequestUrl = window.location.href + "#testHash";
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
             sinon.stub(RedirectClient.prototype, <any>"handleHash").callsFake((responseHash) => {
@@ -697,7 +698,7 @@ describe("RedirectClient", () => {
         });
 
         it("processes hash if navigateToLoginRequestUri is true and loginRequestUrl contains trailing slash", (done) => {
-            sinon.stub(RedirectClient.prototype, <any>"interactionInProgress").returns(true);
+            sinon.stub(BrowserCacheManager.prototype, "isInteractionInProgress").returns(true);
             const loginRequestUrl = window.location.href.endsWith("/") ? window.location.href.slice(0, -1) : window.location.href + "/";
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
@@ -709,7 +710,7 @@ describe("RedirectClient", () => {
         });
 
         it("returns null if inside an iframe", (done) => {
-            sinon.stub(RedirectClient.prototype, <any>"interactionInProgress").returns(true);
+            sinon.stub(BrowserCacheManager.prototype, "isInteractionInProgress").returns(true);
             sinon.stub(BrowserUtils, "isInIframe").returns(true);
             const loginRequestUrl = window.location.href + "/testPage";
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
@@ -731,7 +732,7 @@ describe("RedirectClient", () => {
             // @ts-ignore
             redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
 
-            sinon.stub(RedirectClient.prototype, <any>"interactionInProgress").returns(true);
+            sinon.stub(BrowserCacheManager.prototype, "isInteractionInProgress").returns(true);
             const loginRequestUrl = window.location.href + "#testHash";
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, loginRequestUrl);
@@ -746,7 +747,7 @@ describe("RedirectClient", () => {
 
     describe("acquireToken", () => {
         it("throws if interaction is currently in progress", async () => {
-            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, TEST_CONFIG.MSAL_CLIENT_ID);
             // @ts-ignore
             await expect(redirectClient.acquireToken({scopes: ["openid"]})).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
         });

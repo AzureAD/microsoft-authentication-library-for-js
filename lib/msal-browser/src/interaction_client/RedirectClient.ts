@@ -67,7 +67,7 @@ export class RedirectClient extends StandardInteractionClient {
     async handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null> {
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.handleRedirectPromise);
         try {
-            if (!this.interactionInProgress()) {
+            if (!this.browserStorage.isInteractionInProgress(true)) {
                 this.logger.info("handleRedirectPromise called but there is no interaction in progress, returning null.");
                 return null;
             }

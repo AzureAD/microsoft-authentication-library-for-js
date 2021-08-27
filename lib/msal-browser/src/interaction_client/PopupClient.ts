@@ -8,7 +8,7 @@ import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { PopupWindowAttributes, PopupUtils } from "../utils/PopupUtils";
 import { EventType } from "../event/EventType";
-import { InteractionType, ApiId, TemporaryCacheKeys, BrowserConstants } from "../utils/BrowserConstants";
+import { InteractionType, ApiId } from "../utils/BrowserConstants";
 import { PopupHandler, PopupParams } from "../interaction_handler/PopupHandler";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { NavigationOptions } from "../navigation/NavigationOptions";
@@ -152,7 +152,7 @@ export class PopupClient extends StandardInteractionClient {
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.logoutPopup);
         
         try {
-            this.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
+            this.browserStorage.setInteractionInProgress(true);
             // Initialize the client
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, requestAuthority);
             this.logger.verbose("Auth code client created");
@@ -210,7 +210,7 @@ export class PopupClient extends StandardInteractionClient {
                 e.setCorrelationId(this.correlationId);
             }
             
-            this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY));
+            this.browserStorage.setInteractionInProgress(false);
             this.eventHandler.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Popup, null, e);
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
