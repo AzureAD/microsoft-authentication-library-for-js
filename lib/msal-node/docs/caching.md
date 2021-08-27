@@ -1,6 +1,6 @@
 # Token caching in MSAL Node
 
-When MSAL Node acquires a token, it caches it in memory for future usage. MSAL Node manages the token lifetime and refreshing for you. APIs like `acquireTokenSilent()` retrieves the fresh access token from the cache for a given account
+When MSAL Node acquires a token, it caches it in memory for future usage. MSAL Node manages the token lifetime and refreshing for you. APIs like `acquireTokenSilent()` retrieves the access tokens from the cache for a given account:
 
 ```javascript
 const msal = require('@azure/msal-node');
@@ -103,12 +103,7 @@ class DistributedCachePlugin implements ICachePlugin {
 
 ## More information
 
-Samples:
-
-* [Express web app using MSAL Node Extensions](../../../extensions/samples/index.js)
-* [Express MVC web app with distributed token cache](../../../samples/msal-node-samples/ExpressTestApp/README.md)
-
-Docs:
-
-* [Token cache serialization](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki/token-cache-serialization)
-* [App scenarios and authentication flows](https://docs.microsoft.com/azure/active-directory/develop/authentication-flows-app-scenarios)
+* [(Sample) Express web app using MSAL Node Extensions](../../../extensions/samples/index.js)
+* [(Sample) Express MVC web app with distributed token cache](../../../samples/msal-node-samples/ExpressTestApp/README.md)
+* [(Docs) Token cache serialization](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki/token-cache-serialization)
+* [(Docs) App scenarios and authentication flows](https://docs.microsoft.com/azure/active-directory/develop/authentication-flows-app-scenarios)
