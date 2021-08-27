@@ -291,7 +291,7 @@ export abstract class ClientApplication {
 
         try {
             if (request.authCodePayload) {
-                if (!request.authCodePayload) {
+                if (!request.authCodePayload.code) {
                     throw "Code required";
                 }
 

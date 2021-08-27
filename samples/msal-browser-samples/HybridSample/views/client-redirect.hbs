@@ -23,20 +23,28 @@
             const nonce = params.get("nonce");
             const loginHint = decodeURIComponent(params.get("login-hint"));
 
-            if (code && nonce) {
+            const hybridParams = code && nonce;
+
+            if (hybridParams) {
                 console.log('MSAL: ssoSilent hybrid parameters present');
             } else {
                 console.log('MSAL: ssoSilent hybrid parameters not present');
             }
 
-            console.log('MSAL: Initiating ssoSilent');
-            return msalInstance.ssoSilent({
+            const ssoSilentParams = hybridParams ? {
+                // For hybrid, nonce from server request and auth code are required
                 nonce,
                 authCodePayload: {
                     code
-                },
+                }
+            } : {
+                // For non-hybrid, use login hint or sid
+                sid,
                 loginHint
-            })
+            };
+
+            console.log('MSAL: Initiating ssoSilent');
+            return msalInstance.ssoSilent(ssoSilentParams)
                 .then(result => {
                     console.log('MSAL: ssoSilent completed successfully');
                     return result;
