@@ -21,7 +21,7 @@
 'use strict';
 var axios = require('axios');
 var url = require('url');
-var DOMParser = require('xmldom').DOMParser;
+var DOMParser = require('@xmldom/xmldom').DOMParser;
 var _ = require('underscore');
 var Logger = require('./log').Logger;
 var util = require('./util');
