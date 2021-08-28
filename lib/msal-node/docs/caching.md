@@ -14,6 +14,8 @@ const cca = new msal.ConfidentialClientApplication({
     }
 });
 
+// login* and acquireToken* APIs return an account object containing "homeAccountId"
+// you should keep a record of this in your app and use it later on when calling acquireTokenSilent
 const someUserHomeAccountId = "Enter_User_Home_Account_Id";
 
 const msalTokenCache = cca.getTokenCache();
@@ -31,14 +33,14 @@ cca.acquireTokenSilent(silentTokenRequest).then((response) => {
 });
 ```
 
-In-memory token cache is not suitable for production. In production, you should serialize and persist the token cache. Depending on the type of application, you have several alternatives:
+MSAL's in-memory token cache is not suitable for production. In production, you should serialize and persist the token cache. Depending on the type of application, you have several alternatives:
 
 * Desktop apps, headless apps (public client): Use [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md), which provide persistence solutions on Windows, Linux and Mac OS
-* Web apps, web APIs, daemon apps (confidential client): Use the [distributed token caching](#performance-and-security) pattern to persist the cache on your choice of storage environment (Redis, MongoDB, SQL databases etc.)
+* Web apps, web APIs, daemon apps (confidential client): Use the [distributed token caching](#performance-and-security) pattern to persist the cache in your choice of storage environment (Redis, MongoDB, SQL databases etc. -keep in mind that you can use these in tandem *e.g.* a Redis cache as a first layer of persistence, and a SQL database as a second, more stable persistence layer)
 
-## Token schema
+## Token cache schema
 
-MSAL Node's token schema is compatible with other MSALs. By default, MSAL's cache is not partitioned: all authentication artifacts by all users are located in a single cache blob, grouped by the type of the authentication artifact (see also: [cache.json](../cache.json)).
+MSAL Node's cache schema is compatible with other MSALs. By default, MSAL's cache is not partitioned: all authentication artifacts by all users are located in a single cache blob, grouped by the type of the authentication artifact (see also: [cache.json](../cache.json)).
 
 ```json
 {
@@ -55,7 +57,7 @@ MSAL Node's token schema is compatible with other MSALs. By default, MSAL's cach
 MSAL Node fires events are when the cache is accessed, apps can choose whether to serialize or deserialize the cache. This often constitutes two actions:
 
 1. Deserialize the cache from disk to MSAL's memory before accessing the cache
-2. If the cache in memory has changed, serialize the cache
+2. If the cache in memory has changed, serialize the cache back
 
 For that, MSAL accepts a custom cache plugin in [configuration](./configuration.md). This should implement [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.icacheplugin.html):
 
@@ -66,15 +68,18 @@ interface ICachePlugin {
 }
 ```
 
-If you are developing for a public client app (such as desktop, headless etc.), [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md) handles this for you. If developing for confidential client, see below:
+* If you are developing a public client app (such as desktop, headless etc.), [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md) handles this for you.
+* If you are developing a confidential client app, you should persist the cache as a separate service, since a single, per-server cache instance isn't suitable for a cloud environment with many servers and app instances.
 
 ## Performance and security
+
+On public client apps, [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md) ensure performance and security for you.
 
 On confidential client applications that handle users (web apps that sign in users and call web APIs, and web APIs calling downstream web APIs), there can be many users and the users are processed in parallel. Our recommendation is to serialize one cache blob per user. Use a key for partitioning the cache (*partition key*), such as:
 
 * For web apps: **homeAccountId** (if on ADFS, use **localAccountId** instead)
 * For daemon apps using client credentials grant: **tenantId**
-* For web APIs using OBO: **oboAssertion**
+<!-- * For web APIs using OBO: *TBD* -->
 
 For instance, when developing a web app that serve users, implement [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.icacheplugin.html) in a class where user's `homeAccountId` is retrieved from the session store:
 
@@ -84,11 +89,12 @@ class DistributedCachePlugin implements ICachePlugin {
     // singleton
     private static instance: CachePlugin;
 
-    private persistenceManager: IDistributedPersistence;
+    private persistenceManager: any; // your implementation of a persistence client
     private sessionId: string;
 
-    private constructor(persistenceManager?: IPersistenceManager, sessionId?: string) {}
-    static getInstance(persistenceManager?: IPersistenceManager, sessionId?: string): CachePlugin {}
+    private constructor(persistenceManager?: any, sessionId?: string) {}
+
+    static getInstance(persistenceManager?: any, sessionId?: string): CachePlugin {}
 
     async beforeCacheAccess(cacheContext): Promise<void> {
         // get cache from persistence store given given key
@@ -96,14 +102,14 @@ class DistributedCachePlugin implements ICachePlugin {
     }
     async afterCacheAccess(cacheContext): Promise<void> {
         // if in-memory cache has changed
-        // write cache to disk using a key such as homeAccountId
+            // write cache to disk using a key such as homeAccountId
     }
 }
 ```
 
 ## More information
 
-* [(Sample) Express web app using MSAL Node Extensions](../../../extensions/samples/index.js)
-* [(Sample) Express MVC web app with distributed token cache](../../../samples/msal-node-samples/ExpressTestApp/README.md)
+* [(Sample) Public client app using MSAL Node Extensions](../../../extensions/samples/msal-node-extensions/index.js)
+* [(Sample) Confidential client Express MVC web app with distributed token cache](../../../samples/msal-node-samples/ExpressTestApp/README.md)
 * [(Docs) Token cache serialization](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki/token-cache-serialization)
 * [(Docs) App scenarios and authentication flows](https://docs.microsoft.com/azure/active-directory/develop/authentication-flows-app-scenarios)
