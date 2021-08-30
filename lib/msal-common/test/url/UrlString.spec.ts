@@ -50,23 +50,6 @@ describe("UrlString.ts Class Unit Tests", () => {
         expect(() => urlObj.validateAsUri()).not.toThrow();
     });
 
-    it("urlRemoveQueryStringParameter removes required path components",() => {
-        let urlObj1 = new UrlString(TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS1);
-        expect(urlObj1.urlString).toContain("param1=value1");
-        urlObj1.urlRemoveQueryStringParameter("param1");
-        expect(urlObj1.urlString).not.toContain("param1=value1");
-
-        let urlObj2 = new UrlString(TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS2);
-        expect(urlObj2.urlString).toContain("param1=value1");
-        expect(urlObj2.urlString).toContain("param2=value2");
-        urlObj2.urlRemoveQueryStringParameter("param2");
-        expect(urlObj2.urlString).toContain("param1=value1");
-        expect(urlObj2.urlString).not.toContain("param2=value2");
-        urlObj2.urlRemoveQueryStringParameter("param1");
-        expect(urlObj2.urlString).not.toContain("param1=value1");
-        expect(urlObj2.urlString).not.toContain("param2=value2");
-    });
-
     it("appendQueryString appends the provided query string", () => {
         const baseUrl = "https://localhost/";
         const queryString = "param1=value1&param2=value2";
@@ -144,6 +127,15 @@ describe("UrlString.ts Class Unit Tests", () => {
         expect(UrlString.getDeserializedHash(serializedHash)).toEqual(deserializedHash);
     });
 
+    it("getDeserializedHash returns empty object if key/value is undefined", () => {
+        let serializedHash = "#=value1";
+        const deserializedHash = {};
+        expect(UrlString.getDeserializedHash(serializedHash)).toEqual(deserializedHash);
+
+        serializedHash = "#key1="
+        expect(UrlString.getDeserializedHash(serializedHash)).toEqual(deserializedHash);
+    });
+
     it("getUrlComponents returns all path components", () => {
         const urlObj = new UrlString(TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS2);
         expect(urlObj.getUrlComponents()).toEqual({
@@ -175,6 +167,11 @@ describe("UrlString.ts Class Unit Tests", () => {
 
     it("hashContainsKnownProperties returns false if incorrect hash is given", () => {
         const exampleUnknownHash = "#param1=value1&param2=value2&param3=value3";
+        expect(UrlString.hashContainsKnownProperties(exampleUnknownHash)).toBe(false);
+    });
+
+    it("hashContainsKnownProperties returns false if hash does not contain key/value pairs", () => {
+        const exampleUnknownHash = "#testPage";
         expect(UrlString.hashContainsKnownProperties(exampleUnknownHash)).toBe(false);
     });
 

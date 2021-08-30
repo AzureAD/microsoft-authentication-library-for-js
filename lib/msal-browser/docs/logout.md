@@ -82,7 +82,17 @@ const currentAccount = msalInstance.getAccountByHomeId(homeAccountId);
 await msalInstance.logoutPopup({
     account: currentAccount,
     postLogoutRedirectUri: "https://contoso.com/loggedOut",
-    mainWindowRedirectUri: "https://contoso.com/homePage"
+    mainWindowRedirectUri: "https://contoso.com/homePage",
+    popupWindowAttributes: {
+        popupSize: {
+            height: 100,
+            width: 100
+        },
+        popupPosition: {
+            top: 100,
+            left: 100
+        }
+    }
 });
 ```
 
