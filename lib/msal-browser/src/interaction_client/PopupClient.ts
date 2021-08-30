@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, AccountEntity, UrlString, AuthError } from "@azure/msal-common";
+import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, UrlString, AuthError } from "@azure/msal-common";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { PopupWindowAttributes, PopupUtils } from "../utils/PopupUtils";
@@ -152,6 +152,9 @@ export class PopupClient extends StandardInteractionClient {
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.logoutPopup);
         
         try {
+            // Clear cache on logout
+            await this.clearCacheOnLogout(validRequest.account);
+
             this.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
             // Initialize the client
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, requestAuthority);
@@ -159,14 +162,6 @@ export class PopupClient extends StandardInteractionClient {
 
             // Create logout string and navigate user window to logout.
             const logoutUri: string = authClient.getLogoutUri(validRequest);
-
-            if (!validRequest.account || AccountEntity.accountInfoIsEqual(validRequest.account, this.browserStorage.getActiveAccount(), false)) {
-                this.logger.verbose("Setting active account to null");
-                this.browserStorage.setActiveAccount(null);
-            }
-
-            // Clear cache on logout
-            await authClient.clearCacheOnLogout(validRequest);
 
             this.eventHandler.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Popup, validRequest);
 
@@ -212,6 +207,7 @@ export class PopupClient extends StandardInteractionClient {
             
             this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY));
             this.eventHandler.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Popup, null, e);
+            this.eventHandler.emitEvent(EventType.LOGOUT_END, InteractionType.Popup);
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }
