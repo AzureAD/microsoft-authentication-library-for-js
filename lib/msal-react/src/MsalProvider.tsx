@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import React, { useState, useEffect, PropsWithChildren, useMemo } from "react";
+import React, { useState, useEffect, useRef, PropsWithChildren, useMemo } from "react";
 import {
     IPublicClientApplication,
     EventType,
@@ -35,7 +35,9 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
     const [accounts, setAccounts] = useState<AccountInfo[]>([]);
     // State hook to store in progress value
     const [inProgress, setInProgress] = useState<InteractionStatus>(InteractionStatus.Startup);
-
+    // Mutable object used in the event callback
+    const inProgressRef = useRef(inProgress);
+    
     useEffect(() => {
         const callbackId = instance.addEventCallback((message: EventMessage) => {
             switch (message.eventType) {
@@ -72,8 +74,13 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
         const callbackId = instance.addEventCallback((message: EventMessage) => {
             const status = EventMessageUtils.getInteractionStatusFromEvent(message);
             if (status !== null) {
-                logger.info(`MsalProvider - ${message.eventType} results in setting inProgress to ${status}`);
-                setInProgress(status);
+                if (inProgressRef.current === InteractionStatus.HandleRedirect && status === InteractionStatus.None) {
+                    logger.verbose("MsalProvider - handleRedirectPromise in progress. inProgress state will be set to 'None' when complete.");
+                } else {
+                    logger.info(`MsalProvider - ${message.eventType} results in setting inProgress from ${inProgressRef.current} to ${status}`);
+                    inProgressRef.current = status;
+                    setInProgress(status);
+                }
             }
         });
         logger.verbose(`MsalProvider - Registered event callback with id: ${callbackId}`);
@@ -81,6 +88,14 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
         instance.handleRedirectPromise().catch(() => {
             // Errors should be handled by listening to the LOGIN_FAILURE event
             return;
+        }).finally(() => {
+            if (inProgress === InteractionStatus.HandleRedirect || inProgress === InteractionStatus.Startup) {
+                logger.info("MsalProvider - handleRedirectPromise has finished. Setting inProgress to 'None'");
+                inProgressRef.current = InteractionStatus.None;
+                setInProgress(InteractionStatus.None);
+            } else {
+                logger.info("MsalProvider - handleRedirectPromise has finished but a different interaction is currently in progress. Can't set inProgress to 'None'");
+            }
         });
 
         return () => {

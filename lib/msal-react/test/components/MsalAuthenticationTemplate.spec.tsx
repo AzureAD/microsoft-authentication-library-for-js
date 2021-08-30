@@ -32,7 +32,19 @@ describe("MsalAuthenticationTemplate tests", () => {
             return eventId.toString();
         });
         handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
-            const eventMessage: EventMessage = {
+            const eventStart: EventMessage = {
+                eventType: EventType.HANDLE_REDIRECT_START,
+                interactionType: InteractionType.Redirect,
+                payload: null,
+                error: null,
+                timestamp: 10000
+            };
+
+            eventCallbacks.forEach((callback) => {
+                callback(eventStart);
+            });
+
+            const eventEnd: EventMessage = {
                 eventType: EventType.HANDLE_REDIRECT_END,
                 interactionType: InteractionType.Redirect,
                 payload: null,
@@ -41,7 +53,7 @@ describe("MsalAuthenticationTemplate tests", () => {
             };
 
             eventCallbacks.forEach((callback) => {
-                callback(eventMessage);
+                callback(eventEnd);
             });
             return Promise.resolve(null);
         });

@@ -171,8 +171,9 @@ describe("UnauthenticatedTemplate tests", () => {
 
     test("Does not show child component if inProgress value is startup", async () => {        
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
-            // Prevent handleRedirectPromise from raising an event and updating inProgress
-            return Promise.resolve(null);
+            return new Promise(() => {
+                // Prevent handleRedirectPromise from resolving and updating inProgress
+            });
         });
         render(
             <MsalProvider instance={pca}>
@@ -208,7 +209,9 @@ describe("UnauthenticatedTemplate tests", () => {
             eventCallbacks.forEach((callback) => {
                 callback(eventMessage);
             });
-            return Promise.resolve(null);
+            return new Promise(() => {
+                // Prevent handleRedirectPromise from resolving and updating inProgress
+            });
         });
         render(
             <MsalProvider instance={pca}>
