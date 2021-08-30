@@ -14,8 +14,11 @@ const cca = new msal.ConfidentialClientApplication({
     }
 });
 
-// login* and acquireToken* APIs return an account object containing "homeAccountId"
-// you should keep a record of this in your app and use it later on when calling acquireTokenSilent
+/** 
+* login* and acquireToken* APIs return an account object containing "homeAccountId"
+* you should keep a record of this in your app and use it later on when calling acquireTokenSilent
+* For more, see: https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/accounts.md
+*/
 const someUserHomeAccountId = "Enter_User_Home_Account_Id";
 
 const msalTokenCache = cca.getTokenCache();
