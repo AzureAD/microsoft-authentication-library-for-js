@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Removes logout cache clearing logic from AuthorizationCodeClient #3982",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "none"
+}
