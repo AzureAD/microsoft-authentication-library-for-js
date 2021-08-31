@@ -11,6 +11,7 @@ export type BoundRefreshTokenRedemptionPayload = {
     iss: string;
     aud: string;
     exp: number;
+    claims?: string;
     client_secret?: string;
     client_assertion?: string;
     client_assertion_type?: string;

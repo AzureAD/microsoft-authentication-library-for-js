@@ -385,7 +385,14 @@ export abstract class CacheManager implements ICacheManager {
             }
 
             if (!!credentialType && !this.matchCredentialType(entity, credentialType)) {
-                return;
+                // Allow RefreshToken credentials to match when credentialType is RefreshToken_With_AuthScheme
+                if (credentialType === CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME) {
+                    if (!this.matchCredentialType(entity, CredentialType.REFRESH_TOKEN)) {
+                        return;
+                    }
+                } else {
+                    return;
+                }
             }
 
             if (!!clientId && !this.matchClientId(entity, clientId)) {
@@ -750,6 +757,15 @@ export abstract class CacheManager implements ICacheManager {
         const numRefreshTokens = refreshTokens.length;
         if (numRefreshTokens < 1) {
             return null;
+        } else if (numRefreshTokens > 1) {
+            // Attempt to use bound refresh token if both bound and unbound RTs are in the cache
+            const boundRefreshToken = refreshTokens.find((refreshToken: RefreshTokenEntity) => {
+                return (refreshToken.credentialType === CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME);
+            });
+
+            if (boundRefreshToken) {
+                return boundRefreshToken as RefreshTokenEntity;
+            }
         }
         // address the else case after remove functions address environment aliases
 

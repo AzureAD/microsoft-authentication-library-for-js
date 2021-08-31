@@ -5,6 +5,7 @@
 
 import { AuthError } from "../error/AuthError";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
+import { BoundRefreshTokenRedemptionPayload } from "../request/BoundRefreshTokenRedemptionPayload";
 import { CommonRefreshTokenRequest } from "../request/CommonRefreshTokenRequest";
 import { BoundServerAuthorizationTokenResponse } from "../response/BoundServerAuthorizationTokenResponse";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
@@ -79,7 +80,7 @@ export interface ICrypto {
     /**
      * Signs a bound token request
      */
-    signBoundTokenRequest(request: CommonRefreshTokenRequest, payload: string): Promise<string>;
+    signBoundTokenRequest(request: CommonRefreshTokenRequest, payload: BoundRefreshTokenRedemptionPayload): Promise<string>;
 }
 
 export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {

@@ -4,7 +4,7 @@
  */
 
 import { ClientConfiguration, Constants, PkceCodes, ClientAuthError, AccountEntity, CredentialEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, ProtocolMode , AuthorityFactory, AuthorityOptions, AuthorityMetadataEntity, ServerAuthorizationTokenResponse } from "../../src";
-import { DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES, RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES, TEST_TOKENS } from "../test_kit/StringConstants";
+import { DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES, RANDOM_TEST_CTX, RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES, TEST_TOKENS, SIGNED_BOUND_TOKEN_REQUEST } from "../test_kit/StringConstants";
 
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
@@ -124,6 +124,9 @@ export const mockCrypto = {
     createNewGuid(): string {
         return RANDOM_TEST_GUID;
     },
+    createNewCtx(): Uint8Array {
+        return RANDOM_TEST_CTX;
+    },
     base64Decode(input: string): string {
         switch (input) {
             case TEST_POP_VALUES.ENCODED_REQ_CNF:
@@ -165,6 +168,9 @@ export const mockCrypto = {
     },
     async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
         return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES;
+    },
+    async signBoundTokenRequest(): Promise<string> {
+        return SIGNED_BOUND_TOKEN_REQUEST;
     }
 };
 

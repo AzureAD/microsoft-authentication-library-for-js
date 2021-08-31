@@ -160,6 +160,10 @@ export const BrowserAuthErrorMessage = {
     databaseTableNotFound: { 
         code: "db_table_not_found",
         desc: "IndexedDB table not found."
+    },
+    responseContentTypeNotSupported: {
+        code: "response_content_type_not_supported",
+        desc: "Server responded with an unsupported content-type."
     }
 };
 
@@ -462,5 +466,11 @@ export class BrowserAuthError extends AuthError {
      */
     static createDatabaseTableNotFoundError(tableName: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.databaseTableNotFound.code, `${BrowserAuthErrorMessage.databaseTableNotFound.desc}: Attempted to access table named: ${tableName}`);
+    }
+    /**
+     * Create an error when the server response's content-type header has an unsupported content type
+     */
+    static createResponseContentTypeNotSupportedError(unsupportedType: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.responseContentTypeNotSupported.code, `${BrowserAuthErrorMessage.responseContentTypeNotSupported.desc}. Unsupported response content-type: ${unsupportedType}`);
     }
 }

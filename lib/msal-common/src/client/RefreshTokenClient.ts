@@ -9,7 +9,7 @@ import { CommonRefreshTokenRequest } from "../request/CommonRefreshTokenRequest"
 import { Authority } from "../authority/Authority";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { GrantType, AuthenticationScheme, Errors  } from "../utils/Constants";
+import { GrantType, AuthenticationScheme, Errors } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { StringUtils } from "../utils/StringUtils";
@@ -24,6 +24,7 @@ import { KeyManager } from "../crypto/KeyManager";
 import { UrlString } from "../url/UrlString";
 import { CcsCredentialType } from "../account/CcsCredential";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
+import { BoundRefreshTokenRedemptionRequest } from "../crypto/BoundTokenRedemptionRequest";
 
 /**
  * OAuth2.0 refresh token client
@@ -129,11 +130,6 @@ export class RefreshTokenClient extends BaseClient {
         return this.acquireToken(refreshTokenRequest);
     }
 
-    private async createBoundTokenRequestBody(request: CommonRefreshTokenRequest): Promise<string> {
-        const payload = await this.createTokenRequestBodyObject(request);
-        return this.cryptoUtils.signBoundTokenRequest(request, payload);
-    }
-
     /**
      * Constructs the network message and makes a NW call to the underlying secure token service
      * @param request
@@ -141,17 +137,8 @@ export class RefreshTokenClient extends BaseClient {
      */
     private async executeTokenRequest(request: CommonRefreshTokenRequest, authority: Authority)
         : Promise<NetworkResponse<ServerAuthorizationTokenResponse>> {
-        
-        // Check if the Refresh Token is bound
-        const isBoundRefreshToken = request.tokenType === AuthenticationScheme.POP && request.stkKid && request.skKid;
-        let body: string;
-        if (isBoundRefreshToken) {
-            const requestBody = await this.createBoundTokenRequestBody(request);
-            body = `request=${requestBody}&grant_type=${GrantType.JWT_BEARER}&client_info=1`;
-        } else {
-            body = await this.createTokenRequestBody(request);
-        }
 
+        const body = await this.createTokenRequestBody(request);
         const queryParameters = this.createTokenQueryParameters(request);
         const headers: Record<string, string> = this.createTokenRequestHeaders(request.ccsCredential);
         const thumbprint: RequestThumbprint = {
@@ -183,6 +170,29 @@ export class RefreshTokenClient extends BaseClient {
      * @param request
      */
     private async createTokenRequestBody(request: CommonRefreshTokenRequest): Promise<string> {
+        // Check if the Refresh Token is bound
+        const isBoundRefreshToken = request.tokenType === AuthenticationScheme.POP && request.stkKid && request.skKid;
+        return (isBoundRefreshToken) ? 
+            await this.createBoundTokenRequestBody(request) :
+            await this.createBearerTokenRequestBody(request);
+    }
+
+    /**
+     * Helper function to create bound token request body
+     * @param request 
+     * @returns 
+     */
+    private async createBoundTokenRequestBody(request: CommonRefreshTokenRequest): Promise<string> {
+        const boundRequest = new BoundRefreshTokenRedemptionRequest(request, this.config, this.keyManager, this.cryptoUtils, this.serverTelemetryManager);
+        return await boundRequest.generateRequestBody();
+    }
+
+    /**
+     * Helper function to create bearer (unbound) token request body
+     * @param request 
+     * @returns 
+     */
+    private async createBearerTokenRequestBody(request: CommonRefreshTokenRequest): Promise<string> {
         const parameterBuilder = new RequestParameterBuilder();
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
@@ -243,60 +253,5 @@ export class RefreshTokenClient extends BaseClient {
         }
 
         return parameterBuilder.createQueryString();
-    }
-
-    /**
-     * Helper function to create the token request body
-     * @param request
-     */
-    private async createTokenRequestBodyObject(request: CommonRefreshTokenRequest): Promise<Object> {
-        const parameterBuilder = new RequestParameterBuilder();
-
-        parameterBuilder.addClientId(this.config.authOptions.clientId);
-
-        parameterBuilder.addScopesUnencoded(request.scopes);
-
-        parameterBuilder.addGrantType(GrantType.REFRESH_TOKEN_GRANT);
-
-        parameterBuilder.addRefreshToken(request.refreshToken);
-
-        // TODO: These are hardcoded
-        parameterBuilder.addIssuer("https://login.microsoftonline.com/5d97b14d-c396-4aee-b524-c86d33e9b660/v2.0");
-        parameterBuilder.addAudience("https://login.microsoftonline.com/");
-        parameterBuilder.addExpiration(TimeUtils.nowSeconds() + 3000);
-
-        parameterBuilder.addClientInfo();
-
-        parameterBuilder.addLibraryInfo(this.config.libraryInfo);
-
-        parameterBuilder.addThrottling();
-        
-        if (this.serverTelemetryManager) {
-            parameterBuilder.addServerTelemetry(this.serverTelemetryManager);
-        }
-
-        const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
-        parameterBuilder.addCorrelationId(correlationId);
-
-        if (this.config.clientCredentials.clientSecret) {
-            parameterBuilder.addClientSecret(this.config.clientCredentials.clientSecret);
-        }
-        
-        if (this.config.clientCredentials.clientAssertion) {
-            const clientAssertion = this.config.clientCredentials.clientAssertion;
-            parameterBuilder.addClientAssertion(clientAssertion.assertion);
-            parameterBuilder.addClientAssertionType(clientAssertion.assertionType);
-        }
-        
-        if (request.authenticationScheme === AuthenticationScheme.POP) {
-            const keyManager = new KeyManager(this.cryptoUtils);
-            const cnfString = await keyManager.generateCnf(request);
-            parameterBuilder.addPopToken(cnfString);
-        }
-
-        if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
-            parameterBuilder.addClaims(request.claims, this.config.authOptions.clientCapabilities);
-        }
-        return parameterBuilder.createRequestBody();
     }
 }

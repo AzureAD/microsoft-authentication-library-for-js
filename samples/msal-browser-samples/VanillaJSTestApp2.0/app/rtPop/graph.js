@@ -22,7 +22,7 @@ function callMSGraph(endpoint, accessToken, callback) {
 async function seeProfile() {
     const currentAcc = myMSALObj.getAccountByHomeId(accountId);
     if (currentAcc) {
-        const response = await getTokenPopup(loginRequest, currentAcc).catch(error => {
+        const response = await getTokenPopup(silentRequest, currentAcc).catch(error => {
             console.log(error);
         });
         callMSGraph(graphConfig.graphMeEndpoint, response.accessToken, updateUI);

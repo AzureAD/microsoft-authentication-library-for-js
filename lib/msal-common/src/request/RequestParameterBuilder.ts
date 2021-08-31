@@ -53,12 +53,6 @@ export class RequestParameterBuilder {
         this.parameters.set(AADServerParamKeys.SCOPE, encodeURIComponent(scopeSet.printScopes()));
     }
 
-    addScopesUnencoded(scopes: string[], addOidcScopes: boolean = true): void {
-        const requestScopes = addOidcScopes ? [...scopes || [], ...OIDC_DEFAULT_SCOPES] : scopes || [];
-        const scopeSet = new ScopeSet(requestScopes);
-        this.parameters.set(AADServerParamKeys.SCOPE, scopeSet.printScopes());
-    }
-
     /**
      * add clientId
      * @param clientId
@@ -401,6 +395,16 @@ export class RequestParameterBuilder {
     addStkJwk(stkJwk: string): void {
         if(!StringUtils.isEmpty(stkJwk)) {
             this.parameters.set(AADServerParamKeys.STK_JWK, encodeURIComponent(stkJwk));
+        }
+    }
+
+    /**
+     * Add signed request JWT payload as "request" parameter for Bound RT redemption
+     * @param signedPayload
+     */
+    addSignedRequestPayload(signedPayload: string): void {
+        if(!StringUtils.isEmpty(signedPayload)) {
+            this.parameters.set(AADServerParamKeys.REQUEST, signedPayload);
         }
     }
 

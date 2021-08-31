@@ -140,7 +140,8 @@ export enum AADServerParamKeys {
     REQUESTED_TOKEN_USE = "requested_token_use",
     ON_BEHALF_OF = "on_behalf_of",
     FOCI = "foci",
-    CCS_HEADER = "X-AnchorMailbox"
+    CCS_HEADER = "X-AnchorMailbox",
+    REQUEST = "request"
 }
 
 /**
@@ -242,7 +243,8 @@ export enum CacheAccountType {
  */
 export enum Separators {
     CACHE_KEY_SEPARATOR = "-",
-    CLIENT_INFO_SEPARATOR = "."
+    CLIENT_INFO_SEPARATOR = ".",
+    CONTENT_TYPE_SEPARATOR = ";"
 }
 
 /**
