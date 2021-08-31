@@ -98,6 +98,7 @@ export type SerializedRefreshTokenEntity = {
     family_id?: string;
     target?: string;
     realm?: string;
+    token_type?: string;
 };
 
 /**

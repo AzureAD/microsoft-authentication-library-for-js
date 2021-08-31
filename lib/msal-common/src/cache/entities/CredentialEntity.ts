@@ -92,6 +92,7 @@ export class CredentialEntity {
             case CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME:
                 return CacheType.ACCESS_TOKEN;
             case CredentialType.REFRESH_TOKEN:
+            case CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME:
                 return CacheType.REFRESH_TOKEN;
             default: {
                 throw ClientAuthError.createUnexpectedCredentialTypeError();
@@ -114,6 +115,10 @@ export class CredentialEntity {
         } else if (key.indexOf(CredentialType.ID_TOKEN.toLowerCase()) !== -1) {
             return CredentialType.ID_TOKEN;
         } else if (key.indexOf(CredentialType.REFRESH_TOKEN.toLowerCase()) !== -1) {
+            // Perform second search to differentiate between "RefreshToken" and "RefreshToken_With_AuthScheme" credential types
+            if (key.indexOf(CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME.toLowerCase()) !== -1) {
+                return CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME;
+            }
             return CredentialType.REFRESH_TOKEN;
         }
 
@@ -174,10 +179,13 @@ export class CredentialEntity {
         realm?: string,
         familyId?: string
     ): string {
-        const clientOrFamilyId =
-            credentialType === CredentialType.REFRESH_TOKEN
-                ? familyId || clientId
-                : clientId;
+        let clientOrFamilyId: string = "";
+        if (credentialType === CredentialType.REFRESH_TOKEN ||
+            credentialType === CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME) {
+            clientOrFamilyId = familyId || clientId;
+        } else {
+            clientOrFamilyId = clientId;
+        }
         const credentialId: Array<string> = [
             credentialType,
             clientOrFamilyId,

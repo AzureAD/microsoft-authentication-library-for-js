@@ -1,8 +1,7 @@
 import { buildClientInfo, buildClientInfoFromHomeAccountId, ClientInfo } from "../../src/account/ClientInfo";
 import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_POP_VALUES, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES } from "../test_kit/StringConstants";
 import { PkceCodes, ICrypto } from "../../src/crypto/ICrypto";
-import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
-import { Constants, ServerAuthorizationTokenResponse } from "../../src";
+import { ClientAuthError, ClientAuthErrorMessage, Constants, ServerAuthorizationTokenResponse } from "../../src";
 
 describe("ClientInfo.ts Class Unit Tests", () => {
 
@@ -54,7 +53,7 @@ describe("ClientInfo.ts Class Unit Tests", () => {
                     return Promise.resolve(true);
                 },
                 async getAsymmetricPublicKey(): Promise<string> {
-                    return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
+                    return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT
                 },
                 async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
                     return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES;

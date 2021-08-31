@@ -5,7 +5,7 @@
 
 import { AccountCache, AccountFilter, CredentialFilter, CredentialCache, ValidCredentialType, AppMetadataFilter, AppMetadataCache } from "./utils/CacheTypes";
 import { CacheRecord } from "./entities/CacheRecord";
-import { CacheSchemaType, CredentialType, Constants, APP_METADATA, THE_FAMILY_ID, AUTHORITY_METADATA_CONSTANTS, AuthenticationScheme } from "../utils/Constants";
+import { CacheSchemaType, CredentialType, Constants, APP_METADATA, THE_FAMILY_ID, AUTHORITY_METADATA_CONSTANTS, AuthenticationScheme, CryptoKeyTypes } from "../utils/Constants";
 import { CredentialEntity } from "./entities/CredentialEntity";
 import { ScopeSet } from "../request/ScopeSet";
 import { AccountEntity } from "./entities/AccountEntity";
@@ -564,8 +564,8 @@ export abstract class CacheManager implements ICacheManager {
             if (credType === Constants.NOT_DEFINED) {
                 return;
             }
-
             const cacheEntity = this.getSpecificCredential(cacheKey, credType);
+
             if (!!cacheEntity && accountId === cacheEntity.generateAccountId()) {
                 removedCredentials.push(this.removeCredential(cacheEntity));
             }
@@ -582,14 +582,28 @@ export abstract class CacheManager implements ICacheManager {
     async removeCredential(credential: CredentialEntity): Promise<boolean> {
         const key = credential.generateCredentialKey();
 
-        // Remove Token Binding Key from key store for Auth Scheme Credentials
+        // Remove Token Binding Key from key store for AT Auth Scheme Credentials
         if (credential.credentialType.toLowerCase() === CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase()) {
             const accessTokenWithAuthSchemeEntity = credential as AccessTokenEntity;
             const kid = accessTokenWithAuthSchemeEntity.keyId;
 
             if (kid) {
                 try {
-                    await this.cryptoImpl.removeTokenBindingKey(kid);
+                    await this.cryptoImpl.removeTokenBindingKey(kid, CryptoKeyTypes.req_cnf);
+                } catch (error) {
+                    throw ClientAuthError.createBindingKeyNotRemovedError();
+                }
+            }
+        }
+
+        // Remove Token Binding Keys from key store for RT with Auth Scheme Credentials
+        if (credential.credentialType.toLowerCase() === CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME.toLowerCase()) {
+            const refreshTokenWithAuthSchemeEntity = credential as RefreshTokenEntity;
+            const kid = refreshTokenWithAuthSchemeEntity.stkKid;
+
+            if (kid) {
+                try {
+                    await this.cryptoImpl.removeTokenBindingKey(kid, CryptoKeyTypes.stk_jwk);
                 } catch (error) {
                     throw ClientAuthError.createBindingKeyNotRemovedError();
                 }
@@ -910,7 +924,8 @@ export abstract class CacheManager implements ICacheManager {
             case CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME: {
                 return this.getAccessTokenCredential(key);
             }
-            case CredentialType.REFRESH_TOKEN: {
+            case CredentialType.REFRESH_TOKEN:
+            case CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME: {
                 return this.getRefreshTokenCredential(key);
             }
             default:

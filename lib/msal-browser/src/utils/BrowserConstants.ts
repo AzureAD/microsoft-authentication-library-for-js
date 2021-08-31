@@ -152,3 +152,9 @@ export enum WrapperSKU {
     React = "@azure/msal-react",
     Angular = "@azure/msal-angular"
 }
+
+// IndexedDB table names for key storage
+export enum DBTableNames  {
+    asymmetricKeys = "asymmetricKeys",
+    symmetricKeys = "symmetricKeys"
+}

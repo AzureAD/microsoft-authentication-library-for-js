@@ -156,6 +156,10 @@ export const BrowserAuthErrorMessage = {
     missingStkKid: {
         code: "no_stk_kid_in_request",
         desc: "Failed to decrypt bound token response because the token request does not contain the session transport key thumbprint."
+    },
+    databaseTableNotFound: { 
+        code: "db_table_not_found",
+        desc: "IndexedDB table not found."
     }
 };
 
@@ -433,19 +437,30 @@ export class BrowserAuthError extends AuthError {
     }
 
     /**
-     * Create an error thrown when the necessary information is not available to sideload tokens 
+     * Create an error thrown when the necessary information is not available to sideload tokens
      */
     static createUnableToLoadTokenError(errorDetail: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.unableToLoadTokenError.code, `${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | ${errorDetail}`);
     }
-  
+ 
+    /**
+     * Create an error when stk kid is not part of the request
+     */
+    static createMissingStkKidError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.missingStkKid.code, BrowserAuthErrorMessage.missingStkKid.desc);
+    }
+
     /**
      * Create an error thrown when the queried cryptographic key is not found in IndexedDB
      */
     static createSigningKeyNotFoundInStorageError(keyId: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code, `${BrowserAuthErrorMessage.signingKeyNotFoundInStorage.desc} | No match found for KeyId: ${keyId}`);
     }
-    static createMissingStkKidError(): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.missingStkKid.code, BrowserAuthErrorMessage.missingStkKid.desc);
+
+    /**
+     * Create an error when a database table with a matching tableName is not found
+     */
+    static createDatabaseTableNotFoundError(tableName: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.databaseTableNotFound.code, `${BrowserAuthErrorMessage.databaseTableNotFound.desc}: Attempted to access table named: ${tableName}`);
     }
 }

@@ -94,6 +94,6 @@ export class CryptoProvider implements ICrypto {
      * Decrypts a bound token response
      */
     decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
-        throw new Error("Method not implemented");
+        throw new Error("Method not implemented.");
     }
 }

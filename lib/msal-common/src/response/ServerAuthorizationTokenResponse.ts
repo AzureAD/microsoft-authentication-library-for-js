@@ -19,6 +19,8 @@ import { AuthenticationScheme } from "../utils/Constants";
  * Bound Refresh Token response: Encrypted response object from server authorization code request.
  * - response_jwe: Token response object encrypted using symmetric key derived from the session key.
  * - session_key_jwe: Object containing session key to be used for key derivation, encrypted using the Session Transport Key's pulbic key.
+ * - stkKid: Session Transport Key public key hash used to match the Bound Refresh Token to its corresponding Session Transport Key.
+ * - skKid: ID used to match the Bound Refresh Token to its corresponding symmetric Session Key.
  * 
  * In case of error:
  * - error: An error code string that can be used to classify types of errors that occur, and can be used to react to errors.
@@ -43,6 +45,8 @@ export type ServerAuthorizationTokenResponse = {
     // Bound Refresh Token Response in case of success
     response_jwe?: string;
     session_key_jwe?: string;
+    stkKid?: string;
+    skKid?: string;
     // Error
     error?: string;
     error_description?: string;

@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { BaseAuthRequest, ICrypto, PkceCodes, SignedHttpRequest, ServerAuthorizationTokenResponse, BoundServerAuthorizationTokenResponse } from "@azure/msal-common";
+import { BaseAuthRequest, ICrypto, CryptoKeyTypes, PkceCodes, SignedHttpRequest, ServerAuthorizationTokenResponse, BoundServerAuthorizationTokenResponse } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
@@ -11,7 +11,8 @@ import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
 import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { CryptoKeyFormats, CryptoKeyTypes, CRYPTO_KEY_CONFIG } from "../utils/CryptoConstants";
+import { DBTableNames } from "../utils/BrowserConstants";
+import { CryptoKeyFormats, CRYPTO_KEY_CONFIG } from "../utils/CryptoConstants";
 import { BoundTokenResponse } from "./BoundTokenResponse";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 
@@ -44,8 +45,8 @@ export class CryptoOps implements ICrypto {
 
     private static DB_VERSION = 1;
     private static DB_NAME = "msal.db";
-    private static TABLE_NAME =`${CryptoOps.DB_NAME}.keys`;
-    private cache: DatabaseStorage<CachedKeyPair>;
+    private static TABLE_NAMES = [DBTableNames.asymmetricKeys, DBTableNames.symmetricKeys];
+    private cache: DatabaseStorage;
 
     constructor() {
         // Browser crypto needs to be validated first before any other classes can be set.
@@ -54,7 +55,7 @@ export class CryptoOps implements ICrypto {
         this.b64Decode = new Base64Decode();
         this.guidGenerator = new GuidGenerator(this.browserCrypto);
         this.pkceGenerator = new PkceGenerator(this.browserCrypto);
-        this.cache = new DatabaseStorage(CryptoOps.DB_NAME, CryptoOps.TABLE_NAME, CryptoOps.DB_VERSION);
+        this.cache = new DatabaseStorage(CryptoOps.DB_NAME, CryptoOps.TABLE_NAMES, CryptoOps.DB_VERSION);
     }
 
     /**
@@ -96,7 +97,7 @@ export class CryptoOps implements ICrypto {
         let keyOptions: CryptoKeyOptions;
 
         switch(keyType) {
-            case CryptoKeyTypes.STK_JWK:
+            case CryptoKeyTypes.stk_jwk:
                 keyOptions = CRYPTO_KEY_CONFIG.RT_BINDING;
                 break;
             default:
@@ -126,12 +127,16 @@ export class CryptoOps implements ICrypto {
         const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importJwk(keyOptions, privateKeyJwk, false, keyOptions.privateKeyUsage);
 
         // Store Keypair data in keystore
-        await this.cache.put(publicJwkHash, {
-            privateKey: unextractablePrivateKey,
-            publicKey: keyPair.publicKey,
-            requestMethod: request.resourceRequestMethod,
-            requestUri: request.resourceRequestUri
-        });
+        this.cache.put<CachedKeyPair>(
+            DBTableNames.asymmetricKeys,
+            publicJwkHash, 
+            {
+                privateKey: unextractablePrivateKey,
+                publicKey: keyPair.publicKey,
+                requestMethod: request.resourceRequestMethod,
+                requestUri: request.resourceRequestUri
+            }
+        );
 
         return publicJwkHash;
     }
@@ -140,8 +145,15 @@ export class CryptoOps implements ICrypto {
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid 
      */
-    async removeTokenBindingKey(kid: string): Promise<boolean> {
-        return this.cache.delete(kid);
+    async removeTokenBindingKey(kid: string, keyType: CryptoKeyTypes): Promise<boolean> {
+        // Remove asymmetric keypair
+        let keysRemoved = await this.cache.delete(DBTableNames.asymmetricKeys, kid);
+
+        if(keyType === CryptoKeyTypes.stk_jwk) {
+            keysRemoved = keysRemoved && await this.cache.delete(DBTableNames.symmetricKeys, kid);
+        }
+
+        return keysRemoved;
     }
 
     /**
@@ -157,7 +169,8 @@ export class CryptoOps implements ICrypto {
      * @param kid 
      */
     async signJwt(payload: SignedHttpRequest, kid: string): Promise<string> {
-        const cachedKeyPair = await this.cache.get(kid);
+        // Get keypair from cache
+        const cachedKeyPair: CachedKeyPair = await this.cache.get<CachedKeyPair>(DBTableNames.asymmetricKeys, kid);
             
         if (!cachedKeyPair) {
             throw BrowserAuthError.createSigningKeyNotFoundInStorageError(kid);
@@ -198,7 +211,7 @@ export class CryptoOps implements ICrypto {
      * @returns Public Key JWK string
      */
     async getAsymmetricPublicKey(keyThumbprint: string): Promise<string> {
-        const cachedKeyPair: CachedKeyPair = await this.cache.get(keyThumbprint);
+        const cachedKeyPair: CachedKeyPair = await this.cache.get<CachedKeyPair>(DBTableNames.asymmetricKeys, keyThumbprint);
         // Get public key as JWK
         const publicKeyJwk = await this.browserCrypto.exportJwk(cachedKeyPair.publicKey);
         return BrowserCrypto.getJwkString(publicKeyJwk);
@@ -212,7 +225,7 @@ export class CryptoOps implements ICrypto {
     async decryptBoundTokenResponse(
         boundServerTokenResponse: BoundServerAuthorizationTokenResponse,
         request: BaseAuthRequest): Promise<ServerAuthorizationTokenResponse> {
-        const response = new BoundTokenResponse(boundServerTokenResponse, request, this.cache);
-        return await response.decrypt();
+        const boundResponse = new BoundTokenResponse(boundServerTokenResponse, request, this.cache);
+        return await boundResponse.decrypt();
     }
 }

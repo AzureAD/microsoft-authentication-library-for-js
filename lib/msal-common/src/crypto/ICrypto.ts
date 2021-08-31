@@ -7,6 +7,7 @@ import { AuthError } from "../error/AuthError";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
 import { BoundServerAuthorizationTokenResponse } from "../response/BoundServerAuthorizationTokenResponse";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
+import { CryptoKeyTypes } from "../utils/Constants";
 import { SignedHttpRequest } from "./SignedHttpRequest";
 
 /**
@@ -50,7 +51,7 @@ export interface ICrypto {
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid 
      */
-    removeTokenBindingKey(kid: string): Promise<boolean>;
+    removeTokenBindingKey(kid: string, keyType: CryptoKeyTypes): Promise<boolean>;
     /**
      * Removes all cryptographic keys from IndexedDB storage
      */

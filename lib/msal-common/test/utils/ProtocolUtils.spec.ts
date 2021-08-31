@@ -58,7 +58,7 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
                 return Promise.resolve(true);
             },
             async getAsymmetricPublicKey(): Promise<string> {
-                return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
+                return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT
             },
             async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse> {
                 return DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES;

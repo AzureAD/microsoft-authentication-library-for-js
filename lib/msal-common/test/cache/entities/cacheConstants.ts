@@ -68,6 +68,17 @@ export const mockRefreshTokenEntity = {
     secret: "a refresh token"
 };
 
+export const mockRefreshTokenWithAuthSchemeEntity = {
+    homeAccountId: "uid.utid",
+    environment: "login.microsoftonline.com",
+    credentialType: "RefreshToken_With_AuthScheme",
+    clientId: "mock_client_id",
+    secret: "a bound refresh token",
+    stkKid: "wqXOgLrhnNJaK2VNNCJJiD48raOXdLcegMQTLwkRx7E",
+    skKid: "wqXOgLrhnNJaK2VNNCJJiD48raOXdLcegMQTLwkRx7E",
+    tokenType: "pop"
+};
+
 export const mockRefreshTokenEntityWithFamilyId = {
     homeAccountId: "uid.utid",
     environment: "login.microsoftonline.com",
@@ -117,6 +128,13 @@ export class mockCache {
         return popAt;
     }
 
+    static createMockPopRT(): RefreshTokenEntity {
+        const popRt = new RefreshTokenEntity();
+        Object.assign(popRt, mockRefreshTokenWithAuthSchemeEntity);
+
+        return popRt;
+    }
+
     static createMockIdT(): IdTokenEntity {
         const idt = new IdTokenEntity();
         Object.assign(idt, mockIdTokenEntity);
@@ -159,6 +177,7 @@ export const MockCache = {
     atTwo: mockCache.createMockATTwo(),
     atTwoKey: mockCache.createMockATTwo().generateCredentialKey(),
     popAt: mockCache.createMockPopAT(),
+    popAtKey: mockCache.createMockPopAT().generateCredentialKey(),
     idT: mockCache.createMockIdT(),
     idTKey: mockCache.createMockIdT().generateCredentialKey(),
     rt: mockCache.createMockRT(),

@@ -6,21 +6,23 @@ import { createHash } from "crypto";
 import { AuthenticationScheme, BaseAuthRequest, PkceCodes } from "@azure/msal-common";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { CRYPTO_KEY_CONFIG } from "../../src/utils/CryptoConstants";
+import { DBTableNames } from "../../src/utils/BrowserConstants";
 import { BrowserAuthError } from "../../src";
 const msrCrypto = require("../polyfills/msrcrypto.min");
 
 
 describe("CryptoOps.ts Unit Tests", () => {
     let cryptoObj: CryptoOps;
-    let dbStorage = {};
+    let dbStorage = { "asymmetricKeys": { }, "symmetricKeys": {} };
     let oldWindowCrypto = window.crypto;
     beforeEach(() => {
         jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(async (): Promise<void> => {
-            dbStorage = {};
+            dbStorage.asymmetricKeys = {};
+            dbStorage.symmetricKeys = {};
         });
 
-        jest.spyOn(DatabaseStorage.prototype, "put").mockImplementation(async (key: string, payload: CachedKeyPair): Promise<void> => {
-            dbStorage[key] = payload;
+        jest.spyOn(DatabaseStorage.prototype, "put").mockImplementation(async (tableName: string, key: string, payload: any): Promise<void> => {
+            dbStorage[tableName][key] = payload;
         });
 
         jest.spyOn(DatabaseStorage.prototype, "delete").mockImplementation(async (key: string): Promise<boolean> => {
@@ -135,7 +137,7 @@ describe("CryptoOps.ts Unit Tests", () => {
         expect(result.publicKey.algorithm.name.toLowerCase()).toEqual(CRYPTO_KEY_CONFIG.AT_BINDING.keyGenAlgorithmOptions.name.toLowerCase());
         expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
         expect(regExp.test(pkThumbprint)).toBe(true);
-        expect(Object.keys(dbStorage[pkThumbprint])).not.toHaveLength(0);
+        expect(Object.keys(dbStorage[DBTableNames.asymmetricKeys][pkThumbprint])).not.toHaveLength(0);
     }, 30000);
 
     it("getPublicKeyThumbprint() generates a valid stk_jwk thumbprint", async () => {
@@ -166,7 +168,7 @@ describe("CryptoOps.ts Unit Tests", () => {
         expect(result.privateKey.algorithm.name.toLowerCase()).toEqual(CRYPTO_KEY_CONFIG.RT_BINDING.keyGenAlgorithmOptions.name.toLowerCase());
         expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
         expect(regExp.test(pkThumbprint)).toBe(true);
-        expect(Object.keys(dbStorage[pkThumbprint])).not.toHaveLength(0);
+        expect(Object.keys(dbStorage[DBTableNames.asymmetricKeys][pkThumbprint])).not.toHaveLength(0);
     }, 30000);
 
     it("removeTokenBindingKey() removes the specified key from storage", async () => {

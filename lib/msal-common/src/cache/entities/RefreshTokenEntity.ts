@@ -4,7 +4,9 @@
  */
 
 import { CredentialEntity } from "./CredentialEntity";
-import { CredentialType } from "../../utils/Constants";
+import { AuthenticationScheme, CredentialType } from "../../utils/Constants";
+import { StringUtils } from "../../utils/StringUtils";
+import { ClientAuthError } from "../../error/ClientAuthError";
 
 /**
  * REFRESH_TOKEN Cache
@@ -27,13 +29,21 @@ import { CredentialType } from "../../utils/Constants";
  */
 export class RefreshTokenEntity extends CredentialEntity {
     familyId?: string;
+    tokenType?: AuthenticationScheme;
+    stkKid?: string; // Session Transport Key Key ID for Bound Refresh Tokens
+    skKid?: string; // Session Key Key ID for Bound Refresh Tokens
 
     /**
      * Create RefreshTokenEntity
      * @param homeAccountId
-     * @param authenticationResult
+     * @param environment
+     * @param refreshToken
      * @param clientId
-     * @param authority
+     * @param familyId
+     * @param oboAssertion
+     * @param stkKid
+     * @param sKKid
+     * @param tokenType
      */
     static createRefreshTokenEntity(
         homeAccountId: string,
@@ -41,19 +51,40 @@ export class RefreshTokenEntity extends CredentialEntity {
         refreshToken: string,
         clientId: string,
         familyId?: string,
-        oboAssertion?: string
+        oboAssertion?: string,
+        stkKid?: string,
+        skKid?: string,
+        tokenType?: AuthenticationScheme
     ): RefreshTokenEntity {
         const rtEntity = new RefreshTokenEntity();
 
         rtEntity.clientId = clientId;
-        rtEntity.credentialType = CredentialType.REFRESH_TOKEN;
+        rtEntity.credentialType = CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME;
         rtEntity.environment = environment;
         rtEntity.homeAccountId = homeAccountId;
         rtEntity.secret = refreshToken;
         rtEntity.oboAssertion = oboAssertion;
 
-        if (familyId)
+        if (familyId) {
             rtEntity.familyId = familyId;
+        }
+
+        rtEntity.tokenType = StringUtils.isEmpty(tokenType) ? AuthenticationScheme.BEARER : tokenType;
+        
+        // Create Refresh Token With AuthScheme instead of bearer refresh token
+        if (rtEntity.tokenType === AuthenticationScheme.POP) {
+            // Make sure keyId is present and add it to credential
+            if (!stkKid) {
+                throw ClientAuthError.createNoStkKidInServerResponseError();
+            }
+
+            if (!skKid) {
+                throw ClientAuthError.createNoSkKidInServerResponseError();
+            }
+
+            rtEntity.stkKid = stkKid;
+            rtEntity.skKid = skKid;
+        }
 
         return rtEntity;
     }
@@ -74,7 +105,7 @@ export class RefreshTokenEntity extends CredentialEntity {
             entity.hasOwnProperty("credentialType") &&
             entity.hasOwnProperty("clientId") &&
             entity.hasOwnProperty("secret") &&
-            entity["credentialType"] === CredentialType.REFRESH_TOKEN
+            entity["credentialType"] === CredentialType.REFRESH_TOKEN || entity["credentialType"] === CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME
         );
     }
 }
