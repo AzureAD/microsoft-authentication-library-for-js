@@ -16,12 +16,12 @@ on:
 
 jobs:
   release:
-    if: ! contains(github.head_ref, 'release')
+    if: github.head_ref != 'release*/'
     name: Bump versions and create changelog PR --updation
     runs-on: ubuntu-latest
     steps:
 
-      - run: echo ${{github.event.pull_request.head.ref}}
+      - run: echo ${{github.head_ref}}
       # Check-out repo
       - uses: actions/checkout@v2
         with:
