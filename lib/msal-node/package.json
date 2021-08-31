@@ -68,6 +68,7 @@
   "dependencies": {
     "@azure/msal-common": "^4.7.1",
     "axios": "^0.21.1",
+    "caniuse-lite": "^1.0.30001252",
     "jsonwebtoken": "^8.5.1",
     "uuid": "^8.3.0"
   },
