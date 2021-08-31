@@ -238,7 +238,7 @@ export class UserAgentApplication {
         WindowUtils.checkIfBackButtonIsPressed(this.cacheStorage);
 
         // On the server 302 - Redirect, handle this
-        if (urlContainsHash && this.cacheStorage.getInteractionInProgress(true)) {
+        if (urlContainsHash && this.cacheStorage.isInteractionInProgress(true)) {
             const stateInfo = this.getResponseState(urlHash);
             if (stateInfo.method === Constants.interactionTypeRedirect) {
                 this.handleRedirectAuthenticationResponse(urlHash);
@@ -432,7 +432,7 @@ export class UserAgentApplication {
         // block the request if made from the hidden iframe
         WindowUtils.blockReloadInHiddenIframes();
 
-        const interactionProgress = this.cacheStorage.getInteractionInProgress(false);
+        const interactionProgress = this.cacheStorage.isInteractionInProgress(false);
         if(interactionType === Constants.interactionTypeRedirect) {
             this.cacheStorage.setItem(TemporaryCacheKeys.REDIRECT_REQUEST, `${Constants.inProgress}${Constants.resourceDelimiter}${request.state}`);
         }
@@ -2158,7 +2158,7 @@ export class UserAgentApplication {
      * @returns {boolean} true/false
      */
     public getLoginInProgress(): boolean {
-        return this.cacheStorage.getInteractionInProgress(true);
+        return this.cacheStorage.isInteractionInProgress(true);
     }
 
     /**
@@ -2188,7 +2188,7 @@ export class UserAgentApplication {
      * returns the status of acquireTokenInProgress
      */
     protected getAcquireTokenInProgress(): boolean {
-        return this.cacheStorage.getInteractionInProgress(true);
+        return this.cacheStorage.isInteractionInProgress(true);
     }
 
     /**

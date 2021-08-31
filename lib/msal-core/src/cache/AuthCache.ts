@@ -310,8 +310,8 @@ export class AuthCache extends BrowserStorage {// Singleton
      * Returns whether or not interaction is currently in progress. Optionally scope it to just this clientId
      * @param forThisClient 
      */
-    getInteractionInProgress(matchClientId?: boolean): boolean {
-        const clientId = this.getTemporaryItem(this.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS, false));
+    isInteractionInProgress(matchClientId: boolean): boolean {
+        const clientId = this.getInteractionInProgress();
         if (matchClientId) {
             return clientId === this.clientId;
         } else {
@@ -320,16 +320,23 @@ export class AuthCache extends BrowserStorage {// Singleton
     }
 
     /**
+     * Returns the clientId of the interaction currently in progress
+     */
+    getInteractionInProgress(): string {
+        return this.getTemporaryItem(this.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS, false));
+    }
+
+    /**
      * Sets interaction in progress state
      * @param isInProgress 
      */
-    setInteractionInProgress(isInProgress: boolean): void {
-        if (isInProgress) {
+    setInteractionInProgress(newInProgressValue: boolean): void {
+        if (newInProgressValue && !this.isInteractionInProgress(false)) {
+            // Ensure we don't overwrite interaction in progress for a different clientId
             this.setTemporaryItem(this.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS, false), this.clientId);
-        } else {
-            if (this.getInteractionInProgress(true)) {
-                this.removeItem(this.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS, false));
-            }
+        } else if (!newInProgressValue && this.isInteractionInProgress(true)) {
+            // Only remove if the current in progress interaction is for this clientId
+            this.removeItem(this.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS, false));
         }
     }
 
