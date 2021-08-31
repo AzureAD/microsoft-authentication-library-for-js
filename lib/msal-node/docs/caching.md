@@ -77,7 +77,7 @@ interface ICachePlugin {
 * If you are developing a public client app (such as desktop, headless etc.), [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md) handles this for you.
 * If you are developing a confidential client app, you should persist the cache via a separate service, since a single, *per-server* cache instance isn't suitable for a cloud environment with many servers and app instances.
 
-We also recommend to encrypt the token cache when persisting. Again, for public client apps, this offered out-of-box with [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md). For confidential clients however, you are responsible for devising an appropriate encryption solution.
+> :warning: We strongly recommend to encrypt the token cache when persisting it on disk. Again, for public client apps, this is offered out-of-box with [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md). For confidential clients however, you are responsible for devising an appropriate encryption solution.
 
 ## Performance and security
 
