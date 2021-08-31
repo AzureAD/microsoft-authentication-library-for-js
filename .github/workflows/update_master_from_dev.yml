@@ -13,7 +13,7 @@ on:
 
 jobs:
   pr:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }} & github.event.pull_request.head.ref == 'release-staging' & github.event.pull_request.merged == true
+    if: ${{ github.event.workflow_run.conclusion == 'success' }} & github.event.pull_request.head.ref == 'dev' & github.event.pull_request.merged == true
     
     name: Create PR from dev to master post release 
     runs-on: ubuntu-latest
@@ -44,6 +44,7 @@ jobs:
           committer: GitHub <noreply@github.com>
           author: ${{ github.actor }} <${{ github.actor }}@microsoft.com>
           branch: dev
+          base: master
           title: 'Creating PR From :dev' 
           body: |
             New  PR post-release 

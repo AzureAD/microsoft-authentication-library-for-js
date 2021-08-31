@@ -79,3 +79,14 @@ jobs:
           echo github.base_ref: ${{ github.base_ref }}
           echo github.head_ref: ${{ github.head_ref }}
           echo github.ref: ${{ github.ref }}
+
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+
+
+      - name: Print event details
+        env:
+          GITHUB_EVENT: ${{ toJson(github.event.push) }}
+        run: echo "$GITHUB_EVENT"
