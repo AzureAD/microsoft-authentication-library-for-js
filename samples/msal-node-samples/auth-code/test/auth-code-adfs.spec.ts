@@ -1,4 +1,3 @@
-import "jest";
 import puppeteer from "puppeteer";
 import { Screenshot, createFolder, setupCredentials } from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
@@ -25,6 +24,7 @@ let username: string;
 let accountPwd: string;
 
 describe('Auth Code ADFS PPE Tests', () => {
+    jest.retryTimes(1);
     jest.setTimeout(45000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
