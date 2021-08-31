@@ -22,7 +22,7 @@
 
 var _ = require('underscore');
 var select = require('xpath.js');
-var XMLSerializer = require('xmldom').XMLSerializer;
+var XMLSerializer = require('@xmldom/xmldom').XMLSerializer;
 
 var constants = require('./constants');
 
