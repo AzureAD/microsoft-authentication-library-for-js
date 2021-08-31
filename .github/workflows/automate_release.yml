@@ -39,10 +39,22 @@ jobs:
       - name: bump package versions
         run: node node_modules/beachball/bin/beachball bump -b origin/dev --bumpDeps false && node release-scripts/updateVersion.js
   
-      - run: echo ${{github.head_ref}}  
 
-      - if: github.head_ref != 'release*/'
-        name: Create Pull Request
+      - name: Step that prints name of pull request's base branch
+        run: |
+           echo "Pull request's base branch is: ${BASE_BRANCH}"
+        env:
+              BASE_BRANCH: ${{ github.base_ref }}
+        if: github.event_name == 'pull_request'
+
+      - name: Echo out branch values
+        run: | 
+          echo github.base_ref: ${{ github.base_ref }}
+          echo github.head_ref: ${{ github.head_ref }}
+          echo github.ref: ${{ github.ref }}
+   
+
+      - name: Create Pull Request
         id: pr
         uses: peter-evans/create-pull-request@v3
         with:
@@ -55,14 +67,15 @@ jobs:
             New release PR
           draft: false
 
-      - name: Save the PR number in an artifact
-        shell: bash
+      - name: Step that prints name of pull request's base branch
+        run: |
+           echo "Pull request's base branch is: ${BASE_BRANCH}"
         env:
-          PULL_REQUEST_NUMBER: ${{ github.event.number }}
-        run: echo $PULL_REQUEST_NUMBER > pull_request_number.txt
+              BASE_BRANCH: ${{ github.base_ref }}
+        if: github.event_name == 'pull_request'
 
-      - name: Upload the PULL REQUEST number
-        uses: actions/upload-artifact@v2
-        with:
-          name: pull_request_number
-          path: ./pull_request_number.txt
+      - name: Echo out branch values
+        run: | 
+          echo github.base_ref: ${{ github.base_ref }}
+          echo github.head_ref: ${{ github.head_ref }}
+          echo github.ref: ${{ github.ref }}

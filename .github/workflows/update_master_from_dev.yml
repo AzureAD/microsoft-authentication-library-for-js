@@ -5,13 +5,15 @@ on:
   # the 1st condition
   workflow_run:
     workflows: ["automate_release"]
-    branches: [dev]
     types:
       - completed
+  pull_request:
+    branches: [dev]
+    types: [closed]
 
 jobs:
   pr:
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }} & github.event.pull_request.head.ref == 'release-staging' & github.event.pull_request.merged == true
     
     name: Create PR from dev to master post release 
     runs-on: ubuntu-latest
@@ -31,19 +33,6 @@ jobs:
 
       #Check-out master
       - run: git checkout master
-
-      - name: Download workflow artifact
-        uses: dawidd6/action-download-artifact@v2.11.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          workflow: automate_release.yml
-          run_id: ${{ github.event.workflow_run.id }}
-
-      - name: Read the pull_request_number.txt file
-        id: pull_request_number_reader
-        uses: juliangruber/read-file-action@v1.0.0
-        with:
-          path: ./pull_request_number/pull_request_number.txt
 
       
       - name: Create Pull Request
