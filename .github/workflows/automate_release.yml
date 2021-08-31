@@ -20,6 +20,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
 
+      - name: Extract Branch Name
+        run: echo "BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
+      
       # Check-out repo
       - uses: actions/checkout@v2
         with:
