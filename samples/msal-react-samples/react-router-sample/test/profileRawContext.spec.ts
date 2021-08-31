@@ -22,6 +22,7 @@ async function verifyTokenStore(BrowserCache: BrowserCacheUtils, scopes: string[
 }
 
 describe('/profileRawContext', () => {
+    jest.retryTimes(1);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;

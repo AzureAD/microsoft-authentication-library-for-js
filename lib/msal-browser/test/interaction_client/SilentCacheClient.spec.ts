@@ -81,6 +81,7 @@ describe("SilentCacheClient", () => {
                 accessToken: TEST_TOKENS.ACCESS_TOKEN,
                 idTokenClaims: ID_TOKEN_CLAIMS,
                 fromCache: true,
+                correlationId: "testCorrelationId",
                 expiresOn: new Date(Number(testAccessTokenEntity.expiresOn) * 1000),
                 tokenType: AuthenticationScheme.BEARER
             }

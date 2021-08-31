@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, ICrypto, Logger, StringUtils, PromptValue, CommonAuthorizationCodeRequest, AuthorizationCodeClient } from "@azure/msal-common";
+import { AuthenticationResult, ICrypto, Logger, StringUtils, PromptValue, CommonAuthorizationCodeRequest, AuthorizationCodeClient, AuthError } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -12,15 +12,14 @@ import { EventHandler } from "../event/EventHandler";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { InteractionType, ApiId } from "../utils/BrowserConstants";
-import { version } from "../packageMetadata";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 
 export class SilentIframeClient extends StandardInteractionClient {
     private apiId: ApiId;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId) {
-        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient);
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, correlationId?: string) {
+        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, correlationId);
         this.apiId = apiId;
     }
     
@@ -29,7 +28,7 @@ export class SilentIframeClient extends StandardInteractionClient {
      * @param request 
      */
     async acquireToken(request: SsoSilentRequest): Promise<AuthenticationResult> {
-        this.logger.verbose("acquireTokenByIframe called", request.correlationId);
+        this.logger.verbose("acquireTokenByIframe called");
         // Check that we have some SSO data
         if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
             throw BrowserAuthError.createSilentSSOInsufficientInfoError();
@@ -46,15 +45,14 @@ export class SilentIframeClient extends StandardInteractionClient {
             prompt: PromptValue.NONE
         }, InteractionType.Silent);
 
-        this.logger = this.logger.clone(name, version, silentRequest.correlationId);
-        const serverTelemetryManager = this.initializeServerTelemetryManager(this.apiId, silentRequest.correlationId);
+        const serverTelemetryManager = this.initializeServerTelemetryManager(this.apiId);
 
         try {
             // Create auth code request and generate PKCE params
             const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
 
             // Initialize the client
-            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentRequest.authority, silentRequest.correlationId);
+            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentRequest.authority);
             this.logger.verbose("Auth code client created");
 
             // Create authorize request url
@@ -62,6 +60,9 @@ export class SilentIframeClient extends StandardInteractionClient {
 
             return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, this.logger);
         } catch (e) {
+            if (e instanceof AuthError) {
+                e.setCorrelationId(this.correlationId);
+            }
             serverTelemetryManager.cacheFailedRequest(e);
             this.browserStorage.cleanRequestByState(silentRequest.state);
             throw e;

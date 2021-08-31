@@ -6,7 +6,7 @@
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
 import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, TEST_STATE_VALUES, DEFAULT_TENANT_DISCOVERY_RESPONSE, testLogoutUrl } from "../utils/StringConstants";
-import { ServerError, Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationCodeRequest, CommonAuthorizationUrlRequest, AuthToken, PersistentCacheKeys, AuthorizationCodeClient, ResponseMode, ProtocolUtils, AuthenticationScheme, Logger, ServerTelemetryEntity, LogLevel, NetworkResponse, ServerAuthorizationTokenResponse, CcsCredential, CcsCredentialType, CommonEndSessionRequest, ServerTelemetryManager } from "@azure/msal-common";
+import { ServerError, Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationCodeRequest, CommonAuthorizationUrlRequest, AuthToken, PersistentCacheKeys, AuthorizationCodeClient, ResponseMode, ProtocolUtils, AuthenticationScheme, Logger, ServerTelemetryEntity, LogLevel, NetworkResponse, ServerAuthorizationTokenResponse, CcsCredential, CcsCredentialType, CommonEndSessionRequest, ServerTelemetryManager, AccountEntity } from "@azure/msal-common";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { BrowserConstants, TemporaryCacheKeys, ApiId, BrowserCacheLocation, InteractionType } from "../../src/utils/BrowserConstants";
 import { Base64Encode } from "../../src/encode/Base64Encode";
@@ -47,6 +47,7 @@ describe("RedirectClient", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         });
+        sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
 
         // @ts-ignore
         redirectClient = new RedirectClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
@@ -88,6 +89,21 @@ describe("RedirectClient", () => {
                 expect(response).toBe(null);
                 expect(window.localStorage.length).toEqual(0);
                 expect(window.sessionStorage.length).toEqual(0);
+                done();
+            });
+        });
+
+        it("cleans temporary cache and rethrows if error is thrown", (done) => {
+            sinon.stub(RedirectClient.prototype, <any>"interactionInProgress").returns(true);
+            const testError = {
+                errorCode: "Unexpected error!",
+                errorDesc: "Unexpected error"
+            }
+            sinon.stub(RedirectClient.prototype, <any>"getRedirectResponseHash").throws(testError);
+            redirectClient.handleRedirectPromise().catch((e) => {
+                expect(e).toMatchObject(testError);
+                expect(window.localStorage.length).toEqual(0);
+                expect(window.sessionStorage.length).toEqual(1); // telemetry
                 done();
             });
         });
@@ -166,6 +182,7 @@ describe("RedirectClient", () => {
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -313,6 +330,7 @@ describe("RedirectClient", () => {
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -415,6 +433,7 @@ describe("RedirectClient", () => {
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.body.access_token!,
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in! * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -532,6 +551,7 @@ describe("RedirectClient", () => {
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -744,7 +764,6 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             const loginRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: ["user.read"],
@@ -776,7 +795,6 @@ describe("RedirectClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
 
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -824,7 +842,6 @@ describe("RedirectClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
 
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -880,7 +897,6 @@ describe("RedirectClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
 
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -914,7 +930,6 @@ describe("RedirectClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
 
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -955,9 +970,10 @@ describe("RedirectClient", () => {
 
             const testError = {
                 errorCode: "create_login_url_error",
-                errorMessage: "Error in creating a login url"
+                errorMessage: "Error in creating a login url",
+                correlationId: TEST_CONFIG.CORRELATION_ID
             };
-            sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").throws(testError);
+            sinon.stub(AuthorizationCodeClient.prototype, "getAuthCodeUrl").throws(new BrowserAuthError(testError.errorCode, testError.errorMessage));
             try {
                 await redirectClient.acquireToken(emptyRequest);
             } catch (e) {
@@ -968,11 +984,11 @@ describe("RedirectClient", () => {
                 expect(failureObj.failedRequests).toHaveLength(2);
                 expect(failureObj.failedRequests[0]).toEqual(ApiId.acquireTokenRedirect);
                 expect(failureObj.errors[0]).toEqual(testError.errorCode);
-                expect(e).toEqual(testError);
+                expect(e).toMatchObject(testError);
             }
         });
 
-        it("Uses adal token from cache if it is present.", async () => {
+        it("Uses adal token from cache if it is present and sets upn as the login hint.", async () => {
             const idTokenClaims: TokenClaims = {
                 "iss": "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/",
                 "exp": 1536279024,
@@ -994,7 +1010,6 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -1015,6 +1030,113 @@ describe("RedirectClient", () => {
                 ...emptyRequest,
                 scopes: [],
                 loginHint: idTokenClaims.upn,
+                state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                correlationId: RANDOM_TEST_GUID,
+                nonce: RANDOM_TEST_GUID,
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                responseMode: ResponseMode.FRAGMENT,
+                codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+            };
+            expect(loginUrlSpy.calledWith(validatedRequest)).toBeTruthy();
+        });
+
+        it("Uses adal token from cache if it is present and sets preferred_name as the login hint.", async () => {
+            const idTokenClaims: TokenClaims = {
+                "iss": "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/",
+                "exp": 1536279024,
+                "name": "abeli",
+                "nonce": "123523",
+                "oid": "05833b6b-aa1d-42d4-9ec0-1b2bb9194438",
+                "sub": "5_J9rSss8-jvt_Icu6ueRNL8xXb8LF4Fsg_KooC2RJQ",
+                "tid": "fa15d692-e9c7-4460-a743-29f2956fd429",
+                "ver": "1.0",
+                "preferred_username": "AbeLincoln@contoso.com"
+            };
+            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            const browserCrypto = new CryptoOps();
+            const testLogger = new Logger(loggerOptions);
+            const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
+            browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
+            const loginUrlSpy = sinon.spy(AuthorizationCodeClient.prototype, "getAuthCodeUrl");
+            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER
+            });
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(options.noHistory).toBeFalsy();
+                expect(urlNavigate).not.toBe("");
+                return Promise.resolve(true);
+            });
+            const emptyRequest: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: [],
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                nonce: "",
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+            };
+            await redirectClient.acquireToken(emptyRequest);
+            const validatedRequest: CommonAuthorizationUrlRequest = {
+                ...emptyRequest,
+                scopes: [],
+                loginHint: idTokenClaims.preferred_username,
+                state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
+                correlationId: RANDOM_TEST_GUID,
+                nonce: RANDOM_TEST_GUID,
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                responseMode: ResponseMode.FRAGMENT,
+                codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+            };
+            expect(loginUrlSpy.calledWith(validatedRequest)).toBeTruthy();
+        });
+
+        it("Uses adal token from cache if it is present and sets preferred_name as the login hint when upn is also populated.", async () => {
+            const idTokenClaims: TokenClaims = {
+                "iss": "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/",
+                "exp": 1536279024,
+                "name": "abeli",
+                "nonce": "123523",
+                "oid": "05833b6b-aa1d-42d4-9ec0-1b2bb9194438",
+                "sub": "5_J9rSss8-jvt_Icu6ueRNL8xXb8LF4Fsg_KooC2RJQ",
+                "tid": "fa15d692-e9c7-4460-a743-29f2956fd429",
+                "ver": "1.0",
+                "upn": "AbeLincol_gmail.com#EXT#@AbeLincolgmail.onmicrosoft.com",
+                "preferred_username": "AbeLincoln@contoso.com"
+            };
+            sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
+            const browserCrypto = new CryptoOps();
+            const testLogger = new Logger(loggerOptions);
+            const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
+            browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
+            const loginUrlSpy = sinon.spy(AuthorizationCodeClient.prototype, "getAuthCodeUrl");
+            sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
+                challenge: TEST_CONFIG.TEST_CHALLENGE,
+                verifier: TEST_CONFIG.TEST_VERIFIER
+            });
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(options.noHistory).toBeFalsy();
+                expect(urlNavigate).not.toBe("");
+                return Promise.resolve(true);
+            });
+            const emptyRequest: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: [],
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                nonce: "",
+                authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
+            };
+            await redirectClient.acquireToken(emptyRequest);
+            const validatedRequest: CommonAuthorizationUrlRequest = {
+                ...emptyRequest,
+                scopes: [],
+                loginHint: idTokenClaims.preferred_username,
                 state: TEST_STATE_VALUES.TEST_STATE_REDIRECT,
                 correlationId: RANDOM_TEST_GUID,
                 nonce: RANDOM_TEST_GUID,
@@ -1048,7 +1170,6 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -1089,7 +1210,6 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             const loginRequest: RedirectRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: ["user.read", "openid", "profile"],
@@ -1120,7 +1240,6 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             const loginRequest: RedirectRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: ["user.read", "openid", "profile"],
@@ -1146,7 +1265,6 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -1177,7 +1295,6 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -1257,7 +1374,6 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -1311,7 +1427,6 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -1488,6 +1603,69 @@ describe("RedirectClient", () => {
                 expect(telemetrySpy.calledWith(testError)).toBe(true);
                 expect(eventSpy.calledWith(EventType.LOGOUT_FAILURE, InteractionType.Redirect, null, testError)).toBe(true);
                 done();
+            });
+        });
+
+        it("unexpected non-msal error does not add correlationId", (done) => {
+            const testError = {
+                errorCode: "Unexpected error",
+                errorDesc: "Unexpected error"
+            };
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((): Promise<boolean> => {
+                return Promise.reject(testError);
+            });
+            redirectClient.logout().catch((e) => {
+                expect(e).toMatchObject(testError);
+                expect(e).not.toHaveProperty("correlationId");
+                done();
+            });
+        });
+
+        it("clears active account entry from the cache", async () => {
+            const testIdTokenClaims: TokenClaims = {
+                "ver": "2.0",
+                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+            };
+
+            const testAccountInfo: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || ""
+            };
+
+            const testAccount: AccountEntity = new AccountEntity();
+            testAccount.homeAccountId = testAccountInfo.homeAccountId;
+            testAccount.localAccountId = testAccountInfo.localAccountId;
+            testAccount.environment = testAccountInfo.environment;
+            testAccount.realm = testAccountInfo.tenantId;
+            testAccount.username = testAccountInfo.username;
+            testAccount.name = testAccountInfo.name;
+            testAccount.authorityType = "MSSTS";
+            testAccount.clientInfo = TEST_DATA_CLIENT_INFO.TEST_CLIENT_INFO_B64ENCODED;
+
+            const validatedLogoutRequest: CommonEndSessionRequest = {
+                correlationId: RANDOM_TEST_GUID,
+                postLogoutRedirectUri: TEST_URIS.TEST_REDIR_URI,
+                account: testAccountInfo
+            };
+
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                return Promise.resolve(true);
+            });
+
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${PersistentCacheKeys.ACTIVE_ACCOUNT}`, testAccount.localAccountId);
+            window.sessionStorage.setItem(AccountEntity.generateAccountCacheKey(testAccountInfo), JSON.stringify(testAccount));
+
+            await redirectClient.logout(validatedLogoutRequest).then(() => {
+                expect(window.sessionStorage.length).toBe(0);
             });
         });
     });
