@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import "jest";
 import puppeteer from "puppeteer";
 import { Screenshot, createFolder, setupCredentials } from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
@@ -33,6 +32,7 @@ const config = require("../config/ADFS.json");
 
 describe('Device Code ADFS PPE Tests', () => {
     jest.setTimeout(45000);
+    jest.retryTimes(1);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
