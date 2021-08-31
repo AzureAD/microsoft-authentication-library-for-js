@@ -75,7 +75,7 @@ export type Configuration = {
     system?: NodeSystemOptions;
 };
 
-const DEFAULT_AUTH_OPTIONS: NodeAuthOptions = {
+const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     clientId: "",
     authority: Constants.DEFAULT_AUTHORITY,
     clientSecret: "",
@@ -102,9 +102,15 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
     logLevel: LogLevel.Info,
 };
 
-const DEFAULT_SYSTEM_OPTIONS: NodeSystemOptions = {
+const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
     networkClient: NetworkUtils.getNetworkClient(),
+};
+
+export type NodeConfiguration = {
+    auth: Required<NodeAuthOptions>;
+    cache: CacheOptions;
+    system: Required<NodeSystemOptions>;
 };
 
 /**
@@ -121,7 +127,7 @@ export function buildAppConfiguration({
     auth,
     cache,
     system,
-}: Configuration): Configuration {
+}: Configuration): NodeConfiguration {
     return {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },

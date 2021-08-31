@@ -26,8 +26,21 @@ export class PkceGenerator {
      * generates the codeVerfier; reference: https://tools.ietf.org/html/rfc7636#section-4.1
      */
     private generateCodeVerifier(): string {
-        const buffer: Uint8Array = crypto.randomBytes(RANDOM_OCTET_SIZE);
-        const verifier: string = this.bufferToCVString(buffer);
+        const charArr = [];
+        const maxNumber = 256 - (256 % CharSet.CV_CHARSET.length);
+        while (charArr.length <= RANDOM_OCTET_SIZE) {
+            const byte = crypto.randomBytes(1)[0];
+            if (byte >= maxNumber) {
+                /* 
+                 * Ignore this number to maintain randomness.
+                 * Including it would result in an unequal distribution of characters after doing the modulo
+                 */
+                continue;
+            }
+            const index = byte % CharSet.CV_CHARSET.length;
+            charArr.push(CharSet.CV_CHARSET[index]);
+        }
+        const verifier: string = charArr.join("");
         return EncodingUtils.base64EncodeUrl(verifier);
     }
 
@@ -51,18 +64,5 @@ export class PkceGenerator {
             .createHash(Hash.SHA256)
             .update(buffer)
             .digest();
-    }
-
-    /**
-     * Accepted characters; reference: https://tools.ietf.org/html/rfc7636#section-4.1
-     * @param buffer
-     */
-    private bufferToCVString(buffer: Uint8Array): string {
-        const charArr = [];
-        for (let i = 0; i < buffer.byteLength; i += 1) {
-            const index = buffer[i] % CharSet.CV_CHARSET.length;
-            charArr.push(CharSet.CV_CHARSET[index]);
-        }
-        return charArr.join("");
     }
 }
