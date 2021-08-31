@@ -8,9 +8,9 @@ const msal = require('@azure/msal-node');
 // Create msal application object
 const cca = new msal.ConfidentialClientApplication({
     auth: {
-        clientId: "Enter_the_Application_Id_Here",
-        authority: "https://login.microsoftonline.com/Enter_the_Tenant_Info_Here",
-        clientSecret: "Enter_the_Client_Secret_Here"
+        clientId: "Enter_the_Application_Id_Here", // e.g. "b1b60dca-c49d-496e-9851-xxxxxxxxxxxx" (guid)
+        authority: "https://login.microsoftonline.com/Enter_the_Tenant_Info_Here", // e.g. "common" or your tenantId (guid)
+        clientSecret: "Enter_the_Client_Secret_Here" // obtained during app registration
     }
 });
 
@@ -22,7 +22,7 @@ const cca = new msal.ConfidentialClientApplication({
 const someUserHomeAccountId = "Enter_User_Home_Account_Id";
 
 const msalTokenCache = cca.getTokenCache();
-const account = await msalTokenCache.getAccountByHomeId(someUserHomeAccountId)
+const account = await msalTokenCache.getAccountByHomeId(someUserHomeAccountId);
 
 const silentTokenRequest = {
     account: account,
@@ -36,14 +36,17 @@ cca.acquireTokenSilent(silentTokenRequest).then((response) => {
 });
 ```
 
-MSAL's in-memory token cache is not suitable for production. In production, you should serialize and persist the token cache. Depending on the type of application, you have several alternatives:
+In production, you would most likely want to serialize and persist the token cache. Depending on the type of application, you have several alternatives:
 
-* Desktop apps, headless apps (public client): Use [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md), which provide persistence solutions on Windows, Linux and Mac OS
-* Web apps, web APIs, daemon apps (confidential client): Use the [distributed token caching](#performance-and-security) pattern to persist the cache in your choice of storage environment (Redis, MongoDB, SQL databases etc. -keep in mind that you can use these in tandem *e.g.* a Redis cache as a first layer of persistence, and a SQL database as a second, more stable persistence layer)
+* Desktop apps, headless apps (public client):
+  * If you don't want persistence, you don't need to do anything else. MSAL's in-memory cache will suffice.
+  * If you do want persistence, use [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md), which provide persistence solutions on Windows, Linux and Mac OS
+* Web apps, web APIs, daemon apps (confidential client):
+  * MSAL's in-memory token cache does not scale for production. Use the [distributed token caching](#performance-and-security) pattern to persist the cache in your choice of storage environment (Redis, MongoDB, SQL databases etc. -keep in mind that you can use these in tandem *e.g.* a Redis-like memory cache as a first layer of persistence, and a SQL database as a second, more stable persistence layer)
 
 ## Token cache schema
 
-MSAL Node's cache schema is compatible with other MSALs. By default, MSAL's cache is not partitioned: all authentication artifacts by all users are located in a single cache blob, grouped by the type of the authentication artifact (see also: [cache.json](../cache.json)).
+MSAL Node's cache schema is compatible with other MSALs. By default, MSAL's cache is not partitioned and not encrypted: all authentication artifacts by all users are located in a single cache blob, grouped by the type of the authentication artifact (see also: [cache.json](../cache.json)).
 
 ```json
 {
@@ -57,7 +60,7 @@ MSAL Node's cache schema is compatible with other MSALs. By default, MSAL's cach
 
 ## Persistence
 
-MSAL Node fires events are when the cache is accessed, apps can choose whether to serialize or deserialize the cache. This often constitutes two actions:
+MSAL Node fires events when the cache is accessed, apps can choose whether to serialize or deserialize the cache. This often constitutes two actions:
 
 1. Deserialize the cache from disk to MSAL's memory before accessing the cache
 2. If the cache in memory has changed, serialize the cache back
@@ -72,19 +75,21 @@ interface ICachePlugin {
 ```
 
 * If you are developing a public client app (such as desktop, headless etc.), [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md) handles this for you.
-* If you are developing a confidential client app, you should persist the cache as a separate service, since a single, per-server cache instance isn't suitable for a cloud environment with many servers and app instances.
+* If you are developing a confidential client app, you should persist the cache via a separate service, since a single, *per-server* cache instance isn't suitable for a cloud environment with many servers and app instances.
+
+We also recommend to encrypt the token cache when persisting. Again, for public client apps, this offered out-of-box with [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md). For confidential clients however, you are responsible for devising an appropriate encryption solution.
 
 ## Performance and security
 
-On public client apps, [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md) ensure performance and security for you.
+On public client apps, [MSAL Node Extensions](../../../extensions/msal-node-extensions/README.md) ensures performance and security for you.
 
-On confidential client applications that handle users (web apps that sign in users and call web APIs, and web APIs calling downstream web APIs), there can be many users and the users are processed in parallel. Our recommendation is to serialize one cache blob per user. Use a key for partitioning the cache (*partition key*), such as:
+On confidential client applications that handle users (web apps that sign in users and call web APIs, and web APIs calling downstream web APIs), there can be many users and the users are processed in parallel. Our recommendation is to serialize one cache blob per user. Use a key for partitioning the cache (*i.e.* **partition key**), such as:
 
 * For web apps: **homeAccountId** (if on ADFS, use **localAccountId** instead)
-* For daemon apps using client credentials grant: **tenantId**
+* For multi-tenant daemon apps using client credentials grant: **tenantId** (:information_source: these apps do not face users, but nevertheless benefit from partitioning the authentication artifacts with respect to each tenant)
 <!-- * For web APIs using OBO: *TBD* -->
 
-For instance, when developing a web app that serve users, implement [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.icacheplugin.html) in a class where user's `homeAccountId` is retrieved from the session store:
+For instance, when developing a web app that serve users, implement [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.icacheplugin.html) in a class where user's `homeAccountId` is used for partitioning:
 
 ```typescript
 class DistributedCachePlugin implements ICachePlugin {
@@ -93,22 +98,24 @@ class DistributedCachePlugin implements ICachePlugin {
     private static instance: CachePlugin;
 
     private persistenceManager: any; // your implementation of a persistence client
-    private sessionId: string;
+    private partitionKey: string;
 
-    private constructor(persistenceManager?: any, sessionId?: string) {}
+    private constructor(persistenceManager?: any, partitionKey?: string) {}
 
-    static getInstance(persistenceManager?: any, sessionId?: string): CachePlugin {}
+    static getInstance(persistenceManager?: any, partitionKey?: string): CachePlugin {}
 
     async beforeCacheAccess(cacheContext): Promise<void> {
-        // get cache from persistence store given given key
-        // load the cache into msal's memory
+        // given a partition key, get the relevant cache portion from the persistence store
+        // deserialize and load the cache into msal's memory
     }
     async afterCacheAccess(cacheContext): Promise<void> {
         // if in-memory cache has changed
-            // write cache to disk using a key such as homeAccountId
+            // serialize and persist the cache using the same partition key
     }
 }
 ```
+
+It is also a good idea to obtain performance metrics for persistent cache operations, such as **cache hit ratios** from your persistence store. This would give you a reliable picture of how your app scales over time.
 
 ## More information
 
