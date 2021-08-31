@@ -6,8 +6,27 @@
 import { CommonEndSessionRequest, Constants, Logger, StringUtils } from "@azure/msal-common";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { BrowserAuthError } from "../error/BrowserAuthError";
+import { PopupParams } from "../interaction_handler/PopupHandler";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConstants, InteractionType, TemporaryCacheKeys } from "./BrowserConstants";
+
+/**
+ * Popup configurations for setting dimensions and position of popup window
+ */
+export type PopupWindowAttributes = {
+    popupSize?: PopupSize,
+    popupPosition?: PopupPosition
+};
+
+export type PopupSize = {
+    height: number;
+    width: number;
+};
+
+export type PopupPosition = {
+    top: number;
+    left: number;
+};
 
 export class PopupUtils {
     private browserStorage: BrowserCacheManager;
@@ -31,21 +50,22 @@ export class PopupUtils {
      * @param title
      * @param popUpWidth
      * @param popUpHeight
+     * @param popupWindowAttributes
      * @ignore
      * @hidden
      */
-    openPopup(urlNavigate: string, popupName: string, popup?: Window|null): Window {
+    openPopup(urlNavigate: string, popupParams: PopupParams): Window {
         try {
             let popupWindow;
             // Popup window passed in, setting url to navigate to
-            if (popup) {
-                popupWindow = popup;
+            if (popupParams.popup) {
+                popupWindow = popupParams.popup;
                 this.logger.verbosePii(`Navigating popup window to: ${urlNavigate}`);
                 popupWindow.location.assign(urlNavigate);
-            } else if (typeof popup === "undefined") {
+            } else if (typeof popupParams.popup === "undefined") {
                 // Popup will be undefined if it was not passed in
                 this.logger.verbosePii(`Opening popup window to: ${urlNavigate}`);
-                popupWindow = PopupUtils.openSizedPopup(urlNavigate, popupName);
+                popupWindow = PopupUtils.openSizedPopup(urlNavigate, popupParams.popupName, popupParams.popupWindowAttributes, this.logger);
             }
 
             // Popup will be null if popups are blocked
@@ -66,7 +86,14 @@ export class PopupUtils {
         }
     }
 
-    static openSizedPopup(urlNavigate: string, popupName: string): Window|null {
+    /**
+     * Helper function to set popup window dimensions and position
+     * @param urlNavigate 
+     * @param popupName 
+     * @param popupWindowAttributes 
+     * @returns 
+     */
+    static openSizedPopup(urlNavigate: string, popupName: string, popupWindowAttributes: PopupWindowAttributes, logger: Logger): Window|null {
         /**
          * adding winLeft and winTop to account for dual monitor
          * using screenLeft and screenTop for IE8 and earlier
@@ -77,12 +104,35 @@ export class PopupUtils {
          * window.innerWidth displays browser window"s height and width excluding toolbars
          * using document.documentElement.clientWidth for IE8 and earlier
          */
-        const width = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
-        const height = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
-        const left = Math.max(0, ((width / 2) - (BrowserConstants.POPUP_WIDTH / 2)) + winLeft);
-        const top = Math.max(0, ((height / 2) - (BrowserConstants.POPUP_HEIGHT / 2)) + winTop);
+        const winWidth = window.innerWidth || document.documentElement.clientWidth || document.body.clientWidth;
+        const winHeight = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
 
-        return window.open(urlNavigate, popupName, `width=${BrowserConstants.POPUP_WIDTH}, height=${BrowserConstants.POPUP_HEIGHT}, top=${top}, left=${left}, scrollbars=yes`);
+        let width = popupWindowAttributes.popupSize?.width;
+        let height = popupWindowAttributes.popupSize?.height;
+        let top = popupWindowAttributes.popupPosition?.top;
+        let left = popupWindowAttributes.popupPosition?.left;
+
+        if (!width || width < 0 || width > winWidth) {
+            logger.verbose("Default popup window width used. Window width not configured or invalid.");
+            width = BrowserConstants.POPUP_WIDTH;
+        }
+
+        if (!height || height < 0 || height > winHeight) {
+            logger.verbose("Default popup window height used. Window height not configured or invalid.");
+            height = BrowserConstants.POPUP_HEIGHT;
+        }
+
+        if (!top || top < 0 || top > winHeight) {
+            logger.verbose("Default popup window top position used. Window top not configured or invalid.");
+            top = Math.max(0, ((winHeight / 2) - (BrowserConstants.POPUP_HEIGHT / 2)) + winTop);
+        }
+
+        if (!left || left < 0 || left > winWidth) {
+            logger.verbose("Default popup window left position used. Window left not configured or invalid.");
+            left = Math.max(0, ((winWidth / 2) - (BrowserConstants.POPUP_WIDTH / 2)) + winLeft);
+        }
+
+        return window.open(urlNavigate, popupName, `width=${width}, height=${height}, top=${top}, left=${left}, scrollbars=yes`);
     }
 
     /**
