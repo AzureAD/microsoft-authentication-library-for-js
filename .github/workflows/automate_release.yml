@@ -16,7 +16,7 @@ on:
 
 jobs:
   release:
-    if: ${{ !startsWith( github.event.pull_request.head.ref, 'release*/' )}}
+    if: contains(github.head_ref, 'release')
     name: Bump versions and create changelog PR --updation
     runs-on: ubuntu-latest
     steps:
