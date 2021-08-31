@@ -1,8 +1,22 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Wed, 25 Aug 2021 18:51:38 GMT and should not be manually modified.
+This log was last generated on Tue, 31 Aug 2021 17:16:32 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.18.0
+
+Tue, 31 Aug 2021 17:16:32 GMT
+
+### Minor changes
+
+- mod acquire token popup (bmahal@microsoft.com)
+
+### Patches
+
+- new comment    (bmahal@microsoft.com)
+- new comment   (bmahal@microsoft.com)
+- Bump @azure/msal-common to v4.7.1 (bmahal@microsoft.com)
 
 ## 2.17.0
 
