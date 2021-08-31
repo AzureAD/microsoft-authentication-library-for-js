@@ -20,6 +20,7 @@ describe("SilentRefreshClient", () => {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID
             }
         });
+        sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
         // @ts-ignore
         silentRefreshClient = new SilentRefreshClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
     });
@@ -68,11 +69,11 @@ describe("SilentRefreshClient", () => {
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
             };
-            sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             const silentATStub = sinon.stub(RefreshTokenClient.prototype, <any>"acquireTokenByRefreshToken").resolves(testTokenResponse);
             const tokenRequest: CommonSilentFlowRequest = {
                 scopes: ["scope1"],

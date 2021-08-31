@@ -26,8 +26,8 @@ import { SsoSilentRequest } from "../request/SsoSilentRequest";
 export abstract class StandardInteractionClient extends BaseInteractionClient {
     protected navigationClient: INavigationClient;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, ) {
-        super(config, storageImpl, browserCrypto, logger, eventHandler);
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, correlationId?: string) {
+        super(config, storageImpl, browserCrypto, logger, eventHandler, correlationId);
         this.navigationClient = navigationClient;
     }
     
@@ -98,9 +98,9 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param serverTelemetryManager
      * @param authorityUrl
      */
-    protected async createAuthCodeClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, correlationId?: string): Promise<AuthorizationCodeClient> {
+    protected async createAuthCodeClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<AuthorizationCodeClient> {
         // Create auth module.
-        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, correlationId);
+        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
         return new AuthorizationCodeClient(clientConfig);
     }
 
@@ -110,9 +110,9 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param requestAuthority
      * @param requestCorrelationId
      */
-    protected async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string, requestCorrelationId?: string): Promise<ClientConfiguration> {
-        this.logger.verbose("getClientConfiguration called", requestCorrelationId);
-        const discoveredAuthority = await this.getDiscoveredAuthority(requestAuthority, requestCorrelationId);
+    protected async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string): Promise<ClientConfiguration> {
+        this.logger.verbose("getClientConfiguration called");
+        const discoveredAuthority = await this.getDiscoveredAuthority(requestAuthority);
 
         return {
             authOptions: {
@@ -128,7 +128,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 loggerCallback: this.config.system.loggerOptions.loggerCallback,
                 piiLoggingEnabled: this.config.system.loggerOptions.piiLoggingEnabled,
                 logLevel: this.config.system.loggerOptions.logLevel,
-                correlationId: requestCorrelationId
+                correlationId: this.correlationId
             },
             cryptoInterface: this.browserCrypto,
             networkInterface: this.networkClient,
@@ -173,8 +173,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param requestAuthority
      * @param requestCorrelationId
      */
-    protected async getDiscoveredAuthority(requestAuthority?: string, requestCorrelationId?: string): Promise<Authority> {
-        this.logger.verbose("getDiscoveredAuthority called", requestCorrelationId);
+    protected async getDiscoveredAuthority(requestAuthority?: string): Promise<Authority> {
+        this.logger.verbose("getDiscoveredAuthority called");
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode,
             knownAuthorities: this.config.auth.knownAuthorities,
@@ -183,11 +183,11 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         };
 
         if (requestAuthority) {
-            this.logger.verbose("Creating discovered authority with request authority", requestCorrelationId);
+            this.logger.verbose("Creating discovered authority with request authority");
             return await AuthorityFactory.createDiscoveredInstance(requestAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions);
         }
 
-        this.logger.verbose("Creating discovered authority with configured authority", requestCorrelationId);
+        this.logger.verbose("Creating discovered authority with configured authority");
         return await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient, this.browserStorage, authorityOptions);
     }
 
@@ -197,11 +197,11 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param correlationId
      * @param forceRefresh
      */
-    protected initializeServerTelemetryManager(apiId: number, correlationId: string, forceRefresh?: boolean): ServerTelemetryManager {
-        this.logger.verbose("initializeServerTelemetryManager called", correlationId);
+    protected initializeServerTelemetryManager(apiId: number, forceRefresh?: boolean): ServerTelemetryManager {
+        this.logger.verbose("initializeServerTelemetryManager called");
         const telemetryPayload: ServerTelemetryRequest = {
             clientId: this.config.auth.clientId,
-            correlationId: correlationId,
+            correlationId: this.correlationId,
             apiId: apiId,
             forceRefresh: forceRefresh || false,
             wrapperSKU: this.browserStorage.getWrapperMetadata()[0],
@@ -243,7 +243,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param interactionType
      */
     protected initializeAuthorizationRequest(request: RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
-        this.logger.verbose("initializeAuthorizationRequest called", request.correlationId);
+        this.logger.verbose("initializeAuthorizationRequest called");
         const redirectUri = this.getRedirectUri(request.redirectUri);
         const browserState: BrowserStateObject = {
             interactionType: interactionType
@@ -277,9 +277,16 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             if (adalIdTokenString) {
                 const adalIdToken = new IdToken(adalIdTokenString, this.browserCrypto);
                 this.browserStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
-                if (adalIdToken.claims && adalIdToken.claims.upn) {
+                if (adalIdToken.claims && adalIdToken.claims.preferred_username) {
+                    this.logger.verbose("No SSO params used and ADAL token retrieved, setting ADAL preferred_username as loginHint");
+                    validatedRequest.loginHint = adalIdToken.claims.preferred_username;
+                }
+                else if (adalIdToken.claims && adalIdToken.claims.upn) {
                     this.logger.verbose("No SSO params used and ADAL token retrieved, setting ADAL upn as loginHint");
                     validatedRequest.loginHint = adalIdToken.claims.upn;
+                }
+                else {
+                    this.logger.verbose("No SSO params used and ADAL token retrieved, however, no account hint claim found. Enable preferred_username or upn id token claim to get SSO.");
                 }
             }
         }
@@ -294,23 +301,22 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param request
      */
     protected initializeBaseRequest(request: Partial<BaseAuthRequest>): BaseAuthRequest {
-        this.logger.verbose("Initializing BaseAuthRequest", request.correlationId);
+        this.logger.verbose("Initializing BaseAuthRequest");
         const authority = request.authority || this.config.auth.authority;
 
         const scopes = [...((request && request.scopes) || [])];
-        const correlationId = (request && request.correlationId) || this.browserCrypto.createNewGuid();
 
         // Set authenticationScheme to BEARER if not explicitly set in the request
         if (!request.authenticationScheme) {
             request.authenticationScheme = AuthenticationScheme.BEARER;
-            this.logger.verbose("Authentication Scheme wasn't explicitly set in request, defaulting to \"Bearer\" request", request.correlationId);
+            this.logger.verbose("Authentication Scheme wasn't explicitly set in request, defaulting to \"Bearer\" request");
         } else {
-            this.logger.verbose(`Authentication Scheme set to "${request.authenticationScheme}" as configured in Auth request`, request.correlationId);
+            this.logger.verbose(`Authentication Scheme set to "${request.authenticationScheme}" as configured in Auth request`);
         }
 
         const validatedRequest: BaseAuthRequest = {
             ...request,
-            correlationId,
+            correlationId: this.correlationId,
             authority,
             scopes
         };
