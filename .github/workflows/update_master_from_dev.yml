@@ -1,0 +1,61 @@
+# Bump package version numbers and create a release branch
+name: Update master 
+
+on:
+  # the 1st condition
+  workflow_run:
+    workflows: ["automate_release"]
+    branches: [dev]
+    types:
+      - completed
+
+jobs:
+  pr:
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    
+    name: Create PR from dev to master post release 
+    runs-on: ubuntu-latest
+    steps:
+
+      # Check-out repo
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      # Install node_modules here
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+            cache: 'npm'
+      - run: npm ci
+
+      #Check-out master
+      - run: git checkout master
+
+      - name: Download workflow artifact
+        uses: dawidd6/action-download-artifact@v2.11.0
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          workflow: automate_release.yml
+          run_id: ${{ github.event.workflow_run.id }}
+
+      - name: Read the pull_request_number.txt file
+        id: pull_request_number_reader
+        uses: juliangruber/read-file-action@v1.0.0
+        with:
+          path: ./pull_request_number/pull_request_number.txt
+
+      
+      - name: Create Pull Request
+        if: github.event.pull_request.merged == true
+        id: pr
+        uses: peter-evans/create-pull-request@v3
+        with:
+          commit-message: PR:dev->master post release 
+          committer: GitHub <noreply@github.com>
+          author: ${{ github.actor }} <${{ github.actor }}@microsoft.com>
+          branch: dev
+          title: 'Creating PR From :dev' 
+          body: |
+            New  PR post-release 
+          draft: false

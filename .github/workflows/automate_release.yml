@@ -16,14 +16,10 @@ on:
 
 jobs:
   release:
+    if: ${{ github.ref != 'refs/heads/release*' }}
     name: Bump versions and create changelog PR --updation
     runs-on: ubuntu-latest
     steps:
-       
-       #get current date
-      - name: Get current date
-        id: date
-        run: echo "::set-output name=date::$(date +'%Y-%m-%d')"
 
       # Check-out repo
       - uses: actions/checkout@v2
@@ -49,8 +45,20 @@ jobs:
           commit-message: Release ; version bump; PR->master
           committer: GitHub <noreply@github.com>
           author: ${{ github.actor }} <${{ github.actor }}@microsoft.com>
-          branch: releasev2/${{ steps.date.outputs.date }}
-          title: 'Creating PR From :releasev2/${{ steps.date.outputs.date }}' 
+          branch: release-staging
+          title: 'Creating PR From :release-staging' 
           body: |
             New release PR
           draft: false
+
+      - name: Save the PR number in an artifact
+        shell: bash
+        env:
+          PULL_REQUEST_NUMBER: ${{ github.event.number }}
+        run: echo $PULL_REQUEST_NUMBER > pull_request_number.txt
+
+      - name: Upload the PULL REQUEST number
+        uses: actions/upload-artifact@v2
+        with:
+          name: pull_request_number
+          path: ./pull_request_number.txt
