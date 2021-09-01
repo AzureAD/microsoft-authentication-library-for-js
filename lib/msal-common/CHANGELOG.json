@@ -2,6 +2,29 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Wed, 01 Sep 2021 16:43:47 GMT",
+      "tag": "@azure/msal-common_v4.8.0",
+      "version": "4.8.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "minor changes -2",
+            "author": "bmahal@microsoft.com",
+            "commit": "09c33ae3c981d4f8075f72b8404d2149a2ada581",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "changes in browser and common- 1",
+            "author": "bmahal@microsoft.com",
+            "commit": "57e585e62916a2a2a324b7ec4115f8ddffed94e7",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 31 Aug 2021 17:16:32 GMT",
       "tag": "@azure/msal-common_v4.7.1",
       "version": "4.7.1",
