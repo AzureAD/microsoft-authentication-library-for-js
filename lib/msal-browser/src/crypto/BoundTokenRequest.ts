@@ -13,6 +13,7 @@ import { bytesToBase64 } from "./TestDecoder";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { Base64Encode } from "../encode/Base64Encode";
 import { BrowserCrypto } from "./BrowserCrypto";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export type BoundTokenRequestHeader = {
     ctx: string,
@@ -28,8 +29,7 @@ export class BoundTokenRequest {
     private payload: BoundRefreshTokenRedemptionPayload;
     private keyDerivation: KeyDerivation;
     private keyStore: DatabaseStorage;
-    private stkKid: string;
-    private skKid: string;
+    private keyId: string;
     private b64Encode: Base64Encode;
     private browserCrypto: BrowserCrypto;
     private ctx: Uint8Array;
@@ -38,11 +38,15 @@ export class BoundTokenRequest {
         this.payload = payload;
         this.keyDerivation = new KeyDerivation(CryptoLengths.DERIVED_KEY, CryptoLengths.PRF_OUTPUT, CryptoLengths.COUNTER);
         this.keyStore = keyStore;
-        this.stkKid = request.stkKid!;
-        this.skKid = request.skKid!;
         this.b64Encode = new Base64Encode();
         this.browserCrypto = browserCrypto;
         this.ctx = new CtxGenerator(this.browserCrypto).generateCtx();
+
+        if (request.skKid) {
+            this.keyId = request.skKid;
+        } else {
+            throw BrowserAuthError.createMissingSessionKeyIdError();
+        }
     }
 
     /**

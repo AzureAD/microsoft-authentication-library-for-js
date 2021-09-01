@@ -10,6 +10,7 @@ import { CryptoAlgorithms, CryptoLengths, CryptoKeyFormats, KeyDerivationLabels,
 import { CachedKeyPair } from "./CryptoOps";
 import { JsonWebEncryption } from "./JsonWebEncryption";
 import { KeyDerivation } from "./KeyDerivation";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 
 /**
  * This class represents a Bound Server Authorization Response that has been encrypted using a server-generated
@@ -28,7 +29,11 @@ export class BoundTokenResponse {
         this.responseJwe = new JsonWebEncryption(boundTokenResponse.response_jwe);
         this.keyDerivation = new KeyDerivation(CryptoLengths.DERIVED_KEY, CryptoLengths.PRF_OUTPUT, CryptoLengths.COUNTER);
         this.keyStore = keyStore;
-        this.keyId = request.stkJwk!;
+        if (request.stkJwk) {
+            this.keyId = request.stkJwk;
+        } else {
+            throw BrowserAuthError.createMissingStkKidError();
+        }
     }
 
     /**
