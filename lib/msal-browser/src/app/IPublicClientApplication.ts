@@ -24,7 +24,7 @@ export interface IPublicClientApplication {
     getAccountByLocalId(localId: string): AccountInfo | null;
     getAccountByUsername(userName: string): AccountInfo | null;
     getAllAccounts(): AccountInfo[];
-    handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null>;
+    handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null>; /* handle redir promise*/
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult>;
     loginRedirect(request?: RedirectRequest): Promise<void>;
     logout(logoutRequest?: EndSessionRequest): Promise<void>;

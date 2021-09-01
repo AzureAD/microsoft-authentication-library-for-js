@@ -12,7 +12,7 @@
  * - localAccountId         - Local, tenant-specific account identifer for this account object, usually used in legacy cases
  * - name                   - Full name for the account, including given name and family name
  * - idTokenClaims          - Object contains claims from ID token
- * - localAccountId         - The user's account ID
+ * - localAccountId         - The user's local account ID 
  */
 export type AccountInfo = {
     homeAccountId: string; /* home account id*/
