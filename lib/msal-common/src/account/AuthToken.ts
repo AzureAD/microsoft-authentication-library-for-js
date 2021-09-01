@@ -14,7 +14,7 @@ import { ICrypto } from "../crypto/ICrypto";
  */
 export class AuthToken {
 
-    // Raw Token string
+    // Raw Token string here
     rawToken: string;
     // Claims inside token
     claims: TokenClaims;
