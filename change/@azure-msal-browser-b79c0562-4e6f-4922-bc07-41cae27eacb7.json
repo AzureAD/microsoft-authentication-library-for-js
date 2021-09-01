@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "changes in browser and common- 1",
-  "packageName": "@azure/msal-browser",
-  "email": "bmahal@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -2,6 +2,27 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Wed, 01 Sep 2021 16:43:47 GMT",
+      "tag": "@azure/msal-browser_v2.18.3",
+      "version": "2.18.3",
+      "comments": {
+        "patch": [
+          {
+            "comment": "suggested changes",
+            "author": "bmahal@microsoft.com",
+            "commit": "08c60beed605754943fd05f6f7dade381813797a",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "changes in browser and common- 1",
+            "author": "bmahal@microsoft.com",
+            "commit": "57e585e62916a2a2a324b7ec4115f8ddffed94e7",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 31 Aug 2021 19:14:50 GMT",
       "tag": "@azure/msal-browser_v2.18.2",
       "version": "2.18.2",
