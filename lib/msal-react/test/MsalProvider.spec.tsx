@@ -5,7 +5,7 @@
 
 /* eslint-disable react/no-multi-comp */
 import React from "react";
-import { act, render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen } from "@testing-library/react";
 import "@testing-library/jest-dom";
 import { AccountInfo, Configuration, EventCallbackFunction, EventMessage, EventType, InteractionType, InteractionStatus, PublicClientApplication } from "@azure/msal-browser";
 import { testAccount, TEST_CONFIG } from "./TestConstants";
@@ -32,9 +32,30 @@ describe("MsalProvider tests", () => {
             return eventId.toString();
         });
         jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
-            return new Promise(() => {
-                // Prevent handleRedirectPromise from resolving and updating inProgress
+            const eventStart: EventMessage = {
+                eventType: EventType.HANDLE_REDIRECT_START,
+                interactionType: InteractionType.Redirect,
+                payload: null,
+                error: null,
+                timestamp: 10000
+            };
+
+            eventCallbacks.forEach((callback) => {
+                callback(eventStart);
             });
+
+            const eventEnd: EventMessage = {
+                eventType: EventType.HANDLE_REDIRECT_END,
+                interactionType: InteractionType.Redirect,
+                payload: null,
+                error: null,
+                timestamp: 10000
+            };
+
+            eventCallbacks.forEach((callback) => {
+                callback(eventEnd);
+            });
+            return Promise.resolve(null);
         });
 
         jest.spyOn(pca, "getAllAccounts").mockImplementation(() => cachedAccounts);
@@ -47,14 +68,7 @@ describe("MsalProvider tests", () => {
     });
 
     describe("Event callback tests", () => {
-        test("HandleRedirect Start and End", async () => {              
-            let handleRedirectResolve = () => {};
-            const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
-                return new Promise((resolve) => {
-                    // Prevent handleRedirectPromise from resolving and updating inProgress
-                    handleRedirectResolve = resolve;
-                });
-            });
+        test("HandleRedirect Start and End", async () => {
             const TestComponent = ({accounts, inProgress}: IMsalContext) => {    
                 if (accounts.length === 1 && inProgress === InteractionStatus.None) {
                     return <p>Test Success!</p>;
@@ -88,7 +102,6 @@ describe("MsalProvider tests", () => {
                 });
             });
     
-            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
             expect(await screen.findByText("In Progress")).toBeInTheDocument();
 
             eventMessage = {
@@ -99,8 +112,6 @@ describe("MsalProvider tests", () => {
                 timestamp: 10000
             };
             cachedAccounts = [testAccount];
-
-            handleRedirectResolve();
 
             act(() => {
                 eventCallbacks.forEach((callback) => {
@@ -437,9 +448,7 @@ describe("MsalProvider tests", () => {
 
         test("AcquireTokenRedirect Failure", async () => {        
             jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
-                return new Promise(() => {
-                    // Prevent handleRedirectPromise from resolving and updating inProgress
-                });
+                return Promise.reject(new Error("TEST ERROR: This should not break application flow"));
             });      
 
             const TestComponent = ({accounts, inProgress}: IMsalContext) => {
@@ -550,7 +559,7 @@ describe("MsalProvider tests", () => {
         });
 
         test("AcquireTokenPopup Failure", async () => {              
-            const TestComponent = ({accounts, inProgress}: IMsalContext) => {    
+            const TestComponent = ({accounts, inProgress}: IMsalContext) => {   
                 if (accounts.length === 1 && inProgress === InteractionStatus.None) {
                     return <p>Test Success!</p>;
                 } else if (accounts.length === 0 && inProgress === InteractionStatus.AcquireToken) {
@@ -603,12 +612,8 @@ describe("MsalProvider tests", () => {
             expect(await screen.findByText("Test Success!")).toBeInTheDocument();
         });
 
-        test("AcquireTokenSilent Success", async () => {     
-            const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
-                return Promise.resolve(null);
-            });
-
-            const TestComponent = ({accounts, inProgress}: IMsalContext) => {    
+        test("AcquireTokenSilent Success", async () => {
+            const TestComponent = ({accounts, inProgress}: IMsalContext) => {
                 if (accounts.length === 1 && inProgress === InteractionStatus.None) {
                     return <p>Test Success!</p>;
                 } else if (accounts.length === 0 && inProgress === InteractionStatus.None) {
@@ -641,7 +646,6 @@ describe("MsalProvider tests", () => {
                 });
             });
     
-            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
             expect(await screen.findByText("AcquireTokenSilent does not update inProgress value")).toBeInTheDocument();
 
             eventMessage = {
@@ -662,11 +666,7 @@ describe("MsalProvider tests", () => {
             expect(await screen.findByText("Test Success!")).toBeInTheDocument();
         });
 
-        test("AcquireTokenSilent Failure", async () => {  
-            const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
-                return Promise.resolve(null);
-            });
-
+        test("AcquireTokenSilent Failure", async () => {
             const TestComponent = ({accounts, inProgress}: IMsalContext) => {    
                 if (accounts.length === 1 && inProgress === InteractionStatus.None) {
                     return <p>Test Success!</p>;
@@ -700,7 +700,6 @@ describe("MsalProvider tests", () => {
                 });
             });
     
-            await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
             expect(await screen.findByText("AcquireTokenSilent does not update inProgress value")).toBeInTheDocument();
 
             eventMessage = {
