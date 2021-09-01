@@ -59,7 +59,7 @@ export class RefreshTokenEntity extends CredentialEntity {
         const rtEntity = new RefreshTokenEntity();
 
         rtEntity.clientId = clientId;
-        rtEntity.credentialType = CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME;
+        rtEntity.credentialType = CredentialType.REFRESH_TOKEN;
         rtEntity.environment = environment;
         rtEntity.homeAccountId = homeAccountId;
         rtEntity.secret = refreshToken;
@@ -73,6 +73,7 @@ export class RefreshTokenEntity extends CredentialEntity {
         
         // Create Refresh Token With AuthScheme instead of bearer refresh token
         if (rtEntity.tokenType === AuthenticationScheme.POP) {
+            rtEntity.credentialType = CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME;
             // Make sure keyId is present and add it to credential
             if (!stkKid) {
                 throw ClientAuthError.createNoStkKidInServerResponseError();
