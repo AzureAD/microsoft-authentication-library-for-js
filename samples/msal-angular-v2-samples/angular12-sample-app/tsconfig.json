@@ -17,6 +17,9 @@
       "es2018",
       "dom"
     ],
+    "types": [
+      "jest"
+    ],
     "paths": { 
       "@angular/*": ["./node_modules/@angular/*"] 
     }

@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import "jest";
 import puppeteer from "puppeteer";
 import { Screenshot, createFolder, setupCredentials } from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
@@ -34,6 +33,7 @@ const config = require("../config/AAD.json");
 
 describe('Device Code AAD PPE Tests', () => {
     jest.setTimeout(45000);
+    jest.retryTimes(1);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
     let page: puppeteer.Page;
