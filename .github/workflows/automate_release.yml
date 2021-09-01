@@ -33,9 +33,7 @@ jobs:
   
       - id: step1
         name: Extract Head Branch Name
-        run: |
-          echo "BRANCH=$(echo ${{ github.head_ref }})" >> $GITHUB_ENV
-          echo "set-output name=test::$BRANCH"
+        run: echo "set-output name=test::${{ github.head_ref }}"
       
       # Install node_modules  here
       - name: Use Node.js
