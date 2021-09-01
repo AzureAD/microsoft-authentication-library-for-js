@@ -39,7 +39,7 @@ export class BrowserCacheManager extends CacheManager {
         this.cacheConfig = cacheConfig;
         this.logger = logger;
 
-        this.internalStorage = new MemoryStorage();
+        this.internalStorage = new MemoryStorage(); /* internal sotrage*/
         this.browserStorage = this.setupBrowserStorage(this.cacheConfig.cacheLocation);
         this.temporaryCacheStorage = this.setupTemporaryCacheStorage(this.cacheConfig.cacheLocation);
 
