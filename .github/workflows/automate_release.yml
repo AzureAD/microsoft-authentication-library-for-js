@@ -85,12 +85,16 @@ jobs:
           GITHUB_EVENT: ${{ toJson(github.event.push) }}
         run: echo "$GITHUB_EVENT"
 
+
   update_master:
     needs: release
-    if:  "contains(${{needs.release.outputs.output1}}, 'release-staging')"
     name: Create PR from dev to master post release 
     runs-on: ubuntu-latest
+    if:  contains(${{needs.release.outputs.output1}}, 'release-staging')
     steps:
+
+      - run: echo "${{needs.release.outputs.output1}}"
+     
 
       # Check-out repo
       - uses: actions/checkout@v2
@@ -100,7 +104,6 @@ jobs:
       - name: Extract Head Branch Name
         run: echo "BRANCH=$(echo ${{ github.head_ref }})" >> $GITHUB_ENV
 
-      - run: echo ${{needs.release.outputs.output1}} 
         
       # Install node_modules here
       - name: Use Node.js
@@ -111,7 +114,7 @@ jobs:
 
     
       - name: Create Pull Request
-        if: github.event.pull_request.merged == true
+        if: github.event.pull_request.merged == true & contains(${{needs.release.outputs.output1}}, 'release-staging')
         id: pr
         uses: peter-evans/create-pull-request@v3
         with:
