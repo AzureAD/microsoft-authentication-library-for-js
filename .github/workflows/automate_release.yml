@@ -20,6 +20,9 @@ jobs:
     if: github.event.pull_request.merged == true
     name: Bump versions and create changelog PR --updation
     runs-on: ubuntu-latest
+    outputs:
+      output1: ${{ steps.step1.outputs.test }}
+      
     steps:
 
       # Check-out repo
@@ -28,8 +31,11 @@ jobs:
           fetch-depth: 0
 
   
-      - name: Extract Head Branch Name
-        run: echo "BRANCH=$(echo ${{ github.head_ref }})" >> $GITHUB_ENV
+      - id: step1
+        name: Extract Head Branch Name
+        run: |
+          echo "BRANCH=$(echo ${{ github.head_ref }})" >> $GITHUB_ENV
+          set-output name=test::${{BRANCH}}
       
       # Install node_modules  here
       - name: Use Node.js
@@ -83,7 +89,7 @@ jobs:
 
   update_master:
     needs: release
-    if:  "contains($GITHUB_HEAD_REF, 'release-staging')"
+    if:  "contains(${{needs.release.outputs.output1}}, 'release-staging')"
     name: Create PR from dev to master post release 
     runs-on: ubuntu-latest
     steps:
@@ -95,6 +101,8 @@ jobs:
           
       - name: Extract Head Branch Name
         run: echo "BRANCH=$(echo ${{ github.head_ref }})" >> $GITHUB_ENV
+
+      - run: echo ${{needs.release.outputs.output1}} 
         
       # Install node_modules here
       - name: Use Node.js
