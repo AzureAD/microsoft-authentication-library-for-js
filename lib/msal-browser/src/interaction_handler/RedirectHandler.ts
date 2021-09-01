@@ -129,7 +129,7 @@ export class RedirectHandler extends InteractionHandler {
 
         // Remove throttle if it exists
         if (clientId) {
-            ThrottlingUtils.removeThrottle(this.browserStorage, clientId, this.authCodeRequest.authority, this.authCodeRequest.scopes, undefined, this.authCodeRequest);
+            ThrottlingUtils.removeThrottle(this.browserStorage, clientId, this.authCodeRequest, undefined);
         }
 
         // Acquire token with retrieved code.

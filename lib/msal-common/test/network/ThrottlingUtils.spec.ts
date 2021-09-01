@@ -244,7 +244,7 @@ describe("ThrottlingUtils", () => {
                 correlationId: TEST_CONFIG.CORRELATION_ID
             }
 
-            const res = ThrottlingUtils.removeThrottle(cache, clientId, request.authority, request.scopes, undefined, request);
+            const res = ThrottlingUtils.removeThrottle(cache, clientId, request, undefined);
 
             sinon.assert.callCount(removeItemStub, 1);
             expect(res).toBe(true);
@@ -261,7 +261,7 @@ describe("ThrottlingUtils", () => {
                 correlationId: TEST_CONFIG.CORRELATION_ID
             }
 
-            const res = ThrottlingUtils.removeThrottle(cache, clientId, request.authority, request.scopes, undefined, request);
+            const res = ThrottlingUtils.removeThrottle(cache, clientId, request, undefined);
 
             sinon.assert.callCount(removeItemStub, 1);
             expect(res).toBe(false);
