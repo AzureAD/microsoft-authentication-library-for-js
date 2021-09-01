@@ -56,7 +56,7 @@ jobs:
           echo github.head_ref: ${{ github.head_ref }}
           echo github.ref: ${{ github.ref }}
    
-      - if: ! contains(github.head_ref, 'release')
+      - if: "!contains(github.head_ref, 'release')"
         name: Create Pull Request
         id: pr
         uses: peter-evans/create-pull-request@v3
@@ -83,7 +83,7 @@ jobs:
 
   update_master:
     needs: release
-    if:  contains(github.head_ref, 'release-staging') 
+    if:  "contains(github.head_ref, 'release-staging')"
     name: Create PR from dev to master post release 
     runs-on: ubuntu-latest
     steps:
