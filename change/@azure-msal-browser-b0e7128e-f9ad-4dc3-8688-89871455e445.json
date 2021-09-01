@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "cc2(minor-browser, patch-common)",
+  "packageName": "@azure/msal-browser",
+  "email": "bmahal@microsoft.com",
+  "dependentChangeType": "patch"
+}
