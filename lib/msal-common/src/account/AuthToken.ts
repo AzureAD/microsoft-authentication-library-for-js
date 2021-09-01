@@ -10,7 +10,7 @@ import { StringUtils } from "../utils/StringUtils";
 import { ICrypto } from "../crypto/ICrypto";
 
 /**
- * JWT Token representation class. Parses token string and generates claims object.
+ * JWT Token representation class. it parses token string and generates claims object.
  */
 export class AuthToken {
 
