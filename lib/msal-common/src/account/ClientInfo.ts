@@ -9,7 +9,7 @@ import { ICrypto } from "../crypto/ICrypto";
 import { Separators, Constants } from "../utils/Constants";
 
 /**
- * Client info object which consists of two IDs. Need to add more info here.
+ * Client info object which consists of two IDs. Need to add more info . 
  */
 export type ClientInfo = {
     uid: string,
