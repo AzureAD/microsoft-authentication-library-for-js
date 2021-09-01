@@ -2,7 +2,8 @@
 name: Automate Release
 
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
       - dev
   workflow_dispatch:
@@ -16,19 +17,20 @@ on:
 
 jobs:
   release:
+    if: github.event.pull_request.merged == true
     name: Bump versions and create changelog PR --updation
     runs-on: ubuntu-latest
     steps:
 
-      - name: Extract Branch Name
-        run: echo "BRANCH=$(echo ${GITHUB_REF##*/})" >> $GITHUB_ENV
-      
       # Check-out repo
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      
 
+  
+      - name: Extract Head Branch Name
+        run: echo "BRANCH=$(echo ${{ github.head_ref }})" >> $GITHUB_ENV
+      
       # Install node_modules  here
       - name: Use Node.js
         uses: actions/setup-node@v2
@@ -36,7 +38,8 @@ jobs:
             cache: 'npm'
       - run: npm ci
 
-      - name: bump package versions
+      - if: ! contains(github.head_ref, 'release')
+        name: bump package versions
         run: node node_modules/beachball/bin/beachball bump -b origin/dev --bumpDeps false && node release-scripts/updateVersion.js
   
 
@@ -53,8 +56,8 @@ jobs:
           echo github.head_ref: ${{ github.head_ref }}
           echo github.ref: ${{ github.ref }}
    
-
-      - name: Create Pull Request
+      - if: ! contains(github.head_ref, 'release')
+        name: Create Pull Request
         id: pr
         uses: peter-evans/create-pull-request@v3
         with:
@@ -67,19 +70,6 @@ jobs:
             New release PR
           draft: false
 
-      - name: Step that prints name of pull request's base branch
-        run: |
-           echo "Pull request's base branch is: ${BASE_BRANCH}"
-        env:
-              BASE_BRANCH: ${{ github.base_ref }}
-        if: github.event_name == 'pull_request'
-
-      - name: Echo out branch values
-        run: | 
-          echo github.base_ref: ${{ github.base_ref }}
-          echo github.head_ref: ${{ github.head_ref }}
-          echo github.ref: ${{ github.ref }}
-
       - name: Dump GitHub context
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
@@ -90,3 +80,38 @@ jobs:
         env:
           GITHUB_EVENT: ${{ toJson(github.event.push) }}
         run: echo "$GITHUB_EVENT"
+
+  update_master:
+    needs: release
+    if:  contains(github.head_ref, 'release-staging') 
+    name: Create PR from dev to master post release 
+    runs-on: ubuntu-latest
+    steps:
+
+      # Check-out repo
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      # Install node_modules here
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+        with:
+            cache: 'npm'
+      - run: npm ci
+
+    
+      - name: Create Pull Request
+        if: github.event.pull_request.merged == true
+        id: pr
+        uses: peter-evans/create-pull-request@v3
+        with:
+          commit-message: PR:dev->master post release 
+          committer: GitHub <noreply@github.com>
+          author: ${{ github.actor }} <${{ github.actor }}@microsoft.com>
+          branch: dev
+          base: master
+          title: 'Creating PR From :dev to master post release' 
+          body: |
+            New  PR post-release 
+          draft: false
