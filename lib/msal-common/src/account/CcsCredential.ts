@@ -10,5 +10,5 @@ export type CcsCredential = { /* store ccs credential*/
 
 export enum CcsCredentialType {
     HOME_ACCOUNT_ID = "home_account_id", /* home account id*/
-    UPN = "UPN" /* upn*/
+    UPN = "UPN" /* upn here*/
 }
