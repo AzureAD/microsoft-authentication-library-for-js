@@ -114,7 +114,13 @@ jobs:
 
     
       - name: Create Pull Request
-        if: github.event.pull_request.merged == true && "contains(github.head_ref, 'release')"
+        if: >-  
+            ${{
+            github.event.pull_request.merged == true &&
+            (
+              contains(github.head_ref, 'release')
+            )
+            }}
         id: pr
         uses: peter-evans/create-pull-request@v3
         with:
