@@ -38,7 +38,7 @@ jobs:
             cache: 'npm'
       - run: npm ci
 
-      - if: ! contains(github.head_ref, 'release')
+      - if: "!contains(github.head_ref, 'release')"
         name: bump package versions
         run: node node_modules/beachball/bin/beachball bump -b origin/dev --bumpDeps false && node release-scripts/updateVersion.js
   
