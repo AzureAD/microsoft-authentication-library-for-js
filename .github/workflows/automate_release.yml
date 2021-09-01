@@ -90,7 +90,7 @@ jobs:
     needs: release
     name: Create PR from dev to master post release 
     runs-on: ubuntu-latest
-    if:  contains( ${{ github.head_ref }}, 'release-staging')
+    if: "contains(github.head_ref, 'release')"
     steps:
 
       - run: echo "${{needs.release.outputs.output1}}"
@@ -114,7 +114,7 @@ jobs:
 
     
       - name: Create Pull Request
-        if: github.event.pull_request.merged == true & contains( ${{ github.head_ref }}, 'release-staging')
+        if: github.event.pull_request.merged == true && "contains(github.head_ref, 'release')"
         id: pr
         uses: peter-evans/create-pull-request@v3
         with:
