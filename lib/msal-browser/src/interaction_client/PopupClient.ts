@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, AccountEntity, UrlString, AuthError } from "@azure/msal-common";
+import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, UrlString, AuthError } from "@azure/msal-common";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { StandardInteractionClient } from "./StandardInteractionClient";
-import { PopupUtils } from "../utils/PopupUtils";
+import { PopupWindowAttributes, PopupUtils } from "../utils/PopupUtils";
 import { EventType } from "../event/EventType";
 import { InteractionType, ApiId, TemporaryCacheKeys, BrowserConstants } from "../utils/BrowserConstants";
 import { PopupHandler, PopupParams } from "../interaction_handler/PopupHandler";
@@ -24,16 +24,18 @@ export class PopupClient extends StandardInteractionClient {
         try {
             const validRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
             const popupName = PopupUtils.generatePopupName(this.config.auth.clientId, validRequest);
+            const popupWindowAttributes = request.popupWindowAttributes || {};
 
             // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
             if (this.config.system.asyncPopups) {
                 this.logger.verbose("asyncPopups set to true, acquiring token");
-                return this.acquireTokenPopupAsync(validRequest, popupName);
+                // Passes on popup position and dimensions if in request
+                return this.acquireTokenPopupAsync(validRequest, popupName, popupWindowAttributes);
             } else {
                 // asyncPopups flag is set to false. Opens popup before acquiring token.
                 this.logger.verbose("asyncPopup set to false, opening popup before acquiring token");
-                const popup = PopupUtils.openSizedPopup("about:blank", popupName);
-                return this.acquireTokenPopupAsync(validRequest, popupName, popup);
+                const popup = PopupUtils.openSizedPopup("about:blank", popupName, popupWindowAttributes, this.logger);
+                return this.acquireTokenPopupAsync(validRequest, popupName, popupWindowAttributes, popup);
             }
         } catch (e) {
             return Promise.reject(e);
@@ -50,20 +52,21 @@ export class PopupClient extends StandardInteractionClient {
             const validLogoutRequest = this.initializeLogoutRequest(logoutRequest);
 
             const popupName = PopupUtils.generateLogoutPopupName(this.config.auth.clientId, validLogoutRequest);
-            let popup;
+            const authority = logoutRequest && logoutRequest.authority;
+            const mainWindowRedirectUri = logoutRequest && logoutRequest.mainWindowRedirectUri;
+            const popupWindowAttributes = logoutRequest?.popupWindowAttributes || {};
 
             // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
             if (this.config.system.asyncPopups) {
                 this.logger.verbose("asyncPopups set to true");
+                // Passes on popup position and dimensions if in request
+                return this.logoutPopupAsync(validLogoutRequest, popupName, popupWindowAttributes, authority, undefined, mainWindowRedirectUri);
             } else {
                 // asyncPopups flag is set to false. Opens popup before logging out.
                 this.logger.verbose("asyncPopup set to false, opening popup");
-                popup = PopupUtils.openSizedPopup("about:blank", popupName);
+                const popup = PopupUtils.openSizedPopup("about:blank", popupName, popupWindowAttributes, this.logger);
+                return this.logoutPopupAsync(validLogoutRequest, popupName, popupWindowAttributes, authority, popup, mainWindowRedirectUri);
             }
-
-            const authority = logoutRequest && logoutRequest.authority;
-            const mainWindowRedirectUri = logoutRequest && logoutRequest.mainWindowRedirectUri;
-            return this.logoutPopupAsync(validLogoutRequest, popupName, authority, popup, mainWindowRedirectUri);
         } catch (e) {
             // Since this function is synchronous we need to reject
             return Promise.reject(e);
@@ -72,12 +75,14 @@ export class PopupClient extends StandardInteractionClient {
 
     /**
      * Helper which obtains an access_token for your API via opening a popup window in the user's browser
+     * @param validRequest
      * @param popupName
      * @param popup
+     * @param popupWindowAttributes
      *
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
-    private async acquireTokenPopupAsync(validRequest: AuthorizationUrlRequest, popupName: string, popup?: Window|null): Promise<AuthenticationResult> {
+    private async acquireTokenPopupAsync(validRequest: AuthorizationUrlRequest, popupName: string, popupWindowAttributes: PopupWindowAttributes, popup?: Window|null): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenPopupAsync called");
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup);
 
@@ -98,7 +103,8 @@ export class PopupClient extends StandardInteractionClient {
             // Show the UI once the url has been created. Get the window handle for the popup.
             const popupParameters: PopupParams = {
                 popup,
-                popupName
+                popupName,
+                popupWindowAttributes
             };
             const popupWindow: Window = interactionHandler.initiateAuthRequest(navigateUrl, popupParameters);
             this.eventHandler.emitEvent(EventType.POPUP_OPENED, InteractionType.Popup, {popupWindow}, null);
@@ -108,7 +114,7 @@ export class PopupClient extends StandardInteractionClient {
             const state = this.validateAndExtractStateFromHash(hash, InteractionType.Popup, validRequest.correlationId);
 
             // Remove throttle if it exists
-            ThrottlingUtils.removeThrottle(this.browserStorage, this.config.auth.clientId, authCodeRequest.authority, authCodeRequest.scopes);
+            ThrottlingUtils.removeThrottle(this.browserStorage, this.config.auth.clientId, authCodeRequest);
 
             // Handle response from hash string.
             const result = await interactionHandler.handleCodeResponse(hash, state, authClient.authority, this.networkClient);
@@ -132,18 +138,23 @@ export class PopupClient extends StandardInteractionClient {
 
     /**
      * 
-     * @param request 
+     * @param validRequest 
      * @param popupName 
      * @param requestAuthority
      * @param popup 
+     * @param mainWindowRedirectUri 
+     * @param popupWindowAttributes 
      */
-    private async logoutPopupAsync(validRequest: CommonEndSessionRequest, popupName: string, requestAuthority?: string, popup?: Window|null, mainWindowRedirectUri?: string): Promise<void> {
+    private async logoutPopupAsync(validRequest: CommonEndSessionRequest, popupName: string, popupWindowAttributes: PopupWindowAttributes, requestAuthority?: string, popup?: Window|null, mainWindowRedirectUri?: string): Promise<void> {
         this.logger.verbose("logoutPopupAsync called");
         this.eventHandler.emitEvent(EventType.LOGOUT_START, InteractionType.Popup, validRequest);
 
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.logoutPopup);
         
         try {
+            // Clear cache on logout
+            await this.clearCacheOnLogout(validRequest.account);
+
             this.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
             // Initialize the client
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, requestAuthority);
@@ -152,19 +163,11 @@ export class PopupClient extends StandardInteractionClient {
             // Create logout string and navigate user window to logout.
             const logoutUri: string = authClient.getLogoutUri(validRequest);
 
-            if (!validRequest.account || AccountEntity.accountInfoIsEqual(validRequest.account, this.browserStorage.getActiveAccount(), false)) {
-                this.logger.verbose("Setting active account to null");
-                this.browserStorage.setActiveAccount(null);
-            }
-
-            // Clear cache on logout
-            await authClient.clearCacheOnLogout(validRequest);
-
             this.eventHandler.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Popup, validRequest);
 
             const popupUtils = new PopupUtils(this.browserStorage, this.logger);
             // Open the popup window to requestUrl.
-            const popupWindow = popupUtils.openPopup(logoutUri, popupName, popup);
+            const popupWindow = popupUtils.openPopup(logoutUri, {popupName, popupWindowAttributes, popup});
             this.eventHandler.emitEvent(EventType.POPUP_OPENED, InteractionType.Popup, {popupWindow}, null);
 
             try {
@@ -204,6 +207,7 @@ export class PopupClient extends StandardInteractionClient {
             
             this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY));
             this.eventHandler.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Popup, null, e);
+            this.eventHandler.emitEvent(EventType.LOGOUT_END, InteractionType.Popup);
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }
