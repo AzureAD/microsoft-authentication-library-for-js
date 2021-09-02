@@ -9,7 +9,6 @@ import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { CryptoAlgorithms, CryptoLengths, CryptoKeyFormats, KeyDerivationLabels, KEY_USAGES, CRYPTO_KEY_CONFIG } from "../utils/CryptoConstants";
 import { KeyDerivation } from "./KeyDerivation";
 import { CtxGenerator } from "./CtxGenerator";
-import { bytesToBase64 } from "./TestDecoder";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { Base64Encode } from "../encode/Base64Encode";
 import { BrowserCrypto } from "./BrowserCrypto";
@@ -33,6 +32,7 @@ export class BoundTokenRequest {
     private b64Encode: Base64Encode;
     private browserCrypto: BrowserCrypto;
     private ctx: Uint8Array;
+    private base64Encoder: Base64Encode;
 
     constructor(request: CommonRefreshTokenRequest, payload: BoundRefreshTokenRedemptionPayload, keyStore: DatabaseStorage, browserCrypto: BrowserCrypto) {
         this.payload = payload;
@@ -41,6 +41,7 @@ export class BoundTokenRequest {
         this.b64Encode = new Base64Encode();
         this.browserCrypto = browserCrypto;
         this.ctx = new CtxGenerator(this.browserCrypto).generateCtx();
+        this.base64Encoder = new Base64Encode();
 
         if (request.skKid) {
             this.keyId = request.skKid;
@@ -72,7 +73,7 @@ export class BoundTokenRequest {
      */
     private getHeader(): BoundTokenRequestHeader {
         return {
-            ctx: bytesToBase64(this.ctx),
+            ctx: this.base64Encoder.base64EncArr(this.ctx),
             alg: CryptoAlgorithms.HS256
         };
     }
@@ -107,7 +108,7 @@ export class BoundTokenRequest {
      */
     private async getSessionKey(): Promise<CryptoKey> {
         // Retrieve content encryption key (derivation key) from Key Store
-        const contentEncryptionKey: CryptoKey = await this.keyStore.get<CryptoKey>(DBTableNames.symmetricKeys, this.skKid);
+        const contentEncryptionKey: CryptoKey = await this.keyStore.get<CryptoKey>(DBTableNames.symmetricKeys, this.keyId);
         const hashedInputData = await this.generateKDFInputData();
         // Derive session key
         const derivedKeyData = new Uint8Array(await this.keyDerivation.computeKDFInCounterMode(contentEncryptionKey, hashedInputData, KeyDerivationLabels.SIGNING));

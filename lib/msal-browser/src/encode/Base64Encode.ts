@@ -54,7 +54,7 @@ export class Base64Encode {
      * Base64 encode byte array
      * @param aBytes 
      */
-    private base64EncArr(aBytes: Uint8Array): string {  
+    base64EncArr(aBytes: Uint8Array): string {
         const eqLen = (3 - (aBytes.length % 3)) % 3;
         let sB64Enc = "";
       
