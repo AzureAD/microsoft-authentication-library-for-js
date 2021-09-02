@@ -127,7 +127,7 @@ If you find a security issue with our libraries or services please report it to 
 
 ## Share your experience
 
-How easy was it to use this library? And valuable did you find it? Anonymously share your experience with us [here](https://ncv.microsoft.com/F22aBJtI8l).
+How easy was it to use this library? How valuable did you find it? Anonymously share your experience with us [here](https://ncv.microsoft.com/F22aBJtI8l).
 
 ## License
 

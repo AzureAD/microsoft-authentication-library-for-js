@@ -1,5 +1,3 @@
-[Got Feedback?](https://ncv.microsoft.com/98iH6JcTda)
-
 Microsoft Authentication Library Preview for AngularJS (MSAL AngularJS)
 ====================================
 
@@ -339,7 +337,7 @@ We highly recommend you ask your questions on Stack Overflow first and browse ex
 - [User Voice page](https://feedback.azure.com/forums/169401-azure-active-directory) to provide recommendations and/or feedback
     
 ## Share Your Experience
-How easy was it to use this library? And valuable did you find it? Anonymously share your experience with us [here](https://ncv.microsoft.com/98iH6JcTda).
+How easy was it to use this library? How valuable did you find it? Anonymously share your experience with us [here](https://ncv.microsoft.com/98iH6JcTda).
 
 ## Contribute
 
@@ -363,10 +361,6 @@ This library controls how users sign-in and access services. We recommend you al
 ## Security Reporting
 
 If you find a security issue with our libraries or services please report it to [secure@microsoft.com](mailto:secure@microsoft.com) with as much detail as possible. Your submission may be eligible for a bounty through the [Microsoft Bounty](http://aka.ms/bugbounty) program. Please do not post security issues to GitHub Issues or any other public site. We will contact you shortly upon receiving the information. We encourage you to get notifications of when security incidents occur by visiting [this page](https://technet.microsoft.com/security/dd252948) and subscribing to Security Advisory Alerts.
-    
-## Share your experience
-    
-How easy was it to use this library? And valuable did you find it? Anonymously share your experience with us [here](https://ncv.microsoft.com/98iH6JcTda).
 
 ## License
 

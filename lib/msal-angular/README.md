@@ -130,7 +130,6 @@ This library controls how users sign-in and access services. We recommend you al
 ## Share Your Experience
 How easy was it to use this library? How valuable did you find it? Anonymously share your experience with us [here](https://ncv.microsoft.com/0v3roKKyf8).
 
-
 ## Contribute
 
 We enthusiastically welcome contributions and feedback. Please read the [contributing guide](contributing.md) before you begin.

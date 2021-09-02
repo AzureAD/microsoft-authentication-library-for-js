@@ -171,7 +171,7 @@ Generate code coverage by adding the flag --coverage. No additional setup needed
 If you find a security issue with our libraries or services please report it to [secure@microsoft.com](mailto:secure@microsoft.com) with as much detail as possible. Your submission may be eligible for a bounty through the [Microsoft Bounty](http://aka.ms/bugbounty) program. Please do not post security issues to GitHub Issues or any other public site. We will contact you shortly upon receiving the information. We encourage you to get notifications of when security incidents occur by visiting [this page](https://technet.microsoft.com/security/dd252948) and subscribing to Security Advisory Alerts.
 
 ## Share your experience
-How easy was it to use this library? And valuable did you find it? Anonymously share your experience with us [here](https://ncv.microsoft.com/tlmvCvfgKl).
+How easy was it to use this library? How valuable did you find it? Anonymously share your experience with us [here](https://ncv.microsoft.com/tlmvCvfgKl).
 
 ## License
 
