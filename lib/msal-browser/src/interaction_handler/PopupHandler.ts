@@ -8,12 +8,13 @@ import { InteractionHandler, InteractionParams } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { PopupUtils } from "../utils/PopupUtils";
+import { PopupWindowAttributes, PopupUtils } from "../utils/PopupUtils";
 import { BrowserUtils } from "../utils/BrowserUtils";
 
 export type PopupParams = InteractionParams & {
     popup?: Window|null;
-    popupName: string
+    popupName: string;
+    popupWindowAttributes: PopupWindowAttributes
 };
 
 /**
@@ -41,7 +42,7 @@ export class PopupHandler extends InteractionHandler {
             this.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
             this.browserRequestLogger.infoPii(`Navigate to: ${requestUrl}`);
             // Open the popup window to requestUrl.
-            return this.popupUtils.openPopup(requestUrl, params.popupName, params.popup);
+            return this.popupUtils.openPopup(requestUrl, params);
         } else {
             // Throw error if request URL is empty.
             this.browserRequestLogger.error("Navigate url is empty");
