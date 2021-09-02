@@ -95,7 +95,7 @@ export class ThrottlingUtils {
         ) * 1000);
     }
 
-    static removeThrottle(cacheManager: CacheManager, clientId: string, request: BaseAuthRequest, homeAccountIdentifier?: string, ): boolean {
+    static removeThrottle(cacheManager: CacheManager, clientId: string, request: BaseAuthRequest, homeAccountIdentifier?: string): boolean {
         const thumbprint: RequestThumbprint = {
             clientId: clientId,
             authority: request.authority,
