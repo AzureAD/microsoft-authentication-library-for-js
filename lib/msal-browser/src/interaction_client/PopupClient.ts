@@ -114,7 +114,7 @@ export class PopupClient extends StandardInteractionClient {
             const state = this.validateAndExtractStateFromHash(hash, InteractionType.Popup, validRequest.correlationId);
 
             // Remove throttle if it exists
-            ThrottlingUtils.removeThrottle(this.browserStorage, this.config.auth.clientId, authCodeRequest, undefined);
+            ThrottlingUtils.removeThrottle(this.browserStorage, this.config.auth.clientId, authCodeRequest);
 
             // Handle response from hash string.
             const result = await interactionHandler.handleCodeResponse(hash, state, authClient.authority, this.networkClient);
