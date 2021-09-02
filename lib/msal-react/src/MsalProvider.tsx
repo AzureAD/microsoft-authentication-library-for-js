@@ -72,17 +72,11 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
 
     useEffect(() => {
         const callbackId = instance.addEventCallback((message: EventMessage) => {
-            const status = EventMessageUtils.getInteractionStatusFromEvent(message);
+            const status = EventMessageUtils.getInteractionStatusFromEvent(message, inProgressRef.current);
             if (status !== null) {
-                if (inProgressRef.current === InteractionStatus.HandleRedirect && status === InteractionStatus.None && message.eventType !== EventType.HANDLE_REDIRECT_END) {
-                    logger.verbose(`MsalProvider - ${message.eventType} - handleRedirectPromise is in progress. inProgress state will be set to 'None' when complete.`);
-                } else if (message.eventType === EventType.HANDLE_REDIRECT_END && inProgressRef.current !== InteractionStatus.HandleRedirect) {
-                    logger.verbose(`MsalProvider - ${message.eventType} - handleRedirectPromise has finished but a different interaction is currently in progress. Can't set inProgress to 'None'`);
-                } else {
-                    logger.info(`MsalProvider - ${message.eventType} results in setting inProgress from ${inProgressRef.current} to ${status}`);
-                    inProgressRef.current = status;
-                    setInProgress(status);
-                }
+                logger.info(`MsalProvider - ${message.eventType} results in setting inProgress from ${inProgressRef.current} to ${status}`);
+                inProgressRef.current = status;
+                setInProgress(status);
             }
         });
         logger.verbose(`MsalProvider - Registered event callback with id: ${callbackId}`);

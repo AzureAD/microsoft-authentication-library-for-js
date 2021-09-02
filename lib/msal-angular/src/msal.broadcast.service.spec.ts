@@ -2,6 +2,7 @@ import { TestBed } from '@angular/core/testing';
 import { EventType, InteractionStatus, InteractionType, PublicClientApplication } from '@azure/msal-browser';
 import { MsalBroadcastService } from './msal.broadcast.service';
 import { MsalModule } from './public-api';
+import { Subscription } from "rxjs";
 
 const msalInstance = new PublicClientApplication({
       auth: {
@@ -12,6 +13,7 @@ const msalInstance = new PublicClientApplication({
 
 describe('MsalBroadcastService', () => {
   let broadcastService: MsalBroadcastService;
+  let subscription: Subscription;
 
   beforeEach(() => {
     TestBed.resetTestingModule();
@@ -26,24 +28,28 @@ describe('MsalBroadcastService', () => {
     });
     broadcastService = TestBed.inject(MsalBroadcastService);
   });
+
+  afterEach(() => {
+    subscription.unsubscribe();
+  })
   
   it('broadcasts event from PublicClientApplication', (done) => {
-    broadcastService.msalSubject$.subscribe((result) => {
+    const sub = broadcastService.msalSubject$.subscribe((result) => {
       expect(result.eventType).toEqual(EventType.LOGIN_START);
       expect(result.interactionType).toEqual(InteractionType.Popup);
       expect(result.payload).toEqual(null);
       expect(result.error).toEqual(null);
       expect(result.timestamp).toBeInstanceOf(Number);
+      sub.unsubscribe();
       done();
     });
 
     const expectedInProgress = [InteractionStatus.Startup, InteractionStatus.Login];
     let index = 0;
 
-    const sub = broadcastService.inProgress$.subscribe((result) => {
+    subscription = broadcastService.inProgress$.subscribe((result) => {
       expect(result).toEqual(expectedInProgress[index]);
       if (index === (expectedInProgress.length - 1)) {
-        sub.unsubscribe();
         done();
       } else {
         index++;
@@ -58,10 +64,9 @@ describe('MsalBroadcastService', () => {
     const expectedInProgress = [InteractionStatus.Startup, InteractionStatus.HandleRedirect];
     let index = 0;
 
-    const sub = broadcastService.inProgress$.subscribe((result) => {
+    subscription = broadcastService.inProgress$.subscribe((result) => {
       expect(result).toEqual(expectedInProgress[index]);
       if (index === (expectedInProgress.length - 1)) {
-        sub.unsubscribe();
         done();
       } else {
         index++;
@@ -78,10 +83,9 @@ describe('MsalBroadcastService', () => {
     const expectedInProgress = [InteractionStatus.Startup, InteractionStatus.HandleRedirect, InteractionStatus.None];
     let index = 0;
 
-    const sub = broadcastService.inProgress$.subscribe((result) => {
+    subscription = broadcastService.inProgress$.subscribe((result) => {
       expect(result).toEqual(expectedInProgress[index]);
       if (index === (expectedInProgress.length - 1)) {
-        sub.unsubscribe();
         done();
       } else {
         index++;
@@ -100,10 +104,9 @@ describe('MsalBroadcastService', () => {
     const expectedInProgress = [InteractionStatus.Startup, InteractionStatus.HandleRedirect, InteractionStatus.Login];
     let index = 0;
 
-    const sub = broadcastService.inProgress$.subscribe((result) => {
+    subscription = broadcastService.inProgress$.subscribe((result) => {
       expect(result).toEqual(expectedInProgress[index]);
       if (index === (expectedInProgress.length - 1)) {
-        sub.unsubscribe();
         done();
       } else {
         index++;

@@ -6,7 +6,7 @@
 import { Inject, Injectable } from "@angular/core";
 import { BehaviorSubject, Observable, Subject } from "rxjs";
 import { MSAL_INSTANCE } from "./constants";
-import { EventMessage, EventMessageUtils, IPublicClientApplication, InteractionStatus, EventType } from "@azure/msal-browser";
+import { EventMessage, EventMessageUtils, IPublicClientApplication, InteractionStatus } from "@azure/msal-browser";
 import { MsalService } from "./msal.service";
 
 @Injectable()
@@ -29,16 +29,10 @@ export class MsalBroadcastService {
 
         this.msalInstance.addEventCallback((message: EventMessage) => {
             this._msalSubject.next(message);
-            const status = EventMessageUtils.getInteractionStatusFromEvent(message);
+            const status = EventMessageUtils.getInteractionStatusFromEvent(message, this._inProgress.value);
             if (status !== null) {
-                if (this._inProgress.value === InteractionStatus.HandleRedirect && status === InteractionStatus.None && message.eventType !== EventType.HANDLE_REDIRECT_END) {
-                    this.authService.getLogger().verbose(`BroadcastService - ${message.eventType} - handleRedirectPromise is in progress. inProgress state will be set to 'None' when complete.`);
-                } else if (message.eventType === EventType.HANDLE_REDIRECT_END && this._inProgress.value !== InteractionStatus.HandleRedirect) {
-                    this.authService.getLogger().verbose(`BroadcastService - ${message.eventType} - handleRedirectPromise has finished but a different interaction is currently in progress. Can't set inProgress to 'None'`);
-                } else {
-                    this.authService.getLogger().verbose(`BroadcastService - ${message.eventType} results in setting inProgress from ${this._inProgress.value} to ${status}`);
-                    this._inProgress.next(status);
-                }
+                this.authService.getLogger().verbose(`BroadcastService - ${message.eventType} results in setting inProgress from ${this._inProgress.value} to ${status}`);
+                this._inProgress.next(status);
             }
         });
     }
