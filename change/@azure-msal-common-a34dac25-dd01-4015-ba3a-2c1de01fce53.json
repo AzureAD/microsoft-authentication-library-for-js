@@ -1,0 +1,7 @@
+{
+  "type": "major",
+  "comment": "Add pop params to request thumbprint #3973",
+  "packageName": "@azure/msal-common",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
