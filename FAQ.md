@@ -221,7 +221,7 @@ No, the account APIs reflect local account state only. If you need to ensure the
 
 Deciding which account to use to acquire tokens is app dependent, however, `@azure/msal-browser` provides 2 convenient APIs to help you keep track of which account is currently "active" and should be used for token requests. Once you've determined which account you wish to use you can call the `setActiveAccount()` API to make sure MSAL uses this account for all subsequent requests. If you would like to switch to a different account, simply call `setActiveAccount()` again and pass it the new account you would like to use. If you need to know which account is currently "active" you can use the `getActiveAccount()` API.
 
-You can read more about the account APIs [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/accounts.md)
+You can read more about the account APIs [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/accounts.md).
 You can also find an example implementation of an account switcher using the `@azure/msal-react` wrapper in our [react-router-sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/react-router-sample).
 
 # Configuration
