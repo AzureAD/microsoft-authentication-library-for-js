@@ -13,7 +13,7 @@ const msalInstance = new PublicClientApplication({
 describe('MsalBroadcastService', () => {
   let broadcastService: MsalBroadcastService;
 
-  beforeAll(() => {
+  beforeEach(() => {
     TestBed.resetTestingModule();
 
     TestBed.configureTestingModule({
@@ -40,14 +40,82 @@ describe('MsalBroadcastService', () => {
     const expectedInProgress = [InteractionStatus.Startup, InteractionStatus.Login];
     let index = 0;
 
-    broadcastService.inProgress$.subscribe((result) => {
+    const sub = broadcastService.inProgress$.subscribe((result) => {
       expect(result).toEqual(expectedInProgress[index]);
-      index++;
-      done();
+      if (index === (expectedInProgress.length - 1)) {
+        sub.unsubscribe();
+        done();
+      } else {
+        index++;
+      }
     });
 
     // @ts-ignore
     msalInstance.eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Popup);
+  });
+
+  it('LOGIN_SUCCESS event does not set inProgress to None if handleRedirect is still in progress', (done) => {
+    const expectedInProgress = [InteractionStatus.Startup, InteractionStatus.HandleRedirect];
+    let index = 0;
+
+    const sub = broadcastService.inProgress$.subscribe((result) => {
+      expect(result).toEqual(expectedInProgress[index]);
+      if (index === (expectedInProgress.length - 1)) {
+        sub.unsubscribe();
+        done();
+      } else {
+        index++;
+      }
+    });
+
+    // @ts-ignore
+    msalInstance.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
+    // @ts-ignore
+    msalInstance.eventHandler.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect);
+  });
+
+  it('HANDLE_REDIRECT_END event sets inProgress to None if handleRedirect is in progress', (done) => {
+    const expectedInProgress = [InteractionStatus.Startup, InteractionStatus.HandleRedirect, InteractionStatus.None];
+    let index = 0;
+
+    const sub = broadcastService.inProgress$.subscribe((result) => {
+      expect(result).toEqual(expectedInProgress[index]);
+      if (index === (expectedInProgress.length - 1)) {
+        sub.unsubscribe();
+        done();
+      } else {
+        index++;
+      }
+    });
+
+    // @ts-ignore
+    msalInstance.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
+    // @ts-ignore
+    msalInstance.eventHandler.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect);
+    // @ts-ignore
+    msalInstance.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
+  });
+
+  it('HANDLE_REDIRECT_END event does not set inProgress to None if login is in progress', (done) => {
+    const expectedInProgress = [InteractionStatus.Startup, InteractionStatus.HandleRedirect, InteractionStatus.Login];
+    let index = 0;
+
+    const sub = broadcastService.inProgress$.subscribe((result) => {
+      expect(result).toEqual(expectedInProgress[index]);
+      if (index === (expectedInProgress.length - 1)) {
+        sub.unsubscribe();
+        done();
+      } else {
+        index++;
+      }
+    });
+
+    // @ts-ignore
+    msalInstance.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
+    // @ts-ignore
+    msalInstance.eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Redirect);
+    // @ts-ignore
+    msalInstance.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
   });
 
 });
