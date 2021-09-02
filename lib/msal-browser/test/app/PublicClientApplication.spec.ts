@@ -925,6 +925,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             };
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             const silentATStub = sinon.stub(RefreshTokenClient.prototype, "acquireTokenByRefreshToken").resolves(testTokenResponse);
+            // Beaerer requests
             const tokenRequest1: CommonSilentFlowRequest = {
                 scopes: ["User.Read"],
                 account: testAccount,
@@ -955,14 +956,58 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false
             };
+
+            // PoP requests
+            const popTokenRequest1: CommonSilentFlowRequest = {
+                scopes: ["User.Read"],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: AuthenticationScheme.POP,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://testUri.com/user.read",
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false
+            }
+
+            const popTokenRequest2: CommonSilentFlowRequest = {
+                scopes: ["Mail.Read"],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: AuthenticationScheme.POP,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://testUri.com/mail.read",
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false
+            }
+            const expectedPopTokenRequest1: CommonSilentFlowRequest = {
+                ...popTokenRequest1,
+                scopes: ["User.Read"],
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID,
+                forceRefresh: false
+            };
+
+            const expectedPopTokenRequest2: CommonSilentFlowRequest = {
+                ...popTokenRequest2,
+                scopes: ["Mail.Read"],
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID,
+                forceRefresh: false
+            };
+
             const silentRequest1 = pca.acquireTokenSilent(tokenRequest1);
             const silentRequest2 = pca.acquireTokenSilent(tokenRequest1);
             const silentRequest3 = pca.acquireTokenSilent(tokenRequest2);
-            await Promise.all([silentRequest1, silentRequest2, silentRequest3]);
+            const popSilentRequest1 = pca.acquireTokenSilent(popTokenRequest1);
+            const popSilentRequest2 = pca.acquireTokenSilent(popTokenRequest1);
+            const popSilentRequest3 = pca.acquireTokenSilent(popTokenRequest2);
+            await Promise.all([silentRequest1, silentRequest2, silentRequest3, popSilentRequest1, popSilentRequest2, popSilentRequest3]);
 
             expect(silentATStub.calledWith(expectedTokenRequest1)).toBeTruthy();
             expect(silentATStub.calledWith(expectedTokenRequest2)).toBeTruthy();
-            expect(silentATStub.callCount).toEqual(2);
+            expect(silentATStub.calledWith(expectedPopTokenRequest1)).toBeTruthy();
+            expect(silentATStub.calledWith(expectedPopTokenRequest2)).toBeTruthy();
+            expect(silentATStub.callCount).toEqual(4);
         });
 
         it("throws error that SilentFlowClient.acquireToken() throws", async () => {
