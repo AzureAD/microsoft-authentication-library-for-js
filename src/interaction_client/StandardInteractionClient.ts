@@ -271,24 +271,24 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         }
 
         // Check for ADAL/MSAL v1 SSO
-        if (StringUtils.isEmpty(validatedRequest.loginHint)) {
+        if (StringUtils.isEmpty(validatedRequest.loginHint) && !account) {
             // Only check for adal/msal token if no SSO params are being used
             const adalIdTokenString = this.browserStorage.getTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN);
             if (adalIdTokenString) {
+                this.browserStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
                 this.logger.verbose("Cached ADAL id token retrieved.");
             }
 
             // Check for cached MSAL v1 id token
             const msalIdTokenString = this.browserStorage.getTemporaryCache(PersistentCacheKeys.ID_TOKEN, true);
             if (msalIdTokenString) {
+                this.browserStorage.removeItem(this.browserStorage.generateCacheKey(PersistentCacheKeys.ID_TOKEN));
                 this.logger.verbose("Cached MSAL.js v1 id token retrieved");
             }
 
             const cachedIdTokenString = msalIdTokenString || adalIdTokenString;
             if (cachedIdTokenString) {
                 const cachedIdToken = new IdToken(cachedIdTokenString, this.browserCrypto);
-                this.browserStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
-                this.browserStorage.removeItem(this.browserStorage.generateCacheKey(PersistentCacheKeys.ID_TOKEN));
                 if (cachedIdToken.claims && cachedIdToken.claims.preferred_username) {
                     this.logger.verbose("No SSO params used and ADAL/MSAL v1 token retrieved, setting ADAL/MSAL v1 preferred_username as loginHint");
                     validatedRequest.loginHint = cachedIdToken.claims.preferred_username;
