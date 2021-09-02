@@ -740,7 +740,7 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("calls error callback on loginRedirect if interaction is true", function (done) {
-            cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
+            cacheStorage.setInteractionInProgress(true);
             window.location = oldWindowLocation;
             const checkErrorFromLibrary = function (authErr: AuthError) {
                 expect(authErr instanceof ClientAuthError).to.be.true;
@@ -755,8 +755,26 @@ describe("UserAgentApplication.ts Class", function () {
             msal.loginRedirect();
         });
 
+        it("calls error callback on loginRedirect if a different clientId has interaction in progress", function (done) {
+            const differentCache = new AuthCache("different-client-id", "sessionStorage", true);
+            differentCache.setInteractionInProgress(true);
+            window.location = oldWindowLocation;
+            const checkErrorFromLibrary = function (authErr: AuthError) {
+                expect(authErr instanceof ClientAuthError).to.be.true;
+                expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.loginProgressError.code);
+                expect(authErr.errorMessage).to.equal(ClientAuthErrorMessage.loginProgressError.desc);
+                expect(authErr.message).to.equal(ClientAuthErrorMessage.loginProgressError.desc);
+                expect(authErr.name).to.equal("ClientAuthError");
+                expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
+                differentCache.clear();
+                done();
+            };
+            msal.handleRedirectCallback(checkErrorFromLibrary);
+            msal.loginRedirect();
+        });
+
         it("calls error callback on acquireTokenRedirect if interaction is true", function (done) {
-            cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
+            cacheStorage.setInteractionInProgress(true);
             window.location = oldWindowLocation;
             const checkErrorFromLibrary = function (authErr: AuthError) {
                 expect(authErr instanceof ClientAuthError).to.be.true;
@@ -771,8 +789,26 @@ describe("UserAgentApplication.ts Class", function () {
             msal.acquireTokenRedirect({scopes: [ "user.read" ]});
         });
 
+        it("calls error callback on acquireTokenRedirect if a different clientId has interaction in progress", function (done) {
+            const differentCache = new AuthCache("different-client-id", "sessionStorage", true);
+            differentCache.setInteractionInProgress(true);
+            window.location = oldWindowLocation;
+            const checkErrorFromLibrary = function (authErr: AuthError) {
+                expect(authErr instanceof ClientAuthError).to.be.true;
+                expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.code);
+                expect(authErr.errorMessage).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.desc);
+                expect(authErr.message).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.desc);
+                expect(authErr.name).to.equal("ClientAuthError");
+                expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
+                differentCache.clear();
+                done();
+            };
+            msal.handleRedirectCallback(checkErrorFromLibrary);
+            msal.acquireTokenRedirect({scopes: [ "user.read" ]});
+        });
+
         it("throws error on loginRedirect if interaction is true", function (done) {
-            cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
+            cacheStorage.setInteractionInProgress(true);
             window.location = oldWindowLocation;
             try {
                 msal.loginRedirect();
@@ -785,8 +821,24 @@ describe("UserAgentApplication.ts Class", function () {
             }
         });
 
+        it("throws error on loginRedirect if a different clientId has interaction in progress", function (done) {
+            const differentCache = new AuthCache("different-client-id", "sessionStorage", true);
+            differentCache.setInteractionInProgress(true);
+            window.location = oldWindowLocation;
+            try {
+                msal.loginRedirect();
+            } catch(authErr) {
+                expect(authErr instanceof ClientAuthError).to.be.true;
+                expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.loginProgressError.code);
+                expect(authErr.errorMessage).to.equal(ClientAuthErrorMessage.loginProgressError.desc);
+                expect(authErr.message).to.equal(ClientAuthErrorMessage.loginProgressError.desc);
+                differentCache.clear();
+                done();
+            }
+        });
+
         it("throws error on acquireTokenRedirect if interaction is true", function (done) {
-            cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
+            cacheStorage.setInteractionInProgress(true);
             window.location = oldWindowLocation;
             try {
                 msal.acquireTokenRedirect({scopes: [ "user.read" ]});
@@ -795,6 +847,22 @@ describe("UserAgentApplication.ts Class", function () {
                 expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.code);
                 expect(authErr.errorMessage).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.desc);
                 expect(authErr.message).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.desc);
+                done();
+            }
+        });
+
+        it("throws error on acquireTokenRedirect if a different clientId has interaction in progress", function (done) {
+            const differentCache = new AuthCache("different-client-id", "sessionStorage", true);
+            differentCache.setInteractionInProgress(true);
+            window.location = oldWindowLocation;
+            try {
+                msal.acquireTokenRedirect({scopes: [ "user.read" ]});
+            } catch(authErr) {
+                expect(authErr instanceof ClientAuthError).to.be.true;
+                expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.code);
+                expect(authErr.errorMessage).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.desc);
+                expect(authErr.message).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.desc);
+                differentCache.clear();
                 done();
             }
         });
