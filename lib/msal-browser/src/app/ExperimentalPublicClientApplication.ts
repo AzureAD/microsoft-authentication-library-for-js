@@ -17,7 +17,7 @@ import { IPublicClientApplication } from "./IPublicClientApplication";
 import { PublicClientApplication } from "./PublicClientApplication";
 import { ExperimentalBrowserConfiguration, ExperimentalConfiguration, buildExperimentalConfiguration } from "../config/ExperimentalConfiguration";
 import { PopupClient } from "../interaction_client/PopupClient";
-import { BrokerInteractionClient } from "../interaction_client/BrokerInteractionClient";
+import { EmbeddedInteractionClient } from "../interaction_client/broker/EmbeddedInteractionClient";
 import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
 import { SilentCacheClient } from "../interaction_client/SilentCacheClient";
 
@@ -64,12 +64,13 @@ export class ExperimentalPublicClientApplication extends PublicClientApplication
      * @returns {Promise.<AuthenticationResult | null>} token response or null. If the return value is null, then no auth redirect was detected.
      */
     async handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null> {
-        if (this.broker) {
-            return this.broker.handleRedirectPromise(hash);
-        } else if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
+        if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
             return await this.embeddedApp.sendHandleRedirectRequest();
+        } else if (this.broker) {
+            return this.broker.handleRedirectPromise(hash);
+        } else {
+            return super.handleRedirectPromise(hash);
         }
-        return super.handleRedirectPromise(hash);
     }
 
     // #endregion
@@ -87,7 +88,7 @@ export class ExperimentalPublicClientApplication extends PublicClientApplication
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
             this.logger.verbose("acquireTokenPopup called", request.correlationId);
             if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
-                const brokerInteractionClient = new BrokerInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.experimentalConfig, request.correlationId, this.embeddedApp, this.broker);
+                const brokerInteractionClient = new EmbeddedInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.experimentalConfig, request.correlationId, this.embeddedApp, this.broker);
                 return brokerInteractionClient.acquireTokenPopup(request);
             }
 
@@ -152,7 +153,7 @@ export class ExperimentalPublicClientApplication extends PublicClientApplication
 
         try {
             if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
-                const brokerInteractionClient = new BrokerInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.experimentalConfig, request.correlationId, this.embeddedApp, this.broker);
+                const brokerInteractionClient = new EmbeddedInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.experimentalConfig, request.correlationId, this.embeddedApp, this.broker);
                 return brokerInteractionClient.ssoSilent(request);
             }
             const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, request.correlationId);
@@ -179,7 +180,7 @@ export class ExperimentalPublicClientApplication extends PublicClientApplication
         return silentCacheClient.acquireToken(silentRequest).catch(async () => {
             try {
                 if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
-                    const brokerInteractionClient = new BrokerInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.experimentalConfig, request.correlationId, this.embeddedApp, this.broker);
+                    const brokerInteractionClient = new EmbeddedInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.experimentalConfig, request.correlationId, this.embeddedApp, this.broker);
                     return brokerInteractionClient.acquireTokenByBrokerRefresh(silentRequest);
                 }
                 const tokenRenewalResult = await this.acquireTokenByRefreshToken(silentRequest);

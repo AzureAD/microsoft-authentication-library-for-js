@@ -56,7 +56,7 @@ export abstract class ClientApplication {
     protected eventHandler: EventHandler;
 
     // Redirect Response Object
-    private redirectResponse: Map<string, Promise<AuthenticationResult | null>>;
+    protected redirectResponse: Map<string, Promise<AuthenticationResult | null>>;
 
     /**
      * @constructor
@@ -154,7 +154,6 @@ export abstract class ClientApplication {
                             }
                         }
                         this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
-
                         return result;
                     })
                     .catch((e) => {
@@ -165,7 +164,6 @@ export abstract class ClientApplication {
                             this.eventHandler.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
                         }
                         this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
-
                         throw e;
                     });
                 this.redirectResponse.set(redirectResponseKey, response);

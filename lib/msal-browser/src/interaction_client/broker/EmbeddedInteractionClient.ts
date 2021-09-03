@@ -3,24 +3,24 @@
  * Licensed under the MIT License.
  */
 
-import { StandardInteractionClient } from "./StandardInteractionClient";
+import { StandardInteractionClient } from "../StandardInteractionClient";
 import { AuthenticationResult, Logger, ICrypto, StringUtils, PromptValue, CommonSilentFlowRequest } from "@azure/msal-common";
-import { EmbeddedClientApplication } from "../broker/client/EmbeddedClientApplication";
-import { BrokerClientApplication } from "../broker/client/BrokerClientApplication";
-import { ExperimentalBrowserConfiguration } from "../config/ExperimentalConfiguration";
-import { INavigationClient } from "../navigation/INavigationClient";
-import { EventHandler } from "../event/EventHandler";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { BrowserConfiguration } from "../config/Configuration";
-import { PopupRequest } from "../request/PopupRequest";
-import { InteractionType } from "../utils/BrowserConstants";
-import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { BrowserAuthError } from "../error/BrowserAuthError";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
-import { EventType } from "../event/EventType";
-import { BrokerAuthError } from "../error/BrokerAuthError";
+import { EmbeddedClientApplication } from "../../broker/client/EmbeddedClientApplication";
+import { BrokerClientApplication } from "../../broker/client/BrokerClientApplication";
+import { ExperimentalBrowserConfiguration } from "../../config/ExperimentalConfiguration";
+import { INavigationClient } from "../../navigation/INavigationClient";
+import { EventHandler } from "../../event/EventHandler";
+import { BrowserCacheManager } from "../../cache/BrowserCacheManager";
+import { BrowserConfiguration } from "../../config/Configuration";
+import { PopupRequest } from "../../request/PopupRequest";
+import { InteractionType } from "../../utils/BrowserConstants";
+import { SsoSilentRequest } from "../../request/SsoSilentRequest";
+import { BrowserAuthError } from "../../error/BrowserAuthError";
+import { AuthorizationUrlRequest } from "../../request/AuthorizationUrlRequest";
+import { EventType } from "../../event/EventType";
+import { BrokerAuthError } from "../../error/BrokerAuthError";
 
-export class BrokerInteractionClient extends StandardInteractionClient {
+export class EmbeddedInteractionClient extends StandardInteractionClient {
     
     protected embeddedApp?: EmbeddedClientApplication;
     protected broker?: BrokerClientApplication;

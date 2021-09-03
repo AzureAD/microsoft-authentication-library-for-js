@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { BrokeredAuthorizationUrlRequest } from "@azure/msal-common";
 import { RedirectRequest } from "../../request/RedirectRequest";
 
 /**
@@ -32,4 +31,7 @@ import { RedirectRequest } from "../../request/RedirectRequest";
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
  * - redirectStartPage          - The page that should be returned to after loginRedirect or acquireTokenRedirect. This should only be used if this is different from the redirectUri and will default to the page that initiates the request. When the navigateToLoginRequestUrl config option is set to false this parameter will be ignored.
  */
-export type BrokerRedirectRequest = BrokeredAuthorizationUrlRequest & RedirectRequest;
+export type BrokerRedirectRequest = RedirectRequest & {
+    embeddedAppClientId: string;
+    brokerRedirectUri: string;
+};

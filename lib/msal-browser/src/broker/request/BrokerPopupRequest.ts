@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import { BrokeredAuthorizationUrlRequest } from "@azure/msal-common";
 import { PopupRequest } from "../../request/PopupRequest";
 
 /**
@@ -31,4 +30,7 @@ import { PopupRequest } from "../../request/PopupRequest";
  * - claims                     - In cases where Azure AD tenant admin has enabled conditional access policies, and the policy has not been met, exceptions will contain claims that need to be consented to.
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
  */
-export type BrokerPopupRequest = BrokeredAuthorizationUrlRequest & PopupRequest;
+export type BrokerPopupRequest = PopupRequest & {
+    embeddedAppClientId: string;
+    brokerRedirectUri: string;
+};

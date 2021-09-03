@@ -4,9 +4,9 @@
  */
 
 import { version } from "../../packageMetadata";
-import { BrokerAuthenticationResult, ServerTelemetryManager, AuthorizationCodeClient, BrokerAuthorizationCodeClient, BrokerRefreshTokenClient, RefreshTokenClient, ProtocolUtils, ScopeSet, AccountInfo, RequestThumbprint, Constants } from "@azure/msal-common";
+import { BrokerAuthenticationResult, AccountInfo, RequestThumbprint, ServerError, InteractionRequiredAuthError, AuthenticationResult, Constants } from "@azure/msal-common";
 import { BrokerMessage } from "../msg/BrokerMessage";
-import { BrokerMessageType, InteractionType, ApiId } from "../../utils/BrowserConstants";
+import { BrokerMessageType, InteractionType, ApiId, BrowserConstants, TemporaryCacheKeys } from "../../utils/BrowserConstants";
 import { Configuration } from "../../config/Configuration";
 import { BrokerHandshakeRequest } from "../msg/req/BrokerHandshakeRequest";
 import { BrokerHandshakeResponse } from "../msg/resp/BrokerHandshakeResponse";
@@ -19,14 +19,14 @@ import { BrokerAuthError } from "../../error/BrokerAuthError";
 import { BrokerPopupRequest } from "../request/BrokerPopupRequest";
 import { BrokerRedirectRequest } from "../request/BrokerRedirectRequest";
 import { BrokerSsoSilentRequest } from "../request/BrokerSsoSilentRequest";
-import { AuthorizationUrlRequest } from "../../request/AuthorizationUrlRequest";
-import { BrokerStateObject } from "../../utils/BrowserProtocolUtils";
 import { PublicClientApplication } from "../../app/PublicClientApplication";
 import { ExperimentalBrowserConfiguration, ExperimentalConfiguration, buildExperimentalConfiguration } from "../../config/ExperimentalConfiguration";
-import { RedirectClient } from "../../interaction_client/RedirectClient";
-import { PopupClient } from "../../interaction_client/PopupClient";
-import { SilentIframeClient } from "../../interaction_client/SilentIframeClient";
-import { BrokerInteractionClient } from "../../interaction_client/BrokerInteractionClient";
+import { BrokerRedirectClient } from "../../interaction_client/broker/BrokerRedirectClient";
+import { BrokerPopupClient } from "../../interaction_client/broker/BrokerPopupClient";
+import { BrokerSilentIframeClient } from "../../interaction_client/broker/BrokerSilentIframeClient";
+import { EventType } from "../../event/EventType";
+import { BrowserUtils } from "../../utils/BrowserUtils";
+import { BrokerSilentRefreshClient } from "../../interaction_client/broker/BrokerSilentRefreshClient";
 
 /**
  * Broker Application class to manage brokered requests.
@@ -53,7 +53,7 @@ export class BrokerClientApplication extends PublicClientApplication {
      */
     async handleRedirectPromise(hash?: string): Promise<BrokerAuthenticationResult | null> {
         // Begin processing hash and trading for tokens.
-        const brokerResponse = super.handleRedirectPromise(hash) as Promise<BrokerAuthenticationResult>;
+        const brokerResponse = this.handleBrokerRedirect(hash) as Promise<BrokerAuthenticationResult>;
         // Wait for response and caching, save promise.
         this.currentBrokerRedirectResponse = this.waitForBrokeredResponse(brokerResponse);
         // Wait until response is finished and clear the saved promise.
@@ -61,6 +61,59 @@ export class BrokerClientApplication extends PublicClientApplication {
         this.currentBrokerRedirectResponse = undefined;
         // Return the response ONLY if it is meant for the broker, otherwise return null.
         return (redirectResponse && !redirectResponse.tokensToCache) ? redirectResponse : null;
+    }
+
+    private async handleBrokerRedirect(hash?: string): Promise<AuthenticationResult | null> {
+        this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
+        this.logger.verbose("handleRedirectPromise called");
+        const loggedInAccounts = this.getAllAccounts();
+        if (this.isBrowserEnvironment) {
+            /**
+             * Store the promise on the PublicClientApplication instance if this is the first invocation of handleRedirectPromise,
+             * otherwise return the promise from the first invocation. Prevents race conditions when handleRedirectPromise is called
+             * several times concurrently.
+             */
+            const redirectResponseKey = hash || Constants.EMPTY_STRING;
+            let response = this.redirectResponse.get(redirectResponseKey);
+            if (typeof response === "undefined") {
+                this.logger.verbose("handleRedirectPromise has been called for the first time, storing the promise");
+                const correlationId = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, true) || "";
+                const redirectClient = new BrokerRedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, correlationId);
+                response = redirectClient.handleRedirectPromise(hash)
+                    .then((result: AuthenticationResult | null) => {
+                        if (result) {
+                            // Emit login event if number of accounts change
+                            const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
+                            if (isLoggingIn) {
+                                this.eventHandler.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect, result);
+                                this.logger.verbose("handleRedirectResponse returned result, login success");
+                            } else {
+                                this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Redirect, result);
+                                this.logger.verbose("handleRedirectResponse returned result, acquire token success");
+                            }
+                        }
+                        this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
+                        return result;
+                    })
+                    .catch((e) => {
+                    // Emit login event if there is an account
+                        if (loggedInAccounts.length > 0) {
+                            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Redirect, null, e);
+                        } else {
+                            this.eventHandler.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
+                        }
+                        this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
+                        throw e;
+                    });
+                this.redirectResponse.set(redirectResponseKey, response);
+            } else {
+                this.logger.verbose("handleRedirectPromise has been called previously, returning the result from the first call");
+            }
+            
+            return response;
+        }
+        this.logger.verbose("handleRedirectPromise returns null, not browser environment");
+        return null;
     }
 
     /**
@@ -201,9 +254,8 @@ export class BrokerClientApplication extends PublicClientApplication {
             }
 
             // Get the currently set active account, and attempt a silent request if there is one set (or one is provided in the request)
-            const currentAccount = this.getActiveAccount() || validMessage.request.account;
-            if (currentAccount) {
-                return this.brokeredSilentRequest(validMessage, clientMessage.ports[0], currentAccount);
+            if (validMessage.request.account) {
+                return this.brokeredSilentRequest(validMessage, clientMessage.ports[0], validMessage.request.account);
             }
 
             // Check the message interaction type and perform the appropriate brokered request.
@@ -269,19 +321,15 @@ export class BrokerClientApplication extends PublicClientApplication {
             
             // Initialize the brokered redirect request with the required parameters.
             const redirectRequest = validMessage.request as BrokerRedirectRequest;
-            const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, redirectRequest.correlationId);
+            const redirectClient = new BrokerRedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, redirectRequest.correlationId);
             redirectRequest.redirectUri = validMessage.embeddedAppOrigin;
             redirectRequest.embeddedAppClientId = validMessage.embeddedClientId;
             redirectRequest.brokerRedirectUri = redirectClient.getRedirectUri();
             redirectRequest.redirectStartPage = this.experimentalConfig.brokerOptions.brokerRedirectParams?.redirectStartPage;
             redirectRequest.onRedirectNavigate = this.experimentalConfig.brokerOptions.brokerRedirectParams?.onRedirectNavigate;
             
-            // Update parameters in request with required broker parameters
-            const validatedBrokerRequest = this.initializeBrokeredRequest(redirectRequest, InteractionType.Redirect, validMessage.embeddedAppOrigin);
-            
             // Call redirectClient.acquireToken()
-            return redirectClient.acquireToken(validatedBrokerRequest);
-            
+            return redirectClient.acquireToken(redirectRequest);
         } catch (err) {
             const brokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, null, err);
             this.logger.info(`Found auth error in popup: ${err}`);
@@ -299,16 +347,13 @@ export class BrokerClientApplication extends PublicClientApplication {
         try {
             // Initialize the brokered popup request with required parameters
             const popupRequest = validMessage.request as BrokerPopupRequest;
-            const popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, popupRequest.correlationId);
+            const popupClient = new BrokerPopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, popupRequest.correlationId);
             popupRequest.redirectUri = validMessage.embeddedAppOrigin;
             popupRequest.embeddedAppClientId = validMessage.embeddedClientId;
             popupRequest.brokerRedirectUri = popupClient.getRedirectUri();
             
-            // Update parameters in request with required broker parameters
-            const validatedBrokerRequest = this.initializeBrokeredRequest(popupRequest, InteractionType.Popup, validMessage.embeddedAppOrigin);
-
             // Call acquireTokenPopup() and send the response back to the embedded application. 
-            const response = (await popupClient.acquireTokenPopupAsync(validatedBrokerRequest, "")) as BrokerAuthenticationResult;
+            const response = (await popupClient.acquireToken(popupRequest)) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Popup, response);
             this.logger.infoPii(`Sending auth response`);
             clientPort.postMessage(brokerAuthResponse);
@@ -330,16 +375,12 @@ export class BrokerClientApplication extends PublicClientApplication {
         try {
             // Initialize the brokered silent iframe request with required parameters
             const silentRequest = validMessage.request as BrokerSsoSilentRequest;
-            const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, silentRequest.correlationId);
+            const silentIframeClient = new BrokerSilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, silentRequest.correlationId);
             silentRequest.redirectUri = validMessage.embeddedAppOrigin;
             silentRequest.embeddedAppClientId = validMessage.embeddedClientId;
             silentRequest.brokerRedirectUri = silentIframeClient.getRedirectUri();
-
-            // Update parameters in request with required broker parameters
-            const brokeredSilentRequest = this.initializeBrokeredRequest(silentRequest, InteractionType.Silent, validMessage.embeddedAppOrigin);
-
             // Call ssoSilent() and send the response back to the embedded application. 
-            const response: BrokerAuthenticationResult = (await silentIframeClient.acquireTokenByIframe(brokeredSilentRequest)) as BrokerAuthenticationResult;
+            const response: BrokerAuthenticationResult = (await silentIframeClient.acquireToken(silentRequest)) as BrokerAuthenticationResult;
             const brokerAuthResponse: BrokerAuthResponse = new BrokerAuthResponse(InteractionType.Silent, response);
             this.logger.infoPii(`Sending auth response`);
             clientPort.postMessage(brokerAuthResponse);
@@ -351,7 +392,7 @@ export class BrokerClientApplication extends PublicClientApplication {
             clientPort.close();
         }
     }
-
+ 
     /**
      * Send silent renewal request as the broker.
      * @param validMessage 
@@ -391,62 +432,39 @@ export class BrokerClientApplication extends PublicClientApplication {
     }
 
     /**
-     * Creates an Broker Authorization Code Client with the given authority, or the default authority.
-     * @param authorityUrl 
+     * Use this function to obtain a token before every call to the API / resource provider
+     *
+     * MSAL return's a cached token when available
+     * Or it send's a request to the STS to obtain a new token using a refresh token.
+     *
+     * @param {@link SilentRequest}
+     *
+     * To renew idToken, please pass clientId as the only scope in the Authentication Parameters
+     * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
-    protected async createAuthCodeClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<AuthorizationCodeClient> {
-        // Create auth module.
-        const brokerInteractionClient = new BrokerInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.experimentalConfig);
-        const clientConfig = await brokerInteractionClient.getClientConfiguration(serverTelemetryManager, authorityUrl);
+     protected async acquireTokenByRefreshToken(request: BrokerSilentRequest): Promise<AuthenticationResult> {
+        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, request);
+        // block the reload if it occurred inside a hidden iframe
+        BrowserUtils.blockReloadInHiddenIframes();
 
-        return new BrokerAuthorizationCodeClient(clientConfig);
+        const silentRefreshClient = new BrokerSilentRefreshClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, request.correlationId);
+
+        return silentRefreshClient.acquireToken(request).catch(e => {
+            const isServerError = e instanceof ServerError;
+            const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
+            const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
+            if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
+                this.logger.verbose("Refresh token expired or invalid, attempting acquire token by iframe", request.correlationId);
+
+                const silentIframeClient = new BrokerSilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenSilent_authCode);
+                return silentIframeClient.acquireToken({
+                    ...request,
+                    brokerRedirectUri: silentRefreshClient.getRedirectUri()
+                });
+            }
+            throw e;
+        });
     }
 
-    /**
-     * Creates a Refresh Client with the given authority, or the default authority.
-     * @param authorityUrl 
-     */
-    protected async createRefreshTokenClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<RefreshTokenClient> {
-        // Create auth module.
-        const brokerInteractionClient = new BrokerInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.experimentalConfig);
-        const clientConfig = await brokerInteractionClient.getClientConfiguration(serverTelemetryManager, authorityUrl);
-        return new BrokerRefreshTokenClient(clientConfig);
-    }
-
-    /**
-     * Adds required parameters for broker to state object in request.
-     * @param embeddedRequest 
-     * @param interactionType 
-     * @param messageOrigin 
-     */
-    private initializeBrokeredRequest(embeddedRequest: BrokerRedirectRequest|BrokerPopupRequest|BrokerSsoSilentRequest, interactionType: InteractionType, messageOrigin: string): AuthorizationUrlRequest {
-        let embeddedState: string = Constants.EMPTY_STRING;
-        if (embeddedRequest.state) {
-            const embeddedStateObj = ProtocolUtils.parseRequestState(this.browserCrypto, embeddedRequest.state);
-            embeddedState = (embeddedStateObj && embeddedStateObj.userRequestState) || "";
-        }
-
-        const baseRequestScopes = new ScopeSet(embeddedRequest.scopes || []);
-        const browserState: BrokerStateObject = {
-            interactionType: interactionType,
-            brokeredClientId: embeddedRequest.embeddedAppClientId,
-            brokeredReqAuthority: embeddedRequest.authority,
-            brokeredReqScopes: baseRequestScopes.printScopes()
-        };
-
-        const brokerState = ProtocolUtils.setRequestState(
-            this.browserCrypto,
-            embeddedState,
-            browserState
-        );
-
-        const requestNonce = embeddedRequest.nonce || this.browserCrypto.createNewGuid();
-
-        this.browserStorage.updateCacheEntries(brokerState, requestNonce, embeddedRequest.authority, embeddedRequest.loginHint || "", embeddedRequest.account || null);
-        return {
-            ...embeddedRequest,
-            state: brokerState,
-            nonce: requestNonce
-        };
-    }
+    
 }

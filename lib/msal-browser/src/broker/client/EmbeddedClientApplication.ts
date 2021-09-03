@@ -20,6 +20,7 @@ import { SsoSilentRequest } from "../../request/SsoSilentRequest";
 import { BrokerAuthError } from "../../error/BrokerAuthError";
 import { version } from "../../packageMetadata";
 import { BrokerOptions } from "../../config/ExperimentalConfiguration";
+import { DEFAULT_IFRAME_TIMEOUT_MS } from "../../config/Configuration";
 
 const DEFAULT_MESSAGE_TIMEOUT = 2000;
 const DEFAULT_POPUP_MESSAGE_TIMEOUT = 60000;
@@ -88,8 +89,7 @@ export class EmbeddedClientApplication {
      */
     async sendSsoSilentRequest(request: SsoSilentRequest): Promise<AuthenticationResult> {
         await this.preflightBrokerRequest();
-
-        const brokerAuthResultMessage = await this.sendRequest(request, InteractionType.Silent, DEFAULT_MESSAGE_TIMEOUT);
+        const brokerAuthResultMessage = await this.sendRequest(request, InteractionType.Silent, DEFAULT_IFRAME_TIMEOUT_MS);
         const brokerAuthResult = BrokerAuthResponse.processBrokerResponseMessage(brokerAuthResultMessage, this.browserStorage);
         if (!brokerAuthResult) {
             this.logger.errorPii(`Broker response is empty in brokered ssoSilent request: ${JSON.stringify(brokerAuthResult)}`);
@@ -168,13 +168,14 @@ export class EmbeddedClientApplication {
      * @param interactionType 
      * @param timeoutMs 
      */
-    private async sendRequest(request: PopupRequest|RedirectRequest|SsoSilentRequest, interactionType: InteractionType, timeoutMs: number): Promise<MessageEvent> {
+    private async sendRequest(request: PopupRequest|RedirectRequest|SsoSilentRequest|SilentRequest, interactionType: InteractionType, timeoutMs: number): Promise<MessageEvent> {
         const brokerRequest = new BrokerAuthRequest(this.clientId, interactionType, request, Constants.EMPTY_STRING);
         return this.messageBroker(brokerRequest, timeoutMs);
     }
 
     /**
-     * Send handshake request helper.
+     * Send handshake request helper. Handshake is done without MessageChannel to ensure that the origin can be read from the message. 
+     * Subsequent requests for authentication are sent over a MessageChannel, as origin is no longer required.
      */
     private async sendHandshakeRequest(): Promise<BrokerHandshakeResponse> {
         return new Promise<BrokerHandshakeResponse>((resolve, reject) => {

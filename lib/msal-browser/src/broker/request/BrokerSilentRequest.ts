@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { BrokeredSilentFlowRequest, CommonSilentFlowRequest } from "@azure/msal-common";
+import { CommonSilentFlowRequest } from "@azure/msal-common";
 
 /**
  * SilentRequest: Request object passed by user to retrieve tokens from the
@@ -18,4 +18,7 @@ import { BrokeredSilentFlowRequest, CommonSilentFlowRequest } from "@azure/msal-
  * - extraQueryParameters   - String to string map of custom query parameters. Only used when renewing the refresh token.
  * - redirectUri            - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal. Only used for cases where refresh token is expired.
  */
-export type BrokerSilentRequest = BrokeredSilentFlowRequest & CommonSilentFlowRequest;
+export type BrokerSilentRequest = CommonSilentFlowRequest & {
+    embeddedAppClientId: string;
+    embeddedAppRedirectUri: string;
+};

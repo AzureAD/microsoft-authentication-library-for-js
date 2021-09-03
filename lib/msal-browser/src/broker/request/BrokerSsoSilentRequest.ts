@@ -3,7 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { BrokeredAuthorizationUrlRequest } from "@azure/msal-common";
 import { SsoSilentRequest } from "../../request/SsoSilentRequest";
 
-export type BrokerSsoSilentRequest = BrokeredAuthorizationUrlRequest & SsoSilentRequest;
+export type BrokerSsoSilentRequest = SsoSilentRequest & {
+    embeddedAppClientId: string;
+    brokerRedirectUri: string;
+};
