@@ -85,7 +85,7 @@ export class ClientInfo {
         return uid;
     }
 
-    public encodeClientInfo() {
+    public encodeClientInfo(): string {
         const clientInfo = JSON.stringify({uid: this.uid, utid: this.utid});
 
         return CryptoUtils.base64Encode(clientInfo);

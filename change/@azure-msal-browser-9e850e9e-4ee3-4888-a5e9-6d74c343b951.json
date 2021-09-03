@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Update ADAL to MSAL SSO logic to use preferred_username instead of upn by default #3945",
+  "packageName": "@azure/msal-browser",
+  "email": "ellymakuba@microsoft.com",
+  "dependentChangeType": "patch"
+}

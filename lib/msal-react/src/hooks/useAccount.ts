@@ -4,7 +4,7 @@
  */
 
 import { useState, useEffect } from "react";
-import { AccountInfo, IPublicClientApplication, InteractionStatus } from "@azure/msal-browser";
+import { AccountInfo, IPublicClientApplication, InteractionStatus, AccountEntity } from "@azure/msal-browser";
 import { useMsal } from "./useMsal";
 import { AccountIdentifiers } from "../types/AccountIdentifiers";
 
@@ -42,8 +42,11 @@ export function useAccount(accountIdentifiers: AccountIdentifiers): AccountInfo 
     const [account, setAccount] = useState<AccountInfo|null>(initialStateValue);
 
     useEffect(() => {
-        setAccount(getAccount(instance, accountIdentifiers));
-    }, [inProgress, accountIdentifiers, instance]);
+        const currentAccount = getAccount(instance, accountIdentifiers);
+        if (!AccountEntity.accountInfoIsEqual(account, currentAccount, true)) {
+            setAccount(currentAccount);
+        }
+    }, [inProgress, accountIdentifiers, instance, account]);
 
     return account;
 }

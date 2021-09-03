@@ -11,5 +11,7 @@ export interface IPersistence {
     delete(): Promise<boolean>;
     reloadNecessary(lastSync: number): Promise<boolean>;
     getFilePath(): string;
-    getLogger(): Logger
+    getLogger(): Logger;
+    verifyPersistence(): Promise<boolean>;
+    createForPersistenceValidation(): Promise<IPersistence>;
 }

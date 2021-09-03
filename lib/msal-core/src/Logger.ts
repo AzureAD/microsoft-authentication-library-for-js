@@ -85,7 +85,7 @@ export class Logger {// Singleton Class
     /**
      * @hidden
      */
-    executeCallback(level: LogLevel, message: string, containsPii: boolean) {
+    executeCallback(level: LogLevel, message: string, containsPii: boolean): void {
         if (this.localCallback) {
             this.localCallback(level, message, containsPii);
         }

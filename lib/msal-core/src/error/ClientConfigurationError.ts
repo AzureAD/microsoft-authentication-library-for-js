@@ -140,12 +140,12 @@ export class ClientConfigurationError extends ClientAuthError {
             `${ClientConfigurationErrorMessage.nonArrayScopes.desc} Given value: ${scopesValue}.`);
     }
 
-    static createScopesRequiredError(scopesValue: any): ClientConfigurationError {
+    static createScopesRequiredError(scopesValue: string[]): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.scopesRequired.code,
             `${ClientConfigurationErrorMessage.scopesRequired.desc} Given value: ${scopesValue}`);
     }
 
-    static createInvalidPromptError(promptValue: any): ClientConfigurationError {
+    static createInvalidPromptError(promptValue: string): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidPrompt.code,
             `${ClientConfigurationErrorMessage.invalidPrompt.desc} Given value: ${promptValue}`);
     }

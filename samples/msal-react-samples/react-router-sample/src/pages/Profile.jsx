@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 
 // Msal imports
 import { MsalAuthenticationTemplate, useMsal } from "@azure/msal-react";
-import { InteractionStatus, InteractionType } from "@azure/msal-browser";
+import { InteractionStatus, InteractionType, InteractionRequiredAuthError } from "@azure/msal-browser";
 import { loginRequest } from "../authConfig";
 
 // Sample app imports
@@ -15,14 +15,21 @@ import { callMsGraph } from "../utils/MsGraphApiCall";
 import Paper from "@material-ui/core/Paper";
 
 const ProfileContent = () => {
-    const { inProgress } = useMsal();
+    const { instance, inProgress } = useMsal();
     const [graphData, setGraphData] = useState(null);
 
     useEffect(() => {
-        if (inProgress === InteractionStatus.None) {
-            callMsGraph().then(response => setGraphData(response));
+        if (!graphData && inProgress === InteractionStatus.None) {
+            callMsGraph().then(response => setGraphData(response)).catch((e) => {
+                if (e instanceof InteractionRequiredAuthError) {
+                    instance.acquireTokenRedirect({
+                        ...loginRequest,
+                        account: instance.getActiveAccount()
+                    });
+                }
+            });
         }
-    }, [inProgress]);
+    }, [inProgress, graphData, instance]);
   
     return (
         <Paper>

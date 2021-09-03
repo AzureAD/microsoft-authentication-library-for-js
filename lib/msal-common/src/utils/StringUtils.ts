@@ -42,6 +42,20 @@ export class StringUtils {
         return (typeof str === "undefined" || !str || 0 === str.length);
     }
 
+    /**
+     * Check if stringified object is empty
+     * @param strObj 
+     */
+    static isEmptyObj(strObj?: string): boolean {
+        if (strObj && !StringUtils.isEmpty(strObj)) {
+            try {
+                const obj = JSON.parse(strObj);
+                return Object.keys(obj).length === 0;
+            } catch (e) {}
+        }
+        return true;
+    }
+
     static startsWith(str: string, search: string): boolean {
         return str.indexOf(search) === 0;
     }
@@ -56,16 +70,17 @@ export class StringUtils {
      * @param query
      */
     static queryStringToObject<T>(query: string): T {
-        let match: Array<string> | null; // Regex for replacing addition symbol with a space
-        const pl = /\+/g;
-        const search = /([^&=]+)=([^&]*)/g;
-        const decode = (s: string): string => decodeURIComponent(decodeURIComponent(s.replace(pl, " ")));
         const obj: {} = {};
-        match = search.exec(query);
-        while (match) {
-            obj[decode(match[1])] = decode(match[2]);
-            match = search.exec(query);
-        }
+        const params = query.split("&");
+        const decode = (s: string) => decodeURIComponent(s.replace(/\+/g, " "));
+        params.forEach((pair) => {
+            if (pair.trim()) {
+                const [key, value] = pair.split(/=(.+)/g, 2); // Split on the first occurence of the '=' character
+                if (key && value) {
+                    obj[decode(key)] = decode(value);
+                }
+            }
+        });
         return obj as T;
     }
 
@@ -110,7 +125,7 @@ export class StringUtils {
          * Wildcard support: https://stackoverflow.com/a/3117248/4888559
          * Queries: replaces "?" in string with escaped "\?" for regex test
          */
-        const regex: RegExp = new RegExp(pattern.replace(/\*/g, "[^ ]*").replace(/\?/g, "\\\?"));
+        const regex: RegExp = new RegExp(pattern.replace(/\\/g, "\\\\").replace(/\*/g, "[^ ]*").replace(/\?/g, "\\\?")); // eslint-disable-line security/detect-non-literal-regexp
 
         return regex.test(input);
     }

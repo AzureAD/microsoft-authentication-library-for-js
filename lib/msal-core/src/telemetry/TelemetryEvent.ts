@@ -15,6 +15,7 @@ import { CryptoUtils } from "../utils/CryptoUtils";
 export default class TelemetryEvent {
 
     private startTimestamp: number;
+    // eslint-disable-next-line
     protected event: any; // TODO TYPE THIS
     public eventId: string;
     private label: string;
@@ -66,11 +67,11 @@ export default class TelemetryEvent {
         };
     }
 
-    public get key() {
+    public get key(): string {
         return `${this.telemetryCorrelationId}_${this.eventId}-${this.eventName}`;
     }
 
-    public get displayName() {
+    public get displayName(): string {
         return `Msal-${this.label}-${this.telemetryCorrelationId}`;
     }
 

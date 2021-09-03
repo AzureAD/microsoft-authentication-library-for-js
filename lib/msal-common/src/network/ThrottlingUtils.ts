@@ -10,6 +10,7 @@ import { CacheManager } from "../cache/CacheManager";
 import { ServerError } from "../error/ServerError";
 import { RequestThumbprint } from "./RequestThumbprint";
 import { ThrottlingEntity } from "../cache/entities/ThrottlingEntity";
+import { BaseAuthRequest } from "../request/BaseAuthRequest";
 
 export class ThrottlingUtils {
 
@@ -85,22 +86,25 @@ export class ThrottlingUtils {
      * @param throttleTime
      */
     static calculateThrottleTime(throttleTime: number): number {
-        if(throttleTime <= 0) {
-            throttleTime = 0;
-        }
+        const time = throttleTime <= 0 ? 0 : throttleTime;
+
         const currentSeconds = Date.now() / 1000;
         return Math.floor(Math.min(
-            currentSeconds + (throttleTime || ThrottlingConstants.DEFAULT_THROTTLE_TIME_SECONDS),
+            currentSeconds + (time || ThrottlingConstants.DEFAULT_THROTTLE_TIME_SECONDS),
             currentSeconds + ThrottlingConstants.DEFAULT_MAX_THROTTLE_TIME_SECONDS
         ) * 1000);
     }
 
-    static removeThrottle(cacheManager: CacheManager, clientId: string, authority: string, scopes: Array<string>, homeAccountIdentifier?: string): boolean {
+    static removeThrottle(cacheManager: CacheManager, clientId: string, request: BaseAuthRequest, homeAccountIdentifier?: string): boolean {
         const thumbprint: RequestThumbprint = {
-            clientId,
-            authority,
-            scopes,
-            homeAccountIdentifier
+            clientId: clientId,
+            authority: request.authority,
+            scopes: request.scopes,
+            homeAccountIdentifier: homeAccountIdentifier,
+            authenticationScheme: request.authenticationScheme,
+            resourceRequestMethod: request.resourceRequestMethod,
+            resourceRequestUri: request.resourceRequestUri,
+            shrClaims: request.shrClaims
         };
 
         const key = this.generateThrottlingStorageKey(thumbprint);

@@ -101,7 +101,7 @@ export class UrlUtils {
         return this.constructAuthorityUriFromObject(urlObject, pathArray);
     }
 
-    static constructAuthorityUriFromObject(urlObject: IUri, pathArray: string[]) {
+    static constructAuthorityUriFromObject(urlObject: IUri, pathArray: string[]): string {
         return this.CanonicalizeUri(urlObject.Protocol + "//" + urlObject.HostNameAndPort + "/" + pathArray.join("/"));
     }
     
@@ -183,11 +183,13 @@ export class UrlUtils {
      */
     static CanonicalizeUri(url: string): string {
         if (url) {
-            url = url.toLowerCase();
-        }
+            let lowerCaseUrl = url.toLowerCase();
 
-        if (url && !UrlUtils.endsWith(url, "/")) {
-            url += "/";
+            if (!UrlUtils.endsWith(lowerCaseUrl, "/")) {
+                lowerCaseUrl += "/";
+            }
+
+            return lowerCaseUrl;
         }
 
         return url;
@@ -218,15 +220,16 @@ export class UrlUtils {
             return url;
         }
 
+        let updatedUrl = url;
         let regex = new RegExp("(\\&" + name + "=)[^\&]+");
-        url = url.replace(regex, "");
+        updatedUrl = url.replace(regex, "");
         // name=value&
         regex = new RegExp("(" + name + "=)[^\&]+&");
-        url = url.replace(regex, "");
+        updatedUrl = url.replace(regex, "");
         // name=value
         regex = new RegExp("(" + name + "=)[^\&]+");
-        url = url.replace(regex, "");
-        return url;
+        updatedUrl = url.replace(regex, "");
+        return updatedUrl;
     }
 
     /**
@@ -266,7 +269,7 @@ export class UrlUtils {
      * Returns deserialized portion of URL hash
      * @ignore
      */
-    static deserializeHash(urlFragment: string) {
+    static deserializeHash(urlFragment: string): object {
         const hash = UrlUtils.getHashFromUrl(urlFragment);
         return CryptoUtils.deserialize(hash);
     }

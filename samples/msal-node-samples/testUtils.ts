@@ -4,7 +4,7 @@
  */
 
 import { Screenshot } from "../e2eTestUtils/TestUtils";
-import { Page } from "puppeteer";
+import { Page, HTTPResponse } from "puppeteer";
 import fs from "fs";
 
 // Constants
@@ -14,25 +14,58 @@ export const SUCCESSFUL_GRAPH_CALL_ID = "graph-called-successfully";
 export const SUCCESSFUL_GET_ALL_ACCOUNTS_ID = "accounts-retrieved-successfully";
 
 export async function enterCredentials(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
-    await page.waitForSelector("#i0116");
+    await Promise.all([
+        page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"]}).catch(() => {}), // Wait for navigation but don't throw due to timeout
+        page.waitForSelector("#i0116"),
+        page.waitForSelector("#idSIButton9")
+    ]).catch(async (e) => {
+        await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
+        throw e;
+    });
     await screenshot.takeScreenshot(page, "loginPage");
     await page.type("#i0116", username);
     await screenshot.takeScreenshot(page, "loginPageUsernameFilled")
-    await page.click("#idSIButton9");
+    await Promise.all([
+        page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"] }),
+        page.click("#idSIButton9")
+    ]).catch(async (e) => {
+        await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
+        throw e;
+    });
     await page.waitForSelector("#idA_PWD_ForgotPassword");
+    await page.waitForSelector("#i0118");
     await page.waitForSelector("#idSIButton9");
     await screenshot.takeScreenshot(page, "pwdInputPage");
     await page.type("#i0118", accountPwd);
-    await screenshot.takeScreenshot(page, "loginPagePasswordFilled")
-    await page.click("#idSIButton9");
+    await screenshot.takeScreenshot(page, "loginPagePasswordFilled");
+    await Promise.all([
+        page.click("#idSIButton9"),
+
+        // Wait either for another navigation to Keep me signed in page or back to redirectUri
+        Promise.race([
+            page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"] }),
+            page.waitForResponse((response: HTTPResponse) => response.url().startsWith(SAMPLE_HOME_URL), { timeout: 0 })
+        ])
+    ]).catch(async (e) => {
+        await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
+        throw e;
+    });
+
+    if (page.url().startsWith(SAMPLE_HOME_URL)) {
+        return;
+    }
+    await screenshot.takeScreenshot(page, "passwordSubmitted")
 
     try {
-        await page.waitForSelector('#KmsiCheckboxField', {timeout: 1000});
+        await page.waitForSelector('#idSIButton9', {timeout: 1000});
         await screenshot.takeScreenshot(page, "kmsiPage");
         await Promise.all([
-            page.click("#idSIButton9"),
-            page.waitForNavigation({ waitUntil: "networkidle0"})
-        ]);
+            page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"]}),
+            page.click("#idSIButton9")
+        ]).catch(async (e) => {
+            await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
+            throw e;
+        });
     } catch (e) {
         return;
     }
@@ -41,19 +74,18 @@ export async function enterCredentials(page: Page, screenshot: Screenshot, usern
 export async function approveRemoteConnect(page: Page, screenshot: Screenshot): Promise<void> {
     try {
         await page.waitForSelector("#remoteConnectDescription");
+        await page.waitForSelector("#remoteConnectSubmit");
         await screenshot.takeScreenshot(page, "remoteConnectPage");
         await Promise.all([
-            page.click("#remoteConnectSubmit"),
-            page.waitForNavigation({ waitUntil: "networkidle0"})
-        ]);
+            page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"]}),
+            page.click("#remoteConnectSubmit")
+        ]).catch(async (e) => {
+            await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
+            throw e;
+        });
     } catch (e) {
         return;
     }
-}
-
-export async function enterCredentialsWithConsent(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
-    await this.enterCredentials(page, screenshot, username, accountPwd);
-    await this.approveConsent(page, screenshot);
 }
 
 export async function enterCredentialsADFSWithConsent(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
@@ -63,38 +95,75 @@ export async function enterCredentialsADFSWithConsent(page: Page, screenshot: Sc
 
 export async function approveConsent(page: Page, screenshot: Screenshot): Promise<void> {
     await page.waitForSelector("#idSIButton9");
-    await page.click("#idSIButton9");
-    await takeScreenshotAfter(2000, screenshot, page, 'consentApproved'); 
+    await Promise.all([
+        page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"]}),
+        page.click("#idSIButton9")
+    ]).catch(async (e) => {
+        await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
+        throw e;
+    });
+    await screenshot.takeScreenshot(page, 'consentApproved'); 
 }
 
 export async function clickSignIn(page: Page, screenshot: Screenshot): Promise<void> {
+    await page.waitForSelector("#SignIn")
     await screenshot.takeScreenshot(page, "samplePageInit");
-    await page.click("#SignIn");
+    await Promise.all([
+        page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"]}),
+        page.click("#SignIn")
+    ]).catch(async (e) => {
+        await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
+        throw e;
+    });
     await screenshot.takeScreenshot(page, "signInClicked");
 }
 
 export async function enterCredentialsADFS(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
-    await page.waitForSelector("#i0116");
+    await Promise.all([
+        page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"]}).catch(() => {}), // Wait for navigation but don't throw due to timeout
+        page.waitForSelector("#i0116"),
+        page.waitForSelector("#idSIButton9")
+    ]).catch(async (e) => {
+        await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
+        throw e;
+    });
     await screenshot.takeScreenshot(page, "loginPageADFS");
     await page.type("#i0116", username);
-    await page.click("#idSIButton9");
-    await page.waitForSelector("#userNameInput");
-    await screenshot.takeScreenshot(page, "adfsUsernameInputPage");
+    await screenshot.takeScreenshot(page, "usernameEntered");
+    await Promise.all([
+        page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"]}),
+        page.click("#idSIButton9")
+    ]).catch(async (e) => {
+        await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
+        throw e;
+    });
+    await page.waitForSelector("#passwordInput");
+    await page.waitForSelector("#submitButton");
     await page.type("#passwordInput", accountPwd);
-    await page.click("#submitButton");
-    await takeScreenshotAfter(2000, screenshot, page, `pwdSubmitted`);
+    await screenshot.takeScreenshot(page, "passwordEntered");
+    await Promise.all([
+        page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"]}),
+        page.click("#submitButton")
+    ]).catch(async (e) => {
+        await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
+        throw e;
+    });
+    await screenshot.takeScreenshot(page, "pwdSubmitted");
 }
 
 export async function enterDeviceCode(page: Page, screenshot: Screenshot, code: string, deviceCodeUrl: string): Promise<void> {
-    await page.goto(deviceCodeUrl);
+    await page.goto(deviceCodeUrl, {waitUntil: ["load", "domcontentloaded", "networkidle0"]});
     await page.waitForSelector("#otc");
+    await page.waitForSelector("#idSIButton9");
     await screenshot.takeScreenshot(page, 'deviceCodePage');
     await page.type("#otc", code);
-    await page.click("#idSIButton9");
-}
-
-export function takeScreenshotAfter(duration: number, screenshot: Screenshot, page: Page, label: string): Promise<void> {
-    return new Promise(resolve => setTimeout(() => screenshot.takeScreenshot(page, label).then(() => resolve()), duration));
+    await Promise.all([
+        page.waitForNavigation({ waitUntil: ["load", "domcontentloaded", "networkidle0"]}),
+        page.click("#idSIButton9")
+    ]).catch(async (e) => {
+        await screenshot.takeScreenshot(page, "errorPage").catch(() => {});
+        throw e;
+    });
 }
 
 export async function validateCacheLocation(cacheLocation: string): Promise<void> {

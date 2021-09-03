@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "[msal-node] fix broken links",
-  "packageName": "@azure/msal-node",
-  "email": "dogan.erisen@gmail.com",
-  "dependentChangeType": "none"
-}

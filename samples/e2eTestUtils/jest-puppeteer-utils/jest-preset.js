@@ -5,6 +5,7 @@ module.exports = {
     },
     verbose: true,
     testMatch: ["**/test/**/**.spec.ts"],
+    testTimeout: 30000,
     globalSetup: `${__dirname}/jestSetup.js`,
     globalTeardown: `${__dirname}/jestTeardown.js`,
     testEnvironment: `${__dirname}/puppeteer_environment.js`

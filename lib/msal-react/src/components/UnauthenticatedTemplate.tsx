@@ -27,7 +27,7 @@ export function UnauthenticatedTemplate({ username, homeAccountId, localAccountI
     }, [username, homeAccountId, localAccountId]);
     const isAuthenticated = useIsAuthenticated(accountIdentifier);
 
-    if (!isAuthenticated && context.inProgress !== InteractionStatus.Startup) {
+    if (!isAuthenticated && context.inProgress !== InteractionStatus.Startup && context.inProgress !== InteractionStatus.HandleRedirect) {
         return (
             <React.Fragment>
                 {getChildrenOrFunction(children, context)}

@@ -26,7 +26,7 @@ describe('/ (Home Page)', () => {
 
     it('should load without error', async () => {
         const text = await page.evaluate(() => document.body.textContent);
-        expect(text).toContain('Microsoft');
+        expect(text).toContain('MSAL');
     });
   }
 );

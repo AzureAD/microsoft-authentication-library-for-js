@@ -23,7 +23,7 @@ describe('Test PersistenceCachePlugin', () => {
         },
         delete: () => {
             return new Promise<boolean>(resolve => {
-                resolve();
+                resolve(true);
             });
         },
         reloadNecessary: (lastSync) => {
@@ -41,6 +41,16 @@ describe('Test PersistenceCachePlugin', () => {
         },
         getFilePath(): string {
             return filePath;
+        },
+        verifyPersistence(): Promise<boolean> {
+            return new Promise<boolean>(resolve => {
+                resolve(true);
+            });
+        },
+        createForPersistenceValidation(): Promise<IPersistence> {
+            return new Promise<IPersistence>(resolve => {
+                resolve(this);
+            });
         }
     };
 

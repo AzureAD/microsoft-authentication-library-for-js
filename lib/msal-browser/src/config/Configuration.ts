@@ -134,6 +134,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
 
     // Default logger options for browser
     const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
+        // eslint-disable-next-line @typescript-eslint/no-empty-function
         loggerCallback: (): void => {},
         logLevel: LogLevel.Info,
         piiLoggingEnabled: false

@@ -23,8 +23,8 @@ export class MockCache {
     }
 
     // clear the cache
-    clearCache(): void {
-        this.cacheManager.clear();
+    async clearCache(): Promise<void> {
+        await this.cacheManager.clear();
     }
 
     // create account entries in the cache
@@ -69,7 +69,8 @@ export class MockCache {
             "cachedAt": "1000",
             "homeAccountId": "uid.utid",
             "extendedExpiresOn": "4600",
-            "expiresOn": "4600"
+            "expiresOn": "4600",
+            "tokenType": "Bearer"
         };
         const atOne = CacheManager.toObject(new AccessTokenEntity(), atOneData);
         this.cacheManager.setAccessTokenCredential(atOne);
@@ -84,10 +85,28 @@ export class MockCache {
             "cachedAt": "1000",
             "homeAccountId": "uid.utid",
             "extendedExpiresOn": "4600",
-            "expiresOn": "4600"
+            "expiresOn": "4600",
+            "tokenType": "Bearer"
         };
         const atTwo = CacheManager.toObject(new AccessTokenEntity(), atTwoData);
         this.cacheManager.setAccessTokenCredential(atTwo);
+
+        const atWithAuthSchemeData = {
+            "environment": "login.microsoftonline.com",
+            "credentialType": "AccessToken_With_AuthScheme",
+            "secret": "an access token",
+            "realm": "microsoft",
+            "target": "scope1 scope2 scope3",
+            "clientId": "mock_client_id",
+            "cachedAt": "1000",
+            "homeAccountId": "uid.utid",
+            "extendedExpiresOn": "4600",
+            "expiresOn": "4600",
+            "tokenType": "pop",
+            "keyId": "V6N_HMPagNpYS_wxM14X73q3eWzbTr9Z31RyHkIcN0Y"
+        };
+        const atWithAuthScheme = CacheManager.toObject(new AccessTokenEntity(), atWithAuthSchemeData);
+        this.cacheManager.setAccessTokenCredential(atWithAuthScheme);
     }
 
     // create refresh token entries in the cache

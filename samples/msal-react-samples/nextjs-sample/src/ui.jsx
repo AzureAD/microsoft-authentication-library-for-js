@@ -1,6 +1,7 @@
 import React, {useState} from "react";
 import { makeStyles } from '@material-ui/core/styles';
 import { useIsAuthenticated, useMsal } from "@azure/msal-react";
+import { InteractionStatus } from "@azure/msal-browser";
 import { loginRequest } from "../src/authConfig";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
@@ -110,20 +111,24 @@ const SignOutButton = () => {
                 open={open}
                 onClose={() => setAnchorEl(null)}
             >
-                <MenuItem onClick={() => handleLogout("redirect")}>Logout with Redirect</MenuItem>
-                <MenuItem onClick={() => handleLogout("popup")}>Logout with Popup</MenuItem>
+                <MenuItem onClick={() => handleLogout("redirect")}>Logout using Redirect</MenuItem>
+                <MenuItem onClick={() => handleLogout("popup")}>Logout using Popup</MenuItem>
             </Menu>
         </div>
     )
 };
 
 const SignInSignOutButton = () => {
+    const { inProgress } = useMsal();
     const isAuthenticated = useIsAuthenticated();
 
     if (isAuthenticated) {
         return <SignOutButton />;
-    } else {
+    } else if (inProgress !== InteractionStatus.Startup && inProgress !== InteractionStatus.HandleRedirect) {
+        // inProgress check prevents sign-in button from being displayed briefly after returning from a redirect sign-in. Processing the server response takes a render cycle or two
         return <SignInButton />;
+    } else {
+        return null;
     }
 }
 

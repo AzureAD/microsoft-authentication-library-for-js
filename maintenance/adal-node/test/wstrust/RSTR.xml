@@ -1,0 +1,90 @@
+<s:Envelope xmlns:a="http://www.w3.org/2005/08/addressing" xmlns:s="http://www.w3.org/2003/05/soap-envelope" xmlns:u="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">
+    <s:Header>
+        <a:Action s:mustUnderstand="1">http://docs.oasis-open.org/ws-sx/ws-trust/200512/RSTRC/IssueFinal</a:Action>
+        <o:Security s:mustUnderstand="1" xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+            <u:Timestamp u:Id="_0">
+                <u:Created>2013-11-15T03:08:25.221Z</u:Created>
+                <u:Expires>2013-11-15T03:13:25.221Z</u:Expires>
+            </u:Timestamp>
+        </o:Security>
+    </s:Header>
+    <s:Body>
+        <trust:RequestSecurityTokenResponseCollection xmlns:trust="http://docs.oasis-open.org/ws-sx/ws-trust/200512">
+            <trust:RequestSecurityTokenResponse>
+                <trust:Lifetime>
+                    <wsu:Created xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">2013-11-15T03:08:25.205Z</wsu:Created>
+                    <wsu:Expires xmlns:wsu="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-utility-1.0.xsd">2013-11-15T04:08:25.205Z</wsu:Expires>
+                </trust:Lifetime>
+                <wsp:AppliesTo xmlns:wsp="http://schemas.xmlsoap.org/ws/2004/09/policy">
+                    <wsa:EndpointReference xmlns:wsa="http://www.w3.org/2005/08/addressing">
+                        <wsa:Address>https://login.microsoftonline.com/extSTS.srf</wsa:Address>
+                    </wsa:EndpointReference>
+                </wsp:AppliesTo>
+                <trust:RequestedSecurityToken>
+                    <saml:Assertion AssertionID="_9bd2b280-f153-471a-9b73-c1df0d555075" IssueInstant="2013-11-15T03:08:25.221Z" Issuer="http://fs.richard-randall.com/adfs/services/trust" MajorVersion="1" MinorVersion="1" xmlns:saml="urn:oasis:names:tc:SAML:1.0:assertion">
+                        <saml:Conditions NotBefore="2013-11-15T03:08:25.205Z" NotOnOrAfter="2013-11-15T04:08:25.205Z">
+                            <saml:AudienceRestrictionCondition>
+                                <saml:Audience>https://login.microsoftonline.com/extSTS.srf</saml:Audience>
+                            </saml:AudienceRestrictionCondition>
+                        </saml:Conditions>
+                        <saml:AttributeStatement>
+                            <saml:Subject>
+                                <saml:NameIdentifier Format="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified">1TIu064jGEmmf+hnI+F0Jg==</saml:NameIdentifier>
+                                <saml:SubjectConfirmation>
+                                    <saml:ConfirmationMethod>urn:oasis:names:tc:SAML:1.0:cm:bearer</saml:ConfirmationMethod>
+                                </saml:SubjectConfirmation>
+                            </saml:Subject>
+                            <saml:Attribute AttributeName="UPN" AttributeNamespace="http://schemas.xmlsoap.org/claims">
+                                <saml:AttributeValue>frizzo@richard-randall.com</saml:AttributeValue>
+                            </saml:Attribute>
+                            <saml:Attribute AttributeName="ImmutableID" AttributeNamespace="http://schemas.microsoft.com/LiveID/Federation/2008/05">
+                                <saml:AttributeValue>1TIu064jGEmmf+hnI+F0Jg==</saml:AttributeValue>
+                            </saml:Attribute>
+                        </saml:AttributeStatement>
+                        <saml:AuthenticationStatement AuthenticationInstant="2013-11-15T03:08:25.174Z" AuthenticationMethod="urn:oasis:names:tc:SAML:1.0:am:password">
+                            <saml:Subject>
+                                <saml:NameIdentifier Format="urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified">1TIu064jGEmmf+hnI+F0Jg==</saml:NameIdentifier>
+                                <saml:SubjectConfirmation>
+                                    <saml:ConfirmationMethod>urn:oasis:names:tc:SAML:1.0:cm:bearer</saml:ConfirmationMethod>
+                                </saml:SubjectConfirmation>
+                            </saml:Subject>
+                        </saml:AuthenticationStatement>
+                        <ds:Signature xmlns:ds="http://www.w3.org/2000/09/xmldsig#">
+                            <ds:SignedInfo>
+                                <ds:CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+                                <ds:SignatureMethod Algorithm="http://www.w3.org/2000/09/xmldsig#rsa-sha1"/>
+                                <ds:Reference URI="#_9bd2b280-f153-471a-9b73-c1df0d555075">
+                                    <ds:Transforms>
+                                        <ds:Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature"/>
+                                        <ds:Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#"/>
+                                    </ds:Transforms>
+                                    <ds:DigestMethod Algorithm="http://www.w3.org/2000/09/xmldsig#sha1"/>
+                                    <ds:DigestValue>3i95D+nRbsyRitSPeT7ZtEr5vbM=</ds:DigestValue>
+                                </ds:Reference>
+                            </ds:SignedInfo>
+                            <ds:SignatureValue>aVNmmKLNdAlBxxcNciWVfxynZUPR9ql8ZZSZt/qpqL/GB3HX/cL/QnfG2OOKrmhgEaR0Ul4grZhGJxlxMPDL0fhnBz+VJ5HwztMFgMYs3Md8A2sZd9n4dfu7+CByAna06lCwwfdFWlNV1MBFvlWvYtCLNkpYVr/aglmb9zpMkNxEOmHe/cwxUtYlzH4RpIsIT5pruoJtUxKcqTRDEeeYdzjBAiJuguQTChLmHNoMPdX1RmtJlPsrZ1s9R/IJky7fHLjB7jiTDceRCS5QUbgUqYbLG1MjFXthY2Hr7K9kpYjxxIk6xmM7mFQE3Hts3bj6UU7ElUvHpX9bxxk3pqzlhg==</ds:SignatureValue>
+                            <KeyInfo xmlns="http://www.w3.org/2000/09/xmldsig#">
+                                <X509Data>
+                                    <X509Certificate>MIIC6DCCAdCgAwIBAgIQaztYF2TpvZZG6yreA3NRpzANBgkqhkiG9w0BAQsFADAwMS4wLAYDVQQDEyVBREZTIFNpZ25pbmcgLSBmcy5yaWNoYXJkLXJhbmRhbGwuY29tMB4XDTEzMTExMTAzNTMwMFoXDTE0MTExMTAzNTMwMFowMDEuMCwGA1UEAxMlQURGUyBTaWduaW5nIC0gZnMucmljaGFyZC1yYW5kYWxsLmNvbTCCASIwDQYJKoZIhvcNAQEBBQADggEPADCCAQoCggEBAO+1VWY/sYDdN3hdsvT+mWHTcOwjp2G9e0AEZdmgh7bS54WUJw9y0cMxJmGB0jAAW40zomzIbS8/o3iuxcJyFgBVtMFfXwFjVQJnZJ7IMXFs1V/pJHrwWHxePz/WzXFtMaqEIe8QummJ07UBg9UsYZUYTGO9NDGw1Yr/oRNsl7bLA0S/QlW6yryf6l3snHzIgtO2xiWn6q3vCJTTVNMROkI2YKNKdYiD5fFD77kFACfJmOwP8MN9u+HM2IN6g0Nv5s7rMyw077Co/xKefamWQCB0jLpv89jo3hLgkwIgWX4cMVgHSNmdzXSgC3owG8ivRuJDATh83GiqI6jzA1+x4rkCAwEAATANBgkqhkiG9w0BAQsFAAOCAQEAxA5MQZHw9lJYDpU4f45EYrWPEaAPnncaoxIeLE9fG14gA01frajRfdyoO0AKqb+ZG6sePKngsuq4QHA2EnEI4Di5uWKsXy1Id0AXUSUhLpe63alZ8OwiNKDKn71nwpXnlGwKqljnG3xBMniGtGKrFS4WM+joEHzaKpvgtGRGoDdtXF4UXZJcn2maw6d/kiHrQ3kWoQcQcJ9hVIo8bC0BPvxV0Qh4TF3Nb3tKhaXsY68eMxMGbHok9trVHQ3Vew35FuTg1JzsfCFSDF8sxu7FJ4iZ7VLM8MQLnvIMcubLJvc57EHSsNyeiqBFQIYkdg7MSf+Ot2qJjfExgo+NOtWN+g==</X509Certificate>
+                                </X509Data>
+                            </KeyInfo>
+                        </ds:Signature>
+                    </saml:Assertion>
+                </trust:RequestedSecurityToken>
+                <trust:RequestedAttachedReference>
+                    <o:SecurityTokenReference k:TokenType="http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV1.1" xmlns:k="http://docs.oasis-open.org/wss/oasis-wss-wssecurity-secext-1.1.xsd" xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+                        <o:KeyIdentifier ValueType="http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.0#SAMLAssertionID">_9bd2b280-f153-471a-9b73-c1df0d555075</o:KeyIdentifier>
+                    </o:SecurityTokenReference>
+                </trust:RequestedAttachedReference>
+                <trust:RequestedUnattachedReference>
+                    <o:SecurityTokenReference k:TokenType="http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.1#SAMLV1.1" xmlns:k="http://docs.oasis-open.org/wss/oasis-wss-wssecurity-secext-1.1.xsd" xmlns:o="http://docs.oasis-open.org/wss/2004/01/oasis-200401-wss-wssecurity-secext-1.0.xsd">
+                        <o:KeyIdentifier ValueType="http://docs.oasis-open.org/wss/oasis-wss-saml-token-profile-1.0#SAMLAssertionID">_9bd2b280-f153-471a-9b73-c1df0d555075</o:KeyIdentifier>
+                    </o:SecurityTokenReference>
+                </trust:RequestedUnattachedReference>
+                <trust:TokenType>urn:oasis:names:tc:SAML:1.0:assertion</trust:TokenType>
+                <trust:RequestType>http://docs.oasis-open.org/ws-sx/ws-trust/200512/Issue</trust:RequestType>
+                <trust:KeyType>http://docs.oasis-open.org/ws-sx/ws-trust/200512/Bearer</trust:KeyType>
+            </trust:RequestSecurityTokenResponse>
+        </trust:RequestSecurityTokenResponseCollection>
+    </s:Body>
+</s:Envelope>

@@ -4,11 +4,11 @@ This document will outline techniques your application can use to improve the pe
 
 ## Bypass cloud instance discovery resolution
 
+**Note:** If you are using B2C or ADFS authorities this section is not applicable. You will need to provide your authority domains to the `auth.knownAuthorities` property instead.
+
 By default, during the process of retrieving a token, MSAL.js will make a network request to retrieve metadata associated with the various Azure clouds. If you would like to skip this network request, you can provide the required metadata in the configuration of `PublicClientApplication`.
 
 **Important:** It is your application's responsibility to ensure it is using correct, up-to-date cloud instance metadata. Failure to do so may result in your application not working correctly.
-
-**Note:** If you are using B2C or ADFS authorities this document is not applicable. You will need to provide your authority domains to the `auth.knownAuthorities` property instead.
 
 Instructions (AAD Scenarios):
 

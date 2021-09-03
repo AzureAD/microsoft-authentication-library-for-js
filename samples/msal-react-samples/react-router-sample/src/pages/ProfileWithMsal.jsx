@@ -2,7 +2,7 @@ import { Component } from "react";
 
 // Msal imports
 import { MsalAuthenticationTemplate, withMsal } from "@azure/msal-react";
-import { InteractionType, InteractionStatus } from "@azure/msal-browser";
+import { InteractionType, InteractionStatus, InteractionRequiredAuthError } from "@azure/msal-browser";
 import { loginRequest } from "../authConfig";
 
 // Sample app imports
@@ -28,15 +28,25 @@ class ProfileContent extends Component {
         }
     }
 
-    componentDidMount() {
-        if (this.props.msalContext.accounts[0] && this.props.msalContext.inProgress === InteractionStatus.None) {
-            this.props.msalContext.instance.acquireTokenSilent({
-                ...loginRequest,
-                account: this.props.msalContext.accounts[0]
-            }).then((response) => {
-                callMsGraph(response.accessToken).then(response => this.setState({graphData: response}));
+    setGraphData() {
+        if (!this.state.graphData && this.props.msalContext.inProgress === InteractionStatus.None) {
+            callMsGraph().then(response => this.setState({graphData: response})).catch((e) => {
+                if (e instanceof InteractionRequiredAuthError) {
+                    this.props.msalContext.instance.acquireTokenRedirect({
+                        ...loginRequest,
+                        account: this.props.msalContext.instance.getActiveAccount()
+                    });
+                }
             });
         }
+    }
+
+    componentDidMount() {
+        this.setGraphData();
+    }
+
+    componentDidUpdate() {
+        this.setGraphData();
     }
   
     render() {

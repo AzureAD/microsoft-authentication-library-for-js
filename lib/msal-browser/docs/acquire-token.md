@@ -1,8 +1,11 @@
 # Acquiring and Using an Access Token
 
-Before you start here, make sure you understand how to [initialize the application object](./initialization.md).
+> :information_source: Before you start here, make sure you understand how to [initialize the application object](./initialization.md).
 
-In MSAL, you can get access tokens for the APIs your app needs to call using the acquireToken methods provided by the library which make requests to Azure AD to obtain an `authorization code`. The MSAL library then exchanges that code for an [`access token`](https://docs.microsoft.com/azure/active-directory/develop/access-tokens) containing the user consented scopes to allow your app to securely call the API.
+In MSAL, you can get access tokens for the APIs your app needs to call using the `acquireToken*` methods provided by the library. The `acquireToken*` methods abstract away the 2 steps involved in acquiring tokens with the [OAuth 2.0 authorization code flow](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-auth-code-flow):
+
+1. make a request to Azure AD to obtain an `authorization code`
+1. exchange that code for an [access token](https://docs.microsoft.com/azure/active-directory/develop/access-tokens) containing the user consented scopes
 
 You can read more about access tokens [here](https://docs.microsoft.com/azure/active-directory/develop/access-tokens).
 
@@ -14,10 +17,9 @@ See [here](./initialization.md#choosing-an-interaction-type) if you are uncertai
 
 MSAL uses a cache to store tokens based on specific parameters including scopes, resource and authority, and will retrieve the token from the cache when needed. It also can perform silent renewal of those tokens when they have expired. MSAL exposes this functionality through the `acquireTokenSilent` method.
 
-It is best practice to attempt an `acquireTokenSilent` call before using the interactive APIs if you have already logged in. This allows you to prevent unnecessary user interactions. 
-`acquireTokenSilent` will look for a valid token in the cache, and if it is close to expiring or does not exist, will automatically try to refresh it for you. You should use a `loginXXXXX` or `acquireTokenXXXXX` (interactive) API before this to establish a session with the server.
+It is best practice to attempt an `acquireTokenSilent` call before using the interactive APIs if you have already logged in. This allows you to prevent unnecessary user interactions. `acquireTokenSilent` will look for a valid token in the cache, and if it is close to expiring or does not exist, will automatically try to refresh it for you. You should use a `loginXXXXX` or `acquireTokenXXXXX` (interactive) API before this to establish a session with the server.
 
-If the `acquireTokenSilent` call attempts a refresh token call and the refresh token is expired, MSAL will attempt to make a silent request in an iframe for a new authorization code. If your session still exists, you will obtain a new authorization code silently, which will be immediately traded for an access token. 
+If the `acquireTokenSilent` call attempts a refresh token call and the refresh token is expired, MSAL will attempt to make a silent request in an iframe for a new authorization code. If your session still exists, you will obtain a new authorization code silently, which will be immediately traded for an access token.
 
 If the silent iframe call for a new authorization code fails, you need to initiate an interactive request. This could happen for many reasons including scopes that have been revoked, expired tokens, or password changes. MSAL will throw a specific InteractionRequiredAuthError error type when this error occurs.
 
@@ -26,6 +28,7 @@ You can read more about using `acquireTokenSilent` [here](./token-lifetimes.md).
 You must pass a request object to the acquireToken APIs. This object allows you to use different parameters in the request. See [here](./request-response-object.md) for more information on the request object parameters. Scopes are required for all acquireToken calls.
 
 - Popup
+
 ```javascript
 var request = {
     scopes: ["Mail.Read"]
@@ -44,6 +47,7 @@ msalInstance.acquireTokenSilent(request).then(tokenResponse => {
 ```
 
 - Redirect
+
 ```javascript
 var request = {
     scopes: ["Mail.Read"]
@@ -79,6 +83,6 @@ fetch(graphEndpoint, options)
     });
 ```
 
-# Next Steps
+## Next Steps
 
 Learn about [token lifetimes, expiration and renewal](./token-lifetimes.md).

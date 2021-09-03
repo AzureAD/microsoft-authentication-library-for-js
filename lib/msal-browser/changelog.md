@@ -1,8 +1,71 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Wed, 31 Mar 2021 22:25:57 GMT and should not be manually modified.
+This log was last generated on Thu, 22 Jul 2021 22:50:22 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.16.0
+
+Thu, 22 Jul 2021 22:50:22 GMT
+
+### Minor changes
+
+- Msal-Browser supports parallel silent requests #3837 (joarroyo@microsoft.com)
+- Persist active account #3755 (thomas.norling@microsoft.com)
+
+### Patches
+
+- Add fix for loginRedirect failure when angular index.html base href is different from the origin (#3875) (rishanthakumar@gmail.com)
+- fix: fixing the npm audit issues (samuelkamau@microsoft.com)
+- Expose isInPopup helper function #3825 (thomas.norling@microsoft.com)
+
+## 2.15.0
+
+Mon, 28 Jun 2021 23:39:48 GMT
+
+### Minor changes
+
+- Add correlationId to log messages #3601 (joarroyo@microsoft.com)
+- Add CCS parameters to headers or form_data #3636 (prkanher@microsoft.com)
+
+### Patches
+
+- Update monitor_window_timeout error message with link to error docs #3783 (thomas.norling@microsoft.com)
+- Refactor event APIs into EventHandler class #3770 (thomas.norling@microsoft.com)
+- Fix logoutPopup parameter type on IPublicClientApplication #3663 (thomas.norling@microsoft.com)
+
+## 2.14.2
+
+Wed, 12 May 2021 18:35:03 GMT
+
+### Patches
+
+- Adjust log messages #3589 (joarroyo@microsoft.com)
+- Fix hash removal from URL and browser history after interactive request #3609 (hemoral@microsoft.com)
+- Update account equality check #3527 (thomas.norling@microsoft.com)
+- Close popup if error is thrown before popup window navigation occurs #3572 (thomas.norling@microsoft.com)
+- change msal-browser/msal-common to preserveModules to enable tree-shaking #3300 (oo.thomas96@gmail.com)
+
+## 2.14.1
+
+Thu, 22 Apr 2021 23:26:08 GMT
+
+### Patches
+
+- Add .browserslistrc #3471 (thomas.norling@microsoft.com)
+- Look for temp cache items in local storage as fallback #3509 (janutter@microsoft.com)
+
+## 2.14.0
+
+Wed, 14 Apr 2021 18:39:53 GMT
+
+### Minor changes
+
+- Add support for AccessToken_With_AuthScheme credential type #3426 (hectormgdev@gmail.com)
+
+### Patches
+
+- Make SHR parameters optional (#3320) (hemoral@microsoft.com)
 
 ## 2.13.1
 

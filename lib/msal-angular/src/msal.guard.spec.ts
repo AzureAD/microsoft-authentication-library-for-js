@@ -1,24 +1,36 @@
 import { HttpClientTestingModule } from '@angular/common/http/testing';
 import { TestBed } from '@angular/core/testing';
-import { Router, UrlTree } from '@angular/router';
-import { BrowserUtils, InteractionType, IPublicClientApplication, PublicClientApplication, UrlString } from '@azure/msal-browser';
+import { UrlTree } from '@angular/router';
+import { Location } from "@angular/common";
+import { BrowserSystemOptions, BrowserUtils, InteractionType, IPublicClientApplication, LogLevel, PublicClientApplication, UrlString } from '@azure/msal-browser';
 import { of } from 'rxjs';
 import { MsalGuardConfiguration } from './msal.guard.config';
 import { MsalModule, MsalGuard, MsalService, MsalBroadcastService } from './public-api';
+import { RouterTestingModule } from '@angular/router/testing';
 
 let guard: MsalGuard;
 let authService: MsalService;
 let routeMock: any = { snapshot: {} };
 let routeStateMock: any = { snapshot: {}, url: '/' };
-let routerMock = { navigate: jasmine.createSpy('navigate') };
 let testInteractionType: InteractionType;
 let testLoginFailedRoute: string;
+let testConfiguration: Partial<MsalGuardConfiguration>;
+let browserSystemOptions: BrowserSystemOptions;
 
 function MSALInstanceFactory(): IPublicClientApplication {
   return new PublicClientApplication({
     auth: {
       clientId: '6226576d-37e9-49eb-b201-ec1eeb0029b6',
       redirectUri: 'http://localhost:4200'
+    },
+    system: {
+        loggerOptions: {
+            loggerCallback: (level, message) => {
+                // console.log(message)
+            },
+            logLevel: LogLevel.Verbose,
+            piiLoggingEnabled: true
+        }
     }
   });
 }
@@ -27,11 +39,12 @@ function MSALGuardConfigFactory(): MsalGuardConfiguration {
   return {
     //@ts-ignore
     interactionType: testInteractionType,
-    loginFailedRoute: testLoginFailedRoute
+    loginFailedRoute: testLoginFailedRoute,
+    authRequest: testConfiguration?.authRequest,
   }
 }
 
-function initializeMsal() {
+function initializeMsal(providers: any[] = []) {
   TestBed.resetTestingModule();
   TestBed.configureTestingModule({
     imports: [
@@ -39,13 +52,14 @@ function initializeMsal() {
         MSALInstanceFactory(),
         MSALGuardConfigFactory(),
         { interactionType: InteractionType.Popup, protectedResourceMap: new Map() }),
-      HttpClientTestingModule
+      HttpClientTestingModule,
+      RouterTestingModule.withRoutes([])
     ],
     providers: [
       MsalGuard,
-      { provide: Router, useValue: routerMock },
       MsalService,
-      MsalBroadcastService
+      MsalBroadcastService,
+      ...providers
     ]
   });
 
@@ -57,12 +71,29 @@ describe('MsalGuard', () => {
   beforeEach(() => {
     testInteractionType = InteractionType.Popup;
     testLoginFailedRoute = undefined;
+    testConfiguration = { };
+    browserSystemOptions = { };
+    routeStateMock = { snapshot: {}, url: '/' };
     initializeMsal();
   });
 
   it("is created", () => {
     expect(guard).toBeTruthy();
   });
+
+  it("throws error for silent interaction type", (done) => {
+    testInteractionType = InteractionType.Silent;
+    initializeMsal();
+    try {
+      guard.canActivate(routeMock, routeStateMock)
+      .subscribe(
+        (result) => {},
+      );
+    } catch (err) {
+      expect(err.errorCode).toBe("invalid_interaction_type");
+      done();
+    }
+  })
 
   it("returns false if page with MSAL Guard is set as redirectUri", (done) => {
     spyOn(UrlString, "hashContainsKnownProperties").and.returnValue(true);
@@ -73,6 +104,70 @@ describe('MsalGuard', () => {
         expect(result).toBeFalse();
         done();
       });
+  });
+
+  it("returns false if page contains known successful response (path routing)", (done) => {
+    initializeMsal([
+        {
+            provide: Location,
+            useValue: {
+                path: jasmine.createSpy("path").and.callFake((hash: boolean) => hash ? "/path#code=": "/path")
+            }
+        }
+    ])
+
+    routeStateMock = { snapshot: {}, url: '/path#code=' };
+
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
+        //@ts-ignore
+        of("test")
+    );
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
+        homeAccountId: "test",
+        localAccountId: "test",
+        environment: "test",
+        tenantId: "test",
+        username: "test"
+      }]);
+  
+    guard.canActivate(routeMock, routeStateMock)
+        .subscribe((result: UrlTree) => {
+            expect(result.toString()).toEqual('/path');
+            done();
+        });
+  });
+
+  it("returns false if page contains known successful response (hash routing)", (done) => {
+    initializeMsal([
+        {
+            provide: Location,
+            useValue: {
+                path: jasmine.createSpy("path").and.callFake((hash: boolean) => hash ? "/code=": "/")
+            }
+        }
+    ])
+
+    routeStateMock = { snapshot: {}, url: '/code=' };
+
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
+        //@ts-ignore
+        of("test")
+    );
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
+        homeAccountId: "test",
+        localAccountId: "test",
+        environment: "test",
+        tenantId: "test",
+        username: "test"
+      }]);
+  
+    guard.canActivate(routeMock, routeStateMock)
+        .subscribe((result: UrlTree) => {
+            expect(result.toString()).toEqual('/');
+            done();
+        });
   });
 
   it("returns true for a logged in user", (done) => {
@@ -97,6 +192,14 @@ describe('MsalGuard', () => {
   });
 
   it("should return true after logging in with popup", (done) => {
+    testConfiguration = {
+      authRequest: (authService, state) => {
+        expect(state).toBeDefined();
+        expect(authService).toBeDefined();
+        return { };
+      }
+    }
+    initializeMsal();
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
       //@ts-ignore
       of("test")
@@ -108,7 +211,7 @@ describe('MsalGuard', () => {
       //@ts-ignore
       of(true)
     );
-
+    
     guard.canActivate(routeMock, routeStateMock)
       .subscribe(result => {
         expect(result).toBeTrue();

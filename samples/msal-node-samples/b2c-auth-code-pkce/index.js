@@ -54,7 +54,6 @@ const SCOPES = {
 const APP_STATES = {
     login: "login",
     call_api: "call_api",
-    password_reset: "password_reset",
 }
 
 /** 
@@ -129,10 +128,10 @@ const getAuthCode = (authority, scopes, state, res) => {
         app.locals.pkceCodes.verifier = verifier;
         app.locals.pkceCodes.challenge = challenge;
 
-        // Add PKCE code challenge and challenge method to authCodeUrl request objectgit st
+        // Add PKCE code challenge and challenge method to authCodeUrl request object
         authCodeRequest.codeChallenge = app.locals.pkceCodes.challenge;
         authCodeRequest.codeChallengeMethod = app.locals.pkceCodes.challengeMethod;
-        // Get url to sign user in and consent to scopes needed for applicatio
+        // Get url to sign user in and consent to scopes needed for application
         pca.getAuthCodeUrl(authCodeRequest).then((response) => {
             res.redirect(response);
         }).catch((error) => console.log(JSON.stringify(error)));
@@ -148,19 +147,8 @@ app.get("/", (req, res) => {
 
 // Initiates auth code grant for login
 app.get("/login", (req, res) => {
-    if (authCodeRequest.state === APP_STATES.password_reset) {
-        // if coming for password reset, set the authority to password reset
-        getAuthCode(policies.authorities.resetPassword.authority, SCOPES.oidc, APP_STATES.password_reset, res);
-    } else {
-        // else, login as usual
-        getAuthCode(policies.authorities.signUpSignIn.authority, SCOPES.oidc, APP_STATES.login, res);
-    }
+    getAuthCode(policies.authorities.signUpSignIn.authority, SCOPES.oidc, APP_STATES.login, res);
 })
-
-// Initiates auth code grant for edit_profile user flow
-app.get("/profile", (req, res) => {
-    getAuthCode(policies.authorities.editProfile.authority, SCOPES.oidc, APP_STATES.login, res);
-});
 
 // Initiates auth code grant for web API call
 app.get("/api", async (req, res) => {
@@ -192,19 +180,6 @@ app.get("/redirect", (req, res) => {
                 const templateParams = { showLoginButton: false, username: response.account.username, profile: false };
                 res.render("api", templateParams);
             }).catch((error) => {
-                if (req.query.error) {
-
-                    /**
-                     * When the user selects "forgot my password" on the sign-in page, B2C service will throw an error.
-                     * We are to catch this error and redirect the user to login again with the resetPassword authority.
-                     * For more information, visit: https://docs.microsoft.com/azure/active-directory-b2c/user-flow-overview#linking-user-flows
-                     */
-                    if (JSON.stringify(req.query.error_description).includes("AADB2C90118")) {
-                        authCodeRequest.authority = policies.authorities.resetPassword;
-                        authCodeRequest.state = APP_STATES.password_reset;
-                        return res.redirect('/login');
-                    }
-                }
                 res.status(500).send(error);
             });
 
@@ -233,11 +208,6 @@ app.get("/redirect", (req, res) => {
                 res.status(500).send(error);
             });
 
-    } else if (req.query.state === APP_STATES.password_reset) {
-
-        // once the password is reset, redirect the user to login again with the new password
-        authCodeRequest.state = APP_STATES.login;
-        res.redirect('/login');
     } else {
         res.status(500).send("Unknown");
     }

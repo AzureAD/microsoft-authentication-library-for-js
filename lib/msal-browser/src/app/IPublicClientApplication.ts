@@ -12,6 +12,8 @@ import { EndSessionRequest } from "../request/EndSessionRequest";
 import { BrowserConfigurationAuthError } from "../error/BrowserConfigurationAuthError";
 import { WrapperSKU } from "../utils/BrowserConstants";
 import { INavigationClient } from "../navigation/INavigationClient";
+import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
+import { ITokenCache } from "../cache/ITokenCache";
 
 export interface IPublicClientApplication {
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
@@ -28,8 +30,9 @@ export interface IPublicClientApplication {
     loginRedirect(request?: RedirectRequest): Promise<void>;
     logout(logoutRequest?: EndSessionRequest): Promise<void>;
     logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void>;
-    logoutPopup(logoutRequest?: EndSessionRequest): Promise<void>;
+    logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void>;
     ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult>;
+    getTokenCache(): ITokenCache;
     getLogger(): Logger;
     setLogger(logger: Logger): void;
     setActiveAccount(account: AccountInfo | null): void;
@@ -86,6 +89,9 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     },
     removeEventCallback: () => {
         return;
+    },
+    getTokenCache: () => {
+        throw BrowserConfigurationAuthError.createStubPcaInstanceCalledError();
     },
     getLogger: () => {
         throw BrowserConfigurationAuthError.createStubPcaInstanceCalledError();

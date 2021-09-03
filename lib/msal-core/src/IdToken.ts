@@ -34,7 +34,7 @@ export class IdToken {
         }
         try {
             this.rawIdToken = rawIdToken;
-            this.claims = TokenUtils.extractIdToken(rawIdToken);
+            this.claims = TokenUtils.extractIdToken(rawIdToken) as StringDict;
             if (this.claims) {
                 if (this.claims.hasOwnProperty("iss")) {
                     this.issuer = this.claims["iss"];

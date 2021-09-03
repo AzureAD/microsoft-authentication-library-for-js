@@ -90,7 +90,7 @@ export default class ApiEvent extends TelemetryEvent {
         this.event[EVENT_KEYS.WAS_SUCESSFUL] = wasSuccessful;
     }
 
-    public get wasSuccessful() {
+    public get wasSuccessful(): boolean {
         return this.event[EVENT_KEYS.WAS_SUCESSFUL] === true;
     }
 

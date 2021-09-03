@@ -1,7 +1,7 @@
 import "mocha";
 import puppeteer from "puppeteer";
 import { expect } from "chai";
-import { Screenshot, createFolder, setupCredentials } from "../../../../../e2eTestUtils/TestUtils";
+import { Screenshot, createFolder, setupCredentials, enterCredentials } from "../../../../../e2eTestUtils/TestUtils";
 import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
@@ -9,28 +9,6 @@ import { LabClient } from "../../../../../e2eTestUtils/LabClient";
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots`;
 let username = "";
 let accountPwd = "";
-
-async function enterCredentials(page: puppeteer.Page, screenshot: Screenshot): Promise<void> {
-    await page.waitForNavigation({ waitUntil: "networkidle0"});
-    await page.waitForSelector("#i0116");
-    await screenshot.takeScreenshot(page, "loginPage");
-    await page.type("#i0116", username);
-    await page.click("#idSIButton9");
-    await page.waitForSelector("#idA_PWD_ForgotPassword");
-    await screenshot.takeScreenshot(page, "pwdInputPage");
-    await page.type("#i0118", accountPwd);
-    await page.click("#idSIButton9");
-    try {
-        await page.waitForSelector('#KmsiCheckboxField', {timeout: 1000});
-        await screenshot.takeScreenshot(page, "kmsiPage");
-        await Promise.all([
-            page.click("#idSIButton9"),
-            page.waitForNavigation({ waitUntil: "networkidle0"})
-        ]);
-    } catch (e) {
-        return;
-    }
-}
 
 describe("Browser tests", function () {
     this.timeout(0);
@@ -84,7 +62,10 @@ describe("Browser tests", function () {
         // Click Sign In With Redirect
         await page.click("#loginRedirect");
         // Enter credentials
-        await enterCredentials(page, screenshot);
+        await enterCredentials(page, screenshot, username, accountPwd);
+        // Wait for return to page
+        await screenshot.takeScreenshot(page, "samplePageReturnedToApp");
+        await page.waitForXPath("//button[contains(., 'Sign Out')]");
         await screenshot.takeScreenshot(page, "samplePageLoggedIn");
         let tokenStore = await BrowserCache.getTokens();
         expect(tokenStore.idTokens).to.be.length(1);
@@ -95,7 +76,7 @@ describe("Browser tests", function () {
         // acquire First Access Token
         await BrowserCache.removeTokens(tokenStore.accessTokens);
         await page.click("#seeProfile");
-        await page.waitFor(2000);
+        await page.waitForXPath("//p[contains(., 'Phone:')]");
         await screenshot.takeScreenshot(page, "seeProfile");
         tokenStore = await BrowserCache.getTokens();
         expect(tokenStore.idTokens).to.be.length(1);

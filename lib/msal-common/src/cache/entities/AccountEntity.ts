@@ -138,11 +138,12 @@ export class AccountEntity {
     static createAccount(
         clientInfo: string,
         homeAccountId: string,
-        authority: Authority,
         idToken: AuthToken,
+        authority?: Authority,
         oboAssertion?: string,
         cloudGraphHostName?: string,
-        msGraphHost?: string
+        msGraphHost?: string,
+        environment?: string
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
@@ -150,8 +151,9 @@ export class AccountEntity {
         account.clientInfo = clientInfo;
         account.homeAccountId = homeAccountId;
 
-        const env = authority.getPreferredCache();
-        if (StringUtils.isEmpty(env)) {
+        const env = environment || (authority && authority.getPreferredCache());
+
+        if (!env) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
         }
 
@@ -186,24 +188,25 @@ export class AccountEntity {
      * @param idToken
      */
     static createGenericAccount(
-        authority: Authority,
         homeAccountId: string,
         idToken: AuthToken,
+        authority?: Authority,
         oboAssertion?: string,
         cloudGraphHostName?: string,
-        msGraphHost?: string
+        msGraphHost?: string,
+        environment?: string
     ): AccountEntity {
         const account: AccountEntity = new AccountEntity();
 
-        account.authorityType = (authority.authorityType === AuthorityType.Adfs) ? CacheAccountType.ADFS_ACCOUNT_TYPE : CacheAccountType.GENERIC_ACCOUNT_TYPE;
+        account.authorityType = (authority && authority.authorityType === AuthorityType.Adfs) ? CacheAccountType.ADFS_ACCOUNT_TYPE : CacheAccountType.GENERIC_ACCOUNT_TYPE;
         account.homeAccountId = homeAccountId;
         // non AAD scenarios can have empty realm
         account.realm = "";
         account.oboAssertion = oboAssertion;
 
-        const env = authority.getPreferredCache();
+        const env = environment || authority && authority.getPreferredCache();
 
-        if (StringUtils.isEmpty(env)) {
+        if (!env) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
         }
 
@@ -245,10 +248,12 @@ export class AccountEntity {
 
         // for cases where there is clientInfo
         if (serverClientInfo) {
-            const clientInfo = buildClientInfo(serverClientInfo, cryptoObj);
-            if (!StringUtils.isEmpty(clientInfo.uid) && !StringUtils.isEmpty(clientInfo.utid)) {
-                return `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`;
-            }
+            try {
+                const clientInfo = buildClientInfo(serverClientInfo, cryptoObj);
+                if (!StringUtils.isEmpty(clientInfo.uid) && !StringUtils.isEmpty(clientInfo.utid)) {
+                    return `${clientInfo.uid}${Separators.CLIENT_INFO_SEPARATOR}${clientInfo.utid}`;
+                }
+            } catch (e) {}
         }
 
         // default to "sub" claim
@@ -277,19 +282,31 @@ export class AccountEntity {
     }
 
     /**
-     * Helper function to determine whether 2 accounts are equal
-     * Used to avoid unnecessary state updates
-     * @param arrayA 
-     * @param arrayB 
+     * Helper function to determine whether 2 accountInfo objects represent the same account
+     * @param accountA 
+     * @param accountB 
+     * @param compareClaims - If set to true idTokenClaims will also be compared to determine account equality
      */
-    static accountInfoIsEqual(accountA: AccountInfo | null, accountB: AccountInfo | null): boolean {
+    static accountInfoIsEqual(accountA: AccountInfo | null, accountB: AccountInfo | null, compareClaims?: boolean): boolean {
         if (!accountA || !accountB) {
             return false;
         }
+
+        let claimsMatch = true; // default to true so as to not fail comparison below if compareClaims: false
+        if (compareClaims) {
+            const accountAClaims = (accountA.idTokenClaims || {}) as TokenClaims;
+            const accountBClaims = (accountB.idTokenClaims || {}) as TokenClaims;
+
+            // issued at timestamp and nonce are expected to change each time a new id token is acquired
+            claimsMatch = (accountAClaims.iat === accountBClaims.iat) &&
+            (accountAClaims.nonce === accountBClaims.nonce);
+        }
+
         return (accountA.homeAccountId === accountB.homeAccountId) && 
             (accountA.localAccountId === accountB.localAccountId) &&
             (accountA.username === accountB.username) &&
             (accountA.tenantId === accountB.tenantId) &&
-            (accountA.environment === accountB.environment);
+            (accountA.environment === accountB.environment) &&
+            claimsMatch;
     }
 }

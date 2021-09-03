@@ -135,9 +135,9 @@ export class Authority {
                 httpEvent.httpResponseStatus = response.statusCode;
                 telemetryManager.stopEvent(httpEvent);
                 return <ITenantDiscoveryResponse>{
-                    AuthorizationEndpoint: response.body.authorization_endpoint,
-                    EndSessionEndpoint: response.body.end_session_endpoint,
-                    Issuer: response.body.issuer
+                    AuthorizationEndpoint: response.body["authorization_endpoint"],
+                    EndSessionEndpoint: response.body["end_session_endpoint"],
+                    Issuer: response.body["issuer"]
                 };
             })
             .catch(err => {

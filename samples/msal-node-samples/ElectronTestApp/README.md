@@ -45,32 +45,19 @@ $ cd samples/msal-node-samples/standalone-samples/ElectronTestApp
 
 ### Configure the application
 
-The MSAL configuration object in the ElectronTestApp is defined in the `AuthProvider.ts` file. Look for the `MSAL_CONFIG` object and update the clientId and authority to match your [App Registration](https://docs.microsoft.com/en-us/graph/auth-register-app-v2).
+The MSAL configuration object in the `ElectronTestApp` is defined in the `AuthProvider.ts` file. However, the configuration values used to build the object are defined in and imported from JSON files in the `config/` directory. The `ElectronTestApp` loads the `config/customConfig.json` configuration by default. You can update the configuration attributes to match your [App Registration](https://docs.microsoft.com/en-us/graph/auth-register-app-v2) directly in the `config/customConfg.json` file, or you can add your own configuration file and change the import path like so:
 
+AuthProvider.ts
 ```javascript
-const MSAL_CONFIG: Configuration = {
-    auth: {
-        clientId: "YOUR_CLIENT_ID",
-        authority: "YOUR_AUTHORITY",
-    },
-    cache: {
-        cachePlugin
-    },
-    system: {
-        loggerOptions: {
-            loggerCallback(loglevel, message, containsPii) {
-                console.log(message);
-            },
-            piiLoggingEnabled: false,
-            logLevel: LogLevel.Verbose,
-        }
-    }
-};
+// Change this to load the desired MSAL Client Configuration
+import * as APP_CONFIG from "./config/customConfig.json"; // Change this
+
+import  * as APP_CONFIG from "./config/YOUR_CUSTOM_CONFIG_FILE.json"; // To this
 ```
 
 This application uses the `User.Read` and `Mail.Read` Microsoft Graph Scopes, so make sure they are enabled in your App Registration.
 
-**Note: If you'd like to configure custom scopes for this sample application, you'll need to modify the request scopes in the `setRequestObjects()` method within `AuthProvider.ts`.**
+**Note: If you'd like to configure custom scopes for this sample application, you'll need to modify the request scopes used in the `setRequestObjects()` method within `AuthProvider.ts`. **
 
 #### Custom File Protocols and Redirect URIs
 
@@ -78,26 +65,47 @@ To demonstrate best security practices, this Electron sample application makes u
 
 The reason this applies to Electron applications (such as this one) is that, although Electron uses Chromium to support browser-based JavaScript, it also has access to operating system resources, which makes it a Public Client Native Application under OAuth 2.0 and requires extra security considerations.
 
-On the Electron side of this sample application, the name of the custom file protocol ("msal" by default) is declared as a constant in the `AuthProvider` class:
+On the Electron side of this sample application, the name of the custom file protocol ("msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0" by default) is defind in the `fileProtocol` attribute in the JSON configuration file:
 
-```typescript
-const CUSTOM_FILE_PROTOCOL_NAME = "msal";
+```json
+{
+    "authOptions": ...,
+    "request": ...,
+    "resourceApi": ...,
+    "fileProtocol":
+    {
+        "name": "msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0"
+    }
+}
 ```
 
-The way the sample is configured, during authentication, the application will listen for requests and responses to URIs beginning with `"msal://"`.
+The way the sample is configured, during authentication, the application will listen for requests and responses to URIs beginning with `"msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0://"`.
 
-Further down in the `AuthProvider` class, the `setRequestObjects()` method defines the `redirectUri` that will be sent in the authentication request and for which the application will be listening to redirect requests on:
+It is important that protocol in the `redirectUri` property in all the requests matches the file protocol established in the `fileProtocol` attribute, otherwise the `ElectronTestApp` won't be able to listen for redirect responses:
 
-
-```typescript
- private setRequestObjects(): void {
-        const requestScopes =  ['openid', 'profile', 'User.Read'];
-        const redirectUri = "msal://redirect"; // Redirect URI for custom file scheme
-        ...
- }
+```json
+{
+    "authOptions": ...,
+    "request":
+    {
+        "authCodeUrlParameters": {
+            "scopes": ["user.read"],
+            "redirectUri": "msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0://auth"
+        },
+        "authCodeRequest": {
+            "redirectUri": "msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0://auth",
+            "scopes": ["User.Read"]
+        }
+    },
+    "resourceApi": ...,
+    "fileProtocol":
+    {
+        "name": "msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0"
+    }
+}
 ```
 
-Both of these values, the `redirectUri` and `CUSTOM_FILE_PROTOCOL_NAME` are partially arbitrary and can be customized to your preference (ideally they shouldn't be obvious to guess and should follow the suggestions in the [OAuth2.0 specification for Native Apps](https://tools.ietf.org/html/rfc8252#section-8.4) specification). The only thing that matters is that the `redirectUri` is a format that begins with `"CUSTOM_FILE_PROTOCOL_NAME://"` and followed by any path component (required).
+Both of these values, the `redirectUri` and `fileProtocol` name are arbitrary and can be customized to your preference (ideally they shouldn't be obvious to guess and should follow the suggestions in the [OAuth2.0 specification for Native Apps](https://tools.ietf.org/html/rfc8252#section-8.4) specification). The only thing that matters is that the `redirectUri` is a format that begins with `"CUSTOM_FILE_PROTOCOL_NAME://"` and followed by any path component (required).
 
 For example, the following pairs of values should work:
 
@@ -123,7 +131,7 @@ Whether or not you decide to customize these values, you must register the `redi
 2. Click the `Authentication` tab in the side menu.
 3. Under "Platform configurations", click the "Add a platform" link.
 4. Select "Mobile and desktop applications".
-5. Copy the exact `redirectUri` value (`msal://redirect` is the default if you don't want to change the configuration) into the input box.
+5. Copy the exact `redirectUri` value (`msal4b0db8c2-9f26-4417-8bde-3f0e3656f8e0://auth` is the default if you don't want to change the configuration) into the input box.
 6. Click "Configure"
 
 ### Executing the application

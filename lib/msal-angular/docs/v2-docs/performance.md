@@ -12,6 +12,8 @@ Currently there is one scenario where MSAL.js will navigate from one page in you
 
 If your application is doing all of the things above you can override the method MSAL uses to navigate by importing the `MsalCustomNavigationClient` and calling `setNavigationClient`.
 
+**NOTE**: Due to a security fix, the `MsalCustomNavigationClient` will not be using the Angular `Router` to navigate client-side when `navigateToLoginRequestUrl` is set to true and handling redirects. This is a known issue that will be addressed in a future release.
+
 ### Example Implementation
 
 The example below will show how to implement this when using the Angular `Router`. More information on the Angular Router can be found [here](https://angular.io/guide/router), and you can find a full sample app that implements this for [Angular here](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-angular-v2-samples/angular10-sample-app).

@@ -174,7 +174,7 @@ A hook that returns the `PublicClientApplication` instance, an array of all acco
 You can read more about this hook in the [hooks doc](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/docs/hooks.md#usemsal-hook).
 
 ```javascript
-import React from 'react'l
+import React from 'react';
 import { useMsal } from "@azure/msal-react";
 
 export function App() {

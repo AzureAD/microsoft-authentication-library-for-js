@@ -8,8 +8,8 @@ body:
       ## Before Submitting your Issue
       Please check to see if your question is answered in the FAQ for the library you are using:
       - [@azure/msal-browser](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md)
-      - [@azure/msal-node](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/FAQ.md)
-      - [@azure/msal-angular](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/FAQ.md)
+      - [@azure/msal-node](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/faq.md)
+      - [@azure/msal-angular](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-angular/docs/FAQ.md)
       - [@azure/msal-react](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/FAQ.md)
       - [@azure/msal or msal](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-core/docs/FAQ.md)
       
@@ -24,12 +24,12 @@ body:
   attributes:
     label: Core Library
     options: 
-      - "@azure/msal or msal"
-      - "@azure/msal-browser"
-      - "@azure/msal-node"
-      - "passport-azure-ad"
-      - "adal-node"
-      - "adal.js"
+      - "MSAL.js v2 (@azure/msal-browser)"
+      - "MSAL.js v1 (@azure/msal or msal)"
+      - "MSAL Node (@azure/msal-node)"
+      - "Passport Azure AD (passport-azure-ad)"
+      - "ADAL Node (adal-node)"
+      - "ADAL.js (adal.js)"
   validations:
     required: true
     
@@ -37,7 +37,7 @@ body:
   attributes:
     label: Core Library Version
     description: "Please enter the latest version this issue can be reproduced in."
-    placeholder: "2.13.0"
+    placeholder: "2.14.1"
   validations:
     required: true
     
@@ -45,9 +45,10 @@ body:
   attributes:
     label: Wrapper Library
     options:
-      - "@azure/msal-angular"
-      - "@azure/msal-react"
-      - "adal-angular"
+      - "MSAL Angular (@azure/msal-angular)"
+      - "MSAL React (@azure/msal-react)"
+      - "MSAL Node Extensions (@azure/msal-node-extensions)"
+      - "ADAL Angular (adal-angular)"
       - "Not Applicable"
   validations:
     required: true

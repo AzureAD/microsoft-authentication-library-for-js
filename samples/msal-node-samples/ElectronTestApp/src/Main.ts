@@ -49,11 +49,20 @@ export default class Main {
     // Creates main application window
     private static createMainWindow(): void {
         this.mainWindow = new BrowserWindow({
-            width: 800,
-            height: 800,
+            width: 1000,
+            height: 1000,
             webPreferences: {
                 nodeIntegration: true
-            },
+            }
+        });
+    }
+
+
+    // Creates main application window
+    private static createAuthWindow(): BrowserWindow {
+        return new BrowserWindow({
+            width: 400,
+            height: 600
         });
     }
 
@@ -72,9 +81,11 @@ export default class Main {
     }
 
     private static async login(): Promise<void> {
-        const account = await Main.authProvider.login(Main.mainWindow)
+        const authWindow = Main.createAuthWindow();
+        const account = await Main.authProvider.login(authWindow)
         await Main.loadBaseUI();
         Main.publish(IPC_MESSAGES.SHOW_WELCOME_MESSAGE, account);
+        authWindow.close();
     }
 
     private static async getProfile(): Promise<void> {

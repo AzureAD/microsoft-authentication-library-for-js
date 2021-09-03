@@ -1,21 +1,33 @@
-import { expect } from "chai";
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
-import crypto from "crypto";
-import sinon from "sinon";
+import { createHash } from "crypto";
 import { PkceGenerator } from "../../src/crypto/PkceGenerator";
 import { PkceCodes } from "@azure/msal-common";
 import { NUM_TESTS } from "../utils/StringConstants";
+const msrCrypto = require("../polyfills/msrcrypto.min");
 
 describe("PkceGenerator.ts Unit Tests", () => {
+    let oldWindowCrypto = window.crypto;
+
+    beforeEach(() => {
+        oldWindowCrypto = window.crypto;
+        //@ts-ignore
+        window.crypto = {
+            ...oldWindowCrypto,
+            ...msrCrypto
+        }
+    });
 
     afterEach(() => {
-        sinon.restore();
+        jest.restoreAllMocks();
+        //@ts-ignore
+        window.crypto = oldWindowCrypto;
     });
 
     it("generateCodes() generates valid pkce codes", async () => {
-        sinon.stub(BrowserCrypto.prototype, <any>"getSubtleCryptoDigest").callsFake(async (algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
-            expect(algorithm).to.be.eq("SHA-256");
-            return crypto.createHash("SHA256").update(Buffer.from(data)).digest();
+        //@ts-ignore
+        jest.spyOn(BrowserCrypto.prototype, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
+            expect(algorithm).toBe("SHA-256");
+            return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
         });
         const browserCrypto = new BrowserCrypto();
 
@@ -26,17 +38,18 @@ describe("PkceGenerator.ts Unit Tests", () => {
         const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
         for (let i = 0; i < NUM_TESTS; i++) {
             const generatedCodes: PkceCodes = await pkceGenerator.generateCodes();
-            expect(regExp.test(generatedCodes.challenge)).to.be.true;
-            expect(regExp.test(generatedCodes.verifier)).to.be.true;
+            expect(regExp.test(generatedCodes.challenge)).toBe(true);
+            expect(regExp.test(generatedCodes.verifier)).toBe(true);
         }
     });
 
     it("generateCodes() generates valid pkce codes with msCrypto", async () => {
-        sinon.stub(BrowserCrypto.prototype, <any>"getMSCryptoDigest").callsFake(async (algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
-            expect(algorithm).to.be.eq("SHA-256");
-            return crypto.createHash("SHA256").update(Buffer.from(data)).digest();
+        //@ts-ignore
+        jest.spyOn(BrowserCrypto.prototype, "getMSCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
+            expect(algorithm).toBe("SHA-256");
+            return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
         });
-        sinon.stub(BrowserCrypto.prototype, <any>"hasIECrypto").returns(true);
+        jest.spyOn(BrowserCrypto.prototype, <any>"hasIECrypto").mockReturnValue(true);
         const browserCrypto = new BrowserCrypto();
 
         const pkceGenerator = new PkceGenerator(browserCrypto);
@@ -46,8 +59,8 @@ describe("PkceGenerator.ts Unit Tests", () => {
         const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
         for (let i = 0; i < NUM_TESTS; i++) {
             const generatedCodes: PkceCodes = await pkceGenerator.generateCodes();
-            expect(regExp.test(generatedCodes.challenge)).to.be.true;
-            expect(regExp.test(generatedCodes.verifier)).to.be.true;
+            expect(regExp.test(generatedCodes.challenge)).toBe(true);
+            expect(regExp.test(generatedCodes.verifier)).toBe(true);
         }
     });
 });

@@ -31,7 +31,6 @@ import { ICachePlugin } from "../cache/interface/ICachePlugin";
 import { TokenCacheContext } from "../cache/persistence/TokenCacheContext";
 import { ISerializableTokenCache } from "../cache/interface/ISerializableTokenCache";
 import { AuthorizationCodePayload } from "./AuthorizationCodePayload";
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
 
 /**
@@ -97,7 +96,7 @@ export class ResponseHandler {
             }
 
             const errString = `${serverResponse.error_codes} - [${serverResponse.timestamp}]: ${serverResponse.error_description} - Correlation ID: ${serverResponse.correlation_id} - Trace ID: ${serverResponse.trace_id}`;
-            throw new ServerError(serverResponse.error, errString);
+            throw new ServerError(serverResponse.error, errString, serverResponse.suberror);
         }
     }
 
@@ -158,7 +157,7 @@ export class ResponseHandler {
                     return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj);
                 }
             }
-            this.cacheStorage.saveCacheRecord(cacheRecord);
+            await this.cacheStorage.saveCacheRecord(cacheRecord);
         } finally {
             if (this.persistencePlugin && this.serializableCache && cacheContext) {
                 this.logger.verbose("Persistence enabled, calling afterCacheAccess");
@@ -215,8 +214,10 @@ export class ResponseHandler {
              */
             const expiresIn: number = (typeof serverTokenResponse.expires_in === "string" ? parseInt(serverTokenResponse.expires_in, 10) : serverTokenResponse.expires_in) || 0;
             const extExpiresIn: number = (typeof serverTokenResponse.ext_expires_in === "string" ? parseInt(serverTokenResponse.ext_expires_in, 10) : serverTokenResponse.ext_expires_in) || 0;
+            const refreshIn: number | undefined = (typeof serverTokenResponse.refresh_in === "string" ? parseInt(serverTokenResponse.refresh_in, 10) : serverTokenResponse.refresh_in) || undefined;
             const tokenExpirationSeconds = reqTimestamp + expiresIn;
             const extendedTokenExpirationSeconds = tokenExpirationSeconds + extExpiresIn;
+            const refreshOnSeconds = refreshIn && refreshIn > 0 ? reqTimestamp + refreshIn : undefined;
 
             // non AAD scenarios can have empty realm
             cachedAccessToken = AccessTokenEntity.createAccessTokenEntity(
@@ -228,6 +229,8 @@ export class ResponseHandler {
                 responseScopes.printScopes(),
                 tokenExpirationSeconds,
                 extendedTokenExpirationSeconds,
+                this.cryptoObj,
+                refreshOnSeconds,
                 serverTokenResponse.token_type,
                 oboAssertion
             );
@@ -269,7 +272,7 @@ export class ResponseHandler {
         // ADFS does not require client_info in the response
         if (authorityType === AuthorityType.Adfs) {
             this.logger.verbose("Authority type is ADFS, creating ADFS account");
-            return AccountEntity.createGenericAccount(authority, this.homeAccountIdentifier, idToken, oboAssertion, cloudGraphHostName, msGraphhost);
+            return AccountEntity.createGenericAccount(this.homeAccountIdentifier, idToken, authority, oboAssertion, cloudGraphHostName, msGraphhost);
         }
 
         // This fallback applies to B2C as well as they fall under an AAD account type.
@@ -278,8 +281,8 @@ export class ResponseHandler {
         }
 
         return serverTokenResponse.client_info ?
-            AccountEntity.createAccount(serverTokenResponse.client_info, this.homeAccountIdentifier, authority, idToken, oboAssertion, cloudGraphHostName, msGraphhost) :
-            AccountEntity.createGenericAccount(authority, this.homeAccountIdentifier, idToken, oboAssertion, cloudGraphHostName, msGraphhost);
+            AccountEntity.createAccount(serverTokenResponse.client_info, this.homeAccountIdentifier, idToken, authority, oboAssertion, cloudGraphHostName, msGraphhost) :
+            AccountEntity.createGenericAccount(this.homeAccountIdentifier, idToken, authority, oboAssertion, cloudGraphHostName, msGraphhost);
     }
 
     /**
@@ -305,14 +308,11 @@ export class ResponseHandler {
         let expiresOn: Date | null = null;
         let extExpiresOn: Date | undefined;
         let familyId: string = Constants.EMPTY_STRING;
+
         if (cacheRecord.accessToken) {
             if (cacheRecord.accessToken.tokenType === AuthenticationScheme.POP) {
                 const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(cryptoObj);
-
-                if (!request.resourceRequestMethod || !request.resourceRequestUri) {
-                    throw ClientConfigurationError.createResourceRequestParametersRequiredError();
-                }
-                accessToken = await popTokenGenerator.signPopToken(cacheRecord.accessToken.secret, request.resourceRequestMethod, request.resourceRequestUri, request.shrClaims);
+                accessToken = await popTokenGenerator.signPopToken(cacheRecord.accessToken.secret, request);
             } else {
                 accessToken = cacheRecord.accessToken.secret;
             }
@@ -338,6 +338,7 @@ export class ResponseHandler {
             accessToken: accessToken,
             fromCache: fromTokenCache,
             expiresOn: expiresOn,
+            correlationId: request.correlationId,
             extExpiresOn: extExpiresOn,
             familyId: familyId,
             tokenType: cacheRecord.accessToken?.tokenType || Constants.EMPTY_STRING,

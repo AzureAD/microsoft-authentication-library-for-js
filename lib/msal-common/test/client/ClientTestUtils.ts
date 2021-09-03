@@ -4,7 +4,7 @@
  */
 
 import { ClientConfiguration, Constants, PkceCodes, ClientAuthError, AccountEntity, CredentialEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, ProtocolMode , AuthorityFactory, AuthorityOptions, AuthorityMetadataEntity } from "../../src";
-import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES } from "../utils/StringConstants";
+import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES, TEST_TOKENS } from "../test_kit/StringConstants";
 
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
@@ -41,7 +41,7 @@ export class MockStorageClass extends CacheManager {
     // Credentials (accesstokens)
     getAccessTokenCredential(key: string): AccessTokenEntity | null {
         const credType = CredentialEntity.getCredentialType(key);
-        if (credType === CredentialType.ACCESS_TOKEN) {
+        if (credType === CredentialType.ACCESS_TOKEN || credType === CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME) {
             return this.store[key] as AccessTokenEntity;
         }
         return null;
@@ -114,7 +114,7 @@ export class MockStorageClass extends CacheManager {
     getAuthorityMetadataKeys(): string[] {
         return this.getKeys();
     }
-    clear(): void {
+    async clear(): Promise<void> {
         this.store = {};
     }
 }
@@ -127,6 +127,8 @@ export const mockCrypto = {
         switch (input) {
             case TEST_POP_VALUES.ENCODED_REQ_CNF:
                 return TEST_POP_VALUES.DECODED_REQ_CNF;
+            case TEST_TOKENS.POP_TOKEN_PAYLOAD:
+                return TEST_TOKENS.DECODED_POP_TOKEN_PAYLOAD;
             default:
                 return input;
         }
@@ -148,8 +150,14 @@ export const mockCrypto = {
     async getPublicKeyThumbprint(): Promise<string> {
         return TEST_POP_VALUES.KID;
     },
+    async removeTokenBindingKey(keyId: string): Promise<boolean> {
+        return Promise.resolve(true);
+    },
     async signJwt(): Promise<string> {
         return "";
+    },
+    async clearKeystore(): Promise<boolean> {
+        return Promise.resolve(true);
     }
 };
 
@@ -164,10 +172,10 @@ export class ClientTestUtils {
 
         const mockHttpClient = {
             sendGetRequestAsync<T>(): T {
-                return null;
+                return {} as T;
             },
             sendPostRequestAsync<T>(): T {
-                return null;
+                return {} as T;
             }
         };
 
@@ -193,6 +201,9 @@ export class ClientTestUtils {
             cryptoInterface: mockCrypto,
             loggerOptions: {
                 loggerCallback: testLoggerCallback,
+            },
+            systemOptions: {
+                tokenRenewalOffsetSeconds: TEST_CONFIG.DEFAULT_TOKEN_RENEWAL_OFFSET
             },
             clientCredentials: {
                 clientSecret: TEST_CONFIG.MSAL_CLIENT_SECRET,

@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "feat: fix the device code cancellation flag",
-  "packageName": "@azure/msal-node",
-  "email": "samuelkamau@microsoft.com",
-  "dependentChangeType": "patch"
-}

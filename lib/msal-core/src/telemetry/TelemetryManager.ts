@@ -74,7 +74,7 @@ export default class TelemetryManager {
         return new this(telemetryManagerConfig, telemetryEmitter, logger);
     }
 
-    startEvent(event: TelemetryEvent) {
+    startEvent(event: TelemetryEvent): void {
         this.logger.verbose(`Telemetry Event started: ${event.key}`);
 
         if (!this.telemetryEmitter) {
@@ -85,7 +85,7 @@ export default class TelemetryManager {
         this.inProgressEvents[event.key] = event;
     }
 
-    stopEvent(event: TelemetryEvent) {
+    stopEvent(event: TelemetryEvent): void {
         this.logger.verbose(`Telemetry Event stopped: ${event.key}`);
 
         if (!this.telemetryEmitter || !this.inProgressEvents[event.key]) {

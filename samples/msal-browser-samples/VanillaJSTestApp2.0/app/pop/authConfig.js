@@ -26,6 +26,9 @@ const msalConfig = {
                         return;	
                     case msal.LogLevel.Warning:	
                         console.warn(message);	
+                        return;
+                    case msal.LogLevel.Trace:
+                        console.trace(message);
                         return;	
                 }
             }
@@ -45,10 +48,7 @@ const popConfig = {
 
 // Add here scopes for id token to be used at MS Identity Platform endpoints.
 const loginRequest = {
-    scopes: ["User.Read"],
-    authenticationScheme: msal.AuthenticationScheme.POP,
-    resourceRequestMethod: "POST",
-    resourceRequestUri: popConfig.endpoint
+    scopes: ["User.Read"]
 };
 
 // Add here scopes for access token to be used at MS Graph API endpoints.
@@ -59,7 +59,15 @@ const tokenRequest = {
 
 const silentRequest = {
     scopes: ["openid", "profile", "User.Read", "Mail.Read"],
+};
+
+const popTokenRequest = {
+    scopes: ["openid", "profile", "User.Read", "Mail.Read"],
     authenticationScheme: msal.AuthenticationScheme.POP,
     resourceRequestMethod: "POST",
-    resourceRequestUri: graphConfig.graphMeEndpoint
-};
+    resourceRequestUri: popConfig.endpoint
+}
+
+const bearerTokenRequest = {
+    scopes: ["openid", "profile", "User.Read", "Mail.Read"]
+}

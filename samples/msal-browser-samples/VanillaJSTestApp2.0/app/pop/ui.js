@@ -5,6 +5,7 @@ const cardDiv = document.getElementById("card-div");
 const mailButton = document.getElementById("readMail");
 const profileButton = document.getElementById("seeProfile");
 const profileDiv = document.getElementById("profile-div");
+const popTokenAcquired = document.getElementById("PopTokenAcquired");
 
 function showWelcomeMessage(account) {
     // Reconfiguring DOM elements
@@ -14,6 +15,13 @@ function showWelcomeMessage(account) {
     signInButton.setAttribute("onclick", "signOut();");
     signInButton.setAttribute('class', "btn btn-success")
     signInButton.innerHTML = "Sign Out";
+}
+
+function showPopTokenAcquired() {
+    const popTokenAcquired = document.createElement('p');
+    popTokenAcquired.setAttribute("id", "PopTokenAcquired");
+    popTokenAcquired.innerHTML = "Successfully acquired PoP Token";
+    profileDiv.appendChild(popTokenAcquired);
 }
 
 function updateUI(data, endpoint) {

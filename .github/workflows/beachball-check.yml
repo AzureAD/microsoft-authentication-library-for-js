@@ -8,18 +8,38 @@ on:
     branches:  
       - dev
 
+concurrency:
+  group: beachball-${{github.ref}}
+  cancel-in-progress: true
+
 jobs:
   beachball-check:
+    if: github.actor != 'dependabot[bot]'
     runs-on: ubuntu-latest
     env:
       BEACHBALL: 1
     steps:
+    - uses: dorny/paths-filter@v2
+      id: filter
+      with:
+        # Will return true if any file is not markdown and any file is in /lib
+        filters: |
+          lib:
+            - 'lib/**/**.!(md)'
+
     - uses: actions/checkout@v2
+      if: ${{ steps.filter.outputs.lib == 'true' }}
       with:
         fetch-depth: 0
-    - name: Use Node.js ${{ matrix.node-version }}
-      uses: actions/setup-node@v1
-      with:
-        node-version: ${{ matrix.node-version }}
-    - run: npm ci
-    - run: npm run beachball:check
+
+    - name: Use Node.js
+      if: ${{ steps.filter.outputs.lib == 'true' }}
+      uses: actions/setup-node@v2
+
+    - name: Install beachball
+      if: ${{ steps.filter.outputs.lib == 'true' }}
+      run: npm ci
+
+    - name: Run Beachball Check command
+      if: ${{ steps.filter.outputs.lib == 'true' }}
+      run: npm run beachball:check

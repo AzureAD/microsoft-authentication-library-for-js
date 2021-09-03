@@ -24,12 +24,12 @@ body:
   attributes:
     label: Core Library
     options: 
-      - "@azure/msal or msal"
-      - "@azure/msal-browser"
-      - "@azure/msal-node"
-      - "passport-azure-ad"
-      - "adal-node"
-      - "adal.js"
+      - "MSAL.js v2 (@azure/msal-browser)"
+      - "MSAL.js v1 (@azure/msal or msal)"
+      - "MSAL Node (@azure/msal-node)"
+      - "Passport Azure AD (passport-azure-ad)"
+      - "ADAL Node (adal-node)"
+      - "ADAL.js (adal.js)"
   validations:
     required: true
     
@@ -37,7 +37,7 @@ body:
   attributes:
     label: Core Library Version
     description: "Please enter the version you are using."
-    placeholder: "2.13.0"
+    placeholder: "2.14.1"
   validations:
     required: true
     
@@ -45,9 +45,10 @@ body:
   attributes:
     label: Wrapper Library
     options:
-      - "@azure/msal-angular"
-      - "@azure/msal-react"
-      - "adal-angular"
+      - "MSAL Angular (@azure/msal-angular)"
+      - "MSAL React (@azure/msal-react)"
+      - "MSAL Node Extensions (@azure/msal-node-extensions)"
+      - "ADAL Angular (adal-angular)"
       - "Not Applicable"
   validations:
     required: true
@@ -55,7 +56,7 @@ body:
 - type: input
   attributes:
     label: Wrapper Library Version
-    description: "Please enter the version you are using."
+    description: "Please enter the version you are using. If you are not using a wrapper library please enter 'None'"
     placeholder: "2.0.0-beta.0"
   validations:
     required: true

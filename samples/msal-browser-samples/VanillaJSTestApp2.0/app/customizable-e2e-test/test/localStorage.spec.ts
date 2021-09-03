@@ -1,13 +1,13 @@
 import "mocha";
 import puppeteer from "puppeteer";
 import { expect } from "chai";
-import { Screenshot, createFolder, setupCredentials } from "../../../../../e2eTestUtils/TestUtils";
+import { Screenshot, createFolder, setupCredentials, enterCredentials } from "../../../../../e2eTestUtils/TestUtils";
 import { BrowserCacheUtils } from "../../../../../e2eTestUtils/BrowserCacheTestUtils";
 import { LabApiQueryParams } from "../../../../../e2eTestUtils/LabApiQueryParams";
 import { AzureEnvironments, AppTypes } from "../../../../../e2eTestUtils/Constants";
 import { LabClient } from "../../../../../e2eTestUtils/LabClient";
 import { msalConfig as aadMsalConfig, request as aadTokenRequest } from "../authConfigs/localStorageAuthConfig.json";
-import { clickLoginPopup, clickLoginRedirect, enterCredentials, waitForReturnToApp } from "./testUtils";
+import { clickLoginPopup, clickLoginRedirect, waitForReturnToApp } from "./testUtils";
 import fs from "fs";
 
 const SCREENSHOT_BASE_FOLDER_NAME = `${__dirname}/screenshots/localStorageTests`;
@@ -92,7 +92,7 @@ describe("LocalStorage Tests", function () {
             await page.waitForNavigation({ waitUntil: "networkidle0"});
             // Navigate back to home page
             await page.goto(SAMPLE_HOME_URL);
-            await page.waitFor(500);
+            await page.waitForTimeout(500);
 
             // Temporary Cache always uses sessionStorage
             const sessionBrowserStorage = new BrowserCacheUtils(page, "sessionStorage");
@@ -123,7 +123,7 @@ describe("LocalStorage Tests", function () {
             // Wait until popup window closes
             await popupWindowClosed;
             // Wait for processing
-            await page.waitFor(200);
+            await page.waitForTimeout(200);
             // Temporary Cache always uses sessionStorage
             const sessionBrowserStorage = new BrowserCacheUtils(page, "sessionStorage");
             const sessionStorage = await sessionBrowserStorage.getWindowStorage();

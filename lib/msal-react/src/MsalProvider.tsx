@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import React, { useState, useEffect, PropsWithChildren, useMemo } from "react";
+import React, { useState, useEffect, useRef, PropsWithChildren, useMemo } from "react";
 import {
     IPublicClientApplication,
     EventType,
@@ -11,11 +11,11 @@ import {
     EventMessageUtils,
     InteractionStatus,
     Logger,
-    WrapperSKU
+    WrapperSKU,
+    AccountInfo
 } from "@azure/msal-browser";
 import { MsalContext, IMsalContext } from "./MsalContext";
 import { accountArraysAreEqual } from "./utils/utilities";
-import { AccountIdentifiers } from "./types/AccountIdentifiers";
 import { name as SKU, version } from "./packageMetadata";
 
 export type MsalProviderProps = PropsWithChildren<{
@@ -32,10 +32,12 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
     }, [instance]);
 
     // State hook to store accounts
-    const [accounts, setAccounts] = useState<AccountIdentifiers[]>([]);
+    const [accounts, setAccounts] = useState<AccountInfo[]>([]);
     // State hook to store in progress value
     const [inProgress, setInProgress] = useState<InteractionStatus>(InteractionStatus.Startup);
-
+    // Mutable object used in the event callback
+    const inProgressRef = useRef(inProgress);
+    
     useEffect(() => {
         const callbackId = instance.addEventCallback((message: EventMessage) => {
             switch (message.eventType) {
@@ -70,9 +72,10 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
 
     useEffect(() => {
         const callbackId = instance.addEventCallback((message: EventMessage) => {
-            const status = EventMessageUtils.getInteractionStatusFromEvent(message);
+            const status = EventMessageUtils.getInteractionStatusFromEvent(message, inProgressRef.current);
             if (status !== null) {
-                logger.info(`MsalProvider - ${message.eventType} results in setting inProgress to ${status}`);
+                logger.info(`MsalProvider - ${message.eventType} results in setting inProgress from ${inProgressRef.current} to ${status}`);
+                inProgressRef.current = status;
                 setInProgress(status);
             }
         });

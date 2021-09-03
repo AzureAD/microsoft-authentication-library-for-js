@@ -10,7 +10,7 @@ This sample demonstrates a [confidential client application](https://docs.micros
 
 1. using [OIDC Connect protocol](https://docs.microsoft.com/azure/active-directory-b2c/openid-connect) to implement standard B2C [user-flows](https://docs.microsoft.com/azure/active-directory-b2c/user-flow-overview) to:
 
-- sign-in/sign-up a user
+- sign-up/sign-in a user
 - reset/recover a user password
 - edit a user profile
 
@@ -68,7 +68,9 @@ const confidentialClientConfig = {
 };
 ```
 
-Implementing B2C user-flows is a matter of initiating token requests against the corresponding authorities. Some user-flows are slightly more complex. For example, to initiate the **password-reset**, the user first needs to click on the **forgot my password** link on the Azure sign-in screen, which causes B2C service to respond with an error. We then catch this error, and trigger another sign-in, this time against the "https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_reset" authority.
+Implementing B2C user-flows is a matter of initiating token requests against the corresponding authorities. Some user-flows are slightly more complex. For example, to initiate the **password-reset**, the user first needs to click on the **forgot my password** link on the Azure sign-in screen, which causes B2C service to respond with an error. We then catch this error, and trigger another sign-in, this time against the `https://fabrikamb2c.b2clogin.com/fabrikamb2c.onmicrosoft.com/B2C_1_reset` authority.
+
+> :information_source: This sample demonstrates the legacy password-reset user-flow. There's now a [new password reset experience](https://docs.microsoft.com/azure/active-directory-b2c/add-password-reset-policy?pivots=b2c-user-flow#self-service-password-reset-recommended) that is part of the sign-up or sign-in policy. As such, you don't need a separate policy for password reset anymore. See the [b2c-auth-code-pkce](../b2c-auth-code-pkce/README.md) sample for how this works.
 
 In order to keep track of these *flows*, we create some global objects and manipulate these in the rest of the application.
 

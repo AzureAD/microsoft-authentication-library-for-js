@@ -1,0 +1,106 @@
+# This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
+
+name: Run CI
+# Runs CI on Pull Requests for libraries affected by PR
+
+on:
+  pull_request:
+    paths:
+      - 'lib/**/*'
+      - '!**.md'
+      - '.github/workflows/build-test-pr.yml'
+
+concurrency:
+  group: ci-${{github.ref}}
+  cancel-in-progress: true
+
+jobs:
+  pre-check:
+    runs-on: ubuntu-latest
+    outputs: 
+      # Expose matched filters as job 'packages' output variable
+      packages: ${{ steps.filter.outputs.changes }}
+
+    steps:
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          # &common and &browser are YAML anchors
+          # *common and *browser references previously defined anchor
+          # browser/node filter will match any path under common as well as their own
+          # angular/react filter will match any path under common and browser as well as their own
+          filters: |
+            core:
+              - 'lib/msal-core/**/**.!(md)'
+              - '.github/workflows/build-test-pr.yml'
+            common: &common
+              - 'lib/msal-common/**/**.!(md)'
+              - '.github/workflows/build-test-pr.yml'
+            browser: &browser
+              - *common
+              - 'lib/msal-browser/**/**.!(md)'
+            node:
+              - *common
+              - 'lib/msal-node/**/**.!(md)'
+            angular:
+              - *browser
+              - 'lib/msal-angular/**/**.!(md)'
+            react:
+              - *browser
+              - 'lib/msal-react/**/**.!(md)'
+
+  build-test:
+    needs: pre-check
+    runs-on: ubuntu-latest
+
+    strategy:
+        fail-fast: false
+        matrix:
+          # Parse JSON array containing names of all filters matching any of changed files
+          # e.g. ['package1', 'package2'] if both package folders contains changes
+          library: ${{ fromJSON(needs.pre-check.outputs.packages) }}
+  
+    name: msal-${{ matrix.library }}
+    
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Use Node.js
+      uses: actions/setup-node@v2
+
+    - name: Restore node_modules
+      uses: actions/cache@v2
+      id: cache
+      with:
+        path: |
+          node_modules
+          lib/*/node_modules
+        key: ${{ runner.os }}-${{ hashFiles('package-lock.json', 'lib/*/package-lock.json') }}
+
+    - name: Clean Install
+      if: steps.cache.outputs.cache-hit != 'true'
+      env:
+        RUNNING_NODE_CI: 1
+      run: npm ci
+
+    - name: Build packages
+      working-directory: lib/msal-${{ matrix.library }}
+      run: npm run build:all
+
+    - name: Lint
+      working-directory: lib/msal-${{ matrix.library }}
+      run: npm run lint
+
+    - name: Unit Tests with coverage
+      working-directory: lib/msal-${{ matrix.library }}
+      run: npm run test:coverage
+
+    - name: Upload Test Coverage to CodeCov
+      if: success()
+      uses: codecov/codecov-action@v1
+      with:
+        files: lib/msal-${{matrix.library}}/coverage/lcov.info
+        flags: msal-${{ matrix.library }}
+        root_dir: lib/msal-${{ matrix.library }}
+        gcov_prefix: lib/msal-${{ matrix.library }}

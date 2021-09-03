@@ -12,9 +12,9 @@ import { Constants } from "../utils/Constants";
  */
 export type LoggerMessageOptions = {
     logLevel: LogLevel,
-    correlationId?: string,
     containsPii?: boolean,
-    context?: string
+    context?: string,
+    correlationId?: string
 };
 
 /**
@@ -24,7 +24,8 @@ export enum LogLevel {
     Error,
     Warning,
     Info,
-    Verbose
+    Verbose,
+    Trace
 }
 
 /**
@@ -58,10 +59,13 @@ export class Logger {
     private packageVersion: string;
 
     constructor(loggerOptions: LoggerOptions, packageName?: string, packageVersion?: string) {
-        const defaultLoggerCallback = () => {};
+        const defaultLoggerCallback = () => {
+            return;
+        };
         this.localCallback = loggerOptions.loggerCallback || defaultLoggerCallback;
         this.piiLoggingEnabled = loggerOptions.piiLoggingEnabled || false;
-        this.level = loggerOptions.logLevel || LogLevel.Info;
+        this.level = typeof(loggerOptions.logLevel) === "number" ? loggerOptions.logLevel : LogLevel.Info;
+        this.correlationId = loggerOptions.correlationId || "";
 
         this.packageName = packageName || Constants.EMPTY_STRING;
         this.packageVersion = packageVersion || Constants.EMPTY_STRING;
@@ -70,8 +74,8 @@ export class Logger {
     /**
      * Create new Logger with existing configurations.
      */
-    public clone(packageName: string, packageVersion: string): Logger {
-        return new Logger({loggerCallback: this.localCallback, piiLoggingEnabled: this.piiLoggingEnabled, logLevel: this.level}, packageName, packageVersion);
+    public clone(packageName: string, packageVersion: string, correlationId?: string): Logger {
+        return new Logger({loggerCallback: this.localCallback, piiLoggingEnabled: this.piiLoggingEnabled, logLevel: this.level, correlationId: correlationId || this.correlationId}, packageName, packageVersion);
     }
 
     /**
@@ -82,7 +86,17 @@ export class Logger {
             return;
         }
         const timestamp = new Date().toUTCString();
-        const logHeader: string = StringUtils.isEmpty(this.correlationId) ? `[${timestamp}] : ` : `[${timestamp}] : [${this.correlationId}]`;
+
+        // Add correlationId to logs if set, correlationId provided on log messages take precedence
+        let logHeader: string;
+        if (!StringUtils.isEmpty(options.correlationId)) {
+            logHeader = `[${timestamp}] : [${options.correlationId}]`;
+        } else if (!StringUtils.isEmpty(this.correlationId)) {
+            logHeader = `[${timestamp}] : [${this.correlationId}]`;
+        } else {
+            logHeader = `[${timestamp}]`;
+        }
+
         const log = `${logHeader} : ${this.packageName}@${this.packageVersion} : ${LogLevel[options.logLevel]} - ${logMessage}`;
         // debug(`msal:${LogLevel[options.logLevel]}${options.containsPii ? "-Pii": ""}${options.context ? `:${options.context}` : ""}`)(logMessage);
         this.executeCallback(options.logLevel, log, options.containsPii || false);
@@ -180,6 +194,28 @@ export class Logger {
     verbosePii(message: string, correlationId?: string): void {
         this.logMessage(message, {
             logLevel: LogLevel.Verbose,
+            containsPii: true,
+            correlationId: correlationId || ""
+        });
+    }
+
+    /**
+     * Logs trace messages.
+     */
+    trace(message: string, correlationId?: string): void {
+        this.logMessage(message, {
+            logLevel: LogLevel.Trace,
+            containsPii: false,
+            correlationId: correlationId || ""
+        });
+    }
+
+    /**
+     * Logs trace messages with PII.
+     */
+    tracePii(message: string, correlationId?: string): void {
+        this.logMessage(message, {
+            logLevel: LogLevel.Trace,
             containsPii: true,
             correlationId: correlationId || ""
         });

@@ -13,26 +13,30 @@ on:
       - 'lib/msal-node/**/*' 
       - 'lib/msal-common/**/*'
       - 'samples/msal-node-samples/**/*'
+      - 'samples/e2eTestUtils/**/*'
       - '!**.md'
       - '.github/workflows/msal-node-e2e.yml'
 
+concurrency:
+  group: node-e2e-${{github.ref}}
+  cancel-in-progress: true
+
 jobs:
   run-e2e:
-    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
+    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        node: [ 10, 12, 14 ]
+        node: [ 10, 12, 14, 16 ]
+        sample: 
+          - 'auth-code'
+          - 'device-code'
+          - 'silent-flow'
 
-    name: Node ${{ matrix.node }}
+    name: ${{ matrix.sample }} - Node v${{ matrix.node }}
 
     steps:
-    - name: Cancel Previous Runs
-      uses: styfle/cancel-workflow-action@0.8.0
-      with:
-        access_token: ${{ github.token }}
-        
     - uses: actions/checkout@v2
 
     - name: Use Node.js
@@ -40,7 +44,17 @@ jobs:
       with: 
         node-version: ${{ matrix.node }}
 
+    - name: Restore node_modules for libs
+      uses: actions/cache@v2
+      id: lib-cache
+      with:
+        path: |
+          node_modules
+          lib/*/node_modules
+        key: ${{ runner.os }}-${{ hashFiles('package-lock.json', 'lib/*/package-lock.json') }}
+
     - name: Clean Install
+      if: steps.lib-cache.outputs.cache-hit != 'true'
       env:
         RUNNING_NODE_CI: 1
       run: npm ci
@@ -48,32 +62,36 @@ jobs:
     - name: Build Package
       working-directory: samples/msal-node-samples
       run: npm run build:package
+
+    - name: Restore node_modules for test tools
+      uses: actions/cache@v2
+      id: test-tools-cache
+      with: 
+        path: samples/node_modules
+        key: ${{ runner.os }}-node-test-tools-${{ matrix.node }}-${{ hashFiles('samples/package-lock.json') }}
       
     - name: Install Test Tools
-      working-directory: samples/msal-node-samples
-      run: npm install
-    
-    - name: Install Auth Code Sample
-      working-directory: samples/msal-node-samples/auth-code
-      run: |
-        npm run install:local
-        npm install
+      if: steps.test-tools-cache.outputs.cache-hit != 'true'
+      working-directory: samples
+      run: npm ci
 
-    - name: Install Device Code Sample
-      working-directory: samples/msal-node-samples/device-code
-      run: |
-        npm run install:local
-        npm install
+    - name: Restore node_modules for sample
+      uses: actions/cache@v2
+      id: sample-cache
+      with: 
+        path: samples/msal-node-samples/${{ matrix.sample }}/node_modules
+        key: ${{ runner.os }}-node-e2e-${{ matrix.sample }}-${{ matrix.node }}-${{ hashFiles(format('samples/msal-node-samples/{0}/package.json', matrix.sample), 'samples/package-lock.json') }}
 
-    - name: Install Silent Flow Sample
-      working-directory: samples/msal-node-samples/silent-flow
+    - name: Install Sample
+      if: steps.sample-cache.outputs.cache-hit != 'true'
+      working-directory: samples/msal-node-samples/${{ matrix.sample }}
       run: |
         npm run install:local
         npm install
         
     - name: E2E Tests
-      working-directory: samples/msal-node-samples
-      timeout-minutes: 5
+      working-directory: samples/msal-node-samples/${{ matrix.sample }}
+      timeout-minutes: 10
       env:
         AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
         AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
