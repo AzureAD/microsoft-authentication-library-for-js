@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Clear cache before constructing logout url #3982",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

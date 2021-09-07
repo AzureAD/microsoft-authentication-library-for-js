@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add pop params to request thumbprint #3973",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}

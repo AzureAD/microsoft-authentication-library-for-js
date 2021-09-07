@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Thu, 22 Jul 2021 22:50:22 GMT and should not be manually modified.
+This log was last generated on Tue, 07 Sep 2021 23:22:24 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.3.1
+
+Tue, 07 Sep 2021 23:22:24 GMT
+
+### Patches
+
+- Add removeTokenBindingKey missing method to Node's CryptoProvider #3500 (hemoral@microsoft.com)
+- Add correlationId to errors #3930 (thomas.norling@microsoft.com)
+- Remove non-null assertions #3994 (thomas.norling@microsoft.com)
+- Add correlationId to AuthenticationResult type #3947 (thomas.norling@microsoft.com)
+- Fixes biased code verifier generation #3993 (thomas.norling@microsoft.com)
 
 ## 1.3.0
 
