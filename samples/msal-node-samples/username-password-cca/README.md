@@ -1,8 +1,12 @@
-# MSAL Node Standalone Sample: Refresh Token Grant
+# MSAL Node Standalone Sample: Resource Owner Password Credentials (ROPC) Grant
 
-This sample demonstrates how to implement an MSAL Node [confidential client application](../../../lib/msal-node/docs/initialize-confidential-client-application.md) to exchange a refresh token for an access token when the said access token has expired, using the [OAuth 2.0 Refresh Token](https://oauth.net/2/grant-types/refresh-token/).
+This sample demonstrates how to implement an MSAL Node [confidential client application](../../../lib/msal-node/docs/initialize-confidential-client-application.md) to sign in a user and acquire an access token using the [OAuth 2.0 ROPC grant](https://datatracker.ietf.org/doc/html/rfc6749#section-4.3). Note that this flow requires a very high degree of trust in the application, and carries risks which are not present in other flows. You should only use this flow when other more secure flows can't be used (e.g. automated testing).
 
-Note that MSAL does not expose refresh tokens by default and developers are not expected to build logic around them, as MSAL handles the token refreshing process itself. However, the `acquireTokenByRefreshToken()` API is useful in certain cases: for instance, if you are storing refresh tokens in a separate location (e.g. in an encrypted cache file) and you would like to use it to renew an access token or if you're migrating from ADAL Node to MSAL Node and you would like to make use of your previously acquired (and still valid) refresh tokens and etc.
+## Prerequisites
+
+- ROPC grant cannot be used with personal Microsoft accounts (MSA)
+- ROPC grant cannot be used if the user needs to perform multi-factor authentication
+- MSAL Node supports ROPC only when the authorization server is OpenID-compliant (e.g. ADFS 2019 is supported, but WS-Federation is not).
 
 ## Setup
 
@@ -30,7 +34,7 @@ Locate the folder where `package.json` resides in your terminal. Then type:
 Before running the sample, you will need to replace the values in the configuration object:
 
 ```javascript
-const config = {
+const msalConfig = {
     auth: {
         clientId: "ENTER_CLIENT_ID",
         authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO",
@@ -51,4 +55,4 @@ After that, you should see the response from Azure AD in your terminal.
 
 ## More information
 
-- [Microsoft identity platform refresh tokens](https://docs.microsoft.com/azure/active-directory/develop/refresh-tokens)
+- [Microsoft identity platform and OAuth 2.0 Resource Owner Password Credentials](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth-ropc)
