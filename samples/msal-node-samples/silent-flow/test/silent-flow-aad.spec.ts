@@ -3,7 +3,6 @@
  * Licensed under the MIT License.
  */
 
-import "jest";
 import puppeteer from "puppeteer";
 import { Screenshot, createFolder, setupCredentials } from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
@@ -34,6 +33,7 @@ const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 const config = require("../config/AAD.json");
 
 describe("Silent Flow AAD PPE Tests", () => {
+    jest.retryTimes(1);
     jest.setTimeout(45000);
     let browser: puppeteer.Browser;
     let context: puppeteer.BrowserContext;
