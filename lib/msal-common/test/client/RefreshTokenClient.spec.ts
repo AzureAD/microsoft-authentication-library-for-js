@@ -13,7 +13,8 @@ import {
     ID_TOKEN_CLAIMS,
     AUTHENTICATION_RESULT_WITH_FOCI,
     CORS_SIMPLE_REQUEST_HEADERS,
-    TEST_ACCOUNT_INFO
+    TEST_ACCOUNT_INFO,
+    RANDOM_TEST_GUID
 } from "../test_kit/StringConstants";
 import { BaseClient} from "../../src/client/BaseClient";
 import { AADServerParamKeys, GrantType, Constants, CredentialType, AuthenticationScheme, ThrottlingConstants } from "../../src/utils/Constants";
@@ -89,10 +90,9 @@ describe("RefreshTokenClient unit tests", () => {
             config = await ClientTestUtils.createTestClientConfiguration();
         });
 
-        it("Adds tokenQueryParameters to the /token request", async (done) => {
+        it("Adds tokenQueryParameters to the /token request", async () => {
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").callsFake((url) => {
                 expect(url.includes("/token?dc=ESTS-PUB-WUS2-AZ1-TEST1&testParam=testValue")).toBe(true);
-                done();
                 return AUTHENTICATION_RESULT;
             });
             sinon.stub(ResponseHandler.prototype, "validateTokenResponse").callsFake(() => {});
@@ -109,6 +109,7 @@ describe("RefreshTokenClient unit tests", () => {
                     fromCache: false,
                     expiresOn: new Date(),
                     tokenType: "accessToken",
+                    correlationId: RANDOM_TEST_GUID
                 }
             });
 
@@ -162,15 +163,14 @@ describe("RefreshTokenClient unit tests", () => {
             sinon.restore();
         });
 
-        it("Does not add headers that do not qualify for a simple request", async (done) => {
+        it("Does not add headers that do not qualify for a simple request", async () => {
             // For more information about this test see: https://developer.mozilla.org/en-US/docs/Web/HTTP/CORS
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").callsFake((tokenEndpoint: string, queryString: string, headers: Record<string, string>) => {
                 const headerNames = Object.keys(headers);
                 headerNames.forEach((name) => {
                     expect(CORS_SIMPLE_REQUEST_HEADERS.includes(name.toLowerCase())).toBe(true);
                 });
-    
-                done();
+
                 return AUTHENTICATION_RESULT;
             });
 

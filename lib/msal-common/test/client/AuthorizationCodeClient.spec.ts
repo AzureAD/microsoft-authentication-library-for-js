@@ -1029,6 +1029,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     fromCache: false,
                     expiresOn: new Date(),
                     tokenType: "accessToken",
+                    correlationId: RANDOM_TEST_GUID
                 }
             });
 

@@ -48,6 +48,7 @@ export class BrokerAuthorizationCodeClient extends AuthorizationCodeClient {
 
         // Validate response. This function throws a server error if an error is returned by the server.
         responseHandler.validateTokenResponse(response.body);
+        console.log("Embedded App Client ID: ", request.embeddedAppClientId);
         if (!request.embeddedAppClientId) {
             return await responseHandler.handleServerTokenResponse(response.body, this.authority, reqTimestamp, request, authCodePayload);
         } else {

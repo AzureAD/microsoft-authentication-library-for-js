@@ -2,7 +2,7 @@ import { AccessTokenEntity, AccountEntity, AccountInfo, AuthenticationResult, Au
 import sinon from "sinon";
 import { ClientApplication } from "../../../src/app/ClientApplication";
 import { BrokerClientApplication } from "../../../src/broker/client/BrokerClientApplication";
-import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES } from "../../utils/StringConstants";
+import { TEST_CONFIG, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID } from "../../utils/StringConstants";
 
 describe("BrokerClientApplication.ts Unit Tests", () => {
 
@@ -14,7 +14,7 @@ describe("BrokerClientApplication.ts Unit Tests", () => {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 }
-            });
+            }, {});
         })
 
         it("extends ClientApplication.ts", () => {
@@ -77,7 +77,7 @@ describe("BrokerClientApplication.ts Unit Tests", () => {
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 }
-            });
+            }, {});
         })
 
         afterEach(() => {
@@ -97,14 +97,11 @@ describe("BrokerClientApplication.ts Unit Tests", () => {
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
+                correlationId: RANDOM_TEST_GUID,
                 responseThumbprint: `localhost.eyBhdXRob3JpdHk6Imh0dHBzOi8vbG9naW4ubWljcm9zb2Z0b25saW5lLmNvbS9jb21tb24iLCBjbGllbnRJZDoiMDgxM2UxZDEtYWQ3Mi00NmE5LTg2NjUtMzk5YmJhNDhjMjAxIiwgc2NvcGVzOlsib3BlbmlkIiwicHJvZmlsZSJdIH0=`,
             };
-            const handleRedirectPromiseStub = sinon.stub(ClientApplication.prototype, "handleRedirectPromise").callsFake(async (hash): Promise<AuthenticationResult> => {
-                return testTokenResponse;
-            });
             const resp = await broker.handleRedirectPromise();
 
-            expect(handleRedirectPromiseStub.calledOnce).toBeTruthy();
             expect(resp).toEqual(testTokenResponse);
         });
 
@@ -121,15 +118,12 @@ describe("BrokerClientApplication.ts Unit Tests", () => {
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER,
+                correlationId: RANDOM_TEST_GUID,
                 responseThumbprint: `localhost.eyBhdXRob3JpdHk6Imh0dHBzOi8vbG9naW4ubWljcm9zb2Z0b25saW5lLmNvbS9jb21tb24iLCBjbGllbnRJZDoiMDgxM2UxZDEtYWQ3Mi00NmE5LTg2NjUtMzk5YmJhNDhjMjAxIiwgc2NvcGVzOlsib3BlbmlkIiwicHJvZmlsZSJdIH0=`,
                 tokensToCache: new CacheRecord(ac, undefined, accessTokenEntity)
             };
-            const handleRedirectPromiseStub = sinon.stub(ClientApplication.prototype, "handleRedirectPromise").callsFake(async (hash): Promise<AuthenticationResult> => {
-                return testTokenResponse;
-            });
             const resp = await broker.handleRedirectPromise();
 
-            expect(handleRedirectPromiseStub.calledOnce).toBeTruthy();
             expect(resp).toBeNull();
         });
     });

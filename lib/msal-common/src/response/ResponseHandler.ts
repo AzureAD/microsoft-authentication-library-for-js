@@ -200,7 +200,7 @@ export class ResponseHandler {
             requestStateObj = ProtocolUtils.parseRequestState(this.cryptoObj, authCodePayload.state);
         }
 
-        const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, reqTimestamp, idTokenObj, request.scopes, oboAssertion, authCodePayload);
+        const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, reqTimestamp, idTokenObj, request.scopes, oboAssertion, authCodePayload, request.embeddedAppClientId);
         if (!!cacheRecord.refreshToken) {
             this.cacheStorage.setRefreshTokenCredential(cacheRecord.refreshToken);
         }
@@ -287,7 +287,7 @@ export class ResponseHandler {
                 this.homeAccountIdentifier,
                 env,
                 serverTokenResponse.access_token || Constants.EMPTY_STRING,
-                this.clientId,
+                embeddedAppClientId || this.clientId,
                 idTokenObj ? idTokenObj.claims.tid || Constants.EMPTY_STRING : authority.tenant,
                 responseScopes.printScopes(),
                 tokenExpirationSeconds,

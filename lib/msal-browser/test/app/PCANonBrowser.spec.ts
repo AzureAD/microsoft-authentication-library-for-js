@@ -8,6 +8,7 @@ import { InteractionType } from "../../src/utils/BrowserConstants";
 import { EmbeddedClientApplication } from "../../src/broker/client/EmbeddedClientApplication";
 import { BrokerClientApplication } from "../../src/broker/client/BrokerClientApplication";
 import sinon from "sinon";
+import { ExperimentalPublicClientApplication } from "../../src/app/ExperimentalPublicClientApplication";
 
 describe("Non-browser environment", () => {
 
@@ -180,46 +181,38 @@ describe("Non-browser environment", () => {
 
     describe("ExperimentalClientApplication", () => {
         it("Constructor doesnt throw if window is undefined", () => {
-            new PublicClientApplication({
+            new ExperimentalPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                experimental: {
-                    enable: true
                 }
-            });
+            }, {});
         });
 
         it("returns early if in non-browser environment", async () => {
-            const instance = new PublicClientApplication({
+            const instance = new ExperimentalPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                experimental: {
-                    enable: true,
-                    brokerOptions: {
-                        preferredInteractionType: InteractionType.Redirect,
-                        actAsBroker: true
-                    }
+                }
+            }, {
+                brokerOptions: {
+                    preferredInteractionType: InteractionType.Redirect,
+                    actAsBroker: true
                 }
             });
             const initHandshakeSpy = sinon.spy(EmbeddedClientApplication.prototype, "initiateHandshake");
             const listenMsgSpy = sinon.spy(BrokerClientApplication.prototype, "listenForBrokerMessage");
-            await instance.experimental?.initializeBrokering();
+            await instance.initializeBrokering();
             expect(initHandshakeSpy.called).toBeFalsy();
             expect(listenMsgSpy.calledOnce).toBeFalsy();
         });
 
         it("acquireTokenSilent throws", (done) => {
-            const instance = new PublicClientApplication({
+            const instance = new ExperimentalPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                experimental: {
-                    enable: true
                 }
-            });
-            instance.experimental?.acquireTokenSilent({scopes: ["openid"], account: undefined})
+            }, {});
+            instance.acquireTokenSilent({scopes: ["openid"], account: undefined})
                 .catch(error => {
                     expect(error.errorCode).toEqual(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
                     done();
@@ -227,15 +220,12 @@ describe("Non-browser environment", () => {
         });
 
         it("ssoSilent throws", (done) => {
-            const instance = new PublicClientApplication({
+            const instance = new ExperimentalPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                experimental: {
-                    enable: true
                 }
-            });
-            instance.experimental?.ssoSilent({})
+            }, {});
+            instance.ssoSilent({})
                 .catch(error => {
                     expect(error.errorCode).toEqual(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
                     done();
@@ -243,30 +233,24 @@ describe("Non-browser environment", () => {
         });
 
         it("acquireTokenPopup throws", (done) => {
-            const instance = new PublicClientApplication({
+            const instance = new ExperimentalPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                experimental: {
-                    enable: true
                 }
-            });
-            instance.experimental?.acquireTokenPopup({scopes: ["openid"]}).catch((error) => {
+            }, {});
+            instance.acquireTokenPopup({scopes: ["openid"]}).catch((error) => {
                 expect(error.errorCode).toEqual(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
                 done();
             });
         });
 
         it("acquireTokenRedirect throws", (done) => {
-            const instance = new PublicClientApplication({
+            const instance = new ExperimentalPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                experimental: {
-                    enable: true
                 }
-            });
-            instance.experimental?.acquireTokenRedirect({scopes: ["openid"]})
+            }, {});
+            instance.acquireTokenRedirect({scopes: ["openid"]})
                 .catch(error => {
                     expect(error.errorCode).toEqual(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
                     done();
@@ -274,15 +258,12 @@ describe("Non-browser environment", () => {
         });
 
         it("loginPopup throws", (done) => {
-            const instance = new PublicClientApplication({
+            const instance = new ExperimentalPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                experimental: {
-                    enable: true
                 }
-            });
-            instance.experimental?.loginPopup({scopes: ["openid"]})
+            }, {});
+            instance.loginPopup({scopes: ["openid"]})
                 .catch(error => {
                     expect(error.errorCode).toEqual(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
                     done();
@@ -290,15 +271,12 @@ describe("Non-browser environment", () => {
         });
 
         it("loginRedirect throws", (done) => {
-            const instance = new PublicClientApplication({
+            const instance = new ExperimentalPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                experimental: {
-                    enable: true
                 }
-            });
-            instance.experimental?.loginRedirect({scopes: ["openid"]})
+            }, {});
+            instance.loginRedirect({scopes: ["openid"]})
                 .catch(error => {
                     expect(error.errorCode).toEqual(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
                     done();
@@ -306,15 +284,12 @@ describe("Non-browser environment", () => {
         });
 
         it("logout throws", (done) => {
-            const instance = new PublicClientApplication({
+            const instance = new ExperimentalPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                experimental: {
-                    enable: true
                 }
-            });
-            instance.experimental?.logout()
+            }, {});
+            instance.logout()
                 .catch(error => {
                     expect(error.errorCode).toEqual(BrowserAuthErrorMessage.notInBrowserEnvironment.code);
                     done();
@@ -322,56 +297,44 @@ describe("Non-browser environment", () => {
         });
 
         it("getAllAccounts returns empty array", () => {
-            const instance = new PublicClientApplication({
+            const instance = new ExperimentalPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                experimental: {
-                    enable: true
                 }
-            });
-            const accounts = instance.experimental?.getAllAccounts();
+            }, {});
+            const accounts = instance.getAllAccounts();
             expect(accounts).toStrictEqual([]);
         });
 
         it("getAccountByUsername returns null", () => {
-            const instance = new PublicClientApplication({
+            const instance = new ExperimentalPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                experimental: {
-                    enable: true
                 }
-            });
-            const account = instance.experimental?.getAccountByUsername("example@test.com");
+            }, {});
+            const account = instance.getAccountByUsername("example@test.com");
             expect(account).toEqual(null);
         });
 
         it("handleRedirectPromise returns null", (done) => {
-            const instance = new PublicClientApplication({
+            const instance = new ExperimentalPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                experimental: {
-                    enable: true
                 }
-            });
-            instance.experimental?.handleRedirectPromise().then(result => {
+            }, {});
+            instance.handleRedirectPromise().then(result => {
                 expect(result).toBeNull();
                 done();
             });
         });
 
         it("addEventCallback does not throw", (done) => {
-            const instance = new PublicClientApplication({
+            const instance = new ExperimentalPublicClientApplication({
                 auth: {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
-                },
-                experimental: {
-                    enable: true
                 }
-            });
-            expect(() => instance.experimental?.addEventCallback(() => {})).not.toThrow();
+            }, {});
+            expect(() => instance.addEventCallback(() => {})).not.toThrow();
             done();
         });
     })
