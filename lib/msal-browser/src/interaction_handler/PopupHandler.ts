@@ -6,7 +6,6 @@
 import { UrlString, StringUtils, CommonAuthorizationCodeRequest, AuthorizationCodeClient, Logger } from "@azure/msal-common";
 import { InteractionHandler, InteractionParams } from "./InteractionHandler";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { BrowserConstants, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { PopupWindowAttributes, PopupUtils } from "../utils/PopupUtils";
 import { BrowserUtils } from "../utils/BrowserUtils";
@@ -39,7 +38,7 @@ export class PopupHandler extends InteractionHandler {
         // Check that request url is not empty.
         if (!StringUtils.isEmpty(requestUrl)) {
             // Set interaction status in the library.
-            this.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
+            this.browserStorage.setInteractionInProgress(true);
             this.browserRequestLogger.infoPii(`Navigate to: ${requestUrl}`);
             // Open the popup window to requestUrl.
             return this.popupUtils.openPopup(requestUrl, params);
