@@ -31,7 +31,7 @@ class ProfileContent extends Component {
         }
     }
 
-    componentDidMount() {
+    setGraphData() {
         if (!this.state.graphData && this.context.inProgress === InteractionStatus.None) {
             callMsGraph().then(response => this.setState({graphData: response})).catch((e) => {
                 if (e instanceof InteractionRequiredAuthError) {
@@ -42,6 +42,14 @@ class ProfileContent extends Component {
                 }
             });
         }
+    }
+
+    componentDidMount() {
+        this.setGraphData();
+    }
+
+    componentDidUpdate() {
+        this.setGraphData();
     }
   
     render() {

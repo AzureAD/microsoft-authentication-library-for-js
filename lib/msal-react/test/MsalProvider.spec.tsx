@@ -11,7 +11,7 @@ import { AccountInfo, Configuration, EventCallbackFunction, EventMessage, EventT
 import { testAccount, TEST_CONFIG } from "./TestConstants";
 import { IMsalContext, MsalConsumer, MsalProvider } from "../src/index";
 
-describe("withMsal tests", () => {
+describe("MsalProvider tests", () => {
     let pca: PublicClientApplication;
     const msalConfig: Configuration = {
         auth: {
@@ -32,7 +32,19 @@ describe("withMsal tests", () => {
             return eventId.toString();
         });
         jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
-            const eventMessage: EventMessage = {
+            const eventStart: EventMessage = {
+                eventType: EventType.HANDLE_REDIRECT_START,
+                interactionType: InteractionType.Redirect,
+                payload: null,
+                error: null,
+                timestamp: 10000
+            };
+
+            eventCallbacks.forEach((callback) => {
+                callback(eventStart);
+            });
+
+            const eventEnd: EventMessage = {
                 eventType: EventType.HANDLE_REDIRECT_END,
                 interactionType: InteractionType.Redirect,
                 payload: null,
@@ -41,7 +53,7 @@ describe("withMsal tests", () => {
             };
 
             eventCallbacks.forEach((callback) => {
-                callback(eventMessage);
+                callback(eventEnd);
             });
             return Promise.resolve(null);
         });
@@ -56,7 +68,7 @@ describe("withMsal tests", () => {
     });
 
     describe("Event callback tests", () => {
-        test("HandleRedirect Start and End", async () => {              
+        test("HandleRedirect Start and End", async () => {
             const TestComponent = ({accounts, inProgress}: IMsalContext) => {    
                 if (accounts.length === 1 && inProgress === InteractionStatus.None) {
                     return <p>Test Success!</p>;
@@ -108,6 +120,178 @@ describe("withMsal tests", () => {
             });
     
             expect(await screen.findByText("Test Success!")).toBeInTheDocument();
+        });
+
+        test("LOGIN_SUCCESS event does not reset inProgress while handleRedirect is in progress", async () => {
+            const TestComponent = ({accounts, inProgress}: IMsalContext) => {    
+                if (accounts.length === 1 && inProgress === InteractionStatus.HandleRedirect) {
+                    return <p>Test Success!</p>;
+                } else if (accounts.length === 0 && inProgress === InteractionStatus.HandleRedirect) {
+                    return <p>In Progress</p>;
+                }
+                
+                return null;
+            };
+    
+            render(
+                <MsalProvider instance={pca}>
+                    <MsalConsumer>
+                        {TestComponent}
+                    </MsalConsumer>
+                </MsalProvider>
+            );
+
+            let eventMessage: EventMessage = {
+                eventType: EventType.HANDLE_REDIRECT_START,
+                interactionType: InteractionType.Redirect,
+                payload: null,
+                error: null,
+                timestamp: 10000
+            };
+            cachedAccounts = [];
+
+            act(() => {
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
+            });
+    
+            expect(await screen.findByText("In Progress")).toBeInTheDocument();
+
+            eventMessage = {
+                eventType: EventType.LOGIN_SUCCESS,
+                interactionType: InteractionType.Redirect,
+                payload: null,
+                error: null,
+                timestamp: 10000
+            };
+            cachedAccounts = [testAccount];
+
+            act(() => {
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
+            });
+    
+            expect(await screen.findByText("Test Success!")).toBeInTheDocument();
+        });
+
+        test("LOGIN_FAILURE event does not reset inProgress while handleRedirect is in progress", async () => {
+            const TestComponent = ({inProgress}: IMsalContext) => {    
+                if (inProgress === InteractionStatus.HandleRedirect) {
+                    return <p>In Progress</p>;
+                }
+                
+                return null;
+            };
+    
+            render(
+                <MsalProvider instance={pca}>
+                    <MsalConsumer>
+                        {TestComponent}
+                    </MsalConsumer>
+                </MsalProvider>
+            );
+
+            let eventMessage: EventMessage = {
+                eventType: EventType.HANDLE_REDIRECT_START,
+                interactionType: InteractionType.Redirect,
+                payload: null,
+                error: null,
+                timestamp: 10000
+            };
+
+            act(() => {
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
+            });
+    
+            expect(await screen.findByText("In Progress")).toBeInTheDocument();
+
+            eventMessage = {
+                eventType: EventType.LOGIN_FAILURE,
+                interactionType: InteractionType.Redirect,
+                payload: null,
+                error: null,
+                timestamp: 10000
+            };
+
+            act(() => {
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
+            });
+    
+            expect(await screen.findByText("In Progress")).toBeInTheDocument();
+        });
+
+        test("HANDLE_REDIRECT_END event does not reset inProgress when login is in progress", async () => {
+            const TestComponent = ({inProgress}: IMsalContext) => {    
+                if (inProgress === InteractionStatus.HandleRedirect) {
+                    return <p>In Progress</p>;
+                } else if (inProgress === InteractionStatus.Login) {
+                    return <p>Login In Progress</p>;
+                }
+                
+                return null;
+            };
+    
+            render(
+                <MsalProvider instance={pca}>
+                    <MsalConsumer>
+                        {TestComponent}
+                    </MsalConsumer>
+                </MsalProvider>
+            );
+
+            let eventMessage: EventMessage = {
+                eventType: EventType.HANDLE_REDIRECT_START,
+                interactionType: InteractionType.Redirect,
+                payload: null,
+                error: null,
+                timestamp: 10000
+            };
+
+            act(() => {
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
+            });
+    
+            expect(await screen.findByText("In Progress")).toBeInTheDocument();
+
+            eventMessage = {
+                eventType: EventType.LOGIN_START,
+                interactionType: InteractionType.Redirect,
+                payload: null,
+                error: null,
+                timestamp: 10000
+            };
+
+            act(() => {
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
+            });
+    
+            expect(await screen.findByText("Login In Progress")).toBeInTheDocument();
+
+            eventMessage = {
+                eventType: EventType.HANDLE_REDIRECT_END,
+                interactionType: InteractionType.Redirect,
+                payload: null,
+                error: null,
+                timestamp: 10000
+            };
+
+            act(() => {
+                eventCallbacks.forEach((callback) => {
+                    callback(eventMessage);
+                });
+            });
+    
+            expect(await screen.findByText("Login In Progress")).toBeInTheDocument();
         });
 
         test("Login Success", async () => {              
@@ -439,7 +623,7 @@ describe("withMsal tests", () => {
                 return Promise.reject(new Error("TEST ERROR: This should not break application flow"));
             });      
 
-            const TestComponent = ({accounts, inProgress}: IMsalContext) => {    
+            const TestComponent = ({accounts, inProgress}: IMsalContext) => {
                 if (accounts.length === 1 && inProgress === InteractionStatus.None) {
                     return <p>Test Success!</p>;
                 } else if (accounts.length === 0 && inProgress === InteractionStatus.AcquireToken) {
@@ -547,7 +731,7 @@ describe("withMsal tests", () => {
         });
 
         test("AcquireTokenPopup Failure", async () => {              
-            const TestComponent = ({accounts, inProgress}: IMsalContext) => {    
+            const TestComponent = ({accounts, inProgress}: IMsalContext) => {   
                 if (accounts.length === 1 && inProgress === InteractionStatus.None) {
                     return <p>Test Success!</p>;
                 } else if (accounts.length === 0 && inProgress === InteractionStatus.AcquireToken) {
@@ -600,8 +784,8 @@ describe("withMsal tests", () => {
             expect(await screen.findByText("Test Success!")).toBeInTheDocument();
         });
 
-        test("AcquireTokenSilent Success", async () => {              
-            const TestComponent = ({accounts, inProgress}: IMsalContext) => {    
+        test("AcquireTokenSilent Success", async () => {
+            const TestComponent = ({accounts, inProgress}: IMsalContext) => {
                 if (accounts.length === 1 && inProgress === InteractionStatus.None) {
                     return <p>Test Success!</p>;
                 } else if (accounts.length === 0 && inProgress === InteractionStatus.None) {
@@ -654,7 +838,7 @@ describe("withMsal tests", () => {
             expect(await screen.findByText("Test Success!")).toBeInTheDocument();
         });
 
-        test("AcquireTokenSilent Failure", async () => {              
+        test("AcquireTokenSilent Failure", async () => {
             const TestComponent = ({accounts, inProgress}: IMsalContext) => {    
                 if (accounts.length === 1 && inProgress === InteractionStatus.None) {
                     return <p>Test Success!</p>;
