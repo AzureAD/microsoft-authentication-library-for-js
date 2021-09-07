@@ -49,7 +49,7 @@ export const BrowserAuthErrorMessage = {
         code: "interaction_in_progress",
         desc: "Interaction is currently in progress. Please ensure that this interaction has been completed before calling an interactive API.  For more visit: aka.ms/msaljs/browser-errors."
     },
-    popUpWindowError: {
+    popupWindowError: {
         code: "popup_window_error",
         desc: "Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser."
     },
@@ -144,6 +144,10 @@ export const BrowserAuthErrorMessage = {
     failedToParseNetworkResponse: {
         code: "failed_to_parse_response",
         desc: "Failed to parse network response. Check network trace."
+    },
+    unableToLoadTokenError: {
+        code: "unable_to_load_token",
+        desc: "Error loading token to cache."
     },
     signingKeyNotFoundInStorage: {
         code: "crypto_key_not_found",
@@ -245,9 +249,9 @@ export class BrowserAuthError extends AuthError {
      * @param errDetail 
      */
     static createPopupWindowError(errDetail?: string): BrowserAuthError {
-        let errorMessage = BrowserAuthErrorMessage.popUpWindowError.desc;
+        let errorMessage = BrowserAuthErrorMessage.popupWindowError.desc;
         errorMessage = !StringUtils.isEmpty(errDetail) ? `${errorMessage} Details: ${errDetail}` : errorMessage;
-        return new BrowserAuthError(BrowserAuthErrorMessage.popUpWindowError.code, errorMessage);
+        return new BrowserAuthError(BrowserAuthErrorMessage.popupWindowError.code, errorMessage);
     }
 
     /**
@@ -424,6 +428,13 @@ export class BrowserAuthError extends AuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.failedToParseNetworkResponse.code, `${BrowserAuthErrorMessage.failedToParseNetworkResponse.desc} | Attempted to reach: ${endpoint.split("?")[0]}`);
     }
 
+    /**
+     * Create an error thrown when the necessary information is not available to sideload tokens 
+     */
+    static createUnableToLoadTokenError(errorDetail: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.unableToLoadTokenError.code, `${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | ${errorDetail}`);
+    }
+  
     /**
      * Create an error thrown when the queried cryptographic key is not found in IndexedDB
      */

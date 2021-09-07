@@ -7,7 +7,7 @@ import { CryptoOps } from "../crypto/CryptoOps";
 import { StringUtils, ServerError, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
-import { InteractionType, ApiId, BrowserConstants, BrowserCacheLocation, WrapperSKU } from "../utils/BrowserConstants";
+import { InteractionType, ApiId, BrowserConstants, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
@@ -24,6 +24,8 @@ import { PopupClient } from "../interaction_client/PopupClient";
 import { RedirectClient } from "../interaction_client/RedirectClient";
 import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
 import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient";
+import { TokenCache } from "../cache/TokenCache";
+import { ITokenCache } from "../cache/ITokenCache";
 
 export abstract class ClientApplication {
 
@@ -41,6 +43,9 @@ export abstract class ClientApplication {
 
     // Input configuration by developer/user
     protected config: BrowserConfiguration;
+
+    // Token cache implementation
+    private tokenCache: TokenCache;
 
     // Logger
     protected logger: Logger;
@@ -105,6 +110,9 @@ export abstract class ClientApplication {
         this.browserStorage = this.isBrowserEnvironment ? 
             new BrowserCacheManager(this.config.auth.clientId, this.config.cache, this.browserCrypto, this.logger) : 
             DEFAULT_BROWSER_CACHE_MANAGER(this.config.auth.clientId, this.logger);
+
+        // Initialize the token cache
+        this.tokenCache = new TokenCache(this.config, this.browserStorage, this.logger, this.browserCrypto);
     }
 
     // #region Redirect Flow
@@ -117,7 +125,6 @@ export abstract class ClientApplication {
      * @returns Token response or null. If the return value is null, then no auth redirect was detected.
      */
     async handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null> {
-        this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
         this.logger.verbose("handleRedirectPromise called");
         const loggedInAccounts = this.getAllAccounts();
         if (this.isBrowserEnvironment) {
@@ -129,12 +136,14 @@ export abstract class ClientApplication {
             const redirectResponseKey = hash || Constants.EMPTY_STRING;
             let response = this.redirectResponse.get(redirectResponseKey);
             if (typeof response === "undefined") {
+                this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
                 this.logger.verbose("handleRedirectPromise has been called for the first time, storing the promise");
-                const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient);
+                const correlationId = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, true) || "";
+                const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, correlationId);
                 response = redirectClient.handleRedirectPromise(hash)
                     .then((result: AuthenticationResult | null) => {
                         if (result) {
-                        // Emit login event if number of accounts change
+                            // Emit login event if number of accounts change
                             const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
                             if (isLoggingIn) {
                                 this.eventHandler.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect, result);
@@ -192,7 +201,7 @@ export abstract class ClientApplication {
             this.eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Redirect, request);
         }
         
-        const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient);
+        const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, request.correlationId);
         return redirectClient.acquireToken(request).catch((e) => {
             // If logged in, emit acquire token events
             if (isLoggedIn) {
@@ -232,7 +241,7 @@ export abstract class ClientApplication {
             this.eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Popup, request);
         }
 
-        const popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient);
+        const popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, request.correlationId);
 
         return popupClient.acquireToken(request).then((result) => {
             // If logged in, emit acquire token events
@@ -280,7 +289,7 @@ export abstract class ClientApplication {
         this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
         try {
-            const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent);
+            const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, request.correlationId);
             const silentTokenResult = await silentIframeClient.acquireToken(request);
             this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
             return silentTokenResult;
@@ -306,7 +315,7 @@ export abstract class ClientApplication {
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
 
-        const silentRefreshClient = new SilentRefreshClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient);
+        const silentRefreshClient = new SilentRefreshClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, request.correlationId);
 
         return silentRefreshClient.acquireToken(request).catch(e => {
             const isServerError = e instanceof ServerError;
@@ -343,7 +352,7 @@ export abstract class ClientApplication {
      */
     async logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
-        const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient);
+        const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, logoutRequest?.correlationId);
         return redirectClient.logout(logoutRequest);
     }
 
@@ -354,7 +363,7 @@ export abstract class ClientApplication {
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void> {
         try{
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
-            const popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient);
+            const popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, logoutRequest?.correlationId);
             return popupClient.logout(logoutRequest);
         } catch (e) {
             // Since this function is syncronous we need to reject
@@ -494,6 +503,13 @@ export abstract class ClientApplication {
      */
     removeEventCallback(callbackId: string): void {
         this.eventHandler.removeEventCallback(callbackId);
+    }
+
+    /**
+     * Gets the token cache for the application.
+     */
+    getTokenCache(): ITokenCache {
+        return this.tokenCache;
     }
 
     /**

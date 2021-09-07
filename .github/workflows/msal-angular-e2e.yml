@@ -24,7 +24,7 @@ concurrency:
 
 jobs:
   run-e2e:
-    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
+    if: (github.repository == 'AzureAD/microsoft-authentication-library-for-js') && (github.actor != 'dependabot[bot]') && ((github.event.pull_request.head.repo.full_name == github.repository) || (github.event_name == 'push'))
     runs-on: ubuntu-latest
 
     strategy:
@@ -36,6 +36,8 @@ jobs:
           - 'angular11-b2c-sample'
           - 'angular11-sample-app'
           - 'angular12-sample-app'
+
+    name: ${{ matrix.sample }}
 
     steps:
     - uses: actions/checkout@v2
@@ -53,8 +55,8 @@ jobs:
       run: npm run build:all
 
     - name: Install Test Tools
-      working-directory: samples/msal-angular-v2-samples
-      run: npm install
+      working-directory: samples
+      run: npm ci
 
     - name: Install ${{ matrix.sample }}
       working-directory: samples/msal-angular-v2-samples/${{ matrix.sample }}
