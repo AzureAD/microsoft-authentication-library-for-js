@@ -18,7 +18,6 @@ import { StringUtils } from "../utils/StringUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { UrlString } from "../url/UrlString";
 import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorizationCodeResponse";
-import { AccountEntity } from "../cache/entities/AccountEntity";
 import { CommonEndSessionRequest } from "../request/CommonEndSessionRequest";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { RequestThumbprint } from "../network/RequestThumbprint";
@@ -128,32 +127,6 @@ export class AuthorizationCodeClient extends BaseClient {
     }
 
     /**
-     * Clears cache items belonging to the account provided. If no account is provided, clears all MSAL-generated cache items.
-     * @param logoutRequest 
-     */
-    async clearCacheOnLogout(logoutRequest: CommonEndSessionRequest): Promise<void> {
-        if (logoutRequest.account) {
-            // Clear given account.
-            try {
-                await this.cacheManager.removeAccount(AccountEntity.generateAccountCacheKey(logoutRequest.account));
-                this.logger.verbose("Cleared cache items belonging to the account provided in the logout request.");
-            } catch (error) {
-                this.logger.error("Account provided in logout request was not found. Local cache unchanged.");
-            }
-        } else {
-            try {
-                // Clear all accounts and tokens
-                await this.cacheManager.clear();
-                // Clear any stray keys from IndexedDB
-                await this.cryptoUtils.clearKeystore();
-                this.logger.verbose("No account provided in logout request, clearing all cache items.");
-            } catch(e) {
-                this.logger.error("Attempted to clear all MSAL cache items and failed. Local cache unchanged.");
-            }
-        }
-    }
-
-    /**
      * Executes POST request to token endpoint
      * @param authority
      * @param request
@@ -162,7 +135,11 @@ export class AuthorizationCodeClient extends BaseClient {
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
-            scopes: request.scopes
+            scopes: request.scopes,
+            authenticationScheme: request.authenticationScheme,
+            resourceRequestMethod: request.resourceRequestMethod,
+            resourceRequestUri: request.resourceRequestUri,
+            shrClaims: request.shrClaims
         };
 
         const requestBody = await this.createTokenRequestBody(request);
