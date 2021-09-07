@@ -28,6 +28,7 @@
 1. [In what scenarios will getAllAccounts return multiple accounts?](#in-what-scenarios-will-getallaccounts-return-multiple-accounts)
 1. [Is the result of getAllAccounts sorted in any order?](#is-the-result-of-getallaccounts-sorted-in-any-order)
 1. [If an account is returned by getAllAccounts does that mean the user has an active session on the server?](#if-an-account-is-returned-by-getallaccounts-does-that-mean-the-user-has-an-active-session-on-the-server)
+1. [How can I switch between multiple logged in users?](#how-can-i-switch-between-multiple-logged-in-users)
 
 **[Configuration](#Configuration)**
 
@@ -41,6 +42,7 @@
 **[Tokens](#Tokens)**
 
 1. [How do I acquire an access token? How do I use it?](#how-do-i-acquire-an-access-token-how-do-i-use-it)
+1. [How do I acquire a refresh token?](#how-do-i-acquire-a-refresh-token)
 1. [How do I renew tokens with MSAL.js?](#how-do-i-renew-tokens-with-msaljs)
 1. [How can I acquire tokens faster?](#how-can-i-acquire-tokens-faster)
 1. [I'm seeing scopes openid, profile, email, offline_access in my tokens, even though I haven't requested them. What are they?](#im-seeing-scopes-openid-profile-email-offline_access-and-userread-in-my-tokens-even-though-i-havent-requested-them-what-are-they)
@@ -89,7 +91,7 @@ Keep [these steps](./docs/internet-explorer.md) in mind when using MSAL.js with 
 MSAL.js also supports the following environments:
 
 - WebViews
-- Office Add-ins
+- Office Add-ins (see the [sample](https://github.com/OfficeDev/PnP-OfficeAddins/tree/main/Samples/auth/Office-Add-in-Microsoft-Graph-React))
 - Chromium Extensions (see the [sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-browser-samples/ChromiumExtensionSample))
 - Teams Applications (see the [sample](https://github.com/pnp/teams-dev-samples/tree/main/samples/tab-sso/src/nodejs))
 
@@ -216,6 +218,13 @@ No, accounts are not sorted nor are they guaranteed to maintain any particular o
 
 No, the account APIs reflect local account state only. If you need to ensure the user has an active session on the server you should call `acquireTokenSilent` or `ssoSilent` and fallback to interaction if needed.
 
+### How can I switch between multiple logged in users?
+
+Deciding which account to use to acquire tokens is app dependent, however, `@azure/msal-browser` provides 2 convenient APIs to help you keep track of which account is currently "active" and should be used for token requests. Once you've determined which account you wish to use you can call the `setActiveAccount()` API to make sure MSAL uses this account for all subsequent requests. If you would like to switch to a different account, simply call `setActiveAccount()` again and pass it the new account you would like to use. If you need to know which account is currently "active" you can use the `getActiveAccount()` API.
+
+You can read more about the account APIs [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/accounts.md).
+You can also find an example implementation of an account switcher using the `@azure/msal-react` wrapper in our [react-router-sample](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-react-samples/react-router-sample).
+
 # Configuration
 
 ## What is the difference between `sessionStorage` and `localStorage`?
@@ -283,7 +292,11 @@ try {
 
 ## How do I acquire an access token? How do I use it?
 
-Please refer to token guide [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/acquire-token.md). 
+Please refer to token guide [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/acquire-token.md).
+
+## How do I acquire a refresh token?
+
+MSAL.js abstracts away all refresh token complexity and thus refresh tokens are not exposed by MSAL APIs by design. When you need an access token please call the `acquireTokenSilent` API which will return to you a valid token from the cache or internally use the refresh token to acquire a new access token. If you have a backend that needs to be able to use access tokens to call other APIs, your backend should use a server-side library, such as MSAL Node, to acquire tokens for itself.
 
 ## How do I renew tokens with MSAL.js?
 
