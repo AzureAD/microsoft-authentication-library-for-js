@@ -8,7 +8,7 @@ See this flow at work: [MSAL.js Jest/Puppeteer Testing Example](../../msal-brows
 
 - ROPC grant cannot be used with personal Microsoft accounts
 - ROPC grant cannot be used if the user needs to perform multi-factor authentication
-- MSAL Node supports ROPC only when the authorization server is OpenID-compliant (e.g. ADFS 2016 is supported, but WS-Federation is not).
+- MSAL Node supports ROPC only when the authorization server is OpenID-compliant (e.g. ADFS 2019 is supported, but WS-Federation is not).
 
 ## Setup
 
