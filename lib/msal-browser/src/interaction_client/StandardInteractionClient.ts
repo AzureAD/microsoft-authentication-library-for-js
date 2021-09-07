@@ -262,23 +262,35 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             validatedRequest.account = account;
         }
 
-        // Check for ADAL SSO
-        if (StringUtils.isEmpty(validatedRequest.loginHint)) {
-            // Only check for adal token if no SSO params are being used
+        // Check for ADAL/MSAL v1 SSO
+        if (StringUtils.isEmpty(validatedRequest.loginHint) && !account) {
+            // Only check for adal/msal token if no SSO params are being used
             const adalIdTokenString = this.browserStorage.getTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN);
             if (adalIdTokenString) {
-                const adalIdToken = new IdToken(adalIdTokenString, this.browserCrypto);
                 this.browserStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
-                if (adalIdToken.claims && adalIdToken.claims.preferred_username) {
-                    this.logger.verbose("No SSO params used and ADAL token retrieved, setting ADAL preferred_username as loginHint");
-                    validatedRequest.loginHint = adalIdToken.claims.preferred_username;
+                this.logger.verbose("Cached ADAL id token retrieved.");
+            }
+
+            // Check for cached MSAL v1 id token
+            const msalIdTokenString = this.browserStorage.getTemporaryCache(PersistentCacheKeys.ID_TOKEN, true);
+            if (msalIdTokenString) {
+                this.browserStorage.removeItem(this.browserStorage.generateCacheKey(PersistentCacheKeys.ID_TOKEN));
+                this.logger.verbose("Cached MSAL.js v1 id token retrieved");
+            }
+
+            const cachedIdTokenString = msalIdTokenString || adalIdTokenString;
+            if (cachedIdTokenString) {
+                const cachedIdToken = new IdToken(cachedIdTokenString, this.browserCrypto);
+                if (cachedIdToken.claims && cachedIdToken.claims.preferred_username) {
+                    this.logger.verbose("No SSO params used and ADAL/MSAL v1 token retrieved, setting ADAL/MSAL v1 preferred_username as loginHint");
+                    validatedRequest.loginHint = cachedIdToken.claims.preferred_username;
                 }
-                else if (adalIdToken.claims && adalIdToken.claims.upn) {
-                    this.logger.verbose("No SSO params used and ADAL token retrieved, setting ADAL upn as loginHint");
-                    validatedRequest.loginHint = adalIdToken.claims.upn;
+                else if (cachedIdToken.claims && cachedIdToken.claims.upn) {
+                    this.logger.verbose("No SSO params used and ADAL/MSAL v1 token retrieved, setting ADAL/MSAL v1 upn as loginHint");
+                    validatedRequest.loginHint = cachedIdToken.claims.upn;
                 }
                 else {
-                    this.logger.verbose("No SSO params used and ADAL token retrieved, however, no account hint claim found. Enable preferred_username or upn id token claim to get SSO.");
+                    this.logger.verbose("No SSO params used and ADAL/MSAL v1 token retrieved, however, no account hint claim found. Enable preferred_username or upn id token claim to get SSO.");
                 }
             }
         }

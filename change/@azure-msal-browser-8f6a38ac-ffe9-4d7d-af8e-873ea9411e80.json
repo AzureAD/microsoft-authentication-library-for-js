@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Populate msal v2 loginHint from cached msal v1 id token #4027",
+  "packageName": "@azure/msal-browser",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "patch"
+}
