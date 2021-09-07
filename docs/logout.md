@@ -16,7 +16,14 @@ msalInstance.logoutRedirect();
 msalInstance.logoutPopup();
 ```
 
-These APIs will clear the token cache of any user and session data, then navigate the browser window or popup window to the server's logout page. The server will then prompt the user to select the account they would like to be signed out of and redirect back to the page the url provided as `postLogoutRedirectUri`.
+These APIs will clear the token cache of any user and session data, then navigate the browser window or popup window to the server's logout page. The server will then prompt the user to select the account they would like to be signed out of and redirect back to your `postLogoutRedirectUri` as long as the following conditions are met:
+
+1. The URI is registered as a reply url on the app registration
+1. The URI is provided as the `postLogoutRedirectUri` on either the `PublicClientApplication` config or the logout request
+1. The user has an active session with the identity provider
+1. (MSA Scenarios) A front channel logout url is configured on the app registration
+
+If any of the above conditions are not met the page (or the popup window) will remain on the identity provider's logout page.
 
 **IMPORTANT:** If this logout navigation is interrupted in any way, your MSAL cache may be cleared but the session may still persist on the server. Ensure the navigation fully completes before returning to your application.
 
@@ -82,7 +89,17 @@ const currentAccount = msalInstance.getAccountByHomeId(homeAccountId);
 await msalInstance.logoutPopup({
     account: currentAccount,
     postLogoutRedirectUri: "https://contoso.com/loggedOut",
-    mainWindowRedirectUri: "https://contoso.com/homePage"
+    mainWindowRedirectUri: "https://contoso.com/homePage",
+    popupWindowAttributes: {
+        popupSize: {
+            height: 100,
+            width: 100
+        },
+        popupPosition: {
+            top: 100,
+            left: 100
+        }
+    }
 });
 ```
 
