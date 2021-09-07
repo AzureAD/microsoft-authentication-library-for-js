@@ -34,5 +34,6 @@ import { CommonAuthorizationUrlRequest } from "@azure/msal-common";
 export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode"|"scopes"|"codeChallenge"|"codeChallengeMethod">> & {
     scopes: Array<string>;
     redirectStartPage?: string;
-    onRedirectNavigate?: (url: string) => boolean | void
+    onRedirectNavigate?: (url: string) => boolean | void;
+    headers?: Headers;
 };

@@ -34,4 +34,5 @@ import { PopupWindowAttributes } from "../utils/PopupUtils";
 export type PopupRequest = Partial<Omit<CommonAuthorizationUrlRequest, "responseMode"|"scopes"|"codeChallenge"|"codeChallengeMethod">> & {
     scopes: Array<string>;
     popupWindowAttributes?: PopupWindowAttributes;
+    headers?: Headers;
 };

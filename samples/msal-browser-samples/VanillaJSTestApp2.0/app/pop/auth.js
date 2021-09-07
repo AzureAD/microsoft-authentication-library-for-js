@@ -12,6 +12,8 @@ const isEdge = msedge > 0;
 
 let signInType;
 let username = "";
+
+let lastRequestHeaders;
 /**
  * Create the main myMSALObj instance
  * Configuration parameters are located at authConfig.js
