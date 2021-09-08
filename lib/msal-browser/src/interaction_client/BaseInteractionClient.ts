@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, INetworkModule, Logger, AuthenticationResult, AccountInfo, AccountEntity } from "@azure/msal-common";
+import { ICrypto, INetworkModule, Logger, AuthenticationResult, AccountInfo, AccountEntity, BaseAuthRequest, AuthenticationScheme, UrlString } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
@@ -13,6 +13,7 @@ import { PopupRequest } from "../request/PopupRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { version } from "../packageMetadata";
 import { BrowserConstants } from "../utils/BrowserConstants";
+import { BrowserUtils } from "../utils/BrowserUtils";
 
 export abstract class BaseInteractionClient {
 
@@ -62,5 +63,46 @@ export abstract class BaseInteractionClient {
                 this.logger.error("Attempted to clear all MSAL cache items and failed. Local cache unchanged.");
             }
         }
+    }
+
+    /**
+     * Initializer function for all request APIs
+     * @param request
+     */
+    protected initializeBaseRequest(request: Partial<BaseAuthRequest>): BaseAuthRequest {
+        this.logger.verbose("Initializing BaseAuthRequest");
+        const authority = request.authority || this.config.auth.authority;
+
+        const scopes = [...((request && request.scopes) || [])];
+
+        // Set authenticationScheme to BEARER if not explicitly set in the request
+        if (!request.authenticationScheme) {
+            request.authenticationScheme = AuthenticationScheme.BEARER;
+            this.logger.verbose("Authentication Scheme wasn't explicitly set in request, defaulting to \"Bearer\" request");
+        } else {
+            this.logger.verbose(`Authentication Scheme set to "${request.authenticationScheme}" as configured in Auth request`);
+        }
+
+        const validatedRequest: BaseAuthRequest = {
+            ...request,
+            correlationId: this.correlationId,
+            authority,
+            scopes
+        };
+
+        return validatedRequest;
+    }
+
+    /**
+     *
+     * Use to get the redirect uri configured in MSAL or null.
+     * @param requestRedirectUri
+     * @returns Redirect URL
+     *
+     */
+    protected getRedirectUri(requestRedirectUri?: string): string {
+        this.logger.verbose("getRedirectUri called");
+        const redirectUri = requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
+        return UrlString.getAbsoluteUrl(redirectUri, BrowserUtils.getCurrentUri());
     }
 }
