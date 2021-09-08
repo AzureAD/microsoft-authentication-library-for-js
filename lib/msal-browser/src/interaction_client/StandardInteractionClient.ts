@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, Logger, ServerTelemetryManager, ServerTelemetryRequest, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, PersistentCacheKeys, IdToken } from "@azure/msal-common";
+import { ICrypto, Logger, ServerTelemetryManager, ServerTelemetryRequest, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
@@ -264,34 +264,9 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
 
         // Check for ADAL/MSAL v1 SSO
         if (StringUtils.isEmpty(validatedRequest.loginHint) && !account) {
-            // Only check for adal/msal token if no SSO params are being used
-            const adalIdTokenString = this.browserStorage.getTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN);
-            if (adalIdTokenString) {
-                this.browserStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
-                this.logger.verbose("Cached ADAL id token retrieved.");
-            }
-
-            // Check for cached MSAL v1 id token
-            const msalIdTokenString = this.browserStorage.getTemporaryCache(PersistentCacheKeys.ID_TOKEN, true);
-            if (msalIdTokenString) {
-                this.browserStorage.removeItem(this.browserStorage.generateCacheKey(PersistentCacheKeys.ID_TOKEN));
-                this.logger.verbose("Cached MSAL.js v1 id token retrieved");
-            }
-
-            const cachedIdTokenString = msalIdTokenString || adalIdTokenString;
-            if (cachedIdTokenString) {
-                const cachedIdToken = new IdToken(cachedIdTokenString, this.browserCrypto);
-                if (cachedIdToken.claims && cachedIdToken.claims.preferred_username) {
-                    this.logger.verbose("No SSO params used and ADAL/MSAL v1 token retrieved, setting ADAL/MSAL v1 preferred_username as loginHint");
-                    validatedRequest.loginHint = cachedIdToken.claims.preferred_username;
-                }
-                else if (cachedIdToken.claims && cachedIdToken.claims.upn) {
-                    this.logger.verbose("No SSO params used and ADAL/MSAL v1 token retrieved, setting ADAL/MSAL v1 upn as loginHint");
-                    validatedRequest.loginHint = cachedIdToken.claims.upn;
-                }
-                else {
-                    this.logger.verbose("No SSO params used and ADAL/MSAL v1 token retrieved, however, no account hint claim found. Enable preferred_username or upn id token claim to get SSO.");
-                }
+            const loginHint = this.getLegacyLoginHint();
+            if (loginHint) {
+                validatedRequest.loginHint = loginHint;
             }
         }
 

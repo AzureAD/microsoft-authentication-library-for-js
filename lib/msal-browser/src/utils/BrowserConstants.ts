@@ -49,6 +49,7 @@ export const WamConstants = {
 export enum WamExtensionMethod {
     HandshakeRequest = "Handshake",
     HandshakeResponse = "HandshakeResponse",
+    GetToken = "GetToken",
     Response = "Response"
 }
 

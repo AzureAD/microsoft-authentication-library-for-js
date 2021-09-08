@@ -9,9 +9,9 @@ export type WamRequest = Omit<BaseAuthRequest, "authenticationScheme|shrClaims|r
     clientId: string;
     redirectUri: string;
     correlationId: string;
-    state: string;
     nonce: string;
     accountId?: string; // WAM specific account id used for identification of WAM account. This can be any broker-id eventually
+    state?: string;
     prompt?: string;
     domainHint?: string;
     loginHint?: string;
