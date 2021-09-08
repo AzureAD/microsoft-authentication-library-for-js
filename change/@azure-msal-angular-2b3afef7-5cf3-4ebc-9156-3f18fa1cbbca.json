@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix infinite reload on route protected by MsalGuard when '#code=' appears in the url #3995",
-  "packageName": "@azure/msal-angular",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

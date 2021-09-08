@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix inProgress state bug when returning from a redirect #4013",
-  "packageName": "@azure/msal-angular",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

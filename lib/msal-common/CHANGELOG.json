@@ -2,6 +2,93 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 07 Sep 2021 23:22:24 GMT",
+      "tag": "@azure/msal-common_v5.0.0",
+      "version": "5.0.0",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add correlationId property to AuthError #3930",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "c2d19c27d11fdab54fb336b9a455b05c753ae750",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Fix logger constructor #3899",
+            "author": "hemoral@microsoft.com",
+            "commit": "b864252c09935f31d72ace20ca13a5a42d2a6bc1",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Add correlationId to AuthenticationResult type #3947",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "931061695df57488a26397763bbdb3e466713df8",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Fix accesstoken_with_authscheme implementation #3910",
+            "author": "hemoral@microsoft.com",
+            "commit": "9aceb4219ebad900277aa6a59ca1ff93c5a21e0a",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Add external token server response type #3895",
+            "author": "joarroyo@microsoft.com",
+            "commit": "cef2629499cf997f9167fe3ecc7628cf32513dfc",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Fixes unescaped backslash and inefficient regex patterns #3993",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "80434004e06dc11f3770ba84e5ead1c45f449156",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Resolve lint warnings #3994",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "17cbef3c32f01e526e33964df21b0cda19e632b9",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Removes logout cache clearing logic from AuthorizationCodeClient #3982",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "9e4d8a161cd8eac51ea7ded5dadc2b6ff028f5d7",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "minor": [
+          {
+            "comment": "Adds state param to logout url #3909",
+            "author": "bmahal@microsoft.com",
+            "commit": "20c270e030922e3bb9df5beb1c6dcca190c4ac09",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Add SignedHttpRequest class #3058",
+            "author": "janutter@microsoft.com",
+            "commit": "19fe65ef6562deeae0778db5030f44fa6e24aa5d",
+            "package": "@azure/msal-common"
+          }
+        ],
+        "major": [
+          {
+            "comment": "Add pop params to request thumbprint #3973",
+            "author": "hemoral@microsoft.com",
+            "commit": "b3b18bc86a5949905be265c9b892e288551ac894",
+            "package": "@azure/msal-common"
+          },
+          {
+            "comment": "Remove token binding key from key store when refreshing pop token #3500",
+            "author": "hemoral@microsoft.com",
+            "commit": "6592652877f31405c8ed73a66f03eada90a78c0a",
+            "package": "@azure/msal-common"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 02 Aug 2021 23:19:21 GMT",
       "tag": "@azure/msal-common_v4.5.1",
       "version": "4.5.1",

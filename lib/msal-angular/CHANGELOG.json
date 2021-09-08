@@ -2,6 +2,47 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Tue, 07 Sep 2021 23:22:24 GMT",
+      "tag": "@azure/msal-angular_v2.0.3",
+      "version": "2.0.3",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Fix inProgress state bug when returning from a redirect #4013",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "e5189470fb0c9b58ceec24769eccbfd478941eee",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Fix infinite reload on route protected by MsalGuard when '#code=' appears in the url #3995",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "2964454a86fec796bb01f8a5bc3992b423d47009",
+            "package": "@azure/msal-angular"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Add missing fields to package.json #3977",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "18a4d771253e1821a3bce77199b632cd8cc0b2a0",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "Update docs with self-service sign up FAQ #3934",
+            "author": "joliuac@gmail.com",
+            "commit": "323d7eabbbd95c499d2c2a2446cdea4531af71c5",
+            "package": "@azure/msal-angular"
+          },
+          {
+            "comment": "patch fix",
+            "author": "ellymakuba@microsoft.com",
+            "commit": "6f6c1fa9987d62a68583c513c4baabe4041eaf17",
+            "package": "@azure/msal-angular"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 22 Jul 2021 22:50:22 GMT",
       "tag": "@azure/msal-angular_v2.0.2",
       "version": "2.0.2",
