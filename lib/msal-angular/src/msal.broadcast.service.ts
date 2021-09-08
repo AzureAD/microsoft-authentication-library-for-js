@@ -29,9 +29,9 @@ export class MsalBroadcastService {
 
         this.msalInstance.addEventCallback((message: EventMessage) => {
             this._msalSubject.next(message);
-            const status = EventMessageUtils.getInteractionStatusFromEvent(message);
+            const status = EventMessageUtils.getInteractionStatusFromEvent(message, this._inProgress.value);
             if (status !== null) {
-                this.authService.getLogger().verbose(`BroadcastService - ${message.eventType} results in setting inProgress to ${status}`);
+                this.authService.getLogger().verbose(`BroadcastService - ${message.eventType} results in setting inProgress from ${this._inProgress.value} to ${status}`);
                 this._inProgress.next(status);
             }
         });

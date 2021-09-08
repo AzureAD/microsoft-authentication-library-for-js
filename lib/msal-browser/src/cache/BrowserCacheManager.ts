@@ -912,9 +912,9 @@ export class BrowserCacheManager extends CacheManager {
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.URL_HASH));
-        this.removeItem(this.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.CORRELATION_ID));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.CCS_CREDENTIAL));
+        this.setInteractionInProgress(false);
     }
 
     /**
@@ -997,6 +997,33 @@ export class BrowserCacheManager extends CacheManager {
         }
 
         return parsedRequest;
+    }
+
+    isInteractionInProgress(matchClientId?: boolean): boolean {
+        const clientId = this.getInteractionInProgress();
+
+        if (matchClientId) {
+            return clientId === this.clientId;
+        } else {
+            return !!clientId;
+        }
+    }
+
+    getInteractionInProgress(): string | null {
+        const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
+        return this.getTemporaryCache(key, false);
+    }
+
+    setInteractionInProgress(inProgress: boolean): void {
+        const clientId = this.getInteractionInProgress();
+        // Ensure we don't overwrite interaction in progress for a different clientId
+        const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
+        if (inProgress && !clientId) {
+            // No interaction is in progress
+            this.setTemporaryCache(key, this.clientId, false);
+        } else if (!inProgress && clientId === this.clientId) {
+            this.removeItem(key);
+        }
     }
 }
 
