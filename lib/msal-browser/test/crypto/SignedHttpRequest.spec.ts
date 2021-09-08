@@ -8,7 +8,7 @@ import { AuthToken } from "@azure/msal-common";
 const msrCrypto = require("../polyfills/msrcrypto.min");
 
 describe("SignedHttpRequest.ts Unit Tests", () => {
-    jest.setTimeout(10000)
+    jest.setTimeout(30000)
 
     let oldWindowCrypto = window.crypto;
     let dbStorage = {};
