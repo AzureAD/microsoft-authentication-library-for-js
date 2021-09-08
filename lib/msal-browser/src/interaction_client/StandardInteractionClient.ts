@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, Logger, ServerTelemetryManager, ServerTelemetryRequest, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils } from "@azure/msal-common";
+import { ICrypto, Logger, ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
@@ -189,26 +189,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
 
         this.logger.verbose("Creating discovered authority with configured authority");
         return await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient, this.browserStorage, authorityOptions);
-    }
-
-    /**
-     *
-     * @param apiId
-     * @param correlationId
-     * @param forceRefresh
-     */
-    protected initializeServerTelemetryManager(apiId: number, forceRefresh?: boolean): ServerTelemetryManager {
-        this.logger.verbose("initializeServerTelemetryManager called");
-        const telemetryPayload: ServerTelemetryRequest = {
-            clientId: this.config.auth.clientId,
-            correlationId: this.correlationId,
-            apiId: apiId,
-            forceRefresh: forceRefresh || false,
-            wrapperSKU: this.browserStorage.getWrapperMetadata()[0],
-            wrapperVer: this.browserStorage.getWrapperMetadata()[1]
-        };
-
-        return new ServerTelemetryManager(telemetryPayload, this.browserStorage);
     }
 
     /**

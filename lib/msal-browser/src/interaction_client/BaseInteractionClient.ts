@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, INetworkModule, Logger, AuthenticationResult, AccountInfo, AccountEntity, BaseAuthRequest, AuthenticationScheme, UrlString } from "@azure/msal-common";
+import { ICrypto, INetworkModule, Logger, AuthenticationResult, AccountInfo, AccountEntity, BaseAuthRequest, AuthenticationScheme, UrlString, ServerTelemetryManager, ServerTelemetryRequest } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
@@ -104,5 +104,25 @@ export abstract class BaseInteractionClient {
         this.logger.verbose("getRedirectUri called");
         const redirectUri = requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
         return UrlString.getAbsoluteUrl(redirectUri, BrowserUtils.getCurrentUri());
+    }
+
+    /**
+     *
+     * @param apiId
+     * @param correlationId
+     * @param forceRefresh
+     */
+    protected initializeServerTelemetryManager(apiId: number, forceRefresh?: boolean): ServerTelemetryManager {
+        this.logger.verbose("initializeServerTelemetryManager called");
+        const telemetryPayload: ServerTelemetryRequest = {
+            clientId: this.config.auth.clientId,
+            correlationId: this.correlationId,
+            apiId: apiId,
+            forceRefresh: forceRefresh || false,
+            wrapperSKU: this.browserStorage.getWrapperMetadata()[0],
+            wrapperVer: this.browserStorage.getWrapperMetadata()[1]
+        };
+
+        return new ServerTelemetryManager(telemetryPayload, this.browserStorage);
     }
 }
