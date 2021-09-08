@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fixes unescaped backslash and inefficient regex patterns #3993",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
