@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, Logger, ServerTelemetryManager, ServerTelemetryRequest, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, PersistentCacheKeys, IdToken, BaseAuthRequest, AuthenticationScheme } from "@azure/msal-common";
+import { ICrypto, Logger, ServerTelemetryManager, ServerTelemetryRequest, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, PersistentCacheKeys, IdToken } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
@@ -294,46 +294,5 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority, validatedRequest.loginHint || "", validatedRequest.account || null);
 
         return validatedRequest;
-    }
-
-    /**
-     * Initializer function for all request APIs
-     * @param request
-     */
-    protected initializeBaseRequest(request: Partial<BaseAuthRequest>): BaseAuthRequest {
-        this.logger.verbose("Initializing BaseAuthRequest");
-        const authority = request.authority || this.config.auth.authority;
-
-        const scopes = [...((request && request.scopes) || [])];
-
-        // Set authenticationScheme to BEARER if not explicitly set in the request
-        if (!request.authenticationScheme) {
-            request.authenticationScheme = AuthenticationScheme.BEARER;
-            this.logger.verbose("Authentication Scheme wasn't explicitly set in request, defaulting to \"Bearer\" request");
-        } else {
-            this.logger.verbose(`Authentication Scheme set to "${request.authenticationScheme}" as configured in Auth request`);
-        }
-
-        const validatedRequest: BaseAuthRequest = {
-            ...request,
-            correlationId: this.correlationId,
-            authority,
-            scopes
-        };
-
-        return validatedRequest;
-    }
-
-    /**
-     *
-     * Use to get the redirect uri configured in MSAL or null.
-     * @param requestRedirectUri
-     * @returns Redirect URL
-     *
-     */
-    protected getRedirectUri(requestRedirectUri?: string): string {
-        this.logger.verbose("getRedirectUri called");
-        const redirectUri = requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
-        return UrlString.getAbsoluteUrl(redirectUri, BrowserUtils.getCurrentUri());
     }
 }
