@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, Logger, ICrypto, StringUtils } from "@azure/msal-common";
+import { AuthenticationResult, Logger, ICrypto, StringUtils, PromptValue } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -52,6 +52,7 @@ export class WamInteractionClient extends BaseInteractionClient {
             ...this.initializeBaseRequest(request),
             clientId: this.config.auth.clientId,
             redirectUri: redirectUri,
+            prompt: request.prompt || PromptValue.NONE,
             nonce: request.nonce || this.browserCrypto.createNewGuid()
         };
 
