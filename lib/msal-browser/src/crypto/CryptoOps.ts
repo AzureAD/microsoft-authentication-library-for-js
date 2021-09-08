@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { BaseAuthRequest, ICrypto, PkceCodes, SignedHttpRequest } from "@azure/msal-common";
+import { ICrypto, PkceCodes, SignedHttpRequest, SignedHttpRequestParameters } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
@@ -86,7 +86,7 @@ export class CryptoOps implements ICrypto {
      * Generates a keypair, stores it and returns a thumbprint
      * @param request
      */
-    async getPublicKeyThumbprint(request: BaseAuthRequest): Promise<string> {
+    async getPublicKeyThumbprint(request: SignedHttpRequestParameters): Promise<string> {
         // Generate Keypair
         const keyPair = await this.browserCrypto.generateKeyPair(CryptoOps.EXTRACTABLE, CryptoOps.POP_KEY_USAGES);
 

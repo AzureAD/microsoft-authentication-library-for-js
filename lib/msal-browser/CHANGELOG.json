@@ -2,6 +2,115 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 07 Sep 2021 23:22:24 GMT",
+      "tag": "@azure/msal-browser_v2.17.0",
+      "version": "2.17.0",
+      "comments": {
+        "minor": [
+          {
+            "comment": "Add configuration for popup window size and placement #3946",
+            "author": "joarroyo@microsoft.com",
+            "commit": "aefe791ee660bbb6bf7df789b5cfb77b46887e05",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add API to sideload tokens to msal-browser #3895",
+            "author": "joarroyo@microsoft.com",
+            "commit": "cef2629499cf997f9167fe3ecc7628cf32513dfc",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add SignedHttpRequest class #3058",
+            "author": "janutter@microsoft.com",
+            "commit": "19fe65ef6562deeae0778db5030f44fa6e24aa5d",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Refactor acquireToken logic into InteractionClients #3871",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "8ac64949f23346cdbdac6f8a2f6c8293d016ee32",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Clear cache before constructing logout url #3982",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "9e4d8a161cd8eac51ea7ded5dadc2b6ff028f5d7",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add pop params to request thumbprint #3973",
+            "author": "hemoral@microsoft.com",
+            "commit": "b3b18bc86a5949905be265c9b892e288551ac894",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update ADAL to MSAL SSO logic to use preferred_username instead of upn by default #3945",
+            "author": "ellymakuba@microsoft.com",
+            "commit": "0eb77a9e467f0074bb9ee5bf52d7c2dfa6f7efad",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Populate msal v2 loginHint from cached msal v1 id token #4027",
+            "author": "janutter@microsoft.com",
+            "commit": "de24de1d3a135c106143a6cc9907cc1264f546e0",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Throw interaction in progress if any msal instance has interaction in progress #4014",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "5188d7d9fb2aa7a9e9f2ffd12abd8d438c4c3876",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Only emit handleRedirect start event on first invocation of handleRedirectPromise #4013",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "09f8cece289c07dd9c5681a31ec285e4111db4ae",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add correlationId to AuthenticationResult type #3947",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "931061695df57488a26397763bbdb3e466713df8",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Remove token binding key from key store when refreshing pop token #3500",
+            "author": "hemoral@microsoft.com",
+            "commit": "6592652877f31405c8ed73a66f03eada90a78c0a",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Fix clearing active account on logout #3948",
+            "author": "hemoral@microsoft.com",
+            "commit": "cd45c77348f6fc259f9378f69b25569146e1c58a",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Add correlationId to errors thrown #3930",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "c2d19c27d11fdab54fb336b9a455b05c753ae750",
+            "package": "@azure/msal-browser"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Fix accesstoken_with_authscheme implementation #3910",
+            "author": "hemoral@microsoft.com",
+            "commit": "9aceb4219ebad900277aa6a59ca1ff93c5a21e0a",
+            "package": "@azure/msal-browser"
+          },
+          {
+            "comment": "Update FAQ #3934",
+            "author": "joliuac@gmail.com",
+            "commit": "323d7eabbbd95c499d2c2a2446cdea4531af71c5",
+            "package": "@azure/msal-browser"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 22 Jul 2021 22:50:22 GMT",
       "tag": "@azure/msal-browser_v2.16.0",
       "version": "2.16.0",
