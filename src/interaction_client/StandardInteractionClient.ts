@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, Logger, ServerTelemetryManager, ServerTelemetryRequest, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, PersistentCacheKeys, IdToken, BaseAuthRequest, AuthenticationScheme } from "@azure/msal-common";
+import { ICrypto, Logger, ServerTelemetryManager, ServerTelemetryRequest, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
@@ -264,80 +264,14 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
 
         // Check for ADAL/MSAL v1 SSO
         if (StringUtils.isEmpty(validatedRequest.loginHint) && !account) {
-            // Only check for adal/msal token if no SSO params are being used
-            const adalIdTokenString = this.browserStorage.getTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN);
-            if (adalIdTokenString) {
-                this.browserStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
-                this.logger.verbose("Cached ADAL id token retrieved.");
-            }
-
-            // Check for cached MSAL v1 id token
-            const msalIdTokenString = this.browserStorage.getTemporaryCache(PersistentCacheKeys.ID_TOKEN, true);
-            if (msalIdTokenString) {
-                this.browserStorage.removeItem(this.browserStorage.generateCacheKey(PersistentCacheKeys.ID_TOKEN));
-                this.logger.verbose("Cached MSAL.js v1 id token retrieved");
-            }
-
-            const cachedIdTokenString = msalIdTokenString || adalIdTokenString;
-            if (cachedIdTokenString) {
-                const cachedIdToken = new IdToken(cachedIdTokenString, this.browserCrypto);
-                if (cachedIdToken.claims && cachedIdToken.claims.preferred_username) {
-                    this.logger.verbose("No SSO params used and ADAL/MSAL v1 token retrieved, setting ADAL/MSAL v1 preferred_username as loginHint");
-                    validatedRequest.loginHint = cachedIdToken.claims.preferred_username;
-                }
-                else if (cachedIdToken.claims && cachedIdToken.claims.upn) {
-                    this.logger.verbose("No SSO params used and ADAL/MSAL v1 token retrieved, setting ADAL/MSAL v1 upn as loginHint");
-                    validatedRequest.loginHint = cachedIdToken.claims.upn;
-                }
-                else {
-                    this.logger.verbose("No SSO params used and ADAL/MSAL v1 token retrieved, however, no account hint claim found. Enable preferred_username or upn id token claim to get SSO.");
-                }
+            const legacyLoginHint = this.browserStorage.getLegacyLoginHint();
+            if (legacyLoginHint) {
+                validatedRequest.loginHint = legacyLoginHint;
             }
         }
 
         this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority, validatedRequest.loginHint || "", validatedRequest.account || null);
 
         return validatedRequest;
-    }
-
-    /**
-     * Initializer function for all request APIs
-     * @param request
-     */
-    protected initializeBaseRequest(request: Partial<BaseAuthRequest>): BaseAuthRequest {
-        this.logger.verbose("Initializing BaseAuthRequest");
-        const authority = request.authority || this.config.auth.authority;
-
-        const scopes = [...((request && request.scopes) || [])];
-
-        // Set authenticationScheme to BEARER if not explicitly set in the request
-        if (!request.authenticationScheme) {
-            request.authenticationScheme = AuthenticationScheme.BEARER;
-            this.logger.verbose("Authentication Scheme wasn't explicitly set in request, defaulting to \"Bearer\" request");
-        } else {
-            this.logger.verbose(`Authentication Scheme set to "${request.authenticationScheme}" as configured in Auth request`);
-        }
-
-        const validatedRequest: BaseAuthRequest = {
-            ...request,
-            correlationId: this.correlationId,
-            authority,
-            scopes
-        };
-
-        return validatedRequest;
-    }
-
-    /**
-     *
-     * Use to get the redirect uri configured in MSAL or null.
-     * @param requestRedirectUri
-     * @returns Redirect URL
-     *
-     */
-    protected getRedirectUri(requestRedirectUri?: string): string {
-        this.logger.verbose("getRedirectUri called");
-        const redirectUri = requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
-        return UrlString.getAbsoluteUrl(redirectUri, BrowserUtils.getCurrentUri());
     }
 }
