@@ -173,7 +173,7 @@ describe("PopupHandler.ts Unit Tests", () => {
 
             const popupHandler = new PopupHandler(authCodeModule, browserStorage, testTokenReq, browserRequestLogger);
             popupHandler.initiateAuthRequest(TEST_URIS.ALTERNATE_INSTANCE, {popupName: "name", popupWindowAttributes: {}});
-            expect(browserStorage.getTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, true)).toEqual(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            expect(browserStorage.isInteractionInProgress(true)).toBe(true);
         });
     });
 
