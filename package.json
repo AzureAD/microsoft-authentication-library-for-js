@@ -84,6 +84,7 @@
     "typescript": "^3.8.3"
   },
   "dependencies": {
-    "@azure/msal-common": "^4.5.1"
+    "@azure/msal-common": "^4.5.1",
+    "caniuse-lite": "^1.0.30001255"
   }
 }
