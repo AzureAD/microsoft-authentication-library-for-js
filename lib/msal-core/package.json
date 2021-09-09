@@ -45,6 +45,7 @@
     "prepack": "npm run lint && npm test && npm run build"
   },
   "dependencies": {
+    "caniuse-lite": "^1.0.30001255",
     "tslib": "^1.9.3"
   },
   "devDependencies": {
