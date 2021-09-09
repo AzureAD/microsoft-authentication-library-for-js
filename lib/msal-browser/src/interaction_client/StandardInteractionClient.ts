@@ -9,7 +9,7 @@ import { BrowserConfiguration } from "../config/Configuration";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
-import { BrowserConstants, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
+import { BrowserConstants, InteractionType } from "../utils/BrowserConstants";
 import { version } from "../packageMetadata";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserProtocolUtils, BrowserStateObject } from "../utils/BrowserProtocolUtils";
@@ -60,7 +60,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         this.logger.verbose("initializeLogoutRequest called", logoutRequest?.correlationId);
 
         // Check if interaction is in progress. Throw error if true.
-        if (this.interactionInProgress()) {
+        if (this.browserStorage.isInteractionInProgress()) {
             throw BrowserAuthError.createInteractionInProgressError();
         }
 
@@ -212,14 +212,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     * Helper to check whether interaction is in progress.
-     */
-    protected interactionInProgress(): boolean {
-        // Check whether value in cache is present and equal to expected value
-        return (this.browserStorage.getTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, true)) === BrowserConstants.INTERACTION_IN_PROGRESS_VALUE;
-    }
-
-    /**
      * Helper to validate app environment before making a request.
      * @param request
      * @param interactionType
@@ -230,7 +222,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         BrowserUtils.blockReloadInHiddenIframes();
     
         // Check if interaction is in progress. Throw error if true.
-        if (this.interactionInProgress()) {
+        if (this.browserStorage.isInteractionInProgress(false)) {
             throw BrowserAuthError.createInteractionInProgressError();
         }
     

@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-react
 
-This log was last generated on Mon, 28 Jun 2021 23:39:48 GMT and should not be manually modified.
+This log was last generated on Tue, 07 Sep 2021 23:22:24 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.2
+
+Tue, 07 Sep 2021 23:22:24 GMT
+
+### Patches
+
+- Fix inProgress state bug when returning from a redirect #4013 (thomas.norling@microsoft.com)
 
 ## 1.0.1
 

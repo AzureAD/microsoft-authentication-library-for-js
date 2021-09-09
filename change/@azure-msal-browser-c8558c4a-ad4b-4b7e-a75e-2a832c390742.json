@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add configuration for popup window size and placement #3946",
-  "packageName": "@azure/msal-browser",
-  "email": "joarroyo@microsoft.com",
-  "dependentChangeType": "patch"
-}
