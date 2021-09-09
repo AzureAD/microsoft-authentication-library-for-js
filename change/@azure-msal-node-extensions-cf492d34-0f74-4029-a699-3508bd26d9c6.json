@@ -1,0 +1,7 @@
+{
+  "type": "prerelease",
+  "comment": "Upgrade msal-common to v5 for Node extensions",
+  "packageName": "@azure/msal-node-extensions",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "patch"
+}
