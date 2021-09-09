@@ -11,7 +11,7 @@ import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
 import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
+import { DBTableNames, DB_NAME, KEY_FORMAT_JWK } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export type CachedKeyPair = {
@@ -35,11 +35,8 @@ export class CryptoOps implements ICrypto {
 
     private static POP_KEY_USAGES: Array<KeyUsage> = ["sign", "verify"];
     private static EXTRACTABLE: boolean = true;
-
-    private static DB_VERSION = 1;
-    private static DB_NAME = "msal.db";
-    private static TABLE_NAME =`${CryptoOps.DB_NAME}.keys`;
-    private cache: DatabaseStorage<CachedKeyPair>;
+    private static TABLE_NAMES = [DBTableNames.asymmetricKeys];
+    private cache: DatabaseStorage;
 
     constructor() {
         // Browser crypto needs to be validated first before any other classes can be set.
@@ -48,7 +45,13 @@ export class CryptoOps implements ICrypto {
         this.b64Decode = new Base64Decode();
         this.guidGenerator = new GuidGenerator(this.browserCrypto);
         this.pkceGenerator = new PkceGenerator(this.browserCrypto);
-        this.cache = new DatabaseStorage(CryptoOps.DB_NAME, CryptoOps.TABLE_NAME, CryptoOps.DB_VERSION);
+        this.cache = new DatabaseStorage(
+            { 
+                name: DB_NAME,
+                version: 2,
+                tableNames: CryptoOps.TABLE_NAMES
+            }
+        );
     }
 
     /**
@@ -107,12 +110,16 @@ export class CryptoOps implements ICrypto {
         const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importJwk(privateKeyJwk, false, ["sign"]);
 
         // Store Keypair data in keystore
-        await this.cache.put(publicJwkHash, {
-            privateKey: unextractablePrivateKey,
-            publicKey: keyPair.publicKey,
-            requestMethod: request.resourceRequestMethod,
-            requestUri: request.resourceRequestUri
-        });
+        await this.cache.put<CachedKeyPair>(
+            DBTableNames.asymmetricKeys,
+            publicJwkHash, 
+            {
+                privateKey: unextractablePrivateKey,
+                publicKey: keyPair.publicKey,
+                requestMethod: request.resourceRequestMethod,
+                requestUri: request.resourceRequestUri
+            }
+        );
 
         return publicJwkHash;
     }
@@ -122,7 +129,7 @@ export class CryptoOps implements ICrypto {
      * @param kid 
      */
     async removeTokenBindingKey(kid: string): Promise<boolean> {
-        return this.cache.delete(kid);
+        return this.cache.delete(DBTableNames.asymmetricKeys, kid);
     }
 
     /**
@@ -138,8 +145,8 @@ export class CryptoOps implements ICrypto {
      * @param kid 
      */
     async signJwt(payload: SignedHttpRequest, kid: string): Promise<string> {
-        const cachedKeyPair = await this.cache.get(kid);
-            
+        const cachedKeyPair = await this.cache.get<CryptoKeyPair>(DBTableNames.asymmetricKeys, kid);
+        
         if (!cachedKeyPair) {
             throw BrowserAuthError.createSigningKeyNotFoundInStorageError(kid);
         }

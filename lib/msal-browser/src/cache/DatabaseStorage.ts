@@ -4,6 +4,7 @@
  */
 
 import { BrowserAuthError } from "../error/BrowserAuthError";
+import { DBTableNames } from "../utils/BrowserConstants";
 
 interface IDBOpenDBRequestEvent extends Event {
     target: IDBOpenDBRequest & EventTarget;
@@ -17,20 +18,26 @@ interface IDBRequestEvent extends Event {
     target: IDBRequest & EventTarget;
 }
 
+export type DatabaseOptions = {
+    name: string;
+    version: number;
+    tableNames: Array<DBTableNames>;
+};
+
 /**
  * Storage wrapper for IndexedDB storage in browsers: https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API
  */
-export class DatabaseStorage<T>{
+export class DatabaseStorage {
     private db: IDBDatabase|undefined;
     private dbName: string;
-    private tableName: string;
+    private tableNames: Array<DBTableNames>;
     private version: number;
     private dbOpen: boolean;
 
-    constructor(dbName: string, tableName: string, version: number) {
-        this.dbName = dbName;
-        this.tableName = tableName;
-        this.version = version;
+    constructor(dbOptions: DatabaseOptions) {
+        this.dbName = dbOptions.name;
+        this.tableNames = dbOptions.tableNames;
+        this.version = dbOptions.version;
         this.dbOpen = false;
     }
 
@@ -43,7 +50,9 @@ export class DatabaseStorage<T>{
             const openDB = window.indexedDB.open(this.dbName, this.version);
             openDB.addEventListener("upgradeneeded", (e: IDBVersionChangeEvent) => {
                 const event = e as IDBOpenOnUpgradeNeededEvent;
-                event.target.result.createObjectStore(this.tableName);
+                this.tableNames.forEach(tableName => {
+                    event.target.result.createObjectStore(tableName);
+                });
             });
             openDB.addEventListener("success", (e: Event) => {
                 const event = e as IDBOpenDBRequestEvent;
@@ -60,7 +69,7 @@ export class DatabaseStorage<T>{
      * Retrieves item from IndexedDB instance.
      * @param key 
      */
-    async get(key: string): Promise<T> {
+    async get<T>(tableName: DBTableNames, key: string): Promise<T> {
         if (!this.dbOpen) {
             await this.open();
         }
@@ -71,9 +80,9 @@ export class DatabaseStorage<T>{
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
             }
 
-            const transaction = this.db.transaction([this.tableName], "readonly");
+            const transaction = this.db.transaction([tableName], "readonly");
 
-            const objectStore = transaction.objectStore(this.tableName);
+            const objectStore = transaction.objectStore(tableName);
             const dbGet = objectStore.get(key);
             dbGet.addEventListener("success", (e: Event) => {
                 const event = e as IDBRequestEvent;
@@ -88,7 +97,7 @@ export class DatabaseStorage<T>{
      * @param key 
      * @param payload 
      */
-    async put(key: string, payload: T): Promise<T> {
+    async put<T>(tableName: DBTableNames, key: string, payload: T): Promise<T> {
         if (!this.dbOpen) {
             await this.open();
         }
@@ -99,8 +108,8 @@ export class DatabaseStorage<T>{
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
             }
 
-            const transaction = this.db.transaction([this.tableName], "readwrite");
-            const objectStore = transaction.objectStore(this.tableName);
+            const transaction = this.db.transaction([tableName], "readwrite");
+            const objectStore = transaction.objectStore(tableName);
 
             const dbPut = objectStore.put(payload, key);
             dbPut.addEventListener("success", (e: Event) => {
@@ -115,7 +124,7 @@ export class DatabaseStorage<T>{
      * Removes item from IndexedDB under given key
      * @param key
      */
-    async delete(key: string): Promise<boolean> {
+    async delete(tableName: DBTableNames, key: string): Promise<boolean> {
         if (!this.dbOpen) {
             await this.open();
         }
@@ -125,9 +134,9 @@ export class DatabaseStorage<T>{
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
             }
 
-            const transaction = this.db.transaction([this.tableName], "readwrite");
+            const transaction = this.db.transaction([tableName], "readwrite");
 
-            const objectStore = transaction.objectStore(this.tableName);
+            const objectStore = transaction.objectStore(tableName);
 
             const dbDelete = objectStore.delete(key);
 
@@ -145,21 +154,32 @@ export class DatabaseStorage<T>{
         }
 
         return new Promise<boolean>((resolve: Function, reject: Function) => {
-            if (!this.db) {
+            const dataBase = this.db;
+
+            if (!dataBase) {
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
             }
+            
+            const tableNames = Object.values(dataBase.objectStoreNames);
 
-            const transaction = this.db.transaction([this.tableName], "readwrite");
+            const tablesDeleted = tableNames.map((tableName: string) => {
+                const transaction = dataBase.transaction([tableName], "readwrite");
 
-            const objectStore = transaction.objectStore(this.tableName);
+                const objectStore = transaction.objectStore(tableName);
 
-            const dbDelete = objectStore.clear();
+                const dbDelete = objectStore.clear();
 
-            dbDelete.addEventListener("success", (e: Event) => {
-                const event = e as IDBRequestEvent;
-                resolve(event.target.result === undefined);
+                dbDelete.addEventListener("success", (e: Event) => {
+                    const event = e as IDBRequestEvent;
+                    return resolve(event.target.result === undefined);
+                });
+
+                dbDelete.addEventListener("error", e =>{
+                    return reject(e);
+                });
             });
-            dbDelete.addEventListener("error", e => reject(e));
+
+            return Promise.all(tablesDeleted);
         });
     }
 }
