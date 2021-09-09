@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, INetworkModule, Logger, AuthenticationResult, AccountInfo, AccountEntity, UrlString, AuthenticationScheme, BaseAuthRequest, PersistentCacheKeys, IdToken } from "@azure/msal-common";
+import { ICrypto, INetworkModule, Logger, AuthenticationResult, AccountInfo, AccountEntity, BaseAuthRequest, AuthenticationScheme, UrlString, ServerTelemetryManager, ServerTelemetryRequest } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
@@ -106,37 +106,23 @@ export abstract class BaseInteractionClient {
         return UrlString.getAbsoluteUrl(redirectUri, BrowserUtils.getCurrentUri());
     }
 
-    protected getLegacyLoginHint(): string|null {
-        // Only check for adal/msal token if no SSO params are being used
-        const adalIdTokenString = this.browserStorage.getTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN);
-        if (adalIdTokenString) {
-            this.browserStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
-            this.logger.verbose("Cached ADAL id token retrieved.");
-        }
+    /**
+     *
+     * @param apiId
+     * @param correlationId
+     * @param forceRefresh
+     */
+    protected initializeServerTelemetryManager(apiId: number, forceRefresh?: boolean): ServerTelemetryManager {
+        this.logger.verbose("initializeServerTelemetryManager called");
+        const telemetryPayload: ServerTelemetryRequest = {
+            clientId: this.config.auth.clientId,
+            correlationId: this.correlationId,
+            apiId: apiId,
+            forceRefresh: forceRefresh || false,
+            wrapperSKU: this.browserStorage.getWrapperMetadata()[0],
+            wrapperVer: this.browserStorage.getWrapperMetadata()[1]
+        };
 
-        // Check for cached MSAL v1 id token
-        const msalIdTokenString = this.browserStorage.getTemporaryCache(PersistentCacheKeys.ID_TOKEN, true);
-        if (msalIdTokenString) {
-            this.browserStorage.removeItem(this.browserStorage.generateCacheKey(PersistentCacheKeys.ID_TOKEN));
-            this.logger.verbose("Cached MSAL.js v1 id token retrieved");
-        }
-
-        const cachedIdTokenString = msalIdTokenString || adalIdTokenString;
-        if (cachedIdTokenString) {
-            const cachedIdToken = new IdToken(cachedIdTokenString, this.browserCrypto);
-            if (cachedIdToken.claims && cachedIdToken.claims.preferred_username) {
-                this.logger.verbose("No SSO params used and ADAL/MSAL v1 token retrieved, setting ADAL/MSAL v1 preferred_username as loginHint");
-                return cachedIdToken.claims.preferred_username;
-            }
-            else if (cachedIdToken.claims && cachedIdToken.claims.upn) {
-                this.logger.verbose("No SSO params used and ADAL/MSAL v1 token retrieved, setting ADAL/MSAL v1 upn as loginHint");
-                return cachedIdToken.claims.upn;
-            }
-            else {
-                this.logger.verbose("No SSO params used and ADAL/MSAL v1 token retrieved, however, no account hint claim found. Enable preferred_username or upn id token claim to get SSO.");
-            }
-        }
-
-        return null;
+        return new ServerTelemetryManager(telemetryPayload, this.browserStorage);
     }
 }
