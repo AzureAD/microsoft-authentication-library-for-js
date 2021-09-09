@@ -11,22 +11,22 @@ describe("SignedHttpRequest.ts Unit Tests", () => {
     jest.setTimeout(30000)
 
     let oldWindowCrypto = window.crypto;
-    let dbStorage = {};
+    let dbStorage = { "asymmetricKeys": {}};
 
     beforeEach(() => {
         jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(async (): Promise<void> => { });
 
-        jest.spyOn(DatabaseStorage.prototype, "put").mockImplementation(async (key: string, payload: CachedKeyPair): Promise<void> => {
-            dbStorage[key] = payload;
+        jest.spyOn(DatabaseStorage.prototype, "put").mockImplementation(async (tableName: string, key: string, payload: any): Promise<void> => {
+            dbStorage[tableName][key] = payload;
         });
 
-        jest.spyOn(DatabaseStorage.prototype, "get" ).mockImplementation(async (key: string): Promise<void> => {
-            return dbStorage[key];
+        jest.spyOn(DatabaseStorage.prototype, "get" ).mockImplementation(async (tableName: string, key: string): Promise<void> => {
+            return dbStorage[tableName][key];
         });
 
-        jest.spyOn(DatabaseStorage.prototype, "delete" ).mockImplementation(async (key: string): Promise<boolean> => {
-            delete dbStorage[key];
-            return !dbStorage[key];
+        jest.spyOn(DatabaseStorage.prototype, "delete" ).mockImplementation(async (tableName: string, key: string): Promise<boolean> => {
+            delete dbStorage[tableName][key];
+            return !dbStorage[tableName][key];
         });
         
         jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((): Promise<ArrayBuffer> => {

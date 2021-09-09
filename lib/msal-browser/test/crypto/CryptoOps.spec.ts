@@ -6,24 +6,25 @@ import { PkceCodes, BaseAuthRequest } from "@azure/msal-common";
 import { TEST_URIS } from "../utils/StringConstants";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src";
+import { DBTableNames } from "../../src/utils/BrowserConstants";
 const msrCrypto = require("../polyfills/msrcrypto.min");
 
 describe("CryptoOps.ts Unit Tests", () => {
     let cryptoObj: CryptoOps;
-    let dbStorage = {};
+    let dbStorage = { "asymmetricKeys": {}};
     let oldWindowCrypto = window.crypto;
     beforeEach(() => {
         jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(async (): Promise<void> => {
-            dbStorage = {};
+            dbStorage.asymmetricKeys = {};
         });
 
-        jest.spyOn(DatabaseStorage.prototype, "put").mockImplementation(async (key: string, payload: CachedKeyPair): Promise<void> => {
-            dbStorage[key] = payload;
+        jest.spyOn(DatabaseStorage.prototype, "put").mockImplementation(async (tableName: string, key: string, payload: any): Promise<void> => {
+            dbStorage[tableName][key] = payload;
         });
 
-        jest.spyOn(DatabaseStorage.prototype, "delete").mockImplementation(async (key: string): Promise<boolean> => {
-            delete dbStorage[key];
-            return Promise.resolve(true);
+        jest.spyOn(DatabaseStorage.prototype, "delete").mockImplementation(async (tableName: string, key: string): Promise<boolean> => {
+            delete dbStorage[tableName][key];
+            return !dbStorage[tableName][key];
         });
 
         cryptoObj = new CryptoOps();
@@ -120,7 +121,7 @@ describe("CryptoOps.ts Unit Tests", () => {
         const result = await generateKeyPairSpy.mock.results[0].value;
         expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
         expect(regExp.test(pkThumbprint)).toBe(true);
-        expect(Object.keys(dbStorage[pkThumbprint])).not.toHaveLength(0);
+        expect(Object.keys(dbStorage[DBTableNames.asymmetricKeys][pkThumbprint])).not.toHaveLength(0);
     }, 30000);
 
     it("removeTokenBindingKey() removes the specified key from storage", async () => {
@@ -131,7 +132,7 @@ describe("CryptoOps.ts Unit Tests", () => {
         });
         const pkThumbprint = await cryptoObj.getPublicKeyThumbprint({resourceRequestMethod: "POST", resourceRequestUri: TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS} as BaseAuthRequest);
         const keyDeleted = await cryptoObj.removeTokenBindingKey(pkThumbprint);
-        expect(dbStorage[pkThumbprint]).toBe(undefined);
+        expect(dbStorage[DBTableNames.asymmetricKeys][pkThumbprint]).toBe(undefined);
         expect(keyDeleted).toBe(true);
     }, 30000);
 
