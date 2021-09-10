@@ -72,7 +72,7 @@ jobs:
       - name: Head Ref
         env:
           REF: ${{ github.head_ref }}
-          run: echo "$REF"
+        run: echo "$REF"
           
       - name: Dump GitHub context
         env:
