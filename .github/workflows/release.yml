@@ -51,13 +51,14 @@ jobs:
       - uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          ref: dev
+          ref: master
 
       - name: Create Pull Request
         id: pr
         uses: peter-evans/create-pull-request@v3
         with:
           commit-message: PR:dev->master post release 
+          branch: dev
           base: master
           title: 'Creating PR From :dev to master post release' 
           body: |
