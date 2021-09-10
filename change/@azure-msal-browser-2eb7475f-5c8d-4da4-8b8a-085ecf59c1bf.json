@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "test",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
