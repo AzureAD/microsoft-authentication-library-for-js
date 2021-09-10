@@ -75,7 +75,7 @@ export abstract class ClientApplication {
      * To restrict support to Personal Microsoft accounts only, replace "Enter_the_Tenant_Info_Here" value with consumers.
      *
      * In Azure B2C, authority is of the form https://{instance}/tfp/{tenant}/{policyName}/
-     * Full B2C functionality will be available in this library in future versions.
+     * Full B2C functionality will be available in this library in future versions
      *
      * @param configuration Object for the MSAL PublicClientApplication instance
      */
