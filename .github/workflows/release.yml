@@ -52,13 +52,18 @@ jobs:
         with:
           fetch-depth: 0
           ref: master
+          
+      - name: Reset promotion branch
+        run: |
+          git fetch origin dev:dev
+          git reset --hard dev
 
       - name: Create Pull Request
         id: pr
         uses: peter-evans/create-pull-request@v3
         with:
           commit-message: PR:dev->master post release 
-          branch: dev
+          branch: dev-promotion
           base: master
           title: 'Creating PR From :dev to master post release' 
           body: |
