@@ -6,8 +6,9 @@
 import { WamExtensionMethod } from "../../utils/BrowserConstants";
 import { WamRequest } from "../../request/WamRequest";
 
-export type WamExtensionRequestBody = WamRequest & {
-    method: WamExtensionMethod
+export type WamExtensionRequestBody = {
+    method: WamExtensionMethod;
+    request?: WamRequest;
 };
 
 export type WamExtensionRequest = {

@@ -27,8 +27,8 @@ export class WamInteractionClient extends BaseInteractionClient {
         const wamRequest = this.initializeWamRequest(request);
 
         const messageBody: WamExtensionRequestBody = {
-            ...wamRequest,
-            method: WamExtensionMethod.GetToken
+            method: WamExtensionMethod.GetToken,
+            request: wamRequest
         };
 
         const response = await provider.sendMessage(messageBody);
@@ -64,7 +64,7 @@ export class WamInteractionClient extends BaseInteractionClient {
 
         // Check for ADAL/MSAL v1 SSO
         if (StringUtils.isEmpty(validatedRequest.loginHint)) {
-            const loginHint = this.getLegacyLoginHint();
+            const loginHint = this.browserStorage.getLegacyLoginHint();
             if (loginHint) {
                 validatedRequest.loginHint = loginHint;
             }
