@@ -35,27 +35,14 @@ jobs:
         id: pr
         uses: peter-evans/create-pull-request@v3
         with:
-          commit-message: Release ; version bump; PR->master
-          committer: GitHub <noreply@github.com>
-          author: ${{ github.actor }} <${{ github.actor }}@microsoft.com>
+          commit-message: Bump package versions
           branch: release-staging
-          title: 'Creating PR From :release-staging' 
+          title: 'Bump package versions for release' 
           body: |
             New release PR
           draft: false
 
-      - name: Dump GitHub context
-        env:
-          GITHUB_CONTEXT: ${{ toJson(github) }}
-        run: echo "$GITHUB_CONTEXT"
-        
-      - name: Print event details
-        env:
-          GITHUB_EVENT: ${{ toJson(github.event.push) }}
-        run: echo "$GITHUB_EVENT"
-
   update_master:
-    needs: release
     name: Create PR from dev to master post release 
     runs-on: ubuntu-latest
     if: github.event.pull_request.merged == true && contains(github.head_ref, 'release')
@@ -70,11 +57,29 @@ jobs:
         uses: peter-evans/create-pull-request@v3
         with:
           commit-message: PR:dev->master post release 
-          committer: GitHub <noreply@github.com>
-          author: ${{ github.actor }} <${{ github.actor }}@microsoft.com>
           branch: dev
           base: master
           title: 'Creating PR From :dev to master post release' 
           body: |
             New  PR post-release 
           draft: false
+          
+  logging:
+    name: Logging
+    runs-on: ubuntu--latest
+    if: github.event.pull_request.merged == true
+    steps:
+      - name: Head Ref
+        env:
+          REF: ${{ github.head_ref }}
+          run: echo "$REF"
+          
+      - name: Dump GitHub context
+        env:
+          GITHUB_CONTEXT: ${{ toJson(github) }}
+        run: echo "$GITHUB_CONTEXT"
+        
+      - name: Print event details
+        env:
+          GITHUB_EVENT: ${{ toJson(github.event.push) }}
+        run: echo "$GITHUB_EVENT"
