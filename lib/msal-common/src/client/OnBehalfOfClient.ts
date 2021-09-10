@@ -8,7 +8,7 @@ import { BaseClient } from "./BaseClient";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { ScopeSet } from "../request/ScopeSet";
-import { GrantType, AADServerParamKeys , CredentialType, Constants } from "../utils/Constants";
+import { GrantType, AADServerParamKeys , CredentialType, Constants, CacheOutcome } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
 import { CommonOnBehalfOfRequest } from "../request/CommonOnBehalfOfRequest";
@@ -60,6 +60,10 @@ export class OnBehalfOfClient extends BaseClient {
         const cachedAccessToken = this.readAccessTokenFromCache();
         if (!cachedAccessToken ||
             TimeUtils.isTokenExpired(cachedAccessToken.expiresOn, this.config.systemOptions.tokenRenewalOffsetSeconds)) {
+
+            // Update the server telemetry outcome
+            this.serverTelemetryManager?.setCacheOutcome(!cachedAccessToken ? CacheOutcome.CACHED_ACCESS_TOKEN_EXPIRED : CacheOutcome.NO_CACHED_ACCESS_TOKEN);
+
             return null;
         }
 
@@ -163,7 +167,11 @@ export class OnBehalfOfClient extends BaseClient {
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: request.authority,
-            scopes: request.scopes
+            scopes: request.scopes,
+            authenticationScheme: request.authenticationScheme,
+            resourceRequestMethod: request.resourceRequestMethod,
+            resourceRequestUri: request.resourceRequestUri,
+            shrClaims: request.shrClaims
         };
 
         const reqTimestamp = TimeUtils.nowSeconds();

@@ -1,8 +1,26 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Mon, 28 Jun 2021 23:39:48 GMT and should not be manually modified.
+This log was last generated on Tue, 07 Sep 2021 23:22:24 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.0.3
+
+Tue, 07 Sep 2021 23:22:24 GMT
+
+### Patches
+
+- Fix inProgress state bug when returning from a redirect #4013 (thomas.norling@microsoft.com)
+- Fix infinite reload on route protected by MsalGuard when '#code=' appears in the url #3995 (thomas.norling@microsoft.com)
+
+## 2.0.2
+
+Thu, 22 Jul 2021 22:50:22 GMT
+
+### Patches
+
+- allow unprotect resources on certain http methods #3878 (daniel.vargastr@gmail.com)
+- fix: fixing the npm audit issues (samuelkamau@microsoft.com)
 
 ## 2.0.1
 

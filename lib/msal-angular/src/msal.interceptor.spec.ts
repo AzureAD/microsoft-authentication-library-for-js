@@ -42,6 +42,7 @@ function MSALInterceptorFactory(): MsalInterceptorConfiguration {
       ["https://api.test.com", ["default.scope1"]],
       ["https://*.test.com", ["default.scope2"]],
       ["http://localhost:3000/unprotect", null],
+      ["http://localhost:3000/unprotect/post",[{ httpMethod:"POST", scopes: null }]],
       ["http://localhost:3000/", ["base.scope"]],
       ["http://localhost:9876/tenant?abc", ["query.scope"]],
       ["http://applicationA/slash/", ["customA.scope"]],
@@ -314,6 +315,16 @@ describe('MsalInterceptor', () => {
     httpClient.get("http://localhost:3000/unprotect").subscribe(response => expect(response).toBeTruthy());
 
     const request = httpMock.expectOne("http://localhost:3000/unprotect");
+    request.flush({ data: "test" });
+    expect(request.request.headers.get("Authorization")).toBeUndefined;
+    httpMock.verify();
+    done();
+  });
+
+  it("does not attach authorization header when scopes set to null on specific http method, and resource is before any base url or wildcards", done => {
+    httpClient.post("http://localhost:3000/unprotect/post", {}).subscribe(response => expect(response).toBeTruthy());
+
+    const request = httpMock.expectOne("http://localhost:3000/unprotect/post");
     request.flush({ data: "test" });
     expect(request.request.headers.get("Authorization")).toBeUndefined;
     httpMock.verify();

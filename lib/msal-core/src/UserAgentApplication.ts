@@ -217,10 +217,18 @@ export class UserAgentApplication {
         this.cacheStorage = new AuthCache(this.clientId, this.config.cache.cacheLocation, this.inCookie);
 
         // Initialize window handling code
-        window.activeRenewals = {};
-        window.renewStates = [];
-        window.callbackMappedToRenewStates = { };
-        window.promiseMappedToRenewStates = { };
+        if (!window.activeRenewals) {
+            window.activeRenewals = {};
+        }
+        if (!window.renewStates) {
+            window.renewStates = [];
+        }
+        if (!window.callbackMappedToRenewStates) {
+            window.callbackMappedToRenewStates = {};
+        }
+        if (!window.promiseMappedToRenewStates) {
+            window.promiseMappedToRenewStates = {};
+        }
         window.msal = this;
 
         const urlHash = window.location.hash;
@@ -230,7 +238,7 @@ export class UserAgentApplication {
         WindowUtils.checkIfBackButtonIsPressed(this.cacheStorage);
 
         // On the server 302 - Redirect, handle this
-        if (urlContainsHash) {
+        if (urlContainsHash && this.cacheStorage.isInteractionInProgress(true)) {
             const stateInfo = this.getResponseState(urlHash);
             if (stateInfo.method === Constants.interactionTypeRedirect) {
                 this.handleRedirectAuthenticationResponse(urlHash);
@@ -303,7 +311,7 @@ export class UserAgentApplication {
         this.logger.verbose("AuthErrorHandler has been called");
 
         // set interaction_status to complete
-        this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
+        this.cacheStorage.setInteractionInProgress(false);
         if (interactionType === Constants.interactionTypeRedirect) {
             this.logger.verbose("Interaction type is redirect");
             if (this.errorReceivedCallback) {
@@ -424,13 +432,13 @@ export class UserAgentApplication {
         // block the request if made from the hidden iframe
         WindowUtils.blockReloadInHiddenIframes();
 
-        const interactionProgress = this.cacheStorage.getItem(TemporaryCacheKeys.INTERACTION_STATUS);
+        const interactionProgress = this.cacheStorage.isInteractionInProgress(false);
         if(interactionType === Constants.interactionTypeRedirect) {
             this.cacheStorage.setItem(TemporaryCacheKeys.REDIRECT_REQUEST, `${Constants.inProgress}${Constants.resourceDelimiter}${request.state}`);
         }
 
         // If already in progress, do not proceed
-        if (interactionProgress === Constants.inProgress) {
+        if (interactionProgress) {
             const thrownError = isLoginCall ? ClientAuthError.createLoginInProgressError() : ClientAuthError.createAcquireTokenInProgressError();
             const stateOnlyResponse = buildResponseStateOnly(this.getAccountState(request.state));
             this.cacheStorage.resetTempCacheItems(request.state);
@@ -514,7 +522,7 @@ export class UserAgentApplication {
         this.logger.verbose(`Interaction type: ${interactionType}. isLoginCall: ${isLoginCall}`);
 
         // Track the acquireToken progress
-        this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
+        this.cacheStorage.setInteractionInProgress(true);
         const requestSignature = request.scopes ? request.scopes.join(" ").toLowerCase() : Constants.oidcScopes.join(" ");
         this.logger.verbosePii(`Request signature: ${requestSignature}`);
 
@@ -603,7 +611,7 @@ export class UserAgentApplication {
                         this.handleAuthenticationResponse(hash);
 
                         // Request completed successfully, set to completed
-                        this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
+                        this.cacheStorage.setInteractionInProgress(false);
                         this.logger.info("Closing popup window");
 
                         // TODO: Check how this can be extracted for any framework specific code?
@@ -621,7 +629,7 @@ export class UserAgentApplication {
                             this.broadcast("msal:popUpClosed", error.errorCode + Constants.resourceDelimiter + error.errorMessage);
                         } else {
                             // Request failed, set to canceled
-                            this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
+                            this.cacheStorage.setInteractionInProgress(false);
                             popUpWindow.close();
                         }
                     }
@@ -904,7 +912,7 @@ export class UserAgentApplication {
 
             return popupWindow;
         } catch (e) {
-            this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
+            this.cacheStorage.setInteractionInProgress(false);
             throw ClientAuthError.createPopupWindowError(e.toString());
         }
     }
@@ -1000,7 +1008,7 @@ export class UserAgentApplication {
         if (!window.callbackMappedToRenewStates[expectedState]) {
             window.callbackMappedToRenewStates[expectedState] = (response: AuthResponse, error: AuthError) => {
                 // reset active renewals
-                window.activeRenewals[requestSignature] = null;
+                delete window.activeRenewals[requestSignature];
 
                 // for all promiseMappedtoRenewStates for a given 'state' - call the reject/resolve with error/token respectively
                 for (let i = 0; i < window.promiseMappedToRenewStates[expectedState].length; ++i) {
@@ -1019,8 +1027,8 @@ export class UserAgentApplication {
                 }
 
                 // reset
-                window.promiseMappedToRenewStates[expectedState] = null;
-                window.callbackMappedToRenewStates[expectedState] = null;
+                delete window.promiseMappedToRenewStates[expectedState];
+                delete window.callbackMappedToRenewStates[expectedState];
             };
         }
     }
@@ -2150,7 +2158,7 @@ export class UserAgentApplication {
      * @returns {boolean} true/false
      */
     public getLoginInProgress(): boolean {
-        return this.cacheStorage.getItem(TemporaryCacheKeys.INTERACTION_STATUS) === Constants.inProgress;
+        return this.cacheStorage.isInteractionInProgress(true);
     }
 
     /**
@@ -2160,11 +2168,7 @@ export class UserAgentApplication {
      * @param loginInProgress
      */
     protected setInteractionInProgress(inProgress: boolean): void {
-        if (inProgress) {
-            this.cacheStorage.setItem(TemporaryCacheKeys.INTERACTION_STATUS, Constants.inProgress);
-        } else {
-            this.cacheStorage.removeItem(TemporaryCacheKeys.INTERACTION_STATUS);
-        }
+        this.cacheStorage.setInteractionInProgress(inProgress);
     }
 
     /**
@@ -2184,7 +2188,7 @@ export class UserAgentApplication {
      * returns the status of acquireTokenInProgress
      */
     protected getAcquireTokenInProgress(): boolean {
-        return this.cacheStorage.getItem(TemporaryCacheKeys.INTERACTION_STATUS) === Constants.inProgress;
+        return this.cacheStorage.isInteractionInProgress(true);
     }
 
     /**

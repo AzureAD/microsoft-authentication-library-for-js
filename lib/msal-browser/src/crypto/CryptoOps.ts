@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { BaseAuthRequest, ICrypto, PkceCodes, SignedHttpRequest } from "@azure/msal-common";
+import { ICrypto, PkceCodes, SignedHttpRequest, SignedHttpRequestParameters } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
@@ -12,6 +12,7 @@ import { BrowserCrypto } from "./BrowserCrypto";
 import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export type CachedKeyPair = {
     publicKey: CryptoKey,
@@ -85,7 +86,7 @@ export class CryptoOps implements ICrypto {
      * Generates a keypair, stores it and returns a thumbprint
      * @param request
      */
-    async getPublicKeyThumbprint(request: BaseAuthRequest): Promise<string> {
+    async getPublicKeyThumbprint(request: SignedHttpRequestParameters): Promise<string> {
         // Generate Keypair
         const keyPair = await this.browserCrypto.generateKeyPair(CryptoOps.EXTRACTABLE, CryptoOps.POP_KEY_USAGES);
 
@@ -106,7 +107,7 @@ export class CryptoOps implements ICrypto {
         const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importJwk(privateKeyJwk, false, ["sign"]);
 
         // Store Keypair data in keystore
-        this.cache.put(publicJwkHash, {
+        await this.cache.put(publicJwkHash, {
             privateKey: unextractablePrivateKey,
             publicKey: keyPair.publicKey,
             requestMethod: request.resourceRequestMethod,
@@ -117,13 +118,31 @@ export class CryptoOps implements ICrypto {
     }
 
     /**
+     * Removes cryptographic keypair from key store matching the keyId passed in
+     * @param kid 
+     */
+    async removeTokenBindingKey(kid: string): Promise<boolean> {
+        return this.cache.delete(kid);
+    }
+
+    /**
+     * Removes all cryptographic keys from IndexedDB storage
+     */
+    async clearKeystore(): Promise<boolean> {
+        return this.cache.clear();
+    }
+
+    /**
      * Signs the given object as a jwt payload with private key retrieved by given kid.
      * @param payload 
      * @param kid 
      */
     async signJwt(payload: SignedHttpRequest, kid: string): Promise<string> {
-        // Get keypair from cache
-        const cachedKeyPair: CachedKeyPair = await this.cache.get(kid);
+        const cachedKeyPair = await this.cache.get(kid);
+            
+        if (!cachedKeyPair) {
+            throw BrowserAuthError.createSigningKeyNotFoundInStorageError(kid);
+        }
 
         // Get public key as JWK
         const publicKeyJwk = await this.browserCrypto.exportJwk(cachedKeyPair.publicKey);

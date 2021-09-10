@@ -49,7 +49,7 @@ export const BrowserAuthErrorMessage = {
         code: "interaction_in_progress",
         desc: "Interaction is currently in progress. Please ensure that this interaction has been completed before calling an interactive API.  For more visit: aka.ms/msaljs/browser-errors."
     },
-    popUpWindowError: {
+    popupWindowError: {
         code: "popup_window_error",
         desc: "Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser."
     },
@@ -88,6 +88,10 @@ export const BrowserAuthErrorMessage = {
     silentSSOInsufficientInfoError: {
         code: "silent_sso_error",
         desc: "Silent SSO could not be completed - insufficient information was provided. Please provide either a loginHint or sid."
+    },
+    silentLogoutUnsupportedError: {
+        code: "silent_logout_unsupported",
+        desc: "Silent logout not supported. Please call logoutRedirect or logoutPopup instead."
     },
     noAccountError: {
         code: "no_account_error",
@@ -140,6 +144,14 @@ export const BrowserAuthErrorMessage = {
     failedToParseNetworkResponse: {
         code: "failed_to_parse_response",
         desc: "Failed to parse network response. Check network trace."
+    },
+    unableToLoadTokenError: {
+        code: "unable_to_load_token",
+        desc: "Error loading token to cache."
+    },
+    signingKeyNotFoundInStorage: {
+        code: "crypto_key_not_found",
+        desc: "Cryptographic Key or Keypair not found in browser storage."
     }
 };
 
@@ -237,9 +249,9 @@ export class BrowserAuthError extends AuthError {
      * @param errDetail 
      */
     static createPopupWindowError(errDetail?: string): BrowserAuthError {
-        let errorMessage = BrowserAuthErrorMessage.popUpWindowError.desc;
+        let errorMessage = BrowserAuthErrorMessage.popupWindowError.desc;
         errorMessage = !StringUtils.isEmpty(errDetail) ? `${errorMessage} Details: ${errDetail}` : errorMessage;
-        return new BrowserAuthError(BrowserAuthErrorMessage.popUpWindowError.code, errorMessage);
+        return new BrowserAuthError(BrowserAuthErrorMessage.popupWindowError.code, errorMessage);
     }
 
     /**
@@ -312,6 +324,13 @@ export class BrowserAuthError extends AuthError {
      */
     static createSilentSSOInsufficientInfoError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.silentSSOInsufficientInfoError.code, BrowserAuthErrorMessage.silentSSOInsufficientInfoError.desc);
+    }
+
+    /**
+     * Creates an error thrown when the logout API is called on any of the silent interaction clients
+     */
+    static createSilentLogoutUnsupportedError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.silentLogoutUnsupportedError.code, BrowserAuthErrorMessage.silentLogoutUnsupportedError.desc);
     }
 
     /**
@@ -407,5 +426,19 @@ export class BrowserAuthError extends AuthError {
      */
     static createFailedToParseNetworkResponseError(endpoint: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.failedToParseNetworkResponse.code, `${BrowserAuthErrorMessage.failedToParseNetworkResponse.desc} | Attempted to reach: ${endpoint.split("?")[0]}`);
+    }
+
+    /**
+     * Create an error thrown when the necessary information is not available to sideload tokens 
+     */
+    static createUnableToLoadTokenError(errorDetail: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.unableToLoadTokenError.code, `${BrowserAuthErrorMessage.unableToLoadTokenError.desc} | ${errorDetail}`);
+    }
+  
+    /**
+     * Create an error thrown when the queried cryptographic key is not found in IndexedDB
+     */
+    static createSigningKeyNotFoundInStorageError(keyId: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code, `${BrowserAuthErrorMessage.signingKeyNotFoundInStorage.desc} | No match found for KeyId: ${keyId}`);
     }
 }

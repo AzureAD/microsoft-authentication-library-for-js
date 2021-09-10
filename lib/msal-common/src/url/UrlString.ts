@@ -81,23 +81,6 @@ export class UrlString {
     }
 
     /**
-     * Function to remove query string params from url. Returns the new url.
-     * @param url
-     * @param name
-     */
-    urlRemoveQueryStringParameter(name: string): string {
-        let regex = new RegExp("(\\&" + name + "=)[^\&]+");
-        this._urlString = this.urlString.replace(regex, "");
-        // name=value&
-        regex = new RegExp("(" + name + "=)[^\&]+&");
-        this._urlString = this.urlString.replace(regex, "");
-        // name=value
-        regex = new RegExp("(" + name + "=)[^\&]+");
-        this._urlString = this.urlString.replace(regex, "");
-        return this.urlString;
-    }
-
-    /**
      * Given a url and a query string return the url with provided query string appended
      * @param url 
      * @param queryString 
@@ -236,7 +219,8 @@ export class UrlString {
      * Check if the hash of the URL string contains known properties
      */
     static hashContainsKnownProperties(hash: string): boolean {
-        if (StringUtils.isEmpty(hash)) {
+        if (StringUtils.isEmpty(hash) || hash.indexOf("=") < 0) {
+            // Hash doesn't contain key/value pairs
             return false;
         }
 

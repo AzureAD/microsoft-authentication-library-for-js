@@ -1,8 +1,54 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 28 Jun 2021 23:39:48 GMT and should not be manually modified.
+This log was last generated on Tue, 07 Sep 2021 23:22:24 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 5.0.0
+
+Tue, 07 Sep 2021 23:22:24 GMT
+
+### Major changes
+
+- Add pop params to request thumbprint #3973 (hemoral@microsoft.com)
+- Remove token binding key from key store when refreshing pop token #3500 (hemoral@microsoft.com)
+
+### Minor changes
+
+- Adds state param to logout url #3909 (bmahal@microsoft.com)
+- Add SignedHttpRequest class #3058 (janutter@microsoft.com)
+
+### Patches
+
+- Add correlationId property to AuthError #3930 (thomas.norling@microsoft.com)
+- Fix logger constructor #3899 (hemoral@microsoft.com)
+- Add correlationId to AuthenticationResult type #3947 (thomas.norling@microsoft.com)
+- Fix accesstoken_with_authscheme implementation #3910 (hemoral@microsoft.com)
+- Add external token server response type #3895 (joarroyo@microsoft.com)
+- Fixes unescaped backslash and inefficient regex patterns #3993 (thomas.norling@microsoft.com)
+
+## 4.5.1
+
+Mon, 02 Aug 2021 23:19:21 GMT
+
+### Patches
+
+- Fix double encoding state #3903 (bmahal@microsoft.com)
+
+## 4.5.0
+
+Thu, 22 Jul 2021 22:50:22 GMT
+
+### Minor changes
+
+- Adding ROPC for confidential client apps (#3838) (sameera.gajjarapu@microsoft.com)
+- feat: add regional authority telemetry #3662 (samuelkamau@microsoft.com)
+- Add support for prompt=create #3773 (joarroyo@microsoft.com)
+
+### Patches
+
+- Add constant for active account cache key #3755 (thomas.norling@microsoft.com)
+- Fix double query string for logout endpoint #3814 (thomas.norling@microsoft.com)
 
 ## 4.4.0
 
