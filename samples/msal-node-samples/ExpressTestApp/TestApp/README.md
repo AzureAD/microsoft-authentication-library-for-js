@@ -1,6 +1,8 @@
 # Overview
 
-This sample demonstrates a Node.js & Express web application that authenticates users against [Azure Active Directory](https://docs.microsoft.com/azure/active-directory/fundamentals/active-directory-whatis) (Azure AD) and obtains [Access Tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens) to call the [Microsoft Graph API](https://docs.microsoft.com/graph/overview) (Graph API) and the [Azure Resource Manager API](https://docs.microsoft.com/azure/azure-resource-manager/management/overview) (ARM API), with the help of [Microsoft Authentication Library for Node.js](https://aka.ms/msalnode) (MSAL Node).
+This sample demonstrates a Node.js & Express web application that authenticates users against [Azure Active Directory](https://docs.microsoft.com/azure/active-directory/fundamentals/active-directory-whatis) (Azure AD) and obtains [Access Tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens) to call the [Microsoft Graph API](https://docs.microsoft.com/graph/overview) (Graph API) and the [Azure Resource Manager API](https://docs.microsoft.com/azure/azure-resource-manager/management/overview) (ARM API), with the help of [Microsoft Authentication Library for Node.js](https://aka.ms/msalnode) (MSAL Node). It uses Redis for caching session and tokens.
+
+See also: [Caching](../../../lib/msal-node/docs/caching.md)
 
 ## Scenario
 
@@ -12,11 +14,12 @@ This sample demonstrates a Node.js & Express web application that authenticates 
 
 | File/folder                         | Description                                                   |
 |-------------------------------------|---------------------------------------------------------------|
-| `App/appSettings.json`              | Application settings and authentication parameters.           |
 | `App/app.js`                        | Application entry point.                                      |
+| `App/appSettings.json`              | Application settings and authentication parameters.           |
 | `App/routes/router.js`              | Application routes are defined here.                          |
 | `App/controllers/mainController.js` | Main application controllers.                                 |
 | `App/utils/cachePlugin.js`          | Example cache plugin implementation for saving cache to disk. |
+| `App/utils/persistenceHelper.js`    | Example Redis persistence store client, used with cache plugin. |
 
 ## Prerequisites
 
@@ -82,7 +85,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 
 ## Running the sample
 
-Make sure that Redis server is currently running. Start the Redis server if needed:
+Make sure that Redis server is currently running. Start the Redis server if needed. You will need [WSL](https://docs.microsoft.com/windows/wsl/install-win10) if on Windows:
 
 ```console
     redis-server

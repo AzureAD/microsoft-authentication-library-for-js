@@ -17,7 +17,7 @@ const SERVER_PORT = process.env.PORT || 4000;
 
 /**
 * Instantiate the redis client, which is used in persistenceHelper.
-* This provides basic set, get, delete and check methods for the cachePlugin.
+* This provides basic get and set methods for the cachePlugin.
 */
 const redisClient = redis.createClient();
 redisClient.on('error', console.error);
@@ -55,7 +55,7 @@ const authProvider = new msalWrapper.AuthProvider(appSettings, cachePlugin);
 
 /**
 * When using a distributed token cache, msal's in-memory cache should only load
-* the cache blob for the currently served user from persistence store (here, Redis). 
+* the cache blob for the currently served user from the persistence store (here, Redis). 
 * This custom middleware first passes the session variable to cachePlugin object, and 
 * then re-initializes msal's token cache plugin.
 */

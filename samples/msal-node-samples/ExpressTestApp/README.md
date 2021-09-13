@@ -2,7 +2,7 @@
 
 This sample illustrates a simple wrapper around **MSAL Node** to handle login, logout, and token acquisition. The wrapper is implemented in **TypeScript** and located under the `src/` folder.
 
-The wrapper handles authentication with both **Azure AD** and **Azure AD B2C**. A test application is provided under the `TestApp/` folder. It follows a standard MVC web app pattern in [express.js](https://expressjs.com/) framework. See the [README](./TestApp/README.md) for registering and running the test app
+The wrapper handles authentication with both **Azure AD** and **Azure AD B2C**. A test application is provided under the `TestApp/` folder. It follows a standard MVC web app pattern in [Express.js](https://expressjs.com/) framework. See the [README](./TestApp/README.md) for registering and running the test app
 
 ## Usage
 
@@ -71,15 +71,15 @@ The wrapper handles authentication with both **Azure AD** and **Azure AD B2C**. 
 
 ## Integration with the Express.js authentication wrapper
 
-To initialize the wrapper, import it and supply the settings file and an (optional) persistent cache as below:
+To initialize the wrapper, import it and supply the settings file and an (optional) persistent cache plugin as shown below:
 
 ```javascript
 const settings = require('../../appSettings.json');
-const cache = require('../utils/cachePlugin');
+const cachePlugin = require('../utils/cachePlugin');
 
 const msalWrapper = require('msal-express-wrapper/dist/AuthProvider');
 
-const authProvider = new msalWrapper.AuthProvider(settings, cache);
+const authProvider = new msalWrapper.AuthProvider(settings, cachePlugin);
 ```
 
 Once the wrapper is initialized, you can use it as below:
@@ -121,7 +121,9 @@ Session support in this sample is provided by the [express-session](https://www.
 
 ### Token caching
 
-MSAL Node has an in-memory cache by default. The demo app also features a [persistent cache plugin](./demo/App/utils/cachePlugin.js) in order to save the cache to disk. It illustrates a distributed caching pattern where MSAL's token cache is persisted separately and only the currently served user's tokens (and other authentication artifacts) are loaded into MSAL's memory. See also: [Token cache serialization](https://github.com/AzureAD/microsoft-authentication-library-for-dotnet/wiki/token-cache-serialization#important).
+MSAL Node has an in-memory cache by default. The demo app also features a [persistent cache plugin](./TestApp/App/utils/cachePlugin.js) in order to save the cache to disk. It illustrates a distributed caching pattern where MSAL's token cache is persisted via an external service (here, Redis) and only the currently served user's tokens (and other authentication artifacts) are loaded into MSAL's memory.
+
+To do so, a persistence helper that implements basic Redis calls is illustrated in [persistenceHelper.js](./TestApp/App/utils/persistenceHelper.js). When you implement a persistence manager, you should also assign cache eviction policies, handle connection events from persistence server and take performance metrics such as cache hit ratios. For more on caching, see [Caching](../../../lib/msal-node/docs/caching.md).
 
 ## More information
 
