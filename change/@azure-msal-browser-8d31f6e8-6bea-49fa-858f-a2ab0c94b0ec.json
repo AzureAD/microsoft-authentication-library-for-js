@@ -1,7 +1,6 @@
 {
   "type": "none",
-  "comment": "Add missing fields to package.json #3977",
-  "packageName": "@azure/msal-angular",
+  "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "none"
 }

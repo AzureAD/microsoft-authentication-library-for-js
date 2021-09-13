@@ -4,21 +4,47 @@
  */
 
 const express = require("express");
+const https = require('https');
 const msal = require('@azure/msal-node');
 const jwt = require('jsonwebtoken')
 const jwksClient = require('jwks-rsa');
-const https = require('https')
 
 const SERVER_PORT = process.env.PORT || 8000;
+const DISCOVERY_KEYS_ENDPOINT = "https://login.microsoftonline.com/ENTER_TENANT_INFO/discovery/v2.0/keys";
+
+// Before running the sample, you will need to replace the values in the config, 
+// including the clientSecret
+const config = {
+    auth: {
+        clientId: "ENTER_CLIENT_ID",
+        authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO",
+        clientSecret: "ENTER_CLIENT_SECRET",
+    },
+    system: {
+        loggerOptions: {
+            loggerCallback(loglevel, message, containsPii) {
+                console.log(message);
+            },
+            piiLoggingEnabled: false,
+            logLevel: msal.LogLevel.Verbose,
+        }
+    }
+};
+
+// Create msal application object
+const cca = new msal.ConfidentialClientApplication(config);
+
+// Create Express App and Routes
+const app = express();
 
 const validateJwt = (req, res, next) => {
     const authHeader = req.headers.authorization;
     if (authHeader) {
         const token = authHeader.split(' ')[1];
-
+        
         const validationOptions = {
-            audience: config.auth.clientId,
-            issuer: config.auth.authority + "/v2.0"
+            audience: config.auth.clientId, // v2.0 token
+            issuer: config.auth.authority + "/v2.0" // v2.0 token
         }
 
         jwt.verify(token, getSigningKeys, validationOptions, (err, payload) => {
@@ -36,7 +62,7 @@ const validateJwt = (req, res, next) => {
 
 const getSigningKeys = (header, callback) => {
     var client = jwksClient({
-        jwksUri: 'https://login.microsoftonline.com/common/discovery/keys'
+        jwksUri: DISCOVERY_KEYS_ENDPOINT
     });
 
     client.getSigningKey(header.kid, function (err, key) {
@@ -44,22 +70,6 @@ const getSigningKeys = (header, callback) => {
         callback(null, signingKey);
     });
 }
-
-// Before running the sample, you will need to replace the values in the config, 
-// including the clientSecret
-const config = {
-    auth: {
-        clientId: "81f752bc-1fd5-4ecf-bd58-74b556e9b46e",
-        authority: "https://login.microsoftonline.com/90b8faa8-cc95-460e-a618-ee770bee1759",
-        clientSecret: "",
-    }
-};
-
-// Create msal application object
-const cca = new msal.ConfidentialClientApplication(config);
-
-// Create Express App and Routes
-const app = express();
 
 app.get('/obo', validateJwt, (req, res) => {
     const authHeader = req.headers.authorization;
@@ -78,7 +88,6 @@ app.get('/obo', validateJwt, (req, res) => {
         res.status(500).send(error);
     });
 });
-
 
 const callGraph = (accessToken, callback) => {
     const options = {

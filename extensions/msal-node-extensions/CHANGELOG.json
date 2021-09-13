@@ -2,6 +2,21 @@
   "name": "@azure/msal-node-extensions",
   "entries": [
     {
+      "date": "Thu, 09 Sep 2021 23:58:01 GMT",
+      "tag": "@azure/msal-node-extensions_v1.0.0-alpha.10",
+      "version": "1.0.0-alpha.10",
+      "comments": {
+        "prerelease": [
+          {
+            "comment": "Upgrade msal-common to v5 for Node extensions",
+            "author": "janutter@microsoft.com",
+            "commit": "ad3eeeb85b92035a1389e49a6cc182c3085a1ba1",
+            "package": "@azure/msal-node-extensions"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 22 Jul 2021 22:50:22 GMT",
       "tag": "@azure/msal-node-extensions_v1.0.0-alpha.9",
       "version": "1.0.0-alpha.9",

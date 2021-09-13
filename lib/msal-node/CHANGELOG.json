@@ -2,6 +2,59 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 07 Sep 2021 23:22:24 GMT",
+      "tag": "@azure/msal-node_v1.3.1",
+      "version": "1.3.1",
+      "comments": {
+        "patch": [
+          {
+            "comment": "Add removeTokenBindingKey missing method to Node's CryptoProvider #3500",
+            "author": "hemoral@microsoft.com",
+            "commit": "6592652877f31405c8ed73a66f03eada90a78c0a",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Add correlationId to errors #3930",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "b16839505be79b646f131f09d747adb90a613176",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Remove non-null assertions #3994",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "17cbef3c32f01e526e33964df21b0cda19e632b9",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Add correlationId to AuthenticationResult type #3947",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "1752261b00e773d5187f8d0a9520bdf5f95ee8d6",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "Fixes biased code verifier generation #3993",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "80434004e06dc11f3770ba84e5ead1c45f449156",
+            "package": "@azure/msal-node"
+          }
+        ],
+        "none": [
+          {
+            "comment": "Fix accesstoken_with_authscheme implementation #3910",
+            "author": "hemoral@microsoft.com",
+            "commit": "9aceb4219ebad900277aa6a59ca1ff93c5a21e0a",
+            "package": "@azure/msal-node"
+          },
+          {
+            "comment": "patch fix",
+            "author": "ellymakuba@microsoft.com",
+            "commit": "6f6c1fa9987d62a68583c513c4baabe4041eaf17",
+            "package": "@azure/msal-node"
+          }
+        ]
+      }
+    },
+    {
       "date": "Thu, 22 Jul 2021 22:50:22 GMT",
       "tag": "@azure/msal-node_v1.3.0",
       "version": "1.3.0",

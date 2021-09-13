@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add correlationId property to AuthError #3930",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

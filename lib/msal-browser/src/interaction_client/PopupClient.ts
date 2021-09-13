@@ -3,12 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, AccountEntity, UrlString, AuthError } from "@azure/msal-common";
+import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, UrlString, AuthError } from "@azure/msal-common";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { PopupWindowAttributes, PopupUtils } from "../utils/PopupUtils";
 import { EventType } from "../event/EventType";
-import { InteractionType, ApiId, TemporaryCacheKeys, BrowserConstants } from "../utils/BrowserConstants";
+import { InteractionType, ApiId } from "../utils/BrowserConstants";
 import { PopupHandler, PopupParams } from "../interaction_handler/PopupHandler";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { NavigationOptions } from "../navigation/NavigationOptions";
@@ -114,7 +114,7 @@ export class PopupClient extends StandardInteractionClient {
             const state = this.validateAndExtractStateFromHash(hash, InteractionType.Popup, validRequest.correlationId);
 
             // Remove throttle if it exists
-            ThrottlingUtils.removeThrottle(this.browserStorage, this.config.auth.clientId, authCodeRequest.authority, authCodeRequest.scopes);
+            ThrottlingUtils.removeThrottle(this.browserStorage, this.config.auth.clientId, authCodeRequest);
 
             // Handle response from hash string.
             const result = await interactionHandler.handleCodeResponse(hash, state, authClient.authority, this.networkClient);
@@ -152,21 +152,16 @@ export class PopupClient extends StandardInteractionClient {
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.logoutPopup);
         
         try {
-            this.browserStorage.setTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE, true);
+            // Clear cache on logout
+            await this.clearCacheOnLogout(validRequest.account);
+
+            this.browserStorage.setInteractionInProgress(true);
             // Initialize the client
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, requestAuthority);
             this.logger.verbose("Auth code client created");
 
             // Create logout string and navigate user window to logout.
             const logoutUri: string = authClient.getLogoutUri(validRequest);
-
-            if (!validRequest.account || AccountEntity.accountInfoIsEqual(validRequest.account, this.browserStorage.getActiveAccount(), false)) {
-                this.logger.verbose("Setting active account to null");
-                this.browserStorage.setActiveAccount(null);
-            }
-
-            // Clear cache on logout
-            await authClient.clearCacheOnLogout(validRequest);
 
             this.eventHandler.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Popup, validRequest);
 
@@ -210,8 +205,9 @@ export class PopupClient extends StandardInteractionClient {
                 e.setCorrelationId(this.correlationId);
             }
             
-            this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY));
+            this.browserStorage.setInteractionInProgress(false);
             this.eventHandler.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Popup, null, e);
+            this.eventHandler.emitEvent(EventType.LOGOUT_END, InteractionType.Popup);
             serverTelemetryManager.cacheFailedRequest(e);
             throw e;
         }

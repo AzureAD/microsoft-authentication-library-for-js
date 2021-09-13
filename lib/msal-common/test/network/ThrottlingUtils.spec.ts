@@ -12,6 +12,7 @@ import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAutho
 import { MockStorageClass, mockCrypto }  from "../client/ClientTestUtils";
 import { THUMBPRINT, THROTTLING_ENTITY, TEST_CONFIG } from "../test_kit/StringConstants";
 import { ServerError } from "../../src/error/ServerError";
+import { BaseAuthRequest } from "../../src";
 
 describe("ThrottlingUtils", () => {
     describe("generateThrottlingStorageKey", () => {
@@ -236,10 +237,14 @@ describe("ThrottlingUtils", () => {
             const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
             const removeItemStub = sinon.stub(cache, "removeItem").returns(true);
             const clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-            const authority = TEST_CONFIG.validAuthority;
-            const scopes = TEST_CONFIG.DEFAULT_SCOPES;
 
-            const res = ThrottlingUtils.removeThrottle(cache, clientId, authority, scopes);
+            const request: BaseAuthRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                correlationId: TEST_CONFIG.CORRELATION_ID
+            }
+
+            const res = ThrottlingUtils.removeThrottle(cache, clientId, request);
 
             sinon.assert.callCount(removeItemStub, 1);
             expect(res).toBe(true);
@@ -249,10 +254,14 @@ describe("ThrottlingUtils", () => {
             const cache = new MockStorageClass(TEST_CONFIG.MSAL_CLIENT_ID, mockCrypto);
             const removeItemStub = sinon.stub(cache, "removeItem").returns(false);
             const clientId = TEST_CONFIG.MSAL_CLIENT_ID;
-            const authority = TEST_CONFIG.validAuthority;
-            const scopes = TEST_CONFIG.DEFAULT_SCOPES;
 
-            const res = ThrottlingUtils.removeThrottle(cache, clientId, authority, scopes);
+            const request: BaseAuthRequest = {
+                authority: TEST_CONFIG.validAuthority,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                correlationId: TEST_CONFIG.CORRELATION_ID
+            }
+
+            const res = ThrottlingUtils.removeThrottle(cache, clientId, request);
 
             sinon.assert.callCount(removeItemStub, 1);
             expect(res).toBe(false);

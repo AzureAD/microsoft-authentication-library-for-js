@@ -31,8 +31,9 @@ export class EventMessageUtils {
     /**
      * Gets interaction status from event message
      * @param message
+     * @param currentStatus
      */
-    static getInteractionStatusFromEvent(message: EventMessage): InteractionStatus|null {
+    static getInteractionStatusFromEvent(message: EventMessage, currentStatus?: InteractionStatus): InteractionStatus|null {
         switch (message.eventType) {
             case EventType.LOGIN_START:
                 return InteractionStatus.Login;
@@ -47,16 +48,34 @@ export class EventMessageUtils {
                 return InteractionStatus.HandleRedirect;
             case EventType.LOGOUT_START:
                 return InteractionStatus.Logout;
-            case EventType.LOGIN_SUCCESS:
             case EventType.SSO_SILENT_SUCCESS:
-            case EventType.HANDLE_REDIRECT_END:
-            case EventType.LOGIN_FAILURE:
             case EventType.SSO_SILENT_FAILURE:
-            case EventType.LOGOUT_END:
+                if (currentStatus && currentStatus !== InteractionStatus.SsoSilent) {
+                    // Prevent this event from clearing any status other than ssoSilent
+                    break;
+                }
                 return InteractionStatus.None;
+            case EventType.LOGOUT_END:
+                if (currentStatus && currentStatus !== InteractionStatus.Logout) {
+                    // Prevent this event from clearing any status other than logout
+                    break;
+                }
+                return InteractionStatus.None;
+            case EventType.HANDLE_REDIRECT_END:
+                if (currentStatus && currentStatus !== InteractionStatus.HandleRedirect) {
+                    // Prevent this event from clearing any status other than handleRedirect
+                    break;
+                }
+                return InteractionStatus.None;
+            case EventType.LOGIN_SUCCESS:
+            case EventType.LOGIN_FAILURE:
             case EventType.ACQUIRE_TOKEN_SUCCESS:
             case EventType.ACQUIRE_TOKEN_FAILURE:
                 if (message.interactionType === InteractionType.Redirect || message.interactionType === InteractionType.Popup) {
+                    if (currentStatus && currentStatus !== InteractionStatus.Login && currentStatus !== InteractionStatus.AcquireToken) {
+                        // Prevent this event from clearing any status other than login or acquireToken
+                        break;
+                    }
                     return InteractionStatus.None;
                 }
                 break;
