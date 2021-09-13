@@ -310,6 +310,13 @@ export class AuthorizationCodeClient extends BaseClient {
         if (request.tokenBodyParameters) {
             parameterBuilder.addExtraQueryParameters(request.tokenBodyParameters);
         }
+
+        // Add hybrid spa parameters if not already provided
+        if (request.returnSpaCode && (request.tokenBodyParameters || request.tokenBodyParameters && !request.tokenBodyParameters["return_spa_code"])) {
+            parameterBuilder.addExtraQueryParameters({
+                "return_spa_code": "1"
+            });
+        }
         
         return parameterBuilder.createQueryString();
     }
