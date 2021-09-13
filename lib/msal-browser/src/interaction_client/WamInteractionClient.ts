@@ -18,12 +18,14 @@ import { WamExtensionMethod } from "../utils/BrowserConstants";
 import { WamExtensionRequestBody } from "../broker/wam/WamExtensionRequest";
 
 export class WamInteractionClient extends BaseInteractionClient {
-    constructor(config: BrowserConfiguration, browserStorage: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, correlationId?: string) {
+    protected provider: WamMessageHandler;
+
+    constructor(config: BrowserConfiguration, browserStorage: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, provider: WamMessageHandler, correlationId?: string) {
         super(config, browserStorage, browserCrypto, logger, eventHandler, correlationId);
+        this.provider = provider;
     }
 
     async acquireToken(request: PopupRequest|SilentRequest|SsoSilentRequest): Promise<AuthenticationResult> {
-        const provider = await WamMessageHandler.createProvider(this.logger);
         const wamRequest = this.initializeWamRequest(request);
 
         const messageBody: WamExtensionRequestBody = {
@@ -31,8 +33,7 @@ export class WamInteractionClient extends BaseInteractionClient {
             request: wamRequest
         };
 
-        const response = await provider.sendMessage(messageBody);
-        console.log(response);
+        const response = await this.provider.sendMessage(messageBody);
         return Promise.reject("AcquireToken not implemented yet");
     }
 
