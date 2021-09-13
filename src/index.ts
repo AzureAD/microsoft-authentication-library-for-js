@@ -26,6 +26,7 @@ export { PopupRequest } from "./request/PopupRequest";
 export { RedirectRequest } from "./request/RedirectRequest";
 export { SilentRequest } from "./request/SilentRequest";
 export { SsoSilentRequest } from "./request/SsoSilentRequest";
+export { HybridSsoSilentRequest } from "./request/HybridSsoSilentRequest";
 export { EndSessionRequest } from "./request/EndSessionRequest";
 export { EndSessionPopupRequest } from "./request/EndSessionPopupRequest";
 export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";

@@ -87,7 +87,7 @@ export const BrowserAuthErrorMessage = {
     },
     silentSSOInsufficientInfoError: {
         code: "silent_sso_error",
-        desc: "Silent SSO could not be completed - insufficient information was provided. Please provide either a loginHint or sid."
+        desc: "Silent SSO could not be completed - insufficient information was provided. Please provide either a loginHint, sid, or authorization code (authCodePayload.code)."
     },
     silentLogoutUnsupportedError: {
         code: "silent_logout_unsupported",
@@ -152,6 +152,10 @@ export const BrowserAuthErrorMessage = {
     signingKeyNotFoundInStorage: {
         code: "crypto_key_not_found",
         desc: "Cryptographic Key or Keypair not found in browser storage."
+    },
+    nonceRequired: {
+        code: "nonce_required",
+        desc: "Providing a nonce is required for this authentication flow."
     }
 };
 
@@ -440,5 +444,9 @@ export class BrowserAuthError extends AuthError {
      */
     static createSigningKeyNotFoundInStorageError(keyId: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code, `${BrowserAuthErrorMessage.signingKeyNotFoundInStorage.desc} | No match found for KeyId: ${keyId}`);
+    }
+
+    static createNonceRequiredError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.nonceRequired.code, BrowserAuthErrorMessage.nonceRequired.desc);
     }
 }
