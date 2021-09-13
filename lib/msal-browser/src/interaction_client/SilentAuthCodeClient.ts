@@ -37,7 +37,12 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
 
         // Auth code payload is required
         if (!request.authCodePayload || !request.authCodePayload.code) {
-            throw "";
+            throw BrowserAuthError.createSilentSSOInsufficientInfoError();
+        }
+
+        // Nonce is required (same nonce from server request must be used client-side)
+        if (!request.nonce) {
+            throw BrowserAuthError.createNonceRequiredError();
         }
 
         // Create silent request

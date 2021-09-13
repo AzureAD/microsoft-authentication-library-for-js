@@ -12,6 +12,7 @@ import { BrowserUtils } from "../utils/BrowserUtils";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
+import { HybridSsoSilentRequest } from "../request/HybridSsoSilentRequest";
 import { version, name } from "../packageMetadata";
 import { EventCallbackFunction } from "../event/EventMessage";
 import { EventType } from "../event/EventType";
@@ -27,6 +28,7 @@ import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient";
 import { TokenCache } from "../cache/TokenCache";
 import { ITokenCache } from "../cache/ITokenCache";
 import { SilentAuthCodeClient } from "../interaction_client/SilentAuthCodeClient";
+import { BrowserAuthError  } from "../error/BrowserAuthError";
 
 export abstract class ClientApplication {
 
@@ -290,13 +292,15 @@ export abstract class ClientApplication {
         this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
         try {
+            // Option 1: Augment ssoSilent
             if (request.authCodePayload) {
                 if (!request.authCodePayload.code) {
-                    throw "Code required";
+                    throw BrowserAuthError.createSilentSSOInsufficientInfoError();
                 }
 
+                // Nonce is required (same nonce from server request must be used client-side)
                 if (!request.nonce) {
-                    throw "Nonce required";
+                    throw BrowserAuthError.createNonceRequiredError();
                 }
 
                 const silentAuthCodeClient = new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, request.correlationId);
@@ -308,6 +312,36 @@ export abstract class ClientApplication {
                 const silentTokenResult = await silentIframeClient.acquireToken(request);
                 this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
                 return silentTokenResult;
+            }
+        } catch (e) {
+            this.eventHandler.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
+            throw e;
+        }
+    }
+
+    async hybridSsoSilent(request: HybridSsoSilentRequest): Promise<AuthenticationResult> {
+        this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
+        this.logger.verbose("hybridSsoSilent called", request.correlationId);
+        this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
+
+        try {
+            // Option 2: Dedicated API that only performs hybrid sso flow
+            if (request.authCodePayload) {
+                if (!request.authCodePayload.code) {
+                    throw BrowserAuthError.createSilentSSOInsufficientInfoError();
+                }
+
+                // Nonce is required (same nonce from server request must be used client-side)
+                if (!request.nonce) {
+                    throw BrowserAuthError.createNonceRequiredError();
+                }
+
+                const silentAuthCodeClient = new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, request.correlationId);
+                const silentTokenResult = await silentAuthCodeClient.acquireToken(request);
+                this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
+                return silentTokenResult;
+            } else {
+                throw BrowserAuthError.createSilentSSOInsufficientInfoError();
             }
         } catch (e) {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
