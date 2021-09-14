@@ -5,9 +5,8 @@ import { createHash } from "crypto";
 import { PkceCodes, BaseAuthRequest } from "@azure/msal-common";
 import { TEST_URIS } from "../utils/StringConstants";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
-import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src";
-import { DBTableNames } from "../../src/utils/BrowserConstants";
-import { resolvePlugin } from "@babel/core";
+import { BrowserAuthError } from "../../src";
+
 const msrCrypto = require("../polyfills/msrcrypto.min");
 
 describe("CryptoOps.ts Unit Tests", () => {
