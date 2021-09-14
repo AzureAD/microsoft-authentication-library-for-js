@@ -188,7 +188,7 @@ export class DatabaseStorage<T> {
             if (!dataBase) {
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
             }
-            
+
             const transaction = dataBase.transaction([this.tableName], "readwrite");
 
             const objectStore = transaction.objectStore(this.tableName);
