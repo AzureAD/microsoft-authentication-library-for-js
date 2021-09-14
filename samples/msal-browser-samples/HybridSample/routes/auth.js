@@ -38,22 +38,29 @@ router.post('/redirect', (req, res) => {
 
     const useHybrid = req.body.state === "hybrid=true";
 
+    // Parameters needed to spa test flight
+    tokenRequest.tokenQueryParameters = {
+        dc: "ESTS-PUB-WUS2-AZ1-FD000-TEST1",
+        hybridspa: "true"
+    }
+
     if (useHybrid) {
         console.log('Hybrid enabled');
-        tokenRequest.tokenQueryParameters = {
-            dc: "ESTS-PUB-WUS2-AZ1-FD000-TEST1",
-            hybridspa: "true"
-        }
-        tokenRequest.tokenBodyParameters = {
-            return_spa_code: "1"
-        }
+        tokenRequest.returnSpaCode = true
+        // tokenRequest.tokenBodyParameters = {
+        //     return_spa_code: "1"
+        // }
     } else {
         console.log('Hybrid disabled');
     }
 
+    const timeLabel = "Time for acquireTokenByCode";
+    console.time(timeLabel)
+
     msalInstance.acquireTokenByCode(tokenRequest)
         .then((response) => {
-            console.log("\nResponse: \n:", response);
+            console.timeEnd(timeLabel)
+            // console.log("\nResponse: \n:", response);
             if (useHybrid) {
                 res.redirect(`/auth/client-redirect?sid=${response.idTokenClaims.sid}&code=${response.spaCode}&nonce=${response.idTokenClaims.nonce}&login-hint=${encodeURIComponent(response.idTokenClaims.preferred_username)}`)
             } else {
@@ -61,6 +68,7 @@ router.post('/redirect', (req, res) => {
             }
         })
         .catch((error) => {
+            console.timeEnd(timeLabel)
             console.log(error);
             res.status(500).send(error);
         });

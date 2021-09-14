@@ -10,55 +10,73 @@
         }
     })
 
-    msalInstance.handleRedirectPromise()
-        .then(result => {
-            if (result) {
-                console.log('MSAL: Returning from login');
-                return result;
-            }
-            
-            const params = new URLSearchParams(document.location.search);
-            const sid = params.get("sid");
-            const code = params.get("code");
-            const nonce = params.get("nonce");
-            const loginHint = decodeURIComponent(params.get("login-hint"));
-
-            const hybridParams = code && nonce;
-
-            if (hybridParams) {
-                console.log('MSAL: ssoSilent hybrid parameters present');
-            } else {
-                console.log('MSAL: ssoSilent hybrid parameters not present');
-            }
-
-            const ssoSilentParams = hybridParams ? {
-                // For hybrid, nonce from server request and auth code are required
-                nonce,
-                authCodePayload: {
-                    code
-                }
-            } : {
-                // For non-hybrid, use login hint or sid
-                sid,
-                loginHint
-            };
-
-            console.log('MSAL: Initiating ssoSilent');
-            return msalInstance.ssoSilent(ssoSilentParams)
-                .then(result => {
-                    console.log('MSAL: ssoSilent completed successfully');
+    // Only handle hash when in top frame
+    if (window === window.top) {
+        msalInstance.handleRedirectPromise()
+            .then(result => {
+                if (result) {
+                    console.log('MSAL: Returning from login');
                     return result;
-                })
-                .catch((error) => {
-                    console.log('MSAL: ssoSilent failed, redirecting')
-                    return msalInstance.loginRedirect({
-                        loginHint
+                }
+                
+                const params = new URLSearchParams(document.location.search);
+                const sid = params.get("sid");
+                const code = params.get("code");
+                const nonce = params.get("nonce");
+                const loginHint = decodeURIComponent(params.get("login-hint"));
+
+                const hybridParams = !!(code && nonce);
+                if (hybridParams) {
+                    console.log('MSAL: ssoSilent hybrid parameters present');
+                } else {
+                    console.log('MSAL: ssoSilent hybrid parameters not present');
+                }
+
+                const tokenQueryParameters = {
+                    dc: "ESTS-PUB-WUS2-AZ1-FD000-TEST1",
+                    hybridspa: "true"
+                }
+
+                const ssoSilentParams = hybridParams ? {
+                    // For hybrid, nonce from server request and auth code are required
+                    nonce,
+                    authCodePayload: {
+                        code
+                    },
+                    tokenQueryParameters
+                } : {
+                    // For non-hybrid, use login hint or sid
+                    sid,
+                    loginHint,
+                    tokenQueryParameters
+                };
+
+                console.log(`MSAL: Initiating ssoSilent (hybrid: ${hybridParams})`);
+
+                const timeLabel = "Time for ssoSilent";
+                console.time(timeLabel)
+                return msalInstance.ssoSilent(ssoSilentParams)
+                    .then(result => {
+                        console.timeEnd(timeLabel);
+                        console.log('MSAL: ssoSilent completed successfully');
+                        return result;
                     })
-                })
-        })
-        .then(result => {
-            if (result) {
-                console.log('MSAL: ', result);
-            }
-        })
+                    .catch((error) => {
+                        console.timeEnd(timeLabel);
+                        console.error(error);
+                        if (error instanceof msal.InteractionRequiredAuthError) {
+                            console.log('MSAL: ssoSilent failed, redirecting')
+                            // Use loginHint from server to ensure same user
+                            return msalInstance.loginRedirect({
+                                loginHint
+                            })
+                        }
+                    })
+            })
+            .then(result => {
+                if (result) {
+                    console.log('MSAL: ', result);
+                }
+            })
+    }
 </script>
