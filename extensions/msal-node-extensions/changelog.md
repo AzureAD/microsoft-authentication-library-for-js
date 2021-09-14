@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-node-extensions
 
-This log was last generated on Thu, 22 Jul 2021 22:50:22 GMT and should not be manually modified.
+This log was last generated on Thu, 09 Sep 2021 23:58:01 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.10
+
+Thu, 09 Sep 2021 23:58:01 GMT
+
+### Changes
+
+- Upgrade msal-common to v5 for Node extensions (janutter@microsoft.com)
 
 ## 1.0.0-alpha.9
 
