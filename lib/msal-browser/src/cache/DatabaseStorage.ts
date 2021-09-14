@@ -4,7 +4,7 @@
  */
 
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { DBTableNames } from "../utils/BrowserConstants";
+import { DBTableNames, DB_NAME, DB_VERSION } from "../utils/BrowserConstants";
 
 interface IDBOpenDBRequestEvent extends Event {
     target: IDBOpenDBRequest & EventTarget;
@@ -18,26 +18,20 @@ interface IDBRequestEvent extends Event {
     target: IDBRequest & EventTarget;
 }
 
-export type DatabaseOptions = {
-    name: string;
-    version: number;
-    tableNames: Array<DBTableNames>;
-};
-
 /**
  * Storage wrapper for IndexedDB storage in browsers: https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API
  */
-export class DatabaseStorage {
+export class DatabaseStorage<T> {
     private db: IDBDatabase|undefined;
     private dbName: string;
-    private tableNames: Array<DBTableNames>;
+    private tableName: string;
     private version: number;
     private dbOpen: boolean;
 
-    constructor(dbOptions: DatabaseOptions) {
-        this.dbName = dbOptions.name;
-        this.tableNames = dbOptions.tableNames;
-        this.version = dbOptions.version;
+    constructor(tableName: string) {
+        this.dbName = DB_NAME;
+        this.version = DB_VERSION;
+        this.tableName = tableName;
         this.dbOpen = false;
     }
 
@@ -48,12 +42,11 @@ export class DatabaseStorage {
         return new Promise((resolve, reject) => {
             // TODO: Add timeouts?
             const openDB = window.indexedDB.open(this.dbName, this.version);
+
             openDB.addEventListener("upgradeneeded", (e: IDBVersionChangeEvent) => {
-                const event = e as IDBOpenOnUpgradeNeededEvent;
-                this.tableNames.forEach(tableName => {
-                    event.target.result.createObjectStore(tableName);
-                });
+                this.upgradeDatabase(e as IDBOpenOnUpgradeNeededEvent);
             });
+
             openDB.addEventListener("success", (e: Event) => {
                 const event = e as IDBOpenDBRequestEvent;
                 this.db = event.target.result;
@@ -66,10 +59,44 @@ export class DatabaseStorage {
     }
 
     /**
+     * Upgrades the existing database by adding newly supported tables
+     * and removing outdated tables
+     */
+    upgradeDatabase(event: IDBOpenOnUpgradeNeededEvent): void {
+        const database = event.target.result;
+
+        // List of tables supported in new DB version
+        const supportedTables = Object.values(DBTableNames) as Array<string>;
+        // List of tables in current (old) DB version
+        const currentTables = Object.values(database.objectStoreNames);
+
+        // Tables in old DB version that aren't supported anymore
+        const outdatedTables = currentTables.filter((existingTableName: string) => {
+            return supportedTables.indexOf(existingTableName) === -1;
+        });
+
+        // Tables in new DB version that weren't supported before
+        const newTables = supportedTables.filter((supportedTable: string) => {
+            return currentTables.indexOf(supportedTable) === -1;
+        });
+
+        // Add missing supported tables
+        newTables.forEach((tableName: string) => {
+            database.createObjectStore(tableName);
+        });
+
+        // Remove remaining outdated tables
+        outdatedTables.forEach((tableName: string) => {
+            database.deleteObjectStore(tableName);
+        });
+
+    }
+
+    /**
      * Retrieves item from IndexedDB instance.
      * @param key 
      */
-    async get<T>(tableName: DBTableNames, key: string): Promise<T> {
+    async get(key: string): Promise<T> {
         if (!this.dbOpen) {
             await this.open();
         }
@@ -80,9 +107,9 @@ export class DatabaseStorage {
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
             }
 
-            const transaction = this.db.transaction([tableName], "readonly");
+            const transaction = this.db.transaction([this.tableName], "readonly");
 
-            const objectStore = transaction.objectStore(tableName);
+            const objectStore = transaction.objectStore(this.tableName);
             const dbGet = objectStore.get(key);
             dbGet.addEventListener("success", (e: Event) => {
                 const event = e as IDBRequestEvent;
@@ -97,7 +124,7 @@ export class DatabaseStorage {
      * @param key 
      * @param payload 
      */
-    async put<T>(tableName: DBTableNames, key: string, payload: T): Promise<T> {
+    async put(key: string, payload: T): Promise<T> {
         if (!this.dbOpen) {
             await this.open();
         }
@@ -108,10 +135,12 @@ export class DatabaseStorage {
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
             }
 
-            const transaction = this.db.transaction([tableName], "readwrite");
-            const objectStore = transaction.objectStore(tableName);
+            const transaction = this.db.transaction([this.tableName], "readwrite");
 
+            const objectStore = transaction.objectStore(this.tableName);
+            
             const dbPut = objectStore.put(payload, key);
+
             dbPut.addEventListener("success", (e: Event) => {
                 const event = e as IDBRequestEvent;
                 resolve(event.target.result);
@@ -124,7 +153,7 @@ export class DatabaseStorage {
      * Removes item from IndexedDB under given key
      * @param key
      */
-    async delete(tableName: DBTableNames, key: string): Promise<boolean> {
+    async delete(key: string): Promise<boolean> {
         if (!this.dbOpen) {
             await this.open();
         }
@@ -134,9 +163,9 @@ export class DatabaseStorage {
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
             }
 
-            const transaction = this.db.transaction([tableName], "readwrite");
+            const transaction = this.db.transaction([this.tableName], "readwrite");
 
-            const objectStore = transaction.objectStore(tableName);
+            const objectStore = transaction.objectStore(this.tableName);
 
             const dbDelete = objectStore.delete(key);
 
@@ -160,26 +189,20 @@ export class DatabaseStorage {
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
             }
             
-            const tableNames = Object.values(dataBase.objectStoreNames);
+            const transaction = dataBase.transaction([this.tableName], "readwrite");
 
-            const tablesDeleted = tableNames.map((tableName: string) => {
-                const transaction = dataBase.transaction([tableName], "readwrite");
+            const objectStore = transaction.objectStore(this.tableName);
 
-                const objectStore = transaction.objectStore(tableName);
+            const dbDelete = objectStore.clear();
 
-                const dbDelete = objectStore.clear();
-
-                dbDelete.addEventListener("success", (e: Event) => {
-                    const event = e as IDBRequestEvent;
-                    return resolve(event.target.result === undefined);
-                });
-
-                dbDelete.addEventListener("error", e =>{
-                    return reject(e);
-                });
+            dbDelete.addEventListener("success", (e: Event) => {
+                const event = e as IDBRequestEvent;
+                return resolve(event.target.result === undefined);
             });
 
-            return Promise.all(tablesDeleted);
+            dbDelete.addEventListener("error", e =>{
+                return reject(e);
+            });
         });
     }
 }

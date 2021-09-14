@@ -11,7 +11,7 @@ import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
 import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { DBTableNames, DB_NAME, KEY_FORMAT_JWK } from "../utils/BrowserConstants";
+import { DBTableNames, KEY_FORMAT_JWK } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export type CachedKeyPair = {
@@ -19,6 +19,14 @@ export type CachedKeyPair = {
     privateKey: CryptoKey,
     requestMethod?: string,
     requestUri?: string
+};
+
+/**
+ * MSAL KeyStore DB Version 2
+ */
+export type KeyStore = {
+    asymmetricKeys: DatabaseStorage<CachedKeyPair>;
+    symmetricKeys: DatabaseStorage<CryptoKey>;
 };
 
 /**
@@ -35,8 +43,7 @@ export class CryptoOps implements ICrypto {
 
     private static POP_KEY_USAGES: Array<KeyUsage> = ["sign", "verify"];
     private static EXTRACTABLE: boolean = true;
-    private static TABLE_NAMES = [DBTableNames.asymmetricKeys];
-    private cache: DatabaseStorage;
+    private cache: KeyStore;
 
     constructor() {
         // Browser crypto needs to be validated first before any other classes can be set.
@@ -45,13 +52,10 @@ export class CryptoOps implements ICrypto {
         this.b64Decode = new Base64Decode();
         this.guidGenerator = new GuidGenerator(this.browserCrypto);
         this.pkceGenerator = new PkceGenerator(this.browserCrypto);
-        this.cache = new DatabaseStorage(
-            { 
-                name: DB_NAME,
-                version: 2,
-                tableNames: CryptoOps.TABLE_NAMES
-            }
-        );
+        this.cache = {
+            asymmetricKeys: new DatabaseStorage<CachedKeyPair>(DBTableNames.asymmetricKeys),
+            symmetricKeys: new DatabaseStorage<CryptoKey>(DBTableNames.symmetricKeys)
+        };
     }
 
     /**
@@ -91,15 +95,17 @@ export class CryptoOps implements ICrypto {
      */
     async getPublicKeyThumbprint(request: SignedHttpRequestParameters): Promise<string> {
         // Generate Keypair
-        const keyPair = await this.browserCrypto.generateKeyPair(CryptoOps.EXTRACTABLE, CryptoOps.POP_KEY_USAGES);
+        const keyPair: CryptoKeyPair = await this.browserCrypto.generateKeyPair(CryptoOps.EXTRACTABLE, CryptoOps.POP_KEY_USAGES);
 
         // Generate Thumbprint for Public Key
         const publicKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.publicKey);
+        
         const pubKeyThumprintObj: JsonWebKey = {
             e: publicKeyJwk.e,
             kty: publicKeyJwk.kty,
             n: publicKeyJwk.n
         };
+
         const publicJwkString: string = BrowserCrypto.getJwkString(pubKeyThumprintObj);
         const publicJwkBuffer: ArrayBuffer = await this.browserCrypto.sha256Digest(publicJwkString);
         const publicJwkHash: string = this.b64Encode.urlEncodeArr(new Uint8Array(publicJwkBuffer));
@@ -108,10 +114,9 @@ export class CryptoOps implements ICrypto {
         const privateKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.privateKey);
         // Re-import private key to make it unextractable
         const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importJwk(privateKeyJwk, false, ["sign"]);
-
+    
         // Store Keypair data in keystore
-        await this.cache.put<CachedKeyPair>(
-            DBTableNames.asymmetricKeys,
+        await this.cache.asymmetricKeys.put(
             publicJwkHash, 
             {
                 privateKey: unextractablePrivateKey,
@@ -129,14 +134,24 @@ export class CryptoOps implements ICrypto {
      * @param kid 
      */
     async removeTokenBindingKey(kid: string): Promise<boolean> {
-        return this.cache.delete(DBTableNames.asymmetricKeys, kid);
+        return this.cache.asymmetricKeys.delete(kid);
     }
 
     /**
      * Removes all cryptographic keys from IndexedDB storage
      */
     async clearKeystore(): Promise<boolean> {
-        return this.cache.clear();
+        const dataStoreNames = Object.keys(this.cache);
+        const clearedTables: Promise<boolean>[] = dataStoreNames.map((dataStoreName: string): Promise<boolean> => {
+            const dataStore = this.cache[dataStoreName] as DatabaseStorage<unknown>;
+            return dataStore.clear();
+        });
+
+        return Promise.all(clearedTables).then(() => {
+            return true;
+        }).catch(() => {
+            return false;
+        });
     }
 
     /**
@@ -145,7 +160,7 @@ export class CryptoOps implements ICrypto {
      * @param kid 
      */
     async signJwt(payload: SignedHttpRequest, kid: string): Promise<string> {
-        const cachedKeyPair = await this.cache.get<CryptoKeyPair>(DBTableNames.asymmetricKeys, kid);
+        const cachedKeyPair = await this.cache.asymmetricKeys.get(kid);
         
         if (!cachedKeyPair) {
             throw BrowserAuthError.createSigningKeyNotFoundInStorageError(kid);
