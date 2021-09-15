@@ -26,8 +26,6 @@ import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
 import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient";
 import { TokenCache } from "../cache/TokenCache";
 import { ITokenCache } from "../cache/ITokenCache";
-import { WamInteractionClient } from "../interaction_client/WamInteractionClient";
-import { WamMessageHandler } from "../broker/wam/WamMessageHandler";
 
 export abstract class ClientApplication {
 
@@ -59,9 +57,6 @@ export abstract class ClientApplication {
 
     // Redirect Response Object
     private redirectResponse: Map<string, Promise<AuthenticationResult | null>>;
-
-    // WAM Extension Provider
-    private wamExtensionProvider: WamMessageHandler | undefined;
 
     /**
      * @constructor
@@ -118,17 +113,6 @@ export abstract class ClientApplication {
 
         // Initialize the token cache
         this.tokenCache = new TokenCache(this.config, this.browserStorage, this.logger, this.browserCrypto);
-    }
-
-    /**
-     * Initializer function to perform async startup tasks such as connecting to WAM extension
-     */
-    async initialize(): Promise<void> {
-        try {
-            this.wamExtensionProvider = await WamMessageHandler.createProvider(this.logger);
-        } catch (e) {
-            this.logger.verbose(e);
-        }
     }
 
     // #region Redirect Flow
@@ -257,14 +241,8 @@ export abstract class ClientApplication {
             this.eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Popup, request);
         }
 
-        let popupClient: PopupClient | WamInteractionClient;
+        const popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, request.correlationId);
 
-        if (this.wamExtensionProvider) {
-            popupClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.wamExtensionProvider, request.correlationId);
-        } else {
-            popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, request.correlationId);
-        }
-        
         return popupClient.acquireToken(request).then((result) => {
             // If logged in, emit acquire token events
             const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;

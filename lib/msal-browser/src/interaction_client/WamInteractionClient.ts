@@ -65,10 +65,13 @@ export class WamInteractionClient extends BaseInteractionClient {
             accessToken = await popTokenGenerator.signPopToken(response.access_token, request);
         }
 
+        const uid = response.account.properties["UID"] || idTokenObj.claims.oid || idTokenObj.claims.sub || Constants.EMPTY_STRING;
+        const tid = response.account.properties["TenantId"] || idTokenObj.claims.tid || Constants.EMPTY_STRING;
+
         const result: AuthenticationResult = {
-            authority: response.properties["Authority"],
-            uniqueId: response.properties["UID"],
-            tenantId: response.properties["tid"],
+            authority: request.authority,
+            uniqueId: uid,
+            tenantId: tid,
             scopes: responseScopes.asArray(),
             account: accountEntity.getAccountInfo(),
             idToken: response.id_token,

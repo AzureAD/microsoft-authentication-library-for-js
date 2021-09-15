@@ -72,6 +72,8 @@ export abstract class BaseInteractionClient {
     protected initializeBaseRequest(request: Partial<BaseAuthRequest>): BaseAuthRequest {
         this.logger.verbose("Initializing BaseAuthRequest");
         const authority = request.authority || this.config.auth.authority;
+        const canonicalAuthority = new UrlString(authority);
+        canonicalAuthority.validateAsUri();
 
         const scopes = [...((request && request.scopes) || [])];
 
@@ -86,7 +88,7 @@ export abstract class BaseInteractionClient {
         const validatedRequest: BaseAuthRequest = {
             ...request,
             correlationId: this.correlationId,
-            authority,
+            authority: canonicalAuthority.urlString,
             scopes
         };
 
