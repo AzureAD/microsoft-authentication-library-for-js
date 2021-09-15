@@ -38,5 +38,5 @@ export type AuthenticationResult = {
     familyId?: string;
     cloudGraphHostName?: string;
     msGraphHost?: string;
-    spaCode?: string;
+    code?: string;
 };

@@ -13,7 +13,7 @@ import { INavigationClient } from "../navigation/INavigationClient";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { InteractionType, ApiId } from "../utils/BrowserConstants";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
-import { SsoSilentRequest } from "../request/SsoSilentRequest";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 
 export class SilentAuthCodeClient extends StandardInteractionClient {
     private apiId: ApiId;
@@ -27,22 +27,12 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
      * Acquires a token silently by opening a hidden iframe to the /authorize endpoint with prompt=none
      * @param request 
      */
-    async acquireToken(request: SsoSilentRequest): Promise<AuthenticationResult> {
+    async acquireToken(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
         this.logger.trace("SilentAuthCodeClient.acquireToken called");
 
-        // Check that prompt is set to none, throw error if it is set to anything else.
-        if (request.prompt && request.prompt !== PromptValue.NONE) {
-            throw BrowserAuthError.createSilentPromptValueError(request.prompt);
-        }
-
         // Auth code payload is required
-        if (!request.authCodePayload || !request.authCodePayload.code) {
+        if (!request.code) {
             throw BrowserAuthError.createSilentSSOInsufficientInfoError();
-        }
-
-        // Nonce is required (same nonce from server request must be used client-side)
-        if (!request.nonce) {
-            throw BrowserAuthError.createNonceRequiredError();
         }
 
         // Create silent request
@@ -58,7 +48,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             // Create auth code request (PKCE not needed)
             const authCodeRequest: CommonAuthorizationCodeRequest = {
                 ...silentRequest,
-                code: request.authCodePayload.code
+                code: request.code
             };
 
             // Initialize the client
@@ -70,7 +60,18 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system.navigateFrameWait);
 
             // Handle response from hash string
-            return silentHandler.handleCodeResponseFromServer(request.authCodePayload, silentRequest.state, authClient.authority, this.networkClient);
+            return silentHandler.handleCodeResponseFromServer(
+                {
+                    code: request.code,
+                    msgraph_host: request.msGraphHost,
+                    cloud_graph_host_name: request.cloudGraphHostName,
+                    cloud_instance_host_name: request.cloudInstanceHostName
+                },
+                silentRequest.state, 
+                authClient.authority, 
+                this.networkClient,
+                false
+            );
         } catch (e) {
             if (e instanceof AuthError) {
                 e.setCorrelationId(this.correlationId);

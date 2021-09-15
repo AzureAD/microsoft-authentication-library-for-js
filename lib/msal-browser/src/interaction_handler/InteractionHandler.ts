@@ -64,7 +64,7 @@ export abstract class InteractionHandler {
      * @param networkModule 
      * @returns 
      */
-    async handleCodeResponseFromServer(authCodeResponse: AuthorizationCodePayload, state: string, authority: Authority, networkModule: INetworkModule): Promise<AuthenticationResult> {
+    async handleCodeResponseFromServer(authCodeResponse: AuthorizationCodePayload, state: string, authority: Authority, networkModule: INetworkModule, validateNonce: boolean = true): Promise<AuthenticationResult> {
         this.browserRequestLogger.trace("InteractionHandler.handleCodeResponseFromServer called");
 
         // Handle code response.
@@ -86,7 +86,11 @@ export abstract class InteractionHandler {
             await this.updateTokenEndpointAuthority(authCodeResponse.cloud_instance_host_name, authority, networkModule);
         }
 
-        authCodeResponse.nonce = cachedNonce || undefined;
+        // Nonce validation not needed when redirect not involved (e.g. hybrid spa, renewing token via rt)
+        if (validateNonce) {
+            authCodeResponse.nonce = cachedNonce || undefined;
+        }
+        
         authCodeResponse.state = requestState;
 
         // Add CCS parameters if available

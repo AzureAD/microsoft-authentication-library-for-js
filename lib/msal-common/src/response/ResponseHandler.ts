@@ -118,7 +118,7 @@ export class ResponseHandler {
         let idTokenObj: AuthToken | undefined;
         if (serverTokenResponse.id_token) {
             idTokenObj = new AuthToken(serverTokenResponse.id_token || Constants.EMPTY_STRING, this.cryptoObj);
-    
+            
             // token nonce check (TODO: Add a warning if no nonce is given?)
             if (authCodePayload && !StringUtils.isEmpty(authCodePayload.nonce)) {
                 if (idTokenObj.claims.nonce !== authCodePayload.nonce) {
@@ -303,7 +303,7 @@ export class ResponseHandler {
         request: BaseAuthRequest,
         idTokenObj?: AuthToken,
         requestState?: RequestStateObject,
-        spaCode?: string
+        code?: string
     ): Promise<AuthenticationResult> {
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
@@ -347,7 +347,7 @@ export class ResponseHandler {
             state: requestState ? requestState.userRequestState : Constants.EMPTY_STRING,
             cloudGraphHostName: cacheRecord.account?.cloudGraphHostName || Constants.EMPTY_STRING,
             msGraphHost: cacheRecord.account?.msGraphHost || Constants.EMPTY_STRING,
-            spaCode
+            code
         };
     }
 }

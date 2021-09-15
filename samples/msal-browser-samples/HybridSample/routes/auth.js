@@ -62,7 +62,7 @@ router.post('/redirect', (req, res) => {
             console.timeEnd(timeLabel)
             // console.log("\nResponse: \n:", response);
             if (useHybrid) {
-                res.redirect(`/auth/client-redirect?sid=${response.idTokenClaims.sid}&code=${response.spaCode}&nonce=${response.idTokenClaims.nonce}&login-hint=${encodeURIComponent(response.idTokenClaims.preferred_username)}`)
+                res.redirect(`/auth/client-redirect?sid=${response.idTokenClaims.sid}&code=${response.code}&login_hint=${encodeURIComponent(response.idTokenClaims.preferred_username)}`)
             } else {
                 res.redirect(`/auth/client-redirect?sid=${response.idTokenClaims.sid}&login-hint=${encodeURIComponent(response.idTokenClaims.preferred_username)}`)
             }
