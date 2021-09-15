@@ -39,7 +39,7 @@ export class WamInteractionClient extends BaseInteractionClient {
         return this.handleWamResponse(response, wamRequest, reqTimestamp);
     }
 
-    logout(request: EndSessionRequest): Promise<void> {
+    logout(request?: EndSessionRequest): Promise<void> {
         return Promise.reject("Logout not implemented yet");
     }
 
