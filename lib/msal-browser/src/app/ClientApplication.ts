@@ -309,7 +309,7 @@ export abstract class ClientApplication {
 
         try {
             if (!request.code) {
-                throw BrowserAuthError.createSilentSSOInsufficientInfoError();
+                throw BrowserAuthError.createAuthCodeRequiredError();
             }
             
             const silentAuthCodeClient = new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenByCode, request.correlationId);

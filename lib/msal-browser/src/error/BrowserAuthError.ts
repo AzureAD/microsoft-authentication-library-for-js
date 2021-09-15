@@ -87,7 +87,7 @@ export const BrowserAuthErrorMessage = {
     },
     silentSSOInsufficientInfoError: {
         code: "silent_sso_error",
-        desc: "Silent SSO could not be completed - insufficient information was provided. Please provide either a loginHint, sid, or authorization code (authCodePayload.code)."
+        desc: "Silent SSO could not be completed - insufficient information was provided. Please provide either an account, loginHint, or sid."
     },
     silentLogoutUnsupportedError: {
         code: "silent_logout_unsupported",
@@ -152,6 +152,10 @@ export const BrowserAuthErrorMessage = {
     signingKeyNotFoundInStorage: {
         code: "crypto_key_not_found",
         desc: "Cryptographic Key or Keypair not found in browser storage."
+    },
+    authCodeRequired: {
+        code: "auth_code_required",
+        descr: "Authorization code is required for this flow."
     }
 };
 
@@ -440,5 +444,9 @@ export class BrowserAuthError extends AuthError {
      */
     static createSigningKeyNotFoundInStorageError(keyId: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code, `${BrowserAuthErrorMessage.signingKeyNotFoundInStorage.desc} | No match found for KeyId: ${keyId}`);
+    }
+
+    static createAuthCodeRequiredError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.authCodeRequired.code, BrowserAuthErrorMessage.authCodeRequired.descr);
     }
 }

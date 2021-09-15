@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, ICrypto, Logger, PromptValue, CommonAuthorizationCodeRequest, AuthorizationCodeClient, AuthError } from "@azure/msal-common";
+import { AuthenticationResult, ICrypto, Logger, CommonAuthorizationCodeRequest, AuthorizationCodeClient, AuthError } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -32,14 +32,11 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
 
         // Auth code payload is required
         if (!request.code) {
-            throw BrowserAuthError.createSilentSSOInsufficientInfoError();
+            throw BrowserAuthError.createAuthCodeRequiredError();
         }
 
         // Create silent request
-        const silentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
-            ...request,
-            prompt: PromptValue.NONE
-        }, InteractionType.Silent);
+        const silentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest(request, InteractionType.Silent);
 
         const serverTelemetryManager = this.initializeServerTelemetryManager(this.apiId);
 
