@@ -26,6 +26,8 @@ import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
 import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient";
 import { TokenCache } from "../cache/TokenCache";
 import { ITokenCache } from "../cache/ITokenCache";
+import { WamInteractionClient } from "../interaction_client/WamInteractionClient";
+import { WamMessageHandler } from "../broker/wam/WamMessageHandler";
 
 export abstract class ClientApplication {
 
@@ -57,6 +59,9 @@ export abstract class ClientApplication {
 
     // Redirect Response Object
     private redirectResponse: Map<string, Promise<AuthenticationResult | null>>;
+
+    // WAM Extension Provider
+    protected wamExtensionProvider: WamMessageHandler | undefined;
 
     /**
      * @constructor
@@ -113,6 +118,17 @@ export abstract class ClientApplication {
 
         // Initialize the token cache
         this.tokenCache = new TokenCache(this.config, this.browserStorage, this.logger, this.browserCrypto);
+    }
+
+    /**
+     * Initializer function to perform async startup tasks such as connecting to WAM extension
+     */
+    async initialize(): Promise<void> {
+        try {
+            this.wamExtensionProvider = await WamMessageHandler.createProvider(this.logger);
+        } catch (e) {
+            this.logger.verbose(e);
+        }
     }
 
     // #region Redirect Flow
@@ -241,7 +257,13 @@ export abstract class ClientApplication {
             this.eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Popup, request);
         }
 
-        const popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, request.correlationId);
+        let popupClient: PopupClient | WamInteractionClient;
+
+        if (this.wamExtensionProvider) {
+            popupClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.wamExtensionProvider, request.correlationId);
+        } else {
+            popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, request.correlationId);
+        }
 
         return popupClient.acquireToken(request).then((result) => {
             // If logged in, emit acquire token events
@@ -289,7 +311,12 @@ export abstract class ClientApplication {
         this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
         try {
-            const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, request.correlationId);
+            let silentIframeClient: SilentIframeClient | WamInteractionClient;
+            if (this.wamExtensionProvider) {
+                silentIframeClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.wamExtensionProvider, request.correlationId);
+            } else {
+                silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, request.correlationId);
+            }
             const silentTokenResult = await silentIframeClient.acquireToken(request);
             this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
             return silentTokenResult;
@@ -352,7 +379,13 @@ export abstract class ClientApplication {
      */
     async logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
-        const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, logoutRequest?.correlationId);
+
+        let redirectClient: RedirectClient | WamInteractionClient;
+        if (this.wamExtensionProvider) {
+            redirectClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.wamExtensionProvider, logoutRequest?.correlationId);
+        } else {
+            redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, logoutRequest?.correlationId);
+        }
         return redirectClient.logout(logoutRequest);
     }
 
@@ -363,7 +396,13 @@ export abstract class ClientApplication {
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void> {
         try{
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
-            const popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, logoutRequest?.correlationId);
+
+            let popupClient: PopupClient | WamInteractionClient;
+            if (this.wamExtensionProvider) {
+                popupClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.wamExtensionProvider, logoutRequest?.correlationId);
+            } else {
+                popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, logoutRequest?.correlationId);
+            }
             return popupClient.logout(logoutRequest);
         } catch (e) {
             // Since this function is syncronous we need to reject

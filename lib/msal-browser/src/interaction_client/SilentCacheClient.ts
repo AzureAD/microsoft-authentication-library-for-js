@@ -6,8 +6,7 @@
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { CommonSilentFlowRequest, AuthenticationResult, SilentFlowClient, ServerTelemetryManager, AccountInfo } from "@azure/msal-common";
 import { SilentRequest } from "../request/SilentRequest";
-import { EventType } from "../event/EventType";
-import { InteractionType, ApiId } from "../utils/BrowserConstants";
+import { ApiId } from "../utils/BrowserConstants";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
 
 export class SilentCacheClient extends StandardInteractionClient {
@@ -23,7 +22,6 @@ export class SilentCacheClient extends StandardInteractionClient {
         
         try {
             const cachedToken = await silentAuthClient.acquireCachedToken(silentRequest);
-            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, cachedToken);
             return cachedToken;
         } catch (error) {
             if (error instanceof BrowserAuthError && error.errorCode === BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code) {
