@@ -22,7 +22,8 @@
                 const params = new URLSearchParams(document.location.search);
                 const sid = params.get("sid");
                 const code = params.get("code");
-                const loginHint = decodeURIComponent(params.get("login_hint"));
+                const preferredUsername = decodeURIComponent(params.get("preferredUsername"));
+                const loginHint = params.get("loginHint"); // Use loginHint claim instead of email
 
                 const tokenQueryParameters = {
                     dc: "ESTS-PUB-WUS2-AZ1-FD000-TEST1",
@@ -63,8 +64,8 @@
                     console.log('MSAL: ssoSilent hybrid parameters not present');
 
                     return msalInstance.ssoSilent({
-                        sid,
-                        loginHint,
+                        sid: loginHint ? undefined : sid, // If loginHint claim is provided, dont use sid
+                        loginHint: loginHint || preferredUsername, // Prefer loginHint claim over email
                         tokenQueryParameters
                     })
                         .then(result => {

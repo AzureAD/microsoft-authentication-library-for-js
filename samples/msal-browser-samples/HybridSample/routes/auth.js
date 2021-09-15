@@ -60,12 +60,36 @@ router.post('/redirect', (req, res) => {
     msalInstance.acquireTokenByCode(tokenRequest)
         .then((response) => {
             console.timeEnd(timeLabel)
-            // console.log("\nResponse: \n:", response);
-            if (useHybrid) {
-                res.redirect(`/auth/client-redirect?sid=${response.idTokenClaims.sid}&code=${response.code}&login_hint=${encodeURIComponent(response.idTokenClaims.preferred_username)}`)
-            } else {
-                res.redirect(`/auth/client-redirect?sid=${response.idTokenClaims.sid}&login-hint=${encodeURIComponent(response.idTokenClaims.preferred_username)}`)
+            console.log("Response: ", response);
+
+            const {
+                sid, // Session ID claim, used for non-hybrid
+                login_hint: loginHint, // New login_hint claim (used instead of sid or email)
+                preferred_username: preferredUsername // Email
+            } = response.idTokenClaims;
+
+            // Spa auth code
+            const { code } = response;
+
+            const params = new URLSearchParams();
+
+            if (sid) {
+                params.set("sid", sid);
             }
+
+            if (code) {
+                params.set("code", code);
+            }
+
+            if (loginHint) {
+                params.set("loginHint", loginHint);
+            }
+
+            if (preferredUsername) {
+                params.set("preferredUsername", preferredUsername);
+            }
+
+            res.redirect(`/auth/client-redirect?${params.toString()}`)
         })
         .catch((error) => {
             console.timeEnd(timeLabel)

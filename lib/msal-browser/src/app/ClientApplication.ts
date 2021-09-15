@@ -12,7 +12,6 @@ import { BrowserUtils } from "../utils/BrowserUtils";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { HybridSsoSilentRequest } from "../request/HybridSsoSilentRequest";
 import { version, name } from "../packageMetadata";
 import { EventCallbackFunction } from "../event/EventMessage";
 import { EventType } from "../event/EventType";
