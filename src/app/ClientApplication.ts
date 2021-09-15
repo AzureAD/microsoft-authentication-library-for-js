@@ -29,6 +29,7 @@ import { TokenCache } from "../cache/TokenCache";
 import { ITokenCache } from "../cache/ITokenCache";
 import { SilentAuthCodeClient } from "../interaction_client/SilentAuthCodeClient";
 import { BrowserAuthError  } from "../error/BrowserAuthError";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 
 export abstract class ClientApplication {
 
@@ -292,59 +293,32 @@ export abstract class ClientApplication {
         this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
         try {
-            // Option 1: Augment ssoSilent
-            if (request.authCodePayload) {
-                if (!request.authCodePayload.code) {
-                    throw BrowserAuthError.createSilentSSOInsufficientInfoError();
-                }
-
-                // Nonce is required (same nonce from server request must be used client-side)
-                if (!request.nonce) {
-                    throw BrowserAuthError.createNonceRequiredError();
-                }
-
-                const silentAuthCodeClient = new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, request.correlationId);
-                const silentTokenResult = await silentAuthCodeClient.acquireToken(request);
-                this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
-                return silentTokenResult;
-            } else {
-                const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, request.correlationId);
-                const silentTokenResult = await silentIframeClient.acquireToken(request);
-                this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
-                return silentTokenResult;
-            }
+            const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, request.correlationId);
+            const silentTokenResult = await silentIframeClient.acquireToken(request);
+            this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
+            return silentTokenResult;
         } catch (e) {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
             throw e;
         }
     }
 
-    async hybridSsoSilent(request: HybridSsoSilentRequest): Promise<AuthenticationResult> {
+    async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
-        this.logger.verbose("hybridSsoSilent called", request.correlationId);
-        this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
+        this.logger.trace("acquireTokenByCode called", request.correlationId);
+        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_START, InteractionType.Silent, request);
 
         try {
-            // Option 2: Dedicated API that only performs hybrid sso flow
-            if (request.authCodePayload) {
-                if (!request.authCodePayload.code) {
-                    throw BrowserAuthError.createSilentSSOInsufficientInfoError();
-                }
-
-                // Nonce is required (same nonce from server request must be used client-side)
-                if (!request.nonce) {
-                    throw BrowserAuthError.createNonceRequiredError();
-                }
-
-                const silentAuthCodeClient = new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, request.correlationId);
-                const silentTokenResult = await silentAuthCodeClient.acquireToken(request);
-                this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
-                return silentTokenResult;
-            } else {
+            if (!request.code) {
                 throw BrowserAuthError.createSilentSSOInsufficientInfoError();
             }
+            
+            const silentAuthCodeClient = new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenByCode, request.correlationId);
+            const silentTokenResult = await silentAuthCodeClient.acquireToken(request);
+            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_SUCCESS, InteractionType.Silent, silentTokenResult);
+            return silentTokenResult;
         } catch (e) {
-            this.eventHandler.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
+            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_FAILURE, InteractionType.Silent, null, e);
             throw e;
         }
     }

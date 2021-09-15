@@ -14,11 +14,13 @@ import { WrapperSKU } from "../utils/BrowserConstants";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { ITokenCache } from "../cache/ITokenCache";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 
 export interface IPublicClientApplication {
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
     acquireTokenRedirect(request: RedirectRequest): Promise<void>;
     acquireTokenSilent(silentRequest: SilentRequest): Promise<AuthenticationResult>;
+    acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult>;
     addEventCallback(callback: Function): string | null;
     removeEventCallback(callbackId: string): void;
     getAccountByHomeId(homeAccountId: string): AccountInfo | null;
@@ -50,7 +52,10 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     },	
     acquireTokenSilent: () => {	
         return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());	
-    },	
+    },
+    acquireTokenByCode: () => {
+        return Promise.reject(BrowserConfigurationAuthError.createStubPcaInstanceCalledError());
+    },
     getAllAccounts: () => {
         return [];	
     },	
