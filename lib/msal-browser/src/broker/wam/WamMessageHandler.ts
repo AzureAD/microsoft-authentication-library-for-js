@@ -5,8 +5,9 @@
 
 import { WamConstants, WamExtensionMethod } from "../../utils/BrowserConstants";
 import { Logger } from "@azure/msal-common";
-import { BrowserAuthError } from "../../error/BrowserAuthError";
 import { WamExtensionRequest, WamExtensionRequestBody } from "./WamExtensionRequest";
+import { WamAuthError } from "../../error/WamAuthError";
+import { BrowserAuthError } from "../../error/BrowserAuthError";
 
 export class WamMessageHandler {
     private extensionId: string | undefined;
@@ -96,7 +97,7 @@ export class WamMessageHandler {
                 window.removeEventListener("message", this.windowListener, false);
                 this.messageChannel.port1.close();
                 this.messageChannel.port2.close();
-                reject("Timed out waiting for handshake response."); // TODO: BrowserAuthError
+                reject(BrowserAuthError.createWamHandshakeTimeoutError());
                 delete this.resolvers[req.responseId];
             }, 2000); // Use a reasonable timeout in milliseconds here
         });
@@ -129,7 +130,7 @@ export class WamMessageHandler {
             this.messageChannel.port1.close();
             this.messageChannel.port2.close();
             window.removeEventListener("message", this.windowListener, false);
-            this.resolvers[request.responseId].reject("Extension is not installed.");
+            this.resolvers[request.responseId].reject(BrowserAuthError.createWamExtensionNotInstalledError());
         }
     }
 
@@ -145,7 +146,7 @@ export class WamMessageHandler {
             if (method === WamExtensionMethod.Response) {
                 const response = request.body.response;
                 if (response.status !== "Success") {
-                    this.resolvers[request.responseId].reject(new BrowserAuthError(response.code, response.description));
+                    this.resolvers[request.responseId].reject(new WamAuthError(response.code, response.description, response.ext));
                 } else {
                     this.resolvers[request.responseId].resolve(response.result);
                 }
@@ -159,7 +160,8 @@ export class WamMessageHandler {
             } 
             // Do nothing if method is not Response or HandshakeResponse
         } catch (err) {
-            this.logger.error("Page: Exception in the channel: " + err.toString());
+            this.logger.error(`Error parsing response from WAM Extension: ${err.toString()}`);
+            this.logger.errorPii(`Unable to parse ${event}`);
             throw err;
         }
     }

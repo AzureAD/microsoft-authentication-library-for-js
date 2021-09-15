@@ -152,6 +152,14 @@ export const BrowserAuthErrorMessage = {
     signingKeyNotFoundInStorage: {
         code: "crypto_key_not_found",
         desc: "Cryptographic Key or Keypair not found in browser storage."
+    },
+    wamHandshakeTimeout: {
+        code: "wam_handshake_timeout",
+        desc: "Timed out while attempting to establish connection to WAM extension"
+    },
+    wamExtensionNotInstalled: {
+        code: "wam_extension_not_installed",
+        desc: "Wam extension is not installed."
     }
 };
 
@@ -440,5 +448,13 @@ export class BrowserAuthError extends AuthError {
      */
     static createSigningKeyNotFoundInStorageError(keyId: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code, `${BrowserAuthErrorMessage.signingKeyNotFoundInStorage.desc} | No match found for KeyId: ${keyId}`);
+    }
+
+    static createWamHandshakeTimeoutError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.wamHandshakeTimeout.code, BrowserAuthErrorMessage.wamHandshakeTimeout.desc);
+    }
+
+    static createWamExtensionNotInstalledError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.wamExtensionNotInstalled.code, BrowserAuthErrorMessage.wamExtensionNotInstalled.desc);
     }
 }
