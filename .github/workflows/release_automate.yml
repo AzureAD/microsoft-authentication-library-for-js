@@ -30,7 +30,7 @@ jobs:
 
       # Beachball bump
       - name: bump package versions
-        run: node node_modules/beachball/bin/beachball bump -b origin/dev --bumpDeps false && node release-scripts/updateVersion.js
+        run: npm run beachball:bump
 
       # Create/update Pull Request
       - name: Create Pull Request
