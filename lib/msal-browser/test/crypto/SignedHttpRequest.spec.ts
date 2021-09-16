@@ -1,7 +1,6 @@
 import { SignedHttpRequest, StringUtils } from "../../src";
-import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
-import { CachedKeyPair, CryptoOps } from "../../src/crypto/CryptoOps";
+import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { createHash } from "crypto";
 import { AuthToken } from "@azure/msal-common";
 

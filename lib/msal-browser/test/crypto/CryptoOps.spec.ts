@@ -5,7 +5,6 @@ import { createHash } from "crypto";
 import { PkceCodes, BaseAuthRequest } from "@azure/msal-common";
 import { TEST_URIS } from "../utils/StringConstants";
 import { BrowserAuthError } from "../../src";
-import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 
 const msrCrypto = require("../polyfills/msrcrypto.min");
 
