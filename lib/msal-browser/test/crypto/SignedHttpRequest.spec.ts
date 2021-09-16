@@ -7,26 +7,43 @@ import { AuthToken } from "@azure/msal-common";
 
 const msrCrypto = require("../polyfills/msrcrypto.min");
 
+let mockDatabase = {
+    asymmetricKeys: {},
+    symmetricKeys: {}
+};
+
+// Mock DatabaseStorage
+jest.mock("../../src/cache/DatabaseStorage", () => {
+    return {
+        DatabaseStorage: jest.fn().mockImplementation((tableName: string) => {
+            return {
+                dbName: "TestDB",
+                version: 1,
+                tableName: tableName,
+                open: () => {},
+                get: (kid: string) => {
+                    return mockDatabase[tableName][kid];
+                },
+                put: (kid: string, payload: any) => {
+                    mockDatabase[tableName][kid] = payload;
+                    return mockDatabase[tableName][kid];
+                },
+                delete: (kid: string) => {
+                    delete mockDatabase[tableName][kid];
+                    return !mockDatabase[tableName][kid];
+                }
+            }
+      })
+    }
+});
+
 describe("SignedHttpRequest.ts Unit Tests", () => {
     jest.setTimeout(30000)
 
     let oldWindowCrypto = window.crypto;
-    let dbStorage = {};
+    
 
     beforeEach(() => {
-        jest.spyOn(DatabaseStorage.prototype, "put").mockImplementation(async (key: string, payload: any): Promise<void> => {
-            dbStorage[key] = payload;
-        });
-
-        jest.spyOn(DatabaseStorage.prototype, "get" ).mockImplementation(async (key: string): Promise<void> => {
-            return dbStorage[key];
-        });
-
-        jest.spyOn(DatabaseStorage.prototype, "delete" ).mockImplementation(async (key: string): Promise<boolean> => {
-            delete dbStorage[key];
-            return !dbStorage[key];
-        });
-        
         jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((): Promise<ArrayBuffer> => {
             return Promise.resolve(createHash("SHA256").update(Buffer.from("test-data")).digest());
         });

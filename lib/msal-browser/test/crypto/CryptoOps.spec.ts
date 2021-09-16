@@ -4,22 +4,47 @@ import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
 import { createHash } from "crypto";
 import { PkceCodes, BaseAuthRequest } from "@azure/msal-common";
 import { TEST_URIS } from "../utils/StringConstants";
-import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserAuthError } from "../../src";
+import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 
 const msrCrypto = require("../polyfills/msrcrypto.min");
+
+let mockDatabase = {
+    asymmetricKeys: {},
+    symmetricKeys: {}
+};
+
+// Mock DatabaseStorage
+jest.mock("../../src/cache/DatabaseStorage", () => {
+    return {
+        DatabaseStorage: jest.fn().mockImplementation((tableName: string) => {
+            return {
+                dbName: "TestDB",
+                version: 1,
+                tableName: tableName,
+                open: () => {},
+                get: (kid: string) => {
+                    return mockDatabase[tableName][kid];
+                },
+                put: (kid: string, payload: any) => {
+                    mockDatabase[tableName][kid] = payload;
+                    return mockDatabase[tableName][kid];
+                },
+                delete: (kid: string) => {
+                    delete mockDatabase[tableName][kid];
+                    return !mockDatabase[tableName][kid];
+                }
+            }
+      })
+    }
+});
 
 describe("CryptoOps.ts Unit Tests", () => {
     let cryptoObj: CryptoOps;
     let oldWindowCrypto = window.crypto;
-    let dbPutSpy: jest.SpyInstance;
-    let dbDeleteSpy: jest.SpyInstance;
 
     beforeEach(() => {
         cryptoObj = new CryptoOps();
-        dbPutSpy = jest.spyOn(DatabaseStorage.prototype, "put").mockImplementation((key: string, payload: any): Promise<any> => { return Promise.resolve(payload)});
-        dbDeleteSpy = jest.spyOn(DatabaseStorage.prototype, "delete").mockImplementation((key: string): Promise<boolean> => { return Promise.resolve(true) });
-
         oldWindowCrypto = window.crypto;
         //@ts-ignore
         window.crypto = {
@@ -30,6 +55,10 @@ describe("CryptoOps.ts Unit Tests", () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
+        mockDatabase = {
+            asymmetricKeys: {},
+            symmetricKeys: {}
+        };
         //@ts-ignore
         window.crypto = oldWindowCrypto;
     });
@@ -112,14 +141,7 @@ describe("CryptoOps.ts Unit Tests", () => {
         const result = await generateKeyPairSpy.mock.results[0].value;
         expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
         expect(regExp.test(pkThumbprint)).toBe(true);
-        expect(dbPutSpy).toHaveBeenCalledWith(
-            pkThumbprint,
-            { 
-                privateKey: { ...result.privateKey, extractable: false },
-                publicKey: result.publicKey,
-                requestMethod: "POST",
-                requestUri: TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS 
-            });
+        expect(mockDatabase.asymmetricKeys[pkThumbprint]).not.toBe(undefined);
     }, 30000);
 
     it("removeTokenBindingKey() removes the specified key from storage", async () => {
@@ -129,13 +151,14 @@ describe("CryptoOps.ts Unit Tests", () => {
             return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
         });
         const pkThumbprint = await cryptoObj.getPublicKeyThumbprint({resourceRequestMethod: "POST", resourceRequestUri: TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS} as BaseAuthRequest);
+        const key = mockDatabase.asymmetricKeys[pkThumbprint];
         const keyDeleted = await cryptoObj.removeTokenBindingKey(pkThumbprint);
-        expect(dbDeleteSpy).toHaveBeenCalledWith(pkThumbprint);
+        expect(key).not.toBe(undefined);
+        expect(mockDatabase.asymmetricKeys[pkThumbprint]).toBe(undefined);
         expect(keyDeleted).toBe(true);
     }, 30000);
 
     it("signJwt() throws signingKeyNotFoundInStorage error if signing keypair is not found in storage", async () => {
-        jest.spyOn(DatabaseStorage.prototype, "get").mockResolvedValue(undefined);
-        return await expect(cryptoObj.signJwt({}, "testString")).rejects.toThrow(BrowserAuthError.createSigningKeyNotFoundInStorageError("testString"));
+        expect(cryptoObj.signJwt({}, "testString")).rejects.toThrow(BrowserAuthError.createSigningKeyNotFoundInStorageError("testString"));
     }, 30000);
 });
