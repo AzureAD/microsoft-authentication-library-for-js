@@ -22,4 +22,5 @@ export type AccountInfo = {
     localAccountId: string;
     name?: string;
     idTokenClaims?: object;
+    wamAccountId?: string;
 };

@@ -52,7 +52,7 @@ export class WamInteractionClient extends BaseInteractionClient {
 
         // Save account in browser storage
         const homeAccountIdentifier = AccountEntity.generateHomeAccountId(response.client_info || Constants.EMPTY_STRING, AuthorityType.Default, this.logger, this.browserCrypto, idTokenObj);
-        const accountEntity = AccountEntity.createAccount(response.client_info, homeAccountIdentifier, idTokenObj, undefined, undefined, undefined, undefined, request.authority);
+        const accountEntity = AccountEntity.createAccount(response.client_info, homeAccountIdentifier, idTokenObj, undefined, undefined, undefined, undefined, request.authority, response.account.id);
         this.browserStorage.setAccount(accountEntity);
 
         // If scopes not returned in server response, use request scopes
@@ -109,7 +109,7 @@ export class WamInteractionClient extends BaseInteractionClient {
 
         const account = request.account || this.browserStorage.getActiveAccount();
         if (account) {
-            // TODO: Add WAM accountId
+            validatedRequest.accountId = account.wamAccountId;
             validatedRequest.loginHint = account.username;
         }
 
