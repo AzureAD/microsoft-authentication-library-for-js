@@ -1,0 +1,7 @@
+{
+    "authOptions": {
+        "clientId": "ENTER_CLIENT_ID",
+        "authority": "https://login.windows-ppe.net/common",
+        "clientSecret": "ENTER_CLIENT_SECRET"
+    }
+}
