@@ -85,6 +85,9 @@
                             }
                         });
                 }
+            })
+            .catch(error => {
+                console.error("MSAL: Error returning from redirect", error);
             });
     }
 </script>
