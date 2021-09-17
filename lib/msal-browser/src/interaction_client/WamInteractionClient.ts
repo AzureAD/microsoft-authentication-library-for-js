@@ -91,8 +91,9 @@ export class WamInteractionClient extends BaseInteractionClient {
         const canonicalAuthority = new UrlString(authority);
         canonicalAuthority.validateAsUri();
         
-        const scopes = [...((request && request.scopes) || OIDC_DEFAULT_SCOPES)];
+        const scopes = request && request.scopes || [];
         const scopeSet = new ScopeSet(scopes);
+        scopeSet.appendScopes(OIDC_DEFAULT_SCOPES);
 
         const validatedRequest: WamRequest = {
             ...request,
