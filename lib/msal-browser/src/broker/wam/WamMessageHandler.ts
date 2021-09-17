@@ -4,7 +4,7 @@
  */
 
 import { WamConstants, WamExtensionMethod } from "../../utils/BrowserConstants";
-import { Logger } from "@azure/msal-common";
+import { Logger, AuthError } from "@azure/msal-common";
 import { WamExtensionRequest, WamExtensionRequestBody } from "./WamExtensionRequest";
 import { WamAuthError } from "../../error/WamAuthError";
 import { BrowserAuthError } from "../../error/BrowserAuthError";
@@ -147,8 +147,14 @@ export class WamMessageHandler {
                 const response = request.body.response;
                 if (response.status !== "Success") {
                     this.resolvers[request.responseId].reject(new WamAuthError(response.code, response.description, response.ext));
+                } else if (response.result) {
+                    if (response.result["code"] && response.result["description"]) {
+                        this.resolvers[request.responseId].reject(new WamAuthError(response.result["code"], response.result["description"], response.result["ext"]));
+                    } else {
+                        this.resolvers[request.responseId].resolve(response.result);
+                    }
                 } else {
-                    this.resolvers[request.responseId].resolve(response.result);
+                    throw AuthError.createUnexpectedError("Event does not contain result.");
                 }
                 delete this.resolvers[request.responseId];
             } else if (method === WamExtensionMethod.HandshakeResponse) {
