@@ -32,6 +32,7 @@ export class WamMessageHandler {
      * @param body 
      */
     async sendMessage<T>(body: WamExtensionRequestBody): Promise<T> {
+        this.logger.trace("WamMessageHandler - sendMessage called.");
         const req = {
             channel: WamConstants.CHANNEL_ID,
             extensionId: this.extensionId,
@@ -40,6 +41,8 @@ export class WamMessageHandler {
             body: body
         };
 
+        this.logger.trace("WamMessageHandler - Sending request to browser extension");
+        this.logger.tracePii(`WamMessageHandler - Sending request to browser extension: ${JSON.stringify(req)}`);
         this.messageChannel.port1.postMessage(req);
 
         return new Promise((resolve, reject) => {
@@ -52,6 +55,7 @@ export class WamMessageHandler {
      * @param logger 
      */
     static async createProvider(logger: Logger): Promise<WamMessageHandler> {
+        logger.trace("WamMessageHandler - createProvider called.");
         try {
             const preferredProvider = new WamMessageHandler(logger, WamConstants.PREFERRED_EXTENSION_ID);
             await preferredProvider.sendHandshakeRequest();
@@ -68,6 +72,7 @@ export class WamMessageHandler {
      * Send handshake request helper.
      */
     private async sendHandshakeRequest(): Promise<void> {
+        this.logger.trace("WamMessageHandler - sendHandshakeRequest called.");
         // Register this event listener before sending handshake
         window.addEventListener("message", this.windowListener, false); // false is important, because content script message processing should work first
 
@@ -108,6 +113,7 @@ export class WamMessageHandler {
      * @param event 
      */
     private onWindowMessage(event: MessageEvent): void {
+        this.logger.trace("WamMessageHandler - onWindowMessage called");
         // We only accept messages from ourselves
         if (event.source !== window) {
             return;
@@ -139,12 +145,15 @@ export class WamMessageHandler {
      * @param event 
      */
     private onChannelMessage(event: MessageEvent): void {
+        this.logger.trace("WamMessageHandler - onChannelMessage called.");
         try {
             const request = event.data;
             const method = request.body.method;
 
             if (method === WamExtensionMethod.Response) {
                 const response = request.body.response;
+                this.logger.trace("WamMessageHandler - Received response from browser extension");
+                this.logger.tracePii(`WamMessageHandler - Received response from browser extension: ${JSON.stringify(response)}`);
                 if (response.status !== "Success") {
                     this.resolvers[request.responseId].reject(new WamAuthError(response.code, response.description, response.ext));
                 } else if (response.result) {
@@ -161,6 +170,7 @@ export class WamMessageHandler {
                 clearTimeout(this.timeoutId); // Clear setTimeout
                 window.removeEventListener("message", this.windowListener, false); // Remove 'No extension' listener
                 this.extensionId = request.extensionId;
+                this.logger.verbose(`WamMessageHandler - Received HandshakeResponse from extension: ${this.extensionId}`);
                 this.resolvers[request.responseId].resolve();
                 delete this.resolvers[request.body.responseId];
             } 
