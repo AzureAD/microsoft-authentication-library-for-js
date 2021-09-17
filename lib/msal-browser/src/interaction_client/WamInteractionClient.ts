@@ -109,7 +109,7 @@ export class WamInteractionClient extends BaseInteractionClient {
 
         const account = request.account || this.browserStorage.getActiveAccount();
         if (account) {
-            validatedRequest.accountId = account.wamAccountId;
+            validatedRequest.accountId = account.nativeAccountId;
             validatedRequest.loginHint = account.username;
         }
 
