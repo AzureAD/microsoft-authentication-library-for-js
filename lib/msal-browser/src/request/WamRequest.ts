@@ -3,15 +3,18 @@
  * Licensed under the MIT License.
  */
 
-import { StringDict, BaseAuthRequest } from "@azure/msal-common";
+import { StringDict } from "@azure/msal-common";
 
-export type WamRequest = Omit<BaseAuthRequest, "authenticationScheme|shrClaims|resourceRequestMethod|resourceRequestUri"> & {
+export type WamRequest = {
     clientId: string;
+    authority: string;
     redirectUri: string;
+    scopes: string;
     correlationId: string;
     prompt: string;
     nonce: string;
     accountId?: string; // WAM specific account id used for identification of WAM account. This can be any broker-id eventually
+    claims?: string;
     state?: string;
     domainHint?: string;
     loginHint?: string;

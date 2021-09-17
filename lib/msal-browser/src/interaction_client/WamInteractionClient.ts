@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, Logger, ICrypto, StringUtils, PromptValue, AuthToken, Constants, ClientAuthError, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, PopTokenGenerator } from "@azure/msal-common";
+import { AuthenticationResult, Logger, ICrypto, StringUtils, PromptValue, AuthToken, Constants, ClientAuthError, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -56,14 +56,7 @@ export class WamInteractionClient extends BaseInteractionClient {
         this.browserStorage.setAccount(accountEntity);
 
         // If scopes not returned in server response, use request scopes
-        const responseScopes = response.scopes ? ScopeSet.fromString(response.scopes) : new ScopeSet(request.scopes || []);
-
-        // Sign Access Token if needed
-        let accessToken = response.access_token;
-        if (request.authenticationScheme === AuthenticationScheme.POP) {
-            const popTokenGenerator: PopTokenGenerator = new PopTokenGenerator(this.browserCrypto);
-            accessToken = await popTokenGenerator.signPopToken(response.access_token, request);
-        }
+        const responseScopes = response.scopes ? ScopeSet.fromString(response.scopes) : ScopeSet.fromString(request.scopes);
 
         const uid = response.account.properties["UID"] || idTokenObj.claims.oid || idTokenObj.claims.sub || Constants.EMPTY_STRING;
         const tid = response.account.properties["TenantId"] || idTokenObj.claims.tid || Constants.EMPTY_STRING;
@@ -76,10 +69,10 @@ export class WamInteractionClient extends BaseInteractionClient {
             account: accountEntity.getAccountInfo(),
             idToken: response.id_token,
             idTokenClaims: idTokenObj.claims,
-            accessToken: accessToken,
+            accessToken: response.access_token,
             fromCache: false,
             expiresOn: new Date(Number(reqTimestamp + response.expires_in) * 1000),
-            tokenType: request.authenticationScheme || AuthenticationScheme.BEARER,
+            tokenType: AuthenticationScheme.BEARER,
             correlationId: this.correlationId,
             state: response.state
         };
@@ -94,12 +87,23 @@ export class WamInteractionClient extends BaseInteractionClient {
     protected initializeWamRequest(request: PopupRequest|SsoSilentRequest): WamRequest {
         this.logger.verbose("initializeAuthorizationRequest called");
 
+        const authority = request.authority || this.config.auth.authority;
+        const canonicalAuthority = new UrlString(authority);
+        canonicalAuthority.validateAsUri();
+        
+        const scopes = [...((request && request.scopes) || OIDC_DEFAULT_SCOPES)];
+        const scopeSet = new ScopeSet(scopes);
+
         const validatedRequest: WamRequest = {
-            ...this.initializeBaseRequest(request),
+            ...request,
             clientId: this.config.auth.clientId,
+            authority: canonicalAuthority.urlString,
+            scopes: scopeSet.printScopes(),
             redirectUri: this.getRedirectUri(request.redirectUri),
+            correlationId: this.correlationId,
             prompt: request.prompt || PromptValue.NONE,
             nonce: request.nonce || this.browserCrypto.createNewGuid(),
+            instanceAware: false,
             extraParameters: {
                 ...request.extraQueryParameters,
                 ...request.tokenQueryParameters
