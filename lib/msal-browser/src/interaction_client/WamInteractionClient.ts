@@ -17,6 +17,7 @@ import { WamRequest } from "../request/WamRequest";
 import { WamExtensionMethod } from "../utils/BrowserConstants";
 import { WamExtensionRequestBody } from "../broker/wam/WamExtensionRequest";
 import { WamResponse } from "../response/WamResponse";
+import { WamAuthError } from "../error/WamAuthError";
 
 export class WamInteractionClient extends BaseInteractionClient {
     protected provider: WamMessageHandler;
@@ -27,6 +28,7 @@ export class WamInteractionClient extends BaseInteractionClient {
     }
 
     async acquireToken(request: PopupRequest|SilentRequest|SsoSilentRequest): Promise<AuthenticationResult> {
+        this.logger.trace("WamInteractionClient - acquireToken called.");
         const wamRequest = this.initializeWamRequest(request);
 
         const messageBody: WamExtensionRequestBody = {
@@ -35,20 +37,20 @@ export class WamInteractionClient extends BaseInteractionClient {
         };
 
         const reqTimestamp = TimeUtils.nowSeconds();
-        const response: WamResponse = await this.provider.sendMessage(messageBody);
-        return this.handleWamResponse(response, wamRequest, reqTimestamp);
+        const response: object = await this.provider.sendMessage(messageBody);
+        this.validateWamResponse(response);
+        return this.handleWamResponse(response as WamResponse, wamRequest, reqTimestamp);
     }
 
     logout(request?: EndSessionRequest): Promise<void> {
+        this.logger.trace("WamInteractionClient - logout called.");
         return Promise.reject("Logout not implemented yet");
     }
 
     protected async handleWamResponse(response: WamResponse, request: WamRequest, reqTimestamp: number): Promise<AuthenticationResult> {
+        this.logger.trace("WamInteractionClient - handleWamResponse called.");
         // create an idToken object (not entity)
         const idTokenObj = new AuthToken(response.id_token || Constants.EMPTY_STRING, this.browserCrypto);
-        if (idTokenObj.claims.nonce !== request.nonce) {
-            throw ClientAuthError.createNonceMismatchError();
-        }
 
         // Save account in browser storage
         const homeAccountIdentifier = AccountEntity.generateHomeAccountId(response.client_info || Constants.EMPTY_STRING, AuthorityType.Default, this.logger, this.browserCrypto, idTokenObj);
@@ -81,11 +83,30 @@ export class WamInteractionClient extends BaseInteractionClient {
     }
 
     /**
+     * Validates WAM response before processing
+     * @param response 
+     */
+    private validateWamResponse(response: object): void {
+        if (
+            response.hasOwnProperty("access_token") &&
+            response.hasOwnProperty("id_token") &&
+            response.hasOwnProperty("client_info") &&
+            response.hasOwnProperty("account") &&
+            response.hasOwnProperty("scopes") &&
+            response.hasOwnProperty("expires_in")
+        ) {
+            return;
+        } else {
+            throw WamAuthError.createUnexpectedError("Response missing expected properties.");
+        }
+    }
+
+    /**
      * Translates developer provided request object into WamRequest object
      * @param request 
      */
     protected initializeWamRequest(request: PopupRequest|SsoSilentRequest): WamRequest {
-        this.logger.verbose("initializeAuthorizationRequest called");
+        this.logger.trace("WamInteractionClient - initializeWamRequest called");
 
         const authority = request.authority || this.config.auth.authority;
         const canonicalAuthority = new UrlString(authority);
@@ -103,7 +124,6 @@ export class WamInteractionClient extends BaseInteractionClient {
             redirectUri: this.getRedirectUri(request.redirectUri),
             correlationId: this.correlationId,
             prompt: request.prompt || PromptValue.NONE,
-            nonce: request.nonce || this.browserCrypto.createNewGuid(),
             instanceAware: false,
             extraParameters: {
                 ...request.extraQueryParameters,

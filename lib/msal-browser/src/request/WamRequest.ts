@@ -12,7 +12,7 @@ export type WamRequest = {
     scopes: string;
     correlationId: string;
     prompt: string;
-    nonce: string;
+    nonce?: string;
     accountId?: string; // WAM specific account id used for identification of WAM account. This can be any broker-id eventually
     claims?: string;
     state?: string;
