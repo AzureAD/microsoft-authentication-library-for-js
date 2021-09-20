@@ -25,6 +25,7 @@
                 const preferredUsername = decodeURIComponent(params.get("preferredUsername"));
                 const loginHint = params.get("loginHint"); // Use loginHint claim instead of email
 
+                const scopes = [ "user.read" ];
                 const tokenQueryParameters = {
                     dc: "ESTS-PUB-WUS2-AZ1-FD000-TEST1",
                     hybridspa: "true"
@@ -40,6 +41,7 @@
 
                     return msalInstance.acquireTokenByCode({
                         code,
+                        scopes,
                         tokenQueryParameters
                     })
                         .then(result => {
@@ -54,7 +56,8 @@
                                 console.log('MSAL: acquireTokenByCode failed, redirecting')
                                 // Use loginHint from server to ensure same user
                                 return msalInstance.loginRedirect({
-                                    loginHint
+                                    loginHint,
+                                    scopes
                                 })
                             }
                         });
@@ -66,7 +69,8 @@
                     return msalInstance.ssoSilent({
                         sid: loginHint ? undefined : sid, // If loginHint claim is provided, dont use sid
                         loginHint: loginHint || preferredUsername, // Prefer loginHint claim over email
-                        tokenQueryParameters
+                        tokenQueryParameters,
+                        scopes
                     })
                         .then(result => {
                             console.timeEnd(timeLabel);
@@ -80,7 +84,8 @@
                                 console.log('MSAL: ssoSilent failed, redirecting')
                                 // Use loginHint from server to ensure same user
                                 return msalInstance.loginRedirect({
-                                    loginHint
+                                    loginHint,
+                                    scopes
                                 })
                             }
                         });
