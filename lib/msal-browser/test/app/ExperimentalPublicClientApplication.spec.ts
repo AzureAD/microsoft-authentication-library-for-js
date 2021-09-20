@@ -30,7 +30,7 @@ import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { EmbeddedClientApplication } from "../../src/broker/client/EmbeddedClientApplication";
 import { BrokerClientApplication } from "../../src/broker/client/BrokerClientApplication";
 
-describe("PublicClientApplication.ts Class Unit Tests", () => {
+describe("ExperimentalPublicClientApplication.ts Class Unit Tests", () => {
     let epca: ExperimentalPublicClientApplication;
     beforeEach(() => {
         epca = new ExperimentalPublicClientApplication({
@@ -237,6 +237,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
             };
+
             sinon.stub(XhrClient.prototype, "sendGetRequestAsync").callsFake((url): any => {
                 if (url.includes("discovery/instance")) {
                     return DEFAULT_TENANT_DISCOVERY_RESPONSE;
@@ -244,6 +245,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                     return DEFAULT_OPENID_CONFIG_RESPONSE;
                 }
             });
+
             sinon.stub(XhrClient.prototype, "sendPostRequestAsync").resolves(testServerTokenResponse);
             epca = new ExperimentalPublicClientApplication({
                 auth: {
@@ -280,7 +282,6 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             expect(tokenResponse2.idTokenClaims).toEqual(expect.objectContaining(testTokenResponse.idTokenClaims));
             expect(tokenResponse2.accessToken).toEqual(testTokenResponse.accessToken);
             expect(testTokenResponse.expiresOn && tokenResponse2.expiresOn && testTokenResponse.expiresOn.getMilliseconds() >= tokenResponse2.expiresOn.getMilliseconds()).toBeTruthy();
-
             expect(tokenResponse1).toEqual(tokenResponse2);
             expect(tokenResponse4).toEqual(tokenResponse1);
             expect(window.sessionStorage.length).toEqual(4);

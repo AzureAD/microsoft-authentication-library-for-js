@@ -21,16 +21,17 @@ export class BrokerPopupClient extends PopupClient {
             const validRequest = this.initializeBrokeredRequest(request, InteractionType.Popup);
             this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority, validRequest.loginHint || "", validRequest.account || null);
             const popupName = PopupUtils.generatePopupName(this.config.auth.clientId, validRequest);
+            const popupWindowAttributes = request.popupWindowAttributes || {};
 
             // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
             if (this.config.system.asyncPopups) {
                 this.logger.verbose("asyncPopups set to true, acquiring token");
-                return this.acquireTokenPopupAsync(validRequest, popupName);
+                return this.acquireTokenPopupAsync(validRequest, popupName, popupWindowAttributes);
             } else {
                 // asyncPopups flag is set to false. Opens popup before acquiring token.
                 this.logger.verbose("asyncPopup set to false, opening popup before acquiring token");
-                const popup = PopupUtils.openSizedPopup("about:blank", popupName);
-                return this.acquireTokenPopupAsync(validRequest, popupName, popup);
+                const popup = PopupUtils.openSizedPopup("about:blank", popupName, popupWindowAttributes, this.logger);
+                return this.acquireTokenPopupAsync(validRequest, popupName, popupWindowAttributes, popup);
             }
         } catch (e) {
             return Promise.reject(e);

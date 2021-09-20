@@ -78,7 +78,7 @@ describe("BrokerClientApplication.ts Unit Tests", () => {
                     clientId: TEST_CONFIG.MSAL_CLIENT_ID
                 }
             }, {});
-        })
+        });
 
         afterEach(() => {
             sinon.restore();
@@ -100,8 +100,11 @@ describe("BrokerClientApplication.ts Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 responseThumbprint: `localhost.eyBhdXRob3JpdHk6Imh0dHBzOi8vbG9naW4ubWljcm9zb2Z0b25saW5lLmNvbS9jb21tb24iLCBjbGllbnRJZDoiMDgxM2UxZDEtYWQ3Mi00NmE5LTg2NjUtMzk5YmJhNDhjMjAxIiwgc2NvcGVzOlsib3BlbmlkIiwicHJvZmlsZSJdIH0=`,
             };
+            const handleRedirectPromiseStub = sinon.stub(BrokerClientApplication.prototype, <any>"handleBrokerRedirect").callsFake(async (hash): Promise<AuthenticationResult> => {
+                return testTokenResponse;
+            });
             const resp = await broker.handleRedirectPromise();
-
+            expect(handleRedirectPromiseStub.calledOnce).toBeTruthy();
             expect(resp).toEqual(testTokenResponse);
         });
 
@@ -122,8 +125,11 @@ describe("BrokerClientApplication.ts Unit Tests", () => {
                 responseThumbprint: `localhost.eyBhdXRob3JpdHk6Imh0dHBzOi8vbG9naW4ubWljcm9zb2Z0b25saW5lLmNvbS9jb21tb24iLCBjbGllbnRJZDoiMDgxM2UxZDEtYWQ3Mi00NmE5LTg2NjUtMzk5YmJhNDhjMjAxIiwgc2NvcGVzOlsib3BlbmlkIiwicHJvZmlsZSJdIH0=`,
                 tokensToCache: new CacheRecord(ac, undefined, accessTokenEntity)
             };
+            const handleRedirectPromiseStub = sinon.stub(BrokerClientApplication.prototype, <any>"handleBrokerRedirect").callsFake(async (hash): Promise<AuthenticationResult> => {
+                return testTokenResponse;
+            });
             const resp = await broker.handleRedirectPromise();
-
+            expect(handleRedirectPromiseStub.calledOnce).toBeTruthy();
             expect(resp).toBeNull();
         });
     });

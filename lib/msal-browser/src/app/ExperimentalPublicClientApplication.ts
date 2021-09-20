@@ -86,7 +86,7 @@ export class ExperimentalPublicClientApplication extends PublicClientApplication
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         try {
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
-            this.logger.verbose("acquireTokenPopup called", request.correlationId);
+            this.logger.verbose("experimental acquireTokenPopup called", request.correlationId);
             if (this.embeddedApp && this.embeddedApp.brokerConnectionEstablished) {
                 const brokerInteractionClient = new EmbeddedInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.experimentalConfig, request.correlationId, this.embeddedApp, this.broker);
                 return brokerInteractionClient.acquireTokenPopup(request);
