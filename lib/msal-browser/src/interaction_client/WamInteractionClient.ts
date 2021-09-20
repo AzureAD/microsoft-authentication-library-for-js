@@ -51,9 +51,6 @@ export class WamInteractionClient extends BaseInteractionClient {
         this.logger.trace("WamInteractionClient - handleWamResponse called.");
         // create an idToken object (not entity)
         const idTokenObj = new AuthToken(response.id_token || Constants.EMPTY_STRING, this.browserCrypto);
-        if (idTokenObj.claims.nonce !== request.nonce) {
-            throw ClientAuthError.createNonceMismatchError();
-        }
 
         // Save account in browser storage
         const homeAccountIdentifier = AccountEntity.generateHomeAccountId(response.client_info || Constants.EMPTY_STRING, AuthorityType.Default, this.logger, this.browserCrypto, idTokenObj);
@@ -127,7 +124,6 @@ export class WamInteractionClient extends BaseInteractionClient {
             redirectUri: this.getRedirectUri(request.redirectUri),
             correlationId: this.correlationId,
             prompt: request.prompt || PromptValue.NONE,
-            nonce: request.nonce || this.browserCrypto.createNewGuid(),
             instanceAware: false,
             extraParameters: {
                 ...request.extraQueryParameters,
