@@ -18,6 +18,8 @@ router.get('/login', (req, res) => {
 
     if (req.query.hybrid) {
         authCodeUrlParameters.state = "hybrid=true";
+    } else if (req.query.implicit) {
+        authCodeUrlParameters.state = "implicit=true"
     }
 
     // get url to sign user in and consent to scopes needed for application
@@ -37,6 +39,7 @@ router.post('/redirect', (req, res) => {
     };
 
     const useHybrid = req.body.state === "hybrid=true";
+    const useImplicit = req.body.state === "implicit=true";
 
     // Parameters needed to spa test flight
     tokenRequest.tokenQueryParameters = {
@@ -82,14 +85,18 @@ router.post('/redirect', (req, res) => {
             }
 
             if (loginHint) {
-                params.set("loginHint", loginHint);
+                // params.set("loginHint", loginHint);
             }
 
             if (preferredUsername) {
                 params.set("preferredUsername", preferredUsername);
             }
 
-            res.redirect(`/auth/client-redirect?${params.toString()}`)
+            if (useImplicit) {
+                res.redirect(`/auth/implicit-redirect?${params.toString()}`)
+            } else {
+                res.redirect(`/auth/client-redirect?${params.toString()}`)
+            }
         })
         .catch((error) => {
             console.timeEnd(timeLabel)
@@ -105,6 +112,10 @@ const data = {
 
 router.get('/client-redirect', function(req, res, next) {
     res.render('client-redirect', data);
+});
+
+router.get('/implicit-redirect', function(req, res, next) {
+    res.render('implicit-redirect', data);
 });
 
 module.exports = router;

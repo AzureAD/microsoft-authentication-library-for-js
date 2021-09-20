@@ -88,7 +88,7 @@ export class ClientAssertion {
         this.expirationTime = issuedAt + 600;
 
         const header = {
-            [JwtConstants.ALGORITHM]: JwtConstants.RSA_256,
+            "alg": JwtConstants.RSA_256,
             [JwtConstants.X5T]: EncodingUtils.base64EncodeUrl(this.thumbprint, "hex")
         };
 
