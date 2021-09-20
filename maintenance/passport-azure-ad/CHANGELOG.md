@@ -1,5 +1,11 @@
 <a name="4.0.0"></a>
 
+# 4.3.1
+
+## Bugs
+- Replace `jwk-to-pem` with `node-jose` to remove dependency on `elliptic`: #3868
+- Update `https-proxy-agent` to v5: #3996
+
 # 4.3.0
 
 ## Features
