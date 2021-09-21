@@ -13,16 +13,16 @@ const config: MsalElectronConfig = {
     clientId: '<CLIENT_ID>', // <<== Replace this placeholder with your client ID
     mainWindow: mainWindow, //BrowserWindow instance that requires auth
     scopes: [
-    'user.read',
-    'people.read',
-    'user.readbasic.all',
-    'contacts.read',
-    'presence.read.all',
-    'presence.read',
-    'user.read.all',
-    'calendars.read',
-    'Sites.Read.All',
-    'Sites.ReadWrite.All',
+        'user.read',
+        'people.read',
+        'user.readbasic.all',
+        'contacts.read',
+        'presence.read.all',
+        'presence.read',
+        'user.read.all',
+        'calendars.read',
+        'Sites.Read.All',
+        'Sites.ReadWrite.All',
     ],
     cachePlugin: new PersistenceCachePlugin(persistence),
 };
@@ -35,14 +35,7 @@ Run `npm install` or your preferred alternative to it, to install the dependenci
 npm install
 ```
 
-**3. Create the DPAPI.node symlink** \
-To allow the `bindings` library to correctly locate the `dpapi.node` file you need to create a symlink to it in the `build` folder on the root of the sample. Run the command below while in the `build` folder on the sample's root to do that.
-
-```bash
-ln -s ../node_modules/@azure/msal-node-extensions/build/Release/dpapi.node dpapi.node
-```
-
-**4. Start your application** \
+**3. Start your application** \
 To start your application, run the command below:
 
 ```bash
