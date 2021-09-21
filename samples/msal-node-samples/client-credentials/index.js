@@ -25,18 +25,19 @@ const cachePlugin = require('../cachePlugin')(cacheLocation);
  * with the path to your custom configuraiton.
  */
 const scenario = argv.s || "ADFS";
+const runtimeOptions = argv.ro || null;
 const config = require(`./config/${scenario}.json`);
 
-function getTokenClientCredentials(cca) {
+function getClientCredentialsToken(cca, ro) {
     // With client credentials flows permissions need to be granted in the portal by a tenant administrator. 
     // The scope is always in the format "<resource>/.default"
     const clientCredentialRequest = {
         scopes: ["https://graph.microsoft.com/.default"],
-        azureRegion: "westus2", // (optional) specify the region you will deploy your application to here (e.g. "westus2")
+        azureRegion: ro ? ro.region : null, // (optional) specify the region you will deploy your application to here (e.g. "westus2")
         skipCache: true, // (optional) this skips the cache and forces MSAL to get a new token from Azure AD
     };
 
-    cca
+    return cca
         .acquireTokenByClientCredential(clientCredentialRequest)
         .then((response) => {
             console.log("Response: ", response);
@@ -76,5 +77,7 @@ if(argv.$0 === "index.js") {
     const confidentialClientApplication = new msal.ConfidentialClientApplication(clientConfig);
 
     // Execute sample application with the configured MSAL PublicClientApplication
-    return getTokenClientCredentials(confidentialClientApplication);
+    return getClientCredentialsToken(confidentialClientApplication, runtimeOptions);
 }
+
+module.exports = getClientCredentialsToken;
