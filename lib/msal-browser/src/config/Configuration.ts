@@ -78,6 +78,7 @@ export type BrowserSystemOptions = SystemOptions & {
     redirectNavigationTimeout?: number;
     asyncPopups?: boolean;
     allowRedirectInIframe?: boolean;
+    platformSSO?: boolean;
 };
 
 /**
@@ -153,7 +154,8 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         navigateFrameWait: isBrowserEnvironment && BrowserUtils.detectIEOrEdge() ? 500 : 0,
         redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
         asyncPopups: false,
-        allowRedirectInIframe: false
+        allowRedirectInIframe: false,
+        platformSSO: false
     };
 
     const overlayedConfig: BrowserConfiguration = {

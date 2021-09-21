@@ -124,10 +124,13 @@ export abstract class ClientApplication {
      * Initializer function to perform async startup tasks such as connecting to WAM extension
      */
     async initialize(): Promise<void> {
-        try {
-            this.wamExtensionProvider = await WamMessageHandler.createProvider(this.logger);
-        } catch (e) {
-            this.logger.verbose(e);
+        this.logger.trace("initialize called");
+        if (this.config.system.platformSSO) {
+            try {
+                this.wamExtensionProvider = await WamMessageHandler.createProvider(this.logger);
+            } catch (e) {
+                this.logger.verbose(e);
+            }
         }
     }
 
