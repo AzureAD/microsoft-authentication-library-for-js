@@ -84,12 +84,11 @@ export class DatabaseStorage<T> {
         newTables.forEach((tableName: string) => {
             database.createObjectStore(tableName);
         });
-
+        
         // Remove remaining outdated tables
         outdatedTables.forEach((tableName: string) => {
             database.deleteObjectStore(tableName);
         });
-
     }
 
     /**
@@ -111,6 +110,7 @@ export class DatabaseStorage<T> {
 
             const objectStore = transaction.objectStore(this.tableName);
             const dbGet = objectStore.get(key);
+            
             dbGet.addEventListener("success", (e: Event) => {
                 const event = e as IDBRequestEvent;
                 resolve(event.target.result);
@@ -124,12 +124,12 @@ export class DatabaseStorage<T> {
      * @param key 
      * @param payload 
      */
-    async put(key: string, payload: T): Promise<T> {
+    async put(key: string, payload: T): Promise<string> {
         if (!this.dbOpen) {
             await this.open();
         }
 
-        return new Promise<T>((resolve: Function, reject: Function) => {
+        return new Promise<string>((resolve: Function, reject: Function) => {
             // TODO: Add timeouts?
             if (!this.db) {
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
@@ -138,7 +138,7 @@ export class DatabaseStorage<T> {
             const transaction = this.db.transaction([this.tableName], "readwrite");
 
             const objectStore = transaction.objectStore(this.tableName);
-            
+
             const dbPut = objectStore.put(payload, key);
 
             dbPut.addEventListener("success", (e: Event) => {
