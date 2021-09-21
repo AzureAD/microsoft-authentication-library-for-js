@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, Logger, ICrypto, StringUtils, PromptValue, AuthToken, Constants, ClientAuthError, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES } from "@azure/msal-common";
+import { AuthenticationResult, Logger, ICrypto, PromptValue, AuthToken, Constants, AccountEntity, AuthorityType, ScopeSet, TimeUtils, AuthenticationScheme, UrlString, OIDC_DEFAULT_SCOPES } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
@@ -132,14 +132,19 @@ export class WamInteractionClient extends BaseInteractionClient {
             extendedExpiryToken: false // Make this configurable?
         };
 
-        const account = request.account || this.browserStorage.getActiveAccount();
-        if (account) {
-            validatedRequest.accountId = account.nativeAccountId;
-            validatedRequest.loginHint = account.username;
+        let account = request.account || this.browserStorage.getActiveAccount();
+        if (!account && (request.loginHint || request.sid)) {
+            account = this.browserStorage.getAccountInfoByHints(request.loginHint, request.sid);
         }
 
-        // Check for ADAL/MSAL v1 SSO
-        if (StringUtils.isEmpty(validatedRequest.loginHint)) {
+        if (account) {
+            validatedRequest.accountId = account.nativeAccountId;
+            if (!validatedRequest.accountId) {
+                validatedRequest.sid = account.idTokenClaims && account.idTokenClaims["sid"];
+                validatedRequest.loginHint = account.username;
+            }
+        } else {
+            // Check for ADAL/MSAL v1 SSO
             const loginHint = this.browserStorage.getLegacyLoginHint();
             if (loginHint) {
                 validatedRequest.loginHint = loginHint;
