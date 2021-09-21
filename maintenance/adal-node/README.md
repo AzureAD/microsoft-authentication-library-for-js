@@ -183,7 +183,7 @@ context.acquireTokenWithClientCredentials(resource, applicationId, clientSecret,
 We have moved to `axios` as the package of choice for HTTP requests for adal-node from `request` since the npm support for `request` is discontinued. However we noticed later that `axios` does not support proxies -filed [here](https://github.com/axios/axios/issues/2072#issuecomment-567473812). Since we are making only security changes to `adal-node`, we are refraining from making any changes. However, we do recommend using `https-proxy-agent` as suggested in the issue linked in case you need proxies for your application.
 
 ## License
-Copyright (c) Microsoft Open Technologies, Inc.  All rights reserved. Licensed under the Apache License, Version 2.0 (the "License");
+Copyright (c) Microsoft Open Technologies, Inc.  All rights reserved. Licensed under the Apache License, Version 2.0 (the "License")
 
 ## We Value and Adhere to the Microsoft Open Source Code of Conduct
 
