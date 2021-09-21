@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Persist authority in inmemory cache",
+  "packageName": "@azure/msal-node",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}
