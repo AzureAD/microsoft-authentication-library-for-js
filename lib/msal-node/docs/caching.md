@@ -14,7 +14,7 @@ const cca = new msal.ConfidentialClientApplication({
     }
 });
 
-/** 
+/**
 * login* and acquireToken* APIs return an account object containing "homeAccountId"
 * you should keep a record of this in your app and use it later on when calling acquireTokenSilent
 * For more, see: https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/docs/accounts.md
@@ -57,6 +57,9 @@ MSAL Node's cache schema is compatible with other MSALs. By default, MSAL's cach
     "AppMetadata": {}
 }
 ```
+
+## Cache in memory
+If a user chooses not to persist cache, the `TokenCache` interface is still available to access the tokens cached in memory. The life time of in memory cache is the same as MSAL instance. If the MSAL instance  restarts, the cache is erased when the process lifecycle finishes. We recommend persisting the cache with encryption for all real life applications both for security and desired cache longevity.
 
 ## Persistence
 
