@@ -87,7 +87,7 @@ On confidential client applications that handle users (web apps that sign in use
 
 * For web apps: **homeAccountId** (if on ADFS, use **localAccountId** instead)
 * For multi-tenant daemon apps using client credentials grant: **tenantId** (or rather, `<clientId>.<tenantId>`)
-* For web APIs calling other web APIs using OBO: hash of the incoming access token from the user, which will subsequently be exchanged for an OBO token
+* For web APIs calling other web APIs using OBO: hash of the incoming access token from the user (i.e. the token which will subsequently be exchanged for an OBO token)
 
 For instance, when developing a web app that serve users, implement [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.icacheplugin.html) in a class where user's `homeAccountId` is used for partitioning:
 
