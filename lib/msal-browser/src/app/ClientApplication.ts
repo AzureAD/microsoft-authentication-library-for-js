@@ -4,7 +4,7 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { StringUtils, ServerError, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION } from "@azure/msal-common";
+import { StringUtils, ServerError, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
 import { InteractionType, ApiId, BrowserConstants, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -28,6 +28,10 @@ import { TokenCache } from "../cache/TokenCache";
 import { ITokenCache } from "../cache/ITokenCache";
 import { WamInteractionClient } from "../interaction_client/WamInteractionClient";
 import { WamMessageHandler } from "../broker/wam/WamMessageHandler";
+import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
+import { SilentRequest } from "../request/SilentRequest";
+import { WamAuthError } from "../error/WamAuthError";
+import { SilentCacheClient } from "../interaction_client/SilentCacheClient";
 
 export abstract class ClientApplication {
 
@@ -260,15 +264,23 @@ export abstract class ClientApplication {
             this.eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Popup, request);
         }
 
-        let popupClient: PopupClient | WamInteractionClient;
+        let result: Promise<AuthenticationResult>;
 
-        if (this.wamExtensionProvider) {
-            popupClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.wamExtensionProvider, request.correlationId);
+        if (this.config.system.platformSSO && this.wamExtensionProvider) {
+            result = this.acquireTokenNative(request).catch((e: AuthError) => {
+                if (this.fallbackToStandardFlow(e)) {
+                    this.wamExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt 
+                    const popupClient = this.createPopupClient(request.correlationId);
+                    return popupClient.acquireToken(request);
+                }
+                throw e;
+            });
         } else {
-            popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, request.correlationId);
+            const popupClient = this.createPopupClient(request.correlationId);
+            result = popupClient.acquireToken(request);
         }
 
-        return popupClient.acquireToken(request).then((result) => {
+        return result.then((result) => {
             // If logged in, emit acquire token events
             const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
             if (isLoggingIn) {
@@ -313,20 +325,30 @@ export abstract class ClientApplication {
         this.logger.verbose("ssoSilent called", request.correlationId);
         this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
 
-        try {
-            let silentIframeClient: SilentIframeClient | WamInteractionClient;
-            if (this.wamExtensionProvider) {
-                silentIframeClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.wamExtensionProvider, request.correlationId);
-            } else {
-                silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, request.correlationId);
-            }
-            const silentTokenResult = await silentIframeClient.acquireToken(request);
-            this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, silentTokenResult);
-            return silentTokenResult;
-        } catch (e) {
+        let result: Promise<AuthenticationResult>;
+
+        if (this.config.system.platformSSO && this.wamExtensionProvider) {
+            result = this.acquireTokenNative(request).catch((e: AuthError) => {
+                // If native token acquisition fails for availability reasons fallback to standard flow
+                if (e instanceof WamAuthError && e.isExtensionError()) {
+                    this.wamExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt 
+                    const silentIframeClient = this.createSilentIframeClient(request.correlationId);
+                    return silentIframeClient.acquireToken(request);
+                }
+                throw e;
+            });
+        } else {
+            const silentIframeClient = this.createSilentIframeClient(request.correlationId);
+            result = silentIframeClient.acquireToken(request);
+        }
+
+        return result.then((response) => {
+            this.eventHandler.emitEvent(EventType.SSO_SILENT_SUCCESS, InteractionType.Silent, response);
+            return response;
+        }).catch ((e) => {
             this.eventHandler.emitEvent(EventType.SSO_SILENT_FAILURE, InteractionType.Silent, null, e);
             throw e;
-        }
+        });
     }
 
     /**
@@ -383,12 +405,7 @@ export abstract class ClientApplication {
     async logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void> {
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
 
-        let redirectClient: RedirectClient | WamInteractionClient;
-        if (this.wamExtensionProvider) {
-            redirectClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.wamExtensionProvider, logoutRequest?.correlationId);
-        } else {
-            redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, logoutRequest?.correlationId);
-        }
+        const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, logoutRequest?.correlationId);
         return redirectClient.logout(logoutRequest);
     }
 
@@ -399,13 +416,7 @@ export abstract class ClientApplication {
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void> {
         try{
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
-
-            let popupClient: PopupClient | WamInteractionClient;
-            if (this.wamExtensionProvider) {
-                popupClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.wamExtensionProvider, logoutRequest?.correlationId);
-            } else {
-                popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, logoutRequest?.correlationId);
-            }
+            const popupClient = this.createPopupClient(logoutRequest?.correlationId);
             return popupClient.logout(logoutRequest);
         } catch (e) {
             // Since this function is syncronous we need to reject
@@ -529,6 +540,42 @@ export abstract class ClientApplication {
             !this.config.cache.storeAuthStateInCookie) {
             throw BrowserConfigurationAuthError.createInMemoryRedirectUnavailableError();
         }
+    }
+
+    /**
+     * Acquire a token from native device (WAM)
+     * @param request 
+     */
+    protected acquireTokenNative(request: PopupRequest|SilentRequest|SsoSilentRequest): Promise<AuthenticationResult> {
+        if (!this.wamExtensionProvider) {
+            throw BrowserAuthError.createWamConnectionNotEstablishedError();
+        }
+
+        const wamClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.wamExtensionProvider, request.correlationId);
+        return wamClient.acquireToken(request);
+    }
+
+    /**
+     * Returns new instance of the Popup Interaction Client
+     * @param correlationId 
+     */
+    protected createPopupClient(correlationId?: string): PopupClient {
+        return new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, correlationId);
+    }
+
+    /**
+     * Returns new instance of the Silent Iframe Interaction Client
+     * @param correlationId 
+     */
+    protected createSilentIframeClient(correlationId?: string): SilentIframeClient {
+        return new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.ssoSilent, correlationId);
+    }
+
+    /**
+     * Returns new instance of the Silent Cache Interaction Client
+     */
+    protected createSilentCacheClient(): SilentCacheClient {
+        return new SilentCacheClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient);
     }
 
     /**

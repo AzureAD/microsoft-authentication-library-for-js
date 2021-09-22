@@ -22,4 +22,11 @@ export class WamAuthError extends AuthError {
         this.name = "WamAuthError";
         this.ext = ext;
     }
+
+    /**
+     * Errors thrown by the browser extension. Typically means the extension was uninstalled, disabled or unable to communicate with the native layer. These errors should result in a fallback to the 'standard' browser based auth flow 
+     */
+    isExtensionError(): boolean {
+        return this.errorCode === "ContentError";
+    }
 }

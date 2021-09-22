@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, RequestThumbprint } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, RequestThumbprint, AuthError } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, InteractionType } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -13,8 +13,7 @@ import { ClientApplication } from "./ClientApplication";
 import { SilentRequest } from "../request/SilentRequest";
 import { EventType } from "../event/EventType";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { SilentCacheClient } from "../interaction_client/SilentCacheClient";
-import { WamInteractionClient } from "../interaction_client/WamInteractionClient";
+import { WamAuthError } from "../error/WamAuthError";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -131,24 +130,34 @@ export class PublicClientApplication extends ClientApplication implements IPubli
     private async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult>{
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
 
-        let result: AuthenticationResult;
-        try {
-            if (this.wamExtensionProvider) {
-                const wamInteractionClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.wamExtensionProvider, request.correlationId);       
-                result = await wamInteractionClient.acquireToken(request);     
-            } else {
-                const silentCacheClient = new SilentCacheClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient);
-                const silentRequest = silentCacheClient.initializeSilentRequest(request, account);
-                result = await silentCacheClient.acquireToken(silentRequest).catch(async () => {
-                    return await this.acquireTokenByRefreshToken(silentRequest);
-                });
-            }
-        } catch (tokenRenewalError) {
-            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
-            throw tokenRenewalError;
+        let result: Promise<AuthenticationResult>;
+        if (this.config.system.platformSSO && this.wamExtensionProvider) {
+            result = this.acquireTokenNative(request).catch((e: AuthError) => {
+                // If native token acquisition fails for availability reasons fallback to standard flow
+                if (e instanceof WamAuthError && e.isExtensionError()) {
+                    this.wamExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt 
+                    const silentCacheClient = this.createSilentCacheClient();
+                    const silentRequest = silentCacheClient.initializeSilentRequest(request, account);
+                    result = silentCacheClient.acquireToken(silentRequest).catch(async () => {
+                        return this.acquireTokenByRefreshToken(silentRequest);
+                    });
+                }
+                throw e;
+            });     
+        } else {
+            const silentCacheClient = this.createSilentCacheClient();
+            const silentRequest = silentCacheClient.initializeSilentRequest(request, account);
+            result = silentCacheClient.acquireToken(silentRequest).catch(async () => {
+                return this.acquireTokenByRefreshToken(silentRequest);
+            });
         }
 
-        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, result);
-        return result;
+        return result.then((response) => {
+            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, response);
+            return response;
+        }).catch((tokenRenewalError) => {
+            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
+            throw tokenRenewalError;
+        });
     }
 }
