@@ -86,8 +86,8 @@ On public client apps, [MSAL Node Extensions](../../../extensions/msal-node-exte
 On confidential client applications that handle users (web apps that sign in users and call web APIs, and web APIs calling downstream web APIs), there can be many users and the users are processed in parallel. Our recommendation is to serialize one cache blob per user. Use a key for partitioning the cache (*i.e.* **partition key**), such as:
 
 * For web apps: **homeAccountId** (if on ADFS, use **localAccountId** instead)
-* For multi-tenant daemon apps using client credentials grant: **tenantId** (:information_source: these apps do not face users, but nevertheless benefit from partitioning the authentication artifacts with respect to each tenant)
-<!-- * For web APIs using OBO: *TBD* -->
+* For multi-tenant daemon apps using client credentials grant: **tenantId** (or rather, `<clientId>.<tenantId>`)
+* For web APIs calling other web APIs using OBO: hash of the incoming access token from the user (i.e. the token which will subsequently be exchanged for an OBO token)
 
 For instance, when developing a web app that serve users, implement [ICachePlugin](https://azuread.github.io/microsoft-authentication-library-for-js/ref/interfaces/_azure_msal_common.icacheplugin.html) in a class where user's `homeAccountId` is used for partitioning:
 
