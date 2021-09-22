@@ -11,7 +11,10 @@ const data = {
 
 /* GET home page. */
 router.get('/', function(req, res, next) {
-  res.render('index', data);
+    res.render('index', {
+        ...data,
+        isAuthenticated: req.session.isAuthenticated
+    });
 });
 
 module.exports = router;

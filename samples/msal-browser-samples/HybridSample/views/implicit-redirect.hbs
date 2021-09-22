@@ -10,10 +10,9 @@
         }
     })
 
-    const params = new URLSearchParams(document.location.search);
-    const sid = params.get("sid");
-    const preferredUsername = decodeURIComponent(params.get("preferredUsername"));
-    const loginHint = params.get("loginHint"); // Use loginHint claim instead of email
+    const sid = "{{sid}}";
+    const preferredUsername = "{{preferredUsername}}";
+    const loginHint = "{{loginHint}}";
 
     // Only handle hash when in top frame
     if (window === window.top) {
@@ -37,7 +36,7 @@
                 console.error('MSAL: ssoSilent failed', error);
 
                 if (error instanceof Msal.InteractionRequiredAuthError) {
-                    console.log('MSAL: ssoSilent failed, redirecting')
+                    console.log('MSAL: ssoSilent failed, opening popup')
                     // Use loginHint from server to ensure same user
                     return msalInstance.loginPopup({
                         loginHint,

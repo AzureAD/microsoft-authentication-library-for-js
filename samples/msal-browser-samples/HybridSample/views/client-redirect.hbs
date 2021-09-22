@@ -1,4 +1,5 @@
-<a href="/">Go Back</a>
+<a href="/">Go Back</a><br />
+<a href="/auth/logout">Logout</a>
 
 <script src="/auth/lib/msal-browser.js"></script>
 <script type="text/javascript">
@@ -19,11 +20,10 @@
                     return result;
                 }
                 
-                const params = new URLSearchParams(document.location.search);
-                const sid = params.get("sid");
-                const code = params.get("code");
-                const preferredUsername = decodeURIComponent(params.get("preferredUsername"));
-                const loginHint = params.get("loginHint"); // Use loginHint claim instead of email
+                const sid = "{{sid}}";
+                const code = "{{code}}";
+                const preferredUsername = "{{preferredUsername}}";
+                const loginHint = "{{loginHint}}";
 
                 const scopes = [ "user.read" ];
                 const tokenQueryParameters = {

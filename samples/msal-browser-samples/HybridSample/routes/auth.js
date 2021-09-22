@@ -74,28 +74,16 @@ router.post('/redirect', (req, res) => {
             // Spa auth code
             const { code } = response;
 
-            const params = new URLSearchParams();
-
-            if (sid) {
-                params.set("sid", sid);
-            }
-
-            if (code) {
-                params.set("code", code);
-            }
-
-            if (loginHint) {
-                // params.set("loginHint", loginHint);
-            }
-
-            if (preferredUsername) {
-                params.set("preferredUsername", preferredUsername);
-            }
+            req.session.isAuthenticated = true;
+            req.session.code = code;
+            req.session.sid = sid;
+            req.session.loginHint = loginHint;
+            req.session.preferredUsername = preferredUsername;
 
             if (useImplicit) {
-                res.redirect(`/auth/implicit-redirect?${params.toString()}`)
+                res.redirect(`/auth/implicit-redirect`)
             } else {
-                res.redirect(`/auth/client-redirect?${params.toString()}`)
+                res.redirect(`/auth/client-redirect`)
             }
         })
         .catch((error) => {
@@ -111,11 +99,23 @@ const data = {
 }
 
 router.get('/client-redirect', function(req, res, next) {
-    res.render('client-redirect', data);
+    res.render('client-redirect', {
+        ...data,
+        ...req.session
+    });
 });
 
 router.get('/implicit-redirect', function(req, res, next) {
-    res.render('implicit-redirect', data);
+    res.render('implicit-redirect', {
+        ...data,
+        ...req.session
+    });
+});
+
+router.get('/logout', (req, res) => {
+    req.session.destroy(err => {
+        res.render('logout', data);
+    })
 });
 
 module.exports = router;
