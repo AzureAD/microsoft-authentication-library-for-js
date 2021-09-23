@@ -268,7 +268,7 @@ export abstract class ClientApplication {
 
         if (this.config.system.platformSSO && this.wamExtensionProvider) {
             result = this.acquireTokenNative(request).catch((e: AuthError) => {
-                if (e instanceof WamAuthError && e.isExtensionError()) {
+                if (e instanceof WamAuthError && e.isFatal()) {
                     this.wamExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt 
                     const popupClient = this.createPopupClient(request.correlationId);
                     return popupClient.acquireToken(request);
@@ -330,7 +330,7 @@ export abstract class ClientApplication {
         if (this.config.system.platformSSO && this.wamExtensionProvider) {
             result = this.acquireTokenNative(request).catch((e: AuthError) => {
                 // If native token acquisition fails for availability reasons fallback to standard flow
-                if (e instanceof WamAuthError && e.isExtensionError()) {
+                if (e instanceof WamAuthError && e.isFatal()) {
                     this.wamExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt 
                     const silentIframeClient = this.createSilentIframeClient(request.correlationId);
                     return silentIframeClient.acquireToken(request);

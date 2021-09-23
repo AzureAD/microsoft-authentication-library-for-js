@@ -13,6 +13,9 @@ export type OSError = {
 };
 
 export const WamAuthErrorMessage = {
+    extensionError: {
+        code: "ContentError"
+    },
     wamAtPopNotSupported: {
         code: "wam_access_token_pop_not_supported",
         desc: "WAM flow does not currently support access token proof of posession."
@@ -31,12 +34,18 @@ export class WamAuthError extends AuthError {
     }
 
     /**
-     * Errors thrown by the browser extension. Typically means the extension was uninstalled, disabled or unable to communicate with the native layer. These errors should result in a fallback to the 'standard' browser based auth flow 
+     * These errors should result in a fallback to the 'standard' browser based auth flow.
      */
-    isExtensionError(): boolean {
-        return this.errorCode === "ContentError";
+    isFatal(): boolean {
+        switch (this.errorCode) {
+            case WamAuthErrorMessage.extensionError.code:
+            case WamAuthErrorMessage.wamAtPopNotSupported.code:
+                return true;
+            default:
+                return false;
+        }
     }
-    
+
     /*
      * Create an error thrown when a proof-of-posession request is made to WAM
      */
