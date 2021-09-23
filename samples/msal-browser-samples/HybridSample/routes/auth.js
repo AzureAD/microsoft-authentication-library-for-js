@@ -12,7 +12,7 @@ router.use('/lib', express.static(path.join(__dirname, '../node_modules/@azure/m
 router.get('/login', (req, res) => {
     const authCodeUrlParameters = {
         scopes: ["user.read"],
-        redirectUri: "http://localhost:3000/auth/redirect",
+        redirectUri: "http://localhost:3000/auth/server-redirect",
         responseMode: "form_post"
     };
 
@@ -31,11 +31,11 @@ router.get('/login', (req, res) => {
         .catch((error) => console.log(JSON.stringify(error)));
 });
 
-router.post('/redirect', (req, res) => {
+router.post('/server-redirect', (req, res) => {
     const tokenRequest = {
         code: req.body.code,
         scopes: ["user.read"],
-        redirectUri: "http://localhost:3000/auth/redirect"
+        redirectUri: "http://localhost:3000/auth/server-redirect"
     };
 
     const useHybrid = req.body.state === "hybrid=true";
