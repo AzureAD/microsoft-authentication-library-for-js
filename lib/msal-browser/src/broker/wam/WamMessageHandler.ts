@@ -5,7 +5,7 @@
 
 import { WamConstants, WamExtensionMethod } from "../../utils/BrowserConstants";
 import { Logger, AuthError } from "@azure/msal-common";
-import { WamExtensionRequest, WamExtensionRequestBody } from "./WamExtensionRequest";
+import { WamExtensionRequest, WamExtensionRequestBody } from "./WamRequest";
 import { WamAuthError } from "../../error/WamAuthError";
 import { BrowserAuthError } from "../../error/BrowserAuthError";
 

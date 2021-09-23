@@ -3,9 +3,13 @@
  * Licensed under the MIT License.
  */
 
+import { WamExtensionMethod } from "../../utils/BrowserConstants";
 import { StringDict } from "@azure/msal-common";
 
-export type WamRequest = {
+/**
+ * Token request which native broker will use to acquire tokens
+ */
+export type WamTokenRequest = {
     clientId: string;
     authority: string;
     redirectUri: string;
@@ -22,4 +26,22 @@ export type WamRequest = {
     extendedExpiryToken?: boolean;
     instanceAware?: boolean;
     extraParameters?: StringDict;
+};
+
+/**
+ * Request which will be forwarded to native broker by the browser extension
+ */
+export type WamExtensionRequestBody = {
+    method: WamExtensionMethod;
+    request?: WamTokenRequest;
+};
+
+/**
+ * Browser extension request
+ */
+export type WamExtensionRequest = {
+    channel: string;
+    responseId: number;
+    extensionId?: string;
+    body: WamExtensionRequestBody
 };
