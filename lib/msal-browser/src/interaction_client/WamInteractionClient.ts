@@ -14,10 +14,12 @@ import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { WamMessageHandler } from "../broker/wam/WamMessageHandler";
 import { WamRequest } from "../request/WamRequest";
-import { WamExtensionMethod } from "../utils/BrowserConstants";
+import { WamExtensionMethod, ApiId } from "../utils/BrowserConstants";
 import { WamExtensionRequestBody } from "../broker/wam/WamExtensionRequest";
 import { WamResponse } from "../response/WamResponse";
 import { WamAuthError } from "../error/WamAuthError";
+import { RedirectRequest } from "../request/RedirectRequest";
+import { NavigationOptions } from "../navigation/NavigationOptions";
 
 export class WamInteractionClient extends BaseInteractionClient {
     protected provider: WamMessageHandler;
@@ -40,6 +42,27 @@ export class WamInteractionClient extends BaseInteractionClient {
         const response: object = await this.provider.sendMessage(messageBody);
         this.validateWamResponse(response);
         return this.handleWamResponse(response as WamResponse, wamRequest, reqTimestamp);
+    }
+
+    async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
+        this.logger.trace("WamInteractionClient - acquireTokenRedirect called.");
+        const wamRequest = this.initializeWamRequest(request);
+
+        const messageBody: WamExtensionRequestBody = {
+            method: WamExtensionMethod.GetToken,
+            request: wamRequest
+        };
+
+        const response: object = await this.provider.sendMessage(messageBody);
+        this.validateWamResponse(response);
+
+        const navigationOptions: NavigationOptions = {
+            apiId: ApiId.acquireTokenRedirect,
+            timeout: this.config.system.redirectNavigationTimeout,
+            noHistory: false
+        };
+        const redirectUri = this.config.auth.navigateToLoginRequestUrl ? window.location.href : this.getRedirectUri(request.redirectUri);
+        await this.navigationClient.navigateExternal(redirectUri, navigationOptions); // Need to treat this as external to ensure handleRedirectPromise is run again
     }
 
     logout(request?: EndSessionRequest): Promise<void> {

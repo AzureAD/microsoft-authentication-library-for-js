@@ -223,9 +223,25 @@ export abstract class ClientApplication {
         } else {
             this.eventHandler.emitEvent(EventType.LOGIN_START, InteractionType.Redirect, request);
         }
+
+        let result: Promise<void>;
         
-        const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, request.correlationId);
-        return redirectClient.acquireToken(request).catch((e) => {
+        if (this.config.system.platformSSO && this.wamExtensionProvider) {
+            const wamClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.wamExtensionProvider, request.correlationId);
+            result = wamClient.acquireTokenRedirect(request).catch((e: AuthError) => {
+                if (e instanceof WamAuthError && e.isExtensionError()) {
+                    this.wamExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt 
+                    const redirectClient = this.createRedirectClient(request.correlationId);
+                    return redirectClient.acquireToken(request);
+                }
+                throw e;
+            });
+        } else {
+            const redirectClient = this.createRedirectClient(request.correlationId);
+            result = redirectClient.acquireToken(request);
+        }
+
+        return result.catch((e) => {
             // If logged in, emit acquire token events
             if (isLoggedIn) {
                 this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Redirect, null, e);
@@ -561,6 +577,14 @@ export abstract class ClientApplication {
      */
     protected createPopupClient(correlationId?: string): PopupClient {
         return new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, correlationId);
+    }
+
+    /**
+     * Returns new instance of the Popup Interaction Client
+     * @param correlationId 
+     */
+    protected createRedirectClient(correlationId?: string): RedirectClient {
+        return new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, correlationId);
     }
 
     /**
