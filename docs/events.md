@@ -65,6 +65,29 @@ const callbackId = msalInstance.addEventCallback((message: EventMessage) => {
 });
 ```
 
+## Syncing logged in state across tabs and windows
+
+If you would like to update your UI when a user logs in or out of your app in a different tab or window you can subscribe to the `ACCOUNT_ADDED` and `ACCOUNT_REMOVED` events. The payload will be the `AccountInfo` object that was added or removed.
+
+These events will not be emitted by default. In order to enable these events you must call the `addAccountStorageListener` API before registering your event callbacks:
+
+```javascript
+msalInstance.addAccountStorageListener();
+msalInstance.addEventCallback((message: EventMessage) => {
+    if (message.eventType === EventType.ACCOUNT_ADDED) {
+        // Update UI with new account
+    } else if (message.eventType === EventType.ACCOUNT_REMOVED) {
+        // Update UI with account logged out
+    }
+});
+```
+
+You can also disable these events if no longer needed by calling `removeAccountStorageListener`:
+
+```javascript
+msalInstance.removeAccountStorageListener();
+```
+
 ## Table of events
 These are the events currently emitted by msal-browser.
 

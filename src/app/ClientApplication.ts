@@ -506,6 +506,20 @@ export abstract class ClientApplication {
     }
 
     /**
+     * Adds event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
+     */
+    addAccountStorageListener(): void {
+        this.eventHandler.addAccountStorageListener();
+    }
+
+    /**
+     * Removes event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
+     */
+    removeAccountStorageListener(): void {
+        this.eventHandler.removeAccountStorageListener();
+    }
+
+    /**
      * Gets the token cache for the application.
      */
     getTokenCache(): ITokenCache {
