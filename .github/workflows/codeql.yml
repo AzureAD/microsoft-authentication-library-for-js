@@ -37,9 +37,13 @@ jobs:
     #    and modify them (or add more) to build your code if your project
     #    uses a compiled language
 
-    - run: |
-       npm ci
-       npm run build
+    - name: Clean Install
+      env:
+        RUNNING_NODE_CI: 1
+      run: npm ci
+      
+    - name: Build packages 
+      run: npm run build
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v1

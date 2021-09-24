@@ -93,9 +93,9 @@ import {
   MsalModule,
   MsalService,
   MsalInterceptor,
-  MsalInterceptorConfig,
+  MsalInterceptorConfiguration,
   MsalGuard,
-  MsalGuardConfig,
+  MsalGuardConfiguration,
   MsalBroadcastService, 
   MsalRedirectComponent
 } from "@azure/msal-angular";
@@ -115,7 +115,7 @@ export function MSALInstanceFactory(): IPublicClientApplication {
   });
 }
 
-export function MSALInterceptorConfigFactory(): MsalInterceptorConfig {
+export function MSALInterceptorConfigFactory(): MsalInterceptorConfiguration {
   const protectedResourceMap = new Map<string, Array<string>>();
   protectedResourceMap.set("https://graph.microsoft.com/v1.0/me", ["user.read"]);
 
