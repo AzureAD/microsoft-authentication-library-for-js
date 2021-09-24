@@ -110,7 +110,7 @@ An example of error handling can also be found on our [MSAL Angular v2 B2C Sampl
 If you would like to update your UI when a user logs in or out of your app in a different tab or window you can subscribe to the `ACCOUNT_ADDED` and `ACCOUNT_REMOVED` events. The payload will be the `AccountInfo` object that was added or removed.
 
 ```javascript
-import { MsalBroadcastService } from '@azure/msal-angular';
+import { MsalService, MsalBroadcastService } from '@azure/msal-angular';
 import { EventMessage, EventType } from '@azure/msal-browser';
 
 export class AppComponent implements OnInit, OnDestroy {
@@ -118,10 +118,12 @@ export class AppComponent implements OnInit, OnDestroy {
 
   constructor(
     //...
+    private authService: MsalService,
     private msalBroadcastService: MsalBroadcastService
   ) {}
 
   ngOnInit(): void {
+    this.authService.instance.addAccountStorageListener(); // Register the storage listener that will be emitting the events
     this.msalBroadcastService.msalSubject$
       .pipe(
         // Optional filtering of events

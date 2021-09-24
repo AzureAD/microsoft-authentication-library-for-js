@@ -21,6 +21,8 @@ export interface IPublicClientApplication {
     acquireTokenSilent(silentRequest: SilentRequest): Promise<AuthenticationResult>;
     addEventCallback(callback: Function): string | null;
     removeEventCallback(callbackId: string): void;
+    addAccountStorageListener(): void;
+    removeAccountStorageListener(): void;
     getAccountByHomeId(homeAccountId: string): AccountInfo | null;
     getAccountByLocalId(localId: string): AccountInfo | null;
     getAccountByUsername(userName: string): AccountInfo | null;
@@ -88,6 +90,12 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         return null;
     },
     removeEventCallback: () => {
+        return;
+    },
+    addAccountStorageListener: () => {
+        return;
+    },
+    removeAccountStorageListener: () => {
         return;
     },
     getTokenCache: () => {

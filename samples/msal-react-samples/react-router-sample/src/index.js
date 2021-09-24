@@ -20,6 +20,9 @@ if (!msalInstance.getActiveAccount() && msalInstance.getAllAccounts().length > 0
   msalInstance.setActiveAccount(msalInstance.getAllAccounts()[0]);
 }
 
+// Optional - This will update account state if a user signs in from another tab or window
+msalInstance.addAccountStorageListener();
+
 msalInstance.addEventCallback((event) => {
   if (event.eventType === EventType.LOGIN_SUCCESS && event.payload.account) {
     const account = event.payload.account;

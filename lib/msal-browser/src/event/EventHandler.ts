@@ -13,12 +13,14 @@ export class EventHandler {
     private eventCallbacks: Map<string, EventCallbackFunction>;
     private logger: Logger;
     private browserCrypto: ICrypto;
+    private listeningToStorageEvents: boolean;
     private boundStorageListener: (e: StorageEvent) => void;
 
     constructor(logger: Logger, browserCrypto: ICrypto) {
         this.eventCallbacks = new Map();
         this.logger = logger;
         this.browserCrypto = browserCrypto;
+        this.listeningToStorageEvents = false;
         this.boundStorageListener = this.handleAccountCacheChange.bind(this);
     }
 
@@ -28,10 +30,6 @@ export class EventHandler {
      */
     addEventCallback(callback: EventCallbackFunction): string | null {
         if (typeof window !== "undefined") {
-            if (this.eventCallbacks.size === 0) {
-                this.logger.verbose("Adding account storage listener.");
-                window.addEventListener("storage", this.boundStorageListener);
-            }
             const callbackId = this.browserCrypto.createNewGuid();
             this.eventCallbacks.set(callbackId, callback);
             this.logger.verbose(`Event callback registered with id: ${callbackId}`);
@@ -49,9 +47,27 @@ export class EventHandler {
     removeEventCallback(callbackId: string): void {
         this.eventCallbacks.delete(callbackId);
         this.logger.verbose(`Event callback ${callbackId} removed.`);
-        if (this.eventCallbacks.size === 0) {
+    }
+
+    /**
+     * Adds event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
+     */
+    addAccountStorageListener(): void {
+        if (!this.listeningToStorageEvents) {
+            this.logger.verbose("Adding account storage listener.");
+            this.listeningToStorageEvents = true;
+            window.addEventListener("storage", this.boundStorageListener);
+        }
+    }
+
+    /**
+     * Removes event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
+     */
+    removeAccountStorageListener(): void {
+        if (this.listeningToStorageEvents) {
             this.logger.verbose("Removing account storage listener.");
             window.removeEventListener("storage", this.boundStorageListener);
+            this.listeningToStorageEvents = false;
         }
     }
 
