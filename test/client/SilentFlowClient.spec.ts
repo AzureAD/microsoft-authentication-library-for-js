@@ -37,6 +37,7 @@ import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { CommonRefreshTokenRequest } from "../../src/request/CommonRefreshTokenRequest";
 import { CcsCredentialType } from "../../src/account/CcsCredential";
 import { ServerTelemetryManager } from "../../src/telemetry/server/ServerTelemetryManager";
+import { InteractionRequiredAuthError } from "../../src/error/InteractionRequiredAuthError";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID}`;
@@ -381,7 +382,7 @@ describe("SilentFlowClient unit tests", () => {
             };
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config);
-            await expect(client.acquireToken(tokenRequest)).rejects.toMatchObject(ClientConfigurationError.createNoTokensFoundError());
+            await expect(client.acquireToken(tokenRequest)).rejects.toMatchObject(InteractionRequiredAuthError.createNoTokensFoundError());
         });
 
         it("acquireCachedToken throws refresh requiredError if forceRefresh set to true", async () => {

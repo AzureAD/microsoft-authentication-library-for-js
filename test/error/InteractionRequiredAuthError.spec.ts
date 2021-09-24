@@ -1,5 +1,4 @@
-import { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage, InteractionRequiredAuthSubErrorMessage } from "../../src/error/InteractionRequiredAuthError";
-import { ServerError } from "../../src/error/ServerError";
+import { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage, InteractionRequiredAuthSubErrorMessage, InteractionRequiredServerErrorMessage } from "../../src/error/InteractionRequiredAuthError";
 import { AuthError } from "../../src/error/AuthError";
 
 
@@ -11,7 +10,6 @@ describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
         const err: InteractionRequiredAuthError = new InteractionRequiredAuthError(TEST_ERROR_CODE, TEST_ERROR_MSG);
 
         expect(err instanceof InteractionRequiredAuthError).toBe(true);
-        expect(err instanceof ServerError).toBe(true);
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(TEST_ERROR_CODE);
@@ -28,21 +26,21 @@ describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
         });
 
         it("Returns expected value for given error code", () => {
-            InteractionRequiredAuthErrorMessage.forEach(function (errorCode) {
+            InteractionRequiredServerErrorMessage.forEach(function (errorCode) {
                 expect(InteractionRequiredAuthError.isInteractionRequiredError(errorCode, "")).toBe(true);
             });
             expect(InteractionRequiredAuthError.isInteractionRequiredError("bad_token", "")).toBe(false);
         });
 
         it("Returns expected value for given error string", () => {
-            InteractionRequiredAuthErrorMessage.forEach(function (errorCode) {
+            InteractionRequiredServerErrorMessage.forEach(function (errorCode) {
                 expect(InteractionRequiredAuthError.isInteractionRequiredError("", `This is a ${errorCode} error!`)).toBe(true);
             });
             expect(InteractionRequiredAuthError.isInteractionRequiredError("", "This is not an interaction required error")).toBe(false);
         });
 
         it("Returns expected value for given error code and error string", () => {
-            InteractionRequiredAuthErrorMessage.forEach(function (errorCode) {
+            InteractionRequiredServerErrorMessage.forEach(function (errorCode) {
                 expect(InteractionRequiredAuthError.isInteractionRequiredError(errorCode, `This is a ${errorCode} error!`)).toBe(true);
             });
             expect(InteractionRequiredAuthError.isInteractionRequiredError("bad_token", "This is not an interaction required error")).toBe(false);
@@ -54,5 +52,18 @@ describe("InteractionRequiredAuthError.ts Class Unit Tests", () => {
             });
             expect(InteractionRequiredAuthError.isInteractionRequiredError("", "", "bad_token")).toBe(false);
         });
+    });
+
+    it("createNoTokensFoundError creates a ClientAuthError object", () => {
+        const err: InteractionRequiredAuthError = InteractionRequiredAuthError.createNoTokensFoundError();
+
+        expect(err instanceof InteractionRequiredAuthError).toBe(true);
+        expect(err instanceof AuthError).toBe(true);
+        expect(err instanceof Error).toBe(true);
+        expect(err.errorCode).toBe(InteractionRequiredAuthErrorMessage.noTokensFoundError.code);
+        expect(err.errorMessage.includes(InteractionRequiredAuthErrorMessage.noTokensFoundError.desc)).toBe(true);
+        expect(err.message.includes(InteractionRequiredAuthErrorMessage.noTokensFoundError.desc)).toBe(true);
+        expect(err.name).toBe("InteractionRequiredAuthError");
+        expect(err.stack?.includes("InteractionRequiredAuthError.spec.ts")).toBe(true);
     });
 });
