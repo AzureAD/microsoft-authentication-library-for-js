@@ -134,8 +134,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         if (this.config.system.platformSSO && this.wamExtensionProvider) {
             result = this.acquireTokenNative(request).catch((e: AuthError) => {
                 // If native token acquisition fails for availability reasons fallback to standard flow
-                if (e instanceof WamAuthError && e.isExtensionError()) {
-                    this.wamExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt 
+                if (e instanceof WamAuthError && e.isFatal()) {
+                    this.wamExtensionProvider = undefined; // Prevent future requests from continuing to attempt 
                     const silentCacheClient = this.createSilentCacheClient();
                     const silentRequest = silentCacheClient.initializeSilentRequest(request, account);
                     result = silentCacheClient.acquireToken(silentRequest).catch(async () => {

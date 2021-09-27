@@ -13,10 +13,9 @@ import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { WamMessageHandler } from "../broker/wam/WamMessageHandler";
-import { WamRequest } from "../request/WamRequest";
 import { WamExtensionMethod, ApiId } from "../utils/BrowserConstants";
-import { WamExtensionRequestBody } from "../broker/wam/WamExtensionRequest";
-import { WamResponse } from "../response/WamResponse";
+import { WamExtensionRequestBody, WamTokenRequest } from "../broker/wam/WamRequest";
+import { WamResponse } from "../broker/wam/WamResponse";
 import { WamAuthError } from "../error/WamAuthError";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { NavigationOptions } from "../navigation/NavigationOptions";
@@ -29,6 +28,10 @@ export class WamInteractionClient extends BaseInteractionClient {
         this.provider = provider;
     }
 
+    /**
+     * Acquire token from WAM via browser extension
+     * @param request 
+     */
     async acquireToken(request: PopupRequest|SilentRequest|SsoSilentRequest): Promise<AuthenticationResult> {
         this.logger.trace("WamInteractionClient - acquireToken called.");
         const wamRequest = this.initializeWamRequest(request);
@@ -65,12 +68,22 @@ export class WamInteractionClient extends BaseInteractionClient {
         await this.navigationClient.navigateExternal(redirectUri, navigationOptions); // Need to treat this as external to ensure handleRedirectPromise is run again
     }
 
+    /**
+     * Logout from WAM via browser extension
+     * @param request 
+     */
     logout(request?: EndSessionRequest): Promise<void> {
         this.logger.trace("WamInteractionClient - logout called.");
         return Promise.reject("Logout not implemented yet");
     }
 
-    protected async handleWamResponse(response: WamResponse, request: WamRequest, reqTimestamp: number): Promise<AuthenticationResult> {
+    /**
+     * Transform response from WAM into AuthenticationResult object which will be returned to the end user
+     * @param response 
+     * @param request 
+     * @param reqTimestamp 
+     */
+    protected async handleWamResponse(response: WamResponse, request: WamTokenRequest, reqTimestamp: number): Promise<AuthenticationResult> {
         this.logger.trace("WamInteractionClient - handleWamResponse called.");
         // create an idToken object (not entity)
         const idTokenObj = new AuthToken(response.id_token || Constants.EMPTY_STRING, this.browserCrypto);
@@ -128,8 +141,13 @@ export class WamInteractionClient extends BaseInteractionClient {
      * Translates developer provided request object into WamRequest object
      * @param request 
      */
-    protected initializeWamRequest(request: PopupRequest|SsoSilentRequest): WamRequest {
+    protected initializeWamRequest(request: PopupRequest|SsoSilentRequest): WamTokenRequest {
         this.logger.trace("WamInteractionClient - initializeWamRequest called");
+
+        if (request.authenticationScheme && request.authenticationScheme !== AuthenticationScheme.BEARER) {
+            // Only Bearer flows are supported right now
+            throw WamAuthError.createWamAtPopNotSupportedError();
+        }
 
         const authority = request.authority || this.config.auth.authority;
         const canonicalAuthority = new UrlString(authority);
@@ -139,7 +157,7 @@ export class WamInteractionClient extends BaseInteractionClient {
         const scopeSet = new ScopeSet(scopes);
         scopeSet.appendScopes(OIDC_DEFAULT_SCOPES);
 
-        const validatedRequest: WamRequest = {
+        const validatedRequest: WamTokenRequest = {
             ...request,
             clientId: this.config.auth.clientId,
             authority: canonicalAuthority.urlString,

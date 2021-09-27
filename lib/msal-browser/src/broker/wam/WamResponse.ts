@@ -3,12 +3,18 @@
  * Licensed under the MIT License.
  */
 
+/**
+ * Account properties returned by WAM
+ */
 export type WamAccountInfo = {
     id: string;
     properties: object;
     userName: string;
 };
 
+/**
+ * Token response returned by WAM
+ */
 export type WamResponse = {
     access_token: string;
     account: WamAccountInfo;

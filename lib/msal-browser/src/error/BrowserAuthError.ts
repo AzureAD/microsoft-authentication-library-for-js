@@ -454,10 +454,16 @@ export class BrowserAuthError extends AuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code, `${BrowserAuthErrorMessage.signingKeyNotFoundInStorage.desc} | No match found for KeyId: ${keyId}`);
     }
 
+    /**
+     * Create an error thrown when Handshake with WAM extension times out
+     */
     static createWamHandshakeTimeoutError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.wamHandshakeTimeout.code, BrowserAuthErrorMessage.wamHandshakeTimeout.desc);
     }
 
+    /**
+     * Create an error thrown when WAM extension is not installed
+     */
     static createWamExtensionNotInstalledError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.wamExtensionNotInstalled.code, BrowserAuthErrorMessage.wamExtensionNotInstalled.desc);
     }

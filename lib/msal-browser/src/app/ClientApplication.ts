@@ -28,7 +28,7 @@ import { TokenCache } from "../cache/TokenCache";
 import { ITokenCache } from "../cache/ITokenCache";
 import { WamInteractionClient } from "../interaction_client/WamInteractionClient";
 import { WamMessageHandler } from "../broker/wam/WamMessageHandler";
-import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 import { SilentRequest } from "../request/SilentRequest";
 import { WamAuthError } from "../error/WamAuthError";
 import { SilentCacheClient } from "../interaction_client/SilentCacheClient";
@@ -284,7 +284,7 @@ export abstract class ClientApplication {
 
         if (this.config.system.platformSSO && this.wamExtensionProvider) {
             result = this.acquireTokenNative(request).catch((e: AuthError) => {
-                if (this.fallbackToStandardFlow(e)) {
+                if (e instanceof WamAuthError && e.isFatal()) {
                     this.wamExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt 
                     const popupClient = this.createPopupClient(request.correlationId);
                     return popupClient.acquireToken(request);
@@ -346,7 +346,7 @@ export abstract class ClientApplication {
         if (this.config.system.platformSSO && this.wamExtensionProvider) {
             result = this.acquireTokenNative(request).catch((e: AuthError) => {
                 // If native token acquisition fails for availability reasons fallback to standard flow
-                if (e instanceof WamAuthError && e.isExtensionError()) {
+                if (e instanceof WamAuthError && e.isFatal()) {
                     this.wamExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt 
                     const silentIframeClient = this.createSilentIframeClient(request.correlationId);
                     return silentIframeClient.acquireToken(request);
