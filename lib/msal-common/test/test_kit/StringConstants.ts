@@ -149,7 +149,8 @@ export const TEST_POP_VALUES = {
     DECODED_REQ_CNF: "{\"kid\":\"NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs\",\"xms_ksl\":\"sw\"}",
     SAMPLE_POP_AT: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJjbmYiOnsia2lkIjoiTnpiTHNYaDh1RENjZC02TU53WEY0V183bm9XWEZaQWZIa3hac1JHQzlYcyJ9fQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
     SAMPLE_POP_AT_PAYLOAD_ENCODED: "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJjbmYiOnsia2lkIjoiTnpiTHNYaDh1RENjZC02TU53WEY0V183bm9XWEZaQWZIa3hac1JHQzlYcyJ9fQ",
-    SAMPLE_POP_AT_PAYLOAD_DECODED: "{\"sub\":\"1234567890\",\"name\":\"John Doe\",\"iat\":1516239022,\"cnf\":{\"kid\":\"NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs\"}}"
+    SAMPLE_POP_AT_PAYLOAD_DECODED: "{\"sub\":\"1234567890\",\"name\":\"John Doe\",\"iat\":1516239022,\"cnf\":{\"kid\":\"NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs\"}}",
+    SHR_NONCE: "eyJhbGciOiJIUzI1NiIsImtpZCI6IktJRCIsInR5cCI6IkpXVCJ9.eyJ0cyI6IjE2MjU2NzI1MjkifQ.rA5ho63Lbdwo8eqZ_gUtQxY3HaseL0InIVwdgf7L_fc"
 };
 
 export const TEST_ACCOUNT_INFO: AccountInfo = {
