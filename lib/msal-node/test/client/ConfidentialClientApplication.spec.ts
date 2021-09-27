@@ -135,7 +135,7 @@ describe('ConfidentialClientApplication', () => {
         );
     });
 
-    test.only('acquireTokenByClientCredential handles AuthErrors as expected', async () => {
+    test('acquireTokenByClientCredential handles AuthErrors as expected', async () => {
         const request: ClientCredentialRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             skipCache: false
