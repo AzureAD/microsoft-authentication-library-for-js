@@ -11,5 +11,4 @@ import { CommonAuthorizationUrlRequest } from "@azure/msal-common";
 export type AuthorizationUrlRequest = Omit<CommonAuthorizationUrlRequest, "state"|"nonce"> & {
     state: string;
     nonce: string;
-    headers?: Headers;
 };

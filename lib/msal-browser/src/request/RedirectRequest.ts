@@ -35,5 +35,4 @@ export type RedirectRequest = Partial<Omit<CommonAuthorizationUrlRequest, "respo
     scopes: Array<string>;
     redirectStartPage?: string;
     onRedirectNavigate?: (url: string) => boolean | void;
-    headers?: Headers;
 };
