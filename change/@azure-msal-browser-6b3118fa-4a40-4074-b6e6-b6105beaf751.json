@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Add correlationId to errors thrown #3930",
+  "comment": "Move helper functions up to BaseInteractionClient #4049",
   "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

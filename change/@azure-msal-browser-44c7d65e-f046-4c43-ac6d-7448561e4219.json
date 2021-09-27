@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix clearing active account on logout #3948",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}

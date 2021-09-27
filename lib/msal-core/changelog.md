@@ -1,8 +1,16 @@
 # Change Log - msal
 
-This log was last generated on Thu, 22 Jul 2021 22:50:22 GMT and should not be manually modified.
+This log was last generated on Tue, 07 Sep 2021 23:22:24 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.4.13
+
+Tue, 07 Sep 2021 23:22:24 GMT
+
+### Patches
+
+- Throw interaction in progress if any msal instance has interaction in progress #4014 (thomas.norling@microsoft.com)
 
 ## 1.4.12
 

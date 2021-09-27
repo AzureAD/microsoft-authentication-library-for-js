@@ -1,7 +1,6 @@
 {
   "type": "none",
-  "comment": "Unit test updates #3947",
-  "packageName": "@azure/msal-react",
+  "packageName": "@azure/msal-browser",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "none"
 }
