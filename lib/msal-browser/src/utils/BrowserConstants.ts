@@ -83,7 +83,8 @@ export enum TemporaryCacheKeys {
     SCOPES = "scopes",
     INTERACTION_STATUS_KEY = "interaction.status",
     CCS_CREDENTIAL = "ccs.credential",
-    CORRELATION_ID = "request.correlationId"
+    CORRELATION_ID = "request.correlationId",
+    NATIVE_REQUEST = "request.native"
 }
 
 /**

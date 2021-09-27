@@ -14,6 +14,7 @@ import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { version } from "../packageMetadata";
 import { BrowserConstants } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
+import { INavigationClient } from "../navigation/INavigationClient";
 
 export abstract class BaseInteractionClient {
 
@@ -23,14 +24,16 @@ export abstract class BaseInteractionClient {
     protected networkClient: INetworkModule;
     protected logger: Logger;
     protected eventHandler: EventHandler;
+    protected navigationClient: INavigationClient;
     protected correlationId: string;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, correlationId?: string) {
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, correlationId?: string) {
         this.config = config;
         this.browserStorage = storageImpl;
         this.browserCrypto = browserCrypto;
         this.networkClient = this.config.system.networkClient;
         this.eventHandler = eventHandler;
+        this.navigationClient = navigationClient;
         this.correlationId = correlationId || this.browserCrypto.createNewGuid();
         this.logger = logger.clone(BrowserConstants.MSAL_SKU, version, this.correlationId);
     }

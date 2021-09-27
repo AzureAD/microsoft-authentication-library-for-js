@@ -3,19 +3,15 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, Logger, ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils } from "@azure/msal-common";
+import { ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
-import { BrowserConfiguration } from "../config/Configuration";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
-import { BrowserCacheManager } from "../cache/BrowserCacheManager";
-import { EventHandler } from "../event/EventHandler";
 import { BrowserConstants, InteractionType } from "../utils/BrowserConstants";
 import { version } from "../packageMetadata";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserProtocolUtils, BrowserStateObject } from "../utils/BrowserProtocolUtils";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { BrowserUtils } from "../utils/BrowserUtils";
-import { INavigationClient } from "../navigation/INavigationClient";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
@@ -23,14 +19,7 @@ import { SsoSilentRequest } from "../request/SsoSilentRequest";
 /**
  * Defines the class structure and helper functions used by the "standard", non-brokered auth flows (popup, redirect, silent (RT), silent (iframe))
  */
-export abstract class StandardInteractionClient extends BaseInteractionClient {
-    protected navigationClient: INavigationClient;
-
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, correlationId?: string) {
-        super(config, storageImpl, browserCrypto, logger, eventHandler, correlationId);
-        this.navigationClient = navigationClient;
-    }
-    
+export abstract class StandardInteractionClient extends BaseInteractionClient {    
     /**
      * Generates an auth code request tied to the url request.
      * @param request

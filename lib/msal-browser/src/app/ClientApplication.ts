@@ -162,35 +162,41 @@ export abstract class ClientApplication {
                 this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
                 this.logger.verbose("handleRedirectPromise has been called for the first time, storing the promise");
                 const correlationId = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, true) || "";
-                const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, correlationId);
-                response = redirectClient.handleRedirectPromise(hash)
-                    .then((result: AuthenticationResult | null) => {
-                        if (result) {
-                            // Emit login event if number of accounts change
-                            const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
-                            if (isLoggingIn) {
-                                this.eventHandler.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect, result);
-                                this.logger.verbose("handleRedirectResponse returned result, login success");
-                            } else {
-                                this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Redirect, result);
-                                this.logger.verbose("handleRedirectResponse returned result, acquire token success");
-                            }
-                        }
-                        this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
 
-                        return result;
-                    })
-                    .catch((e) => {
-                    // Emit login event if there is an account
-                        if (loggedInAccounts.length > 0) {
-                            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Redirect, null, e);
+                if (this.config.system.platformSSO && this.wamExtensionProvider && !hash) {
+                    const wamClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.wamExtensionProvider, correlationId);
+                    response = wamClient.handleRedirectPromise();
+                } else {
+                    const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, correlationId);
+                    response = redirectClient.handleRedirectPromise(hash);
+                }
+                
+                response.then((result: AuthenticationResult | null) => {
+                    if (result) {
+                        // Emit login event if number of accounts change
+                        const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
+                        if (isLoggingIn) {
+                            this.eventHandler.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect, result);
+                            this.logger.verbose("handleRedirectResponse returned result, login success");
                         } else {
-                            this.eventHandler.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
+                            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Redirect, result);
+                            this.logger.verbose("handleRedirectResponse returned result, acquire token success");
                         }
-                        this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
+                    }
+                    this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
 
-                        throw e;
-                    });
+                    return result;
+                }).catch((e) => {
+                    // Emit login event if there is an account
+                    if (loggedInAccounts.length > 0) {
+                        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Redirect, null, e);
+                    } else {
+                        this.eventHandler.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
+                    }
+                    this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
+
+                    throw e;
+                });
                 this.redirectResponse.set(redirectResponseKey, response);
             } else {
                 this.logger.verbose("handleRedirectPromise has been called previously, returning the result from the first call");
@@ -214,6 +220,9 @@ export abstract class ClientApplication {
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         // Preflight request
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
+        if (this.browserStorage.isInteractionInProgress()) {
+            throw BrowserAuthError.createInteractionInProgressError();
+        }
         this.logger.verbose("acquireTokenRedirect called");
 
         // If logged in, emit acquire token events
@@ -227,9 +236,9 @@ export abstract class ClientApplication {
         let result: Promise<void>;
         
         if (this.config.system.platformSSO && this.wamExtensionProvider) {
-            const wamClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.wamExtensionProvider, request.correlationId);
+            const wamClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.wamExtensionProvider, request.correlationId);
             result = wamClient.acquireTokenRedirect(request).catch((e: AuthError) => {
-                if (e instanceof WamAuthError && e.isExtensionError()) {
+                if (e instanceof WamAuthError && e.isFatal()) {
                     this.wamExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt 
                     const redirectClient = this.createRedirectClient(request.correlationId);
                     return redirectClient.acquireToken(request);
@@ -567,7 +576,7 @@ export abstract class ClientApplication {
             throw BrowserAuthError.createWamConnectionNotEstablishedError();
         }
 
-        const wamClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.wamExtensionProvider, request.correlationId);
+        const wamClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.wamExtensionProvider, request.correlationId);
         return wamClient.acquireToken(request);
     }
 
