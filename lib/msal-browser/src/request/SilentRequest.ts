@@ -26,5 +26,4 @@ export type SilentRequest = Omit<CommonSilentFlowRequest, "authority"|"correlati
     account?: AccountInfo;
     correlationId?: string;
     forceRefresh?: boolean;
-    headers?: Headers;
 };
