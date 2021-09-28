@@ -2,11 +2,10 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-import express, { Request} from "express";
-import session, { Session } from "express-session";
+import express from "express";
+import session from "express-session";
 import { PublicClientApplication, AuthorizationCodeRequest, LogLevel, CryptoProvider } from "@azure/msal-node";
-
-type RequestWithPKCE = Request & { session: Session & { pkceCodes: { challengeMethod: string, challenge?: string, verifier?: string } }};
+import { RequestWithPKCE } from "./types";
 
 const SERVER_PORT = process.env.PORT || 3000;
 
