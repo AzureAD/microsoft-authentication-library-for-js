@@ -8,7 +8,7 @@ import { CommonAuthorizationUrlRequest } from "../request/CommonAuthorizationUrl
 import { CommonAuthorizationCodeRequest } from "../request/CommonAuthorizationCodeRequest";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { GrantType, AuthenticationScheme, PromptValue, Separators } from "../utils/Constants";
+import { GrantType, AuthenticationScheme, PromptValue, Separators, AADServerParamKeys } from "../utils/Constants";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { NetworkResponse } from "../network/NetworkManager";
@@ -312,9 +312,9 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         // Add hybrid spa parameters if not already provided
-        if (request.returnSpaCode && (!request.tokenBodyParameters || request.tokenBodyParameters && !request.tokenBodyParameters["return_spa_code"])) {
+        if (request.enableSpaAuthCode && (!request.tokenBodyParameters || request.tokenBodyParameters && !request.tokenBodyParameters[AADServerParamKeys.RETURN_SPA_CODE])) {
             parameterBuilder.addExtraQueryParameters({
-                "return_spa_code": "1"
+                [AADServerParamKeys.RETURN_SPA_CODE]: "1"
             });
         }
         

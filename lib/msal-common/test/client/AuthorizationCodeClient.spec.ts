@@ -1047,7 +1047,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             });
         });
 
-        it("Adds return_spa_code=1 to body when returnSpaCode is set", () => {
+        it("Adds return_spa_code=1 to body when enableSpaAuthCode is set", () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").callsFake((url, body: string) => {
                 expect(body).toContain("return_spa_code=1");
@@ -1065,7 +1065,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     claims: TEST_CONFIG.CLAIMS,
                     correlationId: RANDOM_TEST_GUID,
                     authenticationScheme: AuthenticationScheme.BEARER,
-                    returnSpaCode: true
+                    enableSpaAuthCode: true
                 };
     
                 return client.acquireToken(authCodeRequest);
