@@ -4,7 +4,7 @@
  */
 
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { DBTableNames, DB_NAME, DB_VERSION } from "../utils/BrowserConstants";
+import { DB_NAME, DB_TABLE_NAME, DB_VERSION } from "../utils/BrowserConstants";
 
 interface IDBOpenDBRequestEvent extends Event {
     target: IDBOpenDBRequest & EventTarget;
@@ -28,10 +28,10 @@ export class DatabaseStorage<T> {
     private version: number;
     private dbOpen: boolean;
 
-    constructor(tableName: string) {
+    constructor() {
         this.dbName = DB_NAME;
         this.version = DB_VERSION;
-        this.tableName = tableName;
+        this.tableName = DB_TABLE_NAME;
         this.dbOpen = false;
     }
 
@@ -44,7 +44,8 @@ export class DatabaseStorage<T> {
             const openDB = window.indexedDB.open(this.dbName, this.version);
 
             openDB.addEventListener("upgradeneeded", (e: IDBVersionChangeEvent) => {
-                this.upgradeDatabase(e as IDBOpenOnUpgradeNeededEvent);
+                const event = e as IDBOpenOnUpgradeNeededEvent;
+                event.target.result.createObjectStore(this.tableName);
             });
 
             openDB.addEventListener("success", (e: Event) => {
@@ -55,39 +56,6 @@ export class DatabaseStorage<T> {
             });
 
             openDB.addEventListener("error", error => reject(error));
-        });
-    }
-
-    /**
-     * Upgrades the existing database by adding newly supported tables
-     * and removing outdated tables
-     */
-    upgradeDatabase(event: IDBOpenOnUpgradeNeededEvent): void {
-        const database = event.target.result;
-
-        // List of tables supported in new DB version
-        const supportedTables = Object.values(DBTableNames) as Array<string>;
-        // List of tables in current (old) DB version
-        const currentTables = Object.values(database.objectStoreNames);
-
-        // Tables in old DB version that aren't supported anymore
-        const outdatedTables = currentTables.filter((existingTableName: string) => {
-            return supportedTables.indexOf(existingTableName) === -1;
-        });
-
-        // Tables in new DB version that weren't supported before
-        const newTables = supportedTables.filter((supportedTable: string) => {
-            return currentTables.indexOf(supportedTable) === -1;
-        });
-
-        // Add missing supported tables
-        newTables.forEach((tableName: string) => {
-            database.createObjectStore(tableName);
-        });
-        
-        // Remove remaining outdated tables
-        outdatedTables.forEach((tableName: string) => {
-            database.deleteObjectStore(tableName);
         });
     }
 
@@ -177,31 +145,16 @@ export class DatabaseStorage<T> {
         });
     }
 
-    async clear(): Promise<boolean> {
-        if (!this.dbOpen) {
-            await this.open();
-        }
-
+    async deleteDatabase(): Promise<boolean> {
         return new Promise<boolean>((resolve: Function, reject: Function) => {
-            const dataBase = this.db;
+            const deleteDbRequest = window.indexedDB.deleteDatabase(DB_NAME);
 
-            if (!dataBase) {
-                return reject(BrowserAuthError.createDatabaseNotOpenError());
-            }
-
-            const transaction = dataBase.transaction([this.tableName], "readwrite");
-
-            const objectStore = transaction.objectStore(this.tableName);
-
-            const dbDelete = objectStore.clear();
-
-            dbDelete.addEventListener("success", (e: Event) => {
-                const event = e as IDBRequestEvent;
-                return resolve(event.target.result === undefined);
+            deleteDbRequest.onsuccess = (() => {
+                resolve(true);
             });
 
-            dbDelete.addEventListener("error", e =>{
-                return reject(e);
+            deleteDbRequest.onerror = (() => {
+                reject(false);
             });
         });
     }

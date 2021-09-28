@@ -11,7 +11,7 @@ import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
 import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { DBTableNames, KEY_FORMAT_JWK } from "../utils/BrowserConstants";
+import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export type CachedKeyPair = {
@@ -53,8 +53,8 @@ export class CryptoOps implements ICrypto {
         this.guidGenerator = new GuidGenerator(this.browserCrypto);
         this.pkceGenerator = new PkceGenerator(this.browserCrypto);
         this.cache = {
-            asymmetricKeys: new DatabaseStorage<CachedKeyPair>(DBTableNames.asymmetricKeys),
-            symmetricKeys: new DatabaseStorage<CryptoKey>(DBTableNames.symmetricKeys)
+            asymmetricKeys: new DatabaseStorage<CachedKeyPair>(),
+            symmetricKeys: new DatabaseStorage<CryptoKey>()
         };
     }
 
@@ -142,16 +142,8 @@ export class CryptoOps implements ICrypto {
      */
     async clearKeystore(): Promise<boolean> {
         const dataStoreNames = Object.keys(this.cache);
-        const clearedTables: Promise<boolean>[] = dataStoreNames.map((dataStoreName: string): Promise<boolean> => {
-            const dataStore = this.cache[dataStoreName] as DatabaseStorage<unknown>;
-            return dataStore.clear();
-        });
-
-        return Promise.all(clearedTables).then(() => {
-            return true;
-        }).catch(() => {
-            return false;
-        });
+        const databaseStorage = this.cache[dataStoreNames[0]];
+        return (databaseStorage) ? await databaseStorage.deleteDatabase() : false;
     }
 
     /**

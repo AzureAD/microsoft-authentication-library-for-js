@@ -9,29 +9,28 @@ import { BrowserAuthError } from "../../src";
 const msrCrypto = require("../polyfills/msrcrypto.min");
 
 let mockDatabase = {
-    asymmetricKeys: {},
-    symmetricKeys: {}
+    "TestDB.keys": {}
 };
 
 // Mock DatabaseStorage
 jest.mock("../../src/cache/DatabaseStorage", () => {
     return {
-        DatabaseStorage: jest.fn().mockImplementation((tableName: string) => {
+        DatabaseStorage: jest.fn().mockImplementation(() => {
             return {
                 dbName: "TestDB",
                 version: 1,
-                tableName: tableName,
+                tableName: "TestDB.keys",
                 open: () => {},
                 get: (kid: string) => {
-                    return mockDatabase[tableName][kid];
+                    return mockDatabase["TestDB.keys"][kid];
                 },
                 put: (kid: string, payload: any) => {
-                    mockDatabase[tableName][kid] = payload;
-                    return mockDatabase[tableName][kid];
+                    mockDatabase["TestDB.keys"][kid] = payload;
+                    return mockDatabase["TestDB.keys"][kid];
                 },
                 delete: (kid: string) => {
-                    delete mockDatabase[tableName][kid];
-                    return !mockDatabase[tableName][kid];
+                    delete mockDatabase["TestDB.keys"][kid];
+                    return !mockDatabase["TestDB.keys"][kid];
                 }
             }
       })
@@ -55,8 +54,7 @@ describe("CryptoOps.ts Unit Tests", () => {
     afterEach(() => {
         jest.restoreAllMocks();
         mockDatabase = {
-            asymmetricKeys: {},
-            symmetricKeys: {}
+            "TestDB.keys": {}
         };
         //@ts-ignore
         window.crypto = oldWindowCrypto;
@@ -140,7 +138,7 @@ describe("CryptoOps.ts Unit Tests", () => {
         const result = await generateKeyPairSpy.mock.results[0].value;
         expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
         expect(regExp.test(pkThumbprint)).toBe(true);
-        expect(mockDatabase.asymmetricKeys[pkThumbprint]).not.toBe(undefined);
+        expect(mockDatabase["TestDB.keys"][pkThumbprint]).not.toBe(undefined);
     }, 30000);
 
     it("removeTokenBindingKey() removes the specified key from storage", async () => {
@@ -150,10 +148,10 @@ describe("CryptoOps.ts Unit Tests", () => {
             return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
         });
         const pkThumbprint = await cryptoObj.getPublicKeyThumbprint({resourceRequestMethod: "POST", resourceRequestUri: TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS} as BaseAuthRequest);
-        const key = mockDatabase.asymmetricKeys[pkThumbprint];
+        const key = mockDatabase["TestDB.keys"][pkThumbprint];
         const keyDeleted = await cryptoObj.removeTokenBindingKey(pkThumbprint);
         expect(key).not.toBe(undefined);
-        expect(mockDatabase.asymmetricKeys[pkThumbprint]).toBe(undefined);
+        expect(mockDatabase["TestDB.keys"][pkThumbprint]).toBe(undefined);
         expect(keyDeleted).toBe(true);
     }, 30000);
 

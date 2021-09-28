@@ -1,5 +1,5 @@
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
-import { DBTableNames, DB_NAME, DB_VERSION } from "../../src/utils/BrowserConstants";
+import { DB_NAME, DB_TABLE_NAME, DB_VERSION } from "../../src/utils/BrowserConstants";
 
 require("fake-indexeddb/auto");
 
@@ -44,37 +44,26 @@ const setupDb = (e: Event) => {
     const db = event.target.result;
 
     // Create object stores
-    Object.values(DBTableNames).forEach((tableName: string) =>{
-        db.createObjectStore(tableName);
-    });
+    db.createObjectStore(DB_TABLE_NAME);
 }
 
 const populateDb = (e: Event) => {
     const event = e as IDBOpenDBRequestEvent;
     const db = event.target.result;
+    const transaction = db.transaction([DB_TABLE_NAME], "readwrite");
+    const keystore = transaction.objectStore(DB_TABLE_NAME);
     // Add asymmetric testKeyPair
-    const asymmetricKeyTransaction = db.transaction([DBTableNames.asymmetricKeys], "readwrite");
-    const asymmetricKeyObjectStore = asymmetricKeyTransaction.objectStore(DBTableNames.asymmetricKeys);
-    asymmetricKeyObjectStore.put(testKeyPairEntry.value, testKeyPairEntry.key);
-
+    keystore.put(testKeyPairEntry.value, testKeyPairEntry.key);
     // Add symmetric key
-    const symmetricTransaction = db.transaction([DBTableNames.symmetricKeys], "readwrite");
-    const symmetricObjectStore = symmetricTransaction.objectStore(DBTableNames.symmetricKeys);
-    symmetricObjectStore.put(testSymmetricKeyEntry.value, testSymmetricKeyEntry.key);
+    keystore.put(testSymmetricKeyEntry.value, testSymmetricKeyEntry.key);
 }
 
 const clearDb = (e: Event) => {
     const event = e as IDBOpenDBRequestEvent;
     const db = event.target.result;
-    // Clear asymmetric keys
-    const asymmetricKeyTransaction = db.transaction([DBTableNames.asymmetricKeys], "readwrite");
-    const asymmetricKeyObjectStore = asymmetricKeyTransaction.objectStore(DBTableNames.asymmetricKeys);
-    asymmetricKeyObjectStore.clear();
-
-    // Add symmetric key
-    const symmetricTransaction = db.transaction([DBTableNames.symmetricKeys], "readwrite");
-    const symmetricObjectStore = symmetricTransaction.objectStore(DBTableNames.symmetricKeys);
-    symmetricObjectStore.clear();
+    const transaction = db.transaction([DB_TABLE_NAME], "readwrite");
+    const keystore = transaction.objectStore(DB_TABLE_NAME);
+    keystore.clear();
 }
 
 describe("DatabaseStorage.ts unit tests", () => {
@@ -83,8 +72,8 @@ describe("DatabaseStorage.ts unit tests", () => {
     let symmetricKeys: DatabaseStorage<CryptoKey>;
 
     beforeAll(() => {
-        asymmetricKeys = new DatabaseStorage<CryptoKeyPair>(DBTableNames.asymmetricKeys);
-        symmetricKeys = new DatabaseStorage<CryptoKey>(DBTableNames.symmetricKeys);
+        asymmetricKeys = new DatabaseStorage<CryptoKeyPair>();
+        symmetricKeys = new DatabaseStorage<CryptoKey>();
         const openDbReq = indexedDB.open(DB_NAME, DB_VERSION);
         openDbReq.onupgradeneeded = setupDb;
     });

@@ -160,8 +160,5 @@ export enum WrapperSKU {
 
 // DatabaseStorage Constants
 export const DB_NAME = "msal.db";
-export const DB_VERSION = 2;
-export enum DBTableNames  {
-    asymmetricKeys = "asymmetricKeys",
-    symmetricKeys = "symmetricKeys"
-}
+export const DB_VERSION = 1;
+export const DB_TABLE_NAME = `${DB_NAME}.keys`;

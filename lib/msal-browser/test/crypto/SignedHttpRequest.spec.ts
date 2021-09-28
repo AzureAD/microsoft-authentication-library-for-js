@@ -7,29 +7,28 @@ import { AuthToken } from "@azure/msal-common";
 const msrCrypto = require("../polyfills/msrcrypto.min");
 
 let mockDatabase = {
-    asymmetricKeys: {},
-    symmetricKeys: {}
+    "TestDB.keys": {}
 };
 
 // Mock DatabaseStorage
 jest.mock("../../src/cache/DatabaseStorage", () => {
     return {
-        DatabaseStorage: jest.fn().mockImplementation((tableName: string) => {
+        DatabaseStorage: jest.fn().mockImplementation(() => {
             return {
                 dbName: "TestDB",
                 version: 1,
-                tableName: tableName,
+                tableName: "TestDB.keys",
                 open: () => {},
                 get: (kid: string) => {
-                    return mockDatabase[tableName][kid];
+                    return mockDatabase["TestDB.keys"][kid];
                 },
                 put: (kid: string, payload: any) => {
-                    mockDatabase[tableName][kid] = payload;
-                    return mockDatabase[tableName][kid];
+                    mockDatabase["TestDB.keys"][kid] = payload;
+                    return mockDatabase["TestDB.keys"][kid];
                 },
                 delete: (kid: string) => {
-                    delete mockDatabase[tableName][kid];
-                    return !mockDatabase[tableName][kid];
+                    delete mockDatabase["TestDB.keys"][kid];
+                    return !mockDatabase["TestDB.keys"][kid];
                 }
             }
       })
