@@ -12,4 +12,22 @@ export type AuthorityOptions = {
     cloudDiscoveryMetadata: string;
     authorityMetadata: string;
     azureRegionConfiguration?: AzureRegionConfiguration;
+    azureCloudInstance?: AzureCloudInstance;
 };
+
+export enum AzureCloudInstance {
+    // AzureCloudInstance is not specified.
+    None,
+
+    // Microsoft Azure public cloud. Maps to https://login.microsoftonline.com
+    AzurePublic,
+
+    // Microsoft Chinese national cloud. Maps to https://login.chinacloudapi.cn
+    AzureChina,
+
+    // Microsoft German national cloud ("Black Forest"). Maps to https://login.microsoftonline.de
+    AzureGermany,
+
+    // US Government cloud. Maps to https://login.microsoftonline.us
+    AzureUsGovernment,
+}

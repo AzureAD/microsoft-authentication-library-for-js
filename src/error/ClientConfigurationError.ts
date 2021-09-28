@@ -80,7 +80,11 @@ export const ClientConfigurationErrorMessage = {
     untrustedAuthority: {
         code: "untrusted_authority",
         desc: "The provided authority is not a trusted authority. Please include this authority in the knownAuthorities config parameter."
-    }
+    },
+    invalidAzureCloudInstance: {
+        code: "invalid_azure_cloud_instance",
+        desc: "Invalid AzureCloudInstance provided. Please refer MSAL JS docs for valid values"
+    },
 };
 
 /**
@@ -242,5 +246,13 @@ export class ClientConfigurationError extends ClientAuthError {
     static createUntrustedAuthorityError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.untrustedAuthority.code,
             ClientConfigurationErrorMessage.untrustedAuthority.desc);
+    }
+
+    /**
+     * Throws error when the AzureCloudInstance is set to an invalid value
+     */
+    static createInvalidAzureCloudInstanceError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidAzureCloudInstance.code,
+            ClientConfigurationErrorMessage.invalidAzureCloudInstance.desc);
     }
 }

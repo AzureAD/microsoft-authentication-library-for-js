@@ -27,6 +27,7 @@ export { CcsCredential, CcsCredentialType } from "./account/CcsCredential";
 // Authority
 export { Authority } from "./authority/Authority";
 export { AuthorityOptions } from "./authority/AuthorityOptions";
+export { AzureCloudInstance } from "./authority/AuthorityOptions";
 export { AuthorityFactory } from "./authority/AuthorityFactory";
 export { AuthorityType } from "./authority/AuthorityType";
 export { ProtocolMode } from "./authority/ProtocolMode";
