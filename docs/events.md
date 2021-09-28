@@ -69,10 +69,10 @@ const callbackId = msalInstance.addEventCallback((message: EventMessage) => {
 
 If you would like to update your UI when a user logs in or out of your app in a different tab or window you can subscribe to the `ACCOUNT_ADDED` and `ACCOUNT_REMOVED` events. The payload will be the `AccountInfo` object that was added or removed.
 
-These events will not be emitted by default. In order to enable these events you must call the `addAccountStorageListener` API before registering your event callbacks:
+These events will not be emitted by default. In order to enable these events you must call the `enableAccountStorageEvents` API before registering your event callbacks:
 
 ```javascript
-msalInstance.addAccountStorageListener();
+msalInstance.enableAccountStorageEvents();
 msalInstance.addEventCallback((message: EventMessage) => {
     if (message.eventType === EventType.ACCOUNT_ADDED) {
         // Update UI with new account
@@ -82,10 +82,10 @@ msalInstance.addEventCallback((message: EventMessage) => {
 });
 ```
 
-You can also disable these events if no longer needed by calling `removeAccountStorageListener`:
+You can also disable these events if no longer needed by calling `disableAccountStorageEvents`:
 
 ```javascript
-msalInstance.removeAccountStorageListener();
+msalInstance.disableAccountStorageEvents();
 ```
 
 ## Table of events
