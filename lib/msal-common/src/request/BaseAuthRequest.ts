@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { AzureCloudInstance } from "../authority/AuthorityOptions";
 import { AuthenticationScheme } from "../utils/Constants";
 
 /**
@@ -25,4 +26,5 @@ export type BaseAuthRequest = {
     shrClaims?: string;
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
+    azureCloudInstance?: AzureCloudInstance;
 };

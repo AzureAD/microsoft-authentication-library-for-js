@@ -59,7 +59,9 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             const deviceCodeConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
                 validRequest.correlationId,
-                serverTelemetryManager
+                serverTelemetryManager,
+                undefined,
+                request.azureCloudInstance
             );
             const deviceCodeClient = new DeviceCodeClient(deviceCodeConfig);
             this.logger.verbose("Device code client created", validRequest.correlationId);

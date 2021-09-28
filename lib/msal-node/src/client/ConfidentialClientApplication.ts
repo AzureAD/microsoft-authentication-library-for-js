@@ -64,7 +64,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
         };
         const azureRegionConfiguration: AzureRegionConfiguration = {
             azureRegion: validRequest.azureRegion,
-            environmentRegion: process.env[REGION_ENVIRONMENT_VARIABLE] 
+            environmentRegion: process.env[REGION_ENVIRONMENT_VARIABLE]
         };
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenByClientCredential, validRequest.correlationId, validRequest.skipCache);
         try {
@@ -73,6 +73,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
                 validRequest.correlationId,
                 serverTelemetryManager,
                 azureRegionConfiguration,
+                request.azureCloudInstance
             );
             const clientCredentialClient = new ClientCredentialClient(clientCredentialConfig);
             this.logger.verbose("Client credential client created", validRequest.correlationId);
@@ -106,7 +107,10 @@ export class ConfidentialClientApplication extends ClientApplication implements 
         try {
             const clientCredentialConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
-                validRequest.correlationId
+                validRequest.correlationId,
+                undefined,
+                undefined,
+                request.azureCloudInstance
             );
             const oboClient = new OnBehalfOfClient(clientCredentialConfig);
             this.logger.verbose("On behalf of client created", validRequest.correlationId);

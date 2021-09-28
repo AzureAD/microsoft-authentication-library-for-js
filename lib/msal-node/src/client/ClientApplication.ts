@@ -26,7 +26,9 @@ import {
     AuthorityOptions,
     OIDC_DEFAULT_SCOPES,
     AzureRegionConfiguration,
-    AuthError
+    AuthError,
+    Constants,
+    AzureCloudInstance
 } from "@azure/msal-common";
 import { Configuration, buildAppConfiguration, NodeConfiguration } from "../config/Configuration";
 import { CryptoProvider } from "../crypto/CryptoProvider";
@@ -106,7 +108,10 @@ export abstract class ClientApplication {
 
         const authClientConfig = await this.buildOauthClientConfiguration(
             validRequest.authority,
-            validRequest.correlationId
+            validRequest.correlationId,
+            undefined,
+            undefined,
+            request.azureCloudInstance
         );
         const authorizationCodeClient = new AuthorizationCodeClient(
             authClientConfig
@@ -135,7 +140,9 @@ export abstract class ClientApplication {
             const authClientConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
                 validRequest.correlationId,
-                serverTelemetryManager
+                serverTelemetryManager,
+                undefined,
+                request.azureCloudInstance
             );
             const authorizationCodeClient = new AuthorizationCodeClient(
                 authClientConfig
@@ -171,7 +178,9 @@ export abstract class ClientApplication {
             const refreshTokenClientConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
                 validRequest.correlationId,
-                serverTelemetryManager
+                serverTelemetryManager,
+                undefined,
+                request.azureCloudInstance
             );
             const refreshTokenClient = new RefreshTokenClient(
                 refreshTokenClientConfig
@@ -207,7 +216,9 @@ export abstract class ClientApplication {
             const silentFlowClientConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
                 validRequest.correlationId,
-                serverTelemetryManager
+                serverTelemetryManager,
+                undefined,
+                request.azureCloudInstance
             );
             const silentFlowClient = new SilentFlowClient(
                 silentFlowClientConfig
@@ -286,12 +297,13 @@ export abstract class ClientApplication {
      * @param authority - user passed authority in configuration
      * @param serverTelemetryManager - initializes servertelemetry if passed
      */
-    protected async buildOauthClientConfiguration(authority: string, requestCorrelationId?: string, serverTelemetryManager?: ServerTelemetryManager, azureRegionConfiguration?: AzureRegionConfiguration): Promise<ClientConfiguration> {
+    protected async buildOauthClientConfiguration(authority: string, requestCorrelationId?: string, serverTelemetryManager?: ServerTelemetryManager, azureRegionConfiguration?: AzureRegionConfiguration, azureCloudInstance?: AzureCloudInstance): Promise<ClientConfiguration> {
+
         this.logger.verbose("buildOauthClientConfiguration called", requestCorrelationId);
+
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
         this.logger.verbose(`building oauth client configuration with the authority: ${authority}`, requestCorrelationId);
-
-        const discoveredAuthority = await this.createAuthority(authority, azureRegionConfiguration, requestCorrelationId);
+        const discoveredAuthority = await this.createAuthority(authority, azureRegionConfiguration, requestCorrelationId, azureCloudInstance);
 
         serverTelemetryManager?.updateRegionDiscoveryMetadata(discoveredAuthority.regionDiscoveryMetadata);
 
@@ -378,8 +390,17 @@ export abstract class ClientApplication {
      * object. If no authority set in application object, then default to common authority.
      * @param authorityString - authority from user configuration
      */
-    private async createAuthority(authorityString: string, azureRegionConfiguration?: AzureRegionConfiguration, requestCorrelationId?: string): Promise<Authority> {
+    private async createAuthority(authorityString: string, azureRegionConfiguration?: AzureRegionConfiguration, requestCorrelationId?: string, azureCloudInstance?: AzureCloudInstance): Promise<Authority> {
         this.logger.verbose("createAuthority called", requestCorrelationId);
+
+        // build authority string based on auth params - azureCloudInstance is prioritized if provided
+        let authorityAzureCloudInstance;
+        if (azureCloudInstance) {
+            authorityAzureCloudInstance = `${Authority.getAzureCloudInstanceUrl(azureCloudInstance)}/${Constants.DEFAULT_AUTHORITY_TENANT}`;
+        }
+
+        const authorityUrl = authorityAzureCloudInstance ? authorityAzureCloudInstance : authorityString;
+
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode,
             knownAuthorities: this.config.auth.knownAuthorities,
@@ -387,6 +408,6 @@ export abstract class ClientApplication {
             authorityMetadata: this.config.auth.authorityMetadata,
             azureRegionConfiguration
         };
-        return await AuthorityFactory.createDiscoveredInstance(authorityString, this.config.system.networkClient, this.storage, authorityOptions);
+        return await AuthorityFactory.createDiscoveredInstance(authorityUrl, this.config.system.networkClient, this.storage, authorityOptions);
     }
 }

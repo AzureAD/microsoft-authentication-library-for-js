@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode, LogLevel, StubbedNetworkModule } from "@azure/msal-common";
+import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode, LogLevel, StubbedNetworkModule, AzureCloudInstance } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserCacheLocation } from "../utils/BrowserConstants";
 import { INavigationClient } from "../navigation/INavigationClient";
@@ -38,6 +38,7 @@ export type BrowserAuthOptions = {
     navigateToLoginRequestUrl?: boolean;
     clientCapabilities?: Array<string>;
     protocolMode?: ProtocolMode;
+    azureCloudInstance?: AzureCloudInstance;
 };
 
 /**
@@ -122,7 +123,8 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         postLogoutRedirectUri: "",
         navigateToLoginRequestUrl: true,
         clientCapabilities: [],
-        protocolMode: ProtocolMode.AAD
+        protocolMode: ProtocolMode.AAD,
+        azureCloudInstance: 1
     };
 
     // Default cache options for browser

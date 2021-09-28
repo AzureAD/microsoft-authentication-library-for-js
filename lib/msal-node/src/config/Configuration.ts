@@ -8,7 +8,10 @@ import {
     INetworkModule,
     LogLevel,
     ProtocolMode,
-    ICachePlugin, Constants
+    ICachePlugin,
+    Constants,
+    AzureCloudInstance,
+    Authority
 } from "@azure/msal-common";
 import { NetworkUtils } from "../utils/NetworkUtils";
 
@@ -34,7 +37,8 @@ export type NodeAuthOptions = {
     };
     knownAuthorities?: Array<string>;
     cloudDiscoveryMetadata?: string;
-    authorityMetadata?: string,
+    authorityMetadata?: string;
+    azureCloudInstance?: AzureCloudInstance;
     clientCapabilities?: Array<string>;
     protocolMode?: ProtocolMode;
 };
@@ -88,6 +92,7 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     knownAuthorities: [],
     cloudDiscoveryMetadata: "",
     authorityMetadata: "",
+    azureCloudInstance: 0,
     clientCapabilities: [],
     protocolMode: ProtocolMode.AAD
 };
@@ -128,6 +133,13 @@ export function buildAppConfiguration({
     cache,
     system,
 }: Configuration): NodeConfiguration {
+
+    // build authority string based on auth params - azureCloudInstance is prioritized if provided
+    if (auth.azureCloudInstance) {
+        const cloudInstanceHost = Authority.getAzureCloudInstanceUrl(auth.azureCloudInstance);
+        auth.authority = `${cloudInstanceHost}/${Constants.DEFAULT_AUTHORITY_TENANT}`;
+    }
+
     return {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
