@@ -923,7 +923,7 @@ export class BrowserCacheManager extends CacheManager {
      * Gets cached native request for redirect flows
      */
     getCachedNativeRequest(): WamTokenRequest | null {
-        const cachedRequest = this.getTemporaryCache(TemporaryCacheKeys.NATIVE_REQUEST);
+        const cachedRequest = this.getTemporaryCache(TemporaryCacheKeys.NATIVE_REQUEST, true);
         if (!cachedRequest) {
             return null;
         }

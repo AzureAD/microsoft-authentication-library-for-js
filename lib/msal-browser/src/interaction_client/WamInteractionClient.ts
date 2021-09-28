@@ -72,8 +72,8 @@ export class WamInteractionClient extends BaseInteractionClient {
         }
 
         this.browserStorage.setInteractionInProgress(true);
-        this.browserStorage.setTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, this.correlationId);
-        this.browserStorage.setTemporaryCache(TemporaryCacheKeys.NATIVE_REQUEST, JSON.stringify(request));
+        this.browserStorage.setTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, this.correlationId, true);
+        this.browserStorage.setTemporaryCache(TemporaryCacheKeys.NATIVE_REQUEST, JSON.stringify(wamRequest), true);
 
         const navigationOptions: NavigationOptions = {
             apiId: ApiId.acquireTokenRedirect,
