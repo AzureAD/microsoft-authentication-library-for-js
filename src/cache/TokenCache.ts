@@ -37,12 +37,12 @@ export class TokenCache implements ITokenCache {
         this.logger = logger;
         this.cryptoObj = cryptoObj;
     }
-    
+
     // Move getAllAccounts here and cache utility APIs
 
     /**
-     * API to load tokens to msal-browser cache. 
-     * @param request 
+     * API to load tokens to msal-browser cache.
+     * @param request
      * @param response
      * @param options
      */
@@ -62,7 +62,8 @@ export class TokenCache implements ITokenCache {
                 protocolMode: this.config.auth.protocolMode,
                 knownAuthorities: this.config.auth.knownAuthorities,
                 cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
-                authorityMetadata: this.config.auth.authorityMetadata
+                authorityMetadata: this.config.auth.authorityMetadata,
+                azureCloudInstance: this.config.auth.azureCloudInstance
             };
             const authority = new Authority(request.authority, this.config.system.networkClient, this.storage, authorityOptions);
 
@@ -85,11 +86,11 @@ export class TokenCache implements ITokenCache {
 
     /**
      * Helper function to load id tokens to msal-browser cache
-     * @param idToken 
-     * @param homeAccountId 
-     * @param environment 
-     * @param tenantId 
-     * @param options 
+     * @param idToken
+     * @param homeAccountId
+     * @param environment
+     * @param tenantId
+     * @param options
      */
     private loadIdToken(idToken: string, homeAccountId: string, environment: string, tenantId: string, options: LoadTokenOptions): void {
 
@@ -110,13 +111,13 @@ export class TokenCache implements ITokenCache {
 
     /**
      * Helper function to load access tokens to msal-browser cache
-     * @param request 
-     * @param response 
-     * @param options 
-     * @param homeAccountId 
-     * @param environment 
-     * @param tenantId 
-     * @returns 
+     * @param request
+     * @param response
+     * @param options
+     * @param homeAccountId
+     * @param environment
+     * @param tenantId
+     * @returns
      */
     private loadAccessToken(request: SilentRequest, response: ExternalTokenResponse, homeAccountId: string, environment: string, tenantId: string, options: LoadTokenOptions): void {
 
@@ -132,7 +133,7 @@ export class TokenCache implements ITokenCache {
         if (!options.extendedExpiresOn) {
             throw BrowserAuthError.createUnableToLoadTokenError("Please provide an extendedExpiresOn value in the options.");
         }
-        
+
         const scopes = new ScopeSet(request.scopes).printScopes();
         const expiresOn = response.expires_in;
         const extendedExpiresOn = options.extendedExpiresOn;

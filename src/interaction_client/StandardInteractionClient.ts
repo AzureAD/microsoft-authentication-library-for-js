@@ -30,7 +30,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         super(config, storageImpl, browserCrypto, logger, eventHandler, correlationId);
         this.navigationClient = navigationClient;
     }
-    
+
     /**
      * Generates an auth code request tied to the url request.
      * @param request
@@ -179,7 +179,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             protocolMode: this.config.auth.protocolMode,
             knownAuthorities: this.config.auth.knownAuthorities,
             cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
-            authorityMetadata: this.config.auth.authorityMetadata
+            authorityMetadata: this.config.auth.authorityMetadata,
+            azureCloudInstance: this.config.auth.azureCloudInstance
         };
 
         if (requestAuthority) {
@@ -200,12 +201,12 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         this.logger.verbose("preflightInteractiveRequest called, validating app environment", request?.correlationId);
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
-    
+
         // Check if interaction is in progress. Throw error if true.
         if (this.browserStorage.isInteractionInProgress(false)) {
             throw BrowserAuthError.createInteractionInProgressError();
         }
-    
+
         return this.initializeAuthorizationRequest(request, interactionType);
     }
 
