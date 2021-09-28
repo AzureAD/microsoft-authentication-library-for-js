@@ -27,17 +27,17 @@ ADAL for Node.js is in maintenance mode and no new features will be added to the
 The ADAL for node.js library makes it easy for node.js applications to authenticate to AAD in order to access AAD protected web resources.  It supports 3 authentication modes shown in the quickstart code below.
 
 ## Versions
-Current version - 0.2.2  
-Minimum recommended version - 0.2.2  
+Current version - 0.2.2
+Minimum recommended version - 0.2.2
 You can find the changes for each version in the [change log](https://github.com/AzureAD/azure-activedirectory-library-for-nodejs/blob/master/changelog.txt).
 
 ## Samples and Documentation
 
-[We provide a full suite of sample applications and documentation on GitHub](https://github.com/azure-samples?q=active-directory) to help you get started with learning the Azure Identity system. This includes tutorials for native clients such as Windows, Windows Phone, iOS, OSX, Android, and Linux. We also provide full walkthroughs for authentication flows such as OAuth2, OpenID Connect, Graph API, and other awesome features. 
+[We provide a full suite of sample applications and documentation on GitHub](https://github.com/azure-samples?q=active-directory) to help you get started with learning the Azure Identity system. This includes tutorials for native clients such as Windows, Windows Phone, iOS, OSX, Android, and Linux. We also provide full walkthroughs for authentication flows such as OAuth2, OpenID Connect, Graph API, and other awesome features.
 
 ## Community Help and Support
 
-We leverage [Stack Overflow](http://stackoverflow.com/) to work with the community on supporting Azure Active Directory and its SDKs, including this one! We highly recommend you ask your questions on Stack Overflow (we're all on there!) Also browse existing issues to see if someone has had your question before. 
+We leverage [Stack Overflow](http://stackoverflow.com/) to work with the community on supporting Azure Active Directory and its SDKs, including this one! We highly recommend you ask your questions on Stack Overflow (we're all on there!) Also browse existing issues to see if someone has had your question before.
 
 We recommend you use the "adal" tag so we can see it! Here is the latest Q&A on Stack Overflow for ADAL: [http://stackoverflow.com/questions/tagged/adal](http://stackoverflow.com/questions/tagged/adal)
 
@@ -50,7 +50,7 @@ If you find a security issue with our libraries or services please report it to 
 
 ## Contributing
 
-All code is licensed under the Apache 2.0 license and we triage actively on GitHub. We enthusiastically welcome contributions and feedback. You can clone the repo and start contributing now. 
+All code is licensed under the Apache 2.0 license and we triage actively on GitHub. We enthusiastically welcome contributions and feedback. You can clone the repo and start contributing now.
 
 ## Quick Start
 ### Installation
@@ -99,13 +99,13 @@ var tenant = 'myTenant';
 var authorityUrl = authorityHostUrl + '/' + tenant;
 var redirectUri = 'http://localhost:3000/getAToken';
 var resource = '00000002-0000-0000-c000-000000000000';
-var templateAuthzUrl = 'https://login.windows.net/' + 
-                        tenant + 
+var templateAuthzUrl = 'https://login.windows.net/' +
+                        tenant +
                         '/oauth2/authorize?response_type=code&client_id=' +
-                        clientId + 
-                        '&redirect_uri=' + 
-                        redirectUri + 
-                        '&state=<state>&resource=' + 
+                        clientId +
+                        '&redirect_uri=' +
+                        redirectUri +
+                        '&state=<state>&resource=' +
                         resource;
 
 function createAuthorizationUrl(state) {
@@ -140,7 +140,7 @@ app.get('/getAToken', function(req, res) {
     req.query.code,
     redirectUri,
     resource,
-    clientId, 
+    clientId,
     clientSecret,
     function(err, response) {
       var errorMessage = '';
@@ -179,8 +179,11 @@ context.acquireTokenWithClientCredentials(resource, applicationId, clientSecret,
 });
 ```
 
+### Note on Proxy support for adal-node
+We have moved to `axios` as the package of choice for HTTP requests for adal-node from `request` since the npm support for `request` is discontinued. However we noticed later that `axios` does not support proxies -filed [here](https://github.com/axios/axios/issues/2072#issuecomment-567473812). Since we are making only security changes to `adal-node`, we are refraining from making any changes. However, we do recommend using `https-proxy-agent` as suggested in the issue linked in case you need proxies for your application.
+
 ## License
-Copyright (c) Microsoft Open Technologies, Inc.  All rights reserved. Licensed under the Apache License, Version 2.0 (the "License"); 
+Copyright (c) Microsoft Open Technologies, Inc.  All rights reserved. Licensed under the Apache License, Version 2.0 (the "License")
 
 ## We Value and Adhere to the Microsoft Open Source Code of Conduct
 
