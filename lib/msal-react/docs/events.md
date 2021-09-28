@@ -83,7 +83,7 @@ class EventExample extends React.Component {
 
 If you would like to update your UI when a user logs in or out of your app in a different tab or window you can subscribe to the `ACCOUNT_ADDED` and `ACCOUNT_REMOVED` events. The payload will be the `AccountInfo` object that was added or removed.
 
-These events will not be emitted by default. In order to enable these events you must call the `addAccountStorageListener` API before registering your event callbacks:
+These events will not be emitted by default. In order to enable these events you must call the `enableAccountStorageEvents` API before registering your event callbacks:
 
 ```javascript
 import { useEffect } from "react";
@@ -95,7 +95,7 @@ function EventExample() {
 
     useEffect(() => {
         // This will be run on component mount
-        instance.addAccountStorageListener();
+        instance.enableAccountStorageEvents();
         const callbackId = instance.addEventCallback((message) => {
             // This will be run every time an event is emitted after registering this callback
             if (message.eventType === EventType.ACCOUNT_ADDED) {
@@ -109,7 +109,7 @@ function EventExample() {
 
         return () => {
             // This will be run on component unmount
-            instance.removeAccountStorageListener();
+            instance.disableAccountStorageEvents();
             if (callbackId) {
                 instance.removeEventCallback(callbackId);
             }

@@ -21,7 +21,7 @@ if (!msalInstance.getActiveAccount() && msalInstance.getAllAccounts().length > 0
 }
 
 // Optional - This will update account state if a user signs in from another tab or window
-msalInstance.addAccountStorageListener();
+msalInstance.enableAccountStorageEvents();
 
 msalInstance.addEventCallback((event) => {
   if (event.eventType === EventType.LOGIN_SUCCESS && event.payload.account) {

@@ -123,7 +123,7 @@ export class AppComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.authService.instance.addAccountStorageListener(); // Register the storage listener that will be emitting the events
+    this.authService.instance.enableAccountStorageEvents(); // Register the storage listener that will be emitting the events
     this.msalBroadcastService.msalSubject$
       .pipe(
         // Optional filtering of events

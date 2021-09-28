@@ -14,14 +14,13 @@ export class EventHandler {
     private logger: Logger;
     private browserCrypto: ICrypto;
     private listeningToStorageEvents: boolean;
-    private boundStorageListener: (e: StorageEvent) => void;
 
     constructor(logger: Logger, browserCrypto: ICrypto) {
         this.eventCallbacks = new Map();
         this.logger = logger;
         this.browserCrypto = browserCrypto;
         this.listeningToStorageEvents = false;
-        this.boundStorageListener = this.handleAccountCacheChange.bind(this);
+        this.handleAccountCacheChange = this.handleAccountCacheChange.bind(this);
     }
 
     /**
@@ -52,22 +51,34 @@ export class EventHandler {
     /**
      * Adds event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
      */
-    addAccountStorageListener(): void {
+    enableAccountStorageEvents(): void {
+        if (typeof window === "undefined") {
+            return;
+        }
+
         if (!this.listeningToStorageEvents) {
             this.logger.verbose("Adding account storage listener.");
             this.listeningToStorageEvents = true;
-            window.addEventListener("storage", this.boundStorageListener);
+            window.addEventListener("storage", this.handleAccountCacheChange);
+        } else {
+            this.logger.verbose("Account storage listener already registered.");
         }
     }
 
     /**
      * Removes event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
      */
-    removeAccountStorageListener(): void {
+    disableAccountStorageEvents(): void {
+        if (typeof window === "undefined") {
+            return;
+        }
+
         if (this.listeningToStorageEvents) {
             this.logger.verbose("Removing account storage listener.");
-            window.removeEventListener("storage", this.boundStorageListener);
+            window.removeEventListener("storage", this.handleAccountCacheChange);
             this.listeningToStorageEvents = false;
+        } else {
+            this.logger.verbose("No account storage listener registered.");
         }
     }
 
@@ -122,6 +133,5 @@ export class EventHandler {
         } catch (e) {
             return;
         }
-
     }
 }
