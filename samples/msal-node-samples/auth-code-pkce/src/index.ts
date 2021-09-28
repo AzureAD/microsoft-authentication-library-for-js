@@ -2,13 +2,15 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-const express = require("express");
-const session = require('express-session');
-const msal = require('@azure/msal-node');
+import express, { Request} from "express";
+import session, { Session } from "express-session";
+import { PublicClientApplication, AuthorizationCodeRequest, LogLevel, CryptoProvider } from "@azure/msal-node";
+
+type RequestWithPKCE = Request & { session: Session & { pkceCodes: { challengeMethod: string, challenge?: string, verifier?: string } }};
 
 const SERVER_PORT = process.env.PORT || 3000;
 
-// Before running the sample, you will need to replace the values in the config, 
+// Before running the sample, you will need to replace the values in the config,
 // including the clientSecret
 const config = {
     auth: {
@@ -17,17 +19,17 @@ const config = {
     },
     system: {
         loggerOptions: {
-            loggerCallback(loglevel, message, containsPii) {
+            loggerCallback(loglevel: LogLevel, message: string, containsPii: boolean) {
                 console.log(message);
             },
             piiLoggingEnabled: false,
-            logLevel: msal.LogLevel.Verbose,
+            logLevel: LogLevel.Verbose,
         }
     }
 };
 
 // Create msal application object
-const pca = new msal.PublicClientApplication(config);
+const pca = new PublicClientApplication(config);
 
 // Create Express App and Routes
 const app = express();
@@ -52,25 +54,25 @@ if (app.get('env') === 'production') {
 
 app.use(session(sessionConfig));
 
-app.get('/', (req, res) => {
+app.get('/', (req: RequestWithPKCE, res) => {
 
     /**
      * Proof Key for Code Exchange (PKCE) Setup
-     * 
+     *
      * MSAL enables PKCE in the Authorization Code Grant Flow by including the codeChallenge and codeChallengeMethod parameters
      * in the request passed into getAuthCodeUrl() API, as well as the codeVerifier parameter in the
      * second leg (acquireTokenByCode() API).
-     * 
+     *
      * MSAL Node provides PKCE Generation tools through the CryptoProvider class, which exposes
      * the generatePkceCodes() asynchronous API. As illustrated in the example below, the verifier
      * and challenge values should be generated previous to the authorization flow initiation.
-     * 
-     * For details on PKCE code generation logic, consult the 
+     *
+     * For details on PKCE code generation logic, consult the
      * PKCE specification https://tools.ietf.org/html/rfc7636#section-4
      */
 
     // Initialize CryptoProvider instance
-    const cryptoProvider = new msal.CryptoProvider();
+    const cryptoProvider = new CryptoProvider();
     // Generate PKCE Codes before starting the authorization flow
     cryptoProvider.generatePkceCodes().then(({ verifier, challenge }) => {
         // create session object if does not exist
@@ -99,14 +101,14 @@ app.get('/', (req, res) => {
     });
 });
 
-app.get('/redirect', (req, res) => {
+app.get('/redirect', (req: RequestWithPKCE, res) => {
     // Add PKCE code verifier to token request object
-    const tokenRequest = {
-        code: req.query.code,
+    const tokenRequest: AuthorizationCodeRequest = {
+        code: req.query.code as string,
         scopes: ["user.read"],
         redirectUri: "http://localhost:3000/redirect",
         codeVerifier: req.session.pkceCodes.verifier, // PKCE Code Verifier
-        clientInfo: req.query.client_info
+        clientInfo: req.query.client_info as string
     };
 
     pca.acquireTokenByCode(tokenRequest).then((response) => {
