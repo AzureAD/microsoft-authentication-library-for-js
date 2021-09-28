@@ -43,7 +43,7 @@ const config = {
 ```
 
 2. When there is no internet connectivity. Details: ClientConfigurationError: `untrusted_authority`: The provided authority is not a trusted authority. Please include this authority in the knownAuthorities config parameter. It is also thrown when no authority is appended to the authority endpoint.
-
+    
 
 ### Invalid_assertion
 
