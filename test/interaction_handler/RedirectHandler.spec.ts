@@ -236,7 +236,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
         });
     });
 
-    describe("handleCodeResponse()", () => {
+    describe("handleCodeResponseFromHash()", () => {
 
         it("throws error if given hash is empty", () => {
             const redirectHandler = new RedirectHandler(authCodeModule, browserStorage, defaultTokenRequest, browserRequestLogger, browserCrypto);
