@@ -5,7 +5,7 @@
 
 import { CommonAuthorizationCodeRequest } from "@azure/msal-common";
 
-export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeRequest, "code"|"returnSpaCode">> & {
+export type AuthorizationCodeRequest = Partial<Omit<CommonAuthorizationCodeRequest, "code"|"enableSpaAuthCode">> & {
     code: string;
     cloudGraphHostName?: string;
     msGraphHost?: string;
