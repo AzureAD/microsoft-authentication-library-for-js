@@ -1,3 +1,8 @@
+let lastRequestHeaders = new Headers();
+const wwwAuthenticate = `PoP nonce="eyJhbGciOiJIUzI1NiIsImtpZCI6IktJRCIsInR5cCI6IkpXVCJ9.eyJ0cyI6IjE2MjU2NzI1MjkifQ.rA5ho63Lbdwo8eqZ_gUtQxY3HaseL0InIVwdgf7L_fc", error="nonce_malformed"`;
+lastRequestHeaders.append("WWW-Authenticate", wwwAuthenticate);
+let popToken = "";
+
 /**
  * Helper function to call MS Graph API endpoint 
  * using authorization bearer token scheme
@@ -24,7 +29,6 @@ function callMSGraph(endpoint, accessToken, callback) {
         .catch(error => console.log(error));
 }
 
-let popToken = "";
 function callPopResource(endpoint, method, accessToken, callback) {
     const headers = new Headers();
     const authHeader = `PoP ${accessToken}`;
@@ -39,7 +43,11 @@ function callPopResource(endpoint, method, accessToken, callback) {
     console.log(`request made to endpoint ${endpoint} at: ` + new Date().toString());
 
     fetch(endpoint, options)
-        .then(response => response.json())
+        .then(response => {
+            lastRequestHeaders = response.headers;
+            console.log("Headers: ", lastRequestHeaders);
+            return response.json();
+        })
         .then(response => callback(response, endpoint))
         .catch(error => console.log(error));
 }
@@ -47,6 +55,12 @@ function callPopResource(endpoint, method, accessToken, callback) {
 async function popRequest() {
     const currentAcc = myMSALObj.getAccountByUsername(username);
     if (currentAcc) {
+        const authorizationHeaderParser = new msal.AuthorizationHeaderParser(lastRequestHeaders);
+        const shrNonce = authorizationHeaderParser.getShrNonce();
+        if (shrNonce && shrNonce != "") {
+            popTokenRequest.shrNonce = shrNonce;
+            console.log(popTokenRequest);
+        }
         const response = await getTokenPopup(popTokenRequest, currentAcc).catch(error => {
             console.log(error);
         });
