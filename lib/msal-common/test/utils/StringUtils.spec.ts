@@ -181,5 +181,11 @@ describe("StringUtils.ts Class Unit Tests", () => {
 
             expect(matches).toBe(true);
         });
+
+        it("backslash is escaped", () => {
+            const matches = StringUtils.matchPattern("test\\*", "test\\api");
+
+            expect(matches).toBe(true);
+        });
     });
 });

@@ -62,8 +62,6 @@ Please check the [roadmap](https://github.com/AzureAD/microsoft-authentication-l
 
 - [Stack Overflow](http://stackoverflow.com/questions/tagged/msal) using "msal" and "msal.js" tag.
 
-- [User Voice page](https://feedback.azure.com/forums/169401-azure-active-directory) to provide recommendations and/or feedback.
-
 ## Contribute
 
 We enthusiastically welcome contributions and feedback. Please read the [contributing guide](contributing.md) before you begin.

@@ -68,7 +68,11 @@ export class DeviceCodeClient extends BaseClient {
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: request.authority,
-            scopes: request.scopes
+            scopes: request.scopes,
+            authenticationScheme: request.authenticationScheme,
+            resourceRequestMethod: request.resourceRequestMethod,
+            resourceRequestUri: request.resourceRequestUri,
+            shrClaims: request.shrClaims
         };
 
         return this.executePostRequestToDeviceCodeEndpoint(this.authority.deviceCodeEndpoint, queryString, headers, thumbprint);
@@ -181,7 +185,11 @@ export class DeviceCodeClient extends BaseClient {
             const thumbprint: RequestThumbprint = {
                 clientId: this.config.authOptions.clientId,
                 authority: request.authority,
-                scopes: request.scopes
+                scopes: request.scopes,
+                authenticationScheme: request.authenticationScheme,
+                resourceRequestMethod: request.resourceRequestMethod,
+                resourceRequestUri: request.resourceRequestUri,
+                shrClaims: request.shrClaims
             };
             const response = await this.executePostToTokenEndpoint(
                 this.authority.tokenEndpoint,

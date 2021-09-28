@@ -53,7 +53,7 @@ export { RequestThumbprint } from "./network/RequestThumbprint";
 export { IUri } from "./url/IUri";
 export { UrlString } from "./url/UrlString";
 // Crypto Interface
-export { ICrypto, PkceCodes, DEFAULT_CRYPTO_IMPLEMENTATION } from "./crypto/ICrypto";
+export { ICrypto, PkceCodes, DEFAULT_CRYPTO_IMPLEMENTATION, SignedHttpRequestParameters } from "./crypto/ICrypto";
 export { SignedHttpRequest } from "./crypto/SignedHttpRequest";
 // Request and Response
 export { BaseAuthRequest } from "./request/BaseAuthRequest";
@@ -92,3 +92,4 @@ export { TimeUtils } from "./utils/TimeUtils";
 // Telemetry
 export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager";
 export { ServerTelemetryRequest } from "./telemetry/server/ServerTelemetryRequest";
+export { PopTokenGenerator } from "./crypto/PopTokenGenerator";

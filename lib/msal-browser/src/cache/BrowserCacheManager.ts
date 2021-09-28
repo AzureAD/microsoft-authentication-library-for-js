@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, CcsCredential, CcsCredentialType } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, CcsCredential, CcsCredentialType, IdToken } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys, InMemoryCacheKeys } from "../utils/BrowserConstants";
@@ -805,9 +805,9 @@ export class BrowserCacheManager extends CacheManager {
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.URL_HASH));
-        this.removeItem(this.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.CORRELATION_ID));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.CCS_CREDENTIAL));
+        this.setInteractionInProgress(false);
     }
 
     /**
@@ -890,6 +890,70 @@ export class BrowserCacheManager extends CacheManager {
         }
 
         return parsedRequest;
+    }
+
+    isInteractionInProgress(matchClientId?: boolean): boolean {
+        const clientId = this.getInteractionInProgress();
+
+        if (matchClientId) {
+            return clientId === this.clientId;
+        } else {
+            return !!clientId;
+        }
+    }
+
+    getInteractionInProgress(): string | null {
+        const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
+        return this.getTemporaryCache(key, false);
+    }
+
+    setInteractionInProgress(inProgress: boolean): void {
+        const clientId = this.getInteractionInProgress();
+        // Ensure we don't overwrite interaction in progress for a different clientId
+        const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
+        if (inProgress && !clientId) {
+            // No interaction is in progress
+            this.setTemporaryCache(key, this.clientId, false);
+        } else if (!inProgress && clientId === this.clientId) {
+            this.removeItem(key);
+        }
+    }
+
+    /**
+     * Returns username retrieved from ADAL or MSAL v1 idToken
+     */
+    getLegacyLoginHint(): string | null {
+        // Only check for adal/msal token if no SSO params are being used
+        const adalIdTokenString = this.getTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN);
+        if (adalIdTokenString) {
+            this.browserStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
+            this.logger.verbose("Cached ADAL id token retrieved.");
+        }
+
+        // Check for cached MSAL v1 id token
+        const msalIdTokenString = this.getTemporaryCache(PersistentCacheKeys.ID_TOKEN, true);
+        if (msalIdTokenString) {
+            this.removeItem(this.generateCacheKey(PersistentCacheKeys.ID_TOKEN));
+            this.logger.verbose("Cached MSAL.js v1 id token retrieved");
+        }
+
+        const cachedIdTokenString = msalIdTokenString || adalIdTokenString;
+        if (cachedIdTokenString) {
+            const cachedIdToken = new IdToken(cachedIdTokenString, this.cryptoImpl);
+            if (cachedIdToken.claims && cachedIdToken.claims.preferred_username) {
+                this.logger.verbose("No SSO params used and ADAL/MSAL v1 token retrieved, setting ADAL/MSAL v1 preferred_username as loginHint");
+                return cachedIdToken.claims.preferred_username;
+            }
+            else if (cachedIdToken.claims && cachedIdToken.claims.upn) {
+                this.logger.verbose("No SSO params used and ADAL/MSAL v1 token retrieved, setting ADAL/MSAL v1 upn as loginHint");
+                return cachedIdToken.claims.upn;
+            }
+            else {
+                this.logger.verbose("No SSO params used and ADAL/MSAL v1 token retrieved, however, no account hint claim found. Enable preferred_username or upn id token claim to get SSO.");
+            }
+        }
+
+        return null;
     }
 }
 

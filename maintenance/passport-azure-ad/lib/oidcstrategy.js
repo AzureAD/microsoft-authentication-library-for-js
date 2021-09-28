@@ -1,73 +1,55 @@
-/**
- * Copyright (c) Microsoft Corporation
- *  All Rights Reserved
- *  MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this
- * software and associated documentation files (the 'Software'), to deal in the Software
- * without restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
- * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
- * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
  */
 
-'use strict';
+"use strict";
 
 /* eslint no-underscore-dangle: 0 */
 
 // third party packages
-const async = require('async');
-const base64url = require('base64url');
-const cacheManager = require('cache-manager');
-const _ = require('lodash');
-const jws = require('jws');
-const passport = require('passport');
-const querystring = require('querystring');
-const url = require('url');
-const urlValidator = require('valid-url');
-const util = require('util');
+const async = require("async");
+const base64url = require("base64url");
+const cacheManager = require("cache-manager");
+const _ = require("lodash");
+const jws = require("jws");
+const passport = require("passport");
+const querystring = require("querystring");
+const url = require("url");
+const urlValidator = require("valid-url");
+const util = require("util");
 
 // packages from this library
-const aadutils = require('./aadutils');
-const CONSTANTS = require('./constants');
-const jwt = require('./jsonWebToken');
-const jwe = require('./jwe');
+const aadutils = require("./aadutils");
+const CONSTANTS = require("./constants");
+const jwt = require("./jsonWebToken");
+const jwe = require("./jwe");
 
 // For the following packages we get a constructor and we will use 'new' to create an instance
-const InternalOAuthError = require('./errors/internaloautherror');
-const InternalOpenIDError = require('./errors/internalopeniderror');
-const Log = require('./logging').getLogger;
-const Metadata = require('./metadata').Metadata;
-const OAuth2 = require('oauth').OAuth2;
-const HttpsProxyAgent = require('https-proxy-agent');
-const SessionContentHandler = require('./sessionContentHandler').SessionContentHandler;
-const CookieContentHandler = require('./cookieContentHandler').CookieContentHandler;
-const Validator = require('./validator').Validator;
+const Log = require("./logging").getLogger;
+const Metadata = require("./metadata").Metadata;
+const OAuth2 = require("oauth").OAuth2;
+const HttpsProxyAgent = require("https-proxy-agent");
+const SessionContentHandler = require("./sessionContentHandler").SessionContentHandler;
+const CookieContentHandler = require("./cookieContentHandler").CookieContentHandler;
+const Validator = require("./validator").Validator;
 
 // global variable definitions
-const log = new Log('AzureAD: OIDC Passport Strategy');
+const log = new Log("AzureAD: OIDC Passport Strategy");
 
-const memoryCache = cacheManager.caching({ store: 'memory', max: 3600, ttl: 1800 /* seconds */ });
+const memoryCache = cacheManager.caching({ store: "memory", max: 3600, ttl: 1800 /* seconds */ });
 const ttl = 1800; // 30 minutes cache
 // Note: callback is optional in set() and del().
 
-// For each microsoft login page, we generate a tuple containing nonce/state/etc, and save it in session.
-// 1. NONCE_LIFE_TIME is the default life time of the tuple. The default value is 3600 seconds. The life
-//    time is configurable by user.
-// 2. NONCE_MAX_AMOUNT is the max amount of tuples a user's session can have. We limit it to 10.
-//    This value limits the amount of microsoft login page tabs a user can open before the user types
-//    username and password to 10. If the user opens more than 10 login tabs, we only honor the most
-//    recent 10 tabs within the life time.
+/*
+ * For each microsoft login page, we generate a tuple containing nonce/state/etc, and save it in session.
+ * 1. NONCE_LIFE_TIME is the default life time of the tuple. The default value is 3600 seconds. The life
+ *    time is configurable by user.
+ * 2. NONCE_MAX_AMOUNT is the max amount of tuples a user's session can have. We limit it to 10.
+ *    This value limits the amount of microsoft login page tabs a user can open before the user types
+ *    username and password to 10. If the user opens more than 10 login tabs, we only honor the most
+ *    recent 10 tabs within the life time.
+ */
 const NONCE_MAX_AMOUNT = 10;
 const NONCE_LIFE_TIME = 3600; // second
 
@@ -100,11 +82,11 @@ function onProfileLoaded(strategy, args) {
   }
 
   const verifyArityArgsMap = {
-    8: 'iss sub profile jwtClaims access_token refresh_token params',
-    7: 'iss sub profile access_token refresh_token params',
-    6: 'iss sub profile access_token refresh_token',
-    4: 'iss sub profile',
-    3: 'iss sub',
+    8: "iss sub profile jwtClaims access_token refresh_token params",
+    7: "iss sub profile access_token refresh_token params",
+    6: "iss sub profile access_token refresh_token",
+    4: "iss sub profile",
+    3: "iss sub",
   };
 
   const arity = (strategy._passReqToCallback) ? strategy._verify.length - 1 : strategy._verify.length;
@@ -112,7 +94,7 @@ function onProfileLoaded(strategy, args) {
 
   if (verifyArityArgsMap[arity]) {
     verifyArgs = verifyArityArgsMap[arity]
-      .split(' ')
+      .split(" ")
       .map((argName) => {
         return args[argName];
       })
@@ -342,7 +324,7 @@ function Strategy(options, verify) {
    *  More comments at the beginning of `Strategy.prototype.authenticate`.
    */
   this._options = options;
-  this.name = 'azuread-openidconnect';
+  this.name = "azuread-openidconnect";
 
   // stuff related to the verify function
   this._verify = verify;
@@ -354,10 +336,12 @@ function Strategy(options, verify) {
     this._useCookieInsteadOfSession = false;
 
   if (!this._useCookieInsteadOfSession) {
-    // For each microsoft login page tab, we generate a {state, nonce, policy, timeStamp} tuple,
-    // normally user won't keep opening microsoft login page in new tabs without putting their
-    // password for more than 10 tabs, so we only keep the most recent 10 tuples in session.
-    // The lifetime of each tuple is 60 minutes or user specified.
+    /*
+     * For each microsoft login page tab, we generate a {state, nonce, policy, timeStamp} tuple,
+     * normally user won't keep opening microsoft login page in new tabs without putting their
+     * password for more than 10 tabs, so we only keep the most recent 10 tuples in session.
+     * The lifetime of each tuple is 60 minutes or user specified.
+     */
     this._sessionContentHandler = new SessionContentHandler(options.nonceMaxAmount || NONCE_MAX_AMOUNT, options.nonceLifetime || NONCE_LIFE_TIME);
   } else {
     this._cookieContentHandler = new CookieContentHandler(
@@ -369,7 +353,8 @@ function Strategy(options, verify) {
     );
   }
 
-  /* When a user is authenticated for the first time, passport adds a new field
+  /*
+   * When a user is authenticated for the first time, passport adds a new field
    * to req.session called 'passport', and puts a 'user' property inside (or your
    * choice of field name and property name if you change passport._key and
    * passport._userProperty values). req.session['passport']['user'] is usually
@@ -401,42 +386,42 @@ function Strategy(options, verify) {
    *               |--- ...
    *               |--- 'user':  full user info
    */
-  this._key = options.sessionKey || ('OIDC: ' + options.clientID);
+  this._key = options.sessionKey || ("OIDC: " + options.clientID);
 
   if (!options.identityMetadata) {
     // default value should be https://login.microsoftonline.com/common/.well-known/openid-configuration
-    log.error('OIDCStrategy requires a metadata location that contains cert data for RSA and ECDSA callback.');
-    throw new TypeError(`OIDCStrategy requires a metadata location that contains cert data for RSA and ECDSA callback.`);
+    log.error("OIDCStrategy requires a metadata location that contains cert data for RSA and ECDSA callback.");
+    throw new TypeError("OIDCStrategy requires a metadata location that contains cert data for RSA and ECDSA callback.");
   }
 
   // if logging level specified, switch to it.
-  if (options.loggingLevel) { log.levels('console', options.loggingLevel); }
+  if (options.loggingLevel) { log.levels("console", options.loggingLevel); }
   this.log = log;
 
-  if (options.loggingNoPII != false)
+  if (options.loggingNoPII !== false)
     options.loggingNoPII = true;
 
   // clock skew. Must be a postive integer
-  if (options.clockSkew && (typeof options.clockSkew !== 'number' || options.clockSkew <= 0 || options.clockSkew % 1 !== 0))
-    throw new Error('clockSkew must be a positive integer');
+  if (options.clockSkew && (typeof options.clockSkew !== "number" || options.clockSkew <= 0 || options.clockSkew % 1 !== 0))
+    throw new Error("clockSkew must be a positive integer");
   if (!options.clockSkew)
     options.clockSkew = CONSTANTS.CLOCK_SKEW;
 
-  /****************************************************************************************
+  /**
    * Take care of identityMetadata
    * (1) Check if it is common endpoint
    * (2) For B2C, one cannot use the common endpoint. tenant name or guid must be specified
    * (3) We add telemetry to identityMetadata automatically
-   ***************************************************************************************/
+   */
 
   // check existence
   if (!options.identityMetadata) {
-    log.error('OIDCStrategy requires a metadata location that contains cert data for RSA and ECDSA callback.');
-    throw new TypeError(`OIDCStrategy requires a metadata location that contains cert data for RSA and ECDSA callback.`);
+    log.error("OIDCStrategy requires a metadata location that contains cert data for RSA and ECDSA callback.");
+    throw new TypeError("OIDCStrategy requires a metadata location that contains cert data for RSA and ECDSA callback.");
   }
 
   // check if we are using the common endpoint
-  options.isCommonEndpoint = (options.identityMetadata.indexOf('/common/') != -1);
+  options.isCommonEndpoint = (options.identityMetadata.indexOf("/common/") !== -1);
 
   // isB2C is false by default
   if (options.isB2C !== true)
@@ -451,7 +436,7 @@ function Strategy(options, verify) {
     ]
   );
 
-  /****************************************************************************************
+  /**
    * Take care of issuer and audience
    * (1) We use user provided `issuer`, and the issuer value from metadata if the metadata
    *     comes from tenant-specific endpoint (in other words, either the identityMetadata
@@ -463,13 +448,13 @@ function Strategy(options, verify) {
    *     must be set to false
    * (2) `validateIssuer` is true by default. we validate issuer unless validateIssuer is set false
    * (3) `audience` must be the clientID of this app
-   ***************************************************************************************/
+   */
   if (options.validateIssuer !== false)
     options.validateIssuer = true;
   if (!options.validateIssuer)
-    log.warn(`Production environments should always validate the issuer.`);
+    log.warn("Production environments should always validate the issuer.");
 
-  if (options.issuer === '')
+  if (options.issuer === "")
     options.issuer = null;
   // make issuer an array
   if (options.issuer && !Array.isArray(options.issuer))
@@ -478,36 +463,38 @@ function Strategy(options, verify) {
   options.audience = options.clientID;
   options.allowMultiAudiencesInToken = false;
 
-  /****************************************************************************************
+  /**
    * Take care of scope
-   ***************************************************************************************/
+   */
+
   // make scope an array
   if (!options.scope)
     options.scope = [];
   if (!Array.isArray(options.scope))
     options.scope = [options.scope];
   // always have 'openid' scope for openID Connect
-  if (options.scope.indexOf('openid') === -1)
-    options.scope.push('openid');
-  options.scope = options.scope.join(' ');
+  if (options.scope.indexOf("openid") === -1)
+    options.scope.push("openid");
+  options.scope = options.scope.join(" ");
 
-  /****************************************************************************************
+  /**
    * Check if we are using v2 endpoint, v2 doesn't have an userinfo endpoint
-   ***************************************************************************************/
-  if (options.identityMetadata.indexOf('/v2.0/') != -1)
+   */
+  if (options.identityMetadata.indexOf("/v2.0/") !== -1)
     options._isV2 = true;
 
-  /****************************************************************************************
+  /**
    * validate other necessary option items provided, we validate them here and only once
-   ***************************************************************************************/
+   */
+
   // change responseType 'id_token code' to 'code id_token' since the former is not supported by B2C
-  if (options.responseType === 'id_token code')
-    options.responseType = 'code id_token';
+  if (options.responseType === "id_token code")
+    options.responseType = "code id_token";
 
-  var itemsToValidate = {};
-  aadutils.copyObjectFields(options, itemsToValidate, ['clientID', 'redirectUrl', 'responseType', 'responseMode', 'identityMetadata']);
+  const itemsToValidate = {};
+  aadutils.copyObjectFields(options, itemsToValidate, ["clientID", "redirectUrl", "responseType", "responseMode", "identityMetadata"]);
 
-  var validatorConfiguration = {
+  const validatorConfiguration = {
     clientID: Validator.isNonEmpty,
     responseType: Validator.isTypeLegal,
     responseMode: Validator.isModeLegal,
@@ -521,27 +508,29 @@ function Strategy(options, verify) {
     validatorConfiguration.redirectUrl = Validator.isHttpsURL;
 
   // validator will throw exception if a required option is missing
-  var validator = new Validator(validatorConfiguration);
+  const validator = new Validator(validatorConfiguration);
   validator.validate(itemsToValidate);
 
   // validate client secret, thumbprint and privatePEMKey for hybrid and authorization flow
-  if (options.responseType !== 'id_token') {
+  if (options.responseType !== "id_token") {
     if (options.isB2C && !options.clientSecret) {
       // for B2C, clientSecret is required to redeem authorization code.
-      throw new Error('clientSecret must be provided for B2C hybrid flow and authorization code flow.');
+      throw new Error("clientSecret must be provided for B2C hybrid flow and authorization code flow.");
     } else if (!options.clientSecret) {
-      // for non-B2C, we can use either clientSecret or clientAssertion to redeem authorization code.
-      // Therefore, we need either clientSecret, or privatePEMKey and thumbprint (so we can create clientAssertion).
+      /**
+       * for non-B2C, we can use either clientSecret or clientAssertion to redeem authorization code.
+       * Therefore, we need either clientSecret, or privatePEMKey and thumbprint (so we can create clientAssertion).
+       */
       if (!options.privatePEMKey)
-        throw new Error('privatePEMKey is not provided. Please provide either clientSecret, or privatePEMKey and thumbprint.');
+        throw new Error("privatePEMKey is not provided. Please provide either clientSecret, or privatePEMKey and thumbprint.");
       if (!options.thumbprint)
-        throw new Error('thumbprint is not provided. Please provide either clientSecret, or privatePEMKey and thumbprint.');
+        throw new Error("thumbprint is not provided. Please provide either clientSecret, or privatePEMKey and thumbprint.");
     }
   }
 
   // we allow 'http' for the redirectUrl, but don't recommend using 'http'
   if (urlValidator.isHttpUri(options.redirectUrl))
-    log.warn(`Using http for redirectUrl is not recommended, please consider using https`);
+    log.warn("Using http for redirectUrl is not recommended, please consider using https");
 }
 
 // Inherit from `passport.Strategy`.
@@ -595,43 +584,42 @@ Strategy.prototype.authenticate = function authenticateStrategy(req, options) {
    */
   const self = this;
 
-  var resource = options && options.resourceURL;
-  var customState = options && options.customState;
-  var tenantIdOrName = options && options.tenantIdOrName;
-  var login_hint = options && options.login_hint;
-  var domain_hint = options && options.domain_hint;
-  var prompt = options && options.prompt;
-  var extraAuthReqQueryParams = options && options.extraAuthReqQueryParams;
-  var extraTokenReqQueryParams = options && options.extraTokenReqQueryParams;
-  var response = options && options.response || req.res;
+  const resource = options && options.resourceURL;
+  const customState = options && options.customState;
+  const tenantIdOrName = options && options.tenantIdOrName;
+  const login_hint = options && options.login_hint;
+  const domain_hint = options && options.domain_hint;
+  const prompt = options && options.prompt;
+  const extraAuthReqQueryParams = options && options.extraAuthReqQueryParams;
+  const extraTokenReqQueryParams = options && options.extraTokenReqQueryParams;
+  const response = options && options.response || req.res;
 
   // 'params': items we get from the request or metadata, such as id_token, code, policy, metadata, cacheKey, etc
-  var params = { 'proxy': self._options.proxy, 'tenantIdOrName': tenantIdOrName, 'extraAuthReqQueryParams': extraAuthReqQueryParams, 'extraTokenReqQueryParams': extraTokenReqQueryParams };
+  const params = { "proxy": self._options.proxy, "tenantIdOrName": tenantIdOrName, "extraAuthReqQueryParams": extraAuthReqQueryParams, "extraTokenReqQueryParams": extraTokenReqQueryParams };
   // 'oauthConfig': items needed for oauth flow (like redirection, code redemption), such as token_endpoint, userinfo_endpoint, etc
-  var oauthConfig = { 'proxy': self._options.proxy, 'resource': resource, 'customState': customState, 'domain_hint': domain_hint, 'login_hint': login_hint, 'prompt': prompt, 'response': response };
+  const oauthConfig = { "proxy": self._options.proxy, "resource": resource, "customState": customState, "domain_hint": domain_hint, "login_hint": login_hint, "prompt": prompt, "response": response };
   // 'optionsToValidate': items we need to validate id_token against, such as issuer, audience, etc
-  var optionsToValidate = {};
+  const optionsToValidate = {};
 
   async.waterfall(
     [
-      /*****************************************************************************
+      /**
        * Step 1. Collect information from the req and save the info into params
-       ****************************************************************************/
+       */
       (next) => {
         return self.collectInfoFromReq(params, req, next, response);
       },
 
-      /*****************************************************************************
+      /**
        * Step 2. Load metadata, use the information from 'params' and 'self._options'
        * to configure 'oauthConfig' and 'optionsToValidate'
-       ****************************************************************************/
+       */
       (next) => {
         return self.setOptions(params, oauthConfig, optionsToValidate, next);
       },
 
-      /*****************************************************************************
+      /**
        * Step 3. Handle the flows
-       *----------------------------------------------------------------------------
        * (1) implicit flow (response_type = 'id_token')
        *     This case we get a 'id_token'
        * (2) hybrid flow (response_type = 'id_token code')
@@ -640,7 +628,7 @@ Strategy.prototype.authenticate = function authenticateStrategy(req, options) {
        *     This case we get a 'code', we will use it to get 'access_token' and 'id_token'
        * (4) for any other request, we will ask for authorization and initialize
        *     the authorization process
-       ****************************************************************************/
+       */
       (next) => {
         if (params.err) {
           // handle the error
@@ -680,20 +668,22 @@ Strategy.prototype.authenticate = function authenticateStrategy(req, options) {
 Strategy.prototype.collectInfoFromReq = function (params, req, next, response) {
   const self = this;
 
-  // the things we will put into 'params':
-  // err, err_description, id_token, code, policy, state, nonce, cachekey, metadata
+  /*
+   * the things we will put into 'params':
+   * err, err_description, id_token, code, policy, state, nonce, cachekey, metadata
+   */
 
-  // -------------------------------------------------------------------------
-  // we shouldn't get any access_token or refresh_token from the request
-  // -------------------------------------------------------------------------
+  /*
+   * we shouldn't get any access_token or refresh_token from the request
+   */
   if ((req.query && (req.query.access_token || req.query.refresh_token)) ||
     (req.body && (req.body.access_token || req.body.refresh_token)))
-    return next(new Error('In collectInfoFromReq: neither access token nor refresh token is expected in the incoming request'));
+    return next(new Error("In collectInfoFromReq: neither access token nor refresh token is expected in the incoming request"));
 
-  // -------------------------------------------------------------------------
-  // we might get err, id_token, code, state from the request
-  // -------------------------------------------------------------------------
-  var source = null;
+  /*
+   * we might get err, id_token, code, state from the request
+   */
+  let source = null;
 
   if (req.query && (req.query.error || req.query.id_token || req.query.code))
     source = req.query;
@@ -707,26 +697,28 @@ Strategy.prototype.collectInfoFromReq = function (params, req, next, response) {
     params.code = source.code;
     params.state = source.state;
     if (source.state && source.state.length >= 38) {
-      // the random generated state always has 32 characters. This state is longer than 32
-      // so it must be a custom state. We added 'CUSTOM' prefix and a random 32 byte long
-      // string in front of the original custom state, now we change it back.
-      if (!source.state.startsWith('CUSTOM'))
-        return next(new Error(`In collectInfoFromReq: invalid custom state ${state}`));
+      /*
+       * the random generated state always has 32 characters. This state is longer than 32
+       * so it must be a custom state. We added 'CUSTOM' prefix and a random 32 byte long
+       * string in front of the original custom state, now we change it back.
+       */
+      if (!source.state.startsWith("CUSTOM"))
+        return next(new Error(`In collectInfoFromReq: invalid custom state ${source.state}`));
 
       source.state = source.state.substring(38);
     }
   }
 
-  // -------------------------------------------------------------------------
-  // If we received code, id_token or err, we must have received state, now we
-  // find the state/nonce/policy tuple from session.
-  // If we received none of them, find policy in query
-  // -------------------------------------------------------------------------
+  /*
+   * If we received code, id_token or err, we must have received state, now we
+   * find the state/nonce/policy tuple from session.
+   * If we received none of them, find policy in query
+   */
   if (params.id_token || params.code || params.err) {
     if (!params.state)
-      return next(new Error('In collectInfoFromReq: missing state in the request'));
+      return next(new Error("In collectInfoFromReq: missing state in the request"));
 
-    var tuple;
+    let tuple;
 
     if (!self._useCookieInsteadOfSession)
       tuple = self._sessionContentHandler.findAndDeleteTupleByState(req, self._key, params.state);
@@ -734,20 +726,20 @@ Strategy.prototype.collectInfoFromReq = function (params, req, next, response) {
       tuple = self._cookieContentHandler.findAndDeleteTupleByState(req, response, params.state);
 
     if (!tuple)
-      return next(new Error('In collectInfoFromReq: invalid state received in the request'));
+      return next(new Error("In collectInfoFromReq: invalid state received in the request"));
 
-    params.nonce = tuple['nonce'];
-    params.policy = tuple['policy'];
-    params.resource = tuple['resource'];
+    params.nonce = tuple["nonce"];
+    params.policy = tuple["policy"];
+    params.resource = tuple["resource"];
 
     // user provided tenantIdOrName will be ignored for redirectUrl, since we saved the one we used in session
     if (params.tenantIdOrName) {
       if (self._options.loggingNoPII)
-        log.info('user provided tenantIdOrName is ignored for redirectUrl, we will use the one stored in session');
+        log.info("user provided tenantIdOrName is ignored for redirectUrl, we will use the one stored in session");
       else
         log.info(`user provided tenantIdOrName '${params.tenantIdOrName}' is ignored for redirectUrl, we will use the one stored in session`);
     }
-    params.tenantIdOrName = tuple['tenantIdOrName'];
+    params.tenantIdOrName = tuple["tenantIdOrName"];
   } else {
     params.policy = req.query.p ? req.query.p.toLowerCase() : null;
   }
@@ -755,37 +747,39 @@ Strategy.prototype.collectInfoFromReq = function (params, req, next, response) {
   // if we are not using the common endpoint, but we have tenantIdOrName, just ignore it
   if (!self._options.isCommonEndpoint && params.tenantIdOrName) {
     if (self._options.loggingNoPII)
-      log.info('identityMetadata is tenant-specific, so we ignore the tenantIdOrName provided');
+      log.info("identityMetadata is tenant-specific, so we ignore the tenantIdOrName provided");
     else
       log.info(`identityMetadata is tenant-specific, so we ignore the tenantIdOrName '${params.tenantIdOrName}'`);
     params.tenantIdOrName = null;
   }
 
-  // if we are using the common endpoint and we want to validate issuer, then user has to
-  // provide issuer in config, or provide tenant id or name using tenantIdOrName option in
-  // passport.authenticate. Otherwise we won't know the issuer.
+  /*
+   * if we are using the common endpoint and we want to validate issuer, then user has to
+   * provide issuer in config, or provide tenant id or name using tenantIdOrName option in
+   * passport.authenticate. Otherwise we won't know the issuer.
+   */
   if (self._options.isCommonEndpoint && self._options.validateIssuer &&
     (!self._options.issuer && !params.tenantIdOrName))
-    return next(new Error('In collectInfoFromReq: issuer or tenantIdOrName must be provided in order to validate issuer on common endpoint'));
+    return next(new Error("In collectInfoFromReq: issuer or tenantIdOrName must be provided in order to validate issuer on common endpoint"));
 
   // for B2C, we must have policy
   if (self._options.isB2C && !params.policy)
-    return next(new Error('In collectInfoFromReq: policy is missing'));
+    return next(new Error("In collectInfoFromReq: policy is missing"));
   // for B2C, if we are using common endpoint, we must have tenantIdOrName provided
   if (self._options.isB2C && self._options.isCommonEndpoint && !params.tenantIdOrName)
-    return next(new Error('In collectInfoFromReq: we are using common endpoint for B2C but tenantIdOrName is not provided'));
+    return next(new Error("In collectInfoFromReq: we are using common endpoint for B2C but tenantIdOrName is not provided"));
 
-  // -------------------------------------------------------------------------
-  // calculate metadataUrl, create a cachekey and an Metadata object instance
-  // we will fetch the metadata, save it into the object using the cachekey
-  // -------------------------------------------------------------------------
-  var metadataUrl = self._options.identityMetadata;
+  /*
+   * calculate metadataUrl, create a cachekey and an Metadata object instance
+   * we will fetch the metadata, save it into the object using the cachekey
+   */
+  let metadataUrl = self._options.identityMetadata;
 
   // if we are using common endpoint and we are given the tenantIdOrName, let's replace it
   if (self._options.isCommonEndpoint && params.tenantIdOrName) {
-    metadataUrl = metadataUrl.replace('/common/', `/${params.tenantIdOrName}/`);
+    metadataUrl = metadataUrl.replace("/common/", `/${params.tenantIdOrName}/`);
     if (self._options.loggingNoPII)
-      log.info(`we are replacing 'common' with the tenantIdOrName provided`);
+      log.info("we are replacing 'common' with the tenantIdOrName provided");
     else
       log.info(`we are replacing 'common' with the tenantIdOrName ${params.tenantIdOrName}`);
   }
@@ -796,7 +790,7 @@ Strategy.prototype.collectInfoFromReq = function (params, req, next, response) {
 
   // we use the metadataUrl as the cachekey
   params.cachekey = metadataUrl;
-  params.metadata = new Metadata(metadataUrl, 'oidc', self._options);
+  params.metadata = new Metadata(metadataUrl, "oidc", self._options);
 
   if (!self._options.loggingNoPII) {
     log.info(`metadataUrl is: ${metadataUrl}`);
@@ -818,9 +812,9 @@ Strategy.prototype.setOptions = function setOptions(params, oauthConfig, options
   const self = this;
 
   async.waterfall([
-    // ------------------------------------------------------------------------
-    // load metadata
-    // ------------------------------------------------------------------------
+    /*
+     * load metadata
+     */
     (next) => {
       memoryCache.wrap(params.cachekey, (cacheCallback) => {
         params.metadata.fetch((fetchMetadataError) => {
@@ -832,17 +826,17 @@ Strategy.prototype.setOptions = function setOptions(params, oauthConfig, options
       }, { ttl }, next);
     },
 
-    // ------------------------------------------------------------------------
-    // set oauthConfig: the information we need for oauth flow like redeeming code/access_token
-    // ------------------------------------------------------------------------
+    /*
+     * set oauthConfig: the information we need for oauth flow like redeeming code/access_token
+     */
     (metadata, next) => {
       if (!metadata.oidc)
-        return next(new Error('In setOptions: failed to load metadata'));
+        return next(new Error("In setOptions: failed to load metadata"));
       params.metadata = metadata;
 
       // copy the fields needed into 'oauthConfig'
-      aadutils.copyObjectFields(metadata.oidc, oauthConfig, ['authorization_endpoint', 'token_endpoint', 'userinfo_endpoint']);
-      aadutils.copyObjectFields(self._options, oauthConfig, ['clientID', 'clientSecret', 'privatePEMKey', 'thumbprint', 'responseType', 'responseMode', 'scope', 'redirectUrl']);
+      aadutils.copyObjectFields(metadata.oidc, oauthConfig, ["authorization_endpoint", "token_endpoint", "userinfo_endpoint"]);
+      aadutils.copyObjectFields(self._options, oauthConfig, ["clientID", "clientSecret", "privatePEMKey", "thumbprint", "responseType", "responseMode", "scope", "redirectUrl"]);
       oauthConfig.tenantIdOrName = params.tenantIdOrName;
       oauthConfig.extraAuthReqQueryParams = params.extraAuthReqQueryParams;
       oauthConfig.extraTokenReqQueryParams = params.extraTokenReqQueryParams;
@@ -864,24 +858,21 @@ Strategy.prototype.setOptions = function setOptions(params, oauthConfig, options
 
       // for B2C, verify the endpoints in oauthConfig has the correct policy
       if (self._options.isB2C) {
-        var policyChecker = (endpoint, policy) => {
-          var u = {};
-          try {
-            u = url.parse(endpoint);
-          } catch (ex) {
-          }
+        const policyChecker = (endpoint, policy) => {
+          let u = {};
+          u = url.parse(endpoint);
           return u.pathname && _.includes(u.path, policy.toLowerCase());
         };
         // B2C has no userinfo_endpoint, so no need to check it
         if (!policyChecker(oauthConfig.authorization_endpoint, params.policy)) {
           if (self._options.loggingNoPII)
-            return next(new Error('invalid policy'));
+            return next(new Error("invalid policy"));
           else
             return next(new Error(`policy in ${oauthConfig.authorization_endpoint} should be ${params.policy}`));
         }
         if (!policyChecker(oauthConfig.token_endpoint, params.policy)) {
           if (self._options.loggingNoPII)
-            return next(new Error('invalid policy'));
+            return next(new Error("invalid policy"));
           else
             return next(new Error(`policy in ${oauthConfig.token_endpoint} should be ${params.policy}`));
         }
@@ -890,25 +881,25 @@ Strategy.prototype.setOptions = function setOptions(params, oauthConfig, options
       return next(null, metadata);
     },
 
-    // ------------------------------------------------------------------------
-    // set optionsToValidate: the information we need for id_token validation.
-    // we do this only if params has id_token or code, otherwise there is no
-    // id_token to validate
-    // ------------------------------------------------------------------------
+    /*
+     * set optionsToValidate: the information we need for id_token validation.
+     * we do this only if params has id_token or code, otherwise there is no
+     * id_token to validate
+     */
     (metadata, next) => {
       if (!params.id_token && !params.code)
         return next(null);
 
       // set items from self._options
       aadutils.copyObjectFields(self._options, optionsToValidate,
-        ['validateIssuer', 'audience', 'allowMultiAudiencesInToken', 'ignoreExpiration', 'allowMultiAudiencesInToken']);
+        ["validateIssuer", "audience", "allowMultiAudiencesInToken", "ignoreExpiration", "allowMultiAudiencesInToken"]);
 
       // algorithms
-      var algorithms = metadata.oidc.algorithms;
+      const algorithms = metadata.oidc.algorithms;
       if (!algorithms)
-        return next(new Error('In setOptions: algorithms is missing in metadata'));
-      if (!Array.isArray(algorithms) || algorithms.length == 0 || (algorithms.length === 1 && algorithms[0] === 'none'))
-        return next(new Error('In setOptions: algorithms must be an array containing at least one algorithm'));
+        return next(new Error("In setOptions: algorithms is missing in metadata"));
+      if (!Array.isArray(algorithms) || algorithms.length === 0 || (algorithms.length === 1 && algorithms[0] === "none"))
+        return next(new Error("In setOptions: algorithms must be an array containing at least one algorithm"));
       optionsToValidate.algorithms = algorithms;
 
       // nonce
@@ -920,8 +911,10 @@ Strategy.prototype.setOptions = function setOptions(params, oauthConfig, options
       // jweKeyStore
       optionsToValidate.jweKeyStore = self._options.jweKeyStore;
 
-      // issuer
-      // if the metadata is not coming from common endpoint, we record the issuer value from metadata
+      /*
+       * issuer
+       * if the metadata is not coming from common endpoint, we record the issuer value from metadata
+       */
       if (!self._options.isCommonEndpoint || (self._options.isCommonEndpoint && params.tenantIdOrName))
         optionsToValidate.issuer = [metadata.oidc.issuer];
       else
@@ -931,7 +924,7 @@ Strategy.prototype.setOptions = function setOptions(params, oauthConfig, options
         optionsToValidate.issuer = optionsToValidate.issuer.concat(self._options.issuer);
       // if we don't get any issuer value and we want to validate issuer, we should fail
       if (optionsToValidate.issuer.length === 0 && self._options.validateIssuer)
-        return next(new Error('In setOptions: we want to validate issuer but issuer is not found'));
+        return next(new Error("In setOptions: we want to validate issuer but issuer is not found"));
 
       return next(null);
     },
@@ -951,14 +944,13 @@ Strategy.prototype.setOptions = function setOptions(params, oauthConfig, options
 Strategy.prototype._idTokenHandler = function idTokenHandler(params, optionsToValidate, req, next, callback) {
   const self = this;
 
-  var id_token = params.id_token;
-  var parts = id_token.split('.');
+  const id_token = params.id_token;
+  const parts = id_token.split(".");
 
   if (parts.length === 3)
     return self._validateResponse(params, optionsToValidate, req, next, callback);
   else if (parts.length === 5) {
-    log.info('In _idTokenHandler: we received an id_token of JWE format, we are decrypting it');
-    var decrypted_token;
+    log.info("In _idTokenHandler: we received an id_token of JWE format, we are decrypting it");
 
     return jwe.decrypt(id_token, optionsToValidate.jweKeyStore, log, (err, decrypted_token) => {
       if (err)
@@ -984,38 +976,38 @@ Strategy.prototype._idTokenHandler = function idTokenHandler(params, optionsToVa
 Strategy.prototype._validateResponse = function validateResponse(params, optionsToValidate, req, next, callback) {
   const self = this;
 
-  var id_token = params.id_token;
-  var code = params.code;
-  var access_token = params.access_token;
+  const id_token = params.id_token;
+  const code = params.code;
+  const access_token = params.access_token;
 
   // decode id_token
   const decoded = jws.decode(id_token);
-  if (decoded == null)
-    return next(new Error('In _validateResponse: Invalid JWT token'));
+  if (decoded === null)
+    return next(new Error("In _validateResponse: Invalid JWT token"));
 
   if (self._options.loggingNoPII)
-    log.info('token is decoded successfully');
+    log.info("token is decoded successfully");
   else
-    log.info('token decoded: ', decoded);
+    log.info("token decoded: ", decoded);
 
   // get Pem Key
-  var PEMkey = null;
+  let PEMkey = null;
   try {
     if (decoded.header.kid) {
       PEMkey = params.metadata.generateOidcPEM(decoded.header.kid);
     } else if (decoded.header.x5t) {
       PEMkey = params.metadata.generateOidcPEM(decoded.header.x5t);
     } else {
-      return next(new Error('In _validateResponse: We did not receive a token we know how to validate'));
+      return next(new Error("In _validateResponse: We did not receive a token we know how to validate"));
     }
   } catch (error) {
-    return next(new Error('In _validateResponse: failed to generate PEM key due to: ' + error.message));
+    return next(new Error("In _validateResponse: failed to generate PEM key due to: " + error.message));
   }
 
   if (self._options.loggingNoPII)
-    log.info('PEMkey is generated');
+    log.info("PEMkey is generated");
   else
-    log.info('PEMkey generated: ' + PEMkey);
+    log.info("PEMkey generated: " + PEMkey);
 
   // verify id_token signature and claims
   return jwt.verify(id_token, PEMkey, optionsToValidate, (err, jwtClaims) => {
@@ -1027,27 +1019,29 @@ Strategy.prototype._validateResponse = function validateResponse(params, options
     else
       log.info("Claims received: ", jwtClaims);
 
-    // jwt checks the 'nbf', 'exp', 'aud', 'iss' claims
-    // there are a few other things we will check below
+    /*
+     * jwt checks the 'nbf', 'exp', 'aud', 'iss' claims
+     * there are a few other things we will check below
+     */
 
     // For B2C, check the policy
     if (self._options.isB2C) {
-      var policy_in_idToken;
+      let policy_in_idToken;
 
       if (jwtClaims.acr && CONSTANTS.POLICY_REGEX.test(jwtClaims.acr))
         policy_in_idToken = jwtClaims.acr;
       else if (jwtClaims.tfp && CONSTANTS.POLICY_REGEX.test(jwtClaims.tfp))
         policy_in_idToken = jwtClaims.tfp.toLowerCase();
       else
-        return next(new Error('In _validateResponse: invalid B2C policy in id_token'));
+        return next(new Error("In _validateResponse: invalid B2C policy in id_token"));
 
       if (params.policy !== policy_in_idToken)
         return next(new Error("In _validateResponse: policy in id_token does not match the policy used"));
     }
 
     // check nonce
-    if (!jwtClaims.nonce || jwtClaims.nonce === '' || jwtClaims.nonce !== optionsToValidate.nonce)
-      return next(new Error('In _validateResponse: invalid nonce'));
+    if (!jwtClaims.nonce || jwtClaims.nonce === "" || jwtClaims.nonce !== optionsToValidate.nonce)
+      return next(new Error("In _validateResponse: invalid nonce"));
 
     // check c_hash
     if (jwtClaims.c_hash) {
@@ -1064,8 +1058,8 @@ Strategy.prototype._validateResponse = function validateResponse(params, options
     }
 
     // return jwt claims and jwt claims string
-    var idTokenSegments = id_token.split('.');
-    var jwtClaimsStr = base64url.decode(idTokenSegments[1]);
+    const idTokenSegments = id_token.split(".");
+    const jwtClaimsStr = base64url.decode(idTokenSegments[1]);
     return callback(jwtClaimsStr, jwtClaims);
   });
 };
@@ -1080,13 +1074,15 @@ Strategy.prototype._validateResponse = function validateResponse(params, options
 Strategy.prototype._errorResponseHandler = function errorResponseHandler(err, err_description, next) {
   const self = this;
 
-  log.info('Error received in the response was: ', err);
+  log.info("Error received in the response was: ", err);
   if (err_description && !self._options.loggingNoPII)
-    log.info('Error description received in the response was: ', err_description);
+    log.info("Error description received in the response was: ", err_description);
 
-  // Unfortunately, we cannot return the 'error description' to the user, since
-  // it goes to http header by default and it usually contains characters that
-  // http header doesn't like, which causes the program to crash.
+  /*
+   * Unfortunately, we cannot return the 'error description' to the user, since
+   * it goes to http header by default and it usually contains characters that
+   * http header doesn't like, which causes the program to crash.
+   */
   return next(new Error(err));
 };
 
@@ -1099,7 +1095,8 @@ Strategy.prototype._errorResponseHandler = function errorResponseHandler(err, er
  * @params {Function} next  -- callback to pass error to async.waterfall
  */
 Strategy.prototype._implicitFlowHandler = function implicitFlowHandler(params, optionsToValidate, req, next) {
-  /* we will do the following things in order
+  /*
+   * we will do the following things in order
    * (1) validate id_token
    * (2) use the claims in the id_token for user's profile
    */
@@ -1107,16 +1104,16 @@ Strategy.prototype._implicitFlowHandler = function implicitFlowHandler(params, o
   const self = this;
 
   if (self._options.loggingNoPII)
-    log.info('entering Strategy.prototype._implicitFlowHandler');
+    log.info("entering Strategy.prototype._implicitFlowHandler");
   else
-    log.info('entering Strategy.prototype._implicitFlowHandler, received id_token: ' + params.id_token);
+    log.info("entering Strategy.prototype._implicitFlowHandler, received id_token: " + params.id_token);
 
   // validate the id_token
   return self._idTokenHandler(params, optionsToValidate, req, next, (jwtClaimsStr, jwtClaims) => {
     const sub = jwtClaims.sub;
     const iss = jwtClaims.iss;
 
-    log.info('we are in implicit flow, use the content in id_token as the profile');
+    log.info("we are in implicit flow, use the content in id_token as the profile");
 
     return onProfileLoaded(self, {
       req,
@@ -1141,7 +1138,8 @@ Strategy.prototype._implicitFlowHandler = function implicitFlowHandler(params, o
  * @params {Function} next  -- callback to pass error to async.waterfall
  */
 Strategy.prototype._hybridFlowHandler = function hybridFlowHandler(params, oauthConfig, optionsToValidate, req, next) {
-  /* we will do the following things in order
+  /*
+   * we will do the following things in order
    * (1) validate the id_token and the code
    * (2) if there is no userinfo token needed (or ignored if using AAD v2 ), we use
    *     the claims in id_token for user's profile
@@ -1150,17 +1148,21 @@ Strategy.prototype._hybridFlowHandler = function hybridFlowHandler(params, oauth
   const self = this;
 
   if (self._options.loggingNoPII)
-    log.info('entering Strategy.prototype._hybridFlowHandler');
+    log.info("entering Strategy.prototype._hybridFlowHandler");
   else
-    log.info('entering Strategy.prototype._hybridFlowHandler, received code: ' + params.code + ', received id_token: ' + params.id_token);
+    log.info("entering Strategy.prototype._hybridFlowHandler, received code: " + params.code + ", received id_token: " + params.id_token);
 
-  // save nonce, since if we use the authorization code flow later, we have to check
-  // nonce again.
+  /*
+   * save nonce, since if we use the authorization code flow later, we have to check
+   * nonce again.
+   */
 
   // validate the id_token and the code
   return self._idTokenHandler(params, optionsToValidate, req, next, (jwtClaimsStr, jwtClaims) => {
-    // c_hash is required for 'code id_token' flow. If we have c_hash, then _validateResponse already
-    // validates it; otherwise, _validateResponse ignores the c_hash check, and we check here
+    /*
+     * c_hash is required for 'code id_token' flow. If we have c_hash, then _validateResponse already
+     * validates it; otherwise, _validateResponse ignores the c_hash check, and we check here
+     */
     if (!jwtClaims.c_hash)
       return next(new Error("In _hybridFlowHandler: we are in hybrid flow using code id_token, but c_hash is not found in id_token"));
 
@@ -1188,52 +1190,53 @@ Strategy.prototype._hybridFlowHandler = function hybridFlowHandler(params, oauth
  * @params {String} sub
  */
 Strategy.prototype._authCodeFlowHandler = function authCodeFlowHandler(params, oauthConfig, optionsToValidate, req, next, iss, sub) {
-  /* we will do the following things in order:
+  /*
+   * we will do the following things in order:
    * (1) use code to get id_token and access_token
    * (2) validate the id_token and the access_token received
    * (3) if user asks for userinfo and we are using AAD v1, then we use access_token to get
    *     userinfo, then make sure the userinfo has the same 'sub' as that in the 'id_token'
    */
   const self = this;
-  var code = params.code;
+  const code = params.code;
 
   if (self._options.loggingNoPII)
-    log.info('entering Strategy.prototype._authCodeFlowHandler');
+    log.info("entering Strategy.prototype._authCodeFlowHandler");
   else
-    log.info('entering Strategy.prototype._authCodeFlowHandler, received code: ' + code);
+    log.info("entering Strategy.prototype._authCodeFlowHandler, received code: " + code);
 
-  var issFromPrevIdToken = iss;
-  var subFromPrevIdToken = sub;
+  const issFromPrevIdToken = iss;
+  const subFromPrevIdToken = sub;
 
   return self._getAccessTokenBySecretOrAssertion(code, oauthConfig, next, (getOAuthAccessTokenError, items) => {
     if (getOAuthAccessTokenError) {
       if (self._options.loggingNoPII)
-        return next(new Error('In _authCodeFlowHandler: failed to redeem authorization code'));
+        return next(new Error("In _authCodeFlowHandler: failed to redeem authorization code"));
       else
         return next(new Error(`In _authCodeFlowHandler: failed to redeem authorization code: ${aadutils.getErrorMessage(getOAuthAccessTokenError)}`));
     }
 
-    var access_token = items.access_token;
-    var refresh_token = items.refresh_token;
+    const access_token = items.access_token;
+    const refresh_token = items.refresh_token;
 
     // id_token should be present
     if (!items.id_token)
-      return next(new Error('In _authCodeFlowHandler: id_token is not received'));
+      return next(new Error("In _authCodeFlowHandler: id_token is not received"));
 
     // if we get access token, we must have token_type as well
     if (items.access_token && !items.token_type)
-      return next(new Error('In _authCodeFlowHandler: token_type is missing'));
+      return next(new Error("In _authCodeFlowHandler: token_type is missing"));
 
     // token_type must be 'Bearer' ignoring the case
-    if (items.token_type && items.token_type.toLowerCase() !== 'bearer') {
-      log.info('token_type received is: ', items.token_type);
-      return next(new Error(`In _authCodeFlowHandler: token_type received is not 'Bearer' ignoring the case`));
+    if (items.token_type && items.token_type.toLowerCase() !== "bearer") {
+      log.info("token_type received is: ", items.token_type);
+      return next(new Error("In _authCodeFlowHandler: token_type received is not 'Bearer' ignoring the case"));
     }
 
     if (!self._options.loggingNoPII) {
-      log.info('received id_token: ', items.id_token);
-      log.info('received access_token: ', access_token);
-      log.info('received refresh_token: ', refresh_token);
+      log.info("received id_token: ", items.id_token);
+      log.info("received access_token: ", access_token);
+      log.info("received refresh_token: ", refresh_token);
     }
 
     // validate id_token and access_token, so put them into params
@@ -1241,18 +1244,22 @@ Strategy.prototype._authCodeFlowHandler = function authCodeFlowHandler(params, o
     params.id_token = items.id_token;
 
     return self._idTokenHandler(params, optionsToValidate, req, next, (jwtClaimsStr, jwtClaims) => {
-      // for 'code id_token' flow, check iss/sub in the id_token from the authorization endpoint
-      // with those in the id_token from token endpoint
+      /*
+       * for 'code id_token' flow, check iss/sub in the id_token from the authorization endpoint
+       * with those in the id_token from token endpoint
+       */
       if (issFromPrevIdToken && issFromPrevIdToken !== jwtClaims.iss)
-        return next(new Error('In _authCodeFlowHandler: After redeeming the code, iss in id_token from authorize_endpoint does not match iss in id_token from token_endpoint'));
+        return next(new Error("In _authCodeFlowHandler: After redeeming the code, iss in id_token from authorize_endpoint does not match iss in id_token from token_endpoint"));
       if (subFromPrevIdToken && subFromPrevIdToken !== jwtClaims.sub)
-        return next(new Error('In _authCodeFlowHandler: After redeeming the code, sub in id_token from authorize_endpoint does not match sub in id_token from token_endpoint'));
+        return next(new Error("In _authCodeFlowHandler: After redeeming the code, sub in id_token from authorize_endpoint does not match sub in id_token from token_endpoint"));
 
       const sub = jwtClaims.sub;
       const iss = jwtClaims.iss;
 
-      // load the userinfo, if this is not v2 and if we don't specify the resource
-      // for v1 if we don't specify the resource, then the access_token we got is for userinfo endpoint, so we can use it to get userinfo
+      /*
+       * load the userinfo, if this is not v2 and if we don't specify the resource
+       * for v1 if we don't specify the resource, then the access_token we got is for userinfo endpoint, so we can use it to get userinfo
+       */
       if (!self._options._isV2 && !params.resource) {
         // make sure we get an access_token
         if (!access_token)
@@ -1263,45 +1270,45 @@ Strategy.prototype._authCodeFlowHandler = function authCodeFlowHandler(params, o
           parsedUrl = url.parse(oauthConfig.userinfo_endpoint, true);
         } catch (urlParseException) {
           if (self._options.loggingNoPII)
-            return next(new Error(`In _authCodeFlowHandler: Failed to parse config property 'userInfoUrl'`));
+            return next(new Error("In _authCodeFlowHandler: Failed to parse config property 'userInfoUrl'"));
           else
             return next(new Error(`In _authCodeFlowHandler: Failed to parse config property 'userInfoURL' with value ${oauthConfig.userinfo_endpoint}`));
         }
 
-        parsedUrl.query.schema = 'openid';
+        parsedUrl.query.schema = "openid";
         delete parsedUrl.search; // delete operations are slow; should we rather just overwrite it with {}
         const userInfoURL = url.format(parsedUrl);
 
         // ask oauth2 to use authorization header to bearer access token
-        var oauth2 = createOauth2Instance(oauthConfig);
+        const oauth2 = createOauth2Instance(oauthConfig);
         oauth2.useAuthorizationHeaderforGET(true);
         return oauth2.get(userInfoURL, access_token, (getUserInfoError, body) => {
           if (getUserInfoError) {
             if (self._options.loggingNoPII)
-              return next(new Error('In _authCodeFlowHandler: failed to fetch user profile'));
+              return next(new Error("In _authCodeFlowHandler: failed to fetch user profile"));
             else
               return next(new Error(`In _authCodeFlowHandler: failed to fetch user profile: ${aadutils.getErrorMessage(getUserInfoError)}`));
           }
 
           if (self._options.loggingNoPII)
-            log.info('Profile is loaded from MS identity');
+            log.info("Profile is loaded from MS identity");
           else
-            log.info('Profile loaded from MS identity', body);
+            log.info("Profile loaded from MS identity", body);
 
-          var userinfoReceived = null;
+          let userinfoReceived = null;
           // use try / catch around JSON.parse --> could fail unexpectedly
           try {
             userinfoReceived = JSON.parse(body);
           } catch (ex) {
             if (self._options.loggingNoPII)
-              return next(new Error('In _authCodeFlowHandler: failed to parse userinfo'));
+              return next(new Error("In _authCodeFlowHandler: failed to parse userinfo"));
             else
               return next(new Error(`In _authCodeFlowHandler: failed to parse userinfo ${body}, due to ${aadutils.getErrorMessage(ex)}`));
           }
 
           // make sure the 'sub' in userinfo is the same as the one in 'id_token'
           if (userinfoReceived.sub !== jwtClaims.sub)
-            return next(new Error('In _authCodeFlowHandler: sub received in userinfo and id_token do not match'));
+            return next(new Error("In _authCodeFlowHandler: sub received in userinfo and id_token do not match"));
 
           return onProfileLoaded(self, {
             req,
@@ -1316,7 +1323,7 @@ Strategy.prototype._authCodeFlowHandler = function authCodeFlowHandler(params, o
         });
       } else {
         // v2 doesn't have userinfo endpoint, so we use the content in id_token as the profile
-        log.info('v2 has no userinfo endpoint, using the content in id_token as the profile');
+        log.info("v2 has no userinfo endpoint, using the content in id_token as the profile");
 
         return onProfileLoaded(self, {
           req,
@@ -1341,62 +1348,64 @@ Strategy.prototype._authCodeFlowHandler = function authCodeFlowHandler(params, o
  * @params {Function} next  -- callback to pass error to async.waterfall
  */
 Strategy.prototype._flowInitializationHandler = function flowInitializationHandler(oauthConfig, req, next) {
-  // The request being authenticated is initiating OpenID Connect
-  // authentication. Prior to redirecting to the provider, configuration will
-  // be loaded. The configuration is typically either pre-configured or
-  // discovered dynamically. When using dynamic discovery, a user supplies
-  // their identifer as input.
+  /*
+   * The request being authenticated is initiating OpenID Connect
+   * authentication. Prior to redirecting to the provider, configuration will
+   * be loaded. The configuration is typically either pre-configured or
+   * discovered dynamically. When using dynamic discovery, a user supplies
+   * their identifer as input.
+   */
 
   const self = this;
 
-  log.info(`entering Strategy.prototype._flowInitializationHandler`);
+  log.info("entering Strategy.prototype._flowInitializationHandler");
 
   const params = {
-    'redirect_uri': oauthConfig.redirectUrl,
-    'response_type': oauthConfig.responseType,
-    'response_mode': oauthConfig.responseMode,
-    'client_id': oauthConfig.clientID
+    "redirect_uri": oauthConfig.redirectUrl,
+    "response_type": oauthConfig.responseType,
+    "response_mode": oauthConfig.responseMode,
+    "client_id": oauthConfig.clientID
   };
 
-  log.info('We are sending the response_type: ', params.response_type);
-  log.info('We are sending the response_mode: ', params.response_mode);
+  log.info("We are sending the response_type: ", params.response_type);
+  log.info("We are sending the response_mode: ", params.response_mode);
 
   if (oauthConfig.domain_hint)
-    params['domain_hint'] = oauthConfig.domain_hint;
+    params["domain_hint"] = oauthConfig.domain_hint;
   if (oauthConfig.login_hint)
-    params['login_hint'] = oauthConfig.login_hint;
+    params["login_hint"] = oauthConfig.login_hint;
   if (oauthConfig.prompt)
-    params['prompt'] = oauthConfig.prompt;
+    params["prompt"] = oauthConfig.prompt;
   if (oauthConfig.extraAuthReqQueryParams) {
     // copy the extra query parameters into params
-    for (var attributeName in oauthConfig.extraAuthReqQueryParams) {
-      if (oauthConfig.extraAuthReqQueryParams.hasOwnProperty(attributeName))
+    for (const attributeName in oauthConfig.extraAuthReqQueryParams) {
+      if (Object.prototype.hasOwnProperty.call(oauthConfig.extraAuthReqQueryParams, attributeName))
         params[attributeName] = oauthConfig.extraAuthReqQueryParams[attributeName];
     }
   }
 
-  var policy = null;
+  let policy = null;
   if (self._options.isB2C) {
-    if (!req.query.p || req.query.p === '')
-      return next(new Error('In _flowInitializationHandler: missing policy in the request for B2C'));
+    if (!req.query.p || req.query.p === "")
+      return next(new Error("In _flowInitializationHandler: missing policy in the request for B2C"));
     // policy is not case sensitive. AAD turns policy to lower case.
     policy = req.query.p.toLowerCase();
     if (!policy || !CONSTANTS.POLICY_REGEX.test(policy)) {
       if (self._options.loggingNoPII)
-        return next(new Error('In _flowInitializationHandler: the given policy in the request is invalid'));
+        return next(new Error("In _flowInitializationHandler: the given policy in the request is invalid"));
       else
         return next(new Error(`In _flowInitializationHandler: the given policy ${policy} given in the request is invalid`));
     }
   }
 
   // add state/nonce/policy/timeStamp tuple to session or cookie
-  let state = params.state = oauthConfig.customState ? ('CUSTOM' + aadutils.uid(32) + oauthConfig.customState) : aadutils.uid(32);
-  let nonce = params.nonce = aadutils.uid(32);
-  let resource = oauthConfig.resource ? oauthConfig.resource : null;
+  const state = params.state = oauthConfig.customState ? ("CUSTOM" + aadutils.uid(32) + oauthConfig.customState) : aadutils.uid(32);
+  const nonce = params.nonce = aadutils.uid(32);
+  const resource = oauthConfig.resource ? oauthConfig.resource : null;
   if (resource)
     params.resource = resource;
 
-  var tuple = { state: state, nonce: nonce };
+  const tuple = { state: state, nonce: nonce };
   if (policy)
     tuple.policy = policy;
   if (resource)
@@ -1408,8 +1417,10 @@ Strategy.prototype._flowInitializationHandler = function flowInitializationHandl
     tuple.timeStamp = Date.now();
     self._sessionContentHandler.add(req, self._key, tuple);
   } else {
-    // we don't need to record timestamp if we use cookie, since we can set the
-    // expiration when we set cookie
+    /*
+     * we don't need to record timestamp if we use cookie, since we can set the
+     * expiration when we set cookie
+     */
     self._cookieContentHandler.add(req, oauthConfig.response, tuple);
   }
 
@@ -1433,56 +1444,56 @@ Strategy.prototype._flowInitializationHandler = function flowInitializationHandl
  * @params {Function} callback
  */
 Strategy.prototype._getAccessTokenBySecretOrAssertion = function getAccessTokenBySecretOrAssertion(code, oauthConfig, next, callback) {
-  var post_headers = { 'Content-Type': 'application/x-www-form-urlencoded' };
+  const post_headers = { "Content-Type": "application/x-www-form-urlencoded" };
 
   const self = this;
 
-  var post_params = {
+  const post_params = {
     code: code,
     client_id: oauthConfig.clientID,
     redirect_uri: oauthConfig.redirectUrl,
     scope: oauthConfig.scope,
-    grant_type: 'authorization_code'
+    grant_type: "authorization_code"
   };
 
   if (oauthConfig.extraTokenReqQueryParams) {
     // copy the extra query parameters into post_params
-    for (var attributeName in oauthConfig.extraTokenReqQueryParams) {
-      if (oauthConfig.extraTokenReqQueryParams.hasOwnProperty(attributeName))
+    for (const attributeName in oauthConfig.extraTokenReqQueryParams) {
+      if (Object.prototype.hasOwnProperty.call(oauthConfig.extraTokenReqQueryParams, attributeName))
         post_params[attributeName] = oauthConfig.extraTokenReqQueryParams[attributeName];
     }
   }
 
   if (oauthConfig.clientSecret) {
     // use client secret if it exists
-    post_params['client_secret'] = oauthConfig.clientSecret;
-    log.info('In _getAccessTokenBySecretOrAssertion: we are using client secret');
+    post_params["client_secret"] = oauthConfig.clientSecret;
+    log.info("In _getAccessTokenBySecretOrAssertion: we are using client secret");
   } else {
     // otherwise generate a client assertion
-    post_params['client_assertion_type'] = CONSTANTS.CLIENT_ASSERTION_TYPE;
+    post_params["client_assertion_type"] = CONSTANTS.CLIENT_ASSERTION_TYPE;
 
     jwt.generateClientAssertion(oauthConfig.clientID, oauthConfig.token_endpoint, oauthConfig.privatePEMKey, oauthConfig.thumbprint,
       (err, assertion) => {
         if (err)
           return next(err);
         else
-          post_params['client_assertion'] = assertion;
+          post_params["client_assertion"] = assertion;
       });
 
     if (self._options.loggingNoPII)
-      log.info('In _getAccessTokenBySecretOrAssertion: we created a client assertion');
+      log.info("In _getAccessTokenBySecretOrAssertion: we created a client assertion");
     else
-      log.info('In _getAccessTokenBySecretOrAssertion: we created a client assertion with thumbprint ' + oauthConfig.thumbprint);
-  };
+      log.info("In _getAccessTokenBySecretOrAssertion: we created a client assertion with thumbprint " + oauthConfig.thumbprint);
+  }
 
-  var post_data = querystring.stringify(post_params);
+  const post_data = querystring.stringify(post_params);
 
-  var oauth2 = createOauth2Instance(oauthConfig);
+  const oauth2 = createOauth2Instance(oauthConfig);
 
-  oauth2._request('POST', oauthConfig.token_endpoint, post_headers, post_data, null, (error, data, response) => {
+  oauth2._request("POST", oauthConfig.token_endpoint, post_headers, post_data, null, (error, data) => {
     if (error) callback(error);
     else {
-      var results;
+      let results;
       try {
         results = JSON.parse(data);
       } catch (e) {
@@ -1508,16 +1519,14 @@ Strategy.prototype.failWithLog = function(message) {
  *
  * @params {Object} oauthConfig
  */
-var createOauth2Instance = function(oauthConfig) {
-  let libraryVersion = aadutils.getLibraryVersion();
-  let libraryVersionParameterName = aadutils.getLibraryVersionParameterName();
-  let libraryProduct = aadutils.getLibraryProduct();
-  let libraryProductParameterName = aadutils.getLibraryProductParameterName();
+const createOauth2Instance = function(oauthConfig) {
+  const libraryVersion = aadutils.getLibraryVersion();
+  const libraryProduct = aadutils.getLibraryProduct();
 
-  var oauth2 = new OAuth2(
+  const oauth2 = new OAuth2(
     oauthConfig.clientID, // consumerKey
     oauthConfig.clientSecret, // consumer secret
-    '', // baseURL (empty string because we use absolute urls for authorize and token paths)
+    "", // baseURL (empty string because we use absolute urls for authorize and token paths)
     oauthConfig.authorization_endpoint, // authorizePath
     oauthConfig.token_endpoint, // accessTokenPath
     {libraryProductParameterName : libraryProduct,

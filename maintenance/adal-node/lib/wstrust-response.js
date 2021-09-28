@@ -20,7 +20,7 @@
  */
 'use strict';
 
-var xmldom = require('xmldom');
+var xmldom = require('@xmldom/xmldom');
 
 var xmlutil = require('./xmlutil');
 
