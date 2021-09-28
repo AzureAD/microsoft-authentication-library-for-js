@@ -9,8 +9,7 @@ import { RequestWithPKCE } from "./types";
 
 const SERVER_PORT = process.env.PORT || 3000;
 
-// Before running the sample, you will need to replace the values in the config,
-// including the clientSecret
+// Before running the sample, you will need to replace the values in the config.
 const config = {
     auth: {
         clientId: "ENTER_CLIENT_ID",
