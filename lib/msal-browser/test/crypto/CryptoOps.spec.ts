@@ -2,7 +2,7 @@ import { CryptoOps, CachedKeyPair } from "../../src/crypto/CryptoOps";
 import { GuidGenerator } from "../../src/crypto/GuidGenerator";
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
 import { createHash } from "crypto";
-import { PkceCodes, BaseAuthRequest } from "@azure/msal-common";
+import { PkceCodes, BaseAuthRequest, Logger } from "@azure/msal-common";
 import { TEST_URIS } from "../utils/StringConstants";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src";
@@ -26,7 +26,7 @@ describe("CryptoOps.ts Unit Tests", () => {
             return Promise.resolve(true);
         });
 
-        cryptoObj = new CryptoOps();
+        cryptoObj = new CryptoOps(new Logger({}));
 
         oldWindowCrypto = window.crypto;
         //@ts-ignore
