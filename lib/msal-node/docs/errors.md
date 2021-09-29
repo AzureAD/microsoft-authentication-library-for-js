@@ -32,7 +32,7 @@ This error is thrown under the following scenarios:
 
 1. When a wrong authority endpoint is provided. Details: ClientAuthError: `openid_config_error`: Could not retrieve endpoints. Check your authority and verify the .well-known/openid-configuration endpoint returns the required endpoints. 
 
-Ensure that the authority provided matches the authority in your azure app registration.
+Ensure that the authority provided matches the authority in your azure app registration or the `common`, `consumers` or `organizations` endpoints.
 ```javascript
 const config = {
     auth: {
