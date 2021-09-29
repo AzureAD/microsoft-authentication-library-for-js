@@ -15,6 +15,7 @@ import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { PopupUtils } from "../../src/utils/PopupUtils";
 import { EndSessionPopupRequest } from "../../src/request/EndSessionPopupRequest";
 import { PopupClient } from "../../src/interaction_client/PopupClient";
+import { PopupRequest } from "../../src/request/PopupRequest";
 
 describe("PopupClient", () => {
     let popupClient: PopupClient;
@@ -52,7 +53,7 @@ describe("PopupClient", () => {
         });
 
         it("throws error if interaction is in progress", async () => {
-            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, TEST_CONFIG.MSAL_CLIENT_ID);
 
             await expect(popupClient.acquireToken({scopes:[]})).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
         });
@@ -80,7 +81,7 @@ describe("PopupClient", () => {
             try {
                 await popupClient.acquireToken(request);
             } catch(e) {}
-            expect(popupSpy.getCall(0).args).toHaveLength(2);
+            expect(popupSpy.getCall(0).args).toHaveLength(4);
         });
 
         it("opens popups asynchronously if configured", async () => {
@@ -118,7 +119,7 @@ describe("PopupClient", () => {
                 await popupClient.acquireToken(request);
             } catch(e) {}
             expect(popupSpy.calledOnce).toBeTruthy();
-            expect(popupSpy.getCall(0).args).toHaveLength(2);
+            expect(popupSpy.getCall(0).args).toHaveLength(4);
             expect(popupSpy.getCall(0).args[0].startsWith(TEST_URIS.TEST_AUTH_ENDPT)).toBeTruthy();
             expect(popupSpy.getCall(0).args[0]).toContain(`client_id=${encodeURIComponent(TEST_CONFIG.MSAL_CLIENT_ID)}`);
             expect(popupSpy.getCall(0).args[0]).toContain(`redirect_uri=${encodeURIComponent(request.redirectUri)}`);
@@ -232,7 +233,7 @@ describe("PopupClient", () => {
         });
 
         it("throws error if interaction is in progress", async () => {
-            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, TEST_CONFIG.MSAL_CLIENT_ID);
 
             await expect(popupClient.logout()).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
         });
@@ -243,7 +244,7 @@ describe("PopupClient", () => {
             try {
                 await popupClient.logout();
             } catch(e) {}
-            expect(popupSpy.getCall(0).args).toHaveLength(2);
+            expect(popupSpy.getCall(0).args).toHaveLength(4);
         });
 
         it("opens popups asynchronously if configured", (done) => {
@@ -432,7 +433,7 @@ describe("PopupClient", () => {
             sinon.stub(PopupUtils, "openSizedPopup").returns(popupWindow);
             sinon.stub(PopupUtils.prototype, "openPopup").returns(popupWindow);
             sinon.stub(PopupUtils.prototype, "cleanPopup").callsFake((popup) => {
-                window.sessionStorage.removeItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`);
+                window.sessionStorage.removeItem(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`);
             });
             sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((url, navigationOptions) => {
                 return Promise.resolve(true);
