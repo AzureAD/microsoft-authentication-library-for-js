@@ -1,4 +1,9 @@
-'use strict';
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+"use strict";
 
 /**
  * `InternalOpenIDError` error.
@@ -12,7 +17,7 @@
 function InternalOpenIDError(message, err) {
   Error.call(this);
   Error.captureStackTrace(this, InternalOpenIDError);
-  this.name = 'InternalOpenIDError';
+  this.name = "InternalOpenIDError";
   this.message = message;
   this.openidError = err;
 }

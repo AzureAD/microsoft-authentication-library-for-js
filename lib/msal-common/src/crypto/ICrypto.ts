@@ -17,6 +17,8 @@ export type PkceCodes = {
     challenge: string
 };
 
+export type SignedHttpRequestParameters = Pick<BaseAuthRequest, "resourceRequestMethod" | "resourceRequestUri" | "shrClaims">;
+
 /**
  * Interface for crypto functions used by library
  */
@@ -43,7 +45,16 @@ export interface ICrypto {
      * Generates an JWK RSA S256 Thumbprint
      * @param request
      */
-    getPublicKeyThumbprint(request: BaseAuthRequest): Promise<string>;
+    getPublicKeyThumbprint(request: SignedHttpRequestParameters): Promise<string>;
+    /**
+     * Removes cryptographic keypair from key store matching the keyId passed in
+     * @param kid 
+     */
+    removeTokenBindingKey(kid: string): Promise<boolean>;
+    /**
+     * Removes all cryptographic keys from IndexedDB storage
+     */
+    clearKeystore(): Promise<boolean>;
     /** 
      * Returns a signed proof-of-possession token with a given acces token that contains a cnf claim with the required kid.
      * @param accessToken 
@@ -70,6 +81,14 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     },
     async getPublicKeyThumbprint(): Promise<string> {
         const notImplErr = "Crypto interface - getPublicKeyThumbprint() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async removeTokenBindingKey(): Promise<boolean> {
+        const notImplErr = "Crypto interface - removeTokenBindingKey() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async clearKeystore(): Promise<boolean> {
+        const notImplErr = "Crypto interface - clearKeystore() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
     },
     async signJwt(): Promise<string> {

@@ -1,19 +1,19 @@
 {
   "name": "msal-node-auth-code-pkce",
   "version": "1.0.0",
-  "description": "sample app for msal-node",
+  "description": "sample for msal-node public client application using using auth code flow with PKCE to sign-in users on azure ad",
   "main": "index.js",
   "private": true,
   "scripts": {
     "start": "node index.js",
     "build:package": "cd ../../../../lib/msal-common && npm run build && cd ../msal-node && npm run build",
-    "start:build": "npm run build:package && npm start",
-    "install:local": "npm install ../../../lib/msal-node"
+    "start:build": "npm run build:package && npm start"
   },
   "author": "Microsoft",
   "license": "MIT",
   "dependencies": {
-    "@azure/msal-node": "file:../../../lib/msal-node",
-    "express": "^4.17.1"
+    "@azure/msal-node": "file:../../lib/msal-node",
+    "express": "^4.17.1",
+    "express-session": "^1.17.2" 
   }
 }

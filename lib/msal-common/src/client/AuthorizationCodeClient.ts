@@ -18,9 +18,7 @@ import { StringUtils } from "../utils/StringUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { UrlString } from "../url/UrlString";
 import { ServerAuthorizationCodeResponse } from "../response/ServerAuthorizationCodeResponse";
-import { AccountEntity } from "../cache/entities/AccountEntity";
 import { CommonEndSessionRequest } from "../request/CommonEndSessionRequest";
-import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { AuthorizationCodePayload } from "../response/AuthorizationCodePayload";
@@ -29,6 +27,7 @@ import { TokenClaims } from "../account/TokenClaims";
 import { AccountInfo } from "../account/AccountInfo";
 import { buildClientInfoFromHomeAccountId, buildClientInfo } from "../account/ClientInfo";
 import { CcsCredentialType, CcsCredential } from "../account/CcsCredential";
+import { ClientConfigurationError } from "../error/ClientConfigurationError";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -112,7 +111,7 @@ export class AuthorizationCodeClient extends BaseClient {
     }
 
     /**
-     * Use to log out the current user, and redirect the user to the postLogoutRedirectUri.
+     * Used to log out the current user, and redirect the user to the postLogoutRedirectUri.
      * Default behaviour is to redirect the user to `window.location.href`.
      * @param authorityUri
      */
@@ -121,15 +120,6 @@ export class AuthorizationCodeClient extends BaseClient {
         if (!logoutRequest) {
             throw ClientConfigurationError.createEmptyLogoutRequestError();
         }
-
-        if (logoutRequest.account) {
-            // Clear given account.
-            this.cacheManager.removeAccount(AccountEntity.generateAccountCacheKey(logoutRequest.account));
-        } else {
-            // Clear all accounts and tokens
-            this.cacheManager.clear();
-        }
-
         const queryString = this.createLogoutUrlQueryString(logoutRequest);
 
         // Construct logout URI.
@@ -145,7 +135,11 @@ export class AuthorizationCodeClient extends BaseClient {
         const thumbprint: RequestThumbprint = {
             clientId: this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
-            scopes: request.scopes
+            scopes: request.scopes,
+            authenticationScheme: request.authenticationScheme,
+            resourceRequestMethod: request.resourceRequestMethod,
+            resourceRequestUri: request.resourceRequestUri,
+            shrClaims: request.shrClaims
         };
 
         const requestBody = await this.createTokenRequestBody(request);
@@ -398,6 +392,14 @@ export class AuthorizationCodeClient extends BaseClient {
 
         if (request.idTokenHint) {
             parameterBuilder.addIdTokenHint(request.idTokenHint);
+        }
+        
+        if(request.state) {
+            parameterBuilder.addState(request.state);
+        }
+
+        if (request.extraQueryParameters) {
+            parameterBuilder.addExtraQueryParameters(request.extraQueryParameters);
         }
 
         return parameterBuilder.createQueryString();

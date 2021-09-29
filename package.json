@@ -65,7 +65,7 @@
     "clean:coverage": "rimraf ./.nyc_output/*",
     "beachball:check": "beachball check --branch origin/dev",
     "beachball:change": "beachball change --branch origin/dev",
-    "beachball:bump": "beachball bump --branch origin/master --bumpDeps false && node release-scripts/updateVersion.js",
+    "beachball:bump": "beachball bump --branch origin/dev --bumpDeps false && node release-scripts/updateVersion.js",
     "beachball:bumpDeps": "beachball bump",
     "beachball:publish": "beachball publish -n $NODE_AUTH_TOKEN",
     "beachball:release": "node ./.github/create-releases.js"

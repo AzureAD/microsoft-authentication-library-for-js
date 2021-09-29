@@ -9,7 +9,7 @@ on:
     paths:
       - 'lib/**/*'
       - '!**.md'
-      - '.github/workflows/build-steps.yml'
+      - '.github/workflows/build-test-pr.yml'
 
 concurrency:
   group: ci-${{github.ref}}
@@ -33,10 +33,10 @@ jobs:
           filters: |
             core:
               - 'lib/msal-core/**/**.!(md)'
-              - '.github/workflows/build-steps.yml'
+              - '.github/workflows/build-test-pr.yml'
             common: &common
               - 'lib/msal-common/**/**.!(md)'
-              - '.github/workflows/build-steps.yml'
+              - '.github/workflows/build-test-pr.yml'
             browser: &browser
               - *common
               - 'lib/msal-browser/**/**.!(md)'
@@ -61,13 +61,25 @@ jobs:
           # e.g. ['package1', 'package2'] if both package folders contains changes
           library: ${{ fromJSON(needs.pre-check.outputs.packages) }}
   
+    name: msal-${{ matrix.library }}
+    
     steps:
     - uses: actions/checkout@v2
 
     - name: Use Node.js
-      uses: actions/setup-node@v1
+      uses: actions/setup-node@v2
+
+    - name: Restore node_modules
+      uses: actions/cache@v2
+      id: cache
+      with:
+        path: |
+          node_modules
+          lib/*/node_modules
+        key: ${{ runner.os }}-${{ hashFiles('package-lock.json', 'lib/*/package-lock.json') }}
 
     - name: Clean Install
+      if: steps.cache.outputs.cache-hit != 'true'
       env:
         RUNNING_NODE_CI: 1
       run: npm ci
@@ -90,3 +102,5 @@ jobs:
       with:
         files: lib/msal-${{matrix.library}}/coverage/lcov.info
         flags: msal-${{ matrix.library }}
+        root_dir: lib/msal-${{ matrix.library }}
+        gcov_prefix: lib/msal-${{ matrix.library }}

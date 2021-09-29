@@ -122,19 +122,6 @@ describe("ClientAuthError.ts Class Unit Tests", () => {
         expect(err.stack?.includes("ClientAuthError.spec.ts")).toBe(true);
     });
 
-    it("createNoTokensFoundError creates a ClientAuthError object", () => {
-        const err: ClientAuthError = ClientAuthError.createNoTokensFoundError();
-
-        expect(err instanceof ClientAuthError).toBe(true);
-        expect(err instanceof AuthError).toBe(true);
-        expect(err instanceof Error).toBe(true);
-        expect(err.errorCode).toBe(ClientAuthErrorMessage.noTokensFoundError.code);
-        expect(err.errorMessage.includes(ClientAuthErrorMessage.noTokensFoundError.desc)).toBe(true);
-        expect(err.message.includes(ClientAuthErrorMessage.noTokensFoundError.desc)).toBe(true);
-        expect(err.name).toBe("ClientAuthError");
-        expect(err.stack?.includes("ClientAuthError.spec.ts")).toBe(true);
-    });
-
     it("createMultipleMatchingTokensInCacheError creates a ClientAuthError object", () => {
         const err: ClientAuthError = ClientAuthError.createMultipleMatchingTokensInCacheError();
 
@@ -274,6 +261,19 @@ describe("ClientAuthError.ts Class Unit Tests", () => {
         expect(err.errorCode).toBe(ClientAuthErrorMessage.unexpectedCredentialType.code);
         expect(err.errorMessage.includes(ClientAuthErrorMessage.unexpectedCredentialType.desc)).toBe(true);
         expect(err.message.includes(ClientAuthErrorMessage.unexpectedCredentialType.desc)).toBe(true);
+        expect(err.name).toBe("ClientAuthError");
+        expect(err.stack?.includes("ClientAuthError.spec.ts")).toBe(true);
+    });
+
+    it("createBindingKeyNotRemovedError creates a ClientAuthError object", () => {
+        const err: ClientAuthError = ClientAuthError.createBindingKeyNotRemovedError();
+
+        expect(err instanceof ClientAuthError).toBe(true);
+        expect(err instanceof AuthError).toBe(true);
+        expect(err instanceof Error).toBe(true);
+        expect(err.errorCode).toBe(ClientAuthErrorMessage.bindingKeyNotRemovedError.code);
+        expect(err.errorMessage.includes(ClientAuthErrorMessage.bindingKeyNotRemovedError.desc)).toBe(true);
+        expect(err.message.includes(ClientAuthErrorMessage.bindingKeyNotRemovedError.desc)).toBe(true);
         expect(err.name).toBe("ClientAuthError");
         expect(err.stack?.includes("ClientAuthError.spec.ts")).toBe(true);
     });

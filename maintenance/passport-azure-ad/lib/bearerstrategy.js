@@ -1,44 +1,27 @@
-/**
- * Copyright (c) Microsoft Corporation
- *  All Rights Reserved
- *  MIT License
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy of this
- * software and associated documentation files (the 'Software'), to deal in the Software
- * without restriction, including without limitation the rights to use, copy, modify,
- * merge, publish, distribute, sublicense, and/or sell copies of the Software, and to
- * permit persons to whom the Software is furnished to do so, subject to the following
- * conditions:
- *
- * The above copyright notice and this permission notice shall be
- * included in all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED 'AS IS', WITHOUT WARRANTY OF ANY KIND,
- * EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS
- * OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
- * WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT
- * OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
  */
-'use strict';
+
+"use strict";
 
 /* eslint no-underscore-dangle: 0 */
 
-const async = require('async');
-const cacheManager = require('cache-manager');
-const jws = require('jws');
-const passport = require('passport');
-const util = require('util');
+const async = require("async");
+const cacheManager = require("cache-manager");
+const jws = require("jws");
+const passport = require("passport");
+const util = require("util");
 
-const aadutils = require('./aadutils');
-const CONSTANTS = require('./constants');
-const jwt = require('./jsonWebToken');
-const Metadata = require('./metadata').Metadata;
-const Log = require('./logging').getLogger;
-const UrlValidator = require('valid-url');
+const aadutils = require("./aadutils");
+const CONSTANTS = require("./constants");
+const jwt = require("./jsonWebToken");
+const Metadata = require("./metadata").Metadata;
+const Log = require("./logging").getLogger;
+const UrlValidator = require("valid-url");
 
-const log = new Log('AzureAD: Bearer Strategy');
-const memoryCache = cacheManager.caching({ store: 'memory', max: 3600, ttl: 1800 /* seconds */ });
+const log = new Log("AzureAD: Bearer Strategy");
+const memoryCache = cacheManager.caching({ store: "memory", max: 3600, ttl: 1800 /* seconds */ });
 const ttl = 1800; // 30 minutes cache
 
 /**
@@ -66,7 +49,6 @@ const ttl = 1800; // 30 minutes cache
  * can be used by later middleware for access control.  This is typically used
  * to pass any scope associated with the token.
  * 
- *
  * Options:
  *
  *   - `identityMetadata`   (1) Required
@@ -180,23 +162,23 @@ const ttl = 1800; // 30 minutes cache
  */
 function Strategy(options, verifyFn) {
   passport.Strategy.call(this);
-  this.name = 'oauth-bearer'; // Me, a name I call myself.
+  this.name = "oauth-bearer";
 
   if (!options)
-    throw new Error('In BearerStrategy constructor: options is required');
-  if (!verifyFn || typeof verifyFn !== 'function')
-    throw new Error('In BearerStrategy constructor: verifyFn is required and it must be a function');
+    throw new Error("In BearerStrategy constructor: options is required");
+  if (!verifyFn || typeof verifyFn !== "function")
+    throw new Error("In BearerStrategy constructor: verifyFn is required and it must be a function");
 
   this._verify = verifyFn;
   this._options = options;
 
-  //---------------------------------------------------------------------------
-  // Set up the default values
-  //---------------------------------------------------------------------------
+  /*
+   *  Set up the default values
+   */
 
   // clock skew. Must be a postive integer
-  if (options.clockSkew && (typeof options.clockSkew !== 'number' || options.clockSkew <= 0 || options.clockSkew % 1 !== 0))
-    throw new Error('clockSkew must be a positive integer');
+  if (options.clockSkew && (typeof options.clockSkew !== "number" || options.clockSkew <= 0 || options.clockSkew % 1 !== 0))
+    throw new Error("clockSkew must be a positive integer");
   if (!options.clockSkew)
     options.clockSkew = CONSTANTS.CLOCK_SKEW;
 
@@ -212,72 +194,74 @@ function Strategy(options, verifyFn) {
   if (options.allowMultiAudiencesInToken !== true)
     options.allowMultiAudiencesInToken = false;
 
-  // if options.audience is a string or an array of string, then we use it;
-  // otherwise we use the clientID
-  if (options.audience && typeof options.audience === 'string')
+  /*
+   * if options.audience is a string or an array of string, then we use it;
+   * otherwise we use the clientID
+   */
+  if (options.audience && typeof options.audience === "string")
     options.audience = [options.audience];
   else if (!options.audience || !Array.isArray(options.audience) || options.length === 0)
-    options.audience = [options.clientID, 'spn:' + options.clientID];
+    options.audience = [options.clientID, "spn:" + options.clientID];
 
   // default value of isB2C is false
   if (options.isB2C !== true)
     options.isB2C = false;
 
   // turn issuer into an array
-  if (options.issuer === '')
+  if (options.issuer === "")
     options.issuer = null;
   if (options.issuer && Array.isArray(options.issuer) && options.issuer.length === 0)
     options.issuer = null; 
   if (options.issuer && !Array.isArray(options.issuer))
     options.issuer = [options.issuer];
 
-  //---------------------------------------------------------------------------
-  // validate the things in options
-  //---------------------------------------------------------------------------
+  /*
+   *  validate the things in options
+   */
 
   // clientID should not be empty
-  if (!options.clientID || options.clientID === '')
-    throw new Error('In BearerStrategy constructor: clientID cannot be empty');
+  if (!options.clientID || options.clientID === "")
+    throw new Error("In BearerStrategy constructor: clientID cannot be empty");
 
   // identityMetadata must be https url
   if (!options.identityMetadata || !UrlValidator.isHttpsUri(options.identityMetadata))
-    throw new Error('In BearerStrategy constructor: identityMetadata must be provided and must be a https url');
+    throw new Error("In BearerStrategy constructor: identityMetadata must be provided and must be a https url");
 
   // if scope is provided, it must be an array
   if (options.scope && (!Array.isArray(options.scope) || options.scope.length === 0))
-    throw new Error('In BearerStrategy constructor: scope must be a non-empty array');
+    throw new Error("In BearerStrategy constructor: scope must be a non-empty array");
 
-  //---------------------------------------------------------------------------
-  // treatment of common endpoint and issuer
-  //---------------------------------------------------------------------------
+  /*
+   *  treatment of common endpoint and issuer
+   */
 
   // check if we are using the common endpoint
-  options._isCommonEndpoint = (options.identityMetadata.indexOf('/common/') != -1);
+  options._isCommonEndpoint = (options.identityMetadata.indexOf("/common/") !== -1);
 
   // give a warning if user is not validating issuer
   if (!options.validateIssuer)
-    log.warn(`Production environments should always validate the issuer.`);
+    log.warn("Production environments should always validate the issuer.");
 
-  //---------------------------------------------------------------------------
-  // B2C. 
-  // (1) policy must be provided and must have the valid prefix
-  // (2) common endpoint is not supported
-  //---------------------------------------------------------------------------
+  /*
+   *  B2C. 
+   *  (1) policy must be provided and must have the valid prefix
+   *  (2) common endpoint is not supported
+   */
 
   // for B2C, 
   if (options.isB2C) {
     if (!options.policyName || !CONSTANTS.POLICY_REGEX.test(options.policyName))
-      throw new Error('In BearerStrategy constructor: invalid policy for B2C');
+      throw new Error("In BearerStrategy constructor: invalid policy for B2C");
   }
 
   // if logging level specified, switch to it.
-  if (options.loggingLevel) { log.levels('console', options.loggingLevel); }
+  if (options.loggingLevel) { log.levels("console", options.loggingLevel); }
 
-  if (options.loggingNoPII != false) 
+  if (options.loggingNoPII !== false) 
     options.loggingNoPII = true;
 
   if (options.loggingNoPII)
-    log.info('In BearerStrategy constructor: strategy created');
+    log.info("In BearerStrategy constructor: strategy created");
   else
     log.info(`In BearerStrategy constructor: created strategy with options ${JSON.stringify(options)}`);
 }
@@ -296,52 +280,54 @@ Strategy.prototype.jwtVerify = function jwtVerifyFunc(req, token, metadata, opti
   
   let PEMkey = null;
 
-  if (decoded == null) {
-    return done(null, false, 'In Strategy.prototype.jwtVerify: Invalid JWT token.');
+  if (decoded === null) {
+    return done(null, false, "In Strategy.prototype.jwtVerify: Invalid JWT token.");
   }
 
   if (self._options.loggingNoPII)
-    log.info('In Strategy.prototype.jwtVerify: token is decoded');
+    log.info("In Strategy.prototype.jwtVerify: token is decoded");
   else
-    log.info('In Strategy.prototype.jwtVerify: token decoded:  ', decoded);
+    log.info("In Strategy.prototype.jwtVerify: token decoded:  ", decoded);
 
-  // When we generate the PEMkey, there are two different types of token signatures
-  // we have to validate here. One provides x5t and the other a kid. We need to call 
-  // the right one.
+  /*
+   * When we generate the PEMkey, there are two different types of token signatures
+   * we have to validate here. One provides x5t and the other a kid. We need to call 
+   * the right one.
+   */
   try {
     if (decoded.header.x5t) {
       PEMkey = metadata.generateOidcPEM(decoded.header.x5t);
     } else if (decoded.header.kid) {
       PEMkey = metadata.generateOidcPEM(decoded.header.kid);
     } else {
-      return self.failWithLog('In Strategy.prototype.jwtVerify: We did not receive a token we know how to validate');
+      return self.failWithLog("In Strategy.prototype.jwtVerify: We did not receive a token we know how to validate");
     }
   } catch (error) {
-      return self.failWithLog('In Strategy.prototype.jwtVerify: We did not receive a token we know how to validate');
+      return self.failWithLog("In Strategy.prototype.jwtVerify: We did not receive a token we know how to validate");
   }
 
   if (self._options.loggingNoPII)
-    log.info('PEMkey generated');
+    log.info("PEMkey generated");
   else
-    log.info('PEMkey generated: ' + PEMkey);
+    log.info("PEMkey generated: " + PEMkey);
 
   jwt.verify(token, PEMkey, optionsToValidate, (err, verifiedToken) => {
     if (err) {
       if (err.message && !self._options.loggingNoPII)
         return self.failWithLog(err.message);
       else
-        return self.failWithLog('In Strategy.prototype.jwtVerify: cannot verify token');
+        return self.failWithLog("In Strategy.prototype.jwtVerify: cannot verify token");
     }
 
     // scope validation
     if (optionsToValidate.scope) {
       if (!verifiedToken.scp)
-        return self.failWithLog('In Strategy.prototype.jwtVerify: scope is not found in token');
+        return self.failWithLog("In Strategy.prototype.jwtVerify: scope is not found in token");
 
       // split scope by blanks and remove empty elements in the array
-      var scopesInToken = verifiedToken.scp.split(/[ ]+/).filter(Boolean);
-      var hasValidScopeInToken = false;
-      for (var i = 0; i < scopesInToken.length; i++) {
+      const scopesInToken = verifiedToken.scp.split(/[ ]+/).filter(Boolean);
+      let hasValidScopeInToken = false;
+      for (let i = 0; i < scopesInToken.length; i++) {
         if (optionsToValidate.scope.indexOf(scopesInToken[i]) !== -1) {
           hasValidScopeInToken = true;
           break;
@@ -350,22 +336,22 @@ Strategy.prototype.jwtVerify = function jwtVerifyFunc(req, token, metadata, opti
       
       if (!hasValidScopeInToken) {
         if (self._options.loggingNoPII)
-          return self.failWithLog('In Strategy.prototype.jwtVerify: none of the scopes in token is accepted');
+          return self.failWithLog("In Strategy.prototype.jwtVerify: none of the scopes in token is accepted");
         else
           return self.failWithLog(`In Strategy.prototype.jwtVerify: none of the scopes '${verifiedToken.scp}' in token is accepted`);
       }      
     }
 
     if (self._options.loggingNoPII)
-      log.info('In Strategy.prototype.jwtVerify: token is verified');
+      log.info("In Strategy.prototype.jwtVerify: token is verified");
     else
-      log.info('In Strategy.prototype.jwtVerify: VerifiedToken: ', verifiedToken);
+      log.info("In Strategy.prototype.jwtVerify: VerifiedToken: ", verifiedToken);
     
     if (self._options.passReqToCallback) {
-      log.info('In Strategy.prototype.jwtVerify: We did pass Req back to Callback');
+      log.info("In Strategy.prototype.jwtVerify: We did pass Req back to Callback");
       return self._verify(req, verifiedToken, done);
     } else {
-      log.info('In Strategy.prototype.jwtVerify: We did not pass Req back to Callback');
+      log.info("In Strategy.prototype.jwtVerify: We did not pass Req back to Callback");
       return self._verify(verifiedToken, done);
     }
   });
@@ -377,14 +363,15 @@ Strategy.prototype.jwtVerify = function jwtVerifyFunc(req, token, metadata, opti
  */
 Strategy.prototype.authenticate = function authenticateStrategy(req, options) {
   const self = this;
-  var params = {};
-  var optionsToValidate = {};
-  var tenantIdOrName = options && options.tenantIdOrName;
+  const params = {};
+  const optionsToValidate = {};
+  let tenantIdOrName = options && options.tenantIdOrName;
 
-  /* Some introduction to async.waterfall (from the following link):
+  /*
+   * Some introduction to async.waterfall (from the following link):
    * http://stackoverflow.com/questions/28908180/what-is-a-simple-implementation-of-async-waterfall
    *
-   *   Runs the tasks array of functions in series, each passing their results 
+   * Runs the tasks array of functions in series, each passing their results 
    * to the next in the array. However, if any of the tasks pass an error to 
    * their own callback, the next function is not executed, and the main callback
    * is immediately called with the error.
@@ -421,7 +408,7 @@ Strategy.prototype.authenticate = function authenticateStrategy(req, options) {
       // if we are not using the common endpoint, but we have tenantIdOrName, just ignore it
       if (!self._options._isCommonEndpoint && tenantIdOrName) {
         if (self._options.loggingNoPII)
-          log.info('identityMetadata is tenant-specific, so we ignore the provided tenantIdOrName');
+          log.info("identityMetadata is tenant-specific, so we ignore the provided tenantIdOrName");
         else
           log.info(`identityMetadata is tenant-specific, so we ignore the tenantIdOrName '${tenantIdOrName}'`);
         tenantIdOrName = null;
@@ -429,23 +416,25 @@ Strategy.prototype.authenticate = function authenticateStrategy(req, options) {
 
       // if we are using common endpoint and we are given the tenantIdOrName, let's replace it
       if (self._options._isCommonEndpoint && tenantIdOrName) {
-        params.metadataURL = params.metadataURL.replace('/common/', `/${tenantIdOrName}/`);
+        params.metadataURL = params.metadataURL.replace("/common/", `/${tenantIdOrName}/`);
         if (self._options.loggingNoPII)
-          log.info(`We are replacing 'common' with the provided tenantIdOrName`);
+          log.info("We are replacing 'common' with the provided tenantIdOrName");
         else
           log.info(`we are replacing 'common' with the tenantIdOrName ${tenantIdOrName}`);
       }
 
-      // if we are using the common endpoint and we want to validate issuer, then user has to 
-      // provide issuer in config, or provide tenant id or name using tenantIdOrName option in
-      // passport.authenticate. Otherwise we won't know the issuer.
+      /*
+       * if we are using the common endpoint and we want to validate issuer, then user has to 
+       * provide issuer in config, or provide tenant id or name using tenantIdOrName option in
+       * passport.authenticate. Otherwise we won't know the issuer.
+       */
       if (self._options._isCommonEndpoint && self._options.validateIssuer &&
         (!self._options.issuer && !tenantIdOrName))
-        return next(new Error('In passport.authenticate: issuer or tenantIdOrName must be provided in order to validate issuer on common endpoint'));
+        return next(new Error("In passport.authenticate: issuer or tenantIdOrName must be provided in order to validate issuer on common endpoint"));
 
       // for B2C, if we are using common endpoint, we must have tenantIdOrName provided
       if (self._options.isB2C && self._options._isCommonEndpoint && !tenantIdOrName)
-        return next(new Error('In passport.authenticate: we are using common endpoint for B2C but tenantIdOrName is not provided'));
+        return next(new Error("In passport.authenticate: we are using common endpoint for B2C but tenantIdOrName is not provided"));
 
       if (self._options.isB2C)
         params.metadataURL = aadutils.concatUrl(params.metadataURL, `p=${self._options.policyName}`);
@@ -467,7 +456,7 @@ Strategy.prototype.authenticate = function authenticateStrategy(req, options) {
     (metadata, next) => {
       params.metadata = metadata;
       if (self._options.loggingNoPII)
-        log.info('In Strategy.prototype.authenticate: received metadata');
+        log.info("In Strategy.prototype.authenticate: received metadata");
       else
         log.info(`In Strategy.prototype.authenticate: received metadata: ${JSON.stringify(metadata)}`);
 
@@ -497,73 +486,75 @@ Strategy.prototype.authenticate = function authenticateStrategy(req, options) {
       optionsToValidate.isAccessToken = true;
 
       if (self._options.loggingNoPII)
-        log.info(`In Strategy.prototype.authenticate: we will validate the options`);
+        log.info("In Strategy.prototype.authenticate: we will validate the options");
       else
         log.info(`In Strategy.prototype.authenticate: we will validate the following options: ${JSON.stringify(optionsToValidate)}`);
 
       return next();
     }, 
 
-    // extract the access token from the request, after getting the token, it 
-    // will call `jwtVerify` to verify the token. If token is verified, `jwtVerify`
-    // will provide the token payload to self._verify function. self._verify is
-    // provided by the developer, it's up to the developer to decide if the token
-    // payload is considered authenticated. If authenticated, self._verify will
-    // provide `user` object (developer's decision of its content) to `verified` 
-    // function here, and the `verified` function does the final work of stuffing
-    // the `user` obejct into req.user, so the following middleware can use it.
-    // This is basically how bearerStrategy works.
-    (next) => {
-      var token;
+    /*
+     * extract the access token from the request, after getting the token, it 
+     * will call `jwtVerify` to verify the token. If token is verified, `jwtVerify`
+     * will provide the token payload to self._verify function. self._verify is
+     * provided by the developer, it's up to the developer to decide if the token
+     * payload is considered authenticated. If authenticated, self._verify will
+     * provide `user` object (developer's decision of its content) to `verified` 
+     * function here, and the `verified` function does the final work of stuffing
+     * the `user` obejct into req.user, so the following middleware can use it.
+     * This is basically how bearerStrategy works.
+     */
+    (next) => { // eslint-disable-line no-unused-vars -- Next used in async.waterfall
+      let token;
 
       // token could be in header or body. query is not supported.
 
       if (req.query && req.query.access_token)
-        return self.failWithLog('In Strategy.prototype.authenticate: access_token should be passed in request header or body. query is unsupported');
+        return self.failWithLog("In Strategy.prototype.authenticate: access_token should be passed in request header or body. query is unsupported");
 
       if (req.headers && req.headers.authorization) {
-        var auth_components = req.headers.authorization.split(' ');
-        if (auth_components.length == 2 &&auth_components[0].toLowerCase() === 'bearer') {
+        const auth_components = req.headers.authorization.split(" ");
+        if (auth_components.length === 2 && auth_components[0].toLowerCase() === "bearer") {
             token = auth_components[1];
-            if (token !== '') {
+            if (token !== "") { // eslint-disable-line security/detect-possible-timing-attacks -- Timing for comparison to empty string should be the same every time
               if (self._options.loggingNoPII)
-                log.info('In Strategy.prototype.authenticate: access_token is received from request header');
+                log.info("In Strategy.prototype.authenticate: access_token is received from request header");
               else
                 log.info(`In Strategy.prototype.authenticate: received access_token from request header: ${token}`);
             }              
             else
-              return self.failWithLog('In Strategy.prototype.authenticate: missing access_token in the header');
+              return self.failWithLog("In Strategy.prototype.authenticate: missing access_token in the header");
         }
       }
 
       if (req.body && req.body.access_token) {
         if (token) 
-          return self.failWithLog('In Strategy.prototype.authenticate: access_token cannot be passed in both request header and body');
+          return self.failWithLog("In Strategy.prototype.authenticate: access_token cannot be passed in both request header and body");
         token = req.body.access_token;
         if (token) {
           if (self._options.loggingNoPII)
-            log.info('In Strategy.prototype.authenticate: access_token is received from request body');
+            log.info("In Strategy.prototype.authenticate: access_token is received from request body");
           else
             log.info(`In Strategy.prototype.authenticate: received access_token from request body: ${token}`);
         }          
       }
 
       if (!token)
-        return self.failWithLog('token is not found'); 
+        return self.failWithLog("token is not found"); 
 
       function verified(err, user, info) {
         if (err)
           return self.error(err);
 
         if (!user) {
-          var err_message = 'error: invalid_token';
-          if (info && typeof info == 'string')
-            err_message += ', error description: ' + info;
+          let err_message = "error: invalid_token";
+          if (info && typeof info === "string")
+            err_message += ", error description: " + info;
           else if (info)
-            err_message += ', error description: ' + JSON.stringify(info);
+            err_message += ", error description: " + JSON.stringify(info);
 
           if (self._options.loggingNoPII)
-            return self.failWithLog('error: invalid_token');
+            return self.failWithLog("error: invalid_token");
           else
             return self.failWithLog(err_message);
         }
@@ -585,7 +576,7 @@ Strategy.prototype.authenticate = function authenticateStrategy(req, options) {
 
 Strategy.prototype.loadMetadata = function(params, next) {
   const self = this;
-  var metadata = new Metadata(params.metadataURL, 'oidc', self._options);
+  const metadata = new Metadata(params.metadataURL, "oidc", self._options);
 
   // fetch metadata
   return memoryCache.wrap(params.cacheKey, (cacheCallback) => {

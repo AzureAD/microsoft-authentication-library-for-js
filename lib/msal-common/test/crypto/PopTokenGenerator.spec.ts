@@ -55,6 +55,12 @@ describe("PopTokenGenerator Unit Tests", () => {
         },
         async signJwt(): Promise<string> {
             return "";
+        },
+        async removeTokenBindingKey(): Promise<boolean> {
+            return Promise.resolve(true);
+        },
+        async clearKeystore(): Promise<boolean> {
+            return Promise.resolve(true);
         }
     };
 
