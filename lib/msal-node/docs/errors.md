@@ -149,7 +149,7 @@ This error is thrown when an invalid URL is provided as the authority value.
 ```javascript
 auth: {
         clientId: "CLIENT_ID",
-        authority: "y",
+        authority: "login.microsoftonline.com/common",
         clientCertificate: {
             thumbprint: "YOUR_THUMBPRINT", 
             privateKey: privateKey,
