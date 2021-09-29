@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { sign, SignOptions } from "jsonwebtoken";
+import { JwtHeader, sign } from "jsonwebtoken";
 import { TimeUtils, ClientAuthError } from "@azure/msal-common";
 import { CryptoProvider } from "../crypto/CryptoProvider";
 import { EncodingUtils } from "../utils/EncodingUtils";
@@ -87,9 +87,9 @@ export class ClientAssertion {
         const issuedAt = TimeUtils.nowSeconds();
         this.expirationTime = issuedAt + 600;
 
-        const header: SignOptions = {
-            [JwtConstants.ALGORITHM]: JwtConstants.RSA_256,
-            [JwtConstants.X5T]: EncodingUtils.base64EncodeUrl(this.thumbprint, "hex")
+        const header: JwtHeader = {
+            alg: JwtConstants.RSA_256,
+            x5t: EncodingUtils.base64EncodeUrl(this.thumbprint, "hex")
         };
 
         if (this.publicCertificate) {
@@ -107,7 +107,7 @@ export class ClientAssertion {
             [JwtConstants.JWT_ID]: cryptoProvider.createNewGuid()
         };
 
-        this.jwt = sign(payload, this.privateKey, { header: header } as SignOptions);
+        this.jwt = sign(payload, this.privateKey, { header: header });
         return this.jwt;
     }
 
