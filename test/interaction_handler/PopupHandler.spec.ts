@@ -89,6 +89,12 @@ describe("PopupHandler.ts Unit Tests", () => {
                 },
                 signJwt: async (): Promise<string> => {
                     return "signedJwt";
+                },
+                removeTokenBindingKey: async (): Promise<boolean> => {
+                    return Promise.resolve(true);
+                },
+                clearKeystore: async (): Promise<boolean> => {
+                    return Promise.resolve(true);
                 }
             },
             networkInterface: {
@@ -137,8 +143,8 @@ describe("PopupHandler.ts Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID
             };
             const popupHandler = new PopupHandler(authCodeModule, browserStorage, testTokenReq, browserRequestLogger);
-            expect(() => popupHandler.initiateAuthRequest("", {popupName: "name"})).toThrow(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
-            expect(() => popupHandler.initiateAuthRequest("", {popupName: "name"})).toThrow(BrowserAuthError);
+            expect(() => popupHandler.initiateAuthRequest("", {popupName: "name", popupWindowAttributes: {}})).toThrow(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
+            expect(() => popupHandler.initiateAuthRequest("", {popupName: "name", popupWindowAttributes: {}})).toThrow(BrowserAuthError);
 
             //@ts-ignore
             expect(() => popupHandler.initiateAuthRequest(null, {})).toThrow(BrowserAuthErrorMessage.emptyNavigateUriError.desc);
@@ -166,8 +172,8 @@ describe("PopupHandler.ts Unit Tests", () => {
             };
 
             const popupHandler = new PopupHandler(authCodeModule, browserStorage, testTokenReq, browserRequestLogger);
-            popupHandler.initiateAuthRequest(TEST_URIS.ALTERNATE_INSTANCE, {popupName: "name"});
-            expect(browserStorage.getTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, true)).toEqual(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            popupHandler.initiateAuthRequest(TEST_URIS.ALTERNATE_INSTANCE, {popupName: "name", popupWindowAttributes: {}});
+            expect(browserStorage.isInteractionInProgress(true)).toBe(true);
         });
     });
 
@@ -282,7 +288,8 @@ describe("PopupHandler.ts Unit Tests", () => {
 
             const popupHandler = new PopupHandler(authCodeModule, browserStorage, testRequest, browserRequestLogger);
             const popupWindow = popupHandler.initiateAuthRequest("http://localhost/#/code=hello", {
-                popupName: "name"
+                popupName: "name", 
+                popupWindowAttributes: {}
             });
 
             expect(popupWindow).toEqual(window);
@@ -302,7 +309,7 @@ describe("PopupHandler.ts Unit Tests", () => {
             };
 
             const popupHandler = new PopupHandler(authCodeModule, browserStorage, testRequest, browserRequestLogger);
-            expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", {popupName: "name"})).toThrow(BrowserAuthErrorMessage.emptyWindowError.desc);
+            expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", {popupName: "name", popupWindowAttributes: {}})).toThrow(BrowserAuthErrorMessage.emptyWindowError.desc);
         });
 
         it("throws error if popup passed in is null", () => {
@@ -319,11 +326,13 @@ describe("PopupHandler.ts Unit Tests", () => {
             const popupHandler = new PopupHandler(authCodeModule, browserStorage, testRequest, browserRequestLogger);
             expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", {
                 popup: null,
-                popupName: "name"
+                popupName: "name", 
+                popupWindowAttributes: {}
             })).toThrow(BrowserAuthErrorMessage.emptyWindowError.desc);
             expect(() => popupHandler.initiateAuthRequest("http://localhost/#/code=hello", {
                 popup: null,
-                popupName: "name"
+                popupName: "name", 
+                popupWindowAttributes: {}
             })).toThrow(BrowserAuthError);
         });
     });

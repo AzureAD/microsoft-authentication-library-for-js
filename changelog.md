@@ -1,8 +1,47 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 28 Jun 2021 23:39:48 GMT and should not be manually modified.
+This log was last generated on Tue, 07 Sep 2021 23:22:24 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.17.0
+
+Tue, 07 Sep 2021 23:22:24 GMT
+
+### Minor changes
+
+- Add configuration for popup window size and placement #3946 (joarroyo@microsoft.com)
+- Add API to sideload tokens to msal-browser #3895 (joarroyo@microsoft.com)
+- Add SignedHttpRequest class #3058 (janutter@microsoft.com)
+- Refactor acquireToken logic into InteractionClients #3871 (thomas.norling@microsoft.com)
+
+### Patches
+
+- Clear cache before constructing logout url #3982 (thomas.norling@microsoft.com)
+- Add pop params to request thumbprint #3973 (hemoral@microsoft.com)
+- Update ADAL to MSAL SSO logic to use preferred_username instead of upn by default #3945 (ellymakuba@microsoft.com)
+- Populate msal v2 loginHint from cached msal v1 id token #4027 (janutter@microsoft.com)
+- Throw interaction in progress if any msal instance has interaction in progress #4014 (thomas.norling@microsoft.com)
+- Only emit handleRedirect start event on first invocation of handleRedirectPromise #4013 (thomas.norling@microsoft.com)
+- Add correlationId to AuthenticationResult type #3947 (thomas.norling@microsoft.com)
+- Remove token binding key from key store when refreshing pop token #3500 (hemoral@microsoft.com)
+- Fix clearing active account on logout #3948 (hemoral@microsoft.com)
+- Add correlationId to errors thrown #3930 (thomas.norling@microsoft.com)
+
+## 2.16.0
+
+Thu, 22 Jul 2021 22:50:22 GMT
+
+### Minor changes
+
+- Msal-Browser supports parallel silent requests #3837 (joarroyo@microsoft.com)
+- Persist active account #3755 (thomas.norling@microsoft.com)
+
+### Patches
+
+- Add fix for loginRedirect failure when angular index.html base href is different from the origin (#3875) (rishanthakumar@gmail.com)
+- fix: fixing the npm audit issues (samuelkamau@microsoft.com)
+- Expose isInPopup helper function #3825 (thomas.norling@microsoft.com)
 
 ## 2.15.0
 

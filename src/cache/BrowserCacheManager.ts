@@ -3,10 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, CcsCredential, CcsCredentialType } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, CcsCredential, CcsCredentialType, IdToken } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
+import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys, InMemoryCacheKeys } from "../utils/BrowserConstants";
 import { BrowserStorage } from "./BrowserStorage";
 import { MemoryStorage } from "./MemoryStorage";
 import { IWindowStorage } from "./IWindowStorage";
@@ -38,7 +38,6 @@ export class BrowserCacheManager extends CacheManager {
 
         this.cacheConfig = cacheConfig;
         this.logger = logger;
-
         this.internalStorage = new MemoryStorage();
         this.browserStorage = this.setupBrowserStorage(this.cacheConfig.cacheLocation);
         this.temporaryCacheStorage = this.setupTemporaryCacheStorage(this.cacheConfig.cacheLocation);
@@ -369,6 +368,25 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
+     * Sets wrapper metadata in memory
+     * @param wrapperSKU 
+     * @param wrapperVersion 
+     */
+    setWrapperMetadata(wrapperSKU: string, wrapperVersion: string): void {
+        this.internalStorage.setItem(InMemoryCacheKeys.WRAPPER_SKU, wrapperSKU);
+        this.internalStorage.setItem(InMemoryCacheKeys.WRAPPER_VER, wrapperVersion);
+    }
+
+    /**
+     * Returns wrapper metadata from in-memory storage
+     */
+    getWrapperMetadata(): [string, string] {
+        const sku = this.internalStorage.getItem(InMemoryCacheKeys.WRAPPER_SKU) || "";
+        const version = this.internalStorage.getItem(InMemoryCacheKeys.WRAPPER_VER) || "";
+        return [sku, version];
+    }
+
+    /**
      *
      * @param entity
      */
@@ -549,11 +567,14 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     /**
-     * Clears all cache entries created by MSAL (except tokens).
+     * Clears all cache entries created by MSAL.
      */
-    clear(): void {
-        this.removeAllAccounts();
+    async clear(): Promise<void> {
+        // Removes all accounts and their credentials
+        await this.removeAllAccounts();
         this.removeAppMetadata();
+
+        // Removes all remaining MSAL cache items
         this.getKeys().forEach((cacheKey: string) => {
             // Check if key contains msal prefix; For now, we are clearing all the cache items created by MSAL.js
             if ((this.browserStorage.containsKey(cacheKey) || this.temporaryCacheStorage.containsKey(cacheKey)) && ((cacheKey.indexOf(Constants.CACHE_PREFIX) !== -1) || (cacheKey.indexOf(this.clientId) !== -1))) {
@@ -784,8 +805,9 @@ export class BrowserCacheManager extends CacheManager {
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.ORIGIN_URI));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.URL_HASH));
-        this.removeItem(this.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY));
+        this.removeItem(this.generateCacheKey(TemporaryCacheKeys.CORRELATION_ID));
         this.removeItem(this.generateCacheKey(TemporaryCacheKeys.CCS_CREDENTIAL));
+        this.setInteractionInProgress(false);
     }
 
     /**
@@ -868,6 +890,70 @@ export class BrowserCacheManager extends CacheManager {
         }
 
         return parsedRequest;
+    }
+
+    isInteractionInProgress(matchClientId?: boolean): boolean {
+        const clientId = this.getInteractionInProgress();
+
+        if (matchClientId) {
+            return clientId === this.clientId;
+        } else {
+            return !!clientId;
+        }
+    }
+
+    getInteractionInProgress(): string | null {
+        const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
+        return this.getTemporaryCache(key, false);
+    }
+
+    setInteractionInProgress(inProgress: boolean): void {
+        const clientId = this.getInteractionInProgress();
+        // Ensure we don't overwrite interaction in progress for a different clientId
+        const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
+        if (inProgress && !clientId) {
+            // No interaction is in progress
+            this.setTemporaryCache(key, this.clientId, false);
+        } else if (!inProgress && clientId === this.clientId) {
+            this.removeItem(key);
+        }
+    }
+
+    /**
+     * Returns username retrieved from ADAL or MSAL v1 idToken
+     */
+    getLegacyLoginHint(): string | null {
+        // Only check for adal/msal token if no SSO params are being used
+        const adalIdTokenString = this.getTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN);
+        if (adalIdTokenString) {
+            this.browserStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
+            this.logger.verbose("Cached ADAL id token retrieved.");
+        }
+
+        // Check for cached MSAL v1 id token
+        const msalIdTokenString = this.getTemporaryCache(PersistentCacheKeys.ID_TOKEN, true);
+        if (msalIdTokenString) {
+            this.removeItem(this.generateCacheKey(PersistentCacheKeys.ID_TOKEN));
+            this.logger.verbose("Cached MSAL.js v1 id token retrieved");
+        }
+
+        const cachedIdTokenString = msalIdTokenString || adalIdTokenString;
+        if (cachedIdTokenString) {
+            const cachedIdToken = new IdToken(cachedIdTokenString, this.cryptoImpl);
+            if (cachedIdToken.claims && cachedIdToken.claims.preferred_username) {
+                this.logger.verbose("No SSO params used and ADAL/MSAL v1 token retrieved, setting ADAL/MSAL v1 preferred_username as loginHint");
+                return cachedIdToken.claims.preferred_username;
+            }
+            else if (cachedIdToken.claims && cachedIdToken.claims.upn) {
+                this.logger.verbose("No SSO params used and ADAL/MSAL v1 token retrieved, setting ADAL/MSAL v1 upn as loginHint");
+                return cachedIdToken.claims.upn;
+            }
+            else {
+                this.logger.verbose("No SSO params used and ADAL/MSAL v1 token retrieved, however, no account hint claim found. Enable preferred_username or upn id token claim to get SSO.");
+            }
+        }
+
+        return null;
     }
 }
 
