@@ -3,7 +3,7 @@ import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
 import { CachedKeyPair, CryptoOps } from "../../src/crypto/CryptoOps";
 import { createHash } from "crypto";
-import { AuthToken } from "@azure/msal-common";
+import { AuthToken, Logger } from "@azure/msal-common";
 
 const msrCrypto = require("../polyfills/msrcrypto.min");
 
@@ -72,7 +72,7 @@ describe("SignedHttpRequest.ts Unit Tests", () => {
             ts
         });
 
-        const decodedToken = AuthToken.extractTokenClaims(popToken, new CryptoOps())
+        const decodedToken = AuthToken.extractTokenClaims(popToken, new CryptoOps(new Logger({})))
 
         expect(decodedToken.nonce).toEqual("test-nonce");
         expect(decodedToken.ts).toEqual(123456);

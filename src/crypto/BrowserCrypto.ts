@@ -10,6 +10,7 @@ import { ISubtleCrypto } from "./ISubtleCrypto";
 import { ModernBrowserCrypto } from "./ModernBrowserCrypto";
 import { MsrBrowserCrypto } from "./MsrBrowserCrypto";
 import { MsBrowserCrypto } from "./MsBrowserCrypto";
+import { Logger } from "@azure/msal-common";
 /**
  * See here for more info on RsaHashedKeyGenParams: https://developer.mozilla.org/en-US/docs/Web/API/RsaHashedKeyGenParams
  */
@@ -30,15 +31,25 @@ export class BrowserCrypto {
 
     private _keygenAlgorithmOptions: RsaHashedKeyGenParams;
     private subtleCrypto: ISubtleCrypto;
+    private logger: Logger;
 
-    constructor() {
+    constructor(logger: Logger) {
+        this.logger = logger;
+
         if ("crypto" in window) {
+            // Use standard modern web crypto if available
+            this.logger.verbose("BrowserCrypto: modern crypto interface available");
             this.subtleCrypto = new ModernBrowserCrypto();
-        } else if ("msrCrypto" in window) {
-            this.subtleCrypto = new MsrBrowserCrypto();
         } else if ("msCrypto" in window) {
+            // For IE11, use msCrypto interface
+            this.logger.verbose("BrowserCrypto: MS crypto interface available");
             this.subtleCrypto = new MsBrowserCrypto();
+        } else if ("msrCrypto" in window) {
+            // For other browsers, use MSR Crypto if found
+            this.logger.verbose("BrowserCrypto: MRSR interface available");
+            this.subtleCrypto = new MsrBrowserCrypto();
         } else {
+            this.logger.error("BrowserCrypto: No crypto interfaces available");
             throw BrowserAuthError.createCryptoNotAvailableError("Browser crypto, msCrypto, or msrCrypto objects not available.");
         }
 
