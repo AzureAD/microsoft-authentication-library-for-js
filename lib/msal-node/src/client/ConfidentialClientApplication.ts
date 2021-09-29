@@ -121,9 +121,12 @@ export class ConfidentialClientApplication extends ClientApplication implements 
 
     private setClientCredential(configuration: Configuration): void {
 
-        const clientSecretNotEmpty = !StringUtils.isEmpty(configuration.auth.clientSecret!);
-        const clientAssertionNotEmpty = !StringUtils.isEmpty(configuration.auth.clientAssertion!);
-        const certificate = configuration.auth.clientCertificate!;
+        const clientSecretNotEmpty = !StringUtils.isEmpty(configuration.auth.clientSecret);
+        const clientAssertionNotEmpty = !StringUtils.isEmpty(configuration.auth.clientAssertion);
+        const certificate = configuration.auth.clientCertificate || {
+            thumbprint: "",
+            privateKey: ""
+        };
         const certificateNotEmpty = !StringUtils.isEmpty(certificate.thumbprint) || !StringUtils.isEmpty(certificate.privateKey);
 
         // Check that at most one credential is set on the application
@@ -134,13 +137,13 @@ export class ConfidentialClientApplication extends ClientApplication implements 
             throw ClientAuthError.createInvalidCredentialError();
         }
 
-        if (clientSecretNotEmpty) {
-            this.clientSecret = configuration.auth.clientSecret!;
+        if (configuration.auth.clientSecret) {
+            this.clientSecret = configuration.auth.clientSecret;
             return;
         }
 
-        if (clientAssertionNotEmpty) {
-            this.clientAssertion = ClientAssertion.fromAssertion(configuration.auth.clientAssertion!);
+        if (configuration.auth.clientAssertion) {
+            this.clientAssertion = ClientAssertion.fromAssertion(configuration.auth.clientAssertion);
             return;
         }
 
