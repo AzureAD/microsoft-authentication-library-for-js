@@ -9,26 +9,28 @@ It shows how to use two new APIs, `enableSpaAuthCode` in MSAL Node and `acquireT
 ## Setup
 
 1. In the Azure Portal, create a new app registration.
-2. In the root folder for this sample, create a `.env` file and add the client id for this application as `MSAL_CLIENT_ID`.
-3. In the Azure Portal, under the **Authentication** tab for your application, add the following **Web** redirect URIs:
+1. In the root folder for this sample, create a `.env` file and add the client id for this application as `MSAL_CLIENT_ID`.
+1. Add your application authority (e.g. `https://login.microsoftonline.com/common`) to the `.env` file as `MSAL_AUTHORITY`.
+1. In the Azure Portal, under the **Authentication** tab for your application, add the following **Web** redirect URIs:
     1. `http://localhost:3000/auth/server-redirect`
-    2. `http://localhost:3000/auth/implicit-redirect`
-4. Also add the following **Single-page application** redirect URIs:
+    1. `http://localhost:3000/auth/implicit-redirect`
+1. Also add the following **Single-page application** redirect URIs:
     1. `http://localhost:3000/auth/client-redirect`
-5. Under **Implicit grant and hybrid flows**, check the boxes to enable **Access tokens** and **ID tokens**.
-6. Under the **Certificats & secrets** tab, create a new client secret. Add this client secret to the `.env` file as `MSAL_CLIENT_SECRET`.
-7. In the manifest editor, add the following optional ID token claims:
+1. Under **Implicit grant and hybrid flows**, check the boxes to enable **Access tokens** and **ID tokens**.
+1. Under the **Certificats & secrets** tab, create a new client secret. Add this client secret to the `.env` file as `MSAL_CLIENT_SECRET`.
+1. In the manifest editor, add the following optional ID token claims:
     1. `sid`
-    2. `login_hint`
-8. Under the **API permissions** tabs, add the `User.Read` scope from Microsoft Graph.
-9. In the root of this sample folder, run `npm install`.
-10. Run `npm start` or `npm run dev` to start the sample, which will be available at http://localhost:3000.
+    1. `login_hint`
+1. Under the **API permissions** tabs, add the `User.Read` scope from Microsoft Graph.
+1. In the root of this sample folder, run `npm install`.
+1. Run `npm start` or `npm run dev` to start the sample, which will be available at http://localhost:3000.
 
 ### Example .env file
 
 ```
 MSAL_CLIENT_SECRET=<your client secret here>
 MSAL_CLIENT_ID=<your client id here>
+MSAL_AUTHORITY=https://login.microsoftonline.com/common
 ```
 
 ### Example app manifest for optional claims
@@ -73,7 +75,7 @@ dotenv.config()
 const cca = new msal.ConfidentialClientApplication({
     auth: {
         clientId: process.env.MSAL_CLIENT_ID,
-        authority: "https://login.microsoftonline.com/common",
+        authority: process.env.MSAL_AUTHORITY,
         clientSecret: process.env.MSAL_CLIENT_SECRET
     },
     system: {
@@ -164,7 +166,7 @@ const msalInstance = new msal.PublicClientApplication({
     auth: {
         clientId: "{{clientId}}",
         redirectUri: "http://localhost:3000/auth/client-redirect",
-        authority: "https://login.microsoftonline.com/common"
+        authority: "{{authority}}"
     }
 })
 ```
