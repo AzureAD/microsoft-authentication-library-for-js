@@ -352,7 +352,6 @@ export abstract class ClientApplication {
             ...authRequest,
             scopes: [...((authRequest && authRequest.scopes) || []), ...OIDC_DEFAULT_SCOPES],
             correlationId: authRequest && authRequest.correlationId || this.cryptoProvider.createNewGuid(),
-            nonce: authRequest && authRequest.nonce || this.cryptoProvider.createNewGuid(),
             authority: authRequest.authority || this.config.auth.authority!
         };
     }
