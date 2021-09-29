@@ -142,7 +142,7 @@ auth: {
 
 **Error message**: URL could not be parsed into appropriate segments. 
 
-This error is thrown when an invalid URL endpoint is provided as the authority value, in flows such as auth-code-with-certs.
+This error is thrown when an invalid URL is provided as the authority value.
 
 ❌ The following example will throw this error because `authority` endpoint provided is not a valid URL string:
 
