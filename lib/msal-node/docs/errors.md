@@ -157,7 +157,7 @@ auth: {
     }
 ```
 
-✔️ To resolve, ensure that the authority endpoint probided is valid.
+✔️ To resolve, ensure that the authority endpoint provided is a valid URL.
 
 ```javascript
 auth: {
