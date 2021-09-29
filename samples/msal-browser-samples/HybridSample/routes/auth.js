@@ -54,7 +54,7 @@ router.post('/server-redirect', (req, res) => {
     // If using hybrid spa flow, enable feature flag to get additional auth code
     if (useHybrid) {
         console.log('Hybrid enabled');
-        tokenRequest.returnSpaCode = true
+        tokenRequest.enableSpaAuthCode = true
         // tokenRequest.tokenBodyParameters = {
         //     return_spa_code: "1"
         // }
