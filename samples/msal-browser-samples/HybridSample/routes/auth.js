@@ -102,7 +102,8 @@ router.post('/server-redirect', (req, res) => {
 
 const data = {
     title: 'MSAL Hybrid Sample App',
-    clientId: process.env.MSAL_CLIENT_ID
+    clientId: process.env.MSAL_CLIENT_ID,
+    authority: process.env.MSAL_AUTHORITY
 }
 
 router.get('/client-redirect', function(req, res, next) {

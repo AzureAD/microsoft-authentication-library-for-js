@@ -5,7 +5,7 @@ dotenv.config()
 const cca = new msal.ConfidentialClientApplication({
     auth: {
         clientId: process.env.MSAL_CLIENT_ID,
-        authority: "https://login.microsoftonline.com/common",
+        authority: process.env.MSAL_AUTHORITY,
         clientSecret: process.env.MSAL_CLIENT_SECRET
     },
     system: {
