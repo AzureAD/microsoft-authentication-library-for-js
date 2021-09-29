@@ -94,12 +94,12 @@ describe("SilentAuthCodeClient", () => {
             };
             const tokenResp = await silentAuthCodeClient.acquireToken(request);
 
-            expect(handleCodeSpy).toBeCalledWith({
+            expect(handleCodeSpy.calledWith({
                 code: "test-code", 
                 msgraph_host: request.msGraphHost,
                 cloud_graph_host_name: request.cloudGraphHostName,
                 cloud_instance_host_name: request.cloudInstanceHostName
-            })
+            })).toBe(true);
             expect(tokenResp).toEqual(testTokenResponse);
         });
     });
