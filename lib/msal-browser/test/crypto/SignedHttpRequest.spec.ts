@@ -29,7 +29,7 @@ describe("SignedHttpRequest.ts Unit Tests", () => {
             return !dbStorage[key];
         });
         
-        jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((): Promise<ArrayBuffer> => {
+        jest.spyOn(BrowserCrypto.prototype as any, "sha256Digest").mockImplementation((): Promise<ArrayBuffer> => {
             return Promise.resolve(createHash("SHA256").update(Buffer.from("test-data")).digest());
         });
         
