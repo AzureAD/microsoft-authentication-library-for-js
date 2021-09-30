@@ -10,7 +10,7 @@ on:
 jobs:
   release:
     if: github.event.pull_request.merged == true && !contains(github.head_ref, 'release')
-    name: Bump versions and create changelog PR --updation
+    name: Bump versions and create changelogs
     runs-on: ubuntu-latest
     env:
       BEACHBALL: 1
@@ -32,6 +32,10 @@ jobs:
       - name: bump package versions
         run: npm run beachball:bump
 
+      - name: Get release date
+        id: release-date
+        run: echo "::set-output name=date::$(node release-scripts/getReleaseDate.js)"
+
       # Create/update Pull Request
       - name: Create Pull Request
         id: pr
@@ -39,7 +43,7 @@ jobs:
         with:
           commit-message: Bump package versions
           branch: release-staging
-          title: "Next release"
+          title: "${{ steps.release-date.outputs.date }} Release"
           body: |
-            Release PR : This PR contains the changelogs and version bumps for the next releases.
+            Release PR : This PR contains the changelogs and version bumps for the ${{ steps.month.outputs.month }} releases.
           draft: true
