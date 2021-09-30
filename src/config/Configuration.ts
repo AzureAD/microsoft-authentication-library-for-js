@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode, LogLevel, StubbedNetworkModule, AzureCloudInstance } from "@azure/msal-common";
+import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode, LogLevel, StubbedNetworkModule, Authority, AzureCloudInstance } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserCacheLocation } from "../utils/BrowserConstants";
 import { INavigationClient } from "../navigation/INavigationClient";
@@ -157,6 +157,11 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         asyncPopups: false,
         allowRedirectInIframe: false
     };
+
+    // build authority string based on auth params - azureCloudInstance is prioritized if provided
+    if (userInputAuth && userInputAuth.azureCloudInstance) {
+        userInputAuth.authority = `${Authority.getAzureCloudInstanceUrl(userInputAuth.azureCloudInstance)}/${Constants.DEFAULT_AUTHORITY_TENANT}`;
+    }
 
     const overlayedConfig: BrowserConfiguration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...userInputAuth },

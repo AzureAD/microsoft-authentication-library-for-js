@@ -183,9 +183,17 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             azureCloudInstance: this.config.auth.azureCloudInstance
         };
 
-        if (requestAuthority) {
+        // build authority string based on auth params - azureCloudInstance is prioritized if provided
+        let authorityAzureCloudInstance;
+        if (authorityOptions.azureCloudInstance) {
+            authorityAzureCloudInstance = `${Authority.getAzureCloudInstanceUrl(authorityOptions.azureCloudInstance)}/${Constants.DEFAULT_AUTHORITY_TENANT}`;
+        }
+
+        const userRequestedAuthority = authorityAzureCloudInstance ? authorityAzureCloudInstance : requestAuthority;
+
+        if (userRequestedAuthority) {
             this.logger.verbose("Creating discovered authority with request authority");
-            return await AuthorityFactory.createDiscoveredInstance(requestAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions);
+            return await AuthorityFactory.createDiscoveredInstance(userRequestedAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions);
         }
 
         this.logger.verbose("Creating discovered authority with configured authority");
