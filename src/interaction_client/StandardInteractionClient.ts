@@ -186,7 +186,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         // build authority string based on auth params - azureCloudInstance is prioritized if provided
         let authorityAzureCloudInstance;
         if (authorityOptions.azureCloudInstance) {
-            authorityAzureCloudInstance = `${Authority.getAzureCloudInstanceUrl(authorityOptions.azureCloudInstance)}/${Constants.DEFAULT_AUTHORITY_TENANT}`;
+            authorityAzureCloudInstance = `${Authority.getAzureCloudInstanceUrl(authorityOptions.azureCloudInstance)}/${Constants.DEFAULT_AUTHORITY_TENANT}/`;
         }
 
         const userRequestedAuthority = authorityAzureCloudInstance ? authorityAzureCloudInstance : requestAuthority;
