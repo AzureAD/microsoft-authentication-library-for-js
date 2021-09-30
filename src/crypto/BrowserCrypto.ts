@@ -5,7 +5,6 @@
 
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
 import { ISubtleCrypto } from "./ISubtleCrypto";
 import { ModernBrowserCrypto } from "./ModernBrowserCrypto";
 import { MsrBrowserCrypto } from "./MsrBrowserCrypto";
@@ -29,36 +28,57 @@ const PUBLIC_EXPONENT: Uint8Array = new Uint8Array([0x01, 0x00, 0x01]);
  */
 export class BrowserCrypto {
 
-    private _keygenAlgorithmOptions: RsaHashedKeyGenParams;
+    private keygenAlgorithmOptions: RsaHashedKeyGenParams;
     private subtleCrypto: ISubtleCrypto;
     private logger: Logger;
 
     constructor(logger: Logger) {
         this.logger = logger;
 
-        if ("crypto" in window) {
+        if (this.hasBrowserCrypto()) {
             // Use standard modern web crypto if available
             this.logger.verbose("BrowserCrypto: modern crypto interface available");
             this.subtleCrypto = new ModernBrowserCrypto();
-        } else if ("msCrypto" in window) {
+        } else if (this.hasIECrypto()) {
             // For IE11, use msCrypto interface
             this.logger.verbose("BrowserCrypto: MS crypto interface available");
             this.subtleCrypto = new MsBrowserCrypto();
-        } else if ("msrCrypto" in window) {
+        } else if (this.hasMsrCrypto()) {
             // For other browsers, use MSR Crypto if found
-            this.logger.verbose("BrowserCrypto: MRSR interface available");
+            this.logger.verbose("BrowserCrypto: MSR crypto interface available");
             this.subtleCrypto = new MsrBrowserCrypto();
         } else {
             this.logger.error("BrowserCrypto: No crypto interfaces available");
-            throw BrowserAuthError.createCryptoNotAvailableError("Browser crypto, msCrypto, or msrCrypto objects not available.");
+            throw BrowserAuthError.createCryptoNotAvailableError("Browser crypto, msCrypto, or msrCrypto interfaces not available.");
         }
 
-        this._keygenAlgorithmOptions = {
+        this.keygenAlgorithmOptions = {
             name: PKCS1_V15_KEYGEN_ALG,
             hash: S256_HASH_ALG,
             modulusLength: MODULUS_LENGTH,
             publicExponent: PUBLIC_EXPONENT
         };
+    }
+
+    /**
+     * Check whether IE crypto or other browser cryptography is available.
+     */
+    private hasIECrypto(): boolean {
+        return "msCrypto" in window;
+    }
+
+    /**
+     * Check whether browser crypto is available.
+     */
+    private hasBrowserCrypto(): boolean {
+        return "crypto" in window;
+    }
+
+    /**
+     * Check whether MSR crypto polyfill is available
+     */
+    private hasMsrCrypto(): boolean {
+        return "msrCrypto" in window;
     }
 
     /**
@@ -85,7 +105,7 @@ export class BrowserCrypto {
      * @param usages 
      */
     async generateKeyPair(extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKeyPair> {
-        return this.subtleCrypto.generateKey(this._keygenAlgorithmOptions, extractable, usages);
+        return this.subtleCrypto.generateKey(this.keygenAlgorithmOptions, extractable, usages);
     }
 
     /**
@@ -94,7 +114,7 @@ export class BrowserCrypto {
      * @param format 
      */
     async exportJwk(key: CryptoKey): Promise<JsonWebKey> {
-        return this.subtleCrypto.exportKey(KEY_FORMAT_JWK, key);
+        return this.subtleCrypto.exportKey(key);
     }
 
     /**
@@ -105,7 +125,7 @@ export class BrowserCrypto {
      * @param usages 
      */
     async importJwk(key: JsonWebKey, extractable: boolean, usages: Array<KeyUsage>): Promise<CryptoKey> {
-        return this.subtleCrypto.importKey(KEY_FORMAT_JWK, key, this._keygenAlgorithmOptions, extractable, usages);
+        return this.subtleCrypto.importKey(key, this.keygenAlgorithmOptions, extractable, usages);
     }
 
     /**
@@ -114,6 +134,6 @@ export class BrowserCrypto {
      * @param data 
      */
     async sign(key: CryptoKey, data: ArrayBuffer): Promise<ArrayBuffer> {
-        return this.subtleCrypto.sign(this._keygenAlgorithmOptions, key, data);
+        return this.subtleCrypto.sign(this.keygenAlgorithmOptions, key, data);
     }
 }

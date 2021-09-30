@@ -88,8 +88,7 @@ describe("CryptoOps.ts Unit Tests", () => {
 
     it("generatePkceCode() creates a valid Pkce code", async () => {
         //@ts-ignore
-        jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
-            expect(algorithm).toBe("SHA-256");
+        jest.spyOn(BrowserCrypto.prototype as any, "sha256Digest").mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
             return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
         });
 
@@ -105,8 +104,7 @@ describe("CryptoOps.ts Unit Tests", () => {
     it("getPublicKeyThumbprint() generates a valid request thumbprint", async () => {
         jest.setTimeout(30000);
         //@ts-ignore
-        jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
-            expect(algorithm).toBe("SHA-256");
+        jest.spyOn(BrowserCrypto.prototype as any, "sha256Digest").mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
             return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
         });
         const generateKeyPairSpy = jest.spyOn(BrowserCrypto.prototype, "generateKeyPair");
@@ -125,8 +123,7 @@ describe("CryptoOps.ts Unit Tests", () => {
 
     it("removeTokenBindingKey() removes the specified key from storage", async () => {
         //@ts-ignore
-        jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
-            expect(algorithm).toBe("SHA-256");
+        jest.spyOn(BrowserCrypto.prototype as any, "sha256Digest").mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
             return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
         });
         const pkThumbprint = await cryptoObj.getPublicKeyThumbprint({resourceRequestMethod: "POST", resourceRequestUri: TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS} as BaseAuthRequest);

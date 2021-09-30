@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
 import { ISubtleCrypto } from "./ISubtleCrypto";
 
 declare global {
@@ -16,23 +17,23 @@ export class MsrBrowserCrypto implements ISubtleCrypto {
         return window.msrCrypto.getRandomValues(dataBuffer);
     }
 
-    generateKey(algorithm: RsaHashedKeyGenParams, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKeyPair> {
-        return window.msrCrypto.subtle.generateKey(algorithm, extractable, keyUsages);
+    async generateKey(algorithm: RsaHashedKeyGenParams, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKeyPair> {
+        return window.msrCrypto.subtle.generateKey(algorithm, extractable, keyUsages) as Promise<CryptoKeyPair>;
     }
 
-    exportKey(format: string, key: CryptoKey): Promise<JsonWebKey> {
-        return window.msrCrypto.subtle.exportKey(format, key) as Promise<JsonWebKey>;
+    async exportKey(key: CryptoKey): Promise<JsonWebKey> {
+        return window.msrCrypto.subtle.exportKey(KEY_FORMAT_JWK, key) as Promise<JsonWebKey> as Promise<JsonWebKey>;
     }
 
-    importKey(format: string, keyData: JsonWebKey, algorithm: RsaHashedImportParams, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKey> {
-        return window.msrCrypto.subtle.importKey(format, keyData, algorithm, extractable, keyUsages);
+    async importKey(keyData: JsonWebKey, algorithm: RsaHashedImportParams, extractable: boolean, keyUsages: KeyUsage[]): Promise<CryptoKey> {
+        return window.msrCrypto.subtle.importKey(KEY_FORMAT_JWK, keyData, algorithm, extractable, keyUsages) as Promise<CryptoKey>;
     }
 
-    sign(algorithm: AlgorithmIdentifier, key: CryptoKey, data: ArrayBuffer): Promise<ArrayBuffer> {
-        return window.msrCrypto.subtle.sign(algorithm, key, data);
+    async sign(algorithm: AlgorithmIdentifier, key: CryptoKey, data: ArrayBuffer): Promise<ArrayBuffer> {
+        return window.msrCrypto.subtle.sign(algorithm, key, data) as Promise<ArrayBuffer>;
     }
 
-    digest(algorithm: AlgorithmIdentifier, data: Uint8Array): Promise<ArrayBuffer> {
-        return window.msrCrypto.subtle.digest(algorithm, data);
+    async digest(algorithm: AlgorithmIdentifier, data: Uint8Array): Promise<ArrayBuffer> {
+        return window.msrCrypto.subtle.digest(algorithm, data) as Promise<ArrayBuffer>;
     }
 }
