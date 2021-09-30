@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, CcsCredential, CcsCredentialType, IdToken } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, CcsCredential, CcsCredentialType, IdToken, ClientAuthError } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys, InMemoryCacheKeys } from "../utils/BrowserConstants";
@@ -451,6 +451,34 @@ export class BrowserCacheManager extends CacheManager {
             
             return true;
         });
+    }
+
+    /**
+     * Checks the cache for accounts matching loginHint or SID
+     * @param loginHint 
+     * @param sid 
+     */
+    getAccountInfoByHints(loginHint?: string, sid?: string): AccountInfo | null {
+        const matchingAccounts = this.getAllAccounts().filter((accountInfo) => {
+            if (sid) {
+                const accountSid = accountInfo.idTokenClaims && accountInfo.idTokenClaims["sid"];
+                return sid === accountSid;
+            }
+
+            if (loginHint) {
+                return loginHint === accountInfo.username;
+            }
+
+            return false;
+        });
+
+        if (matchingAccounts.length === 1) {
+            return matchingAccounts[0];
+        } else if (matchingAccounts.length > 1) {
+            throw ClientAuthError.createMultipleMatchingAccountsInCacheError();
+        }
+
+        return null;
     }
 
     /**
