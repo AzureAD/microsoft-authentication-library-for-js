@@ -18,12 +18,13 @@ import { RequestThumbprint } from "../network/RequestThumbprint";
 import { NetworkResponse } from "../network/NetworkManager";
 import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
-import { ClientAuthError, ClientAuthErrorMessage } from "../error/ClientAuthError";
+import { ClientAuthError } from "../error/ClientAuthError";
 import { ServerError } from "../error/ServerError";
 import { TimeUtils } from "../utils/TimeUtils";
 import { UrlString } from "../url/UrlString";
 import { CcsCredentialType } from "../account/CcsCredential";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
+import { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage } from "../error/InteractionRequiredAuthError";
 
 /**
  * OAuth2.0 refresh token client
@@ -82,7 +83,7 @@ export class RefreshTokenClient extends BaseClient {
             try {
                 return this.acquireTokenWithCachedRefreshToken(request, true);
             } catch (e) {
-                const noFamilyRTInCache = e instanceof ClientAuthError && e.errorCode === ClientAuthErrorMessage.noTokensFoundError.code;
+                const noFamilyRTInCache = e instanceof InteractionRequiredAuthError && e.errorCode === InteractionRequiredAuthErrorMessage.noTokensFoundError.code;
                 const clientMismatchErrorWithFamilyRT = e instanceof ServerError && e.errorCode === Errors.INVALID_GRANT_ERROR && e.subError === Errors.CLIENT_MISMATCH_ERROR;
 
                 // if family Refresh Token (FRT) cache acquisition fails or if client_mismatch error is seen with FRT, reattempt with application Refresh Token (ART)
@@ -109,7 +110,7 @@ export class RefreshTokenClient extends BaseClient {
 
         // no refresh Token
         if (!refreshToken) {
-            throw ClientAuthError.createNoTokensFoundError();
+            throw InteractionRequiredAuthError.createNoTokensFoundError();
         }
 
         const refreshTokenRequest: CommonRefreshTokenRequest = {
