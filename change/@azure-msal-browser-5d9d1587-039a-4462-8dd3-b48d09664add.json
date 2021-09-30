@@ -1,6 +1,6 @@
 {
-  "type": "minor",
-  "comment": "Consistently export error types and messages for errors thrown by MSAL.",
+  "type": "patch",
+  "comment": "Consistently export error types and messages for errors thrown by MSAL #4117",
   "packageName": "@azure/msal-browser",
   "email": "jagore@microsoft.com",
   "dependentChangeType": "patch"
