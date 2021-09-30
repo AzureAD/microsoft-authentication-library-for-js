@@ -124,7 +124,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         navigateToLoginRequestUrl: true,
         clientCapabilities: [],
         protocolMode: ProtocolMode.AAD,
-        azureCloudInstance: 1
+        azureCloudInstance: AzureCloudInstance.None
     };
 
     // Default cache options for browser

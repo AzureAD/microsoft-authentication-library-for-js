@@ -92,7 +92,7 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     knownAuthorities: [],
     cloudDiscoveryMetadata: "",
     authorityMetadata: "",
-    azureCloudInstance: 0,
+    azureCloudInstance: AzureCloudInstance.None,
     clientCapabilities: [],
     protocolMode: ProtocolMode.AAD
 };
