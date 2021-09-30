@@ -8,17 +8,17 @@
 | --- | --- | --- |
 
 1. [About](#about)
-2. [FAQ](#faq)
-3. [Releases](#releases)
-4. [Prerequisites](#prerequisites)
-5. [Installation](#installation)
-6. [Node Version Support](#node-version-support)
-7. [Usage](#usage)
-8. [Samples](#samples)
-9. [Build Library](#build-and-test)
-10. [Security Reporting](#security-reporting)
-11. [License](#license)
-12. [Code of Conduct](#we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct)
+1. [FAQ](#faq)
+1. [Changelog](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-node/CHANGELOG.md)
+1. [Prerequisites](#prerequisites)
+1. [Installation](#installation)
+1. [Node Version Support](#node-version-support)
+1. [Usage](#usage)
+1. [Samples](#samples)
+1. [Build Library](#build-and-test)
+1. [Security Reporting](#security-reporting)
+1. [License](#license)
+1. [Code of Conduct](#we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct)
 
 ## About
 

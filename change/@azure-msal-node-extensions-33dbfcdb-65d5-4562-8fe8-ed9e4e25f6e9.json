@@ -1,5 +1,5 @@
 {
-  "type": "patch",
+  "type": "prerelease",
   "comment": "fix: integrate forked bindings package",
   "packageName": "@azure/msal-node-extensions",
   "email": "kamausamuel11@gmail.com",

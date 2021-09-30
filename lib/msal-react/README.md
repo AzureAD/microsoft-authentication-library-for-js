@@ -9,6 +9,7 @@
 
 1. [About](#about)
 1. [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/FAQ.md)
+1. [Changelog](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-react/CHANGELOG.md)
 1. [Prerequisites](#prerequisites)
 1. [Installation](#installation)
 1. [Build and Test](#build-and-test)
