@@ -1,6 +1,6 @@
 import { Configuration, buildConfiguration, DEFAULT_POPUP_TIMEOUT_MS, DEFAULT_IFRAME_TIMEOUT_MS } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
-import { LogLevel, Constants } from "@azure/msal-common";
+import { LogLevel, Constants, ClientConfigurationError, ClientConfigurationErrorMessage } from "@azure/msal-common";
 import sinon from "sinon";
 import { BrowserCacheLocation } from "../../src/utils/BrowserConstants";
 
@@ -197,5 +197,126 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(newConfig.system?.loggerOptions?.loggerCallback).not.toBeNull();
         expect(newConfig.system?.loggerOptions?.piiLoggingEnabled).toBe(true);
         expect(newConfig.system?.asyncPopups).toBe(true);
+    });
+
+    it("buildConfiguration correctly assigns new values with azureCoudInstance-China", () => {
+        let newConfig: Configuration = buildConfiguration({
+            auth: {
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                authority: TEST_CONFIG.validAuthority,
+                redirectUri: TEST_URIS.TEST_ALTERNATE_REDIR_URI,
+                postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
+                navigateToLoginRequestUrl: false,
+                azureCloudInstance: 2,
+            },
+            cache: {
+                cacheLocation: BrowserCacheLocation.LocalStorage,
+                storeAuthStateInCookie: true,
+                secureCookies: true
+            },
+            system: {
+                windowHashTimeout: TEST_POPUP_TIMEOUT_MS,
+                tokenRenewalOffsetSeconds: TEST_OFFSET,
+                loggerOptions: {
+                    loggerCallback: testLoggerCallback,
+                    piiLoggingEnabled: true
+                },
+                asyncPopups: true
+            }
+        }, true);
+        // Auth config checks
+        expect(newConfig.auth.authority).toBe(TEST_CONFIG.chinaAuthority);
+    });
+
+    it("buildConfiguration correctly assigns new values with azureCoudInstance-Germany", () => {
+        let newConfig: Configuration = buildConfiguration({
+            auth: {
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                authority: TEST_CONFIG.validAuthority,
+                redirectUri: TEST_URIS.TEST_ALTERNATE_REDIR_URI,
+                postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
+                navigateToLoginRequestUrl: false,
+                azureCloudInstance: 3,
+            },
+            cache: {
+                cacheLocation: BrowserCacheLocation.LocalStorage,
+                storeAuthStateInCookie: true,
+                secureCookies: true
+            },
+            system: {
+                windowHashTimeout: TEST_POPUP_TIMEOUT_MS,
+                tokenRenewalOffsetSeconds: TEST_OFFSET,
+                loggerOptions: {
+                    loggerCallback: testLoggerCallback,
+                    piiLoggingEnabled: true
+                },
+                asyncPopups: true
+            }
+        }, true);
+        // Auth config checks
+        expect(newConfig.auth.authority).toBe(TEST_CONFIG.germanyAuthority);
+    });
+
+    it("buildConfiguration correctly assigns new values with azureCoudInstance-USGov", () => {
+        let newConfig: Configuration = buildConfiguration({
+            auth: {
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                authority: TEST_CONFIG.validAuthority,
+                redirectUri: TEST_URIS.TEST_ALTERNATE_REDIR_URI,
+                postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
+                navigateToLoginRequestUrl: false,
+                azureCloudInstance: 4,
+            },
+            cache: {
+                cacheLocation: BrowserCacheLocation.LocalStorage,
+                storeAuthStateInCookie: true,
+                secureCookies: true
+            },
+            system: {
+                windowHashTimeout: TEST_POPUP_TIMEOUT_MS,
+                tokenRenewalOffsetSeconds: TEST_OFFSET,
+                loggerOptions: {
+                    loggerCallback: testLoggerCallback,
+                    piiLoggingEnabled: true
+                },
+                asyncPopups: true
+            }
+        }, true);
+        // Auth config checks
+        expect(newConfig.auth.authority).toBe(TEST_CONFIG.usGovAuthority);
+    });
+
+    it("buildConfiguration throws error with invalid azureCoudInstance", () => {
+
+        try {
+            const configuration = buildConfiguration({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                    authority: TEST_CONFIG.validAuthority,
+                    redirectUri: TEST_URIS.TEST_ALTERNATE_REDIR_URI,
+                    postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
+                    navigateToLoginRequestUrl: false,
+                    azureCloudInstance: 5,
+                },
+                cache: {
+                    cacheLocation: BrowserCacheLocation.LocalStorage,
+                    storeAuthStateInCookie: true,
+                    secureCookies: true
+                },
+                system: {
+                    windowHashTimeout: TEST_POPUP_TIMEOUT_MS,
+                    tokenRenewalOffsetSeconds: TEST_OFFSET,
+                    loggerOptions: {
+                        loggerCallback: testLoggerCallback,
+                        piiLoggingEnabled: true
+                    },
+                    asyncPopups: true
+                }
+            }, true);
+        } catch(e) {
+            expect(e).toBeInstanceOf(ClientConfigurationError);
+            expect(e.errorCode).toEqual(ClientConfigurationErrorMessage.invalidAzureCloudInstance.code);
+            expect(e.errorMessage).toEqual(ClientConfigurationErrorMessage.invalidAzureCloudInstance.desc);
+        }
     });
 });

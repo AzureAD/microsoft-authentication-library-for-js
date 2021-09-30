@@ -396,7 +396,7 @@ export abstract class ClientApplication {
         // build authority string based on auth params - azureCloudInstance is prioritized if provided
         let authorityAzureCloudInstance;
         if (azureCloudInstance) {
-            authorityAzureCloudInstance = `${Authority.getAzureCloudInstanceUrl(azureCloudInstance)}/${Constants.DEFAULT_AUTHORITY_TENANT}`;
+            authorityAzureCloudInstance = `${Authority.getAzureCloudInstanceUrl(azureCloudInstance)}/${Constants.DEFAULT_AUTHORITY_TENANT}/`;
         }
 
         const authorityUrl = authorityAzureCloudInstance ? authorityAzureCloudInstance : authorityString;

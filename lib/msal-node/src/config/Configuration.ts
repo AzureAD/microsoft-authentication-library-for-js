@@ -137,7 +137,7 @@ export function buildAppConfiguration({
     // build authority string based on auth params - azureCloudInstance is prioritized if provided
     if (auth.azureCloudInstance) {
         const cloudInstanceHost = Authority.getAzureCloudInstanceUrl(auth.azureCloudInstance);
-        auth.authority = `${cloudInstanceHost}/${Constants.DEFAULT_AUTHORITY_TENANT}`;
+        auth.authority = `${cloudInstanceHost}/${Constants.DEFAULT_AUTHORITY_TENANT}/`;
     }
 
     return {
