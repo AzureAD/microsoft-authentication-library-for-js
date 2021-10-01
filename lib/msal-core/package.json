@@ -26,6 +26,9 @@
   "engines": {
     "node": ">=0.8.0"
   },
+  "beachball": {
+    "disallowedChangeTypes": ["major"]
+  },
   "scripts": {
     "cdn": "npm run build && npm run cdn:upload && npm run cdn:sri",
     "cdn:upload": "node ./cdn-upload.js",
