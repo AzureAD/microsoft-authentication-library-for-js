@@ -151,7 +151,7 @@ export class TokenValidator {
         const now = Math.round(new Date().getTime() / 1000); // in UNIX format
 
         /**
-         * At the very least, check for issuer, audience, issue and expiry dates.
+         * At the very least, check for issuer, audience, issuer and expiry dates.
          * For more information on validating id tokens, visit:
          * https://docs.microsoft.com/azure/active-directory/develop/id-tokens#validating-an-id_token
          */

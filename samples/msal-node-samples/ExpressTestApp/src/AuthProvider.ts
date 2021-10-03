@@ -49,7 +49,7 @@ import * as constants from './Constants';
  * Session variables accessible are as follows:
     * req.session.isAuthenticated: boolean
     * req.session.account: AccountInfo
-    * req.session.resourceName.accessToken: string
+    * req.session.<resourceName>.accessToken: string
  */
 export class AuthProvider {
 
@@ -83,7 +83,7 @@ export class AuthProvider {
 
         /**
          * Request Configuration
-         * We manipulate these three request objects below
+         * We manipulate these two request objects below
          * to acquire a token with the appropriate claims
          */
         if (!req.session["authCodeRequest"]) {
@@ -118,7 +118,12 @@ export class AuthProvider {
         // random GUID for csrf check 
         req.session.nonce = this.cryptoProvider.createNewGuid();
 
-        // sign-in as usual
+        /**
+         * The OAuth 2.0 state parameter can be used to encode information of the app's state before redirect. 
+         * You can pass the user's state in the app, such as the page or view they were on, as input to this parameter. 
+         * MSAL allows you to pass your custom state as state parameter in the request object. For more information, visit:
+         * https://docs.microsoft.com/azure/active-directory/develop/msal-js-pass-custom-state-authentication-request
+         */
         const state = this.cryptoProvider.base64Encode(
             JSON.stringify({
                 stage: constants.AppStages.SIGN_IN,
