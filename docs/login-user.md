@@ -97,9 +97,9 @@ These APIs will return an account object or an array of account objects with the
 
 ## Silent login with ssoSilent()
 
-### With User Hint
-
 If you already have a session that exists with the authentication server, you can use the ssoSilent() API to make request for tokens without interaction.
+
+### With User Hint
 
 If you already have the user's sign-in information, you can pass this into the API to improve performance and ensure that the authorization server will look for the correct account session. You can pass one of the following into the request object in order to successfully obtain a token silently.
 
