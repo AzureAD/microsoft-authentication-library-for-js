@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "fix: integrate forked bindings package",
-  "packageName": "electron-msal-node-extensions",
-  "email": "kamausamuel11@gmail.com",
-  "dependentChangeType": "none"
-}

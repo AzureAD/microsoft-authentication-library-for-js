@@ -9,7 +9,7 @@
 
 1. [About](#about)
 1. [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/FAQ.md)
-1. [Changelog](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/changelog.md)
+1. [Changelog](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/CHANGELOG.md)
 1. [Roadmap](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/roadmap.md)
 1. [Prerequisites](#prerequisites)
 1. [Installation](#installation)
