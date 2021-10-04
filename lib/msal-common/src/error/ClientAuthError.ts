@@ -313,13 +313,6 @@ export class ClientAuthError extends AuthError {
     }
 
     /**
-     * Creates an error thrown when the authorization code required for a token request is null or empty.
-     */
-    static createNoTokensFoundError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.noTokensFoundError.code, ClientAuthErrorMessage.noTokensFoundError.desc);
-    }
-
-    /**
      * Throws error when multiple tokens are in cache.
      */
     static createMultipleMatchingTokensInCacheError(): ClientAuthError {
