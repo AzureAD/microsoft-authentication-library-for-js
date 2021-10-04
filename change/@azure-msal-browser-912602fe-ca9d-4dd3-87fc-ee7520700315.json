@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Emit event when user logs in or out from a different tab or window #3981",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
