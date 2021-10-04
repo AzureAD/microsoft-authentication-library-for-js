@@ -28,7 +28,9 @@ export class HttpClient implements INetworkModule {
         const request: AxiosRequestConfig = {
             method: HttpMethod.GET,
             url: url,
+            /* istanbul ignore next */
             headers: options && options.headers,
+            /* istanbul ignore next */
             validateStatus: () => true
         };
 
@@ -53,9 +55,12 @@ export class HttpClient implements INetworkModule {
         const request: AxiosRequestConfig = {
             method: HttpMethod.POST,
             url: url,
+            /* istanbul ignore next */
             data: (options && options.body) || "",
             timeout: cancellationToken,
+            /* istanbul ignore next */
             headers: options && options.headers,
+            /* istanbul ignore next */
             validateStatus: () => true
         };
 
