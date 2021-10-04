@@ -64,5 +64,7 @@ export {
     ExternalTokenResponse,
     // Utils
     StringUtils,
-    UrlString
+    UrlString,
+    // AzureCloudInstance enum
+    AzureCloudInstance
 } from "@azure/msal-common";
