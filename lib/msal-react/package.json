@@ -20,6 +20,9 @@
   "engines": {
     "node": ">=10"
   },
+  "beachball": {
+    "disallowedChangeTypes": ["major"]
+  },
   "scripts": {
     "start": "tsdx watch",
     "build": "tsdx build --tsconfig ./tsconfig.build.json",
