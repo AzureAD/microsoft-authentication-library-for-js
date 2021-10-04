@@ -93,3 +93,4 @@ export { TimeUtils } from "./utils/TimeUtils";
 export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager";
 export { ServerTelemetryRequest } from "./telemetry/server/ServerTelemetryRequest";
 export { PopTokenGenerator } from "./crypto/PopTokenGenerator";
+export { version } from "./packageMetadata";
