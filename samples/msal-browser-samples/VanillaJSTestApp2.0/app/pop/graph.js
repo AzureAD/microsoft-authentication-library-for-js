@@ -24,6 +24,7 @@ function callMSGraph(endpoint, accessToken, callback) {
         .catch(error => console.log(error));
 }
 
+let poopToken = ""
 function callPopResource(endpoint, method, accessToken, callback) {
     const headers = new Headers();
     const authHeader = `PoP ${accessToken}`;
@@ -38,11 +39,7 @@ function callPopResource(endpoint, method, accessToken, callback) {
     console.log(`request made to endpoint ${endpoint} at: ` + new Date().toString());
 
     fetch(endpoint, options)
-        .then(response => {
-            lastRequestHeaders = response.headers;
-            console.log("Headers: ", lastRequestHeaders);
-            return response.json();
-        })
+        .then(response => response.json())
         .then(response => callback(response, endpoint))
         .catch(error => console.log(error));
 }
