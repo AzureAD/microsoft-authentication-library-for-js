@@ -138,7 +138,7 @@ const silentRequest = {
 };
 ```
 
-However, be aware that if your application has code paths for multiple users in a single browser session, or if the user has multiple accounts for that single browser session, then there is a higher likelihood of silent sign-in errors. You may see the following error show up in the event of multiple account session found by the authorization server:
+However, be aware that if your application has code paths for multiple users in a single browser session, or if the user has multiple accounts for that single browser session, then there is a higher likelihood of silent sign-in errors. You may see the following error show up in the event of multiple account sessions found by the authorization server:
 
 ```txt
 InteractionRequiredAuthError: interaction_required: AADSTS16000: Either multiple user identities are available for the current request or selected account is not supported for the scenario.
