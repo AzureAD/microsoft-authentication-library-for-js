@@ -54,7 +54,9 @@
     ]
   },
   "beachball": {
-    "disallowedChangeTypes": ["major"]
+    "disallowedChangeTypes": [
+      "major"
+    ]
   },
   "module": "dist/msal-node.esm.js",
   "devDependencies": {
@@ -70,7 +72,7 @@
   },
   "dependencies": {
     "@azure/msal-common": "^5.0.0",
-    "axios": "^0.21.1",
+    "axios": "^0.21.4",
     "jsonwebtoken": "^8.5.1",
     "uuid": "^8.3.0"
   },
