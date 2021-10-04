@@ -229,20 +229,7 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
-    it("createSilentSSOInsufficientInfoError()", () => {
-        const err: BrowserAuthError = BrowserAuthError.createSilentSSOInsufficientInfoError();
-
-        expect(err instanceof BrowserAuthError).toBe(true);
-        expect(err instanceof AuthError).toBe(true);
-        expect(err instanceof Error).toBe(true);
-        expect(err.errorCode).toBe(BrowserAuthErrorMessage.silentSSOInsufficientInfoError.code);
-        expect(err.errorMessage.includes(BrowserAuthErrorMessage.silentSSOInsufficientInfoError.desc)).toBe(true);
-        expect(err.message.includes(BrowserAuthErrorMessage.silentSSOInsufficientInfoError.desc)).toBe(true);
-        expect(err.name).toBe("BrowserAuthError");
-        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
-    });
-
-    it("createSilentSSOInsufficientInfoError()", () => {
+    it("createSilentPromptValueError()", () => {
         const promptVal = "notAPrompt";
         const err: BrowserAuthError = BrowserAuthError.createSilentPromptValueError(promptVal);
 

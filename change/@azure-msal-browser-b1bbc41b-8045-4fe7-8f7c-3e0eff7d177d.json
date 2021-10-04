@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Remove requirement of user hint on ssoSilent API #4123",
+  "packageName": "@azure/msal-browser",
+  "email": "prkanher@microsoft.com",
+  "dependentChangeType": "patch"
+}
