@@ -72,3 +72,5 @@ export {
     StringUtils,
     UrlString
 } from "@azure/msal-common";
+
+export { version } from "./packageMetadata";
