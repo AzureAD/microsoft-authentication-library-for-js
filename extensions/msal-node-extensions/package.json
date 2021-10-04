@@ -36,6 +36,9 @@
     "url": "https://www.microsoft.com"
   },
   "module": "dist/test.esm.js",
+  "beachball": {
+    "disallowedChangeTypes": ["patch", "minor", "major"]
+  },
   "dependencies": {
     "@azure/msal-common": "^5.0.0",
     "bindings": "git://github.com/samuelkubai/node-bindings.git#v1.6.0",

@@ -47,9 +47,15 @@ export {
     // Response
     AuthenticationResult,
     // Error
-    InteractionRequiredAuthError,
     AuthError,
     AuthErrorMessage,
+    ClientAuthError,
+    ClientAuthErrorMessage,
+    ClientConfigurationError,
+    ClientConfigurationErrorMessage,
+    InteractionRequiredAuthError,
+    InteractionRequiredAuthErrorMessage,
+    ServerError,
     // Network
     INetworkModule,
     NetworkResponse,
