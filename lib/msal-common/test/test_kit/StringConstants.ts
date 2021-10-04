@@ -470,3 +470,10 @@ export const CORS_SIMPLE_REQUEST_HEADERS = [
     "content-language", 
     "content-type"
 ]
+
+export const TEST_AUTHENTICATION_HEADERS = {
+    authenticationInfo: `PoP nextnonce="eyJhbGciOiJIUzI1NiIsImtpZCI6IktJRCIsInR5cCI6IkpXVCJ9.eyJ0cyI6IjE2MjU2NzI1MjkifQ.rA5ho63Lbdwo8eqZ_gUtQxY3HaseL0InIVwdgf7L_fc"`,
+    invalidAuthenticationInfo: `PoP test_challenge="test_challenge"`,
+    wwwAuthenticate: `PoP nonce="eyJhbGciOiJIUzI1NiIsImtpZCI6IktJRCIsInR5cCI6IkpXVCJ9.eyJ0cyI6IjE2MjU2NzI1MjkifQ.rA5ho63Lbdwo8eqZ_gUtQxY3HaseL0InIVwdgf7L_fc", error="nonce_malformed"`,
+    invalidWwwAuthenticate: `PoP test_challenge="test_challenge`
+};

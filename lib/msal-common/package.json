@@ -59,6 +59,7 @@
     "@types/sinon": "^7.5.0",
     "beachball": "^1.32.2",
     "husky": "^3.0.9",
+    "isomorphic-fetch": "^3.0.0",
     "jest": "^27.0.4",
     "rimraf": "^3.0.2",
     "rollup": "^2.46.0",

@@ -71,5 +71,5 @@ export {
     // Utils
     StringUtils,
     UrlString,
-    AuthorizationHeaderParser
+    AuthenticationHeaderParser
 } from "@azure/msal-common";

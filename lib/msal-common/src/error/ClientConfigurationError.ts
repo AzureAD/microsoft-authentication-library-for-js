@@ -80,6 +80,14 @@ export const ClientConfigurationErrorMessage = {
     untrustedAuthority: {
         code: "untrusted_authority",
         desc: "The provided authority is not a trusted authority. Please include this authority in the knownAuthorities config parameter."
+    },
+    missingNonceAuthenticationHeader: {
+        code: "missing_nonce_authentication_header",
+        desc: "Unable to find an authentication header containing server nonce. Either the Authentication-Info or WWW-Authenticate headers must be present in order to obtain a server nonce."
+    },
+    invalidAuthenticationHeader: {
+        code: "invalid_authentication_header",
+        desc: "Invalid authentication header provided"
     }
 };
 
@@ -242,5 +250,21 @@ export class ClientConfigurationError extends ClientAuthError {
     static createUntrustedAuthorityError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.untrustedAuthority.code,
             ClientConfigurationErrorMessage.untrustedAuthority.desc);
+    }
+
+    /**
+     * Throws error when provided headers don't contain a header that a server nonce can be extracted from
+     */
+    static createMissingNonceAuthenticationHeadersError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.missingNonceAuthenticationHeader.code,
+            ClientConfigurationErrorMessage.missingNonceAuthenticationHeader.desc);
+    }
+
+    /**
+     * Throws error when a provided header is invalid in any way
+     */
+    static createInvalidAuthenticationHeaderError(invalidHeaderName: string, details: string): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidAuthenticationHeader.code,
+            `${ClientConfigurationErrorMessage.invalidAuthenticationHeader.desc}. Invalid header: ${invalidHeaderName}. Details: ${details}`);
     }
 }
