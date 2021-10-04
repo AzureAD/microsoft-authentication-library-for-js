@@ -37,7 +37,7 @@ const msalConfig = {
 };
 
 const popConfig = {
-    endpoint: "https://signedhttprequest.azurewebsites.net/api/validateSHR"
+    endpoint: "https://localhost:5001/servernonce/missing"
 };
 
 // Add here scopes for id token to be used at MS Identity Platform endpoints.

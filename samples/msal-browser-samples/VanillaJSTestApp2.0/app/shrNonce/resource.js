@@ -45,7 +45,7 @@ async function popRequest() {
         });
         popToken = response.accessToken;
         
-        callPopResource(popConfig.endpoint, "POST", response.accessToken, updateUI);
+        callPopResource(popConfig.endpoint, "GET", response.accessToken, updateUI);
     }
 }
 
