@@ -4,13 +4,13 @@
  */
 import express from "express";
 import session from "express-session";
-import { PublicClientApplication, AuthorizationCodeRequest, LogLevel, CryptoProvider } from "@azure/msal-node";
+import { PublicClientApplication, AuthorizationCodeRequest, LogLevel, CryptoProvider, AuthorizationUrlRequest, Configuration } from "@azure/msal-node";
 import { RequestWithPKCE } from "./types";
 
 const SERVER_PORT = process.env.PORT || 3000;
 
 // Before running the sample, you will need to replace the values in the config.
-const config = {
+const config: Configuration = {
     auth: {
         clientId: "ENTER_CLIENT_ID",
         authority: "https://login.microsoftonline.com/ENTER_TENANT_ID"
@@ -85,7 +85,7 @@ app.get('/', (req: RequestWithPKCE, res) => {
         req.session.pkceCodes.challenge = challenge;
 
         // Add PKCE code challenge and challenge method to authCodeUrl request objectgit st
-        const authCodeUrlParameters = {
+        const authCodeUrlParameters: AuthorizationUrlRequest = {
             scopes: ["user.read"],
             redirectUri: "http://localhost:3000/redirect",
             codeChallenge: req.session.pkceCodes.challenge, // PKCE Code Challenge
