@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "fix: add forked bindings library to node-extensins",
-  "packageName": "@azure/msal-react",
-  "email": "kamausamuel11@gmail.com",
-  "dependentChangeType": "none"
-}

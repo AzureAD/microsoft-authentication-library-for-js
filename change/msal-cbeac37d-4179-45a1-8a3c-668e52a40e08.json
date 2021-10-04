@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Disallow major bumps",
-  "packageName": "msal",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none"
-}

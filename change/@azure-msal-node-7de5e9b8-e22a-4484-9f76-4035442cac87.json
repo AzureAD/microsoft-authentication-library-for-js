@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Export library version #4124",
-  "packageName": "@azure/msal-node",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
