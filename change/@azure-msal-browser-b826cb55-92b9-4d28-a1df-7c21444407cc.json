@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "fix: add forked bindings library to node-extensions",
-  "packageName": "@azure/msal-browser",
-  "email": "kamausamuel11@gmail.com",
-  "dependentChangeType": "none"
-}
