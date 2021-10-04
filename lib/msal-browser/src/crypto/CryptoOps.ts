@@ -143,7 +143,7 @@ export class CryptoOps implements ICrypto {
     async clearKeystore(): Promise<boolean> {
         const dataStoreNames = Object.keys(this.cache);
         const databaseStorage = this.cache[dataStoreNames[0]];
-        return (databaseStorage) ? await databaseStorage.deleteDatabase() : false;
+        return databaseStorage ? await databaseStorage.deleteDatabase() : false;
     }
 
     /**
