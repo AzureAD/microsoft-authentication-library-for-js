@@ -24,7 +24,7 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.auth.redirectUri).toBe("");
         expect(emptyConfig.auth.postLogoutRedirectUri).toBe("");
         expect(emptyConfig.auth.navigateToLoginRequestUrl).toBe(true);
-        expect(emptyConfig.auth.azureCloudInstance).toBe(1);
+        expect(emptyConfig.auth.azureCloudInstance).toBe(0);
         // Cache config checks
         expect(emptyConfig.cache).toBeDefined()
         expect(emptyConfig.cache?.cacheLocation).toBeDefined();
