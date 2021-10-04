@@ -54,7 +54,9 @@
     ]
   },
   "beachball": {
-    "disallowedChangeTypes": ["major"]
+    "disallowedChangeTypes": [
+      "major"
+    ]
   },
   "module": "dist/msal-node.esm.js",
   "devDependencies": {
