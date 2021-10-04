@@ -68,5 +68,7 @@ export {
     ProtocolMode,
     ICachePlugin,
     TokenCacheContext,
-    ISerializableTokenCache
+    ISerializableTokenCache,
+    // AzureCloudInstance enum
+    AzureCloudInstance
 } from "@azure/msal-common";
