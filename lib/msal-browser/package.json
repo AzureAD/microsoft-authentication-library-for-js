@@ -28,6 +28,9 @@
   "engines": {
     "node": ">=0.8.0"
   },
+  "beachball": {
+    "disallowedChangeTypes": ["major"]
+  },
   "directories": {
     "test": "test"
   },

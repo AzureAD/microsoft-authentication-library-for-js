@@ -51,12 +51,13 @@ export {
     // Error
     AuthError,
     AuthErrorMessage,
-    InteractionRequiredAuthError,
-    ServerError,
     ClientAuthError,
     ClientAuthErrorMessage,
     ClientConfigurationError,
     ClientConfigurationErrorMessage,
+    InteractionRequiredAuthError,
+    InteractionRequiredAuthErrorMessage,
+    ServerError,
     // Network Interface
     INetworkModule,
     NetworkRequestOptions,

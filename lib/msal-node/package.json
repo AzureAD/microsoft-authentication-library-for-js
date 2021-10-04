@@ -53,6 +53,9 @@
       "<rootDir>/test/**/*.spec.ts"
     ]
   },
+  "beachball": {
+    "disallowedChangeTypes": ["major"]
+  },
   "module": "dist/msal-node.esm.js",
   "devDependencies": {
     "@types/jest": "^25.2.3",
