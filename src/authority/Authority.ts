@@ -14,7 +14,7 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ProtocolMode } from "./ProtocolMode";
 import { ICacheManager } from "../cache/interface/ICacheManager";
 import { AuthorityMetadataEntity } from "../cache/entities/AuthorityMetadataEntity";
-import { AuthorityOptions, AzureCloudInstance } from "./AuthorityOptions";
+import { AuthorityOptions } from "./AuthorityOptions";
 import { CloudInstanceDiscoveryResponse, isCloudInstanceDiscoveryResponse } from "./CloudInstanceDiscoveryResponse";
 import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
 import { RegionDiscovery } from "./RegionDiscovery";
@@ -530,25 +530,5 @@ export class Authority {
         metadata.end_session_endpoint = Authority.buildRegionalAuthorityString(metadata.end_session_endpoint, azureRegion);
 
         return metadata;
-    }
-
-    /**
-     * Translate the customer provided enum for AzureCloudInstance to a valid cloud Url
-     * @param azureCloudInstance
-     * @returns
-     */
-    static getAzureCloudInstanceUrl(azureCloudInstance: AzureCloudInstance): string {
-        switch (azureCloudInstance) {
-            case AzureCloudInstance.AzurePublic:
-                return "https://login.microsoftonline.com";
-            case AzureCloudInstance.AzureChina:
-                return "https://login.chinacloudapi.cn";
-            case AzureCloudInstance.AzureGermany:
-                return "https://login.microsoftonline.de";
-            case AzureCloudInstance.AzureUsGovernment:
-                return "https://login.microsoftonline.us";
-            default:
-                throw ClientConfigurationError.createInvalidAzureCloudInstanceError();
-        }
     }
 }
