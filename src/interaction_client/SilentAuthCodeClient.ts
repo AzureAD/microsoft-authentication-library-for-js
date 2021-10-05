@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, ICrypto, Logger, CommonAuthorizationCodeRequest, AuthorizationCodeClient, AuthError } from "@azure/msal-common";
+import { AuthenticationResult, ICrypto, Logger, CommonAuthorizationCodeRequest, AuthError } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -14,6 +14,7 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 import { InteractionType, ApiId } from "../utils/BrowserConstants";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
+import { HybridSpaAuthorizationCodeClient } from "./HybridSpaAuthorizationCodeClient";
 
 export class SilentAuthCodeClient extends StandardInteractionClient {
     private apiId: ApiId;
@@ -24,7 +25,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
     }
     
     /**
-     * Acquires a token silently by opening a hidden iframe to the /authorize endpoint with prompt=none
+     * Acquires a token silently by redeeming an authorization code against the /token endpoint
      * @param request 
      */
     async acquireToken(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
@@ -50,7 +51,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
 
             // Initialize the client
             const clientConfig = await this.getClientConfiguration(serverTelemetryManager, silentRequest.authority);
-            const authClient: AuthorizationCodeClient = new AuthorizationCodeClient(clientConfig, true);
+            const authClient: HybridSpaAuthorizationCodeClient = new HybridSpaAuthorizationCodeClient(clientConfig);
             this.logger.verbose("Auth code client created");
 
             // Create silent handler
