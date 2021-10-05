@@ -1,27 +1,122 @@
+# NPM Publish is the name for this action
+name: NPM Publish
 
-# This workflow will run tests using node and then publish a package to GitHub Packages when a release is created
-# For more information see: https://help.github.com/actions/language-and-framework-guides/publishing-nodejs-packages
-
-name: npm Publish
-
+# This action will trigger on every successful release
 on:
-  push:
+  pull_request:
+    types: [closed]
     branches:
-      - master
+      - dev
 
+# Job will run on a ubuntu instance
 jobs:
-  publish-npm:
+  build:
+    if: github.event.pull_request.merged == true && contains(github.head_ref, 'release-staging')
     runs-on: ubuntu-latest
     env:
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
     steps:
+      # Checkout the code
       - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
+        # Setup node with version 12.x and NPM registry url
       - uses: actions/setup-node@v1
         with:
-          registry-url: https://registry.npmjs.org/
-      - run: npm run build:extensions
-      - run: npm ci
-      - run: npm run build
-      # - run: npm run beachball:publish -- -y
+          registry-url: "https://registry.npmjs.org"
+
+      - uses: dorny/paths-filter@v2
+        id: changes
+        with:
+          filters: |
+            core:
+              - 'lib/msal-core/src/package.json'
+            common: 
+              - 'lib/msal-common/src/package.json'
+            browser: 
+              - 'lib/msal-browser/src/package.json'
+            node:
+              - 'lib/msal-node/src/package.json'
+            angular:
+              - 'lib/msal-angular/src/package.json'
+            react:
+              - 'lib/msal-react/src/package.json'
+            node-extensions:
+              - 'extensions/msal-node-extensions/package.json'
+          list-files: json
+
+      - name: Publish  msal-core
+        if: steps.changes.outputs.core == 'true'
+        working-directory: lib/msal-core
+        env:
+          CDN_EUNO_SAS: ${{ secrets.CDN_EUNO_SAS}}
+          CDN_USWE_SAS: ${{ secrets.CDN_USWE_SAS}}
+        run: |
+          npm install
+          npm run cdn
+          npm publish
+
+      - name: Publish  msal-common
+        if: steps.changes.outputs.common == 'true'
+        working-directory: lib/msal-common
+        run: |
+          npm install
+          npm publish
+
+      - name: Publish  msal-browser
+        if: steps.changes.outputs.browser == 'true'
+        working-directory: lib/msal-browser
+        env:
+          CDN_EUNO_SAS: ${{ secrets.CDN_EUNO_SAS}}
+          CDN_USWE_SAS: ${{ secrets.CDN_USWE_SAS}}
+        run: |
+          npm install
+          npm run cdn
+          npm publish
+
+      - name: Publish  msal-node
+        if: steps.changes.outputs.node == 'true'
+        working-directory: lib/msal-node
+        run: |
+          npm install
+          npm publish
+
+      - name: Publish  msal-angular
+        if: steps.changes.outputs.angular == 'true'
+        working-directory: lib/msal-angular
+        run: |
+          npm install
+          npm run deploy
+
+      - name: Publish  msal-react
+        if: steps.changes.outputs.react == 'true'
+        working-directory: lib/msal-react
+        run: |
+          npm install
+          npm publish
+
+      - name: Publish node-extensions
+        if: steps.changes.outputs.node-extensions== 'true'
+        working-directory: extensions/msal-node-extensions
+        run: |
+          npm install
+          npm publish
+
+      - name: Create Github Releases and Discussions
+        env:
+          GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN}}
+        run: npm run beachball:release
+
+      - name: Update package-locks
+        run: npm install
+
+      # Create Pull Request from dev to master for sync post-publish
+      - name: Create Pull Request
+        id: pr
+        uses: peter-evans/create-pull-request@v3
+        with:
+          commit-message: Post-release
+          branch: post-release
+          title: "Post release"
+          body: |
+            This PR contains package lock updates & cdn README updates for msal-browser and msal-core.
+          draft: false
