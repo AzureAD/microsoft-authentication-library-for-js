@@ -42,12 +42,12 @@ function handleResponse(resp) {
 }
 
 async function signIn(method) {
-    signInType = isIE ? "redirect" : method;
-    if (signInType === "popup") {
+    signInType = isIE ? "loginRedirect" : method;
+    if (signInType === "loginPopup") {
         return myMSALObj.loginPopup(loginRequest).then(handleResponse).catch(function (error) {
             console.log(error);
         });
-    } else if (signInType === "redirect") {
+    } else if (signInType === "loginRedirect") {
         return myMSALObj.loginRedirect(loginRequest)
     }
 }
