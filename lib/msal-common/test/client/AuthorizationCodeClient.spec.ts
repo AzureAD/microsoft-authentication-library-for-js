@@ -12,8 +12,7 @@ import {
     TEST_POP_VALUES,
     POP_AUTHENTICATION_RESULT,
     TEST_ACCOUNT_INFO,
-    CORS_SIMPLE_REQUEST_HEADERS,
-    ID_TOKEN_CLAIMS
+    CORS_SIMPLE_REQUEST_HEADERS
 } from "../test_kit/StringConstants";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { BaseClient } from "../../src/client/BaseClient";
@@ -30,7 +29,6 @@ import { AuthToken } from "../../src/account/AuthToken";
 import { ICrypto } from "../../src/crypto/ICrypto";
 import { ClientAuthError } from "../../src/error/ClientAuthError";
 import { CcsCredentialType } from "../../src";
-import { ResponseHandler } from "../../src/response/ResponseHandler";
 
 describe("AuthorizationCodeClient unit tests", () => {
     afterEach(() => {
