@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-angular",
-  "version": "2.0.2",
+  "version": "2.0.3",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -31,6 +31,9 @@
   },
   "main": "./dist/bundles/azure-msal-angular.umd.js",
   "typings": "./dist/azure-msal-angular.d.ts",
+  "beachball": {
+    "disallowedChangeTypes": ["major"]
+  },
   "devDependencies": {
     "@angular-devkit/build-angular": "~0.1102.11",
     "@angular/animations": "~11.2.12",
@@ -43,7 +46,7 @@
     "@angular/platform-browser": "~11.2.12",
     "@angular/platform-browser-dynamic": "~11.2.12",
     "@angular/router": "~11.2.12",
-    "@azure/msal-browser": "^2.16.0",
+    "@azure/msal-browser": "^2.17.0",
     "@types/jasmine": "~3.6.0",
     "@types/jasminewd2": "~2.0.3",
     "@types/node": "^12.11.1",
@@ -63,7 +66,7 @@
     "zone.js": "~0.10.3"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^2.16.0",
+    "@azure/msal-browser": "^2.17.0",
     "rxjs": "^6.0.0"
   },
   "dependencies": {}

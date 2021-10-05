@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Fix accesstoken_with_authscheme implementation #3910",
-  "packageName": "@azure/msal-node",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}

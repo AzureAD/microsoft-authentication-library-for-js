@@ -1,124 +1,63 @@
-# MSAL Node Standalone Sample:  Client Credentials
+# MSAL Node Standalone Sample: Client Credentials Grant
 
-The sample applications contained in this directory are independent samples of MSAL Node usage, covering each of the authorization flows that MSAL Node currently supports. To get started with this sample, first follow the general instructions [here](../readme.me).
+This sample demonstrates how to implement an MSAL Node [confidential client application](../../../lib/msal-node/docs/initialize-confidential-client-application.md) to acquire an access token with application permissions using the [OAuth 2.0 Client Credentials Grant](https://docs.microsoft.com/azure/active-directory/develop/v2-oauth2-client-creds-grant-flow)
 
-Once MSAL Node is installed, and you have the right files, come here to learn about this scenario.
+The **Client Credentials** flow is most commonly used for a daemon or a command-line app that calls web APIs and does not have any user interaction.
 
-### How is this scenario used?
-The Client Credentials flow is most commonly used for a daemon or command line app that calls web apis and does not have any user interaction.  General information about this scenario is available [here](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-client-creds-grant-flow).
+MSAL Node also supports specifying a **regional authority** for acquiring tokens when using the client credentials flow. For more information on this, please refer to: [Regional Authorities](../../../lib/msal-node/docs/regional-authorities.md)
 
-## Prerequisite
+## Setup
 
-This sample has a special prerequisite.  The configuration must use a tenant specific authority. The admin of that tenant must [grant permissions to this app](https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-oauth2-client-creds-grant-flow#application-permissions).
+Locate the folder where `package.json` resides in your terminal. Then type:
 
-## Test the Sample
-
-### Configure the application
-Open the `index.js` file.
-
-Find the `config` object.  We will change this to add details about our app registration and deployment.
-
-Before proceeding, go to the Azure portal, and open the app registration for this app.
-
-#### **Client ID**
-Within the "Overview" you will see a GUID labeled **Application (client) ID**.  Copy this GUID to the clientId field in the config.
-
-Click the **Authentication** link in the left nav.
-
-#### **Authority**
-Check that supported account types are restricted to an organization.  
-
-For other supported account types, review the other [Authority options](https://docs.microsoft.com/en-us/azure/active-directory/develop/msal-client-application-configuration).  
-
-#### **Client Secret**
-
-This secret helps prevent third parties from using your app registration.
-Click on `Certificates and Secrets` in the left nav.
-Click `New Client Secret` and pick an expiry.
-Click the `Copy to Clipboard` icon, and add the secret to the config object in index.js.
-
-🎉You have finished the basic configuration!🎉
-
-### Executing the application
-
-From the command line, let npm install any needed dependencies.  This only needs to be done once.
-
-```bash
-$ npm install
-```
-Once the dependencies are installed, you can run the sample application by using the following command:
-
-```bash
-$ npm start
+```console
+    npm install
 ```
 
-### Customizing the application
+## Register
 
-To customize the start script, review the `package.json` file.
+1. Navigate to the [Azure portal](https://portal.azure.com) and select the **Azure AD** service.
+1. Select the **App Registrations** blade on the left, then select **New registration**.
+1. In the **Register an application page** that appears, enter your application's registration information:
+   - In the **Name** section, enter a meaningful application name that will be displayed to users of the app, for example `msal-node-console`.
+   - Under **Supported account types**, select **Accounts in this organizational directory only**.
+1. Select **Register** to create the application.
+1. In the app's registration screen, find and note the **Application (client) ID** and **Directory (Tenant) ID**. You use these values in your app's configuration file(s) later.
+1. In the app's registration screen, select the **Certificates & secrets** blade in the left.
+   - In the **Client secrets** section, select **New client secret**.
+   - Type a key description (for instance `app secret`),
+   - Select one of the available key durations (6 months, 12 months or Custom) as per your security posture.
+   - The generated key value will be displayed when you select the **Add** button. Copy and save the generated value for use in later steps.
+1. In the app's registration screen, select the API permissions blade in the left to open the page where we add access to the APIs that your application needs.
+   - Select the **Add a permission** button and then,
+   - Ensure that the **Microsoft APIs** tab is selected.
+   - In the **Commonly used Microsoft APIs** section, select **Microsoft Graph**
+   - In the **Application permissions** section, select the **User.Read.All** in the list. Use the search box if necessary.
+   - Select the **Add permissions** button at the bottom.
+   - Finally, grant **admin consent** for this scope.
 
-## Adding this scenario to an existing application
+Before running the sample, you will need to replace the values in the configuration object:
 
-### Import the Configuration Object
-
-If you set up the sample with your app registration, you may be able to copy this object directly into your application.
-
-
-```js
+```javascript
 const config = {
     auth: {
-        clientId: "",
-        authority: "https://login.microsoftonline.com/ "TENANT" ",
-        clientSecret: ""
-    },
-    system: {
-        loggerOptions: {
-            loggerCallback(loglevel, message, containsPii) {
-                console.log(message);
-            },
-            piiLoggingEnabled: false,
-            logLevel: msal.LogLevel.Verbose,
-        }
-    }
+        clientId: "ENTER_CLIENT_ID",
+        authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO",
+        clientSecret: "ENTER_CLIENT_SECRET",
+    }
 };
 ```
 
-### Configure Dependencies
+## Run the app
 
-Add the dependency on MSAL Node to your Node app.
+In the same folder, type:
 
-```js
-const msal = require('@azure/msal-node');
+```console
+    npm start
 ```
 
-### Initialize MSAL Node at runtime
+After that, you should see the response from Azure AD in your terminal.
 
+## More information
 
-Initialize the app object within your app.
-
-```js
-const cca = new msal.ConfidentialClientApplication(config);
-```
-
-### Configure Sign In Request
-
-This simple flow only requires the scopes approved by the tenant administrator as additional configuration.
-
-```js
-const clientCredentialRequest = {
-    scopes: ["https://graph.microsoft.com/.default"],
-};
-```
-
-Next you will make the request and process the response. Other than configuring logging, there is little customization needed.
-
-```js
-cca.acquireTokenByClientCredential(clientCredentialRequest).then((response) => {
-    console.log("Response: ", response);
-}).catch((error) => {
-    console.log(JSON.stringify(error));
-});
-```
-
-### The User Experience
-
-This flow has no expected user interaction and very simple configuration. As long as your app remains authorized in the configured tenant, it should continue to work.
+- [Tutorial: Call the Microsoft Graph API in a Node.js console app](https://docs.microsoft.com/azure/active-directory/develop/tutorial-v2-nodejs-console)

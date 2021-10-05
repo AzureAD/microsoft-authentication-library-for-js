@@ -3,7 +3,7 @@ import { GuidGenerator } from "../../src/crypto/GuidGenerator";
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
 import { TEST_CONFIG, TEST_URIS, BROWSER_CRYPTO, KEY_USAGES, TEST_POP_VALUES } from "../utils/StringConstants";
 import { createHash } from "crypto";
-import { AuthenticationScheme, BaseAuthRequest, PkceCodes } from "@azure/msal-common";
+import { AuthenticationScheme, BaseAuthRequest, CryptoKeyTypes, PkceCodes } from "@azure/msal-common";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src";
 const msrCrypto = require("../polyfills/msrcrypto.min");
@@ -140,12 +140,9 @@ describe("CryptoOps.ts Unit Tests", () => {
         const generateKeyPairSpy = jest.spyOn(BrowserCrypto.prototype, "generateKeyPair");
         const exportJwkSpy = jest.spyOn(BrowserCrypto.prototype, "exportJwk");
         
-        const keyType = "req_cnf";
+        const keyType = CryptoKeyTypes.req_cnf;
 
         const testRequest = {
-            authority: TEST_CONFIG.validAuthority,
-            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            correlationId: TEST_CONFIG.CORRELATION_ID,
             authenticationScheme: AuthenticationScheme.POP,
             resourceRequestMethod:"POST",
             resourceRequestUrl: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
@@ -173,15 +170,9 @@ describe("CryptoOps.ts Unit Tests", () => {
         const generateKeyPairSpy = jest.spyOn(BrowserCrypto.prototype, "generateKeyPair");
         const exportJwkSpy = jest.spyOn(BrowserCrypto.prototype, "exportJwk");
 
-        const keyType = "stk_jwk";
+        const keyType = CryptoKeyTypes.stk_jwk;
 
-        const testRequest = {
-            authority: TEST_CONFIG.validAuthority,
-            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            correlationId: TEST_CONFIG.CORRELATION_ID,
-        };
-
-        const pkThumbprint = await cryptoObj.getPublicKeyThumbprint(testRequest, keyType);
+        const pkThumbprint = await cryptoObj.getPublicKeyThumbprint({}, keyType);
         /**
          * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
          */
