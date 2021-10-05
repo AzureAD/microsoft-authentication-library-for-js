@@ -1070,14 +1070,21 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
         it("Doesnt add redirect_uri when hybridSpa flag is set", () => {
+            class TestAuthorizationCodeClient extends AuthorizationCodeClient {
+                constructor(config: ClientConfiguration) {
+                    super(config);
+                    this.includeRedirectUri = false;
+                }
+            }
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").callsFake((url, body: string) => {
+            sinon.stub(TestAuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").callsFake((url, body: string) => {
                 expect(body).not.toContain("redirect_uri=");
                 return Promise.resolve(AUTHENTICATION_RESULT);
             });
 
             return ClientTestUtils.createTestClientConfiguration().then(config => {
-                const client = new AuthorizationCodeClient(config, true);
+
+                const client = new TestAuthorizationCodeClient(config);
                 const authCodeRequest: CommonAuthorizationCodeRequest = {
                     authority: Constants.DEFAULT_AUTHORITY,
                     scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
