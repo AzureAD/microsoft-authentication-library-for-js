@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, AuthError } from "@azure/msal-common";
+import { AuthenticationResult, AuthError, AccountInfo } from "@azure/msal-common";
 import { EventType } from "./EventType";
 import { InteractionStatus, InteractionType } from "../utils/BrowserConstants";
 import { PopupRequest } from "../request/PopupRequest";
@@ -24,7 +24,7 @@ export type PopupEvent = {
     popupWindow: Window;
 };
 
-export type EventPayload = PopupRequest | RedirectRequest | SilentRequest | SsoSilentRequest | EndSessionRequest | AuthenticationResult | PopupEvent | null;
+export type EventPayload = AccountInfo | PopupRequest | RedirectRequest | SilentRequest | SsoSilentRequest | EndSessionRequest | AuthenticationResult | PopupEvent | null;
 
 export type EventError = AuthError | Error | null;
 

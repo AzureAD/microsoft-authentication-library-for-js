@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Remove non-null assertions #3994",
-  "packageName": "@azure/msal-node",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

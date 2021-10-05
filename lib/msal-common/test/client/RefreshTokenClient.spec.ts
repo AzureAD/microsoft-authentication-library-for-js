@@ -35,7 +35,7 @@ import { AuthToken } from "../../src/account/AuthToken";
 import { SilentFlowClient } from "../../src/client/SilentFlowClient";
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
 import { CcsCredentialType } from "../../src/account/CcsCredential";
-import { ResponseHandler } from "../../src/response/ResponseHandler";
+import { InteractionRequiredAuthError } from "../../src/error/InteractionRequiredAuthError";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;
@@ -479,7 +479,7 @@ describe("RefreshTokenClient unit tests", () => {
             };
             const config = await ClientTestUtils.createTestClientConfiguration();
             const client = new SilentFlowClient(config);
-            await expect(client.acquireToken(tokenRequest)).rejects.toMatchObject(ClientAuthError.createNoTokensFoundError());
+            await expect(client.acquireToken(tokenRequest)).rejects.toMatchObject(InteractionRequiredAuthError.createNoTokensFoundError());
         });
     });
 });

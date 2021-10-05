@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fixes biased code verifier generation #3993",
-  "packageName": "@azure/msal-node",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -25,7 +25,7 @@ function App({ pca }: AppProps) {
     return (
       <MsalProvider instance={pca}>
         <PageLayout>
-          <Grid container justify="center">
+          <Grid container justifyContent="center">
             <Pages />
           </Grid>
         </PageLayout>
