@@ -13,7 +13,7 @@ const Layout = ({ children }) => {
             </Typography>
             <br/>
             <br/>
-            <Grid container justify="center">
+            <Grid container justifyContent="center">
                 {children}
             </Grid>
         </>

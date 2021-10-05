@@ -9,7 +9,7 @@ Review our [scenario docs](https://docs.microsoft.com/azure/active-directory/dev
 | sample                                                     | app type                          | auth flow                           |
 |------------------------------------------------------------|-----------------------------------|-------------------------------------|
 | [auth-code](./auth-code/README.md)                         | web app (public client)           | authorization code                  |
-| [auth-code-pkce](./auth-code-pkce/README.md)               | web app (public client)           | authorization code with PKCE        |
+| [auth-code-pkce](./auth-code-pkce/README.md)               | web app (public client) (typescript)           | authorization code with PKCE in typescript      |
 | [auth-code-with-certs](./auth-code-with-certs/README.md)   | web app (confidential client)     | authorization code                  |
 | [auth-code-key-vault](./auth-code-key-vault/README.md)     | web app (confidential client)     | authorization code                  |
 | [silent-flow](./silent-flow/README.md)                     | web app (confidential client)     | authorization code                  |

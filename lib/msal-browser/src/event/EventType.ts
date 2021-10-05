@@ -4,6 +4,8 @@
  */
 
 export enum EventType {
+    ACCOUNT_ADDED = "msal:accountAdded",
+    ACCOUNT_REMOVED = "msal:accountRemoved",
     LOGIN_START = "msal:loginStart",
     LOGIN_SUCCESS = "msal:loginSuccess",
     LOGIN_FAILURE = "msal:loginFailure",
