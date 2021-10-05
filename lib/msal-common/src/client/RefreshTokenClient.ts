@@ -20,7 +20,6 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { ServerError } from "../error/ServerError";
 import { TimeUtils } from "../utils/TimeUtils";
-import { KeyManager } from "../crypto/KeyManager";
 import { UrlString } from "../url/UrlString";
 import { CcsCredentialType } from "../account/CcsCredential";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
@@ -204,8 +203,7 @@ export class RefreshTokenClient extends BaseClient {
         }
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
-            const keyManager = new KeyManager(this.cryptoUtils);
-            const cnfString = await keyManager.generateCnf(request);
+            const cnfString = await this.keyManager.generateCnf(request);
             parameterBuilder.addPopToken(cnfString);
         }
 

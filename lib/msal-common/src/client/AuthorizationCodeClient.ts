@@ -27,7 +27,6 @@ import { TokenClaims } from "../account/TokenClaims";
 import { AccountInfo } from "../account/AccountInfo";
 import { buildClientInfoFromHomeAccountId, buildClientInfo } from "../account/ClientInfo";
 import { CcsCredentialType, CcsCredential } from "../account/CcsCredential";
-import { KeyManager } from "../crypto/KeyManager";
 
 /**
  * Oauth2.0 Authorization Code client
@@ -222,8 +221,7 @@ export class AuthorizationCodeClient extends BaseClient {
         parameterBuilder.addClientInfo();
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
-            const keyManager = new KeyManager(this.cryptoUtils);
-            const cnfString = await keyManager.generateCnf(request);
+            const cnfString = await this.keyManager.generateCnf(request);
             parameterBuilder.addPopToken(cnfString);
         }
 

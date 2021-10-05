@@ -23,7 +23,7 @@ export const TEST_URIS = {
     TEST_AUTH_ENDPT: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
     TEST_END_SESSION_ENDPOINT: "https://login.microsoftonline.com/common/oauth2/v2.0/logout",
     TEST_AUTH_ENDPT_WITH_PARAMS: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?param1=value1&param2=value2",
-    TEST_RESOURCE_ENDPT_WITH_PARAMS: "https://localhost:8081/endpoint?param1=value1&param2=value2",
+    TEST_RESOURCE_ENDPT_WITH_PARAMS: "https://localhost:8081/endpoint?param1=value1&param2=value2"
 };
 
 // Test MSAL config params
