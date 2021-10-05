@@ -36,6 +36,8 @@ export { LoadTokenOptions } from "./cache/TokenCache";
 export { EventMessage, EventPayload, EventError, EventCallbackFunction, EventMessageUtils, PopupEvent } from "./event/EventMessage";
 export { EventType } from "./event/EventType";
 
+export { SignedHttpRequest } from "./crypto/SignedHttpRequest";
+
 // Common Object Formats
 export {
     AuthenticationScheme,
@@ -45,9 +47,15 @@ export {
     // Response
     AuthenticationResult,
     // Error
-    InteractionRequiredAuthError,
     AuthError,
     AuthErrorMessage,
+    ClientAuthError,
+    ClientAuthErrorMessage,
+    ClientConfigurationError,
+    ClientConfigurationErrorMessage,
+    InteractionRequiredAuthError,
+    InteractionRequiredAuthErrorMessage,
+    ServerError,
     // Network
     INetworkModule,
     NetworkResponse,
@@ -64,3 +72,5 @@ export {
     StringUtils,
     UrlString
 } from "@azure/msal-common";
+
+export { version } from "./packageMetadata";

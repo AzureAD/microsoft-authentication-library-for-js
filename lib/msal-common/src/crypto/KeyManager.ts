@@ -3,9 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { BaseAuthRequest } from "../request/BaseAuthRequest";
 import { CryptoKeyTypes } from "../utils/Constants";
-import { ICrypto } from "./ICrypto";
+import { ICrypto, SignedHttpRequestParameters } from "./ICrypto";
 
 /**
  * See eSTS docs for more info.
@@ -35,19 +34,18 @@ export class KeyManager {
         this.cryptoUtils = cryptoUtils;
     }
 
-    /**
-     * Generates an asymmetric crypto keypair and returns the base64 encoded stringified
-     * req_cnf parameter from the public key's thumbprint
-     * @param request 
-     * @returns Public Key JWK string
-     */
-    async generateCnf(request: BaseAuthRequest): Promise<string> {
-        const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint(request, CryptoKeyTypes.req_cnf);
-        const reqCnf: ReqCnf = {
+    async generateCnf(request: SignedHttpRequestParameters): Promise<string> {
+        const reqCnf = await this.generateKid(request, CryptoKeyTypes.req_cnf);
+        return this.cryptoUtils.base64Encode(JSON.stringify(reqCnf));
+    }
+
+    async generateKid(request: SignedHttpRequestParameters, keyType: CryptoKeyTypes): Promise<ReqCnf> {
+        const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint(request, keyType);
+
+        return {
             kid: kidThumbprint,
             xms_ksl: KeyLocation.SW
         };
-        return this.cryptoUtils.base64Encode(JSON.stringify(reqCnf));
     }
 
     /**

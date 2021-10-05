@@ -125,7 +125,6 @@ export abstract class ClientApplication {
      * @returns Token response or null. If the return value is null, then no auth redirect was detected.
      */
     async handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null> {
-        this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
         this.logger.verbose("handleRedirectPromise called");
         const loggedInAccounts = this.getAllAccounts();
         if (this.isBrowserEnvironment) {
@@ -137,6 +136,7 @@ export abstract class ClientApplication {
             const redirectResponseKey = hash || Constants.EMPTY_STRING;
             let response = this.redirectResponse.get(redirectResponseKey);
             if (typeof response === "undefined") {
+                this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
                 this.logger.verbose("handleRedirectPromise has been called for the first time, storing the promise");
                 const correlationId = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, true) || "";
                 const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, correlationId);
@@ -503,6 +503,20 @@ export abstract class ClientApplication {
      */
     removeEventCallback(callbackId: string): void {
         this.eventHandler.removeEventCallback(callbackId);
+    }
+
+    /**
+     * Adds event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
+     */
+    enableAccountStorageEvents(): void {
+        this.eventHandler.enableAccountStorageEvents();
+    }
+
+    /**
+     * Removes event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
+     */
+    disableAccountStorageEvents(): void {
+        this.eventHandler.disableAccountStorageEvents();
     }
 
     /**

@@ -52,7 +52,9 @@ export class DatabaseStorage<T>{
                 resolve();
             });
 
-            openDB.addEventListener("error", error => reject(error));
+            openDB.addEventListener("error", () => {
+                reject(BrowserAuthError.createDatabaseUnavailableError());
+            });
         });
     }
 

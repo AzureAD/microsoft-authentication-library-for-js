@@ -26,6 +26,7 @@ export const DEFAULT_REDIRECT_TIMEOUT_MS = 30000;
  * - navigateToLoginRequestUrl  - Boolean indicating whether to navigate to the original request URL after the auth server navigates to the redirect URL.
  * - clientCapabilities         - Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
  * - protocolMode               - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
+ * - refreshTokenBinding        - Boolean that enables refresh token binding (a.k.a refresh token proof-of-possession) for authorization requests
  */
 export type BrowserAuthOptions = {
     clientId: string;
@@ -38,6 +39,7 @@ export type BrowserAuthOptions = {
     navigateToLoginRequestUrl?: boolean;
     clientCapabilities?: Array<string>;
     protocolMode?: ProtocolMode;
+    refreshTokenBinding?: boolean;
 };
 
 /**
@@ -122,7 +124,8 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         postLogoutRedirectUri: "",
         navigateToLoginRequestUrl: true,
         clientCapabilities: [],
-        protocolMode: ProtocolMode.AAD
+        protocolMode: ProtocolMode.AAD,
+        refreshTokenBinding: false
     };
 
     // Default cache options for browser

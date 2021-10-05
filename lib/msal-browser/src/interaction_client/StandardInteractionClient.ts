@@ -3,13 +3,13 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, Logger, ServerTelemetryManager, ServerTelemetryRequest, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, PersistentCacheKeys, IdToken, BaseAuthRequest, AuthenticationScheme } from "@azure/msal-common";
+import { ICrypto, Logger, ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, CryptoKeyTypes } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
-import { BrowserConstants, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
+import { BrowserConstants, InteractionType } from "../utils/BrowserConstants";
 import { version } from "../packageMetadata";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserProtocolUtils, BrowserStateObject } from "../utils/BrowserProtocolUtils";
@@ -19,7 +19,6 @@ import { INavigationClient } from "../navigation/INavigationClient";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
-import { CryptoKeyTypes } from "../utils/CryptoConstants";
 
 /**
  * Defines the class structure and helper functions used by the "standard", non-brokered auth flows (popup, redirect, silent (RT), silent (iframe))
@@ -40,9 +39,20 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         this.logger.verbose("initializeAuthorizationRequest called", request.correlationId);
         const generatedPkceParams = await this.browserCrypto.generatePkceCodes();
 
-        // Generate Session Transport Key for Refresh Token Binding
-        const sessionTransportKeyThumbprint = await this.browserCrypto.getPublicKeyThumbprint(request, CryptoKeyTypes.STK_JWK);
-        request.stkJwk = sessionTransportKeyThumbprint;
+        // Generate Session Transport Key if Refresh Token Binding is enabled
+        if (this.config.auth.refreshTokenBinding) {
+            this.logger.verbose("Refresh token binding enabled, attempting to generate Session Transport Key");
+            try {
+                const sessionTransportKeyThumbprint = await this.browserCrypto.getPublicKeyThumbprint(request, CryptoKeyTypes.stk_jwk);
+                request.stkJwk = sessionTransportKeyThumbprint;
+                this.logger.verbose("Successfully generated and stored Session Transport Key");
+            } catch(error) {
+                if(error instanceof BrowserAuthError) {
+                    this.logger.error(error.message);
+                    this.logger.verbose("Could not generate Session Transport Key, refresh token will be unbound");
+                }
+            }
+        }
 
         const authCodeRequest: CommonAuthorizationCodeRequest = {
             ...request,
@@ -65,7 +75,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         this.logger.verbose("initializeLogoutRequest called", logoutRequest?.correlationId);
 
         // Check if interaction is in progress. Throw error if true.
-        if (this.interactionInProgress()) {
+        if (this.browserStorage.isInteractionInProgress()) {
             throw BrowserAuthError.createInteractionInProgressError();
         }
 
@@ -197,34 +207,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     *
-     * @param apiId
-     * @param correlationId
-     * @param forceRefresh
-     */
-    protected initializeServerTelemetryManager(apiId: number, forceRefresh?: boolean): ServerTelemetryManager {
-        this.logger.verbose("initializeServerTelemetryManager called");
-        const telemetryPayload: ServerTelemetryRequest = {
-            clientId: this.config.auth.clientId,
-            correlationId: this.correlationId,
-            apiId: apiId,
-            forceRefresh: forceRefresh || false,
-            wrapperSKU: this.browserStorage.getWrapperMetadata()[0],
-            wrapperVer: this.browserStorage.getWrapperMetadata()[1]
-        };
-
-        return new ServerTelemetryManager(telemetryPayload, this.browserStorage);
-    }
-
-    /**
-     * Helper to check whether interaction is in progress.
-     */
-    protected interactionInProgress(): boolean {
-        // Check whether value in cache is present and equal to expected value
-        return (this.browserStorage.getTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, true)) === BrowserConstants.INTERACTION_IN_PROGRESS_VALUE;
-    }
-
-    /**
      * Helper to validate app environment before making a request.
      * @param request
      * @param interactionType
@@ -235,7 +217,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         BrowserUtils.blockReloadInHiddenIframes();
     
         // Check if interaction is in progress. Throw error if true.
-        if (this.interactionInProgress()) {
+        if (this.browserStorage.isInteractionInProgress(false)) {
             throw BrowserAuthError.createInteractionInProgressError();
         }
     
@@ -275,70 +257,16 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             validatedRequest.account = account;
         }
 
-        // Check for ADAL SSO
-        if (StringUtils.isEmpty(validatedRequest.loginHint)) {
-            // Only check for adal token if no SSO params are being used
-            const adalIdTokenString = this.browserStorage.getTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN);
-            if (adalIdTokenString) {
-                const adalIdToken = new IdToken(adalIdTokenString, this.browserCrypto);
-                this.browserStorage.removeItem(PersistentCacheKeys.ADAL_ID_TOKEN);
-                if (adalIdToken.claims && adalIdToken.claims.preferred_username) {
-                    this.logger.verbose("No SSO params used and ADAL token retrieved, setting ADAL preferred_username as loginHint");
-                    validatedRequest.loginHint = adalIdToken.claims.preferred_username;
-                }
-                else if (adalIdToken.claims && adalIdToken.claims.upn) {
-                    this.logger.verbose("No SSO params used and ADAL token retrieved, setting ADAL upn as loginHint");
-                    validatedRequest.loginHint = adalIdToken.claims.upn;
-                }
-                else {
-                    this.logger.verbose("No SSO params used and ADAL token retrieved, however, no account hint claim found. Enable preferred_username or upn id token claim to get SSO.");
-                }
+        // Check for ADAL/MSAL v1 SSO
+        if (StringUtils.isEmpty(validatedRequest.loginHint) && !account) {
+            const legacyLoginHint = this.browserStorage.getLegacyLoginHint();
+            if (legacyLoginHint) {
+                validatedRequest.loginHint = legacyLoginHint;
             }
         }
 
         this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority, validatedRequest.loginHint || "", validatedRequest.account || null);
 
         return validatedRequest;
-    }
-
-    /**
-     * Initializer function for all request APIs
-     * @param request
-     */
-    protected initializeBaseRequest(request: Partial<BaseAuthRequest>): BaseAuthRequest {
-        this.logger.verbose("Initializing BaseAuthRequest");
-        const authority = request.authority || this.config.auth.authority;
-
-        const scopes = [...((request && request.scopes) || [])];
-
-        // Set authenticationScheme to BEARER if not explicitly set in the request
-        if (!request.authenticationScheme) {
-            request.authenticationScheme = AuthenticationScheme.BEARER;
-            this.logger.verbose("Authentication Scheme wasn't explicitly set in request, defaulting to \"Bearer\" request");
-        } else {
-            this.logger.verbose(`Authentication Scheme set to "${request.authenticationScheme}" as configured in Auth request`);
-        }
-
-        const validatedRequest: BaseAuthRequest = {
-            ...request,
-            correlationId: this.correlationId,
-            authority,
-            scopes
-        };
-
-        return validatedRequest;
-    }
-
-    /**
-     *
-     * Use to get the redirect uri configured in MSAL or null.
-     * @param requestRedirectUri
-     * @returns Redirect URL
-     *
-     */
-    protected getRedirectUri(requestRedirectUri?: string): string {
-        this.logger.verbose("getRedirectUri called");
-        const redirectUri = requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
-        return UrlString.getAbsoluteUrl(redirectUri, BrowserUtils.getCurrentUri());
     }
 }

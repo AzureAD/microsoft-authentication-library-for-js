@@ -6,6 +6,7 @@
 import { AuthError } from "../error/AuthError";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
 import { SignedHttpRequest } from "./SignedHttpRequest";
+import { CryptoKeyTypes } from "../utils/Constants";
 
 /**
  * The PkceCodes type describes the structure
@@ -16,6 +17,8 @@ export type PkceCodes = {
     verifier: string,
     challenge: string
 };
+
+export type SignedHttpRequestParameters = Pick<BaseAuthRequest, "resourceRequestMethod" | "resourceRequestUri" | "shrClaims">;
 
 /**
  * Interface for crypto functions used by library
@@ -43,7 +46,7 @@ export interface ICrypto {
      * Generates an JWK RSA S256 Thumbprint
      * @param request
      */
-    getPublicKeyThumbprint(request: BaseAuthRequest, keyType?: string): Promise<string>;
+    getPublicKeyThumbprint(request: SignedHttpRequestParameters, keyType?: CryptoKeyTypes): Promise<string>;
     /**
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid 

@@ -22,7 +22,8 @@ describe("PopupClient", () => {
     beforeEach(() => {
         const pca = new PublicClientApplication({
             auth: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                refreshTokenBinding: true
             }
         });
         //@ts-ignore
@@ -53,7 +54,7 @@ describe("PopupClient", () => {
         });
 
         it("throws error if interaction is in progress", async () => {
-            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, TEST_CONFIG.MSAL_CLIENT_ID);
 
             await expect(popupClient.acquireToken({scopes:[]})).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
         });
@@ -241,7 +242,7 @@ describe("PopupClient", () => {
         });
 
         it("throws error if interaction is in progress", async () => {
-            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, TEST_CONFIG.MSAL_CLIENT_ID);
 
             await expect(popupClient.logout()).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
         });
@@ -441,7 +442,7 @@ describe("PopupClient", () => {
             sinon.stub(PopupUtils, "openSizedPopup").returns(popupWindow);
             sinon.stub(PopupUtils.prototype, "openPopup").returns(popupWindow);
             sinon.stub(PopupUtils.prototype, "cleanPopup").callsFake((popup) => {
-                window.sessionStorage.removeItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`);
+                window.sessionStorage.removeItem(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`);
             });
             sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((url, navigationOptions) => {
                 return Promise.resolve(true);

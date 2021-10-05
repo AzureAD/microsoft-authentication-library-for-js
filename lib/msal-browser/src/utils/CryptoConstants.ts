@@ -4,7 +4,7 @@
  */
 
 // Cryptographic Algorithms used/supported
-export enum ALGORITHMS  {
+export enum Algorithms  {
     PKCS1_V15_KEYGEN_ALG = "RSASSA-PKCS1-v1_5",
     RSA_OAEP = "RSA-OAEP",
     AES_GCM = "AES-GCM",
@@ -13,24 +13,18 @@ export enum ALGORITHMS  {
 }
 
 // Numerical constants relating to biy/bytelength
-export enum LENGTHS {
-    MODULUS = 2048
+export enum Lengths {
+    modulus = 2048
 }
 
 // Public Exponent used in Key Generation
 export const PUBLIC_EXPONENT = new Uint8Array([0x01, 0x00, 0x01]);
 
-// Supported Cryptographic Key Types
-export enum CryptoKeyTypes {
-    REQ_CNF = "req_cnf",
-    STK_JWK = "stk_jwk"
-}
-
 /**
  * JWK Key Format string (Type MUST be defined for window crypto APIs)
  */
-export enum KEY_FORMATS  {
-    JWK = "jwk"
+export enum CryptoKeyFormats  {
+    jwk = "jwk"
 }
 
 // Crypto Key Usage sets
@@ -48,11 +42,11 @@ export const KEY_USAGES = {
 export const CRYPTO_KEY_CONFIG = {
     AT_BINDING: {
         keyGenAlgorithmOptions: {
-            name: ALGORITHMS.PKCS1_V15_KEYGEN_ALG,
+            name: Algorithms.PKCS1_V15_KEYGEN_ALG,
             hash: {
-                name: ALGORITHMS.S256_HASH_ALG
+                name: Algorithms.S256_HASH_ALG
             },
-            modulusLength: LENGTHS.MODULUS,
+            modulusLength: Lengths.modulus,
             publicExponent: PUBLIC_EXPONENT
         },
         keypairUsages: KEY_USAGES.AT_BINDING.KEYPAIR as KeyUsage[],
@@ -60,11 +54,11 @@ export const CRYPTO_KEY_CONFIG = {
     },
     RT_BINDING: {
         keyGenAlgorithmOptions: {     
-            name: ALGORITHMS.RSA_OAEP,
+            name: Algorithms.RSA_OAEP,
             hash: {
-                name: ALGORITHMS.S256_HASH_ALG
+                name: Algorithms.S256_HASH_ALG
             },
-            modulusLength: LENGTHS.MODULUS,
+            modulusLength: Lengths.modulus,
             publicExponent: PUBLIC_EXPONENT
         },
         keypairUsages: KEY_USAGES.RT_BINDING.KEYPAIR as KeyUsage[],

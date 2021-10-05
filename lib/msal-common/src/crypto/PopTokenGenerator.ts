@@ -3,13 +3,12 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto } from "./ICrypto";
+import { ICrypto, SignedHttpRequestParameters } from "./ICrypto";
 import { AuthToken } from "../account/AuthToken";
 import { TokenClaims } from "../account/TokenClaims";
 import { TimeUtils } from "../utils/TimeUtils";
 import { UrlString } from "../url/UrlString";
 import { ClientAuthError } from "../error/ClientAuthError";
-import { BaseAuthRequest } from "../request/BaseAuthRequest";
 
 export class PopTokenGenerator {
 
@@ -19,28 +18,32 @@ export class PopTokenGenerator {
         this.cryptoUtils = cryptoUtils;
     }
 
-    async signPopToken(accessToken: string, request: BaseAuthRequest): Promise<string> {
+    async signPopToken(accessToken: string, request: SignedHttpRequestParameters): Promise<string> {
         const tokenClaims: TokenClaims | null = AuthToken.extractTokenClaims(accessToken, this.cryptoUtils);
+        if (!tokenClaims?.cnf?.kid) {
+            throw ClientAuthError.createTokenClaimsRequiredError();
+        }
+        
+        return this.signPayload(accessToken, tokenClaims.cnf.kid, request);
+    }
 
+    async signPayload(payload: string, kid: string, request: SignedHttpRequestParameters, claims?: object): Promise<string> {
         // Deconstruct request to extract SHR parameters
         const { resourceRequestMethod, resourceRequestUri, shrClaims } = request;
 
         const resourceUrlString = (resourceRequestUri) ? new UrlString(resourceRequestUri) : undefined;
         const resourceUrlComponents = resourceUrlString?.getUrlComponents();
 
-        if (!tokenClaims?.cnf?.kid) {
-            throw ClientAuthError.createTokenClaimsRequiredError();
-        }
-
         return await this.cryptoUtils.signJwt({
-            at: accessToken,
+            at: payload,
             ts: TimeUtils.nowSeconds(),
             m: resourceRequestMethod?.toUpperCase(),
             u: resourceUrlComponents?.HostNameAndPort,
             nonce: this.cryptoUtils.createNewGuid(),
             p: resourceUrlComponents?.AbsolutePath,
             q: (resourceUrlComponents?.QueryString) ? [[], resourceUrlComponents.QueryString] : undefined,
-            client_claims: shrClaims || undefined
-        }, tokenClaims.cnf.kid);
+            client_claims: shrClaims || undefined,
+            ...claims
+        }, kid);
     }
 }

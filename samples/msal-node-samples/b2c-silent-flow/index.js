@@ -2,30 +2,56 @@
  * Copyright (c) Microsoft Corporation. All rights reserved.
  * Licensed under the MIT License.
  */
-const express = require("express");
-const exphbs = require("express-handlebars");
-const msal = require("@azure/msal-node");
+const express = require('express');
+const session = require('express-session');
+const exphbs = require('express-handlebars');
+const msal = require('@azure/msal-node');
+const { promises: fs } = require("fs");
 
-const api = require("./api");
-const policies = require("./policies");
+const api = require('./api');
+const policies = require('./policies');
 
 const SERVER_PORT = process.env.PORT || 3000;
 
 /**
  * Cache Plugin configuration
  */
-const cacheLocation = "./data/cache.json";// replace this string with the path to your valid cache file.
-const cachePlugin = require('../cachePlugin')(cacheLocation);
+const cachePath = "./data/cache.json"; // Replace this string with the path to your valid cache file.
+
+const beforeCacheAccess = async (cacheContext) => {
+    try {
+        const cacheFile = await fs.readFile(cachePath, "utf-8");
+        cacheContext.tokenCache.deserialize(cacheFile);
+    } catch (error) {
+        // if cache file doesn't exists, create it
+        cacheContext.tokenCache.deserialize(await fs.writeFile(cachePath, ""));
+    }
+};
+
+const afterCacheAccess = async (cacheContext) => {
+    if (cacheContext.cacheHasChanged) {
+        try {
+            await fs.writeFile(cachePath, cacheContext.tokenCache.serialize());
+        } catch (error) {
+            console.log(error);
+        }
+    }
+};
+
+const cachePlugin = {
+    beforeCacheAccess,
+    afterCacheAccess
+};
 
 /**
  * Public Client Application Configuration
  */
 const publicClientConfig = {
     auth: {
-        clientId: "d9a54ee5-0ab6-4afc-b407-1fc80a89f24d", 
+        clientId: '67ffe8a0-db42-464a-88d7-c26cbdd06ce2', 
         authority: policies.authorities.signUpSignIn.authority,
         knownAuthorities: [policies.authorityDomain],
-        redirectUri: "http://localhost:3000/redirect",
+        redirectUri: 'http://localhost:3000/redirect',
     },
     cache: {
         cachePlugin
@@ -43,14 +69,9 @@ const publicClientConfig = {
 
 // Current web API coordinates were pre-registered in a B2C tenant.
 const apiConfig = {
-    webApiScopes: ["https://fabrikamb2c.onmicrosoft.com/helloapi/demo.read"],
-    webApiUri: "https://fabrikamb2chello.azurewebsites.net/hello"
+    webApiScopes: ['https://fabrikamb2c.onmicrosoft.com/helloapi/demo.read'],
+    webApiUri: 'https://fabrikamb2chello.azurewebsites.net/hello'
 };
-
-const SCOPES = {
-    oidc: ["openid", "profile"],
-    resource1: [...apiConfig.webApiScopes],
-}
 
 /**
  * The MSAL.js library allows you to pass your custom state as state parameter in the Request object
@@ -61,8 +82,8 @@ const SCOPES = {
  */
 
 const APP_STATES = {
-    login: "login",
-    call_api: "call_api",
+    login: 'login',
+    call_api: 'call_api',
 }
 
 /** 
@@ -84,10 +105,25 @@ const pca = new msal.PublicClientApplication(publicClientConfig);
 // Create an express instance
 const app = express();
 
-// Store accessToken in memory
-app.locals.accessToken = null;
-// Store homeAccountId in memory
-app.locals.homeAccountId = null;
+/**
+ * Using express-session middleware. Be sure to familiarize yourself with available options
+ * and set them as desired. Visit: https://www.npmjs.com/package/express-session
+ */
+ const sessionConfig = {
+    secret: 'ENTER_YOUR_SECRET_HERE',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: false, // set this to true on production
+    }
+}
+
+if (app.get('env') === 'production') {
+    app.set('trust proxy', 1) // trust first proxy e.g. App Service
+    sessionConfig.cookie.secure = true // serve secure cookies
+}
+
+app.use(session(sessionConfig));
 
 /**
  * Proof Key for Code Exchange (PKCE) Setup
@@ -104,25 +140,19 @@ app.locals.homeAccountId = null;
  * PKCE specification https://tools.ietf.org/html/rfc7636#section-4
  */
 
-// Set up PKCE Code object in app's local memory so it's shared between routes
-app.locals.pkceCodes = {
-    challengeMethod: "S256", // Use SHA256 Algorithm
-    verifier: "", // Generate a code verifier for the Auth Code Request first
-    challenge: "" // Generate a code challenge from the previously generated code verifier
-};
-
 // Set handlebars view engine
-app.engine(".hbs", exphbs({ extname: ".hbs" }));
-app.set("view engine", ".hbs");
+app.engine('.hbs', exphbs({ extname: '.hbs' }));
+app.set('view engine', '.hbs');
 
 /**
  * This method is used to generate an auth code request
  * @param {string} authority: the authority to request the auth code from 
  * @param {array} scopes: scopes to request the auth code for 
  * @param {string} state: state of the application
- * @param {object} res: express middleware response object
+ * @param {Object} req: express middleware request object
+ * @param {Object} res: express middleware response object
  */
-const getAuthCode = (authority, scopes, state, res) => {
+const getAuthCode = (authority, scopes, state, req, res) => {
 
     // prepare the request
     authCodeRequest.authority = authority;
@@ -135,14 +165,21 @@ const getAuthCode = (authority, scopes, state, res) => {
     const cryptoProvider = new msal.CryptoProvider();
     // Generate PKCE Codes before starting the authorization flow
     cryptoProvider.generatePkceCodes().then(({ verifier, challenge }) => {
-        // Set generated PKCE Codes as app variables
-        app.locals.pkceCodes.verifier = verifier;
-        app.locals.pkceCodes.challenge = challenge;
+        // create session object if does not exist
+        if (!req.session.pkceCodes) {
+            req.session.pkceCodes = {
+                challengeMethod: 'S256'
+            };
+        }
+
+        // Set generated PKCE Codes as session vars
+        req.session.pkceCodes.verifier = verifier;
+        req.session.pkceCodes.challenge = challenge;
 
         // Add PKCE code challenge and challenge method to authCodeUrl request object
-        authCodeRequest.codeChallenge = app.locals.pkceCodes.challenge, // PKCE Code Challenge
-        authCodeRequest.codeChallengeMethod = app.locals.pkceCodes.challengeMethod // PKCE Code Challenge Method
-        
+        authCodeRequest.codeChallenge = req.session.pkceCodes.challenge;
+        authCodeRequest.codeChallengeMethod = req.session.pkceCodes.challengeMethod;
+
         // Get url to sign user in and consent to scopes needed for application
         return pca.getAuthCodeUrl(authCodeRequest).then((response) => {
             res.redirect(response);
@@ -156,25 +193,25 @@ const getAuthCode = (authority, scopes, state, res) => {
 /**
  * App Routes
  */
-app.get("/", (req, res) => {
-    res.render("login", { showSignInButton: true });
+app.get('/', (req, res) => {
+    res.render('login', { showSignInButton: true });
 });
 
 // Initiates auth code grant for login
-app.get("/login", (req, res) => {
-    getAuthCode(policies.authorities.signUpSignIn.authority, SCOPES.oidc, APP_STATES.login, res);
+app.get('/login', (req, res) => {
+    getAuthCode(policies.authorities.signUpSignIn.authority, [], APP_STATES.login, req, res);
 })
 
 // Initiates auth code grant for web API call
-app.get("/api", async (req, res) => {
+app.get('/api', async (req, res) => {
     const msalTokenCache = pca.getTokenCache();
     // Find Account by Local Account Id
-    account = await msalTokenCache.getAccountByHomeId(app.locals.homeAccountId);
+    account = await msalTokenCache.getAccountByHomeId(req.session.homeAccountId);
 
     // build silent request
     const silentRequest = {
         account: account,
-        scopes: SCOPES.resource1
+        scopes: apiConfig.webApiScopes
     };
 
     // acquire Token Silently to be used in when calling web API
@@ -183,33 +220,33 @@ app.get("/api", async (req, res) => {
             const username = response.account.username;
             // call web API after successfully acquiring token
             api.callWebApi(apiConfig.webApiUri, response.accessToken, (response) => {
-                const templateParams = { showLoginButton: false, username: username, profile: JSON.stringify(response, null, 4) };
-                res.render("api", templateParams);
+                const templateParams = { showSignInButton: false, username: username, profile: JSON.stringify(response, null, 4) };
+                res.render('api', templateParams);
             });
         })
         .catch((error) => {
             console.log('cannot acquire token silently')
             console.log(error);
-            res.render("api", templateParams);
+            res.render('api', templateParams);
         });
 });
 
 // Second leg of auth code grant
-app.get("/redirect", (req, res) => {
+app.get('/redirect', (req, res) => {
 
     // determine where the request comes from
     if (req.query.state === APP_STATES.login) {
 
         // prepare the request for authentication
-        tokenRequest.scopes = [...SCOPES.oidc, ...SCOPES.resource1];
+        tokenRequest.scopes = [];
         tokenRequest.code = req.query.code;
-        tokenRequest.codeVerifier = app.locals.pkceCodes.verifier // PKCE Code Verifier
+        tokenRequest.codeVerifier = req.session.pkceCodes.verifier // PKCE Code Verifier
         
         pca.acquireTokenByCode(tokenRequest)
             .then((response) => {
-                app.locals.homeAccountId = response.account.homeAccountId;
-                const templateParams = { showLoginButton: false, username: response.account.username, profile: false };
-                res.render("api", templateParams);
+                req.session.homeAccountId = response.account.homeAccountId;
+                const templateParams = { showSignInButton: false, username: response.account.username, profile: false };
+                res.render('api', templateParams);
             }).catch((error) => {
                 res.status(500).send(error);
             });
@@ -218,20 +255,21 @@ app.get("/redirect", (req, res) => {
 
         // prepare the request for calling the web API
         tokenRequest.authority = policies.authorities.signUpSignIn.authority;
-        tokenRequest.scopes = SCOPES.resource1;
+        tokenRequest.scopes = apiConfig.webApiScopes;
         tokenRequest.code = req.query.code;
-        tokenRequest.codeVerifier = app.locals.pkceCodes.verifier // PKCE Code Verifier
+        tokenRequest.codeVerifier = req.session.pkceCodes.verifier // PKCE Code Verifier
 
         pca.acquireTokenByCode(tokenRequest)
             .then((response) => {
                 console.log(response);
+                
                 // store access token somewhere
-                app.locals.accessToken = response.accessToken;
+                req.session.accessToken = response.accessToken;
 
                 // call the web API
                 api.callWebApi(apiConfig.webApiUri, response.accessToken, (response) => {
-                    const templateParams = { showLoginButton: false, profile: JSON.stringify(response, null, 4) };
-                    res.render("api", templateParams);
+                    const templateParams = { showSignInButton: false, profile: JSON.stringify(response, null, 4) };
+                    res.render('api', templateParams);
                 });
                 
             }).catch((error) => {
@@ -240,7 +278,7 @@ app.get("/redirect", (req, res) => {
             });
 
     } else {
-        res.status(500).send("Unknown");
+        res.status(500).send('Unknown');
     }
 });
 

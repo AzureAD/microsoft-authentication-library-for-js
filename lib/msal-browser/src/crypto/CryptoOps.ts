@@ -3,15 +3,15 @@
  * Licensed under the MIT License.
  */
 
-import { BaseAuthRequest, ICrypto, PkceCodes, SignedHttpRequest } from "@azure/msal-common";
+import { ICrypto, PkceCodes, SignedHttpRequest, SignedHttpRequestParameters, CryptoKeyTypes } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
 import { PkceGenerator } from "./PkceGenerator";
-import { BrowserCrypto } from "./BrowserCrypto";
+import { BrowserCrypto, CryptoKeyOptions } from "./BrowserCrypto";
 import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { CryptoKeyTypes, KEY_FORMATS, CRYPTO_KEY_CONFIG } from "../utils/CryptoConstants";
+import { CryptoKeyFormats, CRYPTO_KEY_CONFIG } from "../utils/CryptoConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export type CachedKeyPair = {
@@ -19,12 +19,6 @@ export type CachedKeyPair = {
     privateKey: CryptoKey,
     requestMethod?: string,
     requestUri?: string
-};
-
-export type CryptoKeyOptions = {
-    keyGenAlgorithmOptions: RsaHashedKeyGenParams,
-    keypairUsages: KeyUsage[],
-    privateKeyUsage: KeyUsage[]
 };
 
 /**
@@ -91,11 +85,11 @@ export class CryptoOps implements ICrypto {
      * Generates a keypair, stores it and returns a thumbprint
      * @param request
      */
-    async getPublicKeyThumbprint(request: BaseAuthRequest, keyType?: string): Promise<string> {
+    async getPublicKeyThumbprint(request: SignedHttpRequestParameters, keyType?: CryptoKeyTypes): Promise<string> {
         let keyOptions: CryptoKeyOptions;
 
         switch(keyType) {
-            case CryptoKeyTypes.STK_JWK:
+            case CryptoKeyTypes.stk_jwk:
                 keyOptions = CRYPTO_KEY_CONFIG.RT_BINDING;
                 break;
             default:
@@ -104,6 +98,10 @@ export class CryptoOps implements ICrypto {
         
         // Generate Keypair
         const keyPair = await this.browserCrypto.generateKeyPair(keyOptions, CryptoOps.EXTRACTABLE);
+
+        if (!keyPair || !keyPair.publicKey) {
+            throw BrowserAuthError.createKeyGenerationFailedError();
+        }
 
         // Generate Thumbprint for Public Key
         const publicKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.publicKey);
@@ -118,20 +116,25 @@ export class CryptoOps implements ICrypto {
         const publicJwkString: string = BrowserCrypto.getJwkString(pubKeyThumprintObj);
         const publicJwkBuffer: ArrayBuffer = await this.browserCrypto.sha256Digest(publicJwkString);
         const publicJwkHash: string = this.b64Encode.urlEncodeArr(new Uint8Array(publicJwkBuffer));
+        
+        // When asymmetric keypair is generated, there is also a private key
+        let unextractablePrivateKey;
 
-        // Generate Thumbprint for Private Key
-        const privateKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.privateKey);
-        // Re-import private key to make it unextractable
-        const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importJwk(keyOptions, privateKeyJwk, false, keyOptions.privateKeyUsage);
+        if (keyPair.privateKey) {
+            // Generate Thumbprint for Private Key
+            const privateKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.privateKey);
+            // Re-import private key to make it unextractable
+            unextractablePrivateKey = await this.browserCrypto.importJwk(keyOptions, privateKeyJwk, false, keyOptions.privateKeyUsage);
+        }
 
         // Store Keypair data in keystore
         await this.cache.put(publicJwkHash, {
-            privateKey: unextractablePrivateKey,
+            privateKey: unextractablePrivateKey as CryptoKey,
             publicKey: keyPair.publicKey,
             requestMethod: request.resourceRequestMethod,
             requestUri: request.resourceRequestUri
         });
-
+        
         return publicJwkHash;
     }
 
@@ -169,7 +172,7 @@ export class CryptoOps implements ICrypto {
         // Generate header
         const header = {
             alg: publicKeyJwk.alg,
-            type: KEY_FORMATS.JWK
+            type: CryptoKeyFormats.jwk
         };
         const encodedHeader = this.b64Encode.urlEncode(JSON.stringify(header));
 

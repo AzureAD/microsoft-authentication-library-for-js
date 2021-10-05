@@ -229,20 +229,7 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
-    it("createSilentSSOInsufficientInfoError()", () => {
-        const err: BrowserAuthError = BrowserAuthError.createSilentSSOInsufficientInfoError();
-
-        expect(err instanceof BrowserAuthError).toBe(true);
-        expect(err instanceof AuthError).toBe(true);
-        expect(err instanceof Error).toBe(true);
-        expect(err.errorCode).toBe(BrowserAuthErrorMessage.silentSSOInsufficientInfoError.code);
-        expect(err.errorMessage.includes(BrowserAuthErrorMessage.silentSSOInsufficientInfoError.desc)).toBe(true);
-        expect(err.message.includes(BrowserAuthErrorMessage.silentSSOInsufficientInfoError.desc)).toBe(true);
-        expect(err.name).toBe("BrowserAuthError");
-        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
-    });
-
-    it("createSilentSSOInsufficientInfoError()", () => {
+    it("createSilentPromptValueError()", () => {
         const promptVal = "notAPrompt";
         const err: BrowserAuthError = BrowserAuthError.createSilentPromptValueError(promptVal);
 
@@ -293,6 +280,32 @@ describe("BrowserAuthError Unit Tests", () => {
         expect(err.errorCode).toBe(BrowserAuthErrorMessage.unableToLoadTokenError.code);
         expect(err.errorMessage?.includes(BrowserAuthErrorMessage.unableToLoadTokenError.desc)).toBe(true);
         expect(err.message?.includes(BrowserAuthErrorMessage.unableToLoadTokenError.desc)).toBe(true);
+        expect(err.name).toBe("BrowserAuthError");
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
+    });
+
+    it("createDatabaseUnavailableError()", () => {
+        const err: BrowserAuthError = BrowserAuthError.createDatabaseUnavailableError();
+
+        expect(err instanceof BrowserAuthError).toBe(true);
+        expect(err instanceof AuthError).toBe(true);
+        expect(err instanceof Error).toBe(true);
+        expect(err.errorCode).toBe(BrowserAuthErrorMessage.databaseUnavailable.code);
+        expect(err.errorMessage?.includes(BrowserAuthErrorMessage.databaseUnavailable.desc)).toBe(true);
+        expect(err.message?.includes(BrowserAuthErrorMessage.databaseUnavailable.desc)).toBe(true);
+        expect(err.name).toBe("BrowserAuthError");
+        expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
+    });
+
+    it("createKeyGenerationFailedError()", () => {
+        const err: BrowserAuthError = BrowserAuthError.createKeyGenerationFailedError();
+
+        expect(err instanceof BrowserAuthError).toBe(true);
+        expect(err instanceof AuthError).toBe(true);
+        expect(err instanceof Error).toBe(true);
+        expect(err.errorCode).toBe(BrowserAuthErrorMessage.keyGenerationFailed.code);
+        expect(err.errorMessage?.includes(BrowserAuthErrorMessage.keyGenerationFailed.desc)).toBe(true);
+        expect(err.message?.includes(BrowserAuthErrorMessage.keyGenerationFailed.desc)).toBe(true);
         expect(err.name).toBe("BrowserAuthError");
         expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
