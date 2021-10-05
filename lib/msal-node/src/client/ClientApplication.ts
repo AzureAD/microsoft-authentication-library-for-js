@@ -301,9 +301,12 @@ export abstract class ClientApplication {
 
         this.logger.verbose("buildOauthClientConfiguration called", requestCorrelationId);
 
+        // precedence - azureCloudInstance + tenant >> authority and request  >> config
+        const userAzureCloudInstance = azureCloudInstance ? azureCloudInstance : this.config.auth.azureCloudInstance;
+
         // using null assertion operator as we ensure that all config values have default values in buildConfiguration()
         this.logger.verbose(`building oauth client configuration with the authority: ${authority}`, requestCorrelationId);
-        const discoveredAuthority = await this.createAuthority(authority, azureRegionConfiguration, requestCorrelationId, azureCloudInstance);
+        const discoveredAuthority = await this.createAuthority(authority, azureRegionConfiguration, requestCorrelationId, userAzureCloudInstance);
 
         serverTelemetryManager?.updateRegionDiscoveryMetadata(discoveredAuthority.regionDiscoveryMetadata);
 
@@ -394,9 +397,11 @@ export abstract class ClientApplication {
         this.logger.verbose("createAuthority called", requestCorrelationId);
 
         // build authority string based on auth params - azureCloudInstance is prioritized if provided
+        const tenant = this.config.auth.tenant ? this.config.auth.tenant : Constants.DEFAULT_TENANT;
         let authorityAzureCloudInstance;
+
         if (azureCloudInstance) {
-            authorityAzureCloudInstance = `${Authority.getAzureCloudInstanceUrl(azureCloudInstance)}/${Constants.DEFAULT_AUTHORITY_TENANT}/`;
+            authorityAzureCloudInstance = `${azureCloudInstance}/${tenant}/`;
         }
 
         const authorityUrl = authorityAzureCloudInstance ? authorityAzureCloudInstance : authorityString;

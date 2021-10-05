@@ -39,6 +39,7 @@ export type BrowserAuthOptions = {
     clientCapabilities?: Array<string>;
     protocolMode?: ProtocolMode;
     azureCloudInstance?: AzureCloudInstance;
+    tenant?: string;
 };
 
 /**
@@ -124,7 +125,8 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         navigateToLoginRequestUrl: true,
         clientCapabilities: [],
         protocolMode: ProtocolMode.AAD,
-        azureCloudInstance: AzureCloudInstance.None
+        azureCloudInstance: AzureCloudInstance.None,
+        tenant: `${Constants.DEFAULT_TENANT}`,
     };
 
     // Default cache options for browser
@@ -157,11 +159,6 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         asyncPopups: false,
         allowRedirectInIframe: false
     };
-
-    // build authority string based on auth params - azureCloudInstance is prioritized if provided
-    if (userInputAuth && userInputAuth.azureCloudInstance) {
-        userInputAuth.authority = `${Authority.getAzureCloudInstanceUrl(userInputAuth.azureCloudInstance)}/${Constants.DEFAULT_AUTHORITY_TENANT}/`;
-    }
 
     const overlayedConfig: BrowserConfiguration = {
         auth: { ...DEFAULT_AUTH_OPTIONS, ...userInputAuth },

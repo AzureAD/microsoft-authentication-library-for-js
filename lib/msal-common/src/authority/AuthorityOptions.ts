@@ -19,15 +19,15 @@ export enum AzureCloudInstance {
     // AzureCloudInstance is not specified.
     None,
 
-    // Microsoft Azure public cloud. Maps to https://login.microsoftonline.com
-    AzurePublic,
+    // Microsoft Azure public cloud
+    AzurePublic = "https://login.microsoftonline.com",
 
-    // Microsoft Chinese national cloud. Maps to https://login.chinacloudapi.cn
-    AzureChina,
+    // Microsoft Chinese national cloud
+    AzureChina = "https://login.chinacloudapi.cn",
 
-    // Microsoft German national cloud ("Black Forest"). Maps to https://login.microsoftonline.de
-    AzureGermany,
+    // Microsoft German national cloud ("Black Forest")
+    AzureGermany = "https://login.microsoftonline.de",
 
-    // US Government cloud. Maps to https://login.microsoftonline.us
-    AzureUsGovernment,
+    // US Government cloud
+    AzureUsGovernment = "https://login.microsoftonline.us",
 }
