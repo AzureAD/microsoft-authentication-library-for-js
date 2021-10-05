@@ -44,7 +44,8 @@ describe("RedirectClient", () => {
     beforeEach(() => {
         const pca = new PublicClientApplication({
             auth: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                refreshTokenBinding: true
             }
         });
         sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);

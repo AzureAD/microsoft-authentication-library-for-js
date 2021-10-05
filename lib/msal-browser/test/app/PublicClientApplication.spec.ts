@@ -33,7 +33,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
     beforeEach(() => {
         pca = new PublicClientApplication({
             auth: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                refreshTokenBinding: true
             }
         });
     });

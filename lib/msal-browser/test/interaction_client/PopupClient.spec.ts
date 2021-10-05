@@ -22,7 +22,8 @@ describe("PopupClient", () => {
     beforeEach(() => {
         const pca = new PublicClientApplication({
             auth: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                refreshTokenBinding: true
             }
         });
         //@ts-ignore
