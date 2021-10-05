@@ -19,7 +19,6 @@ import { ClientAuthError } from "../error/ClientAuthError";
 import { KeyManager } from "../crypto/KeyManager";
 import { CcsCredential, CcsCredentialType } from "../account/CcsCredential";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
-import { KeyManager } from "../crypto/KeyManager";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
