@@ -1,5 +1,5 @@
 import sinon from "sinon";
-import { ICrypto, PkceCodes, AuthenticationScheme } from "../../src";
+import { ICrypto, PkceCodes, AuthenticationScheme, CryptoKeyTypes } from "../../src";
 import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS } from "../test_kit/StringConstants";
 import { KeyManager } from "../../src/crypto/KeyManager";
 
@@ -62,20 +62,32 @@ describe("KeyManager Unit Tests", () => {
         }
     };
 
-    describe("generateCnf", () => {
-        const testRequest = {
-            authority: TEST_CONFIG.validAuthority,
-            scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
-            correlationId: TEST_CONFIG.CORRELATION_ID,
-            authenticationScheme: AuthenticationScheme.POP,
-            resourceRequestMethod:"POST",
-            resourceRequestUrl: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS
-        };
+    let keyManager: KeyManager;
 
-        it("Generates the req_cnf correctly", async () => {
-            const keyManager = new KeyManager(cryptoInterface);
-            const req_cnf = await keyManager.generateCnf(testRequest);
+    const testPopRequest = {
+        authority: TEST_CONFIG.validAuthority,
+        scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+        correlationId: TEST_CONFIG.CORRELATION_ID,
+        authenticationScheme: AuthenticationScheme.POP,
+        resourceRequestMethod:"POST",
+        resourceRequestUrl: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS
+    };
+
+    beforeEach(() => {
+        keyManager = new KeyManager(cryptoInterface);
+    });
+
+    describe("generateCnf", () => {
+        it("generates the req_cnf correctly", async () => {
+            const req_cnf = await keyManager.generateCnf(testPopRequest);
             expect(req_cnf).toBe(TEST_POP_VALUES.ENCODED_REQ_CNF);
+        });
+    });
+
+    describe("generateKid", () => {
+        it("returns the correct kid and key storage location", async () => {
+            const req_cnf = await keyManager.generateKid(testPopRequest, CryptoKeyTypes.req_cnf);
+            expect(req_cnf).toStrictEqual(JSON.parse(TEST_POP_VALUES.DECODED_REQ_CNF));
         });
     });
 });
