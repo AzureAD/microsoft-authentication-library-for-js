@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Make no_tokens_found error an InteractionRequiredAuthError #4089",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

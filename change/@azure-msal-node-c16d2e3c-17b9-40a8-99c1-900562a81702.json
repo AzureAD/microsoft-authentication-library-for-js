@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "feat: improve the test code coverage for msal-node",
-  "packageName": "@azure/msal-node",
-  "email": "samuelkamau@microsoft.com",
-  "dependentChangeType": "patch"
-}
