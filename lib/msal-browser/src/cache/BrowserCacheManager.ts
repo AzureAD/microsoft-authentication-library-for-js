@@ -1001,7 +1001,6 @@ export class BrowserCacheManager extends CacheManager {
 
     isInteractionInProgress(matchClientId?: boolean): boolean {
         const clientId = this.getInteractionInProgress();
-
         if (matchClientId) {
             return clientId === this.clientId;
         } else {
