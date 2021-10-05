@@ -1,8 +1,16 @@
 # Change Log - msal
 
-This log was last generated on Tue, 07 Sep 2021 23:22:24 GMT and should not be manually modified.
+This log was last generated on Mon, 04 Oct 2021 23:12:35 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.4.14
+
+Mon, 04 Oct 2021 23:12:35 GMT
+
+### Patches
+
+- Export library version #4124 (thomas.norling@microsoft.com)
 
 ## 1.4.13
 

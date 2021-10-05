@@ -25,7 +25,11 @@ Iframed and parent apps with the same-origin may have access to the same MSAL.js
 
 ### Apps with cross-origin
 
-Iframed and parent apps with cross-origin can make use of the [ssoSilent()](./login-user.md#silent-login-with-ssosilent) API to achieve single sign-on. To do so, the parent app needs to pass down either an **account**, a **loginHint** (username) or a **session id** (sid) to the iframed app. For cross-origin communication between iframed and parent apps, there are a few alternatives you can consider:
+Iframed and parent apps with cross-origin can make use of the [ssoSilent()](./login-user.md#silent-login-with-ssosilent) API to achieve single sign-on. To do so, the parent app should pass down either an **account**, a **loginHint** (username) or a **session id** (sid) to the iframed app. 
+
+Apps can attempt to use `ssoSilent` without any of the above parameters. However be aware that there are [additional considerations](./login-user.md#silent-login-with-ssosilent) when using `ssoSilent` without providing any information about the user's session.
+
+For cross-origin communication between iframed and parent apps, there are a few alternatives you can consider:
 
 - You can add query strings to iframe's source in the parent app and retrieve them later in the child:
 
