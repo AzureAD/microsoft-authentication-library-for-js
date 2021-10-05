@@ -150,11 +150,11 @@ export const mockCrypto = {
     async getPublicKeyThumbprint(): Promise<string> {
         return TEST_POP_VALUES.KID;
     },
-    async signJwt(): Promise<string> {
-        return "";
-    },
     async removeTokenBindingKey(keyId: string): Promise<boolean> {
         return Promise.resolve(true);
+    },
+    async signJwt(): Promise<string> {
+        return "";
     },
     async clearKeystore(): Promise<boolean> {
         return Promise.resolve(true);
