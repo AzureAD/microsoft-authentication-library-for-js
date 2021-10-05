@@ -152,6 +152,10 @@ export const BrowserAuthErrorMessage = {
     signingKeyNotFoundInStorage: {
         code: "crypto_key_not_found",
         desc: "Cryptographic Key or Keypair not found in browser storage."
+    },
+    datdabaseUnavailable: {
+        code: "database_unavailable",
+        desc: "IndexedDB, which is required for cryptographic key storage, is unavailable. This may happen when browsing in private mode."
     }
 };
 
@@ -440,5 +444,12 @@ export class BrowserAuthError extends AuthError {
      */
     static createSigningKeyNotFoundInStorageError(keyId: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code, `${BrowserAuthErrorMessage.signingKeyNotFoundInStorage.desc} | No match found for KeyId: ${keyId}`);
+    }
+
+    /**
+     * Create an error when IndexedDB is unavailable
+     */
+    static createDatabaseUnavailableError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.datdabaseUnavailable.code, BrowserAuthErrorMessage.datdabaseUnavailable.desc);
     }
 }

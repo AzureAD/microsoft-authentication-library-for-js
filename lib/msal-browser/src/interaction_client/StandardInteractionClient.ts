@@ -39,9 +39,20 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         this.logger.verbose("initializeAuthorizationRequest called", request.correlationId);
         const generatedPkceParams = await this.browserCrypto.generatePkceCodes();
 
-        // Generate Session Transport Key for Refresh Token Binding
-        const sessionTransportKeyThumbprint = await this.browserCrypto.getPublicKeyThumbprint(request, CryptoKeyTypes.stk_jwk);
-        request.stkJwk = sessionTransportKeyThumbprint;
+        // Generate Session Transport Key if Refresh Token Binding is enabled
+        if (this.config.auth.refreshTokenBinding) {
+            this.logger.verbose("Refresh token binding enabled, attempting to generate Session Transport Key");
+            try {
+                const sessionTransportKeyThumbprint = await this.browserCrypto.getPublicKeyThumbprint(request, CryptoKeyTypes.stk_jwk);
+                request.stkJwk = sessionTransportKeyThumbprint;
+                this.logger.verbose("Successfully generated and stored Session Transport Key");
+            } catch(error) {
+                if(error instanceof BrowserAuthError) {
+                    this.logger.error(error.message);
+                    this.logger.verbose("Could not generate Session Transport Key, refresh token will be unbound");
+                }
+            }
+        }
 
         const authCodeRequest: CommonAuthorizationCodeRequest = {
             ...request,
