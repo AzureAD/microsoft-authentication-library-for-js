@@ -8,7 +8,7 @@ import { CommonAuthorizationUrlRequest } from "../request/CommonAuthorizationUrl
 import { CommonAuthorizationCodeRequest } from "../request/CommonAuthorizationCodeRequest";
 import { Authority } from "../authority/Authority";
 import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
-import { GrantType, AuthenticationScheme, PromptValue, Separators } from "../utils/Constants";
+import { GrantType, AuthenticationScheme, PromptValue, Separators, AADServerParamKeys } from "../utils/Constants";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { ServerAuthorizationTokenResponse } from "../response/ServerAuthorizationTokenResponse";
 import { NetworkResponse } from "../network/NetworkManager";
@@ -28,11 +28,14 @@ import { AccountInfo } from "../account/AccountInfo";
 import { buildClientInfoFromHomeAccountId, buildClientInfo } from "../account/ClientInfo";
 import { CcsCredentialType, CcsCredential } from "../account/CcsCredential";
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
+import { RequestValidator } from "../request/RequestValidator";
 
 /**
  * Oauth2.0 Authorization Code client
  */
 export class AuthorizationCodeClient extends BaseClient {
+    // Flag to indicate if client is for hybrid spa auth code redemption
+    protected includeRedirectUri: boolean = true;
 
     constructor(configuration: ClientConfiguration) {
         super(configuration);
@@ -185,8 +188,17 @@ export class AuthorizationCodeClient extends BaseClient {
 
         parameterBuilder.addClientId(this.config.authOptions.clientId);
 
-        // validate the redirectUri (to be a non null value)
-        parameterBuilder.addRedirectUri(request.redirectUri);
+        /*
+         * For hybrid spa flow, there will be a code but no verifier
+         * In this scenario, don't include redirect uri as auth code will not be bound to redirect URI
+         */
+        if (!this.includeRedirectUri) {
+            // Just validate
+            RequestValidator.validateRedirectUri(request.redirectUri);
+        } else {
+            // Validate and include redirect uri
+            parameterBuilder.addRedirectUri(request.redirectUri);
+        }
 
         // Add scope array, parameter builder will add default scopes and dedupe
         parameterBuilder.addScopes(request.scopes);
@@ -266,6 +278,17 @@ export class AuthorizationCodeClient extends BaseClient {
             }
         }
 
+        if (request.tokenBodyParameters) {
+            parameterBuilder.addExtraQueryParameters(request.tokenBodyParameters);
+        }
+
+        // Add hybrid spa parameters if not already provided
+        if (request.enableSpaAuthCode && (!request.tokenBodyParameters || !request.tokenBodyParameters[AADServerParamKeys.RETURN_SPA_CODE])) {
+            parameterBuilder.addExtraQueryParameters({
+                [AADServerParamKeys.RETURN_SPA_CODE]: "1"
+            });
+        }
+        
         return parameterBuilder.createQueryString();
     }
 

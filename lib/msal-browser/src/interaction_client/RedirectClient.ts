@@ -197,7 +197,7 @@ export class RedirectClient extends StandardInteractionClient {
         const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority);
         this.logger.verbose("Auth code client created");
         const interactionHandler = new RedirectHandler(authClient, this.browserStorage, cachedRequest, this.logger, this.browserCrypto);
-        return await interactionHandler.handleCodeResponse(hash, state, authClient.authority, this.networkClient, this.config.auth.clientId);
+        return await interactionHandler.handleCodeResponseFromHash(hash, state, authClient.authority, this.networkClient, this.config.auth.clientId);
     }
 
     /**

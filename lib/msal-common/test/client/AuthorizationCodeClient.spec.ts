@@ -537,8 +537,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                 throw TestError.createTestSetupError("configuration crypto interface not initialized correctly.");
             }
             const testSuccessHash = `#code=thisIsATestCode&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${encodeURIComponent(TEST_STATE_VALUES.ENCODED_LIB_STATE)}`;
-            //@ts-ignore
-            config.cryptoInterface.base64Decode = (input: string): string => {
+
+            sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
                         return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
@@ -547,9 +547,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                     default:
                         return input;
                 }
-            };
-            // @ts-ignore
-            config.cryptoInterface.base64Encode = (input: string): string => {
+            });
+
+            sinon.stub(config.cryptoInterface, "base64Encode").callsFake(input => {
                 switch (input) {
                     case "123-test-uid":
                         return "MTIzLXRlc3QtdWlk";
@@ -560,7 +560,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     default:
                         return input;
                 }
-            };
+            });
             const client: AuthorizationCodeClient = new AuthorizationCodeClient(config);
             const authCodePayload = client.handleFragmentResponse(testSuccessHash, TEST_STATE_VALUES.ENCODED_LIB_STATE);
             expect(authCodePayload.code).toBe("thisIsATestCode");
@@ -645,8 +645,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            // @ts-ignore
-            config.cryptoInterface.base64Decode = (input: string): string => {
+            
+            sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
                         return TEST_POP_VALUES.DECODED_REQ_CNF;
@@ -657,10 +657,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                     default:
                         return input;
                 }
-            };
+            });
 
-            // @ts-ignore
-            config.cryptoInterface.base64Encode = (input: string): string => {
+            sinon.stub(config.cryptoInterface, "base64Encode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
                         return TEST_POP_VALUES.ENCODED_REQ_CNF;
@@ -673,7 +672,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                     default:
                         return input;
                 }
-            };
+            });
+
             // Set up stubs
             const idTokenClaims = {
                 "ver": "2.0",
@@ -736,8 +736,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            // @ts-ignore
-            config.cryptoInterface.base64Decode = (input: string): string => {
+            
+            sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
                         return TEST_POP_VALUES.DECODED_REQ_CNF;
@@ -748,10 +748,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                     default:
                         return input;
                 }
-            };
+            });
 
-            // @ts-ignore
-            config.cryptoInterface.base64Encode = (input: string): string => {
+            sinon.stub(config.cryptoInterface, "base64Encode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
                         return TEST_POP_VALUES.ENCODED_REQ_CNF;
@@ -764,7 +763,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                     default:
                         return input;
                 }
-            };
+            });
+
             // Set up stubs
             const idTokenClaims = {
                 "ver": "2.0",
@@ -825,8 +825,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            // @ts-ignore
-            config.cryptoInterface.base64Decode = (input: string): string => {
+            
+            sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
                         return TEST_POP_VALUES.DECODED_REQ_CNF;
@@ -837,10 +837,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                     default:
                         return input;
                 }
-            };
-
-            // @ts-ignore
-            config.cryptoInterface.base64Encode = (input: string): string => {
+            });
+            
+            sinon.stub(config.cryptoInterface, "base64Encode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
                         return TEST_POP_VALUES.ENCODED_REQ_CNF;
@@ -853,7 +852,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                     default:
                         return input;
                 }
-            };
+            });
+
             // Set up stubs
             const idTokenClaims = {
                 "ver": "2.0",
@@ -901,8 +901,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            // @ts-ignore
-            config.cryptoInterface.base64Decode = (input: string): string => {
+            
+            sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
                         return TEST_POP_VALUES.DECODED_REQ_CNF;
@@ -913,10 +913,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                     default:
                         return input;
                 }
-            };
-
-            // @ts-ignore
-            config.cryptoInterface.base64Encode = (input: string): string => {
+            });
+            
+            sinon.stub(config.cryptoInterface, "base64Encode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
                         return TEST_POP_VALUES.ENCODED_REQ_CNF;
@@ -929,7 +928,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                     default:
                         return input;
                 }
-            };
+            });
+
             // Set up stubs
             const idTokenClaims = {
                 "ver": "2.0",
@@ -992,50 +992,116 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(returnVal.includes(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`)).toBe(true);
         });
 
-        it("Adds tokenQueryParameters to the /token request", (done) => {
+        it("Adds tokenQueryParameters to the /token request", () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").callsFake((url) => {
-                expect(url.includes("/token?dc=ESTS-PUB-WUS2-AZ1-TEST1&testParam=testValue")).toBe(true);
-                done();
-                return AUTHENTICATION_RESULT;
-            });
-            sinon.stub(ResponseHandler.prototype, "validateTokenResponse").callsFake(() => {});
-            const authCodeRequest: CommonAuthorizationCodeRequest = {
-                authority: Constants.DEFAULT_AUTHORITY,
-                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
-                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
-                code: TEST_TOKENS.AUTHORIZATION_CODE,
-                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
-                claims: TEST_CONFIG.CLAIMS,
-                correlationId: RANDOM_TEST_GUID,
-                authenticationScheme: AuthenticationScheme.BEARER,
-                tokenQueryParameters: {
-                    testParam: "testValue"
-                }
-            };
-            sinon.stub(ResponseHandler.prototype, "handleServerTokenResponse").callsFake(async () => {
-                return {
-                    authority: TEST_CONFIG.validAuthority,
-                    uniqueId: TEST_DATA_CLIENT_INFO.TEST_UID,
-                    tenantId: TEST_ACCOUNT_INFO.tenantId,
-                    accessToken: AUTHENTICATION_RESULT.body.access_token,
-                    scopes: authCodeRequest.scopes,
-                    account: TEST_ACCOUNT_INFO,
-                    idToken: AUTHENTICATION_RESULT.body.id_token,
-                    idTokenClaims: ID_TOKEN_CLAIMS,
-                    fromCache: false,
-                    expiresOn: new Date(),
-                    tokenType: "accessToken",
-                    correlationId: RANDOM_TEST_GUID
-                }
+            sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").callsFake((url: string) => {
+                expect(url.includes("/token?testParam=testValue")).toBe(true);
+                return Promise.resolve(AUTHENTICATION_RESULT);
             });
 
-            ClientTestUtils.createTestClientConfiguration().then(config => {
+            return ClientTestUtils.createTestClientConfiguration().then(config => {
                 const client = new AuthorizationCodeClient(config);
+                const authCodeRequest: CommonAuthorizationCodeRequest = {
+                    authority: Constants.DEFAULT_AUTHORITY,
+                    scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                    redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                    code: TEST_TOKENS.AUTHORIZATION_CODE,
+                    codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                    claims: TEST_CONFIG.CLAIMS,
+                    correlationId: RANDOM_TEST_GUID,
+                    authenticationScheme: AuthenticationScheme.BEARER,
+                    tokenQueryParameters: {
+                        testParam: "testValue"
+                    }
+                };
     
-                client.acquireToken(authCodeRequest).catch(e => {
-                    // Catch errors thrown after the function call this test is testing    
-                });
+                return client.acquireToken(authCodeRequest);
+            });
+        });
+
+        it("Adds tokenBodyParameters to the /token request", () => {
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").callsFake((url, body: string) => {
+                expect(body).toContain("extra_body_parameter=true");
+                return Promise.resolve(AUTHENTICATION_RESULT);
+            });
+
+            return ClientTestUtils.createTestClientConfiguration().then(config => {
+                const client = new AuthorizationCodeClient(config);
+                const authCodeRequest: CommonAuthorizationCodeRequest = {
+                    authority: Constants.DEFAULT_AUTHORITY,
+                    scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                    redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                    code: TEST_TOKENS.AUTHORIZATION_CODE,
+                    codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                    claims: TEST_CONFIG.CLAIMS,
+                    correlationId: RANDOM_TEST_GUID,
+                    authenticationScheme: AuthenticationScheme.BEARER,
+                    tokenBodyParameters: {
+                        extra_body_parameter: "true"
+                    }
+                };
+    
+                return client.acquireToken(authCodeRequest);
+            });
+        });
+
+        it("Adds return_spa_code=1 to body when enableSpaAuthCode is set", () => {
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").callsFake((url, body: string) => {
+                expect(body).toContain("return_spa_code=1");
+                return Promise.resolve(AUTHENTICATION_RESULT);
+            });
+
+            return ClientTestUtils.createTestClientConfiguration().then(config => {
+                const client = new AuthorizationCodeClient(config);
+                const authCodeRequest: CommonAuthorizationCodeRequest = {
+                    authority: Constants.DEFAULT_AUTHORITY,
+                    scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                    redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                    code: TEST_TOKENS.AUTHORIZATION_CODE,
+                    codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                    claims: TEST_CONFIG.CLAIMS,
+                    correlationId: RANDOM_TEST_GUID,
+                    authenticationScheme: AuthenticationScheme.BEARER,
+                    enableSpaAuthCode: true
+                };
+    
+                return client.acquireToken(authCodeRequest);
+            });
+        });
+
+        it("Doesnt add redirect_uri when hybridSpa flag is set", () => {
+            class TestAuthorizationCodeClient extends AuthorizationCodeClient {
+                constructor(config: ClientConfiguration) {
+                    super(config);
+                    this.includeRedirectUri = false;
+                }
+            }
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon.stub(TestAuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").callsFake((url, body: string) => {
+                expect(body).not.toContain("redirect_uri=");
+                return Promise.resolve(AUTHENTICATION_RESULT);
+            });
+
+            return ClientTestUtils.createTestClientConfiguration().then(config => {
+
+                const client = new TestAuthorizationCodeClient(config);
+                const authCodeRequest: CommonAuthorizationCodeRequest = {
+                    authority: Constants.DEFAULT_AUTHORITY,
+                    scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                    redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                    code: TEST_TOKENS.AUTHORIZATION_CODE,
+                    codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                    claims: TEST_CONFIG.CLAIMS,
+                    correlationId: RANDOM_TEST_GUID,
+                    authenticationScheme: AuthenticationScheme.BEARER,
+                    tokenBodyParameters: {
+                        extra_body_parameter: "true"
+                    }
+                };
+    
+                return client.acquireToken(authCodeRequest);
             });
         });
 
@@ -1053,7 +1119,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
             
-            config.cryptoInterface.base64Decode = (input: string): string => {
+            sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
                         return TEST_POP_VALUES.DECODED_REQ_CNF;
@@ -1064,10 +1130,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                     default:
                         return input;
                 }
-            };
-
-            // @ts-ignore
-            config.cryptoInterface.base64Encode = (input: string): string => {
+            })
+            
+            sinon.stub(config.cryptoInterface, "base64Encode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
                         return TEST_POP_VALUES.ENCODED_REQ_CNF;
@@ -1080,7 +1145,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                     default:
                         return input;
                 }
-            };
+            });
+
             const signedJwt = "signedJwt";
             // @ts-ignore
             config.cryptoInterface.signJwt = async (payload: SignedHttpRequest, kid: string): Promise<string> => {
@@ -1169,8 +1235,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            // @ts-ignore
-            config.cryptoInterface.base64Decode = (input: string): string => {
+            
+            sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
                         return TEST_POP_VALUES.DECODED_REQ_CNF;
@@ -1181,10 +1247,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                     default:
                         return input;
                 }
-            };
+            });
 
-            // @ts-ignore
-            config.cryptoInterface.base64Encode = (input: string): string => {
+            sinon.stub(config.cryptoInterface, "base64Encode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
                         return TEST_POP_VALUES.ENCODED_REQ_CNF;
@@ -1197,7 +1262,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                     default:
                         return input;
                 }
-            };
+            });
+
             // Set up stubs
             const idTokenClaims = {
                 "ver": "2.0",
@@ -1251,8 +1317,8 @@ describe("AuthorizationCodeClient unit tests", () => {
             // Set up required objects and mocked return values
             const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
             const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
-            // @ts-ignore
-            config.cryptoInterface.base64Decode = (input: string): string => {
+            
+            sinon.stub(config.cryptoInterface, "base64Decode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.ENCODED_REQ_CNF:
                         return TEST_POP_VALUES.DECODED_REQ_CNF;
@@ -1263,10 +1329,9 @@ describe("AuthorizationCodeClient unit tests", () => {
                     default:
                         return input;
                 }
-            };
-
-            // @ts-ignore
-            config.cryptoInterface.base64Encode = (input: string): string => {
+            });
+            
+            sinon.stub(config.cryptoInterface, "base64Encode").callsFake(input => {
                 switch (input) {
                     case TEST_POP_VALUES.DECODED_REQ_CNF:
                         return TEST_POP_VALUES.ENCODED_REQ_CNF;
@@ -1279,7 +1344,8 @@ describe("AuthorizationCodeClient unit tests", () => {
                     default:
                         return input;
                 }
-            };
+            });
+
             // Set up stubs
             const idTokenClaims = {
                 "ver": "2.0",
