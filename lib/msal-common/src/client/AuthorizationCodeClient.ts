@@ -35,11 +35,10 @@ import { RequestValidator } from "../request/RequestValidator";
  */
 export class AuthorizationCodeClient extends BaseClient {
     // Flag to indicate if client is for hybrid spa auth code redemption
-    private hybridSpa: boolean;
+    protected includeRedirectUri: boolean = true;
 
-    constructor(configuration: ClientConfiguration, hybridSpa: boolean = false) {
+    constructor(configuration: ClientConfiguration) {
         super(configuration);
-        this.hybridSpa = hybridSpa;
     }
 
     /**
@@ -193,7 +192,7 @@ export class AuthorizationCodeClient extends BaseClient {
          * For hybrid spa flow, there will be a code but no verifier
          * In this scenario, don't include redirect uri as auth code will not be bound to redirect URI
          */
-        if (this.hybridSpa) {
+        if (!this.includeRedirectUri) {
             // Just validate
             RequestValidator.validateRedirectUri(request.redirectUri);
         } else {
@@ -284,7 +283,7 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         // Add hybrid spa parameters if not already provided
-        if (request.enableSpaAuthCode && (!request.tokenBodyParameters || request.tokenBodyParameters && !request.tokenBodyParameters[AADServerParamKeys.RETURN_SPA_CODE])) {
+        if (request.enableSpaAuthCode && (!request.tokenBodyParameters || !request.tokenBodyParameters[AADServerParamKeys.RETURN_SPA_CODE])) {
             parameterBuilder.addExtraQueryParameters({
                 [AADServerParamKeys.RETURN_SPA_CODE]: "1"
             });

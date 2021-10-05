@@ -19,7 +19,6 @@ import { AuthenticationScheme } from "../utils/Constants";
 export type BaseAuthRequest = {
     authority: string;
     correlationId: string;
-    nonce?: string;
     scopes: Array<string>;
     authenticationScheme?: AuthenticationScheme;
     claims?: string;

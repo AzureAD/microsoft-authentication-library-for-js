@@ -94,8 +94,8 @@ export class ClientAssertion {
 
         if (this.publicCertificate) {
             Object.assign(header, {
-                [JwtConstants.X5C]: this.publicCertificate
-            });
+                x5c: this.publicCertificate
+            } as Partial<JwtHeader>);
         }
 
         const payload = {
@@ -107,7 +107,7 @@ export class ClientAssertion {
             [JwtConstants.JWT_ID]: cryptoProvider.createNewGuid()
         };
 
-        this.jwt = sign(payload, this.privateKey, { header: header });
+        this.jwt = sign(payload, this.privateKey, { header });
         return this.jwt;
     }
 

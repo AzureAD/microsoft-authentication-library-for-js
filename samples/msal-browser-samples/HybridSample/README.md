@@ -177,9 +177,7 @@ The application should also render any account hints, as they will be needed for
 
 Source: [views/client-redirect.hbs](./views/client-redirect.hbs)
 ```typescript
-const sid = "{{sid}}";
 const code = "{{code}}";
-const preferredUsername = "{{preferredUsername}}";
 const loginHint = "{{loginHint}}";
 
 const scopes = [ "user.read" ];
