@@ -316,7 +316,7 @@ describe("RefreshTokenClient unit tests", () => {
             expect(result.includes(`${AADServerParamKeys.X_MS_LIB_CAPABILITY}=${ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE}`)).toBe(true);
         });
 
-        it.only("adds req_cnf if authenticationScheme is POP", async () => {
+        it("adds req_cnf if authenticationScheme is POP", async () => {
             sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(AUTHENTICATION_RESULT);
             const createTokenRequestBodySpy = sinon.spy(RefreshTokenClient.prototype, <any>"createTokenRequestBody");
             const client = new RefreshTokenClient(config);
