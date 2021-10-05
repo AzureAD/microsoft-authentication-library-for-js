@@ -36,6 +36,7 @@ import { SilentFlowClient } from "../../src/client/SilentFlowClient";
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
 import { CcsCredentialType } from "../../src/account/CcsCredential";
 import { InteractionRequiredAuthError } from "../../src/error/InteractionRequiredAuthError";
+import { ResponseHandler } from "../../src/response/ResponseHandler";
 
 const testAccountEntity: AccountEntity = new AccountEntity();
 testAccountEntity.homeAccountId = `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`;

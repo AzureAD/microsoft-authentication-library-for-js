@@ -59,7 +59,7 @@ export class EmbeddedInteractionClient extends StandardInteractionClient {
             throw BrokerAuthError.createNoEmbeddedAppError();
         }
         if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
-            throw BrowserAuthError.createSilentSSOInsufficientInfoError();
+            this.logger.warning("No user hint provided. The authorization server may need more information to complete this request.");
         }
         // Check that prompt is set to none, throw error if it is set to anything else.
         if (request.prompt && request.prompt !== PromptValue.NONE) {

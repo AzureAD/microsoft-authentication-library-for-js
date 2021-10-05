@@ -8,13 +8,13 @@ import { ResponseHandler } from "../../response/ResponseHandler";
 import { RequestParameterBuilder } from "../../request/RequestParameterBuilder";
 import { StringUtils } from "../../utils/StringUtils";
 import { BrokerAuthenticationResult } from "../../response/BrokerAuthenticationResult";
-import { ClientAuthError } from "../../error/ClientAuthError";
 import { AuthenticationScheme, GrantType } from "../../utils/Constants";
 import { PopTokenGenerator } from "../../crypto/PopTokenGenerator";
 import { AuthenticationResult } from "../../response/AuthenticationResult";
 import { BrokeredRefreshTokenRequest } from "../../request/broker/BrokeredRefreshTokenRequest";
 import { BrokeredSilentFlowRequest } from "../../request/broker/BrokeredSilentFlowRequest";
 import { TimeUtils } from "../../utils/TimeUtils";
+import { InteractionRequiredAuthError } from "../../error/InteractionRequiredAuthError";
 
 /**
  * Oauth2.0 Refresh Token client implementing the broker protocol for browsers.
@@ -65,7 +65,7 @@ export class BrokerRefreshTokenClient extends RefreshTokenClient {
 
         // no refresh Token
         if (!refreshToken) {
-            throw ClientAuthError.createNoTokensFoundError();
+            throw InteractionRequiredAuthError.createNoTokensFoundError();
         }
 
         const refreshTokenRequest: BrokeredRefreshTokenRequest = {
