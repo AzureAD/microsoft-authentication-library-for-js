@@ -1,7 +1,7 @@
 # NPM Publish is the name for this action
 name: NPM Publish
 
-# This action will trigger on every successful release
+# This action will trigger when Release PR from release-staging branch is merged into dev
 on:
   pull_request:
     types: [closed]
