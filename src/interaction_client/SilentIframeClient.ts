@@ -31,7 +31,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         this.logger.verbose("acquireTokenByIframe called");
         // Check that we have some SSO data
         if (StringUtils.isEmpty(request.loginHint) && StringUtils.isEmpty(request.sid) && (!request.account || StringUtils.isEmpty(request.account.username))) {
-            throw BrowserAuthError.createSilentSSOInsufficientInfoError();
+            this.logger.warning("No user hint provided. The authorization server may need more information to complete this request.");
         }
 
         // Check that prompt is set to none, throw error if it is set to anything else.
