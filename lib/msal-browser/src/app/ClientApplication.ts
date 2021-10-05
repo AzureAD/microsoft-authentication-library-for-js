@@ -333,6 +333,7 @@ export abstract class ClientApplication {
                 this.logger.verbose("Initiating new acquireTokenByCode request", request.correlationId);
                 response = this.acquireTokenByCodeAsync(request)
                     .then((result: AuthenticationResult) => {
+                        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_SUCCESS, InteractionType.Silent, result);
                         this.hybridAuthCodeResponses.delete(request.code);
                         return result;
                     })
@@ -362,7 +363,6 @@ export abstract class ClientApplication {
         this.logger.trace("acquireTokenByCodeAsync called", request.correlationId);
         const silentAuthCodeClient = new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenByCode, request.correlationId);
         const silentTokenResult = await silentAuthCodeClient.acquireToken(request);
-        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_SUCCESS, InteractionType.Silent, silentTokenResult);
         return silentTokenResult;
     }
 
