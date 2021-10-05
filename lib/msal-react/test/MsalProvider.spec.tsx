@@ -122,6 +122,80 @@ describe("MsalProvider tests", () => {
             expect(await screen.findByText("Test Success!")).toBeInTheDocument();
         });
 
+        test("Account Added", async () => {              
+            const TestComponent = ({accounts}: IMsalContext) => {    
+                if (accounts.length === 1) {
+                    return <p>Test Success!</p>;
+                }
+
+                return null;
+            };
+
+            render(
+                <MsalProvider instance={pca}>
+                    <MsalConsumer>
+                        {TestComponent}
+                    </MsalConsumer>
+                </MsalProvider>
+            );
+
+            cachedAccounts = [];
+
+            const eventMessage = {
+                eventType: EventType.ACCOUNT_ADDED,
+                interactionType: null,
+                payload: null,
+                error: null,
+                timestamp: 10000
+            };
+
+            act(() => {
+                eventCallbacks.forEach((callback) => {
+                    cachedAccounts = [testAccount];
+                    callback(eventMessage);
+                });
+            });
+
+            expect(await screen.findByText("Test Success!")).toBeInTheDocument();
+        });
+
+        test("Account Removed", async () => {              
+            const TestComponent = ({accounts}: IMsalContext) => {    
+                if (accounts.length === 0) {
+                    return <p>Test Success!</p>;
+                }
+
+                return null;
+            };
+
+            render(
+                <MsalProvider instance={pca}>
+                    <MsalConsumer>
+                        {TestComponent}
+                    </MsalConsumer>
+                </MsalProvider>
+            );
+
+            cachedAccounts = [testAccount];
+
+            const eventMessage = {
+                eventType: EventType.ACCOUNT_REMOVED,
+                interactionType: null,
+                payload: null,
+                error: null,
+                timestamp: 10000
+            };
+
+            act(() => {
+                eventCallbacks.forEach((callback) => {
+                    cachedAccounts = [];
+                    callback(eventMessage);
+                });
+            });
+
+            expect(await screen.findByText("Test Success!")).toBeInTheDocument();
+        });
+
         test("LOGIN_SUCCESS event does not reset inProgress while handleRedirect is in progress", async () => {
             const TestComponent = ({accounts, inProgress}: IMsalContext) => {    
                 if (accounts.length === 1 && inProgress === InteractionStatus.HandleRedirect) {

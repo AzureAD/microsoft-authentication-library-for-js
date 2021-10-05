@@ -41,6 +41,8 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
     useEffect(() => {
         const callbackId = instance.addEventCallback((message: EventMessage) => {
             switch (message.eventType) {
+                case EventType.ACCOUNT_ADDED:
+                case EventType.ACCOUNT_REMOVED:
                 case EventType.LOGIN_SUCCESS:
                 case EventType.SSO_SILENT_SUCCESS:
                 case EventType.HANDLE_REDIRECT_END:

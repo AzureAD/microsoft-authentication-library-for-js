@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Move helper functions up to BaseInteractionClient #4049",
-  "packageName": "@azure/msal-browser",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
