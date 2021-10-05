@@ -6,10 +6,15 @@
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { Algorithms, CryptoKeyFormats } from "../utils/CryptoConstants";
-import { CryptoKeyOptions } from "./CryptoOps";
+
 /**
  * See here for more info on RsaHashedKeyGenParams: https://developer.mozilla.org/en-US/docs/Web/API/RsaHashedKeyGenParams
  */
+export type CryptoKeyOptions = {
+    keyGenAlgorithmOptions: RsaHashedKeyGenParams,
+    keypairUsages: KeyUsage[],
+    privateKeyUsage: KeyUsage[]
+};
 
 /**
  * This class implements functions used by the browser library to perform cryptography operations such as

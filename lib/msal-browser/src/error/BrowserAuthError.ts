@@ -152,6 +152,10 @@ export const BrowserAuthErrorMessage = {
     datdabaseUnavailable: {
         code: "database_unavailable",
         desc: "IndexedDB, which is required for cryptographic key storage, is unavailable. This may happen when browsing in private mode."
+    },
+    keyGenerationFailed: {
+        code: "key_generation_failed",
+        desc: "Failed to generate cryptographic key"
     }
 };
 
@@ -440,5 +444,12 @@ export class BrowserAuthError extends AuthError {
      */
     static createDatabaseUnavailableError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.datdabaseUnavailable.code, BrowserAuthErrorMessage.datdabaseUnavailable.desc);
+    }
+
+    /**
+     * Create an error when key generation failed
+     */
+    static createKeyGenerationFailedError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.keyGenerationFailed.code, BrowserAuthErrorMessage.keyGenerationFailed.desc);
     }
 }
