@@ -99,7 +99,7 @@ export class CryptoOps implements ICrypto {
         // Generate Keypair
         const keyPair = await this.browserCrypto.generateKeyPair(keyOptions, CryptoOps.EXTRACTABLE);
 
-        if (!keyPair || !keyPair.publicKey) {
+        if (!keyPair || !keyPair.publicKey || !keyPair.privateKey) {
             throw BrowserAuthError.createKeyGenerationFailedError();
         }
 
@@ -117,19 +117,14 @@ export class CryptoOps implements ICrypto {
         const publicJwkBuffer: ArrayBuffer = await this.browserCrypto.sha256Digest(publicJwkString);
         const publicJwkHash: string = this.b64Encode.urlEncodeArr(new Uint8Array(publicJwkBuffer));
         
-        // When asymmetric keypair is generated, there is also a private key
-        let unextractablePrivateKey;
-
-        if (keyPair.privateKey) {
-            // Generate Thumbprint for Private Key
-            const privateKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.privateKey);
-            // Re-import private key to make it unextractable
-            unextractablePrivateKey = await this.browserCrypto.importJwk(keyOptions, privateKeyJwk, false, keyOptions.privateKeyUsage);
-        }
+        // Generate Thumbprint for Private Key
+        const privateKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.privateKey);
+        // Re-import private key to make it unextractable
+        const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importJwk(keyOptions, privateKeyJwk, false, keyOptions.privateKeyUsage);
 
         // Store Keypair data in keystore
         await this.cache.put(publicJwkHash, {
-            privateKey: unextractablePrivateKey as CryptoKey,
+            privateKey: unextractablePrivateKey,
             publicKey: keyPair.publicKey,
             requestMethod: request.resourceRequestMethod,
             requestUri: request.resourceRequestUri
