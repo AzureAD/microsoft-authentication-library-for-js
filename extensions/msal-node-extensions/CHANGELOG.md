@@ -1,8 +1,17 @@
 # Change Log - @azure/msal-node-extensions
 
-This log was last generated on Thu, 09 Sep 2021 23:58:01 GMT and should not be manually modified.
+This log was last generated on Mon, 04 Oct 2021 23:12:35 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.0.0-alpha.11
+
+Mon, 04 Oct 2021 23:12:35 GMT
+
+### Changes
+
+- fix: integrate forked bindings package (kamausamuel11@gmail.com)
+- Bump @azure/msal-common to v5.0.1
 
 ## 1.0.0-alpha.10
 
