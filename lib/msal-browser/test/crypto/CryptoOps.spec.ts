@@ -1,11 +1,11 @@
 import { CryptoOps, CachedKeyPair } from "../../src/crypto/CryptoOps";
 import { GuidGenerator } from "../../src/crypto/GuidGenerator";
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
-import { TEST_CONFIG, TEST_URIS, BROWSER_CRYPTO, KEY_USAGES, TEST_POP_VALUES } from "../utils/StringConstants";
+import { TEST_URIS, BROWSER_CRYPTO, KEY_USAGES, TEST_POP_VALUES } from "../utils/StringConstants";
 import { createHash } from "crypto";
 import { AuthenticationScheme, BaseAuthRequest, CryptoKeyTypes, PkceCodes } from "@azure/msal-common";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
-import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src";
+import { BrowserAuthError } from "../../src";
 const msrCrypto = require("../polyfills/msrcrypto.min");
 
 const PUBLIC_EXPONENT: Uint8Array = new Uint8Array([0x01, 0x00, 0x01]);
@@ -130,62 +130,6 @@ describe("CryptoOps.ts Unit Tests", () => {
         expect(regExp.test(generatedCodes.verifier)).toBe(true);
     });
 
-    it("getPublicKeyThumbprint() generates a valid request thumbprint", async () => {
-        jest.setTimeout(30000);
-        //@ts-ignore
-        jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
-            expect(algorithm).toBe("SHA-256");
-            return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
-        });
-        const generateKeyPairSpy = jest.spyOn(BrowserCrypto.prototype, "generateKeyPair");
-        const exportJwkSpy = jest.spyOn(BrowserCrypto.prototype, "exportJwk");
-        
-        const keyType = CryptoKeyTypes.req_cnf;
-
-        const testRequest = {
-            authenticationScheme: AuthenticationScheme.POP,
-            resourceRequestMethod:"POST",
-            resourceRequestUrl: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
-            stkJwk: TEST_POP_VALUES.KID
-        };
-        
-        const pkThumbprint = await cryptoObj.getPublicKeyThumbprint(testRequest, keyType);
-        /**
-         * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
-         */
-        const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
-        const result = await generateKeyPairSpy.mock.results[0].value;
-        expect(result.publicKey.algorithm.name.toLowerCase()).toEqual(AT_BINDING_KEY_OPTIONS.keyGenAlgorithmOptions.name.toLowerCase());
-        expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
-        expect(regExp.test(pkThumbprint)).toBe(true);
-        expect(Object.keys(dbStorage[pkThumbprint])).not.toHaveLength(0);
-    }, 30000);
-
-    it("getPublicKeyThumbprint() generates a valid stk_jwk thumbprint", async () => {
-        //@ts-ignore
-        jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
-            expect(algorithm).toBe("SHA-256");
-            return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
-        });
-        const generateKeyPairSpy = jest.spyOn(BrowserCrypto.prototype, "generateKeyPair");
-        const exportJwkSpy = jest.spyOn(BrowserCrypto.prototype, "exportJwk");
-
-        const keyType = CryptoKeyTypes.stk_jwk;
-
-        const pkThumbprint = await cryptoObj.getPublicKeyThumbprint({}, keyType);
-        /**
-         * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
-         */
-        const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
-        const result = await generateKeyPairSpy.mock.results[0].value;
-
-        expect(result.publicKey.algorithm.name.toLowerCase()).toEqual(RT_BINDING_KEY_OPTIONS.keyGenAlgorithmOptions.name.toLowerCase());
-        expect(result.privateKey.algorithm.name.toLowerCase()).toEqual(RT_BINDING_KEY_OPTIONS.keyGenAlgorithmOptions.name.toLowerCase());
-        expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
-        expect(regExp.test(pkThumbprint)).toBe(true);
-        expect(Object.keys(dbStorage[pkThumbprint])).not.toHaveLength(0);
-    }, 30000);
-
     it("removeTokenBindingKey() removes the specified key from storage", async () => {
         //@ts-ignore
         jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
@@ -202,4 +146,72 @@ describe("CryptoOps.ts Unit Tests", () => {
         jest.spyOn(DatabaseStorage.prototype, "get").mockResolvedValue(undefined);
         return await expect(cryptoObj.signJwt({}, "testString")).rejects.toThrow(BrowserAuthError.createSigningKeyNotFoundInStorageError("testString"));
     }, 30000);
+
+    describe("getPublicKeyThumbprint", () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it("generates a valid request thumbprint", async () => {
+            jest.setTimeout(30000);
+            //@ts-ignore
+            jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
+                expect(algorithm).toBe("SHA-256");
+                return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
+            });
+            const generateKeyPairSpy = jest.spyOn(BrowserCrypto.prototype, "generateKeyPair");
+            const exportJwkSpy = jest.spyOn(BrowserCrypto.prototype, "exportJwk");
+            
+            const keyType = CryptoKeyTypes.req_cnf;
+    
+            const testRequest = {
+                authenticationScheme: AuthenticationScheme.POP,
+                resourceRequestMethod:"POST",
+                resourceRequestUrl: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+                stkJwk: TEST_POP_VALUES.KID
+            };
+            
+            const pkThumbprint = await cryptoObj.getPublicKeyThumbprint(testRequest, keyType);
+            /**
+             * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
+             */
+            const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
+            const result = await generateKeyPairSpy.mock.results[0].value;
+            expect(result.publicKey.algorithm.name.toLowerCase()).toEqual(AT_BINDING_KEY_OPTIONS.keyGenAlgorithmOptions.name.toLowerCase());
+            expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
+            expect(regExp.test(pkThumbprint)).toBe(true);
+            expect(Object.keys(dbStorage[pkThumbprint])).not.toHaveLength(0);
+        }, 30000);
+
+        it("generates a valid stk_jwk thumbprint", async () => {
+            //@ts-ignore
+            jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
+                expect(algorithm).toBe("SHA-256");
+                return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
+            });
+            const generateKeyPairSpy = jest.spyOn(BrowserCrypto.prototype, "generateKeyPair");
+            const exportJwkSpy = jest.spyOn(BrowserCrypto.prototype, "exportJwk");
+    
+            const keyType = CryptoKeyTypes.stk_jwk;
+    
+            const pkThumbprint = await cryptoObj.getPublicKeyThumbprint({}, keyType);
+            /**
+             * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
+             */
+            const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
+            const result = await generateKeyPairSpy.mock.results[0].value;
+    
+            expect(result.publicKey.algorithm.name.toLowerCase()).toEqual(RT_BINDING_KEY_OPTIONS.keyGenAlgorithmOptions.name.toLowerCase());
+            expect(result.privateKey.algorithm.name.toLowerCase()).toEqual(RT_BINDING_KEY_OPTIONS.keyGenAlgorithmOptions.name.toLowerCase());
+            expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
+            expect(regExp.test(pkThumbprint)).toBe(true);
+            expect(Object.keys(dbStorage[pkThumbprint])).not.toHaveLength(0);
+        }, 30000);
+
+        it("throws error if key generation fails", async () => {
+            //@ts-ignore
+            jest.spyOn(BrowserCrypto.prototype, "generateKeyPair").mockReturnValue(undefined);
+            expect(() => cryptoObj.getPublicKeyThumbprint({})).rejects.toThrow(BrowserAuthError.createKeyGenerationFailedError());
+        });
+    });
 });
