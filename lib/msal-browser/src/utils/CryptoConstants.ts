@@ -12,7 +12,7 @@ export enum Algorithms  {
     S256_HASH_ALG = "SHA-256",
 }
 
-// Numerical constants relating to biy/bytelength
+// Numerical constants relating to bit/byte length
 export enum Lengths {
     modulus = 2048
 }
