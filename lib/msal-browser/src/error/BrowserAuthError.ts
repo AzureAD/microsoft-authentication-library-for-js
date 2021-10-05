@@ -99,7 +99,7 @@ export const BrowserAuthErrorMessage = {
     },
     noTokenRequestCacheError: {
         code: "no_token_request_cache_error",
-        desc: "No token request in found in cache."
+        desc: "No token request found in cache."
     },
     unableToParseTokenRequestCacheError: {
         code: "unable_to_parse_token_request_cache_error",
