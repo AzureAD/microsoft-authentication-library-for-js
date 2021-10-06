@@ -350,8 +350,8 @@ export enum PasswordGrantConstants {
  * Supported Cryptographic Key Types
  */
 export enum CryptoKeyTypes {
-    req_cnf = "req_cnf",
-    stk_jwk = "stk_jwk"
+    ReqCnf = "req_cnf",
+    StkJwk = "stk_jwk"
 }
 
 /**

@@ -43,13 +43,17 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         if (this.config.auth.refreshTokenBinding) {
             this.logger.verbose("Refresh token binding enabled, attempting to generate Session Transport Key");
             try {
-                const sessionTransportKeyThumbprint = await this.browserCrypto.getPublicKeyThumbprint(request, CryptoKeyTypes.stk_jwk);
+                const sessionTransportKeyThumbprint = await this.browserCrypto.getPublicKeyThumbprint(request, CryptoKeyTypes.StkJwk);
                 request.stkJwk = sessionTransportKeyThumbprint;
                 this.logger.verbose("Successfully generated and stored Session Transport Key");
             } catch(error) {
                 if(error instanceof BrowserAuthError) {
-                    this.logger.error(error.message);
-                    this.logger.verbose("Could not generate Session Transport Key, refresh token will be unbound");
+                    if (error.errorCode === "key_generation_failed") {
+                        this.logger.error("Failed to generate Session Transport Key, refresh token will be unbound.");
+                    }
+                    if (error.errorCode === "database_unavailable") {
+                        this.logger.error("Failed to store Session Transport Key because IndexedDB is unavailable in the current browser environment, refresh token will be unbound.");
+                    }
                 }
             }
         }

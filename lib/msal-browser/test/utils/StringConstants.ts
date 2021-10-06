@@ -235,18 +235,6 @@ export const testNavUrlNoRequest = `https://login.microsoftonline.com/common/oau
 
 export const testLogoutUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/logout?post_logout_redirect_uri=${encodeURIComponent(`${TEST_URIS.TEST_REDIR_URI}`)}`;
 
-// Crypto Key Usage sets
-export const KEY_USAGES = {
-    AT_BINDING: {
-        KEYPAIR: ["sign", "verify"],
-        PRIVATE_KEY: ["sign"]
-    },
-    RT_BINDING: {
-        KEYPAIR: ["encrypt", "decrypt"],
-        PRIVATE_KEY: ["decrypt"]
-    }
-};
-
 // Cryptographic Constants
 export const BROWSER_CRYPTO = {
     PKCS1_V15_KEYGEN_ALG: "RSASSA-PKCS1-v1_5",

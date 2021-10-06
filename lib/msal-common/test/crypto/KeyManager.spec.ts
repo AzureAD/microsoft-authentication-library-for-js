@@ -79,15 +79,15 @@ describe("KeyManager Unit Tests", () => {
 
     describe("generateCnf", () => {
         it("generates the req_cnf correctly", async () => {
-            const req_cnf = await keyManager.generateCnf(testPopRequest);
-            expect(req_cnf).toBe(TEST_POP_VALUES.ENCODED_REQ_CNF);
+            const reqCnf = await keyManager.generateCnf(testPopRequest);
+            expect(reqCnf).toBe(TEST_POP_VALUES.ENCODED_REQ_CNF);
         });
     });
 
     describe("generateKid", () => {
         it("returns the correct kid and key storage location", async () => {
-            const req_cnf = await keyManager.generateKid(testPopRequest, CryptoKeyTypes.req_cnf);
-            expect(req_cnf).toStrictEqual(JSON.parse(TEST_POP_VALUES.DECODED_REQ_CNF));
+            const reqCnf = await keyManager.generateKid(testPopRequest, CryptoKeyTypes.ReqCnf);
+            expect(reqCnf).toStrictEqual(JSON.parse(TEST_POP_VALUES.DECODED_REQ_CNF));
         });
     });
 });

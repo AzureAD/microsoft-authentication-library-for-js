@@ -24,7 +24,7 @@ export class SignedHttpRequest {
      * @returns Public key digest, which should be sent to the token issuer.
      */
     async generatePublicKeyThumbprint(): Promise<string> {
-        const { kid } = await this.keyManager.generateKid(this.shrParameters, CryptoKeyTypes.req_cnf);
+        const { kid } = await this.keyManager.generateKid(this.shrParameters, CryptoKeyTypes.ReqCnf);
 
         return kid;
     }

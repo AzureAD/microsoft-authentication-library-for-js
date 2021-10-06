@@ -11,7 +11,7 @@ import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto, CryptoKeyOptions } from "./BrowserCrypto";
 import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { CryptoKeyFormats, CRYPTO_KEY_CONFIG } from "../utils/CryptoConstants";
+import { CryptoKeyFormats, CryptoKeyConfig } from "../utils/CryptoConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 
 export type CachedKeyPair = {
@@ -89,11 +89,11 @@ export class CryptoOps implements ICrypto {
         let keyOptions: CryptoKeyOptions;
 
         switch(keyType) {
-            case CryptoKeyTypes.stk_jwk:
-                keyOptions = CRYPTO_KEY_CONFIG.RT_BINDING;
+            case CryptoKeyTypes.StkJwk:
+                keyOptions = CryptoKeyConfig.RefreshTokenBinding;
                 break;
             default:
-                keyOptions = CRYPTO_KEY_CONFIG.AT_BINDING;
+                keyOptions = CryptoKeyConfig.AccessTokenBinding;
         }
         
         // Generate Keypair
@@ -182,7 +182,7 @@ export class CryptoOps implements ICrypto {
 
         // Sign token
         const tokenBuffer = BrowserStringUtils.stringToArrayBuffer(tokenString);
-        const signatureBuffer = await this.browserCrypto.sign(CRYPTO_KEY_CONFIG.AT_BINDING, cachedKeyPair.privateKey, tokenBuffer);
+        const signatureBuffer = await this.browserCrypto.sign(CryptoKeyConfig.AccessTokenBinding, cachedKeyPair.privateKey, tokenBuffer);
         const encodedSignature = this.b64Encode.urlEncodeArr(new Uint8Array(signatureBuffer));
 
         return `${tokenString}.${encodedSignature}`;
