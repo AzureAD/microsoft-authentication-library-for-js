@@ -47,9 +47,15 @@ export {
     // Response
     AuthenticationResult,
     // Error
-    InteractionRequiredAuthError,
     AuthError,
     AuthErrorMessage,
+    ClientAuthError,
+    ClientAuthErrorMessage,
+    ClientConfigurationError,
+    ClientConfigurationErrorMessage,
+    InteractionRequiredAuthError,
+    InteractionRequiredAuthErrorMessage,
+    ServerError,
     // Network
     INetworkModule,
     NetworkResponse,
@@ -68,3 +74,5 @@ export {
     // AzureCloudInstance enum
     AzureCloudInstance
 } from "@azure/msal-common";
+
+export { version } from "./packageMetadata";

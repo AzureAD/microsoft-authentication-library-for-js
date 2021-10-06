@@ -2,6 +2,72 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Mon, 04 Oct 2021 23:12:35 GMT",
+      "tag": "@azure/msal-browser_v2.18.0",
+      "version": "2.18.0",
+      "comments": {
+        "patch": [
+          {
+            "author": "jagore@microsoft.com",
+            "package": "@azure/msal-browser",
+            "comment": "Consistently export error types and messages for errors thrown by MSAL #4117",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "comment": "Move helper functions up to BaseInteractionClient #4049",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "comment": "Export library version #4124",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          }
+        ],
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "comment": "Disallow major bumps",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          },
+          {
+            "author": "kamausamuel11@gmail.com",
+            "package": "@azure/msal-browser",
+            "comment": "fix: add forked bindings library to node-extensions",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          }
+        ],
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "comment": "Emit event when user logs in or out from a different tab or window #3981",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          },
+          {
+            "author": "prkanher@microsoft.com",
+            "package": "@azure/msal-browser",
+            "comment": "Remove requirement of user hint on ssoSilent API #4123",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v5.0.1",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 07 Sep 2021 23:22:24 GMT",
       "tag": "@azure/msal-browser_v2.17.0",
       "version": "2.17.0",

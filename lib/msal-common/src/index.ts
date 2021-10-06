@@ -79,7 +79,7 @@ export { ScopeSet } from "./request/ScopeSet";
 // Logger Callback
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";
 // Errors
-export { InteractionRequiredAuthError } from "./error/InteractionRequiredAuthError";
+export { InteractionRequiredAuthError, InteractionRequiredAuthErrorMessage } from "./error/InteractionRequiredAuthError";
 export { AuthError, AuthErrorMessage } from "./error/AuthError";
 export { ServerError } from "./error/ServerError";
 export { ClientAuthError, ClientAuthErrorMessage } from "./error/ClientAuthError";
@@ -94,3 +94,4 @@ export { TimeUtils } from "./utils/TimeUtils";
 export { ServerTelemetryManager } from "./telemetry/server/ServerTelemetryManager";
 export { ServerTelemetryRequest } from "./telemetry/server/ServerTelemetryRequest";
 export { PopTokenGenerator } from "./crypto/PopTokenGenerator";
+export { version } from "./packageMetadata";
