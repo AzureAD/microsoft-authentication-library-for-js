@@ -1,8 +1,18 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Tue, 07 Sep 2021 23:22:24 GMT and should not be manually modified.
+This log was last generated on Mon, 04 Oct 2021 23:12:35 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 5.0.1
+
+Mon, 04 Oct 2021 23:12:35 GMT
+
+### Patches
+
+- Export library version #4124 (thomas.norling@microsoft.com)
+- Consistently export error types and messages for errors thrown by MSAL #4117 (jagore@microsoft.com)
+- Make no_tokens_found error an InteractionRequiredAuthError #4089 (thomas.norling@microsoft.com)
 
 ## 5.0.0
 
