@@ -2,6 +2,41 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Mon, 04 Oct 2021 23:12:35 GMT",
+      "tag": "@azure/msal-common_v5.0.1",
+      "version": "5.0.1",
+      "comments": {
+        "none": [
+          {
+            "author": "kamausamuel11@gmail.com",
+            "package": "@azure/msal-common",
+            "comment": "fix: integrate forked bindings package",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "comment": "Export library version #4124",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          },
+          {
+            "author": "jagore@microsoft.com",
+            "package": "@azure/msal-common",
+            "comment": "Consistently export error types and messages for errors thrown by MSAL #4117",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "comment": "Make no_tokens_found error an InteractionRequiredAuthError #4089",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 07 Sep 2021 23:22:24 GMT",
       "tag": "@azure/msal-common_v5.0.0",
       "version": "5.0.0",

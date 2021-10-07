@@ -9,12 +9,13 @@
 
 1. [About](#about)
 2. [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/FAQ.md)
-3. [Releases](#releases)
-4. [Prerequisites and Usage](#prerequisites-and-usage)
-5. [Installation](#installation)
-6. [Security Reporting](#security-reporting)
-7. [License](#license)
-8. [Code of Conduct](#we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct)
+1. [Changelog](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-common/CHANGELOG.md)
+1. [Releases](#releases)
+1. [Prerequisites and Usage](#prerequisites-and-usage)
+1. [Installation](#installation)
+1. [Security Reporting](#security-reporting)
+1. [License](#license)
+1. [Code of Conduct](#we-value-and-adhere-to-the-microsoft-open-source-code-of-conduct)
 
 ## About
 
