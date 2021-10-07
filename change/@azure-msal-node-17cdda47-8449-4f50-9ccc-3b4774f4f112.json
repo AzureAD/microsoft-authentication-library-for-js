@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "patch fix",
-  "packageName": "@azure/msal-node",
-  "email": "ellymakuba@microsoft.com",
-  "dependentChangeType": "none"
-}

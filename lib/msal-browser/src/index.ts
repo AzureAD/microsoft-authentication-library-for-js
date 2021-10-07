@@ -47,9 +47,15 @@ export {
     // Response
     AuthenticationResult,
     // Error
-    InteractionRequiredAuthError,
     AuthError,
     AuthErrorMessage,
+    ClientAuthError,
+    ClientAuthErrorMessage,
+    ClientConfigurationError,
+    ClientConfigurationErrorMessage,
+    InteractionRequiredAuthError,
+    InteractionRequiredAuthErrorMessage,
+    ServerError,
     // Network
     INetworkModule,
     NetworkResponse,
@@ -66,3 +72,5 @@ export {
     StringUtils,
     UrlString
 } from "@azure/msal-common";
+
+export { version } from "./packageMetadata";
