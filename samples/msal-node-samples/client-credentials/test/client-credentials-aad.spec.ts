@@ -1,37 +1,17 @@
-import { setupCredentials } from "../../../e2eTestUtils/TestUtils";
 import { NodeCacheTestUtils } from "../../../e2eTestUtils/NodeCacheTestUtils";
-import { LabClient } from "../../../e2eTestUtils/LabClient";
-import { LabApiQueryParams } from "../../../e2eTestUtils/LabApiQueryParams";
-import { AppTypes, AzureEnvironments, FederationProviders, UserTypes } from "../../../e2eTestUtils/Constants";
 import { ConfidentialClientApplication } from "../../../../lib/msal-node/";
-import config from "../config/ADFS.json";
+import config from "../config/AAD.json";
 
-const TEST_CACHE_LOCATION = `${__dirname}/data/adfs.cache.json`;
+const TEST_CACHE_LOCATION = `${__dirname}/data/aad.cache.json`;
 
 const getClientCredentialsToken = require("../index");
 
 const cachePlugin = require("../../cachePlugin.js")(TEST_CACHE_LOCATION);
 
-let username: string;
-let accountPwd: string;
-
-describe('Client Credentials ADFS PPE Tests', () => {
+describe('Client Credentials AAD PPE Tests', () => {
     jest.retryTimes(1);
     jest.setTimeout(90000);
     
-    beforeAll(async () => {
-        const labApiParms: LabApiQueryParams = {
-            azureEnvironment: AzureEnvironments.CLOUD,
-            appType: AppTypes.CLOUD,
-            federationProvider: FederationProviders.ADFS2019,
-            userType: UserTypes.FEDERATED
-        }; 
-
-        const labClient = new LabClient();
-        const envResponse = await labClient.getVarsByCloudEnvironment(labApiParms);
-        [username, accountPwd] = await setupCredentials(envResponse[0], labClient);
-    });
-
     describe("Acquire Token", () => {
         let confidentialClientApplication: ConfidentialClientApplication;
         let server: any;

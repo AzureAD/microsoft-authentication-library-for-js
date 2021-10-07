@@ -24,9 +24,8 @@ const cachePlugin = require('../cachePlugin')(cacheLocation);
  * You can create your own configuration file and replace the path inside the "config" require statement below
  * with the path to your custom configuraiton.
  */
-const scenario = argv.s || "ADFS";
 const runtimeOptions = argv.ro || null;
-const config = require(`./config/${scenario}.json`);
+const config = require(`./config/AAD.json`);
 
 function getClientCredentialsToken(cca, ro) {
     // With client credentials flows permissions need to be granted in the portal by a tenant administrator. 
@@ -40,9 +39,11 @@ function getClientCredentialsToken(cca, ro) {
     return cca
         .acquireTokenByClientCredential(clientCredentialRequest)
         .then((response) => {
-            console.log("Response: ", response);
+            // Uncomment to see the successful response logged
+            // console.log("Response: ", response);
         }).catch((error) => {
-            console.log(JSON.stringify(error));
+            // Uncomment to see the errors logges
+            // console.log(JSON.stringify(error));
         });
 }
 
@@ -61,16 +62,15 @@ if(argv.$0 === "index.js") {
     }
     
     // Build MSAL ClientApplication Configuration object
-
     const clientConfig = {
         auth: config.authOptions,
         cache: {
             cachePlugin
         },
         // Uncomment or comment the code below to enable or disable the MSAL logger respectively
-        system: {
-            loggerOptions,
-        }
+        // system: {
+        //    loggerOptions,
+        // }
     };
     
     // Create msal application object

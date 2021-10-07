@@ -1,7 +1,7 @@
 {
     "authOptions": {
-        "clientId": "ENTER_CLIENT_ID",
-        "authority": "https://login.windows-ppe.net/common",
-        "clientSecret": "ENTER_CLIENT_SECRET"
+        "clientId": "88f91eac-c606-4c67-a0e2-a5e8a186854f",
+        "authority": "https://login.microsoftonline.com/f645ad92-e38d-4d1a-b510-d1b09a74a8ca",
+        "clientSecret": "SBriCVu[bQROmT@_B:z9PGYa5G3h5=6j"
     }
 }
