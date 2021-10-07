@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, RequestThumbprint } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, RequestThumbprint, AuthError } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
 import { DEFAULT_REQUEST, InteractionType } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
@@ -13,7 +13,7 @@ import { ClientApplication } from "./ClientApplication";
 import { SilentRequest } from "../request/SilentRequest";
 import { EventType } from "../event/EventType";
 import { BrowserAuthError } from "../error/BrowserAuthError";
-import { SilentCacheClient } from "../interaction_client/SilentCacheClient";
+import { WamAuthError } from "../error/WamAuthError";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -128,19 +128,36 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} 
      */
     private async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult>{
-        const silentCacheClient = new SilentCacheClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient);
-        const silentRequest = silentCacheClient.initializeSilentRequest(request, account);
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
 
-        return silentCacheClient.acquireToken(silentRequest).catch(async () => {
-            try {
-                const tokenRenewalResult = await this.acquireTokenByRefreshToken(silentRequest);
-                this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, tokenRenewalResult);
-                return tokenRenewalResult;
-            } catch (tokenRenewalError) {
-                this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
-                throw tokenRenewalError;
-            }
+        let result: Promise<AuthenticationResult>;
+        if (this.config.system.platformSSO && this.wamExtensionProvider) {
+            result = this.acquireTokenNative(request).catch((e: AuthError) => {
+                // If native token acquisition fails for availability reasons fallback to standard flow
+                if (e instanceof WamAuthError && e.isFatal()) {
+                    this.wamExtensionProvider = undefined; // Prevent future requests from continuing to attempt 
+                    const silentCacheClient = this.createSilentCacheClient();
+                    const silentRequest = silentCacheClient.initializeSilentRequest(request, account);
+                    result = silentCacheClient.acquireToken(silentRequest).catch(async () => {
+                        return this.acquireTokenByRefreshToken(silentRequest);
+                    });
+                }
+                throw e;
+            });     
+        } else {
+            const silentCacheClient = this.createSilentCacheClient();
+            const silentRequest = silentCacheClient.initializeSilentRequest(request, account);
+            result = silentCacheClient.acquireToken(silentRequest).catch(async () => {
+                return this.acquireTokenByRefreshToken(silentRequest);
+            });
+        }
+
+        return result.then((response) => {
+            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, response);
+            return response;
+        }).catch((tokenRenewalError) => {
+            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
+            throw tokenRenewalError;
         });
     }
 }

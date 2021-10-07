@@ -155,7 +155,11 @@ export const BrowserAuthErrorMessage = {
     },
     wamExtensionNotInstalled: {
         code: "wam_extension_not_installed",
-        desc: "Wam extension is not installed."
+        desc: "Wam extension is not installed. If you think this is a mistake run the initialize function."
+    },
+    wamConnectionNotEstablished: {
+        code: "wam_connection_not_established",
+        desc: "Connection to WAM has not been established. Please install a compatible browser extension and run initialize()."
     }
 };
 
@@ -451,5 +455,9 @@ export class BrowserAuthError extends AuthError {
      */
     static createWamExtensionNotInstalledError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.wamExtensionNotInstalled.code, BrowserAuthErrorMessage.wamExtensionNotInstalled.desc);
+    }
+
+    static createWamConnectionNotEstablishedError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.wamConnectionNotEstablished.code, BrowserAuthErrorMessage.wamConnectionNotEstablished.desc);
     }
 }
