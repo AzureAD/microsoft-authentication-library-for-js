@@ -29,19 +29,11 @@ export class NodeStorage extends CacheManager {
     // Cache configuration, either set by user or default values.
     private logger: Logger;
     private cache: CacheKVStore = {};
-    private inMemoryCache: InMemoryCache;
     private changeEmitters: Array<Function> = [];
 
     constructor(logger: Logger, clientId: string, cryptoImpl: ICrypto) {
         super(clientId, cryptoImpl);
         this.logger = logger;
-        this.inMemoryCache = {
-            accounts: {},
-            idTokens: {},
-            accessTokens: {},
-            refreshTokens: {},
-            appMetadata: {},
-        };
     }
 
     /**
@@ -64,24 +56,31 @@ export class NodeStorage extends CacheManager {
      * @param cache - key value store
      */
     cacheToInMemoryCache(cache: CacheKVStore): InMemoryCache {
+        const inMemoryCache: InMemoryCache = {
+            accounts: {},
+            idTokens: {},
+            accessTokens: {},
+            refreshTokens: {},
+            appMetadata: {},
+        };
 
         for (const key in cache) {
             if (cache[key as string] instanceof AccountEntity) {
-                this.inMemoryCache.accounts[key] = cache[key] as AccountEntity;
+                inMemoryCache.accounts[key] = cache[key] as AccountEntity;
             } else if (cache[key] instanceof IdTokenEntity) {
-                this.inMemoryCache.idTokens[key] = cache[key] as IdTokenEntity;
+                inMemoryCache.idTokens[key] = cache[key] as IdTokenEntity;
             } else if (cache[key] instanceof AccessTokenEntity) {
-                this.inMemoryCache.accessTokens[key] = cache[key] as AccessTokenEntity;
+                inMemoryCache.accessTokens[key] = cache[key] as AccessTokenEntity;
             } else if (cache[key] instanceof RefreshTokenEntity) {
-                this.inMemoryCache.refreshTokens[key] = cache[key] as RefreshTokenEntity;
+                inMemoryCache.refreshTokens[key] = cache[key] as RefreshTokenEntity;
             } else if (cache[key] instanceof AppMetadataEntity) {
-                this.inMemoryCache.appMetadata[key] = cache[key] as AppMetadataEntity;
+                inMemoryCache.appMetadata[key] = cache[key] as AppMetadataEntity;
             } else {
                 continue;
             }
         }
 
-        return this.inMemoryCache;
+        return inMemoryCache;
     }
 
     /**
