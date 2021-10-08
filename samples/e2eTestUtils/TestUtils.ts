@@ -24,6 +24,41 @@ export function createFolder(foldername: string) {
     }
 }
 
+export async function retrieveAppConfiguration(labConfig: LabConfig, labClient: LabClient, isConfidentialClient: boolean): Promise<[string, string, string]> {
+    let clientID = "";
+    let clientSecret = "";
+    let authority = "";
+
+    if (labConfig.app.appId) {
+        clientID = labConfig.app.appId;
+    }
+
+    if (labConfig.lab.authority && labConfig.lab.tenantId) {
+        authority = `${labConfig.lab.authority}${labConfig.lab.tenantId}`;
+    }
+
+    if (isConfidentialClient) {
+        if (!(labConfig.lab.labName && labConfig.app.appName)) {
+            throw Error("No Labname and/or Appname provided!");
+        }
+
+        let secretAppName =`${labConfig.lab.labName}-${labConfig.app.appName}`;
+
+        // Reformat the secret app name to kebab case from snake case
+        while (secretAppName.includes("_")) secretAppName = secretAppName.replace("_", "-");
+
+        const appClientSecret = await labClient.getSecret(secretAppName);
+
+        clientSecret = appClientSecret.value;
+
+        if (!clientSecret) {
+            throw Error("Unable to get the client secret");
+        }
+    }
+
+    return [clientID, clientSecret, authority];
+}
+
 export async function setupCredentials(labConfig: LabConfig, labClient: LabClient): Promise<[string, string]> {
     let username = "";
     let accountPwd = "";
