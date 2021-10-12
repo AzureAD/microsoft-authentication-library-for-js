@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { nodeResolve } from "@rollup/plugin-node-resolve";
 import typescript from "rollup-plugin-typescript2";
 import pkg from "./package.json";
 
@@ -31,6 +32,9 @@ export default [
             ...Object.keys(pkg.peerDependencies || {})
         ],
         plugins: [
+            nodeResolve({
+                resolveOnly: ["jose"]
+            }),
             typescript({
                 typescript: require("typescript"),
                 tsconfig: "tsconfig.build.json"
@@ -52,6 +56,9 @@ export default [
             ...Object.keys(pkg.peerDependencies || {})
         ],
         plugins: [
+            nodeResolve({
+                resolveOnly: ["jose"]
+            }),
             typescript({
                 typescript: require("typescript"),
                 tsconfig: "tsconfig.build.json"
