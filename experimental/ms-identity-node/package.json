@@ -21,7 +21,7 @@
     "tokens"
   ],
   "sideEffects": false,
-  "main": "index.js",
+  "main": "./dist/index.cjs.js",
   "engines": {
     "node": ">=0.8.0"
   },

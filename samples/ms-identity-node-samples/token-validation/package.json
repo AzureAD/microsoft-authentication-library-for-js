@@ -1,0 +1,20 @@
+{
+  "name": "token-validation-sample",
+  "version": "1.0.0",
+  "description": "Sample for the prototype token validation library ms-identity-node",
+  "main": "index.js",
+  "private": true,
+  "scripts": {
+    "start": "node ./index.js",
+    "test": "jest",
+    "build:package": "cd ../../../lib/msal-common && npm run build && cd ../../experimental/ms-identity-node && npm run build",
+    "start:build": "npm run build:package && npm start",
+    "install:local": "npm install ../../../experimental/ms-identity-node"
+  },
+  "author": "Microsoft",
+  "license": "MIT",
+  "dependencies": {
+    "@azure/ms-identity-node": "file:../../../experimental/ms-identity-node",
+    "express": "^4.17.1"
+  }
+}
