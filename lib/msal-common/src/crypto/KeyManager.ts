@@ -23,8 +23,8 @@ export type StkJwkThumbprint = {
 };
 
 enum KeyLocation {
-    SW = "sw",
-    UHW = "uhw"
+    SoftwareStorage = "sw",
+    HardwareStorage = "uhw"
 }
 
 export class KeyManager {
@@ -35,7 +35,7 @@ export class KeyManager {
     }
 
     async generateCnf(request: SignedHttpRequestParameters): Promise<string> {
-        const reqCnf = await this.generateKid(request, CryptoKeyTypes.req_cnf);
+        const reqCnf = await this.generateKid(request, CryptoKeyTypes.ReqCnf);
         return this.cryptoUtils.base64Encode(JSON.stringify(reqCnf));
     }
 
@@ -44,7 +44,7 @@ export class KeyManager {
 
         return {
             kid: kidThumbprint,
-            xms_ksl: KeyLocation.SW
+            xms_ksl: KeyLocation.SoftwareStorage
         };
     }
 

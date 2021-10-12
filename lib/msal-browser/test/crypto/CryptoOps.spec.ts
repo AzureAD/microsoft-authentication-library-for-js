@@ -1,16 +1,17 @@
 import { CryptoOps, CachedKeyPair } from "../../src/crypto/CryptoOps";
 import { GuidGenerator } from "../../src/crypto/GuidGenerator";
-import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
-import { TEST_URIS, BROWSER_CRYPTO, KEY_USAGES, TEST_POP_VALUES } from "../utils/StringConstants";
+import { BrowserCrypto, CryptoKeyOptions } from "../../src/crypto/BrowserCrypto";
+import { TEST_URIS, BROWSER_CRYPTO, TEST_POP_VALUES } from "../utils/StringConstants";
 import { createHash } from "crypto";
 import { AuthenticationScheme, BaseAuthRequest, CryptoKeyTypes, PkceCodes } from "@azure/msal-common";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserAuthError } from "../../src";
+import { CryptoKeyUsageSets } from "../../src/utils/CryptoConstants";
 const msrCrypto = require("../polyfills/msrcrypto.min");
 
 const PUBLIC_EXPONENT: Uint8Array = new Uint8Array([0x01, 0x00, 0x01]);
 
-const AT_BINDING_KEY_OPTIONS = {
+const AccessTokenBindingKeyOptions: CryptoKeyOptions = {
     keyGenAlgorithmOptions: {
         name: BROWSER_CRYPTO.PKCS1_V15_KEYGEN_ALG,
         hash: {
@@ -19,11 +20,11 @@ const AT_BINDING_KEY_OPTIONS = {
         modulusLength: BROWSER_CRYPTO.MODULUS_LENGTH,
         publicExponent: PUBLIC_EXPONENT
     },
-    keypairUsages: KEY_USAGES.AT_BINDING.KEYPAIR as KeyUsage[],
-    privateKeyUsage: KEY_USAGES.AT_BINDING.PRIVATE_KEY as KeyUsage[]
+    keypairUsages: CryptoKeyUsageSets.AccessTokenBinding.Keypair,
+    privateKeyUsage: CryptoKeyUsageSets.AccessTokenBinding.PrivateKey
 };
 
-const RT_BINDING_KEY_OPTIONS = {
+const RefreshTokenBindingOptions: CryptoKeyOptions = {
     keyGenAlgorithmOptions: {
         name: BROWSER_CRYPTO.RSA_OAEP,
         hash: {
@@ -32,8 +33,8 @@ const RT_BINDING_KEY_OPTIONS = {
         modulusLength: BROWSER_CRYPTO.MODULUS_LENGTH,
         publicExponent: PUBLIC_EXPONENT
     },
-    keypairUsages: KEY_USAGES.RT_BINDING.KEYPAIR as KeyUsage[],
-    privateKeyUsage: KEY_USAGES.RT_BINDING.PRIVATE_KEY as KeyUsage[]
+    keypairUsages: CryptoKeyUsageSets.RefreshTokenBinding.Keypair,
+    privateKeyUsage: CryptoKeyUsageSets.RefreshTokenBinding.PrivateKey
 };
 
 describe("CryptoOps.ts Unit Tests", () => {
@@ -162,7 +163,7 @@ describe("CryptoOps.ts Unit Tests", () => {
             const generateKeyPairSpy = jest.spyOn(BrowserCrypto.prototype, "generateKeyPair");
             const exportJwkSpy = jest.spyOn(BrowserCrypto.prototype, "exportJwk");
             
-            const keyType = CryptoKeyTypes.req_cnf;
+            const keyType = CryptoKeyTypes.ReqCnf;
     
             const testRequest = {
                 authenticationScheme: AuthenticationScheme.POP,
@@ -177,7 +178,7 @@ describe("CryptoOps.ts Unit Tests", () => {
              */
             const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
             const result = await generateKeyPairSpy.mock.results[0].value;
-            expect(result.publicKey.algorithm.name.toLowerCase()).toEqual(AT_BINDING_KEY_OPTIONS.keyGenAlgorithmOptions.name.toLowerCase());
+            expect(result.publicKey.algorithm.name.toLowerCase()).toEqual(AccessTokenBindingKeyOptions.keyGenAlgorithmOptions.name.toLowerCase());
             expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
             expect(regExp.test(pkThumbprint)).toBe(true);
             expect(Object.keys(dbStorage[pkThumbprint])).not.toHaveLength(0);
@@ -192,7 +193,7 @@ describe("CryptoOps.ts Unit Tests", () => {
             const generateKeyPairSpy = jest.spyOn(BrowserCrypto.prototype, "generateKeyPair");
             const exportJwkSpy = jest.spyOn(BrowserCrypto.prototype, "exportJwk");
     
-            const keyType = CryptoKeyTypes.stk_jwk;
+            const keyType = CryptoKeyTypes.StkJwk;
     
             const pkThumbprint = await cryptoObj.getPublicKeyThumbprint({}, keyType);
             /**
@@ -201,8 +202,8 @@ describe("CryptoOps.ts Unit Tests", () => {
             const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
             const result = await generateKeyPairSpy.mock.results[0].value;
     
-            expect(result.publicKey.algorithm.name.toLowerCase()).toEqual(RT_BINDING_KEY_OPTIONS.keyGenAlgorithmOptions.name.toLowerCase());
-            expect(result.privateKey.algorithm.name.toLowerCase()).toEqual(RT_BINDING_KEY_OPTIONS.keyGenAlgorithmOptions.name.toLowerCase());
+            expect(result.publicKey.algorithm.name.toLowerCase()).toEqual(RefreshTokenBindingOptions.keyGenAlgorithmOptions.name.toLowerCase());
+            expect(result.privateKey.algorithm.name.toLowerCase()).toEqual(RefreshTokenBindingOptions.keyGenAlgorithmOptions.name.toLowerCase());
             expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
             expect(regExp.test(pkThumbprint)).toBe(true);
             expect(Object.keys(dbStorage[pkThumbprint])).not.toHaveLength(0);

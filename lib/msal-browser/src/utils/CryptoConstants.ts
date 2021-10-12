@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+import { CryptoKeyOptions } from "../crypto/BrowserCrypto";
+
 // Cryptographic Algorithms used/supported
 export enum Algorithms  {
     PKCS1_V15_KEYGEN_ALG = "RSASSA-PKCS1-v1_5",
@@ -12,7 +14,7 @@ export enum Algorithms  {
     S256_HASH_ALG = "SHA-256",
 }
 
-// Numerical constants relating to biy/bytelength
+// Numerical constants relating to bit/byte length
 export enum Lengths {
     modulus = 2048
 }
@@ -28,19 +30,35 @@ export enum CryptoKeyFormats  {
 }
 
 // Crypto Key Usage sets
-export const KEY_USAGES = {
-    AT_BINDING: {
-        KEYPAIR: ["sign", "verify"],
-        PRIVATE_KEY: ["sign"]
+
+type CryptoKeyUsageSet = {
+    Keypair: KeyUsage[],
+    PrivateKey: KeyUsage[]
+};
+
+interface TokenBindingKeyUsageSets {
+    AccessTokenBinding: CryptoKeyUsageSet;
+    RefreshTokenBinding: CryptoKeyUsageSet;
+}
+
+export const CryptoKeyUsageSets: TokenBindingKeyUsageSets = {
+    AccessTokenBinding: {
+        Keypair: ["sign", "verify"],
+        PrivateKey: ["sign"]
     },
-    RT_BINDING: {
-        KEYPAIR: ["encrypt", "decrypt"],
-        PRIVATE_KEY: ["decrypt"]
+    RefreshTokenBinding: {
+        Keypair: ["encrypt", "decrypt"],
+        PrivateKey: ["decrypt"]
     }
 };
 
-export const CRYPTO_KEY_CONFIG = {
-    AT_BINDING: {
+interface TokenBindingKeyConfig {
+    AccessTokenBinding: CryptoKeyOptions;
+    RefreshTokenBinding: CryptoKeyOptions;
+}
+
+export const CryptoKeyConfig: TokenBindingKeyConfig = {
+    AccessTokenBinding: {
         keyGenAlgorithmOptions: {
             name: Algorithms.PKCS1_V15_KEYGEN_ALG,
             hash: {
@@ -49,10 +67,10 @@ export const CRYPTO_KEY_CONFIG = {
             modulusLength: Lengths.modulus,
             publicExponent: PUBLIC_EXPONENT
         },
-        keypairUsages: KEY_USAGES.AT_BINDING.KEYPAIR as KeyUsage[],
-        privateKeyUsage: KEY_USAGES.AT_BINDING.PRIVATE_KEY as KeyUsage[]
+        keypairUsages: CryptoKeyUsageSets.AccessTokenBinding.Keypair,
+        privateKeyUsage: CryptoKeyUsageSets.AccessTokenBinding.PrivateKey
     },
-    RT_BINDING: {
+    RefreshTokenBinding: {
         keyGenAlgorithmOptions: {     
             name: Algorithms.RSA_OAEP,
             hash: {
@@ -61,7 +79,7 @@ export const CRYPTO_KEY_CONFIG = {
             modulusLength: Lengths.modulus,
             publicExponent: PUBLIC_EXPONENT
         },
-        keypairUsages: KEY_USAGES.RT_BINDING.KEYPAIR as KeyUsage[],
-        privateKeyUsage: KEY_USAGES.RT_BINDING.PRIVATE_KEY as KeyUsage[]
+        keypairUsages: CryptoKeyUsageSets.RefreshTokenBinding.Keypair,
+        privateKeyUsage: CryptoKeyUsageSets.RefreshTokenBinding.PrivateKey
     }
 };
