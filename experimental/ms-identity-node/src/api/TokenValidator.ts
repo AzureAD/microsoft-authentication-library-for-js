@@ -6,10 +6,7 @@
 import { Configuration } from "../config/Configuration";
 import { TokenValidationParameters } from "../config/TokenValidationParameters";
 import { TokenValidationResponse } from "../response/TokenValidationResponse";
-// eslint-disable-next-line
-import { jwtVerify } from "jose/jwt/verify";
-// eslint-disable-next-line
-import { createRemoteJWKSet } from "jose/jwks/remote";
+import { jwtVerify, createRemoteJWKSet } from "jose";
 
 export class TokenValidator {
     private config: Configuration;
@@ -29,6 +26,7 @@ export class TokenValidator {
         const jwks = createRemoteJWKSet(new URL("https://login.windows-ppe.net/common/discovery/v2.0/keys"));
         console.log(jwks);
         const { payload, protectedHeader } = await jwtVerify(validationParams.rawTokenString, jwks);
+
         return {
             isValid: false,
             protectedHeader,
