@@ -31,7 +31,6 @@ const getTokenAuthCode = function (port) {
         const tokenValidationParams = {
             rawTokenString: rawToken,
         };
-        console.log(tokenValidator);
         tokenValidator.validateToken(tokenValidationParams).then((response) => {
             console.log("Token was validated");
             console.log(response);

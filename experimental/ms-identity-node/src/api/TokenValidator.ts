@@ -23,8 +23,8 @@ export class TokenValidator {
         if (!validationParams && !this.config) {
             throw "Can't call this without params";
         }
+
         const jwks = createRemoteJWKSet(new URL("https://login.windows-ppe.net/common/discovery/v2.0/keys"));
-        console.log(jwks);
         const { payload, protectedHeader } = await jwtVerify(validationParams.rawTokenString, jwks);
 
         return {
