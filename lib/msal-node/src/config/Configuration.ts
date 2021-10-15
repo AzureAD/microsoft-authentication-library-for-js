@@ -59,6 +59,7 @@ export type CacheOptions = {
 export type NodeSystemOptions = {
     loggerOptions?: LoggerOptions;
     networkClient?: INetworkModule;
+    proxyUrl?: string;
 };
 
 /**
@@ -105,6 +106,7 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
 const DEFAULT_SYSTEM_OPTIONS: Required<NodeSystemOptions> = {
     loggerOptions: DEFAULT_LOGGER_OPTIONS,
     networkClient: NetworkUtils.getNetworkClient(),
+    proxyUrl: "",
 };
 
 export type NodeConfiguration = {

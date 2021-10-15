@@ -10,6 +10,7 @@ import {
 } from "@azure/msal-common";
 import { HttpMethod } from "../utils/Constants";
 import axios, { AxiosRequestConfig } from "axios";
+import { HttpsProxyAgent } from "https-proxy-agent";
 
 /**
  * This class implements the API for network requests.
@@ -23,16 +24,22 @@ export class HttpClient implements INetworkModule {
      */
     async sendGetRequestAsync<T>(
         url: string,
-        options?: NetworkRequestOptions
+        options?: NetworkRequestOptions,
+        proxyUrl?: string,
     ): Promise<NetworkResponse<T>> {
-        const request: AxiosRequestConfig = {
+        let request: AxiosRequestConfig = {
             method: HttpMethod.GET,
             url: url,
             /* istanbul ignore next */
             headers: options && options.headers,
             /* istanbul ignore next */
-            validateStatus: () => true
+            validateStatus: () => true,
         };
+
+        if (proxyUrl) {
+            request.proxy = false;
+            request.httpsAgent = new HttpsProxyAgent(proxyUrl);
+        }
 
         const response = await axios(request);
         return {
