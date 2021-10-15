@@ -152,6 +152,12 @@ export const TEST_POP_VALUES = {
     SAMPLE_POP_AT_PAYLOAD_DECODED: "{\"sub\":\"1234567890\",\"name\":\"John Doe\",\"iat\":1516239022,\"cnf\":{\"kid\":\"NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs\"}}"
 };
 
+export const TEST_SSH_VALUES = {
+    SSH_JWK: "{\"kty\":\"RSA\",\"n\":\"wDJwv083ZhGGkpMPVcBMwtSBNLu7qhT2VmKv7AyPEz_dWb8GQzNEnWT1niNjFI0isDMFWQ7X2O-dhTL9J1QguQ==\",\"e\":\"AQAB\"}",
+    ENCODED_SSH_JWK: "%7B%22kty%22%3A%22RSA%22%2C%22n%22%3A%22wDJwv083ZhGGkpMPVcBMwtSBNLu7qhT2VmKv7AyPEz_dWb8GQzNEnWT1niNjFI0isDMFWQ7X2O-dhTL9J1QguQ%3D%3D%22%2C%22e%22%3A%22AQAB%22%7D",
+    SSH_KID: "TestSSHKeyId"
+}
+
 export const TEST_ACCOUNT_INFO: AccountInfo = {
     homeAccountId: `${TEST_DATA_CLIENT_INFO.TEST_UID}.${TEST_DATA_CLIENT_INFO.TEST_UTID}`,
     tenantId: ID_TOKEN_CLAIMS.tid,

@@ -80,6 +80,10 @@ export const ClientConfigurationErrorMessage = {
     untrustedAuthority: {
         code: "untrusted_authority",
         desc: "The provided authority is not a trusted authority. Please include this authority in the knownAuthorities config parameter."
+    },
+    missingSshJwk: {
+        code: "missing_ssh_jwk",
+        desc: "Missing sshJwk in SSH certificate request. A stringified JSON Web Key is required when using the SSH authentication scheme."
     }
 };
 
@@ -242,5 +246,13 @@ export class ClientConfigurationError extends ClientAuthError {
     static createUntrustedAuthorityError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.untrustedAuthority.code,
             ClientConfigurationErrorMessage.untrustedAuthority.desc);
+    }
+
+    /**
+     * Throws an error when the authentication scheme is set to SSH but the SSH public key is omitted from the request
+     */
+    static createMissingSshJwkError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.missingSshJwk.code,
+            ClientConfigurationErrorMessage.missingSshJwk.desc);
     }
 }

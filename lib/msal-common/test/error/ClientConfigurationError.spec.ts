@@ -162,4 +162,18 @@ describe("ClientConfigurationError.ts Class Unit Tests", () => {
         expect(err.name).toBe("ClientConfigurationError");
         expect(err.stack?.includes("ClientConfigurationError.spec.ts")).toBe(true);
     });
+
+    it("createMissingSshJwkError creates a ClientConfigurationError object", () => {
+        const err: ClientConfigurationError = ClientConfigurationError.createMissingSshJwkError();
+
+        expect(err instanceof ClientConfigurationError).toBe(true);
+        expect(err instanceof ClientAuthError).toBe(true);
+        expect(err instanceof AuthError).toBe(true);
+        expect(err instanceof Error).toBe(true);
+        expect(err.errorCode).toBe(ClientConfigurationErrorMessage.missingSshJwk.code);
+        expect(err.errorMessage.includes(ClientConfigurationErrorMessage.missingSshJwk.desc)).toBe(true);
+        expect(err.message.includes(ClientConfigurationErrorMessage.missingSshJwk.desc)).toBe(true);
+        expect(err.name).toBe("ClientConfigurationError");
+        expect(err.stack?.includes("ClientConfigurationError.spec.ts")).toBe(true);
+    });
 });
