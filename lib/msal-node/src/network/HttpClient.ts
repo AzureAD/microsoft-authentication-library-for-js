@@ -10,7 +10,7 @@ import {
 } from "@azure/msal-common";
 import { HttpMethod } from "../utils/Constants";
 import axios, { AxiosRequestConfig } from "axios";
-import { HttpsProxyAgent } from "https-proxy-agent";
+import createHttpsProxyAgent from "https-proxy-agent";
 
 /**
  * This class implements the API for network requests.
@@ -25,9 +25,8 @@ export class HttpClient implements INetworkModule {
     async sendGetRequestAsync<T>(
         url: string,
         options?: NetworkRequestOptions,
-        proxyUrl?: string,
     ): Promise<NetworkResponse<T>> {
-        let request: AxiosRequestConfig = {
+        const request: AxiosRequestConfig = {
             method: HttpMethod.GET,
             url: url,
             /* istanbul ignore next */
@@ -36,9 +35,10 @@ export class HttpClient implements INetworkModule {
             validateStatus: () => true,
         };
 
-        if (proxyUrl) {
+        if (options && options.proxyUrl) {
+            // for axios, this has to be disabled
             request.proxy = false;
-            request.httpsAgent = new HttpsProxyAgent(proxyUrl);
+            request.httpsAgent = createHttpsProxyAgent(options.proxyUrl);
         }
 
         const response = await axios(request);
@@ -57,7 +57,7 @@ export class HttpClient implements INetworkModule {
     async sendPostRequestAsync<T>(
         url: string,
         options?: NetworkRequestOptions,
-        cancellationToken?: number 
+        cancellationToken?: number,
     ): Promise<NetworkResponse<T>> {
         const request: AxiosRequestConfig = {
             method: HttpMethod.POST,
@@ -70,6 +70,12 @@ export class HttpClient implements INetworkModule {
             /* istanbul ignore next */
             validateStatus: () => true
         };
+
+        if (options && options.proxyUrl) {
+            // for axios, this has to be disabled
+            request.proxy = false;
+            request.httpsAgent = createHttpsProxyAgent(options.proxyUrl);
+        }
 
         const response = await axios(request);
         return {

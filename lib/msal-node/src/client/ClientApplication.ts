@@ -301,6 +301,9 @@ export abstract class ClientApplication {
                 authority: discoveredAuthority,
                 clientCapabilities: this.config.auth.clientCapabilities
             },
+            systemOptions: {
+                proxyUrl: this.config.system.proxyUrl,
+            },
             loggerOptions: {
                 logLevel: this.config.system.loggerOptions.logLevel,
                 loggerCallback: this.config.system.loggerOptions
