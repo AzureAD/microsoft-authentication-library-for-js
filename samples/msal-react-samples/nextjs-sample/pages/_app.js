@@ -54,7 +54,7 @@ export default function MyApp({ Component, pageProps }) {
         <CssBaseline />
         <MsalProvider instance={msalInstance}>
             <PageLayout>
-              <Grid container justify="center">
+              <Grid container justifyContent="center">
                 <Component {...pageProps} />
               </Grid>
             </PageLayout>

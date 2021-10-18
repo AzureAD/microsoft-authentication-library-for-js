@@ -10,6 +10,8 @@ const WelcomeName = () => {
     useEffect(() => {
         if (activeAccount) {
             setName(activeAccount.name.split(' ')[0]);
+        } else {
+            setName(null);
         }
     }, [activeAccount]);
 

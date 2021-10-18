@@ -1,6 +1,6 @@
 {
   "type": "patch",
-  "comment": "Make no_tokens_found error an InteractionRequiredAuthError #4089",
+  "comment": "Update authority metadata error messages",
   "packageName": "@azure/msal-common",
   "email": "thomas.norling@microsoft.com",
   "dependentChangeType": "patch"

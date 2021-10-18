@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Tue, 07 Sep 2021 23:22:24 GMT and should not be manually modified.
+This log was last generated on Mon, 04 Oct 2021 23:12:35 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.3.2
+
+Mon, 04 Oct 2021 23:12:35 GMT
+
+### Patches
+
+- Export library version #4124 (thomas.norling@microsoft.com)
+- feat: improve the test code coverage for msal-node (samuelkamau@microsoft.com)
+- Consistently export error types and messages for errors thrown by MSAL #4117 (jagore@microsoft.com)
+- Axios upgrade to 0.21.4 to address a high severity vulnerability (sameera.gajjarapu@microsoft.com)
+- Bump @azure/msal-common to v5.0.1
 
 ## 1.3.1
 
