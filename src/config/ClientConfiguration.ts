@@ -181,9 +181,9 @@ export function buildClientConfiguration(
         persistencePlugin: persistencePlugin,
         serializableCache: serializableCache
     }: ClientConfiguration): CommonClientConfiguration {
-    
+
     const loggerOptions = { ...DEFAULT_LOGGER_IMPLEMENTATION, ...userLoggerOption };
-    
+
     return {
         authOptions: buildAuthOptions(userAuthOptions),
         systemOptions: { ...DEFAULT_SYSTEM_OPTIONS, ...userSystemOptions },
