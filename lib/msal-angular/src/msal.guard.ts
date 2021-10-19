@@ -108,10 +108,9 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
         /*
          * If a page with MSAL Guard is set as the redirect for acquireTokenSilent,
          * short-circuit to prevent redirecting or popups.
-         * TODO: Update to allow running in iframe once allowRedirectInIframe is implemented
          */
         if (typeof window !== "undefined") {
-            if (UrlString.hashContainsKnownProperties(window.location.hash) && BrowserUtils.isInIframe()) {
+            if (UrlString.hashContainsKnownProperties(window.location.hash) && BrowserUtils.isInIframe() && !this.authService.getConfiguration().system.allowRedirectInIframe) {
                 this.authService.getLogger().warning("Guard - redirectUri set to page with MSAL Guard. It is recommended to not set redirectUri to a page that requires authentication.");
                 return of(false);
             }
