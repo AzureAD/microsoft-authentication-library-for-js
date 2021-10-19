@@ -131,9 +131,7 @@ export function buildAppConfiguration({
     return {
         auth: { ...DEFAULT_AUTH_OPTIONS, 
             ...auth , 
-            authority: auth.authority?.trim() 
-                ? auth.authority.trim() 
-                : DEFAULT_AUTH_OPTIONS.authority
+            authority: auth.authority?.trim() || DEFAULT_AUTH_OPTIONS.authority
         },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
         system: { ...DEFAULT_SYSTEM_OPTIONS, ...system },
