@@ -158,7 +158,7 @@ export function MSALGuardConfigFactory(): MsalGuardConfiguration {
       useFactory: MSALInterceptorConfigFactory
     },
     MsalGuard,
-    MsalBroadcastService
+    MsalBroadcastService,
     MsalService
   ],
   bootstrap: [AppComponent, MsalRedirectComponent]
