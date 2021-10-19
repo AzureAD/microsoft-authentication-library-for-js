@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fixed issue with default url",
+  "packageName": "@azure/msal-node",
+  "email": "marionminayo@microsoft.com",
+  "dependentChangeType": "patch"
+}
