@@ -157,6 +157,10 @@ export class Authority {
      */
     public get endSessionEndpoint(): string {
         if(this.discoveryComplete()) {
+            // ROPC policies may not have end_session_endpoint set
+            if (!this.metadata.end_session_endpoint) {
+                throw ClientAuthError.createLogoutNotSupportedError();
+            }
             const endpoint = this.replacePath(this.metadata.end_session_endpoint);
             return this.replaceTenant(endpoint);
         } else {
