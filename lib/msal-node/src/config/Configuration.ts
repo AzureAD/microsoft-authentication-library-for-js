@@ -129,7 +129,12 @@ export function buildAppConfiguration({
     system,
 }: Configuration): NodeConfiguration {
     return {
-        auth: { ...DEFAULT_AUTH_OPTIONS, ...auth },
+        auth: { ...DEFAULT_AUTH_OPTIONS, 
+            ...auth , 
+            authority: auth.authority?.trim() 
+                ? auth.authority.trim() 
+                : DEFAULT_AUTH_OPTIONS.authority
+        },
         cache: { ...DEFAULT_CACHE_OPTIONS, ...cache },
         system: { ...DEFAULT_SYSTEM_OPTIONS, ...system },
     };
