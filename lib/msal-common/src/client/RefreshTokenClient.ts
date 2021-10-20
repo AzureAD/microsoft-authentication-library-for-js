@@ -207,8 +207,14 @@ export class RefreshTokenClient extends BaseClient {
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
-
-            parameterBuilder.addPopToken(await popTokenGenerator.generateCnf(request));
+            const cnfString = await popTokenGenerator.generateCnf(request);
+            parameterBuilder.addPopToken(cnfString);
+        } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
+            if(request.sshJwk) {
+                parameterBuilder.addSshJwk(request.sshJwk);
+            } else {
+                throw ClientConfigurationError.createMissingSshJwkError();
+            }
         }
 
         if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {
