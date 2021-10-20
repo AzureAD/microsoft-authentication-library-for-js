@@ -23,6 +23,14 @@ describe("AuthorityMetadataEntity.ts Unit Tests", () => {
         expect(AuthorityMetadataEntity.isAuthorityMetadataEntity(key, testObj)).toBe(true);
     });
 
+    it("Verify if an object is a AuthorityMetadataEntity (without end_session_endpoint)", () => {
+        const metadata = {
+            ...testObj
+        }
+        delete metadata["end_session_endpoint"];
+        expect(AuthorityMetadataEntity.isAuthorityMetadataEntity(key, metadata)).toBe(true);
+    });
+
     it("Verify an object is not a AuthorityMetadataEntity", () => {
         // @ts-ignore
         expect(AuthorityMetadataEntity.isAuthorityMetadataEntity(key, null)).toBe(false);
