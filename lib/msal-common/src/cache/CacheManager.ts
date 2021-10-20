@@ -410,7 +410,7 @@ export abstract class CacheManager implements ICacheManager {
                 }
 
                 // This check avoids matching outdated POP tokens that don't have the <-scheme> in the cache key
-                if(cacheKey.indexOf(AuthenticationScheme.POP) === -1) {
+                if(cacheKey.indexOf(AuthenticationScheme.POP) === -1 && cacheKey.indexOf(AuthenticationScheme.SSH) === -1) {
                     // AccessToken_With_AuthScheme that doesn't have pop in the key is outdated
                     this.removeItem(cacheKey, CacheSchemaType.CREDENTIAL);
                     return;
@@ -686,8 +686,8 @@ export abstract class CacheManager implements ICacheManager {
      * @param authScheme
      */
     readAccessTokenFromCache(clientId: string, account: AccountInfo, scopes: ScopeSet, authScheme: AuthenticationScheme): AccessTokenEntity | null {
-        // Distinguish between Bearer and PoP token cache types
-        const credentialType = (authScheme === AuthenticationScheme.POP) ? CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME : CredentialType.ACCESS_TOKEN;
+        // Distinguish between Bearer and PoP/SSH token cache types
+        const credentialType = (authScheme && authScheme !== AuthenticationScheme.BEARER) ? CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME : CredentialType.ACCESS_TOKEN;
 
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: account.homeAccountId,

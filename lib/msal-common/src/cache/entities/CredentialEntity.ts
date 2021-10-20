@@ -140,8 +140,8 @@ export class CredentialEntity {
             this.generateTargetForCacheKey(target)
         ];
 
-        // PoP Tokens include scheme in cache key
-        if (tokenType === AuthenticationScheme.POP) {
+        // PoP Tokens and SSH certs include scheme in cache key
+        if (tokenType && tokenType !== AuthenticationScheme.BEARER) {
             credentialKey.push(tokenType.toLowerCase());
         }
 

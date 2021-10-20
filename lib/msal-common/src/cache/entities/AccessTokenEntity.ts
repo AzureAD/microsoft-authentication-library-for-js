@@ -98,15 +98,19 @@ export class AccessTokenEntity extends CredentialEntity {
 
         atEntity.tokenType = StringUtils.isEmpty(tokenType) ? AuthenticationScheme.BEARER : tokenType;
 
-        // Create Access Token With AuthScheme instead of regular access token
-        if (atEntity.tokenType === AuthenticationScheme.POP) {
+        // Create Access Token With Auth Scheme instead of regular access token
+        if (atEntity.tokenType !== AuthenticationScheme.BEARER) {
             atEntity.credentialType = CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME;
-            // Make sure keyId is present and add it to credential
-            const tokenClaims: TokenClaims | null = AuthToken.extractTokenClaims(accessToken, cryptoUtils);
-            if (!tokenClaims?.cnf?.kid) {
-                throw ClientAuthError.createTokenClaimsRequiredError();
+            switch (atEntity.tokenType) {
+                case AuthenticationScheme.POP:
+                    // Make sure keyId is present and add it to credential
+                    const tokenClaims: TokenClaims | null = AuthToken.extractTokenClaims(accessToken, cryptoUtils);
+                    if (!tokenClaims?.cnf?.kid) {
+                        throw ClientAuthError.createTokenClaimsRequiredError();
+                    }
+                    atEntity.keyId = tokenClaims.cnf.kid;
+                    break;
             }
-            atEntity.keyId = tokenClaims.cnf.kid;
         }
 
         return atEntity;
