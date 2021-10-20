@@ -60,7 +60,22 @@ function signOut() {
     myMSALObj.logoutRedirect(logoutRequest);
 }
 
-async function getTokenPopup(request, account) {
+async function fetchSshCert() {
+    const currentAcc = myMSALObj.getAccountByUsername(username);
+    if (currentAcc) {
+        sshCert = getCertPopup(sshCertRequest, currentAcc).then(response => {
+            console.log("Response: ", response);
+            if (response.accessToken) {
+                showSshCertAcquired();
+                return response.accessToken;
+            }
+        }).catch(error => {
+            console.log(error);
+        });
+    }
+}
+
+async function getCertPopup(request, account) {
     request.account = account;
     return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
         console.log("silent token acquisition fails.");
@@ -76,7 +91,7 @@ async function getTokenPopup(request, account) {
 }
 
 // This function can be removed if you do not need to support IE
-async function getTokenRedirect(request, account) {
+async function getCertRedirect(request, account) {
     request.account = account;
     return await myMSALObj.acquireTokenSilent(request).catch(async (error) => {
         console.log("silent token acquisition fails.");
