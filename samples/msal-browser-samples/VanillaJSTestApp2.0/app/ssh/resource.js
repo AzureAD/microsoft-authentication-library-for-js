@@ -59,8 +59,8 @@ async function popRequest() {
 async function fetchSshCert() {
     const currentAcc = myMSALObj.getAccountByUsername(username);
     if (currentAcc) {
-        console.log(sshCertRequest);
         sshCert = getTokenPopup(sshCertRequest, currentAcc).then(response => {
+            console.log("Response: ", response);
             if (response.accessToken) {
                 showSshCertAcquired();
                 return response.accessToken;

@@ -38,6 +38,7 @@ export class CredentialEntity {
     target?: string;
     oboAssertion?: string;
     tokenType?: AuthenticationScheme;
+    keyId?: string;
 
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>

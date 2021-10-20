@@ -320,7 +320,8 @@ export abstract class CacheManager implements ICacheManager {
             filter.realm,
             filter.target,
             filter.oboAssertion,
-            filter.tokenType
+            filter.tokenType,
+            filter.keyId
         );
     }
 
@@ -344,7 +345,8 @@ export abstract class CacheManager implements ICacheManager {
         realm?: string,
         target?: string,
         oboAssertion?: string,
-        tokenType?: AuthenticationScheme
+        tokenType?: AuthenticationScheme,
+        keyId?: string
     ): CredentialCache {
         const allCacheKeys = this.getKeys();
         const matchingCredentials: CredentialCache = {
@@ -407,6 +409,13 @@ export abstract class CacheManager implements ICacheManager {
             if (credentialType === CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME) {
                 if(!!tokenType && !this.matchTokenType(entity, tokenType)) {
                     return;
+                }
+
+                // KeyId (sshKid) in request must match cached SSH certificate keyId
+                if(tokenType === AuthenticationScheme.SSH) {
+                    if(!!keyId && !this.matchKeyId(entity, keyId)) {
+                        return;
+                    }
                 }
 
                 // This check avoids matching outdated POP tokens that don't have the <-scheme> in the cache key
@@ -582,17 +591,24 @@ export abstract class CacheManager implements ICacheManager {
     async removeCredential(credential: CredentialEntity): Promise<boolean> {
         const key = credential.generateCredentialKey();
 
-        // Remove Token Binding Key from key store for Auth Scheme Credentials
+        // Remove Token Binding Key from key store for PoP Tokens Credentials
         if (credential.credentialType.toLowerCase() === CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase()) {
-            const accessTokenWithAuthSchemeEntity = credential as AccessTokenEntity;
-            const kid = accessTokenWithAuthSchemeEntity.keyId;
-
-            if (kid) {
-                try {
-                    await this.cryptoImpl.removeTokenBindingKey(kid);
-                } catch (error) {
-                    throw ClientAuthError.createBindingKeyNotRemovedError();
-                }
+            // MSAL only stores key for PoP tokens, not for SSH Certificates
+            switch (credential.tokenType) {
+                case AuthenticationScheme.POP:
+                    const accessTokenWithAuthSchemeEntity = credential as AccessTokenEntity;
+                    const kid = accessTokenWithAuthSchemeEntity.keyId;
+        
+                    if (kid) {
+                        try {
+                            await this.cryptoImpl.removeTokenBindingKey(kid);
+                        } catch (error) {
+                            throw ClientAuthError.createBindingKeyNotRemovedError();
+                        }
+                    }
+                    break;
+                default:
+                    break;
             }
         }
 
@@ -621,10 +637,10 @@ export abstract class CacheManager implements ICacheManager {
      * @param environment
      * @param authScheme
      */
-    readCacheRecord(account: AccountInfo, clientId: string, scopes: ScopeSet, environment: string, authScheme: AuthenticationScheme): CacheRecord {
+    readCacheRecord(account: AccountInfo, clientId: string, scopes: ScopeSet, environment: string, authScheme: AuthenticationScheme, keyId?: string): CacheRecord {
         const cachedAccount = this.readAccountFromCache(account);
         const cachedIdToken = this.readIdTokenFromCache(clientId, account);
-        const cachedAccessToken = this.readAccessTokenFromCache(clientId, account, scopes, authScheme);
+        const cachedAccessToken = this.readAccessTokenFromCache(clientId, account, scopes, authScheme, keyId);
         const cachedRefreshToken = this.readRefreshTokenFromCache(clientId, account, false);
         const cachedAppMetadata = this.readAppMetadataFromCache(environment, clientId);
 
@@ -685,7 +701,7 @@ export abstract class CacheManager implements ICacheManager {
      * @param scopes
      * @param authScheme
      */
-    readAccessTokenFromCache(clientId: string, account: AccountInfo, scopes: ScopeSet, authScheme: AuthenticationScheme): AccessTokenEntity | null {
+    readAccessTokenFromCache(clientId: string, account: AccountInfo, scopes: ScopeSet, authScheme: AuthenticationScheme, keyId?: string): AccessTokenEntity | null {
         // Distinguish between Bearer and PoP/SSH token cache types
         const credentialType = (authScheme && authScheme !== AuthenticationScheme.BEARER) ? CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME : CredentialType.ACCESS_TOKEN;
 
@@ -696,7 +712,8 @@ export abstract class CacheManager implements ICacheManager {
             clientId,
             realm: account.tenantId,
             target: scopes.printScopesLowerCase(),
-            tokenType: authScheme
+            tokenType: authScheme,
+            keyId: keyId
         };
 
         const credentialCache: CredentialCache = this.getCredentialsFilteredBy(accessTokenFilter);
@@ -871,6 +888,15 @@ export abstract class CacheManager implements ICacheManager {
      */
     private matchTokenType(entity: CredentialEntity, tokenType: AuthenticationScheme): boolean {
         return !!(entity.tokenType && entity.tokenType === tokenType);
+    }
+
+    /**
+     * Returns true if the credential's keyId matches the one in the request, false otherwise
+     * @param entity 
+     * @param tokenType 
+     */
+    private matchKeyId(entity: CredentialEntity, keyId: string): boolean {
+        return !!(entity.keyId && entity.keyId === keyId);
     }
 
     /**

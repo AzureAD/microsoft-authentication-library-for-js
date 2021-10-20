@@ -69,7 +69,8 @@ export class AccessTokenEntity extends CredentialEntity {
         cryptoUtils: ICrypto,
         refreshOn?: number,
         tokenType?: AuthenticationScheme,
-        oboAssertion?: string
+        oboAssertion?: string,
+        keyId?: string 
     ): AccessTokenEntity {
         const atEntity: AccessTokenEntity = new AccessTokenEntity();
 
@@ -110,6 +111,8 @@ export class AccessTokenEntity extends CredentialEntity {
                     }
                     atEntity.keyId = tokenClaims.cnf.kid;
                     break;
+                case AuthenticationScheme.SSH:
+                    atEntity.keyId = keyId;
             }
         }
 

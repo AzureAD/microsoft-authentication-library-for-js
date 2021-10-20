@@ -5,7 +5,7 @@ const cardDiv = document.getElementById("card-div");
 const mailButton = document.getElementById("readMail");
 const profileButton = document.getElementById("seeProfile");
 const profileDiv = document.getElementById("profile-div");
-const popTokenAcquired = document.getElementById("PopTokenAcquired");
+const popTokenAcquired = document.getElementById("SshCertAcquired");
 
 function showWelcomeMessage(account) {
     // Reconfiguring DOM elements
@@ -17,11 +17,11 @@ function showWelcomeMessage(account) {
     signInButton.innerHTML = "Sign Out";
 }
 
-function showPopTokenAcquired() {
-    const popTokenAcquired = document.createElement('p');
-    popTokenAcquired.setAttribute("id", "PopTokenAcquired");
-    popTokenAcquired.innerHTML = "Successfully acquired PoP Token";
-    profileDiv.appendChild(popTokenAcquired);
+function showSshCertAcquired() {
+    const sshCertAcquired = document.createElement('p');
+    sshCertAcquired.setAttribute("id", "SshCertAcquired");
+    sshCertAcquired.innerHTML = "Successfully acquired SSH Certificate";
+    profileDiv.appendChild(sshCertAcquired);
 }
 
 function updateUI(data, endpoint) {

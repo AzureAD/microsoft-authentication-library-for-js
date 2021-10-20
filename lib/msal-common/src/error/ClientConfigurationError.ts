@@ -84,6 +84,10 @@ export const ClientConfigurationErrorMessage = {
     missingSshJwk: {
         code: "missing_ssh_jwk",
         desc: "Missing sshJwk in SSH certificate request. A stringified JSON Web Key is required when using the SSH authentication scheme."
+    },
+    missingSshKid: {
+        code: "missing_ssh_kid",
+        desc: "Missing sshKid in SSH certificate request. A string that uniquely identifies the public SSH key is required when using the SSH authentication scheme."
     }
 };
 
@@ -254,5 +258,13 @@ export class ClientConfigurationError extends ClientAuthError {
     static createMissingSshJwkError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.missingSshJwk.code,
             ClientConfigurationErrorMessage.missingSshJwk.desc);
+    }
+
+    /**
+     * Throws an error when the authentication scheme is set to SSH but the SSH public key ID is omitted from the request
+     */
+    static createMissingSshKidError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.missingSshKid.code,
+            ClientConfigurationErrorMessage.missingSshKid.desc);
     }
 }

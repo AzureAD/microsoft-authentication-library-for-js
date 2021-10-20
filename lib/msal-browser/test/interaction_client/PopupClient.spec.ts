@@ -5,7 +5,7 @@
 
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
-import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, testNavUrl, TEST_STATE_VALUES } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, testNavUrl, TEST_STATE_VALUES, TEST_SSH_VALUES } from "../utils/StringConstants";
 import { Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationUrlRequest, AuthorizationCodeClient, ResponseMode, AuthenticationScheme, ServerTelemetryEntity, AccountEntity, CommonEndSessionRequest, PersistentCacheKeys, ClientConfigurationError } from "@azure/msal-common";
 import { BrowserConstants, TemporaryCacheKeys, ApiId } from "../../src/utils/BrowserConstants";
 import { BrowserAuthError } from "../../src/error/BrowserAuthError";
@@ -71,6 +71,22 @@ describe("PopupClient", () => {
             };
 
             expect(popupClient.acquireToken(request)).rejects.toThrow(ClientConfigurationError.createMissingSshJwkError());
+        });
+
+        it("throws error when AuthenticationScheme is set to SSH and SSH KID is omitted from the request", async () => {
+            const request: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read"],
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                nonce: "",
+                authenticationScheme: AuthenticationScheme.SSH,
+                sshJwk: TEST_SSH_VALUES.SSH_JWK
+            };
+
+            expect(popupClient.acquireToken(request)).rejects.toThrow(ClientConfigurationError.createMissingSshKidError());
         });
 
         it("opens popup window before network request by default", async () => {
