@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add support for ephemeral SSH certificate acquisition #4178",
+  "packageName": "@azure/msal-common",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
