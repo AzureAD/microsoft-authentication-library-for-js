@@ -7,7 +7,6 @@ import {
     EndSessionRequest,
     AuthorizationUrlRequest,
     AuthenticationResult,
-    BrowserConfiguration,
     PopupRequest,
     RedirectRequest,
     SilentRequest,
@@ -26,5 +25,4 @@ export interface IMsalService {
     ssoSilent(request: AuthorizationUrlRequest): Observable<AuthenticationResult>;
     getLogger(): Logger;
     setLogger(logger: Logger): void;
-    getConfiguration(): BrowserConfiguration;
 }

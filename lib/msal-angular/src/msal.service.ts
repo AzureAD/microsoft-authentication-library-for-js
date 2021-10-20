@@ -7,7 +7,6 @@ import { Inject, Injectable } from "@angular/core";
 import { Location } from "@angular/common";
 import {
     IPublicClientApplication,
-    BrowserConfiguration,
     EndSessionRequest,
     EndSessionPopupRequest,
     AuthenticationResult,
@@ -83,8 +82,5 @@ export class MsalService implements IMsalService {
     setLogger(logger: Logger): void {
         this.logger = logger.clone(name, version);
         this.instance.setLogger(logger);
-    }
-    getConfiguration(): BrowserConfiguration {
-        return this.instance.getConfiguration();
     }
 }

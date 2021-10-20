@@ -110,7 +110,7 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
          * short-circuit to prevent redirecting or popups.
          */
         if (typeof window !== "undefined") {
-            if (UrlString.hashContainsKnownProperties(window.location.hash) && BrowserUtils.isInIframe() && !this.authService.getConfiguration().system.allowRedirectInIframe) {
+            if (UrlString.hashContainsKnownProperties(window.location.hash) && BrowserUtils.isInIframe() && !this.authService.instance.getConfiguration().system.allowRedirectInIframe) {
                 this.authService.getLogger().warning("Guard - redirectUri set to page with MSAL Guard. It is recommended to not set redirectUri to a page that requires authentication.");
                 return of(false);
             }
