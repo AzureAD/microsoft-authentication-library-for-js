@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Gracefully handle B2C ROPC policies not setting end_session_endpoint property",
+  "packageName": "@azure/msal-common",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "patch"
+}
