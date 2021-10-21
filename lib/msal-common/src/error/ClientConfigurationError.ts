@@ -71,11 +71,11 @@ export const ClientConfigurationErrorMessage = {
     },
     invalidCloudDiscoveryMetadata: {
         code: "invalid_cloud_discovery_metadata",
-        desc: "Invalid cloudDiscoveryMetadata provided. Must be a JSON object containing tenant_discovery_endpoint and metadata fields"
+        desc: "Invalid cloudDiscoveryMetadata provided. Must be a stringified JSON object containing tenant_discovery_endpoint and metadata fields"
     },
     invalidAuthorityMetadata: {
         code: "invalid_authority_metadata",
-        desc: "Invalid authorityMetadata provided. Must by a JSON object containing authorization_endpoint, token_endpoint, end_session_endpoint, issuer fields."
+        desc: "Invalid authorityMetadata provided. Must by a stringified JSON object containing authorization_endpoint, token_endpoint, end_session_endpoint, issuer fields."
     },
     untrustedAuthority: {
         code: "untrusted_authority",
