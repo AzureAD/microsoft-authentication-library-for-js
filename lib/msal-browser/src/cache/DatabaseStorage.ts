@@ -4,6 +4,7 @@
  */
 
 import { BrowserAuthError } from "../error/BrowserAuthError";
+import { DB_NAME, DB_TABLE_NAME, DB_VERSION } from "../utils/BrowserConstants";
 
 interface IDBOpenDBRequestEvent extends Event {
     target: IDBOpenDBRequest & EventTarget;
@@ -20,17 +21,17 @@ interface IDBRequestEvent extends Event {
 /**
  * Storage wrapper for IndexedDB storage in browsers: https://developer.mozilla.org/en-US/docs/Web/API/IndexedDB_API
  */
-export class DatabaseStorage<T>{
+export class DatabaseStorage<T> {
     private db: IDBDatabase|undefined;
     private dbName: string;
     private tableName: string;
     private version: number;
     private dbOpen: boolean;
 
-    constructor(dbName: string, tableName: string, version: number) {
-        this.dbName = dbName;
-        this.tableName = tableName;
-        this.version = version;
+    constructor() {
+        this.dbName = DB_NAME;
+        this.version = DB_VERSION;
+        this.tableName = DB_TABLE_NAME;
         this.dbOpen = false;
     }
 
@@ -41,10 +42,12 @@ export class DatabaseStorage<T>{
         return new Promise((resolve, reject) => {
             // TODO: Add timeouts?
             const openDB = window.indexedDB.open(this.dbName, this.version);
+
             openDB.addEventListener("upgradeneeded", (e: IDBVersionChangeEvent) => {
                 const event = e as IDBOpenOnUpgradeNeededEvent;
                 event.target.result.createObjectStore(this.tableName);
             });
+
             openDB.addEventListener("success", (e: Event) => {
                 const event = e as IDBOpenDBRequestEvent;
                 this.db = event.target.result;
@@ -77,6 +80,7 @@ export class DatabaseStorage<T>{
 
             const objectStore = transaction.objectStore(this.tableName);
             const dbGet = objectStore.get(key);
+            
             dbGet.addEventListener("success", (e: Event) => {
                 const event = e as IDBRequestEvent;
                 resolve(event.target.result);
@@ -90,21 +94,23 @@ export class DatabaseStorage<T>{
      * @param key 
      * @param payload 
      */
-    async put(key: string, payload: T): Promise<T> {
+    async put(key: string, payload: T): Promise<string> {
         if (!this.dbOpen) {
             await this.open();
         }
 
-        return new Promise<T>((resolve: Function, reject: Function) => {
+        return new Promise<string>((resolve: Function, reject: Function) => {
             // TODO: Add timeouts?
             if (!this.db) {
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
             }
 
             const transaction = this.db.transaction([this.tableName], "readwrite");
+
             const objectStore = transaction.objectStore(this.tableName);
 
             const dbPut = objectStore.put(payload, key);
+
             dbPut.addEventListener("success", (e: Event) => {
                 const event = e as IDBRequestEvent;
                 resolve(event.target.result);
@@ -141,27 +147,17 @@ export class DatabaseStorage<T>{
         });
     }
 
-    async clear(): Promise<boolean> {
-        if (!this.dbOpen) {
-            await this.open();
-        }
-
+    async deleteDatabase(): Promise<boolean> {
         return new Promise<boolean>((resolve: Function, reject: Function) => {
-            if (!this.db) {
-                return reject(BrowserAuthError.createDatabaseNotOpenError());
-            }
+            const deleteDbRequest = window.indexedDB.deleteDatabase(DB_NAME);
 
-            const transaction = this.db.transaction([this.tableName], "readwrite");
-
-            const objectStore = transaction.objectStore(this.tableName);
-
-            const dbDelete = objectStore.clear();
-
-            dbDelete.addEventListener("success", (e: Event) => {
-                const event = e as IDBRequestEvent;
-                resolve(event.target.result === undefined);
+            deleteDbRequest.onsuccess = (() => {
+                resolve(true);
             });
-            dbDelete.addEventListener("error", e => reject(e));
+
+            deleteDbRequest.onerror = (() => {
+                reject(false);
+            });
         });
     }
 }
