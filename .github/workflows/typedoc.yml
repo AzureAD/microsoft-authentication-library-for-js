@@ -1,12 +1,14 @@
 name: Typedoc
 
 on:
-  push:
-     branches:
-       - typedoc-action
+  pull_request:
+    types: [closed]
+    branches:
+      - dev
 
 jobs:
   deploy:
+    if: (github.event.pull_request.merged == true && contains(github.head_ref, 'post-release'))
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
