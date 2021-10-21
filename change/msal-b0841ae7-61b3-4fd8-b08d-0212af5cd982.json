@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Update package-locks to fix dependantbot alerts",
+  "packageName": "msal",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "none"
+}
