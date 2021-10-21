@@ -200,7 +200,7 @@ describe("CryptoOps.ts Unit Tests", () => {
             expect(result.publicKey.algorithm.name.toLowerCase()).toEqual(AccessTokenBindingKeyOptions.keyGenAlgorithmOptions.name.toLowerCase());
             expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
             expect(regExp.test(pkThumbprint)).toBe(true);
-            expect(mockDatabase["TestDB.keys"][pkThumbprint]).not.toHaveLength(0);
+            expect(mockDatabase["TestDB.keys"][pkThumbprint]).not.toBe(undefined);
         }, 30000);
 
         it("generates a valid stk_jwk thumbprint", async () => {
@@ -225,7 +225,7 @@ describe("CryptoOps.ts Unit Tests", () => {
             expect(result.privateKey.algorithm.name.toLowerCase()).toEqual(RefreshTokenBindingOptions.keyGenAlgorithmOptions.name.toLowerCase());
             expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
             expect(regExp.test(pkThumbprint)).toBe(true);
-            expect(Object.keys(mockDatabase["TestDB.keys"][pkThumbprint])).not.toHaveLength(0);
+            expect(Object.keys(mockDatabase["TestDB.keys"][pkThumbprint])).not.toBe(undefined);
         }, 30000);
 
         it("throws error if key generation fails", async () => {
