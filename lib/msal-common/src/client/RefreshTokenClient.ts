@@ -203,7 +203,7 @@ export class RefreshTokenClient extends BaseClient {
         }
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
-            const cnfString = await this.keyManager.generateCnf(request);
+            const cnfString = await this.cryptoKeyManager.generateCnf(request);
             parameterBuilder.addPopToken(cnfString);
         }
 

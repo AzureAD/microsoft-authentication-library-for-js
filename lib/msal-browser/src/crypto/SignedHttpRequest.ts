@@ -4,18 +4,18 @@
  */
 
 import { CryptoOps } from "./CryptoOps";
-import { PopTokenGenerator, SignedHttpRequestParameters, KeyManager, CryptoKeyTypes } from "@azure/msal-common";
+import { PopTokenGenerator, SignedHttpRequestParameters, CryptoKeyManager, CryptoKeyTypes } from "@azure/msal-common";
 
 export class SignedHttpRequest {
     private popTokenGenerator: PopTokenGenerator;
     private cryptoOps: CryptoOps;
     private shrParameters: SignedHttpRequestParameters;
-    private keyManager: KeyManager;
+    private cryptoKeyManager: CryptoKeyManager;
 
     constructor(shrParameters: SignedHttpRequestParameters) {
         this.cryptoOps = new CryptoOps();
         this.popTokenGenerator = new PopTokenGenerator(this.cryptoOps);
-        this.keyManager = new KeyManager(this.cryptoOps);
+        this.cryptoKeyManager = new CryptoKeyManager(this.cryptoOps);
         this.shrParameters = shrParameters;
     }
 
@@ -24,7 +24,7 @@ export class SignedHttpRequest {
      * @returns Public key digest, which should be sent to the token issuer.
      */
     async generatePublicKeyThumbprint(): Promise<string> {
-        const { kid } = await this.keyManager.generateKid(this.shrParameters, CryptoKeyTypes.ReqCnf);
+        const { kid } = await this.cryptoKeyManager.generateKid(this.shrParameters, CryptoKeyTypes.ReqCnf);
 
         return kid;
     }

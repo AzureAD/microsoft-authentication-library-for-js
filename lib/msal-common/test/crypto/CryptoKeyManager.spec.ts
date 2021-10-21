@@ -1,9 +1,9 @@
 import sinon from "sinon";
 import { ICrypto, PkceCodes, AuthenticationScheme, CryptoKeyTypes } from "../../src";
 import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS } from "../test_kit/StringConstants";
-import { KeyManager } from "../../src/crypto/KeyManager";
+import { CryptoKeyManager } from "../../src/crypto/CryptoKeyManager";
 
-describe("KeyManager Unit Tests", () => {
+describe("CryptoKeyManager Unit Tests", () => {
 
     afterEach(() => {
         sinon.restore();
@@ -62,7 +62,7 @@ describe("KeyManager Unit Tests", () => {
         }
     };
 
-    let keyManager: KeyManager;
+    let cryptoKeyManager: CryptoKeyManager;
 
     const testPopRequest = {
         authority: TEST_CONFIG.validAuthority,
@@ -74,19 +74,19 @@ describe("KeyManager Unit Tests", () => {
     };
 
     beforeEach(() => {
-        keyManager = new KeyManager(cryptoInterface);
+        cryptoKeyManager = new CryptoKeyManager(cryptoInterface);
     });
 
     describe("generateCnf", () => {
         it("generates the req_cnf correctly", async () => {
-            const reqCnf = await keyManager.generateCnf(testPopRequest);
+            const reqCnf = await cryptoKeyManager.generateCnf(testPopRequest);
             expect(reqCnf).toBe(TEST_POP_VALUES.ENCODED_REQ_CNF);
         });
     });
 
     describe("generateKid", () => {
         it("returns the correct kid and key storage location", async () => {
-            const reqCnf = await keyManager.generateKid(testPopRequest, CryptoKeyTypes.ReqCnf);
+            const reqCnf = await cryptoKeyManager.generateKid(testPopRequest, CryptoKeyTypes.ReqCnf);
             expect(reqCnf).toStrictEqual(JSON.parse(TEST_POP_VALUES.DECODED_REQ_CNF));
         });
     });

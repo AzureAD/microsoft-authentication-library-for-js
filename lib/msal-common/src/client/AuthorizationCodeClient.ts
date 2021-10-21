@@ -221,7 +221,7 @@ export class AuthorizationCodeClient extends BaseClient {
         parameterBuilder.addClientInfo();
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
-            const cnfString = await this.keyManager.generateCnf(request);
+            const cnfString = await this.cryptoKeyManager.generateCnf(request);
             parameterBuilder.addPopToken(cnfString);
         }
 
