@@ -26,7 +26,6 @@ export const DEFAULT_REDIRECT_TIMEOUT_MS = 30000;
  * - navigateToLoginRequestUrl  - Boolean indicating whether to navigate to the original request URL after the auth server navigates to the redirect URL.
  * - clientCapabilities         - Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
  * - protocolMode               - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
- * - refreshTokenBinding        - Boolean that enables refresh token binding (a.k.a refresh token proof-of-possession) for authorization requests
  */
 export type BrowserAuthOptions = {
     clientId: string;
@@ -39,7 +38,6 @@ export type BrowserAuthOptions = {
     navigateToLoginRequestUrl?: boolean;
     clientCapabilities?: Array<string>;
     protocolMode?: ProtocolMode;
-    refreshTokenBinding?: boolean;
 };
 
 /**
@@ -68,6 +66,7 @@ export type CacheOptions = {
  * - redirectNavigationTimeout    - Time to wait for redirection to occur before resolving promise
  * - asyncPopups                  - Sets whether popups are opened asynchronously. By default, this flag is set to false. When set to false, blank popups are opened before anything else happens. When set to true, popups are opened when making the network request.
  * - allowRedirectInIframe        - Flag to enable redirect opertaions when the app is rendered in an iframe (to support scenarios such as embedded B2C login).
+ * - refreshTokenBinding        - Boolean that enables refresh token binding (a.k.a refresh token proof-of-possession) for authorization requests
  */
 export type BrowserSystemOptions = SystemOptions & {
     loggerOptions?: LoggerOptions;
@@ -80,6 +79,7 @@ export type BrowserSystemOptions = SystemOptions & {
     redirectNavigationTimeout?: number;
     asyncPopups?: boolean;
     allowRedirectInIframe?: boolean;
+    refreshTokenBinding?: boolean;
 };
 
 /**
@@ -125,7 +125,6 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         navigateToLoginRequestUrl: true,
         clientCapabilities: [],
         protocolMode: ProtocolMode.AAD,
-        refreshTokenBinding: false
     };
 
     // Default cache options for browser
@@ -156,7 +155,8 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         navigateFrameWait: isBrowserEnvironment && BrowserUtils.detectIEOrEdge() ? 500 : 0,
         redirectNavigationTimeout: DEFAULT_REDIRECT_TIMEOUT_MS,
         asyncPopups: false,
-        allowRedirectInIframe: false
+        allowRedirectInIframe: false,
+        refreshTokenBinding: false
     };
 
     const overlayedConfig: BrowserConfiguration = {
