@@ -34,6 +34,8 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            },
+            system: {
                 refreshTokenBinding: true
             }
         });

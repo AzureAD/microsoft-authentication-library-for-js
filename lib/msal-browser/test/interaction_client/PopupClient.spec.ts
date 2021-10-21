@@ -23,6 +23,8 @@ describe("PopupClient", () => {
         const pca = new PublicClientApplication({
             auth: {
                 clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            },
+            system: {
                 refreshTokenBinding: true
             }
         });
