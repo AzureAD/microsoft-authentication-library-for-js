@@ -1,6 +1,8 @@
 # Overview
 
-This sample demonstrates a Node.js & Express web application that authenticates users against [Azure Active Directory](https://docs.microsoft.com/azure/active-directory/fundamentals/active-directory-whatis) (Azure AD) and obtains [Access Tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens) to call the [Microsoft Graph API](https://docs.microsoft.com/graph/overview) (Graph API) and the [Azure Resource Manager API](https://docs.microsoft.com/azure/azure-resource-manager/management/overview) (ARM API), with the help of [Microsoft Authentication Library for Node.js](https://aka.ms/msalnode) (MSAL Node).
+This sample demonstrates a Node.js & Express web application that authenticates users against [Azure Active Directory](https://docs.microsoft.com/azure/active-directory/fundamentals/active-directory-whatis) (Azure AD) and obtains [Access Tokens](https://docs.microsoft.com/azure/active-directory/develop/access-tokens) to call the [Microsoft Graph API](https://docs.microsoft.com/graph/overview) (Graph API) and the [Azure Resource Manager API](https://docs.microsoft.com/azure/azure-resource-manager/management/overview) (ARM API), with the help of [Microsoft Authentication Library for Node.js](https://aka.ms/msalnode) (MSAL Node). It uses Redis for caching session and tokens.
+
+See also: [Caching](../../../lib/msal-node/docs/caching.md)
 
 ## Scenario
 
@@ -12,16 +14,18 @@ This sample demonstrates a Node.js & Express web application that authenticates 
 
 | File/folder                         | Description                                                   |
 |-------------------------------------|---------------------------------------------------------------|
-| `App/appSettings.json`              | Application settings and authentication parameters.           |
 | `App/app.js`                        | Application entry point.                                      |
+| `App/appSettings.json`              | Application settings and authentication parameters.           |
 | `App/routes/router.js`              | Application routes are defined here.                          |
 | `App/controllers/mainController.js` | Main application controllers.                                 |
 | `App/utils/cachePlugin.js`          | Example cache plugin implementation for saving cache to disk. |
+| `App/utils/persistenceHelper.js`    | Example Redis persistence store client, used with cache plugin. |
 
 ## Prerequisites
 
 - [Node.js](https://nodejs.org/en/download/) must be installed to run this sample.
 - [Visual Studio Code](https://code.visualstudio.com/download) is recommended for running and editing this sample.
+- (Optional) [Redis](https://redis.io/) if you like to persist the app's token cache.
 - An **Azure AD** tenant. For more information, see: [How to get an Azure AD tenant](https://docs.microsoft.com/azure/active-directory/develop/quickstart-create-new-tenant)
 - A user account in your **Azure AD** tenant.
 
@@ -80,6 +84,14 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 1. Find the `postLogoutRedirectUri` and replace the existing value with the URI that you wish to be redirected after sign-out, e.g. `http://localhost:4000/`
 
 ## Running the sample
+
+Make sure that Redis server is currently running. Start the Redis server if needed. You will need [WSL](https://docs.microsoft.com/windows/wsl/install-win10) if on Windows:
+
+```console
+    redis-server
+```
+
+> : information_source: On Windows, you may use [WSL](https://docs.microsoft.com/windows/wsl/install-win10) to run above
 
 Locate the root of the sample folder (i.e. `TestApp`). Then:
 
