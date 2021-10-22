@@ -29,7 +29,7 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
      * @param key 
      */
     async getItem(key: string): Promise<T | null> {
-        const item =this.inMemoryCache.getItem(key);
+        const item = this.inMemoryCache.getItem(key);
         if(!item) {
             try {
                 return await this.indexedDBCache.getItem(key);
