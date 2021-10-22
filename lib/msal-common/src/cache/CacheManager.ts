@@ -406,23 +406,26 @@ export abstract class CacheManager implements ICacheManager {
                 return;
             }
 
+            // Access Token with Auth Scheme specific matching
             if (credentialType === CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME) {
                 if(!!tokenType && !this.matchTokenType(entity, tokenType)) {
                     return;
                 }
 
-                // KeyId (sshKid) in request must match cached SSH certificate keyId
-                if(tokenType === AuthenticationScheme.SSH) {
-                    if(keyId && !this.matchKeyId(entity, keyId)) {
-                        return;
-                    }
-                }
-
-                // This check avoids matching outdated POP tokens that don't have the <-scheme> in the cache key
-                if(cacheKey.indexOf(AuthenticationScheme.POP) === -1 && cacheKey.indexOf(AuthenticationScheme.SSH) === -1) {
-                    // AccessToken_With_AuthScheme that doesn't have pop in the key is outdated
-                    this.removeItem(cacheKey, CacheSchemaType.CREDENTIAL);
-                    return;
+                switch (tokenType) {
+                    case AuthenticationScheme.POP:
+                        // This check avoids matching outdated POP tokens that don't have the <-scheme> in the cache key
+                        if(cacheKey.indexOf(AuthenticationScheme.POP) === -1) {
+                            // AccessToken_With_AuthScheme that doesn't have "-pop" in the key is outdated and needs to be removed
+                            this.removeItem(cacheKey, CacheSchemaType.CREDENTIAL);
+                            return;
+                        }
+                        break;
+                    case AuthenticationScheme.SSH:
+                        // KeyId (sshKid) in request must match cached SSH certificate keyId because SSH cert is bound to a specific key
+                        if(keyId && !this.matchKeyId(entity, keyId)) {
+                            return;
+                        }
                 }
             }
 
@@ -593,22 +596,17 @@ export abstract class CacheManager implements ICacheManager {
 
         // Remove Token Binding Key from key store for PoP Tokens Credentials
         if (credential.credentialType.toLowerCase() === CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME.toLowerCase()) {
-            // MSAL only stores key for PoP tokens, not for SSH Certificates
-            switch (credential.tokenType) {
-                case AuthenticationScheme.POP:
-                    const accessTokenWithAuthSchemeEntity = credential as AccessTokenEntity;
-                    const kid = accessTokenWithAuthSchemeEntity.keyId;
-        
-                    if (kid) {
-                        try {
-                            await this.cryptoImpl.removeTokenBindingKey(kid);
-                        } catch (error) {
-                            throw ClientAuthError.createBindingKeyNotRemovedError();
-                        }
+            if(credential.tokenType === AuthenticationScheme.POP) {
+                const accessTokenWithAuthSchemeEntity = credential as AccessTokenEntity;
+                const kid = accessTokenWithAuthSchemeEntity.keyId;
+    
+                if (kid) {
+                    try {
+                        await this.cryptoImpl.removeTokenBindingKey(kid);
+                    } catch (error) {
+                        throw ClientAuthError.createBindingKeyNotRemovedError();
                     }
-                    break;
-                default:
-                    break;
+                }
             }
         }
 
