@@ -647,6 +647,37 @@ describe("RedirectClient", () => {
             expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
         });
 
+        it("navigates and caches hash if navigateToLoginRequestUri is true, the application is loaded in an iframe and allowRedirectInIframe is true", async () => {
+            const pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                }
+            });
+            const config = {
+                // @ts-ignore
+                ...pca.config,
+                system: {
+                    // @ts-ignore
+                    ...pca.config.system,
+                    allowRedirectInIframe: true
+                }
+            }
+            // @ts-ignore
+            redirectClient = new RedirectClient(config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+            sinon.stub(BrowserUtils, "isInIframe").returns(true);
+            browserStorage.setInteractionInProgress(true);
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+            sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(options.noHistory).toBeTruthy();
+                expect(options.timeout).toBeGreaterThan(0);
+                expect(urlNavigate).toEqual(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+                return Promise.resolve(true);
+            });
+            await redirectClient.handleRedirectPromise();
+            expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
+        });
+
         it("navigates to root and caches hash if navigateToLoginRequestUri is true", (done) => {
             browserStorage.setInteractionInProgress(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
