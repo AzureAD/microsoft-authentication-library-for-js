@@ -413,7 +413,7 @@ export abstract class CacheManager implements ICacheManager {
 
                 // KeyId (sshKid) in request must match cached SSH certificate keyId
                 if(tokenType === AuthenticationScheme.SSH) {
-                    if(!!keyId && !this.matchKeyId(entity, keyId)) {
+                    if(keyId && !this.matchKeyId(entity, keyId)) {
                         return;
                     }
                 }
