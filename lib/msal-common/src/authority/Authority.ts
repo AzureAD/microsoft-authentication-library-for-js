@@ -157,6 +157,10 @@ export class Authority {
      */
     public get endSessionEndpoint(): string {
         if(this.discoveryComplete()) {
+            // ROPC policies may not have end_session_endpoint set
+            if (!this.metadata.end_session_endpoint) {
+                throw ClientAuthError.createLogoutNotSupportedError();
+            }
             const endpoint = this.replacePath(this.metadata.end_session_endpoint);
             return this.replaceTenant(endpoint);
         } else {
@@ -527,7 +531,10 @@ export class Authority {
         metadata.authorization_endpoint = Authority.buildRegionalAuthorityString(metadata.authorization_endpoint, azureRegion);
         // TODO: Enquire on whether we should leave the query string or remove it before releasing the feature
         metadata.token_endpoint = Authority.buildRegionalAuthorityString(metadata.token_endpoint, azureRegion, "allowestsrnonmsi=true");
-        metadata.end_session_endpoint = Authority.buildRegionalAuthorityString(metadata.end_session_endpoint, azureRegion);
+
+        if (metadata.end_session_endpoint) {
+            metadata.end_session_endpoint = Authority.buildRegionalAuthorityString(metadata.end_session_endpoint, azureRegion);
+        }
         
         return metadata;
     }
