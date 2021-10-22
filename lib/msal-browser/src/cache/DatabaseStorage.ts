@@ -42,17 +42,17 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
     async open(): Promise<void> {
         return new Promise((resolve, reject) => {
             const openDB = window.indexedDB.open(this.dbName, this.version);
-            openDB.onupgradeneeded = (e: IDBVersionChangeEvent) => {
+            openDB.addEventListener("upgradeneeded", (e: IDBVersionChangeEvent) => {
                 const event = e as IDBOpenOnUpgradeNeededEvent;
                 event.target.result.createObjectStore(this.tableName);
-            };
-            openDB.onsuccess = (e: Event) => {
+            });
+            openDB.addEventListener("success", (e: Event) => {
                 const event = e as IDBOpenDBRequestEvent;
                 this.db = event.target.result;
                 this.dbOpen = true;
                 resolve();
-            };
-            openDB.onerror = () => reject(BrowserAuthError.createDatabaseUnavailableError);
+            });
+            openDB.addEventListener("error",  () => reject(BrowserAuthError.createDatabaseUnavailableError()));
         });
     }
 
@@ -80,11 +80,11 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
             const transaction = this.db.transaction([this.tableName], "readonly");
             const objectStore = transaction.objectStore(this.tableName);
             const dbGet = objectStore.get(key);
-            dbGet.onsuccess = (e: Event) => {
+            dbGet.addEventListener("success", (e: Event) => {
                 const event = e as IDBRequestEvent;
                 resolve(event.target.result);
-            };
-            dbGet.onerror = e => reject(e);
+            });
+            dbGet.addEventListener("error", (e) => reject(e));
         });
     }
 
@@ -107,10 +107,8 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
 
             const dbPut = objectStore.put(payload, key);
 
-            dbPut.onsuccess = () => {
-                resolve();
-            };
-            dbPut.onerror = e => reject(e);
+            dbPut.addEventListener("success", () => resolve());
+            dbPut.addEventListener("error", (e) => reject(e));
         });
     }
 
@@ -128,10 +126,8 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
             const transaction = this.db.transaction([this.tableName], "readwrite");
             const objectStore = transaction.objectStore(this.tableName);
             const dbDelete = objectStore.delete(key);
-            dbDelete.onsuccess = () => {
-                resolve();
-            };
-            dbDelete.onerror = e => reject(e);
+            dbDelete.addEventListener("success", () => resolve());
+            dbDelete.addEventListener("error", (e) => reject(e));
         });
     }
 
@@ -149,11 +145,11 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
             const transaction = this.db.transaction([this.tableName], "readonly");
             const objectStore = transaction.objectStore(this.tableName);
             const dbGetKeys = objectStore.getAllKeys();
-            dbGetKeys.onsuccess = (e: Event) => {
+            dbGetKeys.addEventListener("success", (e: Event) => {
                 const event = e as IDBRequestEvent;
                 resolve(event.target.result);
-            };
-            dbGetKeys.onerror = (e: Event) => reject(e);
+            });
+            dbGetKeys.addEventListener("error",  (e: Event) => reject(e));
         });
     }
 
@@ -171,11 +167,11 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
             const transaction = this.db.transaction([this.tableName], "readonly");
             const objectStore = transaction.objectStore(this.tableName);
             const dbContainsKey = objectStore.count(key);
-            dbContainsKey.onsuccess = (e: Event) => {
+            dbContainsKey.addEventListener("success", (e: Event) => {
                 const event = e as IDBRequestEvent;
                 resolve(event.target.result === 1);
-            };
-            dbContainsKey.onerror = (e: Event) => reject(e);
+            });
+            dbContainsKey.addEventListener("error", (e: Event) => reject(e));
         });
     }
 
@@ -187,12 +183,8 @@ export class DatabaseStorage<T> implements IAsyncStorage<T> {
     async deleteDatabase(): Promise<boolean> {
         return new Promise<boolean>((resolve: Function, reject: Function) => {
             const deleteDbRequest = window.indexedDB.deleteDatabase(DB_NAME);
-            deleteDbRequest.onsuccess = (() => {
-                resolve(true);
-            });
-            deleteDbRequest.onerror = (() => {
-                reject(false);
-            });
+            deleteDbRequest.addEventListener("success", () => resolve(true));
+            deleteDbRequest.addEventListener("error", () => reject(false));
         });
     }
 }
