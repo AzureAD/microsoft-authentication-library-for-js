@@ -4,15 +4,23 @@
  */
 
 import { CryptoOps } from "./CryptoOps";
-import { PopTokenGenerator, SignedHttpRequestParameters } from "@azure/msal-common";
+import { Logger, LoggerOptions, PopTokenGenerator, SignedHttpRequestParameters } from "@azure/msal-common";
+import { version, name } from "../packageMetadata";
+
+export type SignedHttpRequestOptions = {
+    loggerOptions: LoggerOptions
+};
 
 export class SignedHttpRequest {
     private popTokenGenerator: PopTokenGenerator;
     private cryptoOps: CryptoOps;
     private shrParameters: SignedHttpRequestParameters;
+    private logger: Logger;
 
-    constructor(shrParameters: SignedHttpRequestParameters) {
-        this.cryptoOps = new CryptoOps();
+    constructor(shrParameters: SignedHttpRequestParameters, shrOptions?: SignedHttpRequestOptions) {
+        const loggerOptions = (shrOptions && shrOptions.loggerOptions) || {};
+        this.logger = new Logger(loggerOptions, name, version);
+        this.cryptoOps = new CryptoOps(this.logger);
         this.popTokenGenerator = new PopTokenGenerator(this.cryptoOps);
         this.shrParameters = shrParameters;
     }
