@@ -9,7 +9,7 @@ In addition to `Bearer` and `PoP` access tokens, MSAL Browser supports the acqui
 
 ### Pre-requsities
 
-MSAL takes care of acquiring, caching and renewing (or "refreshing") the SSH certificate being requested. The following actions are the cleint application's responsibility:
+MSAL takes care of acquiring, caching and renewing (or "refreshing") the SSH certificate being requested. The following actions are the client application's responsibility:
 
 * Generating an RSA keypair that the SSH certificate is meant to sign
 * Securely storing said keypair 
