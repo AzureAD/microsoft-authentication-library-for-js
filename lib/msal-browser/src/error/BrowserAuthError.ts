@@ -151,7 +151,7 @@ export const BrowserAuthErrorMessage = {
     },
     databaseUnavailable: {
         code: "database_unavailable",
-        desc: "IndexedDB, which is required for cryptographic key storage, is unavailable. This may happen when browsing in private mode."
+        desc: "IndexedDB, which is required for persistent cryptographic key storage, is unavailable. This may be caused by browser privacy features which block persistent storage in third-party contexts."
     }
 };
 
