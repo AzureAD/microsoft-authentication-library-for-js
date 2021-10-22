@@ -15,7 +15,7 @@ export class AuthorityMetadataEntity {
     canonical_authority: string;
     authorization_endpoint: string;
     token_endpoint: string;
-    end_session_endpoint: string;
+    end_session_endpoint?: string;
     issuer: string;
     aliasesFromNetwork: boolean;
     endpointsFromNetwork: boolean;
@@ -90,7 +90,6 @@ export class AuthorityMetadataEntity {
             entity.hasOwnProperty("canonical_authority") &&
             entity.hasOwnProperty("authorization_endpoint") &&
             entity.hasOwnProperty("token_endpoint") &&
-            entity.hasOwnProperty("end_session_endpoint") &&
             entity.hasOwnProperty("issuer") &&
             entity.hasOwnProperty("aliasesFromNetwork") &&
             entity.hasOwnProperty("endpointsFromNetwork") &&
