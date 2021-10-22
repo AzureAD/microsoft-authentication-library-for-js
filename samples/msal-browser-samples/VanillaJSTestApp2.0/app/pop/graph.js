@@ -24,7 +24,7 @@ function callMSGraph(endpoint, accessToken, callback) {
         .catch(error => console.log(error));
 }
 
-let poopToken = ""
+let popToken = "";
 function callPopResource(endpoint, method, accessToken, callback) {
     const headers = new Headers();
     const authHeader = `PoP ${accessToken}`;

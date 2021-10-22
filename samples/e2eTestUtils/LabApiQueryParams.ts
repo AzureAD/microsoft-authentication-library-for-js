@@ -4,5 +4,7 @@ export type LabApiQueryParams = {
     federationProvider?: string,
     b2cProvider?: string,
     homeDomain?: string,
-    appType?: string
+    appType?: string,
+    signInAudience?: string,
+    publicClient?: string
 };
