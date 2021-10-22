@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, PkceCodes, SignedHttpRequest, SignedHttpRequestParameters } from "@azure/msal-common";
+import { ICrypto, Logger, PkceCodes, SignedHttpRequest, SignedHttpRequestParameters } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
@@ -40,21 +40,23 @@ export class CryptoOps implements ICrypto {
     private b64Encode: Base64Encode;
     private b64Decode: Base64Decode;
     private pkceGenerator: PkceGenerator;
+    private logger: Logger;
 
     private static POP_KEY_USAGES: Array<KeyUsage> = ["sign", "verify"];
     private static EXTRACTABLE: boolean = true;
     private cache: CryptoKeyStore;
 
-    constructor() {
+    constructor(logger: Logger) {
+        this.logger = logger;
         // Browser crypto needs to be validated first before any other classes can be set.
-        this.browserCrypto = new BrowserCrypto();
+        this.browserCrypto = new BrowserCrypto(this.logger);
         this.b64Encode = new Base64Encode();
         this.b64Decode = new Base64Decode();
         this.guidGenerator = new GuidGenerator(this.browserCrypto);
         this.pkceGenerator = new PkceGenerator(this.browserCrypto);
         this.cache = {
-            asymmetricKeys: new AsyncMemoryStorage<CachedKeyPair>(),
-            symmetricKeys: new AsyncMemoryStorage<CryptoKey>()
+            asymmetricKeys: new AsyncMemoryStorage<CachedKeyPair>(this.logger),
+            symmetricKeys: new AsyncMemoryStorage<CryptoKey>(this.logger)
         };
     }
 

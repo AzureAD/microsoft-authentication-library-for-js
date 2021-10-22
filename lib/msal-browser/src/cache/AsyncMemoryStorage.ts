@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { BrowserAuthError, Logger } from "..";
 import { DatabaseStorage } from "./DatabaseStorage";
 import { IAsyncStorage } from "./IAsyncMemoryStorage";
 import { MemoryStorage } from "./MemoryStorage";
@@ -14,10 +15,12 @@ import { MemoryStorage } from "./MemoryStorage";
 export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
     private inMemoryCache: MemoryStorage<T>;
     private indexedDBCache: DatabaseStorage<T>;
+    private logger: Logger;
 
-    constructor() {
+    constructor(logger: Logger) {
         this.inMemoryCache = new MemoryStorage<T>();
         this.indexedDBCache = new DatabaseStorage<T>();
+        this.logger = logger;
     }
 
     /**
@@ -31,7 +34,9 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
             try {
                 return await this.indexedDBCache.getItem(key);
             } catch (e) {
-                // Do nothing if IndexedDB is unavailable
+                if (e instanceof BrowserAuthError.createDatabaseUnavailableError) {
+                    this.logger.error(`Could not search for object with key "${key}" in asynchronous storage since IndexedDB is not available in the current browser environment."`);
+                }
             }
         }
         return item;
@@ -48,7 +53,9 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
         try {
             await this.indexedDBCache.setItem(key, value);
         } catch (e) {
-            // Do nothing if IndexedDB is unavailable
+            if (e instanceof BrowserAuthError.createDatabaseUnavailableError) {
+                this.logger.error(`Could not persist object with key "${key}" in asynchronous storage since IndexedDB is not available in the current browser environment."`);
+            }
         }
     }
 
@@ -61,7 +68,9 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
         try {
             await this.indexedDBCache.removeItem(key);
         } catch (e) {
-            // Do nothing if IndexedDB is unavailable
+            if (e instanceof BrowserAuthError.createDatabaseUnavailableError) {
+                this.logger.error(`Could not attempt to remove object with key "${key}" from asynchronous storage since IndexedDB is not available in the current browser environment."`);
+            }
         }
     }
 
@@ -75,7 +84,9 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
             try {
                 return await this.indexedDBCache.getKeys();
             } catch (e) {
-                // Do nothing if IndexedDB is unavailable
+                if (e instanceof BrowserAuthError.createDatabaseUnavailableError) {
+                    this.logger.error("Could not query keys from asynchronous storage since IndexedDB is not available in the current browser environment.");
+                }
             }
         }
         return cacheKeys;
@@ -91,7 +102,9 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
             try {
                 return await this.indexedDBCache.containsKey(key);
             } catch (e) {
-                // Do nothing if IndexedDB is unavailable
+                if (e instanceof BrowserAuthError.createDatabaseUnavailableError) {
+                    this.logger.error(`Could not search for key "${key}" in asynchronous storage since IndexedDB is not available in the current browser environment."`);
+                }
             }
         }
         return containsKey;
@@ -105,7 +118,9 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
         try {
             await this.indexedDBCache.deleteDatabase();
         } catch (e) {
-            // Do nothing if IndexedDB is unavailable
+            if (e instanceof BrowserAuthError.createDatabaseUnavailableError) {
+                this.logger.error("Could not delete IndexedDB database since IndexedDB is not available in the current browser environment.");
+            }
         }
     }
 }
