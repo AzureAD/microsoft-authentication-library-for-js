@@ -134,7 +134,7 @@ export class CryptoOps implements ICrypto {
      * @param kid 
      */
     async removeTokenBindingKey(kid: string): Promise<boolean> {
-        this.cache.asymmetricKeys.removeItem(kid);
+        await this.cache.asymmetricKeys.removeItem(kid);
         return (!this.cache.asymmetricKeys.containsKey(kid));
     }
 

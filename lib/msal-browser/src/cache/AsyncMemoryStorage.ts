@@ -26,10 +26,10 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
      * @param key 
      */
     async getItem(key: string): Promise<T | null> {
-        let item = this.inMemoryCache.getItem(key);
+        const item =this.inMemoryCache.getItem(key);
         if(!item) {
             try {
-                item = await this.indexedDBCache.getItem(key);
+                return await this.indexedDBCache.getItem(key);
             } catch (e) {
                 // Do nothing if IndexedDB is unavailable
             }
@@ -46,7 +46,7 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
     async setItem(key: string, value: T): Promise<void> {
         this.inMemoryCache.setItem(key, value);
         try {
-            this.indexedDBCache.setItem(key, value);
+            await this.indexedDBCache.setItem(key, value);
         } catch (e) {
             // Do nothing if IndexedDB is unavailable
         }
@@ -59,7 +59,7 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
     async removeItem(key: string): Promise<void> {
         this.inMemoryCache.removeItem(key);
         try {
-            this.indexedDBCache.removeItem(key);
+            await this.indexedDBCache.removeItem(key);
         } catch (e) {
             // Do nothing if IndexedDB is unavailable
         }
@@ -70,10 +70,10 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
      * asynchronous storage object.
      */
     async getKeys(): Promise<string[]> {
-        let cacheKeys = this.inMemoryCache.getKeys();
+        const cacheKeys = this.inMemoryCache.getKeys();
         if (cacheKeys.length === 0) {
             try {
-                cacheKeys = await this.indexedDBCache.getKeys();
+                return await this.indexedDBCache.getKeys();
             } catch (e) {
                 // Do nothing if IndexedDB is unavailable
             }
@@ -86,10 +86,10 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
      * @param key 
      */
     async containsKey(key: string): Promise<boolean> {
-        let containsKey = this.inMemoryCache.containsKey(key);
+        const containsKey = this.inMemoryCache.containsKey(key);
         if(!containsKey) {
             try {
-                containsKey = await this.indexedDBCache.containsKey(key);
+                return await this.indexedDBCache.containsKey(key);
             } catch (e) {
                 // Do nothing if IndexedDB is unavailable
             }
@@ -103,7 +103,7 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
     async clear(): Promise<void> {
         this.inMemoryCache.clear();
         try {
-            this.indexedDBCache.deleteDatabase();
+            await this.indexedDBCache.deleteDatabase();
         } catch (e) {
             // Do nothing if IndexedDB is unavailable
         }
