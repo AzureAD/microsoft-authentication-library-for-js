@@ -558,5 +558,13 @@ export abstract class ClientApplication {
     setNavigationClient(navigationClient: INavigationClient): void {
         this.navigationClient = navigationClient;
     }
+
+    /**
+     * Returns the configuration object
+     */
+    getConfiguration(): BrowserConfiguration {
+        return this.config;
+    }
+
     // #endregion
 }
