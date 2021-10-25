@@ -11,7 +11,7 @@ on:
 # Job will run on a ubuntu instance
 jobs:
   build:
-    if: github.event.pull_request.merged == true && contains(github.head_ref, 'release-staging')
+    if: (github.event.pull_request.merged == true && github.head_ref == 'release-staging')
     runs-on: ubuntu-latest
     env:
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -109,7 +109,7 @@ jobs:
       - name: Update package-locks
         run: npm install
 
-      # Create Pull Request from dev to master for sync post-publish
+      # Create Pull Request from Post-release to dev
       - name: Create Pull Request
         id: pr
         uses: peter-evans/create-pull-request@v3
