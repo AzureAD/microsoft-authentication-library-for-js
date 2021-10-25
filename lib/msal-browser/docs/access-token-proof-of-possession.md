@@ -60,7 +60,7 @@ Once you have determined the authorization service and resource server support a
 |      `shrNonce`         | A server-generated, signed timestamp that is Base64URL encoded as a string. This nonce is used to mitigate clock-skew and time-travel attacks meant to enable PoP token pre-generation. Check out the [SHR Server Nonce](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/shr-server-nonce.md) documentation for more information.| *Optional* |
 
 
-*Note: While this document shows how to add an `shrNonce` to the `SignedHttpRequest`, the server nonce acquisition pattern is out of scope.*
+*Note: While this document shows how to add an `shrNonce` to the `SignedHttpRequest`, the server nonce acquisition pattern is out of scope. Please review the [SHR Server Nonce dcoumentation](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/shr-server-nonce.md#acquiring-a-server-nonce) for more information on acquiring server-generated nonces.*
 
 ### Acquire Token Redirect Request Example
 
