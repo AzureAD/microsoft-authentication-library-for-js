@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Ensure correlation is passed to all interaction clients in acquireTokenSilent #4186",
+  "packageName": "@azure/msal-browser",
+  "email": "janutter@microsoft.com",
+  "dependentChangeType": "patch"
+}
