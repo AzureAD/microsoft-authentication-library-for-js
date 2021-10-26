@@ -98,7 +98,9 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             authenticationScheme: request.authenticationScheme,
             resourceRequestMethod: request.resourceRequestMethod,
             resourceRequestUri: request.resourceRequestUri,
-            shrClaims: request.shrClaims
+            shrClaims: request.shrClaims,
+            sshJwk: request.sshJwk,
+            sshKid: request.sshKid
         };
         const silentRequestKey = JSON.stringify(thumbprint);
         const cachedResponse = this.activeSilentTokenRequests.get(silentRequestKey);
@@ -136,7 +138,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 // If native token acquisition fails for availability reasons fallback to standard flow
                 if (e instanceof WamAuthError && e.isFatal()) {
                     this.wamExtensionProvider = undefined; // Prevent future requests from continuing to attempt 
-                    const silentCacheClient = this.createSilentCacheClient();
+                    const silentCacheClient = this.createSilentCacheClient(request.correlationId);
                     const silentRequest = silentCacheClient.initializeSilentRequest(request, account);
                     result = silentCacheClient.acquireToken(silentRequest).catch(async () => {
                         return this.acquireTokenByRefreshToken(silentRequest);
@@ -145,7 +147,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 throw e;
             });     
         } else {
-            const silentCacheClient = this.createSilentCacheClient();
+            const silentCacheClient = this.createSilentCacheClient(request.correlationId);
             const silentRequest = silentCacheClient.initializeSilentRequest(request, account);
             result = silentCacheClient.acquireToken(silentRequest).catch(async () => {
                 return this.acquireTokenByRefreshToken(silentRequest);
