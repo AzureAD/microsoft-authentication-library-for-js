@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { BrowserAuthError, Logger } from "..";
+import { BrowserAuthError, BrowserAuthErrorMessage, Logger } from "..";
 import { DatabaseStorage } from "./DatabaseStorage";
 import { IAsyncStorage } from "./IAsyncMemoryStorage";
 import { MemoryStorage } from "./MemoryStorage";
@@ -24,7 +24,7 @@ export class AsyncMemoryStorage<T> implements IAsyncStorage<T> {
     }
 
     private handleDatabaseAccessError(error: unknown): void {
-        if (error instanceof BrowserAuthError.createDatabaseUnavailableError) {
+        if (error instanceof BrowserAuthError && error.errorCode === BrowserAuthErrorMessage.databaseUnavailable.code) {
             this.logger.error("Could not access persistent storage. This may be caused by browser privacy features which block persistent storage in third-party contexts.");
         }
     }
