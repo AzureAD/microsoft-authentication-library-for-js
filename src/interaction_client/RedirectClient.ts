@@ -110,7 +110,7 @@ export class RedirectClient extends StandardInteractionClient {
             } else if (!this.config.auth.navigateToLoginRequestUrl) {
                 this.logger.verbose("NavigateToLoginRequestUrl set to false, handling hash");
                 return this.handleHash(responseHash, state, serverTelemetryManager);
-            } else if (!BrowserUtils.isInIframe()) {
+            } else if (!BrowserUtils.isInIframe() || this.config.system.allowRedirectInIframe) {
                 /*
                  * Returned from authority using redirect - need to perform navigation before processing response
                  * Cache the hash to be retrieved after the next redirect
