@@ -5,8 +5,8 @@
 
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
-import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, TEST_STATE_VALUES, DEFAULT_TENANT_DISCOVERY_RESPONSE, testLogoutUrl } from "../utils/StringConstants";
-import { ServerError, Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationCodeRequest, CommonAuthorizationUrlRequest, AuthToken, PersistentCacheKeys, AuthorizationCodeClient, ResponseMode, ProtocolUtils, AuthenticationScheme, Logger, ServerTelemetryEntity, LogLevel, NetworkResponse, ServerAuthorizationTokenResponse, CcsCredential, CcsCredentialType, CommonEndSessionRequest, ServerTelemetryManager, AccountEntity } from "@azure/msal-common";
+import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, TEST_STATE_VALUES, DEFAULT_TENANT_DISCOVERY_RESPONSE, testLogoutUrl, TEST_SSH_VALUES } from "../utils/StringConstants";
+import { ServerError, Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationCodeRequest, CommonAuthorizationUrlRequest, AuthToken, PersistentCacheKeys, AuthorizationCodeClient, ResponseMode, ProtocolUtils, AuthenticationScheme, Logger, ServerTelemetryEntity, LogLevel, NetworkResponse, ServerAuthorizationTokenResponse, CcsCredential, CcsCredentialType, CommonEndSessionRequest, ServerTelemetryManager, AccountEntity, ClientConfigurationError } from "@azure/msal-common";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { TemporaryCacheKeys, ApiId, BrowserCacheLocation, InteractionType } from "../../src/utils/BrowserConstants";
 import { Base64Encode } from "../../src/encode/Base64Encode";
@@ -833,6 +833,37 @@ describe("RedirectClient", () => {
             expect(secondInstanceStorage.isInteractionInProgress(false)).toBe(true);
             // @ts-ignore
             await expect(redirectClient.acquireToken({scopes: ["openid"]})).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
+        });
+
+        it("throws error when AuthenticationScheme is set to SSH and SSH JWK is omitted from the request", async () => {
+            const loginRequest: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read"],
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                nonce: "",
+                authenticationScheme: AuthenticationScheme.SSH
+            };
+
+            expect(redirectClient.acquireToken(loginRequest)).rejects.toThrow(ClientConfigurationError.createMissingSshJwkError());
+        });
+
+        it("throws error when AuthenticationScheme is set to SSH and SSH KID is omitted from the request", async () => {
+            const request: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read"],
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                nonce: "",
+                authenticationScheme: AuthenticationScheme.SSH,
+                sshJwk: TEST_SSH_VALUES.SSH_JWK
+            };
+
+            expect(redirectClient.acquireToken(request)).rejects.toThrow(ClientConfigurationError.createMissingSshKidError());
         });
 
         it("navigates to created login url", (done) => {
