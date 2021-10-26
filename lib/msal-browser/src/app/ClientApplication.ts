@@ -607,8 +607,8 @@ export abstract class ClientApplication {
     /**
      * Returns new instance of the Silent Cache Interaction Client
      */
-    protected createSilentCacheClient(): SilentCacheClient {
-        return new SilentCacheClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient);
+    protected createSilentCacheClient(correlationId?: string): SilentCacheClient {
+        return new SilentCacheClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, correlationId);
     }
 
     /**
