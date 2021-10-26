@@ -75,7 +75,7 @@ export const ClientConfigurationErrorMessage = {
     },
     invalidAuthorityMetadata: {
         code: "invalid_authority_metadata",
-        desc: "Invalid authorityMetadata provided. Must by a stringified JSON object containing authorization_endpoint, token_endpoint, end_session_endpoint, issuer fields."
+        desc: "Invalid authorityMetadata provided. Must by a stringified JSON object containing authorization_endpoint, token_endpoint, issuer fields."
     },
     untrustedAuthority: {
         code: "untrusted_authority",

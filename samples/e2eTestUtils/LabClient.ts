@@ -58,9 +58,11 @@ export class LabClient {
         if (labApiParams.azureEnvironment) {
             apiParams.push(`${ParamKeys.AZURE_ENVIRONMENT}=${labApiParams.azureEnvironment}`);
         }
+
         if (labApiParams.userType) {
             apiParams.push(`${ParamKeys.USER_TYPE}=${labApiParams.userType}`);
         }
+
         if (labApiParams.federationProvider) {
             apiParams.push(`${ParamKeys.FEDERATION_PROVIDER}=${labApiParams.federationProvider}`);
         }
@@ -75,6 +77,14 @@ export class LabClient {
 
         if (labApiParams.appType) {
             apiParams.push(`${ParamKeys.APP_TYPE}=${labApiParams.appType}`);
+        }
+
+        if (labApiParams.signInAudience) {
+            apiParams.push(`${ParamKeys.SIGN_IN_AUDIENCE}=${labApiParams.signInAudience}`);
+        }
+
+        if (labApiParams.publicClient) {
+            apiParams.push(`${ParamKeys.PUBLIC_CLIENT}=${labApiParams.publicClient}`);
         }
 
         if (apiParams.length <= 0) {
