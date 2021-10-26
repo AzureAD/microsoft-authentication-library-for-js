@@ -11,6 +11,7 @@ import { BrowserStorage } from "./BrowserStorage";
 import { MemoryStorage } from "./MemoryStorage";
 import { IWindowStorage } from "./IWindowStorage";
 import { BrowserProtocolUtils } from "../utils/BrowserProtocolUtils";
+import { WamTokenRequest } from "../broker/wam/WamRequest";
 
 /**
  * This class implements the cache storage interface for MSAL through browser local or session storage.
@@ -916,6 +917,25 @@ export class BrowserCacheManager extends CacheManager {
             }
             parsedRequest.authority = cachedAuthority;
         }
+
+        return parsedRequest;
+    }
+
+    /**
+     * Gets cached native request for redirect flows
+     */
+    getCachedNativeRequest(): WamTokenRequest | null {
+        const cachedRequest = this.getTemporaryCache(TemporaryCacheKeys.NATIVE_REQUEST, true);
+        if (!cachedRequest) {
+            return null;
+        }
+
+        const parsedRequest = this.validateAndParseJson(cachedRequest) as WamTokenRequest;
+        if (!parsedRequest) {
+            return null;
+        }
+
+        this.removeItem(this.generateCacheKey(TemporaryCacheKeys.NATIVE_REQUEST));
 
         return parsedRequest;
     }

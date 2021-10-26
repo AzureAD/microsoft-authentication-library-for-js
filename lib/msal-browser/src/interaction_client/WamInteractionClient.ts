@@ -13,16 +13,19 @@ import { PopupRequest } from "../request/PopupRequest";
 import { SilentRequest } from "../request/SilentRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
 import { WamMessageHandler } from "../broker/wam/WamMessageHandler";
-import { WamExtensionMethod } from "../utils/BrowserConstants";
+import { WamExtensionMethod, ApiId, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { WamExtensionRequestBody, WamTokenRequest } from "../broker/wam/WamRequest";
 import { WamResponse } from "../broker/wam/WamResponse";
 import { WamAuthError } from "../error/WamAuthError";
+import { RedirectRequest } from "../request/RedirectRequest";
+import { NavigationOptions } from "../navigation/NavigationOptions";
+import { INavigationClient } from "../navigation/INavigationClient";
 
 export class WamInteractionClient extends BaseInteractionClient {
     protected provider: WamMessageHandler;
 
-    constructor(config: BrowserConfiguration, browserStorage: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, provider: WamMessageHandler, correlationId?: string) {
-        super(config, browserStorage, browserCrypto, logger, eventHandler, correlationId);
+    constructor(config: BrowserConfiguration, browserStorage: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, provider: WamMessageHandler, correlationId?: string) {
+        super(config, browserStorage, browserCrypto, logger, eventHandler, navigationClient, correlationId);
         this.provider = provider;
     }
 
@@ -46,6 +49,75 @@ export class WamInteractionClient extends BaseInteractionClient {
     }
 
     /**
+     * Acquires a token from WAM then redirects to the redirectUri instead of returning the response                                
+     * @param request 
+     */
+    async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
+        this.logger.trace("WamInteractionClient - acquireTokenRedirect called.");
+        const wamRequest = this.initializeWamRequest(request);
+
+        const messageBody: WamExtensionRequestBody = {
+            method: WamExtensionMethod.GetToken,
+            request: wamRequest
+        };
+
+        try {
+            const response: object = await this.provider.sendMessage(messageBody);
+            this.validateWamResponse(response);
+        } catch (e) {
+            // Only throw fatal errors here to allow application to fallback to regular redirect. Otherwise proceed and the error will be thrown in handleRedirectPromise
+            if (e instanceof WamAuthError && e.isFatal()) {
+                throw e;
+            }
+        }
+
+        this.browserStorage.setInteractionInProgress(true);
+        this.browserStorage.setTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, this.correlationId, true);
+        this.browserStorage.setTemporaryCache(TemporaryCacheKeys.NATIVE_REQUEST, JSON.stringify(wamRequest), true);
+
+        const navigationOptions: NavigationOptions = {
+            apiId: ApiId.acquireTokenRedirect,
+            timeout: this.config.system.redirectNavigationTimeout,
+            noHistory: false
+        };
+        const redirectUri = this.config.auth.navigateToLoginRequestUrl ? window.location.href : this.getRedirectUri(request.redirectUri);
+        await this.navigationClient.navigateExternal(redirectUri, navigationOptions); // Need to treat this as external to ensure handleRedirectPromise is run again
+    }
+
+    /**
+     * If the previous page called WAM for a token using redirect APIs, send the same request again and return the response
+     */
+    async handleRedirectPromise(): Promise<AuthenticationResult | null> {
+        if (!this.browserStorage.isInteractionInProgress(true)) {
+            this.logger.info("handleRedirectPromise called but there is no interaction in progress, returning null.");
+            return null;
+        }
+
+        const cachedRequest = this.browserStorage.getCachedNativeRequest();
+        if (!cachedRequest) {
+            return null;
+        }
+
+        const messageBody: WamExtensionRequestBody = {
+            method: WamExtensionMethod.GetToken,
+            request: cachedRequest
+        };
+
+        const reqTimestamp = TimeUtils.nowSeconds();
+
+        try {
+            const response: object = await this.provider.sendMessage(messageBody);
+            this.validateWamResponse(response);
+            const result = this.handleWamResponse(response as WamResponse, cachedRequest, reqTimestamp);
+            this.browserStorage.setInteractionInProgress(false);
+            return result;
+        } catch (e) {
+            this.browserStorage.setInteractionInProgress(false);
+            throw e;
+        }
+    }
+
+    /**
      * Logout from WAM via browser extension
      * @param request 
      */
@@ -60,7 +132,7 @@ export class WamInteractionClient extends BaseInteractionClient {
      * @param request 
      * @param reqTimestamp 
      */
-    protected async handleWamResponse(response: WamResponse, request: WamTokenRequest, reqTimestamp: number): Promise<AuthenticationResult> {
+    protected handleWamResponse(response: WamResponse, request: WamTokenRequest, reqTimestamp: number): AuthenticationResult {
         this.logger.trace("WamInteractionClient - handleWamResponse called.");
         // create an idToken object (not entity)
         const idTokenObj = new AuthToken(response.id_token || Constants.EMPTY_STRING, this.browserCrypto);
