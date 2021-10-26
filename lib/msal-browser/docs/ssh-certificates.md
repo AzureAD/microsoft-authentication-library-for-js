@@ -46,7 +46,7 @@ const sshCertificateRequest = {
 
 *Note: Setting the `authenticationScheme` to `AuthenticationScheme.SSH` will make the `sshJwk` and `sshKid` attributes mandatory, causing the request to fail with a `ClientConfigurationError` if either is omitted.*
 
-Once the request has been configured and `SSH` is set as the `authenticationScheme`, it can be sent into the `acquireTokenRedirect` MSAL v2 API.
+Once the request has been configured and `SSH` is set as the `authenticationScheme`, it can be sent into the `acquireToken` MSAL v2 API.
 
 ```typescript
 // The SSH Certificate will be the string value contained in the accessToken property of the AuthenticationResult object

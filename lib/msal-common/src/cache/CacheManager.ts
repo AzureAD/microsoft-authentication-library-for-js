@@ -426,6 +426,7 @@ export abstract class CacheManager implements ICacheManager {
                         if(keyId && !this.matchKeyId(entity, keyId)) {
                             return;
                         }
+                        break;
                 }
             }
 
