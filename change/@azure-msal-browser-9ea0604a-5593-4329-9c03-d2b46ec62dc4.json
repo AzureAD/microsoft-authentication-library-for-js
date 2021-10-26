@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Add support for in-memory storage for token binding cryptographic keys to enable POP in environments without IndexedDB",
+  "comment": "Add support for in-memory storage of token binding keys #4183",
   "packageName": "@azure/msal-browser",
   "email": "hemoral@microsoft.com",
   "dependentChangeType": "patch"
