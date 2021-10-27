@@ -158,3 +158,8 @@ export enum WrapperSKU {
     React = "@azure/msal-react",
     Angular = "@azure/msal-angular"
 }
+
+// DatabaseStorage Constants
+export const DB_NAME = "msal.db";
+export const DB_VERSION = 1;
+export const DB_TABLE_NAME = `${DB_NAME}.keys`;

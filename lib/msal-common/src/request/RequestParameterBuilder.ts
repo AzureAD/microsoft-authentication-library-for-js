@@ -358,6 +358,16 @@ export class RequestParameterBuilder {
     }
 
     /**
+     * add SSH JWK and key ID to query params 
+     */
+    addSshJwk(sshJwkString: string): void {
+        if(!StringUtils.isEmpty(sshJwkString)) {
+            this.parameters.set(AADServerParamKeys.TOKEN_TYPE, AuthenticationScheme.SSH);
+            this.parameters.set(AADServerParamKeys.REQ_CNF, encodeURIComponent(sshJwkString));
+        }
+    }
+
+    /**
      * add server telemetry fields
      * @param serverTelemetryManager 
      */

@@ -5,7 +5,8 @@ import {
     TEST_TOKENS,
     DEVICE_CODE_RESPONSE,
     TEST_POP_VALUES,
-    TEST_DATA_CLIENT_INFO
+    TEST_DATA_CLIENT_INFO,
+    TEST_SSH_VALUES
 } from "../test_kit/StringConstants";
 import { RequestParameterBuilder } from "../../src/request/RequestParameterBuilder";
 import sinon from "sinon";
@@ -68,7 +69,7 @@ describe("RequestParameterBuilder unit tests", () => {
         expect(requestQueryString.includes(`${AADServerParamKeys.REQ_CNF}=${encodeURIComponent(TEST_POP_VALUES.ENCODED_REQ_CNF)}`)).toBe(true);
     });
 
-    it("Does not add token type or req_cnf if req_cnf is undefined or empty", () => {
+    it("Does not add token type or req_cnf for PoP request if req_cnf is undefined or empty", () => {
         const requestParameterBuilder = new RequestParameterBuilder();
         requestParameterBuilder.addPopToken("");
         const requestQueryString = requestParameterBuilder.createQueryString();
@@ -77,6 +78,27 @@ describe("RequestParameterBuilder unit tests", () => {
         const requestParameterBuilder2 = new RequestParameterBuilder();
         //@ts-ignore
         requestParameterBuilder.addPopToken(undefined);
+        const requestQueryString2 = requestParameterBuilder2.createQueryString();
+        expect(Object.keys(requestQueryString2)).toHaveLength(0);
+    });
+
+    it("Adds token type and req_cnf correctly for SSH certificates", () => {
+        const requestParameterBuilder = new RequestParameterBuilder();
+        requestParameterBuilder.addSshJwk(TEST_SSH_VALUES.SSH_JWK);
+        const requestQueryString = requestParameterBuilder.createQueryString();
+        expect(requestQueryString.includes(`${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.SSH}`)).toBe(true);
+        expect(requestQueryString.includes(`${AADServerParamKeys.REQ_CNF}=${TEST_SSH_VALUES.ENCODED_SSH_JWK}`)).toBe(true);
+    });
+
+    it("Does not add token type or req_cnf for SSH Certificate request if req_cnf is undefined or empty", () => {
+        const requestParameterBuilder = new RequestParameterBuilder();
+        requestParameterBuilder.addSshJwk("");
+        const requestQueryString = requestParameterBuilder.createQueryString();
+        expect(Object.keys(requestQueryString)).toHaveLength(0);
+        
+        const requestParameterBuilder2 = new RequestParameterBuilder();
+        //@ts-ignore
+        requestParameterBuilder.addSshJwk(undefined);
         const requestQueryString2 = requestParameterBuilder2.createQueryString();
         expect(Object.keys(requestQueryString2)).toHaveLength(0);
     });
