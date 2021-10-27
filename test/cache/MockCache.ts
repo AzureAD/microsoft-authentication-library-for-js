@@ -91,7 +91,8 @@ export class MockCache {
         const atTwo = CacheManager.toObject(new AccessTokenEntity(), atTwoData);
         this.cacheManager.setAccessTokenCredential(atTwo);
 
-        const atWithAuthSchemeData = {
+        // POP Token
+        const popAtWithAuthSchemeData = {
             "environment": "login.microsoftonline.com",
             "credentialType": "AccessToken_With_AuthScheme",
             "secret": "an access token",
@@ -105,8 +106,26 @@ export class MockCache {
             "tokenType": "pop",
             "keyId": "V6N_HMPagNpYS_wxM14X73q3eWzbTr9Z31RyHkIcN0Y"
         };
-        const atWithAuthScheme = CacheManager.toObject(new AccessTokenEntity(), atWithAuthSchemeData);
-        this.cacheManager.setAccessTokenCredential(atWithAuthScheme);
+        const popAtWithAuthScheme = CacheManager.toObject(new AccessTokenEntity(), popAtWithAuthSchemeData);
+        this.cacheManager.setAccessTokenCredential(popAtWithAuthScheme);
+
+        // SSH Certificate
+        const sshAtWithAuthSchemeData = {
+            "environment": "login.microsoftonline.com",
+            "credentialType": "AccessToken_With_AuthScheme",
+            "secret": "an SSH Cert",
+            "realm": "microsoft",
+            "target": "scope1 scope2 scope3",
+            "clientId": "mock_client_id",
+            "cachedAt": "1000",
+            "homeAccountId": "uid.utid",
+            "extendedExpiresOn": "4600",
+            "expiresOn": "4600",
+            "tokenType": "ssh-cert",
+            "keyId": "some_key_id"
+        };
+        const sshAtWithAuthScheme = CacheManager.toObject(new AccessTokenEntity(), sshAtWithAuthSchemeData);
+        this.cacheManager.setAccessTokenCredential(sshAtWithAuthScheme);
     }
 
     // create refresh token entries in the cache
