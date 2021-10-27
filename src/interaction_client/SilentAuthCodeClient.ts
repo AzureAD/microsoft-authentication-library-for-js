@@ -57,7 +57,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
             // Create silent handler
             const silentHandler = new SilentHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.config.system.navigateFrameWait);
 
-            // Handle response from hash string
+            // Handle auth code parameters from request
             return silentHandler.handleCodeResponseFromServer(
                 {
                     code: request.code,
