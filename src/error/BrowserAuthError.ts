@@ -151,7 +151,7 @@ export const BrowserAuthErrorMessage = {
     },
     authCodeRequired: {
         code: "auth_code_required",
-        descr: "Authorization code is required for this flow."
+        desc: "An authorization code must be provided (as the `code` property on the request) to this flow."
     }
 };
 
@@ -436,6 +436,6 @@ export class BrowserAuthError extends AuthError {
     }
 
     static createAuthCodeRequiredError(): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.authCodeRequired.code, BrowserAuthErrorMessage.authCodeRequired.descr);
+        return new BrowserAuthError(BrowserAuthErrorMessage.authCodeRequired.code, BrowserAuthErrorMessage.authCodeRequired.desc);
     }
 }
