@@ -8,7 +8,7 @@ on:
 
 jobs:
   deploy:
-    if: (github.event.pull_request.merged == true && github.head_ref=='post-release')
+    if: (github.event.pull_request.merged == true && contains(github.head_ref,'post-release'))
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2
