@@ -20,7 +20,7 @@ import { BrokerPopupRequest } from "../request/BrokerPopupRequest";
 import { BrokerRedirectRequest } from "../request/BrokerRedirectRequest";
 import { BrokerSsoSilentRequest } from "../request/BrokerSsoSilentRequest";
 import { PublicClientApplication } from "../../app/PublicClientApplication";
-import { ExperimentalBrowserConfiguration, ExperimentalConfiguration, buildExperimentalConfiguration } from "../../config/ExperimentalConfiguration";
+import { ExperimentalBrowserConfiguration, ExperimentalConfiguration, buildExperimentalConfiguration, BrokerInitializationOptions } from "../../config/ExperimentalConfiguration";
 import { BrokerRedirectClient } from "../../interaction_client/broker/BrokerRedirectClient";
 import { BrokerPopupClient } from "../../interaction_client/broker/BrokerPopupClient";
 import { BrokerSilentIframeClient } from "../../interaction_client/broker/BrokerSilentIframeClient";
@@ -35,12 +35,14 @@ export class BrokerClientApplication extends PublicClientApplication {
 
     // Current promise which is processing the hash in the url response, trading for tokens, and caching the brokered response in memory.
     private currentBrokerRedirectResponse?: Promise<BrokerAuthenticationResult | null>;
+    private hybridAuthPromise?: Promise<AuthenticationResult>;
     private experimentalConfig: ExperimentalBrowserConfiguration;
 
     constructor(configuration: Configuration, experimentalConfiguration: ExperimentalConfiguration) {
         super(configuration);
 
         this.currentBrokerRedirectResponse = undefined;
+        this.hybridAuthPromise = undefined;
         this.experimentalConfig = buildExperimentalConfiguration(experimentalConfiguration);
     }
 
@@ -139,8 +141,13 @@ export class BrokerClientApplication extends PublicClientApplication {
     /**
      * Add event listener to start listening for messages to the broker.
      */
-    listenForBrokerMessage(): void {
+    async listenForBrokerMessage(options?: BrokerInitializationOptions): Promise<AuthenticationResult|undefined> {
         window.addEventListener("message", this.handleBrokerMessage.bind(this));
+        if (options && options.codeRequest) {
+            this.hybridAuthPromise = this.acquireTokenByCode(options.codeRequest);
+        }
+
+        return this.hybridAuthPromise;
     }
 
     /**
@@ -175,8 +182,15 @@ export class BrokerClientApplication extends PublicClientApplication {
     private async handleBrokerHandshake(clientMessage: MessageEvent): Promise<void> {
         const validMessage = BrokerHandshakeRequest.validate(clientMessage);
         this.logger.verbose(`Broker handshake validated: ${validMessage}`);
-        // TODO: Add broker origin here
         const brokerHandshakeResponse = new BrokerHandshakeResponse(version, "");
+
+        if (this.hybridAuthPromise) {
+            try { 
+                await this.hybridAuthPromise;
+            } catch (e) {
+                this.logger.error(`Broker could obtain tokens use authorization code initializer: ${e}`)
+            }
+        }
 
         // @ts-ignore
         clientMessage.source.postMessage(brokerHandshakeResponse, clientMessage.origin);

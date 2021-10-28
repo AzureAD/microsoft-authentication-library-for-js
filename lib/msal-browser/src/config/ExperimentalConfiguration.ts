@@ -5,6 +5,7 @@
 
 import { InteractionType } from "../utils/BrowserConstants";
 import { RedirectRequest } from "../request/RedirectRequest";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 
 export type ExperimentalConfiguration = {
     brokerOptions?: BrokerOptions;
@@ -19,6 +20,10 @@ export type BrokerOptions = {
     allowBrokering?: boolean;
     trustedBrokerDomains?: string[];
     brokerRedirectParams?: Pick<RedirectRequest, "redirectStartPage" | "onRedirectNavigate">;
+};
+
+export type BrokerInitializationOptions = {
+    codeRequest?: AuthorizationCodeRequest;
 };
 
 export type ExperimentalBrowserConfiguration = {

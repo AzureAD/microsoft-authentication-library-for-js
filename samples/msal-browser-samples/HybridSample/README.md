@@ -4,8 +4,6 @@ This sample demonstrates how to use MSAL.js v2 and MSAL Node together in a "hybr
 
 It shows how to use two new APIs, `enableSpaAuthCode` in MSAL Node and `acquireTokenByCode` in MSAL.js v2, to authenticate a user server-side using a confidential client, and then SSO that user client-side using a second authorization code that is returned to the confidential client and redeemed by the public client client-side. This helps mitigate user experience and performance concerns that arise when performing server-side and client-side authentication for the same user, especially when third-party cookies are blocked by the browser.
 
-
-
 ## Setup
 
 1. In the Azure Portal, create a new app registration.

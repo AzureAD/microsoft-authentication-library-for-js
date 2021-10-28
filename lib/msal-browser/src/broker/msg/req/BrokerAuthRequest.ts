@@ -39,7 +39,6 @@ export class BrokerAuthRequest extends BrokerMessage {
             message.data.interactionType &&
             message.data.request) {
 
-            // TODO, verify version compatibility
             return new BrokerAuthRequest(message.data.embeddedClientId, message.data.interactionType, message.data.request, message.origin);
         }
 

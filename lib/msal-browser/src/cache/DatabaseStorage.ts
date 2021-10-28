@@ -39,7 +39,6 @@ export class DatabaseStorage<T>{
      */
     async open(): Promise<void> {
         return new Promise((resolve, reject) => {
-            // TODO: Add timeouts?
             const openDB = window.indexedDB.open(this.dbName, this.version);
             openDB.addEventListener("upgradeneeded", (e: IDBVersionChangeEvent) => {
                 const event = e as IDBOpenOnUpgradeNeededEvent;
@@ -66,7 +65,6 @@ export class DatabaseStorage<T>{
         }
 
         return new Promise<T>((resolve, reject) => {
-            // TODO: Add timeouts?
             if (!this.db) {
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
             }
@@ -94,7 +92,6 @@ export class DatabaseStorage<T>{
         }
 
         return new Promise<T>((resolve: Function, reject: Function) => {
-            // TODO: Add timeouts?
             if (!this.db) {
                 return reject(BrowserAuthError.createDatabaseNotOpenError());
             }

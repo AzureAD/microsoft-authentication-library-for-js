@@ -319,7 +319,6 @@ export abstract class ClientApplication {
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.trace("acquireTokenByCode called", request.correlationId);
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_START, InteractionType.Silent, request);
-
         try {
             if (!request.code) {
                 throw BrowserAuthError.createAuthCodeRequiredError();
@@ -356,7 +355,7 @@ export abstract class ClientApplication {
      * @param request 
      * @returns Result of the operation to redeem the authorization code
      */
-    private async acquireTokenByCodeAsync(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
+    protected async acquireTokenByCodeAsync(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
         this.logger.trace("acquireTokenByCodeAsync called", request.correlationId);
         const silentAuthCodeClient = new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenByCode, request.correlationId);
         const silentTokenResult = await silentAuthCodeClient.acquireToken(request);

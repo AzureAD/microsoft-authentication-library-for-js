@@ -32,8 +32,6 @@ export class BrokerHandleRedirectRequest extends BrokerMessage {
             message.data.embeddedClientId &&
             message.data.version) {
 
-            // TODO: verify version compatibility
-
             return new BrokerHandleRedirectRequest(message.data.embeddedClientId, message.data.version);
         }
 

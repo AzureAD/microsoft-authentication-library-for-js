@@ -15,7 +15,7 @@ import { ApiId, InteractionType } from "../utils/BrowserConstants";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { PublicClientApplication } from "./PublicClientApplication";
-import { ExperimentalBrowserConfiguration, ExperimentalConfiguration, buildExperimentalConfiguration } from "../config/ExperimentalConfiguration";
+import { ExperimentalBrowserConfiguration, ExperimentalConfiguration, buildExperimentalConfiguration, BrokerInitializationOptions } from "../config/ExperimentalConfiguration";
 import { PopupClient } from "../interaction_client/PopupClient";
 import { EmbeddedInteractionClient } from "../interaction_client/broker/EmbeddedInteractionClient";
 import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
@@ -36,7 +36,7 @@ export class ExperimentalPublicClientApplication extends PublicClientApplication
     /**
      * 
      */
-    async initializeBrokering(): Promise<void> {
+    async initializeBrokering(options?: BrokerInitializationOptions): Promise<void> {
         if (!this.isBrowserEnvironment) {
             return;
         }
@@ -45,10 +45,10 @@ export class ExperimentalPublicClientApplication extends PublicClientApplication
             if(this.experimentalConfig.brokerOptions.allowBrokering) {
                 this.logger.verbose("Running in top frame and both actAsBroker, allowBrokering flags set to true. actAsBroker takes precedence.");
             }
-
+            
             this.broker = new BrokerClientApplication(this.config, this.experimentalConfig);
             this.logger.verbose("Acting as Broker");
-            this.broker.listenForBrokerMessage();
+            await this.broker.listenForBrokerMessage(options);
         } else if (this.experimentalConfig.brokerOptions.allowBrokering) {
             this.embeddedApp = new EmbeddedClientApplication(this.config.auth.clientId, this.experimentalConfig.brokerOptions, this.logger, this.browserStorage);
             this.logger.verbose("Acting as child");

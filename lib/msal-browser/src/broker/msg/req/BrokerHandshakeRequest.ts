@@ -27,8 +27,6 @@ export class BrokerHandshakeRequest extends BrokerMessage {
             message.data.embeddedClientId &&
             message.data.version) {
 
-            // TODO, verify version compatibility
-
             return new BrokerHandshakeRequest(message.data.embeddedClientId, message.data.version);
         }
 
