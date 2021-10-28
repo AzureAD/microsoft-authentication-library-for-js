@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Log reason for cache miss",
+  "packageName": "@azure/msal-common",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
