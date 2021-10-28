@@ -1,7 +1,7 @@
 # NPM Publish is the name for this action
 name: NPM Publish
 
-# This action will trigger on every successful release
+# This action will trigger when Release PR from release-staging branch is merged into dev
 on:
   pull_request:
     types: [closed]
@@ -11,7 +11,7 @@ on:
 # Job will run on a ubuntu instance
 jobs:
   build:
-    if: github.event.pull_request.merged == true && contains(github.head_ref, 'release-staging')
+    if: (github.event.pull_request.merged == true && github.head_ref == 'release-staging')
     runs-on: ubuntu-latest
     env:
       NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
@@ -121,7 +121,7 @@ jobs:
             const branch = ${{ steps.release-date.outputs.date }}.toLowerCase().replace(/\s+/g, '-')
             core.setOutput('branch', branch)
 
-      # Create Pull Request from dev to master for sync post-publish
+      # Create Pull Request from post-release-month-year to dev
       - name: Create Pull Request
         id: pr
         uses: peter-evans/create-pull-request@v3
