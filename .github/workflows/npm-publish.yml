@@ -44,6 +44,9 @@ jobs:
               - 'extensions/msal-node-extensions/package.json'
           list-files: json
 
+      - name: Set npm auth token
+        run: npm config set '//registry.npmjs.org/:_authToken' "${NODE_AUTH_TOKEN}"
+
       - name: Publish  msal-core
         if: steps.changes.outputs.core == 'true'
         working-directory: lib/msal-core
