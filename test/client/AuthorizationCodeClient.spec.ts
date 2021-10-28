@@ -1063,7 +1063,7 @@ describe("AuthorizationCodeClient unit tests", () => {
                     claims: TEST_CONFIG.CLAIMS,
                     correlationId: RANDOM_TEST_GUID,
                     authenticationScheme: AuthenticationScheme.BEARER,
-                    enableSpaAuthCode: true
+                    enableSpaAuthorizationCode: true
                 };
     
                 return client.acquireToken(authCodeRequest);
