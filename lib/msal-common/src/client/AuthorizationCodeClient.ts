@@ -291,7 +291,7 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         // Add hybrid spa parameters if not already provided
-        if (request.enableSpaAuthCode && (!request.tokenBodyParameters || !request.tokenBodyParameters[AADServerParamKeys.RETURN_SPA_CODE])) {
+        if (request.enableSpaAuthorizationCode && (!request.tokenBodyParameters || !request.tokenBodyParameters[AADServerParamKeys.RETURN_SPA_CODE])) {
             parameterBuilder.addExtraQueryParameters({
                 [AADServerParamKeys.RETURN_SPA_CODE]: "1"
             });

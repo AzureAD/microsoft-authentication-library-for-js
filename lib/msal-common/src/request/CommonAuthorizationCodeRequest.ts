@@ -27,7 +27,7 @@ export type CommonAuthorizationCodeRequest = BaseAuthRequest & {
     codeVerifier?: string;
     tokenQueryParameters?: StringDict;
     tokenBodyParameters?: StringDict;
-    enableSpaAuthCode?: boolean;
+    enableSpaAuthorizationCode?: boolean;
     clientInfo?: string;
     ccsCredential?: CcsCredential;
 };

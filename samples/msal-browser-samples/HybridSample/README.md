@@ -2,7 +2,7 @@
 
 This sample demonstrates how to use MSAL.js v2 and MSAL Node together in a "hybrid" application that performs both server-side and client-side authenication. 
 
-It shows how to use two new APIs, `enableSpaAuthCode` in MSAL Node and `acquireTokenByCode` in MSAL.js v2, to authenticate a user server-side using a confidential client, and then SSO that user client-side using a second authorization code that is returned to the confidential client and redeemed by the public client client-side. This helps mitigate user experience and performance concerns that arise when performing server-side and client-side authentication for the same user, especially when third-party cookies are blocked by the browser.
+It shows how to use two new APIs, `enableSpaAuthorizationCode` in MSAL Node and `acquireTokenByCode` in MSAL.js v2, to authenticate a user server-side using a confidential client, and then SSO that user client-side using a second authorization code that is returned to the confidential client and redeemed by the public client client-side. This helps mitigate user experience and performance concerns that arise when performing server-side and client-side authentication for the same user, especially when third-party cookies are blocked by the browser.
 
 
 
@@ -113,7 +113,7 @@ router.get('/login', (req, res) => {
 
 Next, parse the authorization code, and invoke the `acquireTokenByCode` API on the `ConfidentialClientApplication` instance. 
 
-When invoking this API, set `enableSpaAuthCode` to `true`, which will enable MSAL to acquire a second authorization code to be redeemed by your single-page application. 
+When invoking this API, set `enableSpaAuthorizationCode` to `true`, which will enable MSAL to acquire a second authorization code to be redeemed by your single-page application. 
 
 Your application should parse this second authorization code, as well as any account hints (e.g. `sid`, `login_hint`, `preferred_username`) and return them such that they can be rendered client-side:
 
@@ -124,7 +124,7 @@ router.post('/server-redirect', (req, res) => {
         code: req.body.code,
         scopes: ["user.read"],
         redirectUri: "http://localhost:3000/auth/server-redirect",
-        enableSpaAuthCode: true
+        enableSpaAuthorizationCode: true
     };
 
     msalInstance.acquireTokenByCode(tokenRequest)
