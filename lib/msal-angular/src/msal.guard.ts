@@ -156,9 +156,9 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
                          * state.url: /code
                          * state.root.fragment: null
                          */
-                        const urlContainsCode = this.includesCode(state.url);
-                        const fragmentContainsCode = state.root && state.root.fragment && this.includesCode(`#${state.root.fragment}`);
-                        const hashRouting = this.location.prepareExternalUrl(state.url).startsWith("#");
+                        const urlContainsCode: boolean = this.includesCode(state.url);
+                        const fragmentContainsCode: boolean = !!state.root && !!state.root.fragment && this.includesCode(`#${state.root.fragment}`);
+                        const hashRouting: boolean = this.location.prepareExternalUrl(state.url).indexOf("#") === 0;
 
                         // Ensure code parameter is in fragment (and not in query parameter), or that hash hash routing is used
                         if (urlContainsCode && (fragmentContainsCode || hashRouting)) {
@@ -194,7 +194,7 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
     }
 
     includesCode(path: string): boolean {
-        return path.indexOf("/code") > -1 ||
+        return path.lastIndexOf("/code") === path.length - "/code".length || // path.endsWith("/code")
             path.indexOf("#code=") > -1 || 
             path.indexOf("&code=") > -1;
     }
