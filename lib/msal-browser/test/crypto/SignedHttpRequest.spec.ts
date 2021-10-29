@@ -1,34 +1,47 @@
 import { SignedHttpRequest, StringUtils } from "../../src";
-import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
-import { CachedKeyPair, CryptoOps } from "../../src/crypto/CryptoOps";
+import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { createHash } from "crypto";
 import { AuthToken } from "@azure/msal-common";
 
 const msrCrypto = require("../polyfills/msrcrypto.min");
 
+let mockDatabase = {
+    "TestDB.keys": {}
+};
+
+// Mock DatabaseStorage
+jest.mock("../../src/cache/DatabaseStorage", () => {
+    return {
+        DatabaseStorage: jest.fn().mockImplementation(() => {
+            return {
+                dbName: "TestDB",
+                version: 1,
+                tableName: "TestDB.keys",
+                open: () => {},
+                get: (kid: string) => {
+                    return mockDatabase["TestDB.keys"][kid];
+                },
+                put: (kid: string, payload: any) => {
+                    mockDatabase["TestDB.keys"][kid] = payload;
+                    return mockDatabase["TestDB.keys"][kid];
+                },
+                delete: (kid: string) => {
+                    delete mockDatabase["TestDB.keys"][kid];
+                    return !mockDatabase["TestDB.keys"][kid];
+                }
+            }
+      })
+    }
+});
+
 describe("SignedHttpRequest.ts Unit Tests", () => {
     jest.setTimeout(30000)
 
     let oldWindowCrypto = window.crypto;
-    let dbStorage = {};
+    
 
     beforeEach(() => {
-        jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(async (): Promise<void> => { });
-
-        jest.spyOn(DatabaseStorage.prototype, "put").mockImplementation(async (key: string, payload: CachedKeyPair): Promise<void> => {
-            dbStorage[key] = payload;
-        });
-
-        jest.spyOn(DatabaseStorage.prototype, "get" ).mockImplementation(async (key: string): Promise<void> => {
-            return dbStorage[key];
-        });
-
-        jest.spyOn(DatabaseStorage.prototype, "delete" ).mockImplementation(async (key: string): Promise<boolean> => {
-            delete dbStorage[key];
-            return !dbStorage[key];
-        });
-        
         jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((): Promise<ArrayBuffer> => {
             return Promise.resolve(createHash("SHA256").update(Buffer.from("test-data")).digest());
         });

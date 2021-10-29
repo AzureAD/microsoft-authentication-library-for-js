@@ -83,5 +83,4 @@ export class MsalService implements IMsalService {
         this.logger = logger.clone(name, version);
         this.instance.setLogger(logger);
     }
-
 }
