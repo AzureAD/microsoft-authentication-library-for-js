@@ -71,11 +71,11 @@ export const ClientConfigurationErrorMessage = {
     },
     invalidCloudDiscoveryMetadata: {
         code: "invalid_cloud_discovery_metadata",
-        desc: "Invalid cloudDiscoveryMetadata provided. Must be a JSON object containing tenant_discovery_endpoint and metadata fields"
+        desc: "Invalid cloudDiscoveryMetadata provided. Must be a stringified JSON object containing tenant_discovery_endpoint and metadata fields"
     },
     invalidAuthorityMetadata: {
         code: "invalid_authority_metadata",
-        desc: "Invalid authorityMetadata provided. Must by a JSON object containing authorization_endpoint, token_endpoint, end_session_endpoint, issuer fields."
+        desc: "Invalid authorityMetadata provided. Must by a stringified JSON object containing authorization_endpoint, token_endpoint, issuer fields."
     },
     untrustedAuthority: {
         code: "untrusted_authority",
@@ -85,6 +85,14 @@ export const ClientConfigurationErrorMessage = {
         code: "invalid_azure_cloud_instance",
         desc: "Invalid AzureCloudInstance provided. Please refer MSAL JS docs for valid values"
     },
+    missingSshJwk: {
+        code: "missing_ssh_jwk",
+        desc: "Missing sshJwk in SSH certificate request. A stringified JSON Web Key is required when using the SSH authentication scheme."
+    },
+    missingSshKid: {
+        code: "missing_ssh_kid",
+        desc: "Missing sshKid in SSH certificate request. A string that uniquely identifies the public SSH key is required when using the SSH authentication scheme."
+    }
 };
 
 /**
@@ -254,5 +262,21 @@ export class ClientConfigurationError extends ClientAuthError {
     static createInvalidAzureCloudInstanceError(): ClientConfigurationError {
         return new ClientConfigurationError(ClientConfigurationErrorMessage.invalidAzureCloudInstance.code,
             ClientConfigurationErrorMessage.invalidAzureCloudInstance.desc);
+    }
+
+    /**
+     * Throws an error when the authentication scheme is set to SSH but the SSH public key is omitted from the request
+     */
+    static createMissingSshJwkError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.missingSshJwk.code,
+            ClientConfigurationErrorMessage.missingSshJwk.desc);
+    }
+
+    /**
+     * Throws an error when the authentication scheme is set to SSH but the SSH public key ID is omitted from the request
+     */
+    static createMissingSshKidError(): ClientConfigurationError {
+        return new ClientConfigurationError(ClientConfigurationErrorMessage.missingSshKid.code,
+            ClientConfigurationErrorMessage.missingSshKid.desc);
     }
 }
