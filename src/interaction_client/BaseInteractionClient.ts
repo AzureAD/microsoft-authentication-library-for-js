@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, INetworkModule, Logger, AuthenticationResult, AccountInfo, AccountEntity, BaseAuthRequest, AuthenticationScheme, UrlString, ServerTelemetryManager, ServerTelemetryRequest } from "@azure/msal-common";
+import { ICrypto, INetworkModule, Logger, AuthenticationResult, AccountInfo, AccountEntity, BaseAuthRequest, AuthenticationScheme, UrlString, ServerTelemetryManager, ServerTelemetryRequest, ClientConfigurationError } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
@@ -80,6 +80,14 @@ export abstract class BaseInteractionClient {
             request.authenticationScheme = AuthenticationScheme.BEARER;
             this.logger.verbose("Authentication Scheme wasn't explicitly set in request, defaulting to \"Bearer\" request");
         } else {
+            if (request.authenticationScheme === AuthenticationScheme.SSH) {
+                if (!request.sshJwk) {
+                    throw ClientConfigurationError.createMissingSshJwkError();
+                }
+                if(!request.sshKid) {
+                    throw ClientConfigurationError.createMissingSshKidError();
+                }
+            }
             this.logger.verbose(`Authentication Scheme set to "${request.authenticationScheme}" as configured in Auth request`);
         }
 
