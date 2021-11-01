@@ -27,7 +27,7 @@ const loggerOptions = {
     piiLoggingEnabled: true
 };
 const testLogger = new Logger(loggerOptions);
-const browserCrypto = new CryptoOps();
+const browserCrypto = new CryptoOps(testLogger);
 
 const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
 

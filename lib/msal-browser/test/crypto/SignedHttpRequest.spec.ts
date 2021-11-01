@@ -2,7 +2,7 @@ import { SignedHttpRequest, StringUtils } from "../../src";
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { createHash } from "crypto";
-import { AuthToken } from "@azure/msal-common";
+import { AuthToken, Logger } from "@azure/msal-common";
 
 const msrCrypto = require("../polyfills/msrcrypto.min");
 
@@ -19,16 +19,18 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
                 version: 1,
                 tableName: "TestDB.keys",
                 open: () => {},
-                get: (kid: string) => {
+                getItem: (kid: string) => {
                     return mockDatabase["TestDB.keys"][kid];
                 },
-                put: (kid: string, payload: any) => {
+                setItem: (kid: string, payload: any) => {
                     mockDatabase["TestDB.keys"][kid] = payload;
                     return mockDatabase["TestDB.keys"][kid];
                 },
-                delete: (kid: string) => {
+                removeItem: (kid: string) => {
                     delete mockDatabase["TestDB.keys"][kid];
-                    return !mockDatabase["TestDB.keys"][kid];
+                },
+                containsKey: (kid: string) => {
+                    return !!(mockDatabase["TestDB.keys"][kid]);
                 }
             }
       })
@@ -85,7 +87,7 @@ describe("SignedHttpRequest.ts Unit Tests", () => {
             ts
         });
 
-        const decodedToken = AuthToken.extractTokenClaims(popToken, new CryptoOps())
+        const decodedToken = AuthToken.extractTokenClaims(popToken, new CryptoOps(new Logger({})))
 
         expect(decodedToken.nonce).toEqual("test-nonce");
         expect(decodedToken.ts).toEqual(123456);
