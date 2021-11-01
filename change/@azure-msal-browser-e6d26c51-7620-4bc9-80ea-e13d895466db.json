@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add support for ephemeral SSH certificate acquisition #4178",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add support for SHR nonce #3999",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
