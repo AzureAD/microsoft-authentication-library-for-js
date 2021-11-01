@@ -55,7 +55,7 @@ jobs:
           CDN_USWE_SAS: ${{ secrets.CDN_USWE_SAS}}
         run: |
           npm install
-          npm run cdn
+          npm run cdn:sri
           npm publish
 
       - name: Publish  msal-common
