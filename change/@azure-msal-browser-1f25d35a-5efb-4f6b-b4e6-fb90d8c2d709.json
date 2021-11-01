@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix typo in noTokenRequestCacheError (#4136)",
+  "packageName": "@azure/msal-browser",
+  "email": "Michael.Currie@rjwgroup.com",
+  "dependentChangeType": "patch"
+}

@@ -2,35 +2,6 @@
   "name": "@azure/msal-react",
   "entries": [
     {
-      "date": "Mon, 01 Nov 2021 22:21:10 GMT",
-      "tag": "@azure/msal-react_v1.1.1",
-      "version": "1.1.1",
-      "comments": {
-        "patch": [
-          {
-            "author": "thomas.norling@microsoft.com",
-            "package": "@azure/msal-react",
-            "commit": "0d7e8c7b131d94c365bc114b69e3ca21f5300d41",
-            "comment": "Support React version 16.8.0+"
-          },
-          {
-            "author": "beachball",
-            "package": "@azure/msal-react",
-            "comment": "Bump @azure/msal-browser to v2.19.0",
-            "commit": "5b350a5f97b43e1a5a87153bb4a13632f7c615b9"
-          }
-        ],
-        "none": [
-          {
-            "author": "janutter@microsoft.com",
-            "package": "@azure/msal-react",
-            "commit": "c5a8de4a5dc7acb9bdf1759eb3cb9811459c3d82",
-            "comment": "Update package-locks to fix dependantbot alerts #4181"
-          }
-        ]
-      }
-    },
-    {
       "date": "Mon, 04 Oct 2021 23:12:35 GMT",
       "tag": "@azure/msal-react_v1.1.0",
       "version": "1.1.0",

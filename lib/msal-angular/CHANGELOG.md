@@ -1,18 +1,8 @@
 # Change Log - @azure/msal-angular
 
-This log was last generated on Mon, 01 Nov 2021 22:21:09 GMT and should not be manually modified.
+This log was last generated on Mon, 04 Oct 2021 23:12:35 GMT and should not be manually modified.
 
 <!-- Start content -->
-
-## 2.0.5
-
-Mon, 01 Nov 2021 22:21:09 GMT
-
-### Patches
-
-- Fix redirect processing when allowRedirectInIframe: true #4142 (thomas.norling@microsoft.com)
-- Ensure code is in fragment for Angular guard #4190 (janutter@microsoft.com)
-- Bump @azure/msal-browser to v2.19.0
 
 ## 2.0.4
 
