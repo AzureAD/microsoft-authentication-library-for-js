@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Update package-locks to fix dependantbot alerts #4181",
-  "packageName": "@azure/msal-react",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "none"
-}
