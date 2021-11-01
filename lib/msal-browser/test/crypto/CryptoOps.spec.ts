@@ -2,7 +2,7 @@ import { CryptoOps, CachedKeyPair } from "../../src/crypto/CryptoOps";
 import { GuidGenerator } from "../../src/crypto/GuidGenerator";
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
 import { createHash } from "crypto";
-import { PkceCodes, BaseAuthRequest } from "@azure/msal-common";
+import { PkceCodes, BaseAuthRequest, Logger } from "@azure/msal-common";
 import { TEST_URIS } from "../utils/StringConstants";
 import { BrowserAuthError } from "../../src";
 
@@ -21,16 +21,18 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
                 version: 1,
                 tableName: "TestDB.keys",
                 open: () => {},
-                get: (kid: string) => {
+                getItem: (kid: string) => {
                     return mockDatabase["TestDB.keys"][kid];
                 },
-                put: (kid: string, payload: any) => {
+                setItem: (kid: string, payload: any) => {
                     mockDatabase["TestDB.keys"][kid] = payload;
                     return mockDatabase["TestDB.keys"][kid];
                 },
-                delete: (kid: string) => {
+                removeItem: (kid: string) => {
                     delete mockDatabase["TestDB.keys"][kid];
-                    return !mockDatabase["TestDB.keys"][kid];
+                },
+                containsKey: (kid: string) => {
+                    return !!(mockDatabase["TestDB.keys"][kid]);
                 }
             }
       })
@@ -42,7 +44,7 @@ describe("CryptoOps.ts Unit Tests", () => {
     let oldWindowCrypto = window.crypto;
 
     beforeEach(() => {
-        cryptoObj = new CryptoOps();
+        cryptoObj = new CryptoOps(new Logger({}));
         oldWindowCrypto = window.crypto;
         //@ts-ignore
         window.crypto = {
