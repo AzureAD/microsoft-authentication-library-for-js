@@ -124,7 +124,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         postLogoutRedirectUri: "",
         navigateToLoginRequestUrl: true,
         clientCapabilities: [],
-        protocolMode: ProtocolMode.AAD,
+        protocolMode: ProtocolMode.AAD
     };
 
     // Default cache options for browser
