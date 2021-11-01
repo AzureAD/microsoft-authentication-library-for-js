@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Update authority metadata error messages",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -2,6 +2,21 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Mon, 01 Nov 2021 23:36:07 GMT",
+      "tag": "@azure/msal-node_v1.3.3",
+      "version": "1.3.3",
+      "comments": {
+        "patch": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v5.1.0",
+            "commit": "682a24461905d58fb9370d936e26e0b77ca602bb"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 04 Oct 2021 23:12:35 GMT",
       "tag": "@azure/msal-node_v1.3.2",
       "version": "1.3.2",
