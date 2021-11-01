@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Add support for different key types in IndexedDB storage #4052",
-  "packageName": "@azure/msal-browser",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
