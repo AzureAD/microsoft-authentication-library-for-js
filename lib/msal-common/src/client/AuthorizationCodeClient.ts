@@ -139,7 +139,9 @@ export class AuthorizationCodeClient extends BaseClient {
             authenticationScheme: request.authenticationScheme,
             resourceRequestMethod: request.resourceRequestMethod,
             resourceRequestUri: request.resourceRequestUri,
-            shrClaims: request.shrClaims
+            shrClaims: request.shrClaims,
+            sshJwk: request.sshJwk,
+            sshKid: request.sshKid
         };
 
         const requestBody = await this.createTokenRequestBody(request);
@@ -225,6 +227,12 @@ export class AuthorizationCodeClient extends BaseClient {
             const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
             const cnfString = await popTokenGenerator.generateCnf(request);
             parameterBuilder.addPopToken(cnfString);
+        } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
+            if(request.sshJwk) {
+                parameterBuilder.addSshJwk(request.sshJwk);
+            } else {
+                throw ClientConfigurationError.createMissingSshJwkError();
+            }
         }
 
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
