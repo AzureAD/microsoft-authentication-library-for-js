@@ -25,7 +25,8 @@
     }
   },
   "packages": [
-    "lib/*"
+    "lib/*",
+    "extensions/*"
   ],
   "version": "independent",
   "concurrency": 3

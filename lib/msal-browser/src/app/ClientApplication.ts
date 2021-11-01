@@ -102,7 +102,7 @@ export abstract class ClientApplication {
         this.redirectResponse = new Map();
         
         // Initialize the crypto class.
-        this.browserCrypto = this.isBrowserEnvironment ? new CryptoOps() : DEFAULT_CRYPTO_IMPLEMENTATION;
+        this.browserCrypto = this.isBrowserEnvironment ? new CryptoOps(this.logger) : DEFAULT_CRYPTO_IMPLEMENTATION;
 
         this.eventHandler = new EventHandler(this.logger, this.browserCrypto);
 
@@ -125,7 +125,6 @@ export abstract class ClientApplication {
      * @returns Token response or null. If the return value is null, then no auth redirect was detected.
      */
     async handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null> {
-        this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
         this.logger.verbose("handleRedirectPromise called");
         const loggedInAccounts = this.getAllAccounts();
         if (this.isBrowserEnvironment) {
@@ -137,6 +136,7 @@ export abstract class ClientApplication {
             const redirectResponseKey = hash || Constants.EMPTY_STRING;
             let response = this.redirectResponse.get(redirectResponseKey);
             if (typeof response === "undefined") {
+                this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
                 this.logger.verbose("handleRedirectPromise has been called for the first time, storing the promise");
                 const correlationId = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, true) || "";
                 const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, correlationId);
@@ -324,7 +324,7 @@ export abstract class ClientApplication {
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
                 this.logger.verbose("Refresh token expired or invalid, attempting acquire token by iframe", request.correlationId);
 
-                const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenSilent_authCode);
+                const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenSilent_authCode, request.correlationId);
                 return silentIframeClient.acquireToken(request);
             }
             throw e;
@@ -506,6 +506,20 @@ export abstract class ClientApplication {
     }
 
     /**
+     * Adds event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
+     */
+    enableAccountStorageEvents(): void {
+        this.eventHandler.enableAccountStorageEvents();
+    }
+
+    /**
+     * Removes event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
+     */
+    disableAccountStorageEvents(): void {
+        this.eventHandler.disableAccountStorageEvents();
+    }
+
+    /**
      * Gets the token cache for the application.
      */
     getTokenCache(): ITokenCache {
@@ -544,5 +558,13 @@ export abstract class ClientApplication {
     setNavigationClient(navigationClient: INavigationClient): void {
         this.navigationClient = navigationClient;
     }
+
+    /**
+     * Returns the configuration object
+     */
+    getConfiguration(): BrowserConfiguration {
+        return this.config;
+    }
+
     // #endregion
 }

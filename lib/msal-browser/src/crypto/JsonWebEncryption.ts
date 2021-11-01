@@ -4,10 +4,9 @@
  */
 
 import { StringDict } from "@azure/msal-common";
-import { Base64Decode } from "../encode/Base64Decode";
 import { JsonWebEncryptionError } from "../error/JsonWebEncryptionError";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { ALGORITHMS } from "../utils/CryptoConstants";
+import { Algorithms } from "../utils/CryptoConstants";
 
 export type JoseHeader = {
     alg: string,
@@ -20,9 +19,9 @@ export type UnwrappingAlgorithmPair = {
 };
 
 const KEY_ALGORITHM_MAP: StringDict = {
-    "RSA-OAEP-256": ALGORITHMS.RSA_OAEP,
-    "A256GCM": ALGORITHMS.AES_GCM,
-    "dir": ALGORITHMS.DIRECT
+    "RSA-OAEP-256": Algorithms.RSA_OAEP,
+    "A256GCM": Algorithms.AES_GCM,
+    "dir": Algorithms.DIRECT
 };
 
 /**

@@ -4,33 +4,43 @@
  */
 
 import { BaseAuthRequest, BoundServerAuthorizationTokenResponse, ServerAuthorizationTokenResponse } from "@azure/msal-common";
-import { DatabaseStorage } from "../cache/DatabaseStorage";
-import { KEY_USAGES } from "../utils/CryptoConstants";
-import { CachedKeyPair } from "./CryptoOps";
+import { BrowserAuthError } from "..";
+import { CryptoKeyUsageSets } from "../utils/CryptoConstants";
+import { CryptoKeyStore } from "./CryptoOps";
 import { JsonWebEncryption } from "./JsonWebEncryption";
 
 export class BoundTokenResponse {
 
     private sessionKeyJwe: JsonWebEncryption;
     private responseJwe: JsonWebEncryption;
-    private keyStore: DatabaseStorage<CachedKeyPair>;
+    private keyStore: CryptoKeyStore;
     private keyId: string;
 
-    constructor(boundTokenResponse: BoundServerAuthorizationTokenResponse, request: BaseAuthRequest, keyStore: DatabaseStorage<CachedKeyPair>) {
+    constructor(boundTokenResponse: BoundServerAuthorizationTokenResponse, request: BaseAuthRequest, keyStore: CryptoKeyStore) {
         this.sessionKeyJwe = new JsonWebEncryption(boundTokenResponse.session_key_jwe);
         this.responseJwe = new JsonWebEncryption(boundTokenResponse.response_jwe);
         this.keyStore = keyStore;
-        this.keyId = request.stkJwk!;
+
+        if (request.stkJwk) {
+            this.keyId = request.stkJwk;
+        } else {
+            throw BrowserAuthError.createMissingStkKidError();
+        }
     }
 
     async decrypt(): Promise<ServerAuthorizationTokenResponse | null> {
         // Retrieve Session Transport KeyPair from Key Store
-        const sessionTransportKeypair: CachedKeyPair = await this.keyStore.get(this.keyId);
+        const sessionTransportKeypair = await this.keyStore.asymmetricKeys.getItem(this.keyId);
+
+        if (!sessionTransportKeypair) {
+            throw BrowserAuthError.createSigningKeyNotFoundInStorageError();
+        }
+
         const contentEncryptionKey = await this.sessionKeyJwe.unwrap(
             sessionTransportKeypair.privateKey,
-            KEY_USAGES.RT_BINDING.SESSION_KEY
+            CryptoKeyUsageSets.RefreshTokenBinding.SessionKey
         );
-    
+  
         // TODO: TEMPORARY CHECK TO GET AROUND LINTER
         if(contentEncryptionKey) {
             return null;

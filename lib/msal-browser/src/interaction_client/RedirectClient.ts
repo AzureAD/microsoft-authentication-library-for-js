@@ -67,7 +67,7 @@ export class RedirectClient extends StandardInteractionClient {
     async handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null> {
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.handleRedirectPromise);
         try {
-            if (!this.interactionInProgress()) {
+            if (!this.browserStorage.isInteractionInProgress(true)) {
                 this.logger.info("handleRedirectPromise called but there is no interaction in progress, returning null.");
                 return null;
             }
@@ -110,7 +110,7 @@ export class RedirectClient extends StandardInteractionClient {
             } else if (!this.config.auth.navigateToLoginRequestUrl) {
                 this.logger.verbose("NavigateToLoginRequestUrl set to false, handling hash");
                 return this.handleHash(responseHash, state, serverTelemetryManager);
-            } else if (!BrowserUtils.isInIframe()) {
+            } else if (!BrowserUtils.isInIframe() || this.config.system.allowRedirectInIframe) {
                 /*
                  * Returned from authority using redirect - need to perform navigation before processing response
                  * Cache the hash to be retrieved after the next redirect
