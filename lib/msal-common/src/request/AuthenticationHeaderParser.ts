@@ -33,7 +33,7 @@ export class AuthenticationHeaderParser{
         // Attempt to parse nonce from Authentiacation-Info
         const authenticationInfo = this.headers[HeaderNames.AuthenticationInfo];
         if (authenticationInfo) {
-            const authenticationInfoChallenges = this.parseChallenges(authenticationInfo) as AuthenticationInfoChallenges;
+            const authenticationInfoChallenges = this.parseChallenges<AuthenticationInfoChallenges>(authenticationInfo);
             if (authenticationInfoChallenges.nextnonce) {
                 return authenticationInfoChallenges.nextnonce;
             }
@@ -43,7 +43,7 @@ export class AuthenticationHeaderParser{
         // Attempt to parse nonce from WWW-Authenticate
         const wwwAuthenticate = this.headers[HeaderNames.WWWAuthenticate];
         if (wwwAuthenticate) {
-            const wwwAuthenticateChallenges = this.parseChallenges(wwwAuthenticate) as WWWAuthenticateChallenges;        
+            const wwwAuthenticateChallenges = this.parseChallenges<WWWAuthenticateChallenges>(wwwAuthenticate);     
             if (wwwAuthenticateChallenges.nonce){
                 return wwwAuthenticateChallenges.nonce;
             }
@@ -59,15 +59,17 @@ export class AuthenticationHeaderParser{
      * @param header 
      * @returns 
      */
-    private parseChallenges(header: string): Object {
+    private parseChallenges<T>(header: string): T {
         const schemeSeparator = header.indexOf(" ");
         const challenges = header.substr(schemeSeparator + 1).split(",");
-        const challengeMap = {};
+        const challengeMap = {} as T;
+
         challenges.forEach((challenge: string) => {
             const [ key, value ] = challenge.split("=");
             // Remove escaped quotation marks (', ") from challenge string to keep only the challenge value
             challengeMap[key] = unescape(value.replace(/['"]+/g, ""));
         });
+
         return challengeMap;
     }
 }
