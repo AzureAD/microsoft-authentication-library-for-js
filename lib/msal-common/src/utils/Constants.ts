@@ -318,8 +318,9 @@ export const SERVER_TELEM_CONSTANTS = {
  * Type of the authentication request
  */
 export enum AuthenticationScheme {
+    BEARER = "Bearer",
     POP = "pop",
-    BEARER = "Bearer"
+    SSH = "ssh-cert"
 }
 
 /**

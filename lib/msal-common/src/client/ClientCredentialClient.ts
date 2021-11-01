@@ -122,7 +122,9 @@ export class ClientCredentialClient extends BaseClient {
             authenticationScheme: request.authenticationScheme,
             resourceRequestMethod: request.resourceRequestMethod,
             resourceRequestUri: request.resourceRequestUri,
-            shrClaims: request.shrClaims
+            shrClaims: request.shrClaims,
+            sshJwk: request.sshJwk,
+            sshKid: request.sshKid
         };
 
         const reqTimestamp = TimeUtils.nowSeconds();

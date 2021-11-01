@@ -387,7 +387,7 @@ export abstract class ClientApplication {
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
                 this.logger.verbose("Refresh token expired or invalid, attempting acquire token by iframe", request.correlationId);
 
-                const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenSilent_authCode);
+                const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenSilent_authCode, request.correlationId);
                 return silentIframeClient.acquireToken(request);
             }
             throw e;
@@ -622,5 +622,13 @@ export abstract class ClientApplication {
     setNavigationClient(navigationClient: INavigationClient): void {
         this.navigationClient = navigationClient;
     }
+
+    /**
+     * Returns the configuration object
+     */
+    getConfiguration(): BrowserConfiguration {
+        return this.config;
+    }
+
     // #endregion
 }

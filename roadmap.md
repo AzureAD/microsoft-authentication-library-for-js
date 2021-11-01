@@ -12,9 +12,23 @@ The MSAL.js team schedules work on a quarterly basis. The roadmap below provides
   - Example: "CY2021Q1" refers to January 2021 through March 2021.
   - Example: "FY2022Q1" refers to July 2021 through September 2021.
 
-
-
 ## Current Quarter
+
+### CY2021Q4 / FY2022Q1
+
+| Library         | Deliverable                       | Status      | ETA       | Notes                                                        |
+| :-------------- | :-------------------------------- | :---------- | :-------- | :----------------------------------------------------------- |
+| MSAL Browser    | General performance improvements  | In Progress | Dec 2021  | End to end review on token performance and proposals for optimizations. |
+
+## Past Quarters
+
+### CY2021Q3 / FY2022Q1
+
+| Library         | Deliverable                       | Status      | ETA       | Notes                                                        |
+| :-------------- | :-------------------------------- | :---------- | :-------- | :----------------------------------------------------------- |
+| Multiple        | Various small features and improvements | Completed   | Sept 2021 | Please see our release notes for the full details.     |
+| MSAL Browser    | Backup Auth Service Support       | Completed   | Sept 2021 | Improvements to integrate deeper into the [Azure AD Backup Authentication service](https://techcommunity.microsoft.com/t5/azure-active-directory-identity/99-99-uptime-for-azure-active-directory/ba-p/1999628). |
+
 
 ### CY2021Q2 / FY2021Q4
 
@@ -24,9 +38,6 @@ The MSAL.js team schedules work on a quarterly basis. The roadmap below provides
 | MSAL React      | General Availability              | Completed   | May 2021  | Stable production release of MSAL React wrapper library for MSAL Browser. |
 | MSAL Browser    | Refresh Token Proof-of-possession | In Progress | July 2021 | Cryptographically binds refresh tokens to the browser, helping mitigate replay if tokens are exfiltrated. |
 
-
-
-## Past Quarters
 
 ### CY2021Q1 / FY2021Q3
 

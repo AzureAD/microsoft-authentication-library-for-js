@@ -14,7 +14,9 @@ import {
     AUTHENTICATION_RESULT_WITH_FOCI,
     CORS_SIMPLE_REQUEST_HEADERS,
     TEST_ACCOUNT_INFO,
-    RANDOM_TEST_GUID
+    RANDOM_TEST_GUID,
+    POP_AUTHENTICATION_RESULT,
+    SSH_AUTHENTICATION_RESULT
 } from "../test_kit/StringConstants";
 import { BaseClient} from "../../src/client/BaseClient";
 import { AADServerParamKeys, GrantType, Constants, CredentialType, AuthenticationScheme, ThrottlingConstants } from "../../src/utils/Constants";
@@ -241,6 +243,56 @@ describe("RefreshTokenClient unit tests", () => {
             const expectedRefreshRequest: CommonRefreshTokenRequest = {
                 ...silentFlowRequest,
                 authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme,
+                refreshToken: testRefreshTokenEntity.secret,
+                ccsCredential: {
+                    credential: testAccount.homeAccountId,
+                    type: CcsCredentialType.HOME_ACCOUNT_ID
+                }
+            };
+            const refreshTokenClientSpy = sinon.stub(RefreshTokenClient.prototype, "acquireToken");
+
+            await client.acquireTokenByRefreshToken(silentFlowRequest);
+            expect(refreshTokenClientSpy.calledWith(expectedRefreshRequest)).toBe(true);
+        });
+
+        it("acquireTokenByRefreshToken refreshes a POP token", async () => {
+            sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(POP_AUTHENTICATION_RESULT);
+            const silentFlowRequest: CommonSilentFlowRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+                authenticationScheme: AuthenticationScheme.POP
+            };
+
+            const expectedRefreshRequest: CommonRefreshTokenRequest = {
+                ...silentFlowRequest,
+                refreshToken: testRefreshTokenEntity.secret,
+                ccsCredential: {
+                    credential: testAccount.homeAccountId,
+                    type: CcsCredentialType.HOME_ACCOUNT_ID
+                }
+            };
+            const refreshTokenClientSpy = sinon.stub(RefreshTokenClient.prototype, "acquireToken");
+
+            await client.acquireTokenByRefreshToken(silentFlowRequest);
+            expect(refreshTokenClientSpy.calledWith(expectedRefreshRequest)).toBe(true);
+        });
+
+        it("acquireTokenByRefreshToken refreshes an SSH Cert", async () => {
+            sinon.stub(RefreshTokenClient.prototype, <any>"executePostToTokenEndpoint").resolves(SSH_AUTHENTICATION_RESULT);
+            const silentFlowRequest: CommonSilentFlowRequest = {
+                scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false,
+                authenticationScheme: AuthenticationScheme.SSH
+            };
+
+            const expectedRefreshRequest: CommonRefreshTokenRequest = {
+                ...silentFlowRequest,
                 refreshToken: testRefreshTokenEntity.secret,
                 ccsCredential: {
                     credential: testAccount.homeAccountId,

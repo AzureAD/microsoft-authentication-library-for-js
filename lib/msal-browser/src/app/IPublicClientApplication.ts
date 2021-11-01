@@ -15,6 +15,7 @@ import { INavigationClient } from "../navigation/INavigationClient";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { ITokenCache } from "../cache/ITokenCache";
 import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
+import { BrowserConfiguration } from "../config/Configuration";
 
 export interface IPublicClientApplication {
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
@@ -43,6 +44,7 @@ export interface IPublicClientApplication {
     getActiveAccount(): AccountInfo | null;
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
     setNavigationClient(navigationClient: INavigationClient): void;
+    getConfiguration(): BrowserConfiguration;
 }
 
 export const stubbedPublicClientApplication: IPublicClientApplication = {
@@ -123,5 +125,8 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     },
     setNavigationClient: () => {
         return;
+    },
+    getConfiguration: () => {
+        throw BrowserConfigurationAuthError.createStubPcaInstanceCalledError();
     }
 };

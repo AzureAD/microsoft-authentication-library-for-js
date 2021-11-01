@@ -10,7 +10,7 @@
 
 export { PublicClientApplication } from "./app/PublicClientApplication";
 export { ExperimentalPublicClientApplication } from "./app/ExperimentalPublicClientApplication";
-export { Configuration, BrowserAuthOptions, CacheOptions, BrowserSystemOptions } from "./config/Configuration";
+export { Configuration, BrowserAuthOptions, CacheOptions, BrowserSystemOptions, BrowserConfiguration } from "./config/Configuration";
 export { InteractionType, InteractionStatus, BrowserCacheLocation, WrapperSKU, ApiId } from "./utils/BrowserConstants";
 export { BrowserUtils } from "./utils/BrowserUtils";
 

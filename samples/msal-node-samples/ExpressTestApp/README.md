@@ -2,7 +2,7 @@
 
 This sample illustrates a simple wrapper around **MSAL Node** to handle login, logout, and token acquisition. The wrapper is implemented in **TypeScript** and located under the `src/` folder.
 
-The wrapper handles authentication with both **Azure AD** and **Azure AD B2C**. A test application is provided under the `TestApp/` folder. It follows a standard MVC web app pattern in [express.js](https://expressjs.com/) framework. See the [README](./TestApp/README.md) for registering and running the test app
+The wrapper handles authentication with both **Azure AD** and **Azure AD B2C**. A test application is provided under the `TestApp/` folder. It follows a standard MVC web app pattern in [Express.js](https://expressjs.com/) framework. See the [README](./TestApp/README.md) for registering and running the test app
 
 ## Usage
 
@@ -71,15 +71,15 @@ The wrapper handles authentication with both **Azure AD** and **Azure AD B2C**. 
 
 ## Integration with the Express.js authentication wrapper
 
-To initialize the wrapper, import it and supply the settings file and an (optional) persistent cache as below:
+To initialize the wrapper, import it and supply the settings file and an (optional) persistent cache plugin as shown below:
 
 ```javascript
 const settings = require('../../appSettings.json');
-const cache = require('../utils/cachePlugin');
+const cachePlugin = require('../utils/cachePlugin');
 
 const msalWrapper = require('msal-express-wrapper/dist/AuthProvider');
 
-const authProvider = new msalWrapper.AuthProvider(settings, cache);
+const authProvider = new msalWrapper.AuthProvider(settings, cachePlugin);
 ```
 
 Once the wrapper is initialized, you can use it as below:
@@ -117,11 +117,13 @@ app.get('/profile', authProvider.isAuthenticated, authProvider.getToken, mainCon
 
 ### Session support
 
-Session support in this sample is provided by the [express-session](https://www.npmjs.com/package/express-session) package using in-memory session store. **in-memory session store** is unfit for production, and you should either use a [compatible session store](https://github.com/expressjs/session#compatible-session-stores) or implement your own storage solution.
+Session support in this sample is provided by the [express-session](https://www.npmjs.com/package/express-session) package, using [Redis](https://redis.io/) and [node-redis](https://github.com/NodeRedis/node-redis) to persist the session cache. There are other [compatible session stores](https://github.com/expressjs/session#compatible-session-stores) that you may use instead of Redis, e.g. MongoDB or SQL.
 
-### Persistent caching
+### Token caching
 
-MSAL Node has an in-memory cache by default. The demo app also features a [persistent cache plugin](./demo/App/utils/cachePlugin.js) in order to save the cache to disk. This plugin is not meant to be production-ready. As such, you might want to implement persistent caching using a 3rd party library like [redis](https://redis.io/).
+MSAL Node has an in-memory cache by default. The demo app also features a [persistent cache plugin](./TestApp/App/utils/cachePlugin.js) in order to save the cache to disk. It illustrates a distributed caching pattern where MSAL's token cache is persisted via an external service (here, Redis) and only the currently served user's tokens (and other authentication artifacts) are loaded into MSAL's memory.
+
+To do so, a persistence helper that implements basic Redis calls is illustrated in [persistenceHelper.js](./TestApp/App/utils/persistenceHelper.js). When you implement a persistence manager, you should also assign cache eviction policies, handle connection events from persistence server and take performance metrics such as cache hit ratios. For more on caching, see [Caching](../../../lib/msal-node/docs/caching.md).
 
 ## More information
 
