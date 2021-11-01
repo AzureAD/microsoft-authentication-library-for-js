@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfigurationError } from "..";
+import { ClientConfigurationError, NetworkRequestOptions } from "..";
 import { HeaderNames } from "../utils/Constants";
 
 type WWWAuthenticateChallenges = {
@@ -19,9 +19,9 @@ type AuthenticationInfoChallenges = {
  * header challenge values that can be used outside the basic authorization flows.
  */
 export class AuthenticationHeaderParser{
-    private headers: Headers;
+    private headers: NetworkRequestOptions;
 
-    constructor(headers: Headers) {
+    constructor(headers: Record<string, string>) {
         this.headers = headers;
     }
 
@@ -31,7 +31,7 @@ export class AuthenticationHeaderParser{
      */
     getShrNonce(): string {
         // Attempt to parse nonce from Authentiacation-Info
-        const authenticationInfo = this.headers.get(HeaderNames.AuthenticationInfo);
+        const authenticationInfo = this.headers[HeaderNames.AuthenticationInfo];
         if (authenticationInfo) {
             const authenticationInfoChallenges = this.parseChallenges(authenticationInfo) as AuthenticationInfoChallenges;
             if (authenticationInfoChallenges.nextnonce) {
@@ -41,7 +41,7 @@ export class AuthenticationHeaderParser{
         }
 
         // Attempt to parse nonce from WWW-Authenticate
-        const wwwAuthenticate = this.headers.get(HeaderNames.WWWAuthenticate);
+        const wwwAuthenticate = this.headers[HeaderNames.WWWAuthenticate];
         if (wwwAuthenticate) {
             const wwwAuthenticateChallenges = this.parseChallenges(wwwAuthenticate) as WWWAuthenticateChallenges;        
             if (wwwAuthenticateChallenges.nonce){
@@ -65,6 +65,7 @@ export class AuthenticationHeaderParser{
         const challengeMap = {};
         challenges.forEach((challenge: string) => {
             const [ key, value ] = challenge.split("=");
+            // Remove escaped quotation marks (', ") from challenge string to keep only the challenge value
             challengeMap[key] = unescape(value.replace(/['"]+/g, ""));
         });
         return challengeMap;
