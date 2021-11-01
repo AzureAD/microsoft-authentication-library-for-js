@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfigurationError, NetworkRequestOptions } from "..";
+import { ClientConfigurationError } from "..";
 import { HeaderNames } from "../utils/Constants";
 
 type WWWAuthenticateChallenges = {
@@ -18,8 +18,8 @@ type AuthenticationInfoChallenges = {
  * This is a helper class that parses supported HTTP response authentication headers to extract and return
  * header challenge values that can be used outside the basic authorization flows.
  */
-export class AuthenticationHeaderParser{
-    private headers: NetworkRequestOptions;
+export class AuthenticationHeaderParser {
+    private headers: Record<string, string>;
 
     constructor(headers: Record<string, string>) {
         this.headers = headers;
