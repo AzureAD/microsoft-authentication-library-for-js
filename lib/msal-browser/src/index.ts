@@ -70,7 +70,8 @@ export {
     ExternalTokenResponse,
     // Utils
     StringUtils,
-    UrlString
+    UrlString,
+    AuthenticationHeaderParser
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata";
