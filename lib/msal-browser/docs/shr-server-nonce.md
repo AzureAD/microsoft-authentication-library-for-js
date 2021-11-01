@@ -1,6 +1,6 @@
 # SHR Server Nonce
 
-As an enhancement of Access Token Proof-of-Possesion, MSAL Browser provides a way to insert a server-generated signed timestamp (a.k.a **server nonce**) into a `Signed HTTP Request`, also known as a `PoP Token`. These server generated nonce can be added to any token request that uses the `POP` authentication scheme.
+As an enhancement of Access Token Proof-of-Possesion, MSAL Browser provides a way to insert a server-generated signed timestamp (a.k.a **server nonce**) into a `Signed HTTP Request`, also known as a `PoP Token`. This server generated nonce can be added to any token request that uses the `POP` authentication scheme.
 
 Given that [MSAL does not cache](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/access-token-proof-of-possession.md#bound-access-token) `Signed HTTP Requests`, server nonces will **not** be cached either. This means that the server nonce must be passed into every `acquireTokenSilent` call in order for it to be added to the resulting `SignedHttpRequest` object.
 
