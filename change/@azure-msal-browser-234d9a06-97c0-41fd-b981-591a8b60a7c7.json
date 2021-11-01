@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix redirect processing when allowRedirectInIframe: true #4142",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
