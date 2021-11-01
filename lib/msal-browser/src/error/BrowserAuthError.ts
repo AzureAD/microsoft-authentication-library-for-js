@@ -435,8 +435,8 @@ export class BrowserAuthError extends AuthError {
     /**
      * Create an error thrown when the queried cryptographic key is not found in IndexedDB
      */
-    static createSigningKeyNotFoundInStorageError(keyId: string): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code, `${BrowserAuthErrorMessage.signingKeyNotFoundInStorage.desc} | No match found for KeyId: ${keyId}`);
+    static createSigningKeyNotFoundInStorageError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code, `${BrowserAuthErrorMessage.signingKeyNotFoundInStorage.desc}`);
     }
 
     /**
