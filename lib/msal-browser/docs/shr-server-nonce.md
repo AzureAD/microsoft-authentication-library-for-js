@@ -22,7 +22,7 @@ const popTokenRequest = {
 }
 ```
 
-Once the request has been configured and `POP` is set as the `authenticationScheme`, it can be sent into the `acquireTokenRedirect` MSAL Browser API.
+Once the request has been configured and `POP` is set as the `authenticationScheme`, it can be passed to any loginXXX or acquireTokenXXX API:
 
 ```javascript
 const response = await myMSALObj.acquireTokenRedirect(popTokenRequest);
