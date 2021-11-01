@@ -234,7 +234,7 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         if (request.stkJwk) {
-            const stkJwk = await this.keyManager.retrieveAsymmetricPublicKey(request.stkJwk);
+            const stkJwk = await this.cryptoKeyManager.retrieveAsymmetricPublicKey(request.stkJwk);
             parameterBuilder.addStkJwk(stkJwk);
         }
 

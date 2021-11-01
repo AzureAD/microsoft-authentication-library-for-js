@@ -1,8 +1,8 @@
 // Select DOM elements to work with
 const welcomeDiv = document.getElementById("WelcomeMessage");
 const signInButton = document.getElementById("SignIn");
-const popupButton = document.getElementById("popup");
-const redirectButton = document.getElementById("redirect");
+const popupButton = document.getElementById("loginPopup");
+const redirectButton = document.getElementById("loginRedirect");
 const cardDiv = document.getElementById("card-div");
 const mailButton = document.getElementById("readMail");
 const profileButton = document.getElementById("seeProfile");

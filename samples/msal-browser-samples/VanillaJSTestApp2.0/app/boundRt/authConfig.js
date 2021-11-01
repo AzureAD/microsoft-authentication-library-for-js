@@ -3,7 +3,6 @@ const msalConfig = {
     auth: {
         clientId: "bc77b0a7-16aa-4af4-884b-41b968c9c71a",
         authority: "https://login.microsoftonline.com/5d97b14d-c396-4aee-b524-c86d33e9b660",
-        refreshTokenBinding: true
     },
     cache: {
         cacheLocation: "sessionStorage", // This configures where your cache will be stored
@@ -31,7 +30,8 @@ const msalConfig = {
                 }
             },
             logLevel: msal.LogLevel.Verbose
-        }
+        },
+        refreshTokenBinding: true
     }
 };
 
