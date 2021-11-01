@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-node-extensions",
-  "version": "1.0.0-alpha.12",
+  "version": "1.0.0-alpha.11",
   "license": "MIT",
   "main": "dist/index.js",
   "typings": "dist/index.d.ts",
@@ -44,7 +44,7 @@
     ]
   },
   "dependencies": {
-    "@azure/msal-common": "^5.1.0",
+    "@azure/msal-common": "^5.0.1",
     "bindings": "git://github.com/samuelkubai/node-bindings.git#v1.6.0",
     "keytar": "^7.6.0",
     "nan": "^2.13.2"
