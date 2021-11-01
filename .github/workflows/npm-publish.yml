@@ -29,17 +29,17 @@ jobs:
         with:
           filters: |
             core:
-              - 'lib/msal-core/src/package.json'
+              - 'lib/msal-core/package.json'
             common: 
-              - 'lib/msal-common/src/package.json'
+              - 'lib/msal-common/package.json'
             browser: 
-              - 'lib/msal-browser/src/package.json'
+              - 'lib/msal-browser/package.json'
             node:
-              - 'lib/msal-node/src/package.json'
+              - 'lib/msal-node/package.json'
             angular:
-              - 'lib/msal-angular/src/package.json'
+              - 'lib/msal-angular/package.json'
             react:
-              - 'lib/msal-react/src/package.json'
+              - 'lib/msal-react/package.json'
             node-extensions:
               - 'extensions/msal-node-extensions/package.json'
           list-files: json
