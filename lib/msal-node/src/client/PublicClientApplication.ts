@@ -61,7 +61,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 validRequest.correlationId,
                 serverTelemetryManager,
                 undefined,
-                request.azureCloudInstance
+                request.azureAuthOptions
             );
             const deviceCodeClient = new DeviceCodeClient(deviceCodeConfig);
             this.logger.verbose("Device code client created", validRequest.correlationId);

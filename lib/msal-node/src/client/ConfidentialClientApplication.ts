@@ -73,7 +73,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
                 validRequest.correlationId,
                 serverTelemetryManager,
                 azureRegionConfiguration,
-                request.azureCloudInstance
+                request.azureAuthOptions
             );
             const clientCredentialClient = new ClientCredentialClient(clientCredentialConfig);
             this.logger.verbose("Client credential client created", validRequest.correlationId);
@@ -110,7 +110,7 @@ export class ConfidentialClientApplication extends ClientApplication implements 
                 validRequest.correlationId,
                 undefined,
                 undefined,
-                request.azureCloudInstance
+                request.azureAuthOptions
             );
             const oboClient = new OnBehalfOfClient(clientCredentialConfig);
             this.logger.verbose("On behalf of client created", validRequest.correlationId);
