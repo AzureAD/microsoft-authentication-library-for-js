@@ -2,6 +2,41 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Mon, 01 Nov 2021 23:36:07 GMT",
+      "tag": "@azure/msal-angular_v2.0.5",
+      "version": "2.0.5",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "4e6070227590e3ce147546718b59026dac988df2",
+            "comment": "Fix redirect processing when allowRedirectInIframe: true #4142"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "a554867901e8b830de5e55d312da8540117f9823",
+            "comment": "Ensure code is in fragment for Angular guard #4190"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v2.19.0",
+            "commit": "682a24461905d58fb9370d936e26e0b77ca602bb"
+          }
+        ],
+        "none": [
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "c5a8de4a5dc7acb9bdf1759eb3cb9811459c3d82",
+            "comment": "Update package-locks to fix dependantbot alerts #4181"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 04 Oct 2021 23:12:35 GMT",
       "tag": "@azure/msal-angular_v2.0.4",
       "version": "2.0.4",
