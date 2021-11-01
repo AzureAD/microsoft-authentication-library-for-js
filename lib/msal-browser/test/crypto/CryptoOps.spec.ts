@@ -3,8 +3,7 @@ import { GuidGenerator } from "../../src/crypto/GuidGenerator";
 import { BrowserCrypto, CryptoKeyOptions } from "../../src/crypto/BrowserCrypto";
 import { TEST_URIS, BROWSER_CRYPTO, TEST_POP_VALUES } from "../utils/StringConstants";
 import { createHash } from "crypto";
-import { AuthenticationScheme, BaseAuthRequest, CryptoKeyTypes, PkceCodes } from "@azure/msal-common";
-import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
+import { PkceCodes, BaseAuthRequest, Logger, CryptoKeyTypes, AuthenticationScheme } from "@azure/msal-common";
 import { BrowserAuthError } from "../../src";
 import { CryptoKeyUsageSets } from "../../src/utils/CryptoConstants";
 const msrCrypto = require("../polyfills/msrcrypto.min");
@@ -50,16 +49,18 @@ jest.mock("../../src/cache/DatabaseStorage", () => {
                 version: 1,
                 tableName: "TestDB.keys",
                 open: () => {},
-                get: (kid: string) => {
+                getItem: (kid: string) => {
                     return mockDatabase["TestDB.keys"][kid];
                 },
-                put: (kid: string, payload: any) => {
+                setItem: (kid: string, payload: any) => {
                     mockDatabase["TestDB.keys"][kid] = payload;
                     return mockDatabase["TestDB.keys"][kid];
                 },
-                delete: (kid: string) => {
+                removeItem: (kid: string) => {
                     delete mockDatabase["TestDB.keys"][kid];
-                    return !mockDatabase["TestDB.keys"][kid];
+                },
+                containsKey: (kid: string) => {
+                    return !!(mockDatabase["TestDB.keys"][kid]);
                 }
             }
       })
@@ -71,7 +72,7 @@ describe("CryptoOps.ts Unit Tests", () => {
     let oldWindowCrypto = window.crypto;
 
     beforeEach(() => {
-        cryptoObj = new CryptoOps();
+        cryptoObj = new CryptoOps(new Logger({}));
         oldWindowCrypto = window.crypto;
         //@ts-ignore
         window.crypto = {

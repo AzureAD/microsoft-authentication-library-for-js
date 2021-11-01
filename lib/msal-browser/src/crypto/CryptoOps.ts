@@ -3,16 +3,16 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, PkceCodes, SignedHttpRequest, SignedHttpRequestParameters, CryptoKeyTypes } from "@azure/msal-common";
+import { ICrypto, PkceCodes, SignedHttpRequest, SignedHttpRequestParameters, CryptoKeyTypes, Logger } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
 import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto, CryptoKeyOptions } from "./BrowserCrypto";
-import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { CryptoKeyFormats, CryptoKeyConfig } from "../utils/CryptoConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
+import { AsyncMemoryStorage } from "../cache/AsyncMemoryStorage";
 
 export type CachedKeyPair = {
     publicKey: CryptoKey,
@@ -22,11 +22,11 @@ export type CachedKeyPair = {
 };
 
 /**
- * MSAL KeyStore DB Version 2
+ * MSAL CryptoKeyStore DB Version 2
  */
-export type KeyStore = {
-    asymmetricKeys: DatabaseStorage<CachedKeyPair>;
-    symmetricKeys: DatabaseStorage<CryptoKey>;
+export type CryptoKeyStore = {
+    asymmetricKeys: AsyncMemoryStorage<CachedKeyPair>;
+    symmetricKeys: AsyncMemoryStorage<CryptoKey>;
 };
 
 /**
@@ -40,20 +40,22 @@ export class CryptoOps implements ICrypto {
     private b64Encode: Base64Encode;
     private b64Decode: Base64Decode;
     private pkceGenerator: PkceGenerator;
+    private logger: Logger;
 
     private static EXTRACTABLE: boolean = true;
-    private cache: KeyStore;
+    private cache: CryptoKeyStore;
 
-    constructor() {
+    constructor(logger: Logger) {
+        this.logger = logger;
         // Browser crypto needs to be validated first before any other classes can be set.
-        this.browserCrypto = new BrowserCrypto();
+        this.browserCrypto = new BrowserCrypto(this.logger);
         this.b64Encode = new Base64Encode();
         this.b64Decode = new Base64Decode();
         this.guidGenerator = new GuidGenerator(this.browserCrypto);
         this.pkceGenerator = new PkceGenerator(this.browserCrypto);
         this.cache = {
-            asymmetricKeys: new DatabaseStorage<CachedKeyPair>(),
-            symmetricKeys: new DatabaseStorage<CryptoKey>()
+            asymmetricKeys: new AsyncMemoryStorage<CachedKeyPair>(this.logger),
+            symmetricKeys: new AsyncMemoryStorage<CryptoKey>(this.logger)
         };
     }
 
@@ -130,7 +132,7 @@ export class CryptoOps implements ICrypto {
         const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importJwk(keyOptions, privateKeyJwk, false, keyOptions.privateKeyUsage);
 
         // Store Keypair data in keystore
-        await this.cache.asymmetricKeys.put(
+        await this.cache.asymmetricKeys.setItem(
             publicJwkHash, 
             {
                 privateKey: unextractablePrivateKey,
@@ -148,7 +150,9 @@ export class CryptoOps implements ICrypto {
      * @param kid 
      */
     async removeTokenBindingKey(kid: string): Promise<boolean> {
-        return this.cache.asymmetricKeys.delete(kid);
+        await this.cache.asymmetricKeys.removeItem(kid);
+        const keyFound = await this.cache.asymmetricKeys.containsKey(kid);
+        return !keyFound;
     }
 
     /**
@@ -166,10 +170,10 @@ export class CryptoOps implements ICrypto {
      * @param kid 
      */
     async signJwt(payload: SignedHttpRequest, kid: string): Promise<string> {
-        const cachedKeyPair = await this.cache.asymmetricKeys.get(kid);
+        const cachedKeyPair = await this.cache.asymmetricKeys.getItem(kid);
         
         if (!cachedKeyPair) {
-            throw BrowserAuthError.createSigningKeyNotFoundInStorageError(kid);
+            throw BrowserAuthError.createSigningKeyNotFoundInStorageError();
         }
 
         // Get public key as JWK
@@ -207,7 +211,12 @@ export class CryptoOps implements ICrypto {
      * @returns Public Key JWK string
      */
     async getAsymmetricPublicKey(keyThumbprint: string): Promise<string> {
-        const cachedKeyPair: CachedKeyPair = await this.cache.asymmetricKeys.get(keyThumbprint);
+        const cachedKeyPair = await this.cache.asymmetricKeys.getItem(keyThumbprint);
+
+        if (!cachedKeyPair) {
+            throw BrowserAuthError.createSigningKeyNotFoundInStorageError();
+        }
+
         // Get public key as JWK
         const publicKeyJwk = await this.browserCrypto.exportJwk(cachedKeyPair.publicKey);
         return BrowserCrypto.getJwkString(publicKeyJwk);

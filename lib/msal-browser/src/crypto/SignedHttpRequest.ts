@@ -4,16 +4,24 @@
  */
 
 import { CryptoOps } from "./CryptoOps";
-import { PopTokenGenerator, SignedHttpRequestParameters, CryptoKeyManager, CryptoKeyTypes } from "@azure/msal-common";
+import { CryptoKeyManager, CryptoKeyTypes, Logger, LoggerOptions, PopTokenGenerator, SignedHttpRequestParameters } from "@azure/msal-common";
+import { version, name } from "../packageMetadata";
+
+export type SignedHttpRequestOptions = {
+    loggerOptions: LoggerOptions
+};
 
 export class SignedHttpRequest {
     private popTokenGenerator: PopTokenGenerator;
     private cryptoOps: CryptoOps;
     private shrParameters: SignedHttpRequestParameters;
+    private logger: Logger;
     private cryptoKeyManager: CryptoKeyManager;
 
-    constructor(shrParameters: SignedHttpRequestParameters) {
-        this.cryptoOps = new CryptoOps();
+    constructor(shrParameters: SignedHttpRequestParameters, shrOptions?: SignedHttpRequestOptions) {
+        const loggerOptions = (shrOptions && shrOptions.loggerOptions) || {};
+        this.logger = new Logger(loggerOptions, name, version);
+        this.cryptoOps = new CryptoOps(this.logger);
         this.popTokenGenerator = new PopTokenGenerator(this.cryptoOps);
         this.cryptoKeyManager = new CryptoKeyManager(this.cryptoOps);
         this.shrParameters = shrParameters;
@@ -51,6 +59,6 @@ export class SignedHttpRequest {
      * @returns If keys are properly deleted
      */
     async removeKeys(publicKeyThumbprint: string): Promise<boolean> {
-        return this.cryptoOps.removeTokenBindingKey(publicKeyThumbprint);
+        return await this.cryptoOps.removeTokenBindingKey(publicKeyThumbprint);
     }
 }

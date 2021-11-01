@@ -22,11 +22,11 @@ export class BrowserCacheManager extends CacheManager {
     // Cache configuration, either set by user or default values.
     private cacheConfig: Required<CacheOptions>;
     // Window storage object (either local or sessionStorage)
-    private browserStorage: IWindowStorage;
+    private browserStorage: IWindowStorage<string>;
     // Internal in-memory storage object used for data used by msal that does not need to persist across page loads
-    private internalStorage: MemoryStorage;
+    private internalStorage: MemoryStorage<string>;
     // Temporary cache
-    private temporaryCacheStorage: IWindowStorage;
+    private temporaryCacheStorage: IWindowStorage<string>;
     // Client id of application. Used in cache keys to partition cache correctly in the case of multiple instances of MSAL.
     private logger: Logger;
 
@@ -50,7 +50,7 @@ export class BrowserCacheManager extends CacheManager {
      * Returns a window storage class implementing the IWindowStorage interface that corresponds to the configured cacheLocation.
      * @param cacheLocation
      */
-    private setupBrowserStorage(cacheLocation: BrowserCacheLocation | string): IWindowStorage {
+    private setupBrowserStorage(cacheLocation: BrowserCacheLocation | string): IWindowStorage<string> {
         switch (cacheLocation) {
             case BrowserCacheLocation.LocalStorage:
             case BrowserCacheLocation.SessionStorage:
@@ -73,7 +73,7 @@ export class BrowserCacheManager extends CacheManager {
      *
      * @param cacheLocation
      */
-    private setupTemporaryCacheStorage(cacheLocation: BrowserCacheLocation | string): IWindowStorage {
+    private setupTemporaryCacheStorage(cacheLocation: BrowserCacheLocation | string): IWindowStorage<string> {
         switch (cacheLocation) {
             case BrowserCacheLocation.LocalStorage:
             case BrowserCacheLocation.SessionStorage:

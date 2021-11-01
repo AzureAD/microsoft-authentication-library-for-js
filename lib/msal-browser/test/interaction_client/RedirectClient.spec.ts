@@ -5,8 +5,8 @@
 
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
-import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, TEST_STATE_VALUES, DEFAULT_TENANT_DISCOVERY_RESPONSE, testLogoutUrl, TEST_POP_VALUES } from "../utils/StringConstants";
-import { ServerError, Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationCodeRequest, CommonAuthorizationUrlRequest, AuthToken, PersistentCacheKeys, AuthorizationCodeClient, ResponseMode, ProtocolUtils, AuthenticationScheme, Logger, ServerTelemetryEntity, LogLevel, NetworkResponse, ServerAuthorizationTokenResponse, CcsCredential, CcsCredentialType, CommonEndSessionRequest, ServerTelemetryManager, AccountEntity } from "@azure/msal-common";
+import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, TEST_STATE_VALUES, DEFAULT_TENANT_DISCOVERY_RESPONSE, testLogoutUrl, TEST_SSH_VALUES, TEST_POP_VALUES } from "../utils/StringConstants";
+import { ServerError, Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationCodeRequest, CommonAuthorizationUrlRequest, AuthToken, PersistentCacheKeys, AuthorizationCodeClient, ResponseMode, ProtocolUtils, AuthenticationScheme, Logger, ServerTelemetryEntity, LogLevel, NetworkResponse, ServerAuthorizationTokenResponse, CcsCredential, CcsCredentialType, CommonEndSessionRequest, ServerTelemetryManager, AccountEntity, ClientConfigurationError } from "@azure/msal-common";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { TemporaryCacheKeys, ApiId, BrowserCacheLocation, InteractionType } from "../../src/utils/BrowserConstants";
 import { Base64Encode } from "../../src/encode/Base64Encode";
@@ -70,7 +70,7 @@ describe("RedirectClient", () => {
         it("does nothing if no hash is detected", (done) => {
             browserStorage.setInteractionInProgress(true);
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             redirectClient.handleRedirectPromise().then((response) => {
@@ -84,7 +84,7 @@ describe("RedirectClient", () => {
         it("cleans temporary cache and return null if no state", (done) => {
             browserStorage.setInteractionInProgress(true);
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             sinon.stub(RedirectClient.prototype, <any>"getRedirectResponseHash").returns(TEST_HASHES.TEST_SUCCESS_HASH_NO_STATE);
@@ -99,7 +99,7 @@ describe("RedirectClient", () => {
         it("cleans temporary cache and return null if state is wrong interaction type", (done) => {
             browserStorage.setInteractionInProgress(true);
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             sinon.stub(RedirectClient.prototype, <any>"getRedirectResponseHash").returns(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
@@ -114,7 +114,7 @@ describe("RedirectClient", () => {
         it("cleans temporary cache and rethrows if error is thrown", (done) => {
             browserStorage.setInteractionInProgress(true);
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             const testError = {
@@ -133,7 +133,7 @@ describe("RedirectClient", () => {
         it("cleans temporary cache and return null if state cannot be decoded", (done) => {
             browserStorage.setInteractionInProgress(true);
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             //sinon.stub(BrowserProtocolUtils, "extractBrowserRequestState").returns(null);
@@ -149,7 +149,7 @@ describe("RedirectClient", () => {
         it("gets hash from cache and processes response", async () => {
             const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
 
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
@@ -236,7 +236,7 @@ describe("RedirectClient", () => {
         it("throws no cached authority error if authority is not in cache", (done) => {
             const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
 
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
@@ -273,7 +273,7 @@ describe("RedirectClient", () => {
             };
 
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
 
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`, browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest)));
@@ -292,7 +292,7 @@ describe("RedirectClient", () => {
         it("processes hash if navigateToLoginRequestUri is false and request origin is the same", async () => {
             const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
 
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
@@ -395,7 +395,7 @@ describe("RedirectClient", () => {
         it("calls custom navigateInternal function then processes hash", async () => {
             const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
 
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
@@ -513,7 +513,7 @@ describe("RedirectClient", () => {
         it("processes hash if navigateToLoginRequestUri is false and request origin is different", async () => {
             const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
 
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
@@ -621,7 +621,7 @@ describe("RedirectClient", () => {
         });
 
         it("returns null if interaction is in progress for a different clientId", async () => {
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const logger = new Logger({});
             const secondInstanceStorage = new BrowserCacheManager("different-client-id", cacheConfig, browserCrypto, logger);
             secondInstanceStorage.setInteractionInProgress(true);
@@ -636,6 +636,37 @@ describe("RedirectClient", () => {
         });
 
         it("navigates and caches hash if navigateToLoginRequestUri is true and interaction type is redirect", async () => {
+            browserStorage.setInteractionInProgress(true);
+            window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+            sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(options.noHistory).toBeTruthy();
+                expect(options.timeout).toBeGreaterThan(0);
+                expect(urlNavigate).toEqual(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
+                return Promise.resolve(true);
+            });
+            await redirectClient.handleRedirectPromise();
+            expect(window.sessionStorage.getItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`)).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
+        });
+
+        it("navigates and caches hash if navigateToLoginRequestUri is true, the application is loaded in an iframe and allowRedirectInIframe is true", async () => {
+            const pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                }
+            });
+            const config = {
+                // @ts-ignore
+                ...pca.config,
+                system: {
+                    // @ts-ignore
+                    ...pca.config.system,
+                    allowRedirectInIframe: true
+                }
+            }
+            // @ts-ignore
+            redirectClient = new RedirectClient(config, browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+            sinon.stub(BrowserUtils, "isInIframe").returns(true);
             browserStorage.setInteractionInProgress(true);
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_ALTERNATE_REDIR_URI);
@@ -793,7 +824,7 @@ describe("RedirectClient", () => {
         });
 
         it("throws if interaction is currently in progress for a different clientId", async () => {
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const logger = new Logger({});
             const secondInstanceStorage = new BrowserCacheManager("different-client-id", cacheConfig, browserCrypto, logger);
             secondInstanceStorage.setInteractionInProgress(true);
@@ -804,6 +835,37 @@ describe("RedirectClient", () => {
             expect(secondInstanceStorage.isInteractionInProgress(false)).toBe(true);
             // @ts-ignore
             await expect(redirectClient.acquireToken({scopes: ["openid"]})).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
+        });
+
+        it("throws error when AuthenticationScheme is set to SSH and SSH JWK is omitted from the request", async () => {
+            const loginRequest: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read"],
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                nonce: "",
+                authenticationScheme: AuthenticationScheme.SSH
+            };
+
+            expect(redirectClient.acquireToken(loginRequest)).rejects.toThrow(ClientConfigurationError.createMissingSshJwkError());
+        });
+
+        it("throws error when AuthenticationScheme is set to SSH and SSH KID is omitted from the request", async () => {
+            const request: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read"],
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                nonce: "",
+                authenticationScheme: AuthenticationScheme.SSH,
+                sshJwk: TEST_SSH_VALUES.SSH_JWK
+            };
+
+            expect(redirectClient.acquireToken(request)).rejects.toThrow(ClientConfigurationError.createMissingSshKidError());
         });
 
         it("navigates to created login url", (done) => {
@@ -861,7 +923,7 @@ describe("RedirectClient", () => {
             });
             const testLogger = new Logger(loggerOptions);
 
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             await redirectClient.acquireToken(emptyRequest);
             expect(browserStorage.getTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(TEST_STATE_VALUES.TEST_STATE_REDIRECT);
@@ -910,7 +972,7 @@ describe("RedirectClient", () => {
             });
             const testLogger = new Logger(loggerOptions);
 
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             await redirectClient.acquireToken(emptyRequest);
             expect(browserStorage.getTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(TEST_STATE_VALUES.TEST_STATE_REDIRECT);
@@ -967,7 +1029,7 @@ describe("RedirectClient", () => {
             });
             const testLogger = new Logger(loggerOptions);
 
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             await redirectClient.acquireToken(emptyRequest);
             expect(browserStorage.getTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(TEST_STATE_VALUES.TEST_STATE_REDIRECT);
@@ -1000,7 +1062,7 @@ describe("RedirectClient", () => {
             });
             sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
 
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             await redirectClient.acquireToken(tokenRequest);
@@ -1025,7 +1087,7 @@ describe("RedirectClient", () => {
                 authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
             };
 
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
@@ -1067,7 +1129,7 @@ describe("RedirectClient", () => {
                 "upn": "AbeLincoln@contoso.com"
             };
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
@@ -1123,7 +1185,7 @@ describe("RedirectClient", () => {
                 "preferred_username": "AbeLincoln@contoso.com"
             };
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
@@ -1179,7 +1241,7 @@ describe("RedirectClient", () => {
                 "preferred_username": "AbeLincoln@contoso.com"
             };
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
@@ -1234,7 +1296,7 @@ describe("RedirectClient", () => {
                 "preferred_username": "AbeLincoln@contoso.com"
             };
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             browserStorage.setTemporaryCache(PersistentCacheKeys.ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, true);
@@ -1289,7 +1351,7 @@ describe("RedirectClient", () => {
                 "upn": "AbeLincoln@contoso.com"
             };
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
@@ -1407,7 +1469,7 @@ describe("RedirectClient", () => {
                 expect(urlNavigate).not.toBe("");
                 return Promise.resolve(true);
             });
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             await redirectClient.acquireToken(emptyRequest);
@@ -1439,7 +1501,7 @@ describe("RedirectClient", () => {
                 expect(urlNavigate).not.toBe("");
                 return Promise.resolve(true);
             });
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             await redirectClient.acquireToken(tokenRequest);
@@ -1464,7 +1526,7 @@ describe("RedirectClient", () => {
                 nonce: "",
                 authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
             };
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
@@ -1506,7 +1568,7 @@ describe("RedirectClient", () => {
                 "upn": "AbeLincoln@contoso.com"
             };
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
@@ -1562,7 +1624,7 @@ describe("RedirectClient", () => {
                 "upn": "AbeLincoln@contoso.com"
             };
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);

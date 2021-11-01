@@ -115,8 +115,8 @@ describe("SilentHandler.ts Unit Tests", () => {
         };
         authConfig.storageInterface = new TestStorageManager(TEST_CONFIG.MSAL_CLIENT_ID, authConfig.cryptoInterface!);
         authCodeModule = new AuthorizationCodeClient(authConfig);
-        const browserCrypto = new CryptoOps();
         const logger = new Logger(authConfig.loggerOptions!);
+        const browserCrypto = new CryptoOps(logger);
         browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, browserCrypto, logger);
         browserRequestLogger = new Logger(authConfig.loggerOptions!);
     });

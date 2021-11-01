@@ -286,20 +286,28 @@ describe("BrowserAuthError Unit Tests", () => {
 
     it("createDatabaseUnavailableError()", () => {
         const err: BrowserAuthError = BrowserAuthError.createDatabaseUnavailableError();
-
         expect(err instanceof BrowserAuthError).toBe(true);
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
         expect(err.errorCode).toBe(BrowserAuthErrorMessage.databaseUnavailable.code);
         expect(err.errorMessage?.includes(BrowserAuthErrorMessage.databaseUnavailable.desc)).toBe(true);
         expect(err.message?.includes(BrowserAuthErrorMessage.databaseUnavailable.desc)).toBe(true);
+    });
+
+    it("createSigningKeyNotFoundInStorageError()", () => {
+        const err: BrowserAuthError = BrowserAuthError.createSigningKeyNotFoundInStorageError();
+        expect(err instanceof BrowserAuthError).toBe(true);
+        expect(err instanceof AuthError).toBe(true);
+        expect(err instanceof Error).toBe(true);
+        expect(err.errorCode).toBe(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code);
+        expect(err.errorMessage?.includes(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.desc)).toBe(true);
+        expect(err.message?.includes(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.desc)).toBe(true);
         expect(err.name).toBe("BrowserAuthError");
         expect(err.stack?.includes("BrowserAuthError.spec.ts")).toBe(true);
     });
 
     it("createKeyGenerationFailedError()", () => {
         const err: BrowserAuthError = BrowserAuthError.createKeyGenerationFailedError();
-
         expect(err instanceof BrowserAuthError).toBe(true);
         expect(err instanceof AuthError).toBe(true);
         expect(err instanceof Error).toBe(true);
