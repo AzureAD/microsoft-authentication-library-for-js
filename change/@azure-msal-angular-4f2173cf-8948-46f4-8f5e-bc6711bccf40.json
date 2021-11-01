@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Ensure code is in fragment for Angular guard #4190",
-  "packageName": "@azure/msal-angular",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "patch"
-}
