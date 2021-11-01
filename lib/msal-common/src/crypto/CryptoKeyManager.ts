@@ -27,7 +27,7 @@ enum KeyLocation {
     HardwareStorage = "uhw"
 }
 
-export class KeyManager {
+export class CryptoKeyManager {
     private cryptoUtils: ICrypto;
 
     constructor(cryptoUtils: ICrypto) {

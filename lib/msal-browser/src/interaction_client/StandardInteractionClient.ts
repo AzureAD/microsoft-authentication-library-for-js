@@ -40,7 +40,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         const generatedPkceParams = await this.browserCrypto.generatePkceCodes();
 
         // Generate Session Transport Key if Refresh Token Binding is enabled
-        if (this.config.auth.refreshTokenBinding) {
+        if (this.config.system.refreshTokenBinding) {
             this.logger.verbose("Refresh token binding enabled, attempting to generate Session Transport Key");
             try {
                 const sessionTransportKeyThumbprint = await this.browserCrypto.getPublicKeyThumbprint(request, CryptoKeyTypes.StkJwk);

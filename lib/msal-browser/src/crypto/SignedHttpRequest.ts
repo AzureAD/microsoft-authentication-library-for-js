@@ -4,18 +4,26 @@
  */
 
 import { CryptoOps } from "./CryptoOps";
-import { PopTokenGenerator, SignedHttpRequestParameters, KeyManager, CryptoKeyTypes } from "@azure/msal-common";
+import { CryptoKeyManager, CryptoKeyTypes, Logger, LoggerOptions, PopTokenGenerator, SignedHttpRequestParameters } from "@azure/msal-common";
+import { version, name } from "../packageMetadata";
+
+export type SignedHttpRequestOptions = {
+    loggerOptions: LoggerOptions
+};
 
 export class SignedHttpRequest {
     private popTokenGenerator: PopTokenGenerator;
     private cryptoOps: CryptoOps;
     private shrParameters: SignedHttpRequestParameters;
-    private keyManager: KeyManager;
+    private logger: Logger;
+    private cryptoKeyManager: CryptoKeyManager;
 
-    constructor(shrParameters: SignedHttpRequestParameters) {
-        this.cryptoOps = new CryptoOps();
+    constructor(shrParameters: SignedHttpRequestParameters, shrOptions?: SignedHttpRequestOptions) {
+        const loggerOptions = (shrOptions && shrOptions.loggerOptions) || {};
+        this.logger = new Logger(loggerOptions, name, version);
+        this.cryptoOps = new CryptoOps(this.logger);
         this.popTokenGenerator = new PopTokenGenerator(this.cryptoOps);
-        this.keyManager = new KeyManager(this.cryptoOps);
+        this.cryptoKeyManager = new CryptoKeyManager(this.cryptoOps);
         this.shrParameters = shrParameters;
     }
 
@@ -24,7 +32,7 @@ export class SignedHttpRequest {
      * @returns Public key digest, which should be sent to the token issuer.
      */
     async generatePublicKeyThumbprint(): Promise<string> {
-        const { kid } = await this.keyManager.generateKid(this.shrParameters, CryptoKeyTypes.ReqCnf);
+        const { kid } = await this.cryptoKeyManager.generateKid(this.shrParameters, CryptoKeyTypes.ReqCnf);
 
         return kid;
     }
@@ -51,6 +59,6 @@ export class SignedHttpRequest {
      * @returns If keys are properly deleted
      */
     async removeKeys(publicKeyThumbprint: string): Promise<boolean> {
-        return this.cryptoOps.removeTokenBindingKey(publicKeyThumbprint);
+        return await this.cryptoOps.removeTokenBindingKey(publicKeyThumbprint);
     }
 }

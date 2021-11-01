@@ -151,7 +151,7 @@ export const BrowserAuthErrorMessage = {
     },
     databaseUnavailable: {
         code: "database_unavailable",
-        desc: "IndexedDB, which is required for cryptographic key storage, is unavailable. This may happen when browsing in private mode."
+        desc: "IndexedDB, which is required for persistent cryptographic key storage, is unavailable. This may be caused by browser privacy features which block persistent storage in third-party contexts."
     },
     keyGenerationFailed: {
         code: "key_generation_failed",
@@ -435,8 +435,8 @@ export class BrowserAuthError extends AuthError {
     /**
      * Create an error thrown when the queried cryptographic key is not found in IndexedDB
      */
-    static createSigningKeyNotFoundInStorageError(keyId: string): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code, `${BrowserAuthErrorMessage.signingKeyNotFoundInStorage.desc} | No match found for KeyId: ${keyId}`);
+    static createSigningKeyNotFoundInStorageError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code, `${BrowserAuthErrorMessage.signingKeyNotFoundInStorage.desc}`);
     }
 
     /**

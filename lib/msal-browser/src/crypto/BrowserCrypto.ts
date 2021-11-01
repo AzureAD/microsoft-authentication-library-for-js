@@ -6,6 +6,7 @@
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { Algorithms, CryptoKeyFormats } from "../utils/CryptoConstants";
+import { Logger } from "..";
 
 /**
  * See here for more info on RsaHashedKeyGenParams: https://developer.mozilla.org/en-US/docs/Web/API/RsaHashedKeyGenParams
@@ -21,7 +22,11 @@ export type CryptoKeyOptions = {
  * hashing and encoding. It also has helper functions to validate the availability of specific APIs.
  */
 export class BrowserCrypto {
-    constructor() {
+    private logger: Logger;
+
+    constructor(logger: Logger) {
+        this.logger = logger;
+        
         if (!(this.hasCryptoAPI())) {
             throw BrowserAuthError.createCryptoNotAvailableError("Browser crypto or msCrypto object not available.");
         }

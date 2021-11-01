@@ -143,7 +143,9 @@ export class RefreshTokenClient extends BaseClient {
             authenticationScheme: request.authenticationScheme,
             resourceRequestMethod: request.resourceRequestMethod,
             resourceRequestUri: request.resourceRequestUri,
-            shrClaims: request.shrClaims
+            shrClaims: request.shrClaims,
+            sshJwk: request.sshJwk,
+            sshKid: request.sshKid
         };
 
         const endpoint = UrlString.appendQueryString(authority.tokenEndpoint, queryParameters);
@@ -203,8 +205,14 @@ export class RefreshTokenClient extends BaseClient {
         }
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
-            const cnfString = await this.keyManager.generateCnf(request);
+            const cnfString = await this.cryptoKeyManager.generateCnf(request);
             parameterBuilder.addPopToken(cnfString);
+        } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
+            if(request.sshJwk) {
+                parameterBuilder.addSshJwk(request.sshJwk);
+            } else {
+                throw ClientConfigurationError.createMissingSshJwkError();
+            }
         }
 
         if (!StringUtils.isEmptyObj(request.claims) || this.config.authOptions.clientCapabilities && this.config.authOptions.clientCapabilities.length > 0) {

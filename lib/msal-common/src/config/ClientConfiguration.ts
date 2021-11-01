@@ -68,23 +68,23 @@ export type CommonClientConfiguration = {
  * - cloudDiscoveryMetadata      - A string containing the cloud discovery response. Used in AAD scenarios.
  * - clientCapabilities          - Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
  * - protocolMode                - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
- * - refreshTokenBinding         - Boolean that enables refresh token binding (a.k.a refresh token proof-of-possession) for authorization requests
  */
 export type AuthOptions = {
     clientId: string;
     authority: Authority;
     clientCapabilities?: Array<string>;
-    refreshTokenBinding?: boolean;
 };
 
 /**
  * Use this to configure token renewal info in the Configuration object
  *
  * - tokenRenewalOffsetSeconds    - Sets the window of offset needed to renew the token before expiry
+ * - refreshTokenBinding          - Boolean that enables refresh token binding (a.k.a refresh token proof-of-possession) for authorization requests
  */
 export type SystemOptions = {
     tokenRenewalOffsetSeconds?: number;
     preventCorsPreflight?: boolean;
+    refreshTokenBinding?: boolean;
 };
 
 /**
@@ -125,7 +125,8 @@ export type ClientCredentials = {
 
 export const DEFAULT_SYSTEM_OPTIONS: Required<SystemOptions> = {
     tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
-    preventCorsPreflight: false
+    preventCorsPreflight: false,
+    refreshTokenBinding: false
 };
 
 const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {
@@ -206,7 +207,6 @@ export function buildClientConfiguration(
 function buildAuthOptions(authOptions: AuthOptions): Required<AuthOptions> {
     return {
         clientCapabilities: [],
-        refreshTokenBinding: false,
         ...authOptions
     };
 }
