@@ -65,7 +65,9 @@ export const OIDC_SCOPES = [
 export enum HeaderNames {
     CONTENT_TYPE = "Content-Type",
     RETRY_AFTER = "Retry-After",
-    CCS_HEADER = "X-AnchorMailbox"
+    CCS_HEADER = "X-AnchorMailbox",
+    WWWAuthenticate = "WWW-Authenticate",
+    AuthenticationInfo = "Authentication-Info"
 }
 
 /**
