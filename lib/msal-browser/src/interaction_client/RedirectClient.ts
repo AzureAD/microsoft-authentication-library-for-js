@@ -15,10 +15,10 @@ import { NavigationOptions } from "../navigation/NavigationOptions";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { RedirectRequest } from "../request/RedirectRequest";
 
-export class RedirectClient extends StandardInteractionClient {   
+export class RedirectClient extends StandardInteractionClient {
     /**
      * Redirects the page to the /authorize endpoint of the IDP
-     * @param request 
+     * @param request
      */
     async acquireToken(request: RedirectRequest): Promise<void> {
         const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Redirect);
@@ -29,7 +29,7 @@ export class RedirectClient extends StandardInteractionClient {
             const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
 
             // Initialize the client
-            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority);
+            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority, validRequest.azureAuthOptions);
             this.logger.verbose("Auth code client created");
 
             // Create redirect interaction handler.
@@ -123,9 +123,9 @@ export class RedirectClient extends StandardInteractionClient {
                 };
 
                 /**
-                 * Default behavior is to redirect to the start page and not process the hash now. 
+                 * Default behavior is to redirect to the start page and not process the hash now.
                  * The start page is expected to also call handleRedirectPromise which will process the hash in one of the checks above.
-                 */  
+                 */
                 let processHashOnRedirect: boolean = true;
                 if (!loginRequestUrl || loginRequestUrl === "null") {
                     // Redirect to home page if login request url is null (real null or the string null)
@@ -211,10 +211,10 @@ export class RedirectClient extends StandardInteractionClient {
 
         try {
             this.eventHandler.emitEvent(EventType.LOGOUT_START, InteractionType.Redirect, logoutRequest);
-                        
+
             // Clear cache on logout
             await this.clearCacheOnLogout(validLogoutRequest.account);
-            
+
             const navigationOptions: NavigationOptions = {
                 apiId: ApiId.logout,
                 timeout: this.config.system.redirectNavigationTimeout,
@@ -225,7 +225,7 @@ export class RedirectClient extends StandardInteractionClient {
 
             // Create logout string and navigate user window to logout.
             const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
-            
+
             this.eventHandler.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
             // Check if onRedirectNavigate is implemented, and invoke it if so
             if (logoutRequest && typeof logoutRequest.onRedirectNavigate === "function") {

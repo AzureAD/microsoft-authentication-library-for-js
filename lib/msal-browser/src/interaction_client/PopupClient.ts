@@ -18,7 +18,7 @@ import { PopupRequest } from "../request/PopupRequest";
 export class PopupClient extends StandardInteractionClient {
     /**
      * Acquires tokens by opening a popup window to the /authorize endpoint of the authority
-     * @param request 
+     * @param request
      */
     acquireToken(request: PopupRequest): Promise<AuthenticationResult> {
         try {
@@ -44,7 +44,7 @@ export class PopupClient extends StandardInteractionClient {
 
     /**
      * Clears local cache for the current user then opens a popup window prompting the user to sign-out of the server
-     * @param logoutRequest 
+     * @param logoutRequest
      */
     logout(logoutRequest?: EndSessionPopupRequest): Promise<void> {
         try {
@@ -91,7 +91,7 @@ export class PopupClient extends StandardInteractionClient {
             const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(validRequest);
 
             // Initialize the client
-            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority);
+            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, validRequest.authority, validRequest.azureAuthOptions);
             this.logger.verbose("Auth code client created");
 
             // Create acquire token url.
@@ -120,7 +120,7 @@ export class PopupClient extends StandardInteractionClient {
             const result = await interactionHandler.handleCodeResponse(hash, state, authClient.authority, this.networkClient);
 
             return result;
-        } catch (e) {            
+        } catch (e) {
             if (popup) {
                 // Close the synchronous popup if an error is thrown before the window unload event is registered
                 popup.close();
@@ -137,20 +137,20 @@ export class PopupClient extends StandardInteractionClient {
     }
 
     /**
-     * 
-     * @param validRequest 
-     * @param popupName 
+     *
+     * @param validRequest
+     * @param popupName
      * @param requestAuthority
-     * @param popup 
-     * @param mainWindowRedirectUri 
-     * @param popupWindowAttributes 
+     * @param popup
+     * @param mainWindowRedirectUri
+     * @param popupWindowAttributes
      */
     private async logoutPopupAsync(validRequest: CommonEndSessionRequest, popupName: string, popupWindowAttributes: PopupWindowAttributes, requestAuthority?: string, popup?: Window|null, mainWindowRedirectUri?: string): Promise<void> {
         this.logger.verbose("logoutPopupAsync called");
         this.eventHandler.emitEvent(EventType.LOGOUT_START, InteractionType.Popup, validRequest);
 
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.logoutPopup);
-        
+
         try {
             // Clear cache on logout
             await this.clearCacheOnLogout(validRequest.account);
@@ -204,7 +204,7 @@ export class PopupClient extends StandardInteractionClient {
             if (e instanceof AuthError) {
                 e.setCorrelationId(this.correlationId);
             }
-            
+
             this.browserStorage.setInteractionInProgress(false);
             this.eventHandler.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Popup, null, e);
             this.eventHandler.emitEvent(EventType.LOGOUT_END, InteractionType.Popup);

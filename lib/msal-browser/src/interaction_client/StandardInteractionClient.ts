@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, Logger, ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils } from "@azure/msal-common";
+import { ICrypto, Logger, ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, AzureAuthOptions } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
@@ -98,9 +98,9 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param serverTelemetryManager
      * @param authorityUrl
      */
-    protected async createAuthCodeClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<AuthorizationCodeClient> {
+    protected async createAuthCodeClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, requestAzureAuthOptions?: AzureAuthOptions): Promise<AuthorizationCodeClient> {
         // Create auth module.
-        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
+        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, requestAzureAuthOptions);
         return new AuthorizationCodeClient(clientConfig);
     }
 
@@ -110,9 +110,9 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param requestAuthority
      * @param requestCorrelationId
      */
-    protected async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string): Promise<ClientConfiguration> {
+    protected async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string, requestAzureAuthOptions?: AzureAuthOptions): Promise<ClientConfiguration> {
         this.logger.verbose("getClientConfiguration called");
-        const discoveredAuthority = await this.getDiscoveredAuthority(requestAuthority);
+        const discoveredAuthority = await this.getDiscoveredAuthority(requestAuthority, requestAzureAuthOptions);
 
         return {
             authOptions: {
@@ -173,33 +173,42 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param requestAuthority
      * @param requestCorrelationId
      */
-    protected async getDiscoveredAuthority(requestAuthority?: string): Promise<Authority> {
+    protected async getDiscoveredAuthority(requestAuthority?: string, requestAzureAuthOptions?: AzureAuthOptions): Promise<Authority> {
         this.logger.verbose("getDiscoveredAuthority called");
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode,
             knownAuthorities: this.config.auth.knownAuthorities,
             cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
             authorityMetadata: this.config.auth.authorityMetadata,
-            azureCloudInstance: this.config.auth.azureCloudInstance
         };
 
-        // build authority string based on auth params - azureCloudInstance is prioritized if provided
-        const tenant = this.config.auth.tenant ? this.config.auth.tenant : Constants.DEFAULT_TENANT;
+        // build authority string based on auth params, precedence - azureCloudInstance + tenant >> authority and request parameters  >> config parameters
+        let userRequestedAuthority;
         let authorityAzureCloudInstance;
 
-        if (authorityOptions.azureCloudInstance) {
-            authorityAzureCloudInstance = `${authorityOptions.azureCloudInstance}/${tenant}/`;
-        }
+        // Fetch the authority from request if provided
+        if (requestAuthority || requestAzureAuthOptions) {
+            if (requestAzureAuthOptions) {
+                authorityAzureCloudInstance = `${requestAzureAuthOptions.azureCloudInstance}/${requestAzureAuthOptions.tenant}/`;
+            }
 
-        const userRequestedAuthority = authorityAzureCloudInstance ? authorityAzureCloudInstance : requestAuthority;
+            userRequestedAuthority = authorityAzureCloudInstance ? authorityAzureCloudInstance : requestAuthority;
+        }
+        // fall back to the authority from config
+        else {
+            if (this.config.auth.azureAuthOptions) {
+                authorityAzureCloudInstance = `${this.config.auth.azureAuthOptions.azureCloudInstance}/${this.config.auth.azureAuthOptions.tenant}/`;
+            }
+        }
 
         if (userRequestedAuthority) {
             this.logger.verbose("Creating discovered authority with request authority");
             return await AuthorityFactory.createDiscoveredInstance(userRequestedAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions);
         }
 
+        const configAuthority = authorityAzureCloudInstance ? authorityAzureCloudInstance : this.config.auth.authority;
         this.logger.verbose("Creating discovered authority with configured authority");
-        return await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient, this.browserStorage, authorityOptions);
+        return await AuthorityFactory.createDiscoveredInstance(configAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions);
     }
 
     /**
