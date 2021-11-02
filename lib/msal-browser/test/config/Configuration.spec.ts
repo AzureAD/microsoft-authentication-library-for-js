@@ -1,6 +1,6 @@
 import { Configuration, buildConfiguration, DEFAULT_POPUP_TIMEOUT_MS, DEFAULT_IFRAME_TIMEOUT_MS } from "../../src/config/Configuration";
 import { TEST_CONFIG, TEST_URIS } from "../utils/StringConstants";
-import { LogLevel, Constants, ClientConfigurationError, ClientConfigurationErrorMessage } from "@azure/msal-common";
+import { LogLevel, Constants, ClientConfigurationError, ClientConfigurationErrorMessage, AzureCloudInstance } from "@azure/msal-common";
 import sinon from "sinon";
 import { BrowserCacheLocation } from "../../src/utils/BrowserConstants";
 
@@ -208,7 +208,9 @@ describe("Configuration.ts Class Unit Tests", () => {
                 redirectUri: TEST_URIS.TEST_ALTERNATE_REDIR_URI,
                 postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
                 navigateToLoginRequestUrl: false,
-                azureCloudInstance: 2,
+                azureAuthOptions: {
+                    azureCloudInstance: AzureCloudInstance.AzureChina
+                }
             },
             cache: {
                 cacheLocation: BrowserCacheLocation.LocalStorage,
@@ -237,7 +239,10 @@ describe("Configuration.ts Class Unit Tests", () => {
                 redirectUri: TEST_URIS.TEST_ALTERNATE_REDIR_URI,
                 postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
                 navigateToLoginRequestUrl: false,
-                azureCloudInstance: 3,
+                azureAuthOptions: {
+                    azureCloudInstance: AzureCloudInstance.AzureGermany,
+                    tenant: "common"
+                }
             },
             cache: {
                 cacheLocation: BrowserCacheLocation.LocalStorage,
@@ -266,7 +271,9 @@ describe("Configuration.ts Class Unit Tests", () => {
                 redirectUri: TEST_URIS.TEST_ALTERNATE_REDIR_URI,
                 postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
                 navigateToLoginRequestUrl: false,
-                azureCloudInstance: 4,
+                azureAuthOptions: {
+                    azureCloudInstance: AzureCloudInstance.AzureUsGovernment
+                }
             },
             cache: {
                 cacheLocation: BrowserCacheLocation.LocalStorage,
@@ -297,7 +304,9 @@ describe("Configuration.ts Class Unit Tests", () => {
                     redirectUri: TEST_URIS.TEST_ALTERNATE_REDIR_URI,
                     postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
                     navigateToLoginRequestUrl: false,
-                    azureCloudInstance: 5,
+                    azureAuthOptions: {
+                        azureCloudInstance: "random string"
+                    }
                 },
                 cache: {
                     cacheLocation: BrowserCacheLocation.LocalStorage,
