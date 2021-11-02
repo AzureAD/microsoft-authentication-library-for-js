@@ -16,7 +16,7 @@ describe("TokenCache tests", () => {
     let browserStorage: BrowserCacheManager;
     let cacheConfig: Required<CacheOptions>;
 
-    const cryptoObj = new CryptoOps();
+    let cryptoObj: CryptoOps;
     beforeEach(() => {
         configuration = buildConfiguration({
             auth: {
@@ -32,6 +32,7 @@ describe("TokenCache tests", () => {
             loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {},
             piiLoggingEnabled: true
         });
+        cryptoObj = new CryptoOps(logger);
         browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, cryptoObj, logger);
     });
 
