@@ -19,6 +19,7 @@ import { INavigationClient } from "../navigation/INavigationClient";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
+import { throwStatement } from "@babel/types";
 
 /**
  * Defines the class structure and helper functions used by the "standard", non-brokered auth flows (popup, redirect, silent (RT), silent (iframe))
@@ -189,7 +190,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         // Fetch the authority from request if provided
         if (requestAuthority || requestAzureAuthOptions) {
             if (requestAzureAuthOptions) {
-                authorityAzureCloudInstance = `${requestAzureAuthOptions.azureCloudInstance}/${requestAzureAuthOptions.tenant}/`;
+                const tenant = requestAzureAuthOptions.tenant ? requestAzureAuthOptions.tenant : Constants.DEFAULT_TENANT;
+                authorityAzureCloudInstance = `${requestAzureAuthOptions.azureCloudInstance}/${tenant}/`;
             }
 
             userRequestedAuthority = authorityAzureCloudInstance ? authorityAzureCloudInstance : requestAuthority;
@@ -197,7 +199,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         // fall back to the authority from config
         else {
             if (this.config.auth.azureAuthOptions) {
-                authorityAzureCloudInstance = `${this.config.auth.azureAuthOptions.azureCloudInstance}/${this.config.auth.azureAuthOptions.tenant}/`;
+                const tenant = this.config.auth.azureAuthOptions.tenant ? this.config.auth.azureAuthOptions.tenant : Constants.DEFAULT_TENANT;
+                authorityAzureCloudInstance = `${this.config.auth.azureAuthOptions.azureCloudInstance}/${tenant}/`;
             }
         }
 

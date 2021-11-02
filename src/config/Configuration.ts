@@ -126,7 +126,7 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         protocolMode: ProtocolMode.AAD,
         azureAuthOptions: {
             azureCloudInstance: AzureCloudInstance.None,
-            tenant: `${Constants.DEFAULT_TENANT}`
+            tenant: ""
         },
     };
 
