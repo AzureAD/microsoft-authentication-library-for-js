@@ -33,7 +33,7 @@ jobs:
           CDN_EUNO_SAS: ${{ secrets.CDN_EUNO_SAS}}
           CDN_USWE_SAS: ${{ secrets.CDN_USWE_SAS}}
         run: |
-          echo //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN} > .npmrc
+          echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' > .npmrc
           npm install
           npm run build
           npm run cdn:sri
@@ -43,7 +43,7 @@ jobs:
       - name: Publish  msal-common
         working-directory: lib/msal-common
         run: |
-          echo //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN} > .npmrc
+          echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' > .npmrc
           npm install
           npm publish
           rm .npmrc
@@ -54,7 +54,7 @@ jobs:
           CDN_EUNO_SAS: ${{ secrets.CDN_EUNO_SAS}}
           CDN_USWE_SAS: ${{ secrets.CDN_USWE_SAS}}
         run: |
-          echo //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN} > .npmrc
+          echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' > .npmrc
           npm install
           npm run cdn
           npm publish
@@ -63,7 +63,7 @@ jobs:
       - name: Publish  msal-node
         working-directory: lib/msal-node
         run: |
-          echo //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN} > .npmrc
+          echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' > .npmrc
           npm install
           npm publish
           rm .npmrc
@@ -71,7 +71,7 @@ jobs:
       - name: Publish  msal-angular
         working-directory: lib/msal-angular
         run: |
-          echo //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN} > .npmrc
+          echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' > .npmrc
           npm install
           npm run deploy
           rm .npmrc
@@ -79,7 +79,7 @@ jobs:
       - name: Publish  msal-react
         working-directory: lib/msal-react
         run: |
-          echo //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN} > .npmrc
+          echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' > .npmrc
           npm install
           npm publish
           rm .npmrc
@@ -87,7 +87,7 @@ jobs:
       - name: Publish node-extensions
         working-directory: extensions/msal-node-extensions
         run: |
-          echo //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN} > .npmrc
+          echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' > .npmrc
           npm install
           npm publish
           rm .npmrc
