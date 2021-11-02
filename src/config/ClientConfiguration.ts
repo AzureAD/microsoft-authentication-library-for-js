@@ -173,7 +173,7 @@ const DEFAULT_CLIENT_CREDENTIALS: ClientCredentials = {
 
 const DEFAULT_AZURE_AUTH_OPTIONS: AzureAuthOptions = {
     azureCloudInstance: AzureCloudInstance.None,
-    tenant: `${Constants.DEFAULT_TENANT}`
+    tenant: `${Constants.DEFAULT_COMMON_TENANT}`
 };
 
 /**
