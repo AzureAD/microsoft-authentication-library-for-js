@@ -20,16 +20,6 @@ jobs:
         # Setup node with version 12.x
       - uses: actions/setup-node@v1
 
-      - name: Publish  msal-common
-        working-directory: lib/msal-common
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' > .npmrc
-          npm install
-          npm publish
-          rm .npmrc
-
       - name: Publish  msal-browser
         working-directory: lib/msal-browser
         env:
