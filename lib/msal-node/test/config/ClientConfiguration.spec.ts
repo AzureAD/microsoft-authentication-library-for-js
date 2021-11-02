@@ -69,6 +69,17 @@ describe('ClientConfiguration tests', () => {
         expect(config.auth!.clientId).toEqual(TEST_CONSTANTS.CLIENT_ID);
     });
 
+    test('builds configuration and assigns default authority when empty string provided', () => {
+        const config: Configuration = buildAppConfiguration({
+            auth: {
+                clientId: TEST_CONSTANTS.CLIENT_ID,
+                authority: " "
+            },
+        });
+
+        expect(config.auth!.authority).toEqual(TEST_CONSTANTS.DEFAULT_AUTHORITY);
+    });
+
     test('builds configuration and assigns default functions', () => {
         const testNetworkResult = {
             testParam: 'testValue',
