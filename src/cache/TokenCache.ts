@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccessTokenEntity, ICrypto, IdTokenEntity, Logger, ScopeSet, Authority, AuthorityOptions, ExternalTokenResponse, AccountEntity, AuthToken } from "@azure/msal-common";
+import { AccessTokenEntity, ICrypto, IdTokenEntity, Logger, ScopeSet, Authority, AuthorityOptions, ExternalTokenResponse, AccountEntity, AuthToken , AuthorizationCodeClient } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { SilentRequest } from "../request/SilentRequest";
 import { BrowserCacheManager } from "./BrowserCacheManager";
@@ -58,14 +58,20 @@ export class TokenCache implements ITokenCache {
             this.loadAccessToken(request, response, request.account.homeAccountId, request.account.environment, request.account.tenantId, options);
         } else if (request.authority) {
 
+            let authorityAzureCloudInstance;
+            if (request.azureAuthOptions) {
+                authorityAzureCloudInstance = `${request.azureAuthOptions.azureCloudInstance}/${request.azureAuthOptions.tenant}/`;
+            }
+            // final authority from the request
+            const authorityUrl = authorityAzureCloudInstance ? authorityAzureCloudInstance : request.authority;
+
             const authorityOptions: AuthorityOptions = {
                 protocolMode: this.config.auth.protocolMode,
                 knownAuthorities: this.config.auth.knownAuthorities,
                 cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
                 authorityMetadata: this.config.auth.authorityMetadata,
-                azureCloudInstance: this.config.auth.azureCloudInstance
             };
-            const authority = new Authority(request.authority, this.config.system.networkClient, this.storage, authorityOptions);
+            const authority = new Authority(authorityUrl, this.config.system.networkClient, this.storage, authorityOptions);
 
             // "clientInfo" from options takes precedence over "clientInfo" in response
             if (options.clientInfo) {

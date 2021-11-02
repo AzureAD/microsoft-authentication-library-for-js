@@ -4,7 +4,7 @@
  */
 
 import { StandardInteractionClient } from "./StandardInteractionClient";
-import { CommonSilentFlowRequest, AuthenticationResult, SilentFlowClient, ServerTelemetryManager, AccountInfo } from "@azure/msal-common";
+import { CommonSilentFlowRequest, AuthenticationResult, SilentFlowClient, ServerTelemetryManager, AccountInfo, AzureAuthOptions} from "@azure/msal-common";
 import { SilentRequest } from "../request/SilentRequest";
 import { EventType } from "../event/EventType";
 import { InteractionType, ApiId } from "../utils/BrowserConstants";
@@ -13,14 +13,15 @@ import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthE
 export class SilentCacheClient extends StandardInteractionClient {
     /**
      * Returns unexpired tokens from the cache, if available
-     * @param silentRequest 
+     * @param silentRequest
      */
     async acquireToken(silentRequest: CommonSilentFlowRequest): Promise<AuthenticationResult> {
         // Telemetry manager only used to increment cacheHits here
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow);
-        const silentAuthClient = await this.createSilentFlowClient(serverTelemetryManager, silentRequest.authority);
+
+        const silentAuthClient = await this.createSilentFlowClient(serverTelemetryManager, silentRequest.authority, silentRequest.azureAuthOptions);
         this.logger.verbose("Silent auth client created");
-        
+
         try {
             const cachedToken = await silentAuthClient.acquireCachedToken(silentRequest);
             this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, cachedToken);
@@ -32,7 +33,7 @@ export class SilentCacheClient extends StandardInteractionClient {
             throw error;
         }
     }
-    
+
     /**
      * Currently Unsupported
      */
@@ -46,9 +47,9 @@ export class SilentCacheClient extends StandardInteractionClient {
      * @param serverTelemetryManager
      * @param authorityUrl
      */
-    protected async createSilentFlowClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<SilentFlowClient> {
+    protected async createSilentFlowClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, azureAuthOptions?: AzureAuthOptions): Promise<SilentFlowClient> {
         // Create auth module.
-        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
+        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, azureAuthOptions);
         return new SilentFlowClient(clientConfig);
     }
 
