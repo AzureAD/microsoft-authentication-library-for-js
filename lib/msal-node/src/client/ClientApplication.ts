@@ -400,7 +400,7 @@ export abstract class ClientApplication {
         let authorityAzureCloudInstance;
 
         if (azureAuthOptions) {
-            const tenant = azureAuthOptions.tenant ? azureAuthOptions.tenant : Constants.DEFAULT_TENANT;
+            const tenant = azureAuthOptions.tenant ? azureAuthOptions.tenant : Constants.DEFAULT_COMMON_TENANT;
             authorityAzureCloudInstance = `${azureAuthOptions.azureCloudInstance}/${tenant}/`;
         }
 

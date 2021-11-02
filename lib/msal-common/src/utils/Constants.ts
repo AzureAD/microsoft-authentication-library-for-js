@@ -11,7 +11,7 @@ export const Constants = {
     // default authority
     DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common/",
     DEFAULT_AUTHORITY_HOST: "login.microsoftonline.com",
-    DEFAULT_TENANT: "common",
+    DEFAULT_COMMON_TENANT: "common",
     // ADFS String
     ADFS: "adfs",
     // Default AAD Instance Discovery Endpoint
