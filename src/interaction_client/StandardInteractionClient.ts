@@ -190,7 +190,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         // Fetch the authority from request if provided
         if (requestAuthority || requestAzureAuthOptions) {
             if (requestAzureAuthOptions) {
-                const tenant = requestAzureAuthOptions.tenant ? requestAzureAuthOptions.tenant : Constants.DEFAULT_TENANT;
+                const tenant = requestAzureAuthOptions.tenant ? requestAzureAuthOptions.tenant : Constants.DEFAULT_COMMON_TENANT;
                 authorityAzureCloudInstance = `${requestAzureAuthOptions.azureCloudInstance}/${tenant}/`;
             }
 
@@ -199,7 +199,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         // fall back to the authority from config
         else {
             if (this.config.auth.azureAuthOptions) {
-                const tenant = this.config.auth.azureAuthOptions.tenant ? this.config.auth.azureAuthOptions.tenant : Constants.DEFAULT_TENANT;
+                const tenant = this.config.auth.azureAuthOptions.tenant ? this.config.auth.azureAuthOptions.tenant : Constants.DEFAULT_COMMON_TENANT;
                 authorityAzureCloudInstance = `${this.config.auth.azureAuthOptions.azureCloudInstance}/${tenant}/`;
             }
         }

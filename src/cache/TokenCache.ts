@@ -60,7 +60,7 @@ export class TokenCache implements ITokenCache {
 
             let authorityAzureCloudInstance;
             if (request.azureAuthOptions) {
-                const tenant = request.azureAuthOptions.tenant ? request.azureAuthOptions.tenant : Constants.DEFAULT_TENANT;
+                const tenant = request.azureAuthOptions.tenant ? request.azureAuthOptions.tenant : Constants.DEFAULT_COMMON_TENANT;
                 authorityAzureCloudInstance = `${request.azureAuthOptions.azureCloudInstance}/${tenant}/`;
             }
             // final authority from the request
