@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccessTokenEntity, ICrypto, IdTokenEntity, Logger, ScopeSet, Authority, AuthorityOptions, ExternalTokenResponse, AccountEntity, AuthToken , AuthorizationCodeClient } from "@azure/msal-common";
+import { AccessTokenEntity, ICrypto, IdTokenEntity, Logger, ScopeSet, Authority, AuthorityOptions, ExternalTokenResponse, AccountEntity, AuthToken , AuthorizationCodeClient , Constants } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { SilentRequest } from "../request/SilentRequest";
 import { BrowserCacheManager } from "./BrowserCacheManager";
@@ -60,7 +60,8 @@ export class TokenCache implements ITokenCache {
 
             let authorityAzureCloudInstance;
             if (request.azureAuthOptions) {
-                authorityAzureCloudInstance = `${request.azureAuthOptions.azureCloudInstance}/${request.azureAuthOptions.tenant}/`;
+                const tenant = request.azureAuthOptions.tenant ? request.azureAuthOptions.tenant : Constants.DEFAULT_TENANT;
+                authorityAzureCloudInstance = `${request.azureAuthOptions.azureCloudInstance}/${tenant}/`;
             }
             // final authority from the request
             const authorityUrl = authorityAzureCloudInstance ? authorityAzureCloudInstance : request.authority;

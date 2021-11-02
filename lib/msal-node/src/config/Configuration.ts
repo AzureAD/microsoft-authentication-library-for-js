@@ -96,7 +96,7 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     protocolMode: ProtocolMode.AAD,
     azureAuthOptions: {
         azureCloudInstance: AzureCloudInstance.None,
-        tenant: `${Constants.DEFAULT_TENANT}`
+        tenant: ""
     }
 };
 

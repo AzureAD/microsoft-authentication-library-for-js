@@ -27,7 +27,8 @@ import {
     OIDC_DEFAULT_SCOPES,
     AzureRegionConfiguration,
     AuthError,
-    AzureAuthOptions
+    AzureAuthOptions,
+    Constants
 } from "@azure/msal-common";
 import { Configuration, buildAppConfiguration, NodeConfiguration } from "../config/Configuration";
 import { CryptoProvider } from "../crypto/CryptoProvider";
@@ -399,7 +400,8 @@ export abstract class ClientApplication {
         let authorityAzureCloudInstance;
 
         if (azureAuthOptions) {
-            authorityAzureCloudInstance = `${azureAuthOptions.azureCloudInstance}/${azureAuthOptions.tenant}/`;
+            const tenant = azureAuthOptions.tenant ? azureAuthOptions.tenant : Constants.DEFAULT_TENANT;
+            authorityAzureCloudInstance = `${azureAuthOptions.azureCloudInstance}/${tenant}/`;
         }
 
         const authorityUrl = authorityAzureCloudInstance ? authorityAzureCloudInstance : authorityString;
