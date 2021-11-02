@@ -24,86 +24,73 @@ jobs:
         with:
           registry-url: "https://registry.npmjs.org"
 
-      - uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            core:
-              - 'lib/msal-core/package.json'
-            common: 
-              - 'lib/msal-common/package.json'
-            browser: 
-              - 'lib/msal-browser/package.json'
-            node:
-              - 'lib/msal-node/package.json'
-            angular:
-              - 'lib/msal-angular/package.json'
-            react:
-              - 'lib/msal-react/package.json'
-            node-extensions:
-              - 'extensions/msal-node-extensions/package.json'
-          list-files: json
-
-      - name: Set npm auth token
-        run: npm config set '//registry.npmjs.org/:_authToken' "${NODE_AUTH_TOKEN}"
+      #- name: Set npm auth token
+      #  run: npm config set '//registry.npmjs.org/:_authToken' "${NODE_AUTH_TOKEN}"
 
       - name: Publish  msal-core
-        if: steps.changes.outputs.core == 'true'
         working-directory: lib/msal-core
         env:
           CDN_EUNO_SAS: ${{ secrets.CDN_EUNO_SAS}}
           CDN_USWE_SAS: ${{ secrets.CDN_USWE_SAS}}
         run: |
+          echo //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN} > .npmrc
           npm install
           npm run build
           npm run cdn:sri
           npm publish
+          rm .npmrc
 
       - name: Publish  msal-common
-        if: steps.changes.outputs.common == 'true'
         working-directory: lib/msal-common
         run: |
+          echo //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN} > .npmrc
           npm install
           npm publish
+          rm .npmrc
 
       - name: Publish  msal-browser
-        if: steps.changes.outputs.browser == 'true'
         working-directory: lib/msal-browser
         env:
           CDN_EUNO_SAS: ${{ secrets.CDN_EUNO_SAS}}
           CDN_USWE_SAS: ${{ secrets.CDN_USWE_SAS}}
         run: |
+          echo //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN} > .npmrc
           npm install
           npm run cdn
           npm publish
+          rm .npmrc
 
       - name: Publish  msal-node
-        if: steps.changes.outputs.node == 'true'
         working-directory: lib/msal-node
         run: |
+          echo //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN} > .npmrc
           npm install
           npm publish
+          rm .npmrc
 
       - name: Publish  msal-angular
-        if: steps.changes.outputs.angular == 'true'
         working-directory: lib/msal-angular
         run: |
+          echo //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN} > .npmrc
           npm install
           npm run deploy
+          rm .npmrc
 
       - name: Publish  msal-react
-        if: steps.changes.outputs.react == 'true'
         working-directory: lib/msal-react
         run: |
+          echo //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN} > .npmrc
           npm install
           npm publish
+          rm .npmrc
 
       - name: Publish node-extensions
-        if: steps.changes.outputs.node-extensions== 'true'
         working-directory: extensions/msal-node-extensions
         run: |
+          echo //registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN} > .npmrc
           npm install
           npm publish
+          rm .npmrc
 
       - name: Create Github Releases and Discussions
         env:
