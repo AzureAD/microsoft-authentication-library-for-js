@@ -77,13 +77,13 @@ jobs:
           npm install
           rm .npmrc
 
+      - name: Update package-locks
+        run: npm install
+
       - name: Create Github Releases and Discussions
         env:
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN}}
         run: npm run beachball:release
-
-      - name: Update package-locks
-        run: npm install
 
       - name: Get release date
         id: release-date
