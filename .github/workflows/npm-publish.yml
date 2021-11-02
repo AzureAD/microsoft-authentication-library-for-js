@@ -13,35 +13,17 @@ jobs:
   build:
     if: (github.event.pull_request.merged == true && github.head_ref == 'release-staging')
     runs-on: ubuntu-latest
-    env:
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     steps:
       # Checkout the code
       - uses: actions/checkout@v2
-        # Setup node with version 12.x and NPM registry url
+        # Setup node with version 12.x
       - uses: actions/setup-node@v1
-        with:
-          registry-url: "https://registry.npmjs.org"
-
-      #- name: Set npm auth token
-      #  run: npm config set '//registry.npmjs.org/:_authToken' "${NODE_AUTH_TOKEN}"
-
-      - name: Publish  msal-core
-        working-directory: lib/msal-core
-        env:
-          CDN_EUNO_SAS: ${{ secrets.CDN_EUNO_SAS}}
-          CDN_USWE_SAS: ${{ secrets.CDN_USWE_SAS}}
-        run: |
-          echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' > .npmrc
-          npm install
-          npm run build
-          npm run cdn:sri
-          npm publish
-          rm .npmrc
 
       - name: Publish  msal-common
         working-directory: lib/msal-common
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' > .npmrc
           npm install
@@ -51,6 +33,7 @@ jobs:
       - name: Publish  msal-browser
         working-directory: lib/msal-browser
         env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           CDN_EUNO_SAS: ${{ secrets.CDN_EUNO_SAS}}
           CDN_USWE_SAS: ${{ secrets.CDN_USWE_SAS}}
         run: |
@@ -62,6 +45,8 @@ jobs:
 
       - name: Publish  msal-node
         working-directory: lib/msal-node
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' > .npmrc
           npm install
@@ -70,6 +55,8 @@ jobs:
 
       - name: Publish  msal-angular
         working-directory: lib/msal-angular
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' > .npmrc
           npm install
@@ -78,6 +65,8 @@ jobs:
 
       - name: Publish  msal-react
         working-directory: lib/msal-react
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' > .npmrc
           npm install
@@ -86,6 +75,8 @@ jobs:
 
       - name: Publish node-extensions
         working-directory: extensions/msal-node-extensions
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
           echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' > .npmrc
           npm install
