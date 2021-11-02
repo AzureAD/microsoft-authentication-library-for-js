@@ -108,10 +108,9 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
         /*
          * If a page with MSAL Guard is set as the redirect for acquireTokenSilent,
          * short-circuit to prevent redirecting or popups.
-         * TODO: Update to allow running in iframe once allowRedirectInIframe is implemented
          */
         if (typeof window !== "undefined") {
-            if (UrlString.hashContainsKnownProperties(window.location.hash) && BrowserUtils.isInIframe()) {
+            if (UrlString.hashContainsKnownProperties(window.location.hash) && BrowserUtils.isInIframe() && !this.authService.instance.getConfiguration().system.allowRedirectInIframe) {
                 this.authService.getLogger().warning("Guard - redirectUri set to page with MSAL Guard. It is recommended to not set redirectUri to a page that requires authentication.");
                 return of(false);
             }
@@ -145,16 +144,34 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
                     this.authService.getLogger().verbose("Guard - at least 1 account exists, can activate or load");
 
                     // Prevent navigating the app to /#code= or /code=
-                    if (state && state.url.indexOf("code=") > -1) {
-                        this.authService.getLogger().info("Guard - Hash contains known code response, stopping navigation.");
-                        
-                        // Path routing (navigate to current path without hash)
-                        if (currentPath.indexOf("#") > -1) {
-                            return of(this.parseUrl(this.location.path()));
+                    if (state) {
+                        /*
+                         * Path routing:
+                         * state.url: /#code=...
+                         * state.root.fragment: code=...
+                         */
+
+                        /*
+                         * Hash routing:
+                         * state.url: /code
+                         * state.root.fragment: null
+                         */
+                        const urlContainsCode: boolean = this.includesCode(state.url);
+                        const fragmentContainsCode: boolean = !!state.root && !!state.root.fragment && this.includesCode(`#${state.root.fragment}`);
+                        const hashRouting: boolean = this.location.prepareExternalUrl(state.url).indexOf("#") === 0;
+
+                        // Ensure code parameter is in fragment (and not in query parameter), or that hash hash routing is used
+                        if (urlContainsCode && (fragmentContainsCode || hashRouting)) {
+                            this.authService.getLogger().info("Guard - Hash contains known code response, stopping navigation.");
+                            
+                            // Path routing (navigate to current path without hash)
+                            if (currentPath.indexOf("#") > -1) {
+                                return of(this.parseUrl(this.location.path()));
+                            }
+                            
+                            // Hash routing (navigate to root path)
+                            return of(this.parseUrl(""));
                         }
-                        
-                        // Hash routing (navigate to root path)
-                        return of(this.parseUrl(""));
                     }
 
                     return of(true);
@@ -174,6 +191,12 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
                     return of(false);
                 })
             );
+    }
+
+    includesCode(path: string): boolean {
+        return path.lastIndexOf("/code") === path.length - "/code".length || // path.endsWith("/code")
+            path.indexOf("#code=") > -1 || 
+            path.indexOf("&code=") > -1;
     }
 
     canActivate(route: ActivatedRouteSnapshot, state: RouterStateSnapshot): Observable<boolean|UrlTree> {
