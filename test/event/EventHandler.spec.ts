@@ -18,7 +18,7 @@ describe("Event API tests", () => {
         piiLoggingEnabled: true
     };
     const logger = new Logger(loggerOptions);
-    const browserCrypto = new CryptoOps();
+    const browserCrypto = new CryptoOps(logger);
 
     it("can add an event callback and broadcast to it", (done) => {
         const subscriber = (message: EventMessage) => {
