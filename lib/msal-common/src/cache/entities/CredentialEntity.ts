@@ -38,6 +38,7 @@ export class CredentialEntity {
     target?: string;
     oboAssertion?: string;
     tokenType?: AuthenticationScheme;
+    keyId?: string;
 
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
@@ -140,8 +141,8 @@ export class CredentialEntity {
             this.generateTargetForCacheKey(target)
         ];
 
-        // PoP Tokens include scheme in cache key
-        if (tokenType === AuthenticationScheme.POP) {
+        // PoP Tokens and SSH certs include scheme in cache key
+        if (tokenType && tokenType !== AuthenticationScheme.BEARER) {
             credentialKey.push(tokenType.toLowerCase());
         }
 
