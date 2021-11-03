@@ -185,6 +185,9 @@ export class ResponseHandler {
             requestStateObj = ProtocolUtils.parseRequestState(this.cryptoObj, authCodePayload.state);
         }
 
+        // Add keyId from request to serverTokenResponse if defined
+        serverTokenResponse.key_id = serverTokenResponse.key_id || request.sshKid || undefined;
+
         const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, reqTimestamp, idTokenObj, request.scopes, oboAssertion, authCodePayload);
         let cacheContext;
         try {
@@ -281,7 +284,8 @@ export class ResponseHandler {
                 this.cryptoObj,
                 refreshOnSeconds,
                 serverTokenResponse.token_type,
-                oboAssertion
+                oboAssertion,
+                serverTokenResponse.key_id
             );
         }
 

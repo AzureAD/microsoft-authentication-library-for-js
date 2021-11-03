@@ -51,12 +51,13 @@ export {
     // Error
     AuthError,
     AuthErrorMessage,
-    InteractionRequiredAuthError,
-    ServerError,
     ClientAuthError,
     ClientAuthErrorMessage,
     ClientConfigurationError,
     ClientConfigurationErrorMessage,
+    InteractionRequiredAuthError,
+    InteractionRequiredAuthErrorMessage,
+    ServerError,
     // Network Interface
     INetworkModule,
     NetworkRequestOptions,
@@ -70,3 +71,5 @@ export {
     TokenCacheContext,
     ISerializableTokenCache
 } from "@azure/msal-common";
+
+export { version } from "./packageMetadata";

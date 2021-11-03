@@ -59,8 +59,8 @@ export class SilentFlowClient extends BaseClient {
         const requestScopes = new ScopeSet(request.scopes || []);
         const environment = request.authority || this.authority.getPreferredCache();
         const authScheme = request.authenticationScheme || AuthenticationScheme.BEARER;
-        const cacheRecord = this.cacheManager.readCacheRecord(request.account, this.config.authOptions.clientId, requestScopes, environment, authScheme);
-       
+        const cacheRecord = this.cacheManager.readCacheRecord(request.account, this.config.authOptions.clientId, requestScopes, environment, authScheme, request.sshKid);
+        
         if (request.forceRefresh) {
             // Must refresh due to present force_refresh flag.
             this.serverTelemetryManager?.setCacheOutcome(CacheOutcome.FORCE_REFRESH);

@@ -20,6 +20,7 @@ export const msalConfig = {
         postLogoutRedirectUri: "/"
     },
     cache: {
+        cacheLocation: "localStorage",
         storeAuthStateInCookie: isIE || isEdge || isFirefox
     },
     system: {

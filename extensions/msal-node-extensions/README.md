@@ -10,6 +10,7 @@
     - [Goals](#goals)
     - [Non-Goals](#non-goals)
 1. [FAQ](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/extensions/docs/faq.md)
+1. [Changelog](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/extensions/msal-node-extensions/CHANGELOG.md)
 1. [Prerequisites](#prerequisites)
 1. [Installation](#installation)
 1. [Usage](#usage)

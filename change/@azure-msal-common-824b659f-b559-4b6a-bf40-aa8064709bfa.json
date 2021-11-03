@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix accesstoken_with_authscheme implementation #3910",
-  "packageName": "@azure/msal-common",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "patch"
-}
