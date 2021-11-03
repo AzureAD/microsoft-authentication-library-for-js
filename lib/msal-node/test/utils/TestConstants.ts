@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, AuthError, PkceCodes } from "@azure/msal-common";
+import { ICrypto, AuthError, PkceCodes, ServerAuthorizationTokenResponse } from "@azure/msal-common";
 
 export const TEST_CONSTANTS = {
     PREFERRED_CACHE: "login.windows.net",
@@ -85,7 +85,11 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
         throw AuthError.createUnexpectedError(notImplErr);
     },
     async getAsymmetricPublicKey(): Promise<string> {
-        const notImplErr = "Crypto interface - signJwt() has not been implemented";
+        const notImplErr = "Crypto interface - getAsymmetricPublicKey() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse | null> {
+        const notImplErr = "Crypto interface - decryptBoundTokenResponse() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
     }
 };
