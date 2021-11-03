@@ -1,6 +1,8 @@
 name: Typedoc
 
 on:
+  workflow_dispatch:
+  
   pull_request:
     types: [closed]
     branches:
@@ -8,7 +10,7 @@ on:
 
 jobs:
   deploy:
-    if: (github.event.pull_request.merged == true && contains(github.head_ref,'post-release'))
+    if: ((github.event.pull_request.merged == true && contains(github.head_ref,'post-release')) || github.event_name == 'workflow_dispatch')
     runs-on: ubuntu-18.04
     steps:
       - uses: actions/checkout@v2

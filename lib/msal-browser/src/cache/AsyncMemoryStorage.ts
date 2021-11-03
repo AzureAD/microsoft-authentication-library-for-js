@@ -3,7 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { BrowserAuthError, BrowserAuthErrorMessage, Logger } from "..";
+import { Logger } from "@azure/msal-common";
+import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
 import { DatabaseStorage } from "./DatabaseStorage";
 import { IAsyncStorage } from "./IAsyncMemoryStorage";
 import { MemoryStorage } from "./MemoryStorage";
