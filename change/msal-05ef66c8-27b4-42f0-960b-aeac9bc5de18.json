@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Remove fallback logic for iframe creation in msal-core #4182",
-  "packageName": "msal",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "patch"
-}
