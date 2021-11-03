@@ -3,6 +3,7 @@
  * Licensed under the MIT License.
  */
 
+import { Logger } from "@azure/msal-common";
 import { KeyDerivationError } from "../error/KeyDerivationError";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 
@@ -28,6 +29,7 @@ import { BrowserStringUtils } from "../utils/BrowserStringUtils";
  */
 
 export class KeyDerivation {
+    private logger: Logger;
     // L: The length in bits of the KDF output (resulting key size)
     private derivedKeyLengthInBits: number;
     // h: The length int bits of the PRF (HMAC) output (size of output of a single iteration of the PRF)
@@ -37,11 +39,12 @@ export class KeyDerivation {
     // n := ⎡L/h⎤ (how many iterations of the PRF are necessary to generate a key of size L)
     private iterationsRequired: number;
 
-    constructor(keyLength: number, prfOutputLength: number, counterLength: number) {
+    constructor(keyLength: number, prfOutputLength: number, counterLength: number, logger: Logger) {
         this.derivedKeyLengthInBits = keyLength;
         this.prfOutputLengthInBits = prfOutputLength;
         this.counterLengthInBits = counterLength;
         this.iterationsRequired = this.calculateRequiredIterations();
+        this.logger = logger;
     }
 
     /**
@@ -52,6 +55,7 @@ export class KeyDerivation {
      * @param label 
      */
     public async computeKDFInCounterMode(derivationKey: CryptoKey, ctx: string, label: string): Promise<ArrayBuffer> {
+        this.logger.verbose("Beginning Key Derivation");
         const fixedInput = this.generateFixedInput(ctx, label);
         const keyLengthInBytes = this.derivedKeyLengthInBits / 8;
         const offset = keyLengthInBytes / this.iterationsRequired;

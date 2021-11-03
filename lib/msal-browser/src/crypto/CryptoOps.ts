@@ -231,7 +231,7 @@ export class CryptoOps implements ICrypto {
     async decryptBoundTokenResponse(
         boundServerTokenResponse: BoundServerAuthorizationTokenResponse,
         request: BaseAuthRequest): Promise<ServerAuthorizationTokenResponse> {
-        const response = new BoundTokenResponse(boundServerTokenResponse, request, this.cache);
+        const response = new BoundTokenResponse(boundServerTokenResponse, request, this.cache, this.logger);
         return await response.decrypt();
     }
 }

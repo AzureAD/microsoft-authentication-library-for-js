@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ServerAuthorizationTokenResponse, StringDict } from "@azure/msal-common";
+import { Logger, ServerAuthorizationTokenResponse, StringDict } from "@azure/msal-common";
 import { JsonWebEncryptionError } from "../error/JsonWebEncryptionError";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { Algorithms, CryptoKeyFormats } from "../utils/CryptoConstants";
@@ -43,8 +43,10 @@ export class JsonWebEncryption {
     private authenticationTag: string;
     private authenticatedData: Uint8Array;
     private unwrappingAlgorithms: UnwrappingAlgorithmPair;
+    private logger: Logger;
 
-    constructor(rawJwe: string) {
+    constructor(rawJwe: string, logger: Logger) {
+        this.logger = logger;
         const jweComponents = rawJwe.split(".");
         this.header = this.parseJweProtectedHeader(jweComponents[0]);
         this.authenticatedData = this.getAuthenticatedData(jweComponents[0]);
@@ -104,7 +106,9 @@ export class JsonWebEncryption {
      * @returns 
      */
     async getDecryptedResponse(decryptionKey: CryptoKey): Promise<ServerAuthorizationTokenResponse> {
+        this.logger.verbose("Attempting to decrypt payload using symmetric encryption key");
         const responseBuffer = await this.decrypt(decryptionKey);
+        this.logger.verbose("Successfully decrypted payload");
         const responseBytes = new Uint8Array(responseBuffer);
         const responseString = BrowserStringUtils.utf8ArrToString(responseBytes);
         return JSON.parse(responseString);
@@ -132,7 +136,7 @@ export class JsonWebEncryption {
         const iv = new Uint8Array(BrowserStringUtils.stringToArrayBuffer(initializationVector));
 
         return {
-            name: CryptoAlgorithms.AES_GCM,
+            name: Algorithms.AES_GCM,
             iv: iv,
             additionalData: additionalData,
             tagLength: tagLength
