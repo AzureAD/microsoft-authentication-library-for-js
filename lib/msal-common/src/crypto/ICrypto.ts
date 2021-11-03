@@ -71,6 +71,7 @@ export interface ICrypto {
     getAsymmetricPublicKey(keyThumbprint: string): Promise<string>;
     /**
      * Decrypts a bound token response
+     * @param boundServerTokenResponse
      */
     decryptBoundTokenResponse(boundServerTokenResponse: BoundServerAuthorizationTokenResponse, request: BaseAuthRequest): Promise<ServerAuthorizationTokenResponse | null>;
 }
