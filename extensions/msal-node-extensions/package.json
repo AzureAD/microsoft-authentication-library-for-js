@@ -28,6 +28,7 @@
     "test": "tsdx test",
     "lint": "cd ../../ && npm run lint:node:extensions",
     "lint:fix": "npm run lint -- -- --fix",
+    "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/msal-node-extensions",
     "prepack": "npm run build"
   },
   "author": {

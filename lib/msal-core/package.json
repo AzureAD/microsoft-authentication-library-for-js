@@ -47,6 +47,7 @@
     "lint": "cd ../../ && npm run lint:core",
     "lint:fix": "npm run lint -- -- --fix",
     "build:webpack": "webpack",
+    "link:localDeps": "echo No dependencies to link",
     "prepack": "npm run build"
   },
   "dependencies": {
