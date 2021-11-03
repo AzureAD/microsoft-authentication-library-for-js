@@ -5,19 +5,19 @@
 
 import { IWindowStorage } from "./IWindowStorage";
 
-export class MemoryStorage implements IWindowStorage {
+export class MemoryStorage<T> implements IWindowStorage<T> {
 
-    private cache: Map<string, string>;
+    private cache: Map<string, T>;
 
     constructor() {
-        this.cache = new Map<string, string>();
+        this.cache = new Map<string, T>();
     }
 
-    getItem(key: string): string | null {
+    getItem(key: string): T | null {
         return this.cache.get(key) || null;
     }
 
-    setItem(key: string, value: string): void {
+    setItem(key: string, value: T): void {
         this.cache.set(key, value);
     }
 
@@ -27,7 +27,7 @@ export class MemoryStorage implements IWindowStorage {
 
     getKeys(): string[] {
         const cacheKeys: string[] = [];
-        this.cache.forEach((value: string, key: string) => {
+        this.cache.forEach((value: T, key: string) => {
             cacheKeys.push(key);
         });
         return cacheKeys;

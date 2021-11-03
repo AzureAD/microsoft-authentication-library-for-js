@@ -12,7 +12,7 @@ import { LibraryInfo } from "../config/ClientConfiguration";
 import { StringUtils } from "../utils/StringUtils";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 import { ClientInfo } from "../account/ClientInfo";
-import { StkJwkThumbprint } from "../crypto/KeyManager";
+import { StkJwkThumbprint } from "../crypto/CryptoKeyManager";
 
 export class RequestParameterBuilder {
 
@@ -355,6 +355,16 @@ export class RequestParameterBuilder {
         if (!StringUtils.isEmpty(cnfString)) {
             this.parameters.set(AADServerParamKeys.TOKEN_TYPE, AuthenticationScheme.POP);
             this.parameters.set(AADServerParamKeys.REQ_CNF, encodeURIComponent(cnfString));
+        }
+    }
+
+    /**
+     * add SSH JWK and key ID to query params 
+     */
+    addSshJwk(sshJwkString: string): void {
+        if(!StringUtils.isEmpty(sshJwkString)) {
+            this.parameters.set(AADServerParamKeys.TOKEN_TYPE, AuthenticationScheme.SSH);
+            this.parameters.set(AADServerParamKeys.REQ_CNF, encodeURIComponent(sshJwkString));
         }
     }
 

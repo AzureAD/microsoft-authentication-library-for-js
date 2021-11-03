@@ -4,10 +4,9 @@
  */
 
 import { BaseAuthRequest, BoundServerAuthorizationTokenResponse, ServerAuthorizationTokenResponse } from "@azure/msal-common";
-import { DatabaseStorage } from "../cache/DatabaseStorage";
-import { BrowserAuthError } from "../error/BrowserAuthError";
-import { CryptoAlgorithms, CryptoLengths, CryptoKeyFormats, KeyDerivationLabels, KEY_USAGES } from "../utils/CryptoConstants";
-import { CachedKeyPair } from "./CryptoOps";
+import { BrowserAuthError } from "..";
+import { Algorithms, CryptoKeyFormats, CryptoKeyUsageSets, KeyDerivationLabels, Lengths } from "../utils/CryptoConstants";
+import { CryptoKeyStore } from "./CryptoOps";
 import { JsonWebEncryption } from "./JsonWebEncryption";
 import { KeyDerivation } from "./KeyDerivation";
 
@@ -19,16 +18,21 @@ import { KeyDerivation } from "./KeyDerivation";
 export class BoundTokenResponse {
     private sessionKeyJwe: JsonWebEncryption;
     private responseJwe: JsonWebEncryption;
+    private keyStore: CryptoKeyStore;
     private keyDerivation: KeyDerivation;
-    private keyStore: DatabaseStorage<CachedKeyPair>;
     private keyId: string;
 
-    constructor(boundTokenResponse: BoundServerAuthorizationTokenResponse, request: BaseAuthRequest, keyStore: DatabaseStorage<CachedKeyPair>) {
+    constructor(boundTokenResponse: BoundServerAuthorizationTokenResponse, request: BaseAuthRequest, keyStore: CryptoKeyStore) {
         this.sessionKeyJwe = new JsonWebEncryption(boundTokenResponse.session_key_jwe);
         this.responseJwe = new JsonWebEncryption(boundTokenResponse.response_jwe);
-        this.keyDerivation = new KeyDerivation(CryptoLengths.DERIVED_KEY, CryptoLengths.PRF_OUTPUT, CryptoLengths.COUNTER);
+        this.keyDerivation = new KeyDerivation(Lengths.derivedKey, Lengths.prfOutput, Lengths.kdfCounter);
         this.keyStore = keyStore;
-        this.keyId = request.stkJwk!;
+
+        if (request.stkJwk) {
+            this.keyId = request.stkJwk;
+        } else {
+            throw BrowserAuthError.createMissingStkKidError();
+        }
     }
 
     /**
@@ -36,9 +40,15 @@ export class BoundTokenResponse {
      * a Session Transport Key
      */
     async decrypt(): Promise<ServerAuthorizationTokenResponse | null> {
-        // Retrieve Session Transport Key from KeyStore
-        const sessionTransportKeypair: CachedKeyPair = await this.keyStore.get(this.keyId);
+        // Retrieve Session Transport KeyPair from Key Store
+        const sessionTransportKeypair = await this.keyStore.asymmetricKeys.getItem(this.keyId);
+
+        if (!sessionTransportKeypair) {
+            throw BrowserAuthError.createSigningKeyNotFoundInStorageError();
+        }
+
         const sessionKey = await this.getSessionKey(sessionTransportKeypair.privateKey);
+
         if (sessionKey) {
             return null;
         } else {
@@ -55,8 +65,9 @@ export class BoundTokenResponse {
         // Unwrap Content Encryption Key from Session Key JWE
         const contentEncryptionKey = await this.sessionKeyJwe.unwrap(
             unwrappingKey,
-            KEY_USAGES.RT_BINDING.DERIVATION_KEY
+            CryptoKeyUsageSets.RefreshTokenBinding.DerivationKey
         );
+        
         // Derive Session Key
         const sessionKeyBytes = await this.keyDerivation.computeKDFInCounterMode(
             contentEncryptionKey,
@@ -64,13 +75,15 @@ export class BoundTokenResponse {
             KeyDerivationLabels.DECRYPTION
         );
 
-        const algorithm: AesKeyAlgorithm = { name: CryptoAlgorithms.AES_GCM, length: CryptoLengths.DERIVED_KEY };
+        // Set up AES-GCM Decryption Key Configuration
+        const algorithm: AesKeyAlgorithm = { name: Algorithms.AES_GCM, length: Lengths.derivedKey };
+
         return await window.crypto.subtle.importKey(
-            CryptoKeyFormats.RAW,
+            CryptoKeyFormats.raw,
             sessionKeyBytes,
             algorithm,
             false,
-            KEY_USAGES.RT_BINDING.SESSION_KEY
+            CryptoKeyUsageSets.RefreshTokenBinding.SessionKey
         );
     }
 }

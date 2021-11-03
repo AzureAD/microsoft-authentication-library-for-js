@@ -85,10 +85,6 @@ export const BrowserAuthErrorMessage = {
         code: "iframe_closed_prematurely",
         desc: "The iframe being monitored was closed prematurely."
     },
-    silentSSOInsufficientInfoError: {
-        code: "silent_sso_error",
-        desc: "Silent SSO could not be completed - insufficient information was provided. Please provide either a loginHint or sid."
-    },
     silentLogoutUnsupportedError: {
         code: "silent_logout_unsupported",
         desc: "Silent logout not supported. Please call logoutRedirect or logoutPopup instead."
@@ -103,7 +99,7 @@ export const BrowserAuthErrorMessage = {
     },
     noTokenRequestCacheError: {
         code: "no_token_request_cache_error",
-        desc: "No token request in found in cache."
+        desc: "No token request found in cache."
     },
     unableToParseTokenRequestCacheError: {
         code: "unable_to_parse_token_request_cache_error",
@@ -152,6 +148,14 @@ export const BrowserAuthErrorMessage = {
     signingKeyNotFoundInStorage: {
         code: "crypto_key_not_found",
         desc: "Cryptographic Key or Keypair not found in browser storage."
+    },
+    databaseUnavailable: {
+        code: "database_unavailable",
+        desc: "IndexedDB, which is required for persistent cryptographic key storage, is unavailable. This may be caused by browser privacy features which block persistent storage in third-party contexts."
+    },
+    keyGenerationFailed: {
+        code: "key_generation_failed",
+        desc: "Failed to generate cryptographic key"
     },
     missingStkKid: {
         code: "no_stk_kid_in_request",
@@ -324,13 +328,6 @@ export class BrowserAuthError extends AuthError {
     }
 
     /**
-     * Creates an error thrown when the login_hint, sid or account object is not provided in the ssoSilent API.
-     */
-    static createSilentSSOInsufficientInfoError(): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.silentSSOInsufficientInfoError.code, BrowserAuthErrorMessage.silentSSOInsufficientInfoError.desc);
-    }
-
-    /**
      * Creates an error thrown when the logout API is called on any of the silent interaction clients
      */
     static createSilentLogoutUnsupportedError(): BrowserAuthError {
@@ -442,9 +439,27 @@ export class BrowserAuthError extends AuthError {
     /**
      * Create an error thrown when the queried cryptographic key is not found in IndexedDB
      */
-    static createSigningKeyNotFoundInStorageError(keyId: string): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code, `${BrowserAuthErrorMessage.signingKeyNotFoundInStorage.desc} | No match found for KeyId: ${keyId}`);
+    static createSigningKeyNotFoundInStorageError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code, `${BrowserAuthErrorMessage.signingKeyNotFoundInStorage.desc}`);
     }
+
+    /**
+     * Create an error when IndexedDB is unavailable
+     */
+    static createDatabaseUnavailableError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.databaseUnavailable.code, BrowserAuthErrorMessage.databaseUnavailable.desc);
+    }
+
+    /**
+     * Create an error when key generation failed
+     */
+    static createKeyGenerationFailedError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.keyGenerationFailed.code, BrowserAuthErrorMessage.keyGenerationFailed.desc);
+    }
+
+    /**
+     * Create an error when STK KeyId is missing from cached bound token request
+     */
     static createMissingStkKidError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.missingStkKid.code, BrowserAuthErrorMessage.missingStkKid.desc);
     }

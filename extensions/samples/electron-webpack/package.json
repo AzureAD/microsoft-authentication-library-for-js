@@ -1,0 +1,42 @@
+{
+  "name": "electron-msal-node-extensions",
+  "version": "1.0.0",
+  "description": "An electron application implementing msal-node-extensions bundler with webpack",
+  "scripts": {
+    "build": "webpack",
+    "lint": "eslint -c .eslintrc --ext .ts ./src",
+    "start": "npm run build && electron ./dist/main.js",
+    "rebuild": "electron-rebuild"
+  },
+  "keywords": [
+    "Electron",
+    "quick",
+    "start",
+    "tutorial",
+    "demo",
+    "typescript",
+    "webpack",
+    "msal-node-extensions"
+  ],
+  "author": "Samuel Kubai<samuelkamau@microsoft.com>",
+  "license": "MIT",
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.29.2",
+    "@typescript-eslint/parser": "^4.29.2",
+    "electron": "^13.1.7",
+    "electron-rebuild": "^3.2.0",
+    "eslint": "^7.32.0",
+    "node-loader": "^2.0.0",
+    "terser-webpack-plugin": "^5.2.3",
+    "ts-loader": "^9.2.3",
+    "typescript": "^4.3.5",
+    "webpack": "^5.44.0",
+    "webpack-cli": "^4.7.2"
+  },
+  "dependencies": {
+    "@azure/msal-node-extensions": "file:../../msal-node-extensions/",
+    "@microsoft/mgt-components": "^2.2.1",
+    "@microsoft/mgt-electron-provider": "^2.2.1",
+    "@microsoft/mgt-element": "^2.2.1"
+  }
+}

@@ -1,0 +1,49 @@
+# Bump package version numbers and create a release branch
+name: Automate Release
+
+on:
+  pull_request:
+    types: [closed]
+    branches:
+      - dev
+
+jobs:
+  release:
+    if: github.event.pull_request.merged == true && !contains(github.head_ref, 'release')
+    name: Bump versions and create changelogs
+    runs-on: ubuntu-latest
+    env:
+      BEACHBALL: 1
+
+    steps:
+      # Check-out repo
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      # Install node_modules
+      - name: Use Node.js
+        uses: actions/setup-node@v2
+
+      - name: Install beachball
+        run: npm ci
+
+      # Beachball bump
+      - name: bump package versions
+        run: npm run beachball:bump
+
+      - name: Get release date
+        id: release-date
+        run: echo "::set-output name=date::$(node release-scripts/getReleaseDate.js)"
+
+      # Create/update Pull Request
+      - name: Create Pull Request
+        id: pr
+        uses: peter-evans/create-pull-request@v3
+        with:
+          commit-message: Bump package versions
+          branch: release-staging
+          title: "${{ steps.release-date.outputs.date }} Release"
+          body: |
+            Release PR : This PR contains the changelogs and version bumps for the ${{ steps.month.outputs.month }} releases.
+          draft: true

@@ -6,7 +6,7 @@
 import { StringDict } from "@azure/msal-common";
 import { JsonWebEncryptionError } from "../error/JsonWebEncryptionError";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { CryptoAlgorithms, CryptoKeyFormats } from "../utils/CryptoConstants";
+import { Algorithms, CryptoKeyFormats } from "../utils/CryptoConstants";
 
 export type JoseHeader = {
     alg: string,
@@ -21,9 +21,9 @@ export type UnwrappingAlgorithmPair = {
 };
 
 const KEY_ALGORITHM_MAP: StringDict = {
-    "RSA-OAEP-256": CryptoAlgorithms.RSA_OAEP,
-    "A256GCM": CryptoAlgorithms.AES_GCM,
-    "dir": CryptoAlgorithms.DIRECT
+    "RSA-OAEP-256": Algorithms.RSA_OAEP,
+    "A256GCM": Algorithms.AES_GCM,
+    "dir": Algorithms.DIRECT
 };
 
 /**
@@ -71,12 +71,12 @@ export class JsonWebEncryption {
         const encryptedKeyBuffer = BrowserStringUtils.stringToArrayBuffer(this.encryptedKey);
         const contentEncryptionKey = await window.crypto.subtle.decrypt(this.unwrappingAlgorithms.decryption, unwrappingKey, encryptedKeyBuffer);
         return await window.crypto.subtle.importKey(
-            CryptoKeyFormats.RAW,
+            CryptoKeyFormats.raw,
             contentEncryptionKey,
             {
-                name: CryptoAlgorithms.HMAC,
+                name: Algorithms.HMAC,
                 hash: {
-                    name: CryptoAlgorithms.S256_HASH_ALG
+                    name: Algorithms.S256_HASH_ALG
                 },
             },
             false,

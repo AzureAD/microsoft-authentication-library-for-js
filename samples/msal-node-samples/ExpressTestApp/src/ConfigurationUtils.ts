@@ -24,27 +24,27 @@ export class ConfigurationUtils {
     static validateAppSettings = (config: AppSettings): void => {
 
         if (!config.credentials.clientId || config.credentials.clientId === "Enter_the_Application_Id_Here") {
-            throw new Error("No clientId provided!");
+            throw new Error("No clientId is provided!");
         }
 
         if (!config.credentials.tenantId || config.credentials.tenantId === "Enter_the_Tenant_Info_Here") {
-            throw new Error("No tenantId provided!");
+            throw new Error("No tenantId is provided!");
         }
 
         if (!config.credentials.clientSecret || config.credentials.clientSecret === "Enter_the_Client_Secret_Here") {
-            throw new Error("No clientSecret provided!");
+            throw new Error("No clientSecret is provided!");
         }
 
         if (!config.settings.redirectUri || config.settings.redirectUri === "Enter_the_Redirect_Uri_Here") {
-            throw new Error("No postLogoutRedirectUri provided!");
+            throw new Error("No redirectUri is provided!");
         }
 
         if (!config.settings.postLogoutRedirectUri || config.settings.postLogoutRedirectUri === "Enter_the_Post_Logout_Redirect_Uri_Here") {
-            throw new Error("No postLogoutRedirectUri provided!");
+            throw new Error("No postLogoutRedirectUri is provided!");
         }
 
         if (!config.settings.homePageRoute) {
-            throw new Error("No homePageRoute provided!");
+            throw new Error("No homePageRoute is provided!");
         }
     };
 
@@ -58,7 +58,7 @@ export class ConfigurationUtils {
         return {
             auth: {
                 clientId: config.credentials.clientId,
-                authority: config.policies ? config.policies.signUpSignIn.authority : AuthorityStrings.AAD + config.credentials.tenantId, // single tenant
+                authority: config.policies ? config.policies.signUpSignIn.authority : AuthorityStrings.AAD + config.credentials.tenantId,
                 clientSecret: config.credentials.clientSecret,
                 knownAuthorities: config.policies ? [config.policies.authorityDomain] : [], // in B2C scenarios
             },

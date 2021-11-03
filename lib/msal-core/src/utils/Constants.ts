@@ -58,6 +58,8 @@ export class Constants {
     static get inProgress(): string { return "inProgress"; }
 }
 
+export const SESSION_STORAGE = "sessionStorage";
+
 /**
  * Keys in the hashParams
  */
@@ -101,7 +103,7 @@ export enum TemporaryCacheKeys {
     LOGIN_REQUEST = "login.request",
     RENEW_STATUS = "token.renew.status",
     URL_HASH = "urlHash",
-    INTERACTION_STATUS = "interaction_status",
+    INTERACTION_STATUS = "interaction.status",
     REDIRECT_REQUEST = "redirect_request"
 }
 

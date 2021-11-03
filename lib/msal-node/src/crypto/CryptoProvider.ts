@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, PkceCodes } from "@azure/msal-common";
+import { ICrypto, PkceCodes, ServerAuthorizationTokenResponse } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { EncodingUtils } from "../utils/EncodingUtils";
 import { PkceGenerator } from "./PkceGenerator";
@@ -88,5 +88,12 @@ export class CryptoProvider implements ICrypto {
      */
     getAsymmetricPublicKey(): Promise<string> {
         throw new Error("Method not implemented.");
+    }
+
+    /**
+     * Decrypts a bound token response
+     */
+    decryptBoundTokenResponse(): Promise<ServerAuthorizationTokenResponse | null> {
+        throw new Error("Method not implemented");
     }
 }

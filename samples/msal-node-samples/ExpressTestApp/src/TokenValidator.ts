@@ -99,6 +99,30 @@ export class TokenValidator {
     };
 
     /**
+     * Fetches signing keys of an access token
+     * from the authority discovery endpoint
+     * @param {Object} header: token header
+     * @param {string} tid: tenant id
+     * @returns {Promise}
+     */
+    private async getSigningKeys(header, tid: string): Promise<string> {
+        let jwksUri;
+
+        // Check if a B2C application i.e. app has b2cPolicies
+        if (this.appSettings.policies) {
+            jwksUri = `${this.msalConfig.auth.authority}/discovery/v2.0/keys`;
+        } else {
+            jwksUri = `https://${Constants.DEFAULT_AUTHORITY_HOST}/${tid}/discovery/v2.0/keys`;
+        }
+
+        const client = jwksClient({
+            jwksUri: jwksUri,
+        });
+
+        return (await client.getSigningKeyAsync(header.kid)).getPublicKey();
+    };
+
+    /**
      * Verifies the access token for signature
      * @param {string} idToken: raw Id token
      * @returns {Promise}
@@ -127,7 +151,7 @@ export class TokenValidator {
         const now = Math.round(new Date().getTime() / 1000); // in UNIX format
 
         /**
-         * At the very least, check for issuer, audience, issue and expiry dates.
+         * At the very least, check for issuer, audience, issuer and expiry dates.
          * For more information on validating id tokens, visit:
          * https://docs.microsoft.com/azure/active-directory/develop/id-tokens#validating-an-id_token
          */
@@ -136,29 +160,5 @@ export class TokenValidator {
         const checkTimestamp = idTokenClaims.iat <= now && idTokenClaims.exp >= now ? true : false;
 
         return checkIssuer && checkAudience && checkTimestamp;
-    };
-
-    /**
-     * Fetches signing keys of an access token
-     * from the authority discovery endpoint
-     * @param {Object} header: token header
-     * @param {string} tid: tenant id
-     * @returns {Promise}
-     */
-    private async getSigningKeys(header, tid: string): Promise<string> {
-        let jwksUri;
-
-        // Check if a B2C application i.e. app has b2cPolicies
-        if (this.appSettings.policies) {
-            jwksUri = `${this.msalConfig.auth.authority}/discovery/v2.0/keys`;
-        } else {
-            jwksUri = `https://${Constants.DEFAULT_AUTHORITY_HOST}/${tid}/discovery/v2.0/keys`;
-        }
-
-        const client = jwksClient({
-            jwksUri: jwksUri,
-        });
-
-        return (await client.getSigningKeyAsync(header.kid)).getPublicKey();
     };
 }
