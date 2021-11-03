@@ -57,6 +57,7 @@ jobs:
             path: |
               lib/${{ inputs.lib-name }}/README.md
               lib/${{ inputs.lib-name }}/docs/cdn-usage.md
+            retention-days: 7
         
         - name: Write npm authToken 
           run: echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > .npmrc
