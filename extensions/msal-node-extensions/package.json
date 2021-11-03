@@ -23,9 +23,8 @@
   "scripts": {
     "start": "tsdx watch",
     "build": "tsdx build",
-    "build:common": "cd ../../lib/msal-common && npm i && npm run build && npm link",
-    "build:all": "npm run build:common & npm run build",
-    "link:common": "npm link @azure/msal-common",
+    "build:common": "cd ../../lib/msal-common && npm run build",
+    "build:all": "npm run build:common && npm run build",
     "test": "tsdx test",
     "lint": "cd ../../ && npm run lint:node:extensions",
     "lint:fix": "npm run lint -- -- --fix",
