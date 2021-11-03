@@ -45,5 +45,6 @@ jobs:
           branch: release-staging
           title: "${{ steps.release-date.outputs.date }} Release"
           body: |
-            Release PR : This PR contains the changelogs and version bumps for the ${{ steps.month.outputs.month }} releases.
+            Release PR : This PR contains the changelogs and version bumps for the ${{ steps.release-date.outputs.date }} releases.
+          labels: release
           draft: true

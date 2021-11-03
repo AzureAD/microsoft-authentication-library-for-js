@@ -239,4 +239,5 @@ jobs:
           title: "${{ steps.release-date.outputs.date }} Post Release"
           body: |
             This PR contains package lock updates & cdn README updates for msal-browser and msal-core.
+          labels: release
           draft: false
