@@ -1,8 +1,67 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Thu, 22 Jul 2021 22:50:22 GMT and should not be manually modified.
+This log was last generated on Mon, 01 Nov 2021 23:53:21 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.19.0
+
+Mon, 01 Nov 2021 23:53:21 GMT
+
+### Minor changes
+
+- Add support for in-memory storage of token binding keys #4183 (hemoral@microsoft.com)
+- Add support for ephemeral SSH certificate acquisition #4178 (hemoral@microsoft.com)
+- Add support for in-memory storage of token binding keys #4183 (hemoral@microsoft.com)
+- Add support for SHR nonce #3999 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v5.1.0
+
+### Patches
+
+- Add support for different key types in IndexedDB storage #4052 (hemoral@microsoft.com)
+- Ensure correlation is passed to all interaction clients in acquireTokenSilent #4186 (janutter@microsoft.com)
+- Fix typo in noTokenRequestCacheError (#4136) (Michael.Currie@rjwgroup.com)
+- Fix redirect processing when allowRedirectInIframe: true #4142 (thomas.norling@microsoft.com)
+
+## 2.18.0
+
+Mon, 04 Oct 2021 23:12:35 GMT
+
+### Minor changes
+
+- Emit event when user logs in or out from a different tab or window #3981 (thomas.norling@microsoft.com)
+- Remove requirement of user hint on ssoSilent API #4123 (prkanher@microsoft.com)
+- Bump @azure/msal-common to v5.0.1
+
+### Patches
+
+- Consistently export error types and messages for errors thrown by MSAL #4117 (jagore@microsoft.com)
+- Move helper functions up to BaseInteractionClient #4049 (thomas.norling@microsoft.com)
+- Export library version #4124 (thomas.norling@microsoft.com)
+
+## 2.17.0
+
+Tue, 07 Sep 2021 23:22:24 GMT
+
+### Minor changes
+
+- Add configuration for popup window size and placement #3946 (joarroyo@microsoft.com)
+- Add API to sideload tokens to msal-browser #3895 (joarroyo@microsoft.com)
+- Add SignedHttpRequest class #3058 (janutter@microsoft.com)
+- Refactor acquireToken logic into InteractionClients #3871 (thomas.norling@microsoft.com)
+
+### Patches
+
+- Clear cache before constructing logout url #3982 (thomas.norling@microsoft.com)
+- Add pop params to request thumbprint #3973 (hemoral@microsoft.com)
+- Update ADAL to MSAL SSO logic to use preferred_username instead of upn by default #3945 (ellymakuba@microsoft.com)
+- Populate msal v2 loginHint from cached msal v1 id token #4027 (janutter@microsoft.com)
+- Throw interaction in progress if any msal instance has interaction in progress #4014 (thomas.norling@microsoft.com)
+- Only emit handleRedirect start event on first invocation of handleRedirectPromise #4013 (thomas.norling@microsoft.com)
+- Add correlationId to AuthenticationResult type #3947 (thomas.norling@microsoft.com)
+- Remove token binding key from key store when refreshing pop token #3500 (hemoral@microsoft.com)
+- Fix clearing active account on logout #3948 (hemoral@microsoft.com)
+- Add correlationId to errors thrown #3930 (thomas.norling@microsoft.com)
 
 ## 2.16.0
 

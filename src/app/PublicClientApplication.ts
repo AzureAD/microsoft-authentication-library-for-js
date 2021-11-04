@@ -95,7 +95,13 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             clientId: this.config.auth.clientId,
             authority: request.authority || "",
             scopes: request.scopes,
-            homeAccountIdentifier: account.homeAccountId
+            homeAccountIdentifier: account.homeAccountId,
+            authenticationScheme: request.authenticationScheme,
+            resourceRequestMethod: request.resourceRequestMethod,
+            resourceRequestUri: request.resourceRequestUri,
+            shrClaims: request.shrClaims,
+            sshJwk: request.sshJwk,
+            sshKid: request.sshKid
         };
         const silentRequestKey = JSON.stringify(thumbprint);
         const cachedResponse = this.activeSilentTokenRequests.get(silentRequestKey);
@@ -129,7 +135,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      */
     private async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult>{
         const endMeasurement = this.performanceManager.startMeasurement("acquireTokenSilentAsync");
-        const silentCacheClient = new SilentCacheClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient);
+        const silentCacheClient = new SilentCacheClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, request.correlationId);
         const silentRequest = silentCacheClient.initializeSilentRequest(request, account);
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
 
