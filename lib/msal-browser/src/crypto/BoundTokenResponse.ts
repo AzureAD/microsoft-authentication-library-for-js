@@ -3,11 +3,10 @@
  * Licensed under the MIT License.
  */
 
-import { BaseAuthRequest, BoundServerAuthorizationTokenResponse, ServerAuthorizationTokenResponse } from "@azure/msal-common";
-import { DBTableNames } from "../utils/BrowserConstants";
-import { DatabaseStorage } from "../cache/DatabaseStorage";
-import { CryptoAlgorithms, CryptoLengths, CryptoKeyFormats, KeyDerivationLabels, KEY_USAGES } from "../utils/CryptoConstants";
-import { CachedKeyPair } from "./CryptoOps";
+import { BaseAuthRequest, BoundServerAuthorizationTokenResponse, Logger, ServerAuthorizationTokenResponse } from "@azure/msal-common";
+import { BrowserAuthError } from "..";
+import { Algorithms, CryptoKeyFormats, CryptoKeyUsageSets, KeyDerivationLabels, Lengths } from "../utils/CryptoConstants";
+import { CryptoKeyStore } from "./CryptoOps";
 import { JsonWebEncryption } from "./JsonWebEncryption";
 import { KeyDerivation } from "./KeyDerivation";
 
@@ -19,16 +18,23 @@ import { KeyDerivation } from "./KeyDerivation";
 export class BoundTokenResponse {
     private sessionKeyJwe: JsonWebEncryption;
     private responseJwe: JsonWebEncryption;
+    private keyStore: CryptoKeyStore;
     private keyDerivation: KeyDerivation;
-    private keyStore: DatabaseStorage;
     private keyId: string;
+    private logger: Logger;
 
-    constructor(boundTokenResponse: BoundServerAuthorizationTokenResponse, request: BaseAuthRequest, keyStore: DatabaseStorage) {
-        this.sessionKeyJwe = new JsonWebEncryption(boundTokenResponse.session_key_jwe);
-        this.responseJwe = new JsonWebEncryption(boundTokenResponse.response_jwe);
-        this.keyDerivation = new KeyDerivation(CryptoLengths.DERIVED_KEY, CryptoLengths.PRF_OUTPUT, CryptoLengths.COUNTER);
+    constructor(boundTokenResponse: BoundServerAuthorizationTokenResponse, request: BaseAuthRequest, keyStore: CryptoKeyStore, logger: Logger) {
+        this.logger = logger;
+        this.sessionKeyJwe = new JsonWebEncryption(boundTokenResponse.session_key_jwe, this.logger);
+        this.responseJwe = new JsonWebEncryption(boundTokenResponse.response_jwe, this.logger);
+        this.keyDerivation = new KeyDerivation(Lengths.derivedKey, Lengths.prfOutput, Lengths.kdfCounter, this.logger);
         this.keyStore = keyStore;
-        this.keyId = request.stkJwk!;
+
+        if (request.stkJwk) {
+            this.keyId = request.stkJwk;
+        } else {
+            throw BrowserAuthError.createMissingStkKidError();
+        }
     }
 
     /**
@@ -37,10 +43,18 @@ export class BoundTokenResponse {
      */
     async decrypt(): Promise<ServerAuthorizationTokenResponse> {
         // Retrieve Session Transport Key from KeyStore
-        const sessionTransportKeypair: CachedKeyPair = await this.keyStore.get<CryptoKeyPair>(DBTableNames.asymmetricKeys, this.keyId);
+        this.logger.verbose("Retrieving Session Transport Key");
+        const sessionTransportKeypair = await this.keyStore.asymmetricKeys.getItem(this.keyId);
+
+        if (!sessionTransportKeypair) {
+            throw BrowserAuthError.createSigningKeyNotFoundInStorageError();
+        }
+
+        this.logger.verbose("Successfully retrieved Session Transport Key");
+
         const sessionKey = await this.getSessionKey(sessionTransportKeypair.privateKey);
         const decryptedResponse = await this.responseJwe.getDecryptedResponse(sessionKey);
-        await this.keyStore.put<CryptoKey>(DBTableNames.symmetricKeys, this.keyId, sessionKey);
+        await this.keyStore.symmetricKeys.setItem(this.keyId, sessionKey);
             
         return {
             ...decryptedResponse,
@@ -55,11 +69,15 @@ export class BoundTokenResponse {
      * @param unwrappingKey Private CryptoKey from Session Transport Key which the response is bound to 
      */
     private async getSessionKey(unwrappingKey: CryptoKey): Promise<CryptoKey> {
+        this.logger.verbose("Unwrapping Content Encryption Key from Session Key JWE");
         // Unwrap Content Encryption Key from Session Key JWE
         const contentEncryptionKey = await this.sessionKeyJwe.unwrap(
             unwrappingKey,
-            KEY_USAGES.RT_BINDING.DERIVATION_KEY
+            CryptoKeyUsageSets.RefreshTokenBinding.DerivationKey
         );
+        
+        this.logger.verbose("Successfully unwrapped Content Encryption Key using Session Transport Key");
+
         // Derive Session Key
         const sessionKeyBytes = await this.keyDerivation.computeKDFInCounterMode(
             contentEncryptionKey,
@@ -67,13 +85,17 @@ export class BoundTokenResponse {
             KeyDerivationLabels.DECRYPTION
         );
 
-        const algorithm: AesKeyAlgorithm = { name: CryptoAlgorithms.AES_GCM, length: CryptoLengths.DERIVED_KEY };
+        this.logger.verbose("Successfully derived keying material");
+
+        // Set up AES-GCM Decryption Key Configuration
+        const algorithm: AesKeyAlgorithm = { name: Algorithms.AES_GCM, length: Lengths.derivedKey };
+
         return await window.crypto.subtle.importKey(
-            CryptoKeyFormats.RAW,
+            CryptoKeyFormats.raw,
             sessionKeyBytes,
             algorithm,
             false,
-            KEY_USAGES.RT_BINDING.SESSION_KEY
+            CryptoKeyUsageSets.RefreshTokenBinding.SessionKey
         );
     }
 }

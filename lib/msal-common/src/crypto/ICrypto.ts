@@ -20,6 +20,8 @@ export type PkceCodes = {
     challenge: string
 };
 
+export type SignedHttpRequestParameters = Pick<BaseAuthRequest, "resourceRequestMethod" | "resourceRequestUri" | "shrClaims">;
+
 /**
  * Interface for crypto functions used by library
  */
@@ -46,7 +48,7 @@ export interface ICrypto {
      * Generates an JWK RSA S256 Thumbprint
      * @param request
      */
-    getPublicKeyThumbprint(request: BaseAuthRequest, keyType?: string): Promise<string>;
+    getPublicKeyThumbprint(request: SignedHttpRequestParameters, keyType?: CryptoKeyTypes): Promise<string>;
     /**
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid 
@@ -69,6 +71,7 @@ export interface ICrypto {
     getAsymmetricPublicKey(keyThumbprint: string): Promise<string>;
     /**
      * Decrypts a bound token response
+     * @param boundServerTokenResponse
      */
     decryptBoundTokenResponse(boundServerTokenResponse: BoundServerAuthorizationTokenResponse, request: BaseAuthRequest): Promise<ServerAuthorizationTokenResponse>;
 }

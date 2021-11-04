@@ -5,9 +5,9 @@
 
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
-import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, testNavUrl, TEST_STATE_VALUES, TEST_POP_VALUES } from "../utils/StringConstants";
-import { Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationUrlRequest, AuthorizationCodeClient, ResponseMode, AuthenticationScheme, ServerTelemetryEntity, AccountEntity, CommonEndSessionRequest, PersistentCacheKeys } from "@azure/msal-common";
-import { BrowserConstants, TemporaryCacheKeys, ApiId } from "../../src/utils/BrowserConstants";
+import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, testNavUrl, TEST_STATE_VALUES, TEST_SSH_VALUES, TEST_POP_VALUES } from "../utils/StringConstants";
+import { Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationUrlRequest, AuthorizationCodeClient, ResponseMode, AuthenticationScheme, ServerTelemetryEntity, AccountEntity, CommonEndSessionRequest, PersistentCacheKeys, ClientConfigurationError } from "@azure/msal-common";
+import { TemporaryCacheKeys, ApiId } from "../../src/utils/BrowserConstants";
 import { BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
@@ -15,14 +15,16 @@ import { NavigationClient } from "../../src/navigation/NavigationClient";
 import { PopupUtils } from "../../src/utils/PopupUtils";
 import { EndSessionPopupRequest } from "../../src/request/EndSessionPopupRequest";
 import { PopupClient } from "../../src/interaction_client/PopupClient";
-import { PopupRequest } from "../../src/request/PopupRequest";
 
 describe("PopupClient", () => {
     let popupClient: PopupClient;
     beforeEach(() => {
         const pca = new PublicClientApplication({
             auth: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            },
+            system: {
+                refreshTokenBinding: true
             }
         });
         //@ts-ignore
@@ -53,9 +55,40 @@ describe("PopupClient", () => {
         });
 
         it("throws error if interaction is in progress", async () => {
-            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, TEST_CONFIG.MSAL_CLIENT_ID);
 
             await expect(popupClient.acquireToken({scopes:[]})).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
+        });
+
+        it("throws error when AuthenticationScheme is set to SSH and SSH JWK is omitted from the request", async () => {
+            const request: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read"],
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                nonce: "",
+                authenticationScheme: AuthenticationScheme.SSH
+            };
+
+            expect(popupClient.acquireToken(request)).rejects.toThrow(ClientConfigurationError.createMissingSshJwkError());
+        });
+
+        it("throws error when AuthenticationScheme is set to SSH and SSH KID is omitted from the request", async () => {
+            const request: CommonAuthorizationUrlRequest = {
+                redirectUri: TEST_URIS.TEST_REDIR_URI,
+                scopes: ["user.read"],
+                state: TEST_STATE_VALUES.USER_STATE,
+                authority: TEST_CONFIG.validAuthority,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                responseMode: TEST_CONFIG.RESPONSE_MODE as ResponseMode,
+                nonce: "",
+                authenticationScheme: AuthenticationScheme.SSH,
+                sshJwk: TEST_SSH_VALUES.SSH_JWK
+            };
+
+            expect(popupClient.acquireToken(request)).rejects.toThrow(ClientConfigurationError.createMissingSshKidError());
         });
 
         it("opens popup window before network request by default", async () => {
@@ -241,7 +274,7 @@ describe("PopupClient", () => {
         });
 
         it("throws error if interaction is in progress", async () => {
-            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, TEST_CONFIG.MSAL_CLIENT_ID);
 
             await expect(popupClient.logout()).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
         });
@@ -441,7 +474,7 @@ describe("PopupClient", () => {
             sinon.stub(PopupUtils, "openSizedPopup").returns(popupWindow);
             sinon.stub(PopupUtils.prototype, "openPopup").returns(popupWindow);
             sinon.stub(PopupUtils.prototype, "cleanPopup").callsFake((popup) => {
-                window.sessionStorage.removeItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`);
+                window.sessionStorage.removeItem(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`);
             });
             sinon.stub(NavigationClient.prototype, "navigateInternal").callsFake((url, navigationOptions) => {
                 return Promise.resolve(true);

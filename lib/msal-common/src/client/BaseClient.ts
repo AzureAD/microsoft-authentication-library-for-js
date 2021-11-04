@@ -16,9 +16,9 @@ import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManag
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { version, name } from "../packageMetadata";
 import { ClientAuthError } from "../error/ClientAuthError";
-import { KeyManager } from "../crypto/KeyManager";
 import { CcsCredential, CcsCredentialType } from "../account/CcsCredential";
 import { buildClientInfoFromHomeAccountId } from "../account/ClientInfo";
+import { CryptoKeyManager } from "../crypto/CryptoKeyManager";
 
 /**
  * Base application class which will construct requests to send to and handle responses from the Microsoft STS using the authorization code flow.
@@ -49,7 +49,7 @@ export abstract class BaseClient {
     public authority: Authority;
 
     // Define Key Manager object
-    protected keyManager: KeyManager;
+    protected cryptoKeyManager: CryptoKeyManager;
 
     protected constructor(configuration: ClientConfiguration) {
         // Set the configuration
@@ -77,7 +77,7 @@ export abstract class BaseClient {
         this.authority = this.config.authOptions.authority;
 
         // set KeyManager
-        this.keyManager = new KeyManager(this.cryptoUtils);
+        this.cryptoKeyManager = new CryptoKeyManager(this.cryptoUtils);
     }
 
     /**

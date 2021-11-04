@@ -186,6 +186,10 @@ export const ClientAuthErrorMessage = {
         code: "binding_key_not_removed",
         desc: "Could not remove the credential's binding key from storage."
     },
+    logoutNotSupported: {
+        code: "end_session_endpoint_not_supported",
+        desc: "Provided authority does not support logout."
+    },
     noStkKidInServerResponseError: {
         code: "no_stk_kid_in_server_response",
         desc: "Could not create RefreshToken_With_AuthScheme credential because the Session Transport Key key ID was not added to the ServerAuthorizationTokenResponse."
@@ -318,13 +322,6 @@ export class ClientAuthError extends AuthError {
     static createNonceNotFoundError(missingNonce: string): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.nonceNotFoundError.code,
             `${ClientAuthErrorMessage.nonceNotFoundError.desc}:  ${missingNonce}`);
-    }
-
-    /**
-     * Creates an error thrown when the authorization code required for a token request is null or empty.
-     */
-    static createNoTokensFoundError(): ClientAuthError {
-        return new ClientAuthError(ClientAuthErrorMessage.noTokensFoundError.code, ClientAuthErrorMessage.noTokensFoundError.desc);
     }
 
     /**
@@ -525,6 +522,13 @@ export class ClientAuthError extends AuthError {
     }
 
     /**
+     * Thrown when logout is attempted for an authority that doesnt have an end_session_endpoint
+     */
+    static createLogoutNotSupportedError(): ClientAuthError {
+        return new ClientAuthError(ClientAuthErrorMessage.logoutNotSupported.code, ClientAuthErrorMessage.logoutNotSupported.desc);
+    }
+
+    /**
      * Throws error when the stk jwk hash that serves as keyId for STK and Session Key is not found in the ServerAuthorizationTokenResponse parameter
      */
     static createNoStkKidInServerResponseError(): ClientAuthError {
@@ -537,5 +541,4 @@ export class ClientAuthError extends AuthError {
     static createNoSkKidInServerResponseError(): ClientAuthError {
         return new ClientAuthError(ClientAuthErrorMessage.noSkKidInServerResponseError.code, ClientAuthErrorMessage.noSkKidInServerResponseError.desc);
     }
-
 }

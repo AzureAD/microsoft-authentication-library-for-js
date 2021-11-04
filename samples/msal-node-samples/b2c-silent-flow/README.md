@@ -1,28 +1,22 @@
-# MSAL Node standalone samples
+# MSAL Node Standalone Sample: Authorization Code Grant (Silent) on Azure AD B2C
 
-The sample applications contained in this directory are independent samples of MSAL Node usage, covering each of the authorization flows that MSAL Node currently supports. To get started with this sample, first follow the general instructions [here](../readme.md).
+This sample demonstrates a [public client application](../../../lib/msal-node/docs/initialize-public-client-application.md) registered on Azure AD B2C. It uses:
 
-Once MSAL Node is installed, and you have the right files, come here to learn about this scenario.
-
-## Web app using silent flow on Azure AD B2C
-
-This sample demonstrates a [public client application](https://docs.microsoft.com/azure/active-directory-b2c/application-types) registered on Azure AD B2C. It features:
-
-1. using [OIDC Connect protocol](https://docs.microsoft.com/azure/active-directory-b2c/openid-connect) to implement standard B2C [user-flows](https://docs.microsoft.com/azure/active-directory-b2c/user-flow-overview) to:
+1. [OIDC Connect protocol](https://docs.microsoft.com/azure/active-directory-b2c/openid-connect) to implement standard B2C [user-flows](https://docs.microsoft.com/azure/active-directory-b2c/user-flow-overview) to:
 
 - sign-up/sign-in a user (with password reset/recovery)
 
-2. using [authorization code grant](https://docs.microsoft.com/azure/active-directory-b2c/authorization-code-flow) to acquire an [Access Token](https://docs.microsoft.com/azure/active-directory-b2c/tokens-overview) to call a [protected web API](https://docs.microsoft.com/azure/active-directory-b2c/add-web-api-application?tabs=app-reg-ga) (also on Azure AD B2C)
+2. [authorization code grant](https://docs.microsoft.com/azure/active-directory-b2c/authorization-code-flow) to acquire an [Access Token](https://docs.microsoft.com/azure/active-directory-b2c/tokens-overview) to call a [protected web API](https://docs.microsoft.com/azure/active-directory-b2c/add-web-api-application?tabs=app-reg-ga) (also on Azure AD B2C)
 
-### Registration
+## Registration
 
-This sample comes with a pre-registered application for demo purposes. If you would like to use your own **Azure AD B2C** tenant and application, follow the steps below:
+This sample comes with a registered application for demo purposes. If you would like to use your own **Azure AD B2C** tenant and application, follow the steps below:
 
 1. [Create an Azure Active Directory B2C tenant](https://docs.microsoft.com/azure/active-directory-b2c/tutorial-create-tenant)
 2. [Register a web application in Azure Active Directory B2C](https://docs.microsoft.com/azure/active-directory-b2c/tutorial-register-applications?tabs=app-reg-ga)
 3. [Create user flows in Azure Active Directory B2C](https://docs.microsoft.com/azure/active-directory-b2c/tutorial-create-user-flows)
 
-### Configuration
+## Configuration
 
 In `policies.js`, we create a `b2cPolicies` object to store authority strings for initiating each user-flow:
 
@@ -95,30 +89,30 @@ const tokenRequest = {
 };
 ```
 
-### Usage
+## Usage
 
-#### Initialize MSAL Node
+### Initialize MSAL Node
 
 ```javascript
 const pca = new msal.PublicClientApplication(publicClientConfig);
 ```
 
-#### Sign-in a user
+### Sign-in a user
 
 Setup an Express route for initiating the sign-in flow:
 
 ```javascript
-app.get("/signin", (req, res) => {
-    getAuthCode(policies.authorities.signUpSignIn.authority, SCOPES.oidc, APP_STATES.SIGN_IN, res);
+app.get("/login", (req, res) => {
+    getAuthCode(policies.authorities.signUpSignIn.authority, [], APP_STATES.SIGN_IN, res);
 })
 ```
 
-#### Get an authorization code
+### Get an authorization code
 
 Create a helper method to prepare request parameters that will be passed to MSAL Node's `getAuthCodeUrl()` method, which triggers the first leg of auth code flow.
 
 ```javascript
-const getAuthCode = (authority, scopes, state, res) => {
+const getAuthCode = (authority, scopes, state, req, res) => {
 
     // prepare the request
     authCodeRequest.authority = authority;
@@ -127,18 +121,37 @@ const getAuthCode = (authority, scopes, state, res) => {
 
     tokenRequest.authority = authority;
 
-    // request an authorization code to exchange for a token
-    return pca.getAuthCodeUrl(authCodeRequest)
-        .then((response) => {
+    // Initialize CryptoProvider instance
+    const cryptoProvider = new msal.CryptoProvider();
+    // Generate PKCE Codes before starting the authorization flow
+    cryptoProvider.generatePkceCodes().then(({ verifier, challenge }) => {
+        // create session object if does not exist
+        if (!req.session.pkceCodes) {
+            req.session.pkceCodes = {
+                challengeMethod: 'S256'
+            };
+        }
+
+        // Set generated PKCE Codes as session vars
+        req.session.pkceCodes.verifier = verifier;
+        req.session.pkceCodes.challenge = challenge;
+
+        // Add PKCE code challenge and challenge method to authCodeUrl request object
+        authCodeRequest.codeChallenge = req.session.pkceCodes.challenge;
+        authCodeRequest.codeChallengeMethod = req.session.pkceCodes.challengeMethod;
+
+        // Get url to sign user in and consent to scopes needed for application
+        return pca.getAuthCodeUrl(authCodeRequest).then((response) => {
             res.redirect(response);
         })
         .catch((error) => {
             res.status(500).send(error);
         });
+    });
 }
 ```
 
-#### Handle redirect response
+### Handle redirect response
 
 The second leg of the auth code flow consists of handling the redirect response from the B2C server. We do this in the `/redirect` route, responding appropriately to the `state` parameter in the query string.
 
@@ -152,7 +165,7 @@ app.get("/redirect", (req, res) => {
     if (req.query.state === APP_STATES.SIGN_IN) {
 
         // prepare the request for authentication
-        tokenRequest.scopes = SCOPES.oidc;
+        tokenRequest.scopes = [];
         tokenRequest.code = req.query.code;
 
         pca.acquireTokenByCode(tokenRequest)
@@ -167,14 +180,14 @@ app.get("/redirect", (req, res) => {
 
         // prepare the request for calling the web API
         tokenRequest.authority = policies.authorities.signUpSignIn.authority;
-        tokenRequest.scopes = SCOPES.resource1;
+        tokenRequest.scopes = apiConfig.webApiScopes;
         tokenRequest.code = req.query.code;
 
         pca.acquireTokenByCode(tokenRequest)
             .then((response) => {
 
                 // store access token somewhere
-                app.locals.accessToken = response.accessToken;
+                req.session.accessToken = response.accessToken;
 
                 // call the web API
                 api.callWebApi(apiConfig.webApiUri, response.accessToken, (response) => {
@@ -193,7 +206,7 @@ app.get("/redirect", (req, res) => {
 });
 ```
 
-#### Acquire an access token
+### Acquire an access token
 
 In this sample, we've setup a token cache. We can try to silently acquire an access token from the cache by passing the signed-in user's account.
 To do this, simply pass the `homeAccountId` to MSAL's `getAccountByHomeId()` API, create a `silentRequest` object, then initiate the `acquireTokenSilent()` API.
@@ -203,12 +216,12 @@ To do this, simply pass the `homeAccountId` to MSAL's `getAccountByHomeId()` API
 app.get("/api", async (req, res) => {
     const msalTokenCache = pca.getTokenCache();
     // Find Account by Local Account Id
-    account = await msalTokenCache.getAccountByHomeId(app.locals.homeAccountId);
+    account = await msalTokenCache.getAccountByHomeId(req.session.homeAccountId);
 
     // build silent request
     const silentRequest = {
         account: account,
-        scopes: SCOPES.resource1
+        scopes: apiConfig.webApiScopes
     };
 
     // acquire Token Silently to be used in when calling web API
@@ -217,9 +230,7 @@ app.get("/api", async (req, res) => {
             // do something with the response
         })
         .catch((error) => {
-            // catch errors
+            // catch **interaction_required** errors here and handle them by initiating a new token request
         });
 });
 ```
-
-> :information_source: You might want to catch **interaction_required** errors here and handle them by initiating an interactive request via `getAuthCode()` API

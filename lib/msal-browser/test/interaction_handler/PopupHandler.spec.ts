@@ -47,7 +47,6 @@ describe("PopupHandler.ts Unit Tests", () => {
     let authCodeModule: AuthorizationCodeClient;
     let browserStorage: BrowserCacheManager;
     let browserRequestLogger: Logger;
-    const cryptoOps = new CryptoOps();
     beforeEach(() => {
         const appConfig: Configuration = {
             auth: {
@@ -119,6 +118,7 @@ describe("PopupHandler.ts Unit Tests", () => {
         authConfig.storageInterface = new TestStorageManager(TEST_CONFIG.MSAL_CLIENT_ID, authConfig.cryptoInterface!);
         authCodeModule = new AuthorizationCodeClient(authConfig);
         const logger = new Logger(authConfig.loggerOptions!);
+        const cryptoOps = new CryptoOps(logger);
         browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, cryptoOps, logger);
         browserRequestLogger = new Logger(authConfig.loggerOptions!);
     });
@@ -179,7 +179,7 @@ describe("PopupHandler.ts Unit Tests", () => {
 
             const popupHandler = new PopupHandler(authCodeModule, browserStorage, testTokenReq, browserRequestLogger);
             popupHandler.initiateAuthRequest(TEST_URIS.ALTERNATE_INSTANCE, {popupName: "name", popupWindowAttributes: {}});
-            expect(browserStorage.getTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, true)).toEqual(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            expect(browserStorage.isInteractionInProgress(true)).toBe(true);
         });
     });
 

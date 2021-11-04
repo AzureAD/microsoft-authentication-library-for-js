@@ -122,19 +122,6 @@ describe("ClientAuthError.ts Class Unit Tests", () => {
         expect(err.stack?.includes("ClientAuthError.spec.ts")).toBe(true);
     });
 
-    it("createNoTokensFoundError creates a ClientAuthError object", () => {
-        const err: ClientAuthError = ClientAuthError.createNoTokensFoundError();
-
-        expect(err instanceof ClientAuthError).toBe(true);
-        expect(err instanceof AuthError).toBe(true);
-        expect(err instanceof Error).toBe(true);
-        expect(err.errorCode).toBe(ClientAuthErrorMessage.noTokensFoundError.code);
-        expect(err.errorMessage.includes(ClientAuthErrorMessage.noTokensFoundError.desc)).toBe(true);
-        expect(err.message.includes(ClientAuthErrorMessage.noTokensFoundError.desc)).toBe(true);
-        expect(err.name).toBe("ClientAuthError");
-        expect(err.stack?.includes("ClientAuthError.spec.ts")).toBe(true);
-    });
-
     it("createMultipleMatchingTokensInCacheError creates a ClientAuthError object", () => {
         const err: ClientAuthError = ClientAuthError.createMultipleMatchingTokensInCacheError();
 
@@ -290,4 +277,19 @@ describe("ClientAuthError.ts Class Unit Tests", () => {
         expect(err.name).toBe("ClientAuthError");
         expect(err.stack?.includes("ClientAuthError.spec.ts")).toBe(true);
     });
+
+    it("createLogoutNotSupportedError creates a ClientAuthError object", () => {
+        const err: ClientAuthError = ClientAuthError.createLogoutNotSupportedError();
+
+        expect(err instanceof ClientAuthError).toBe(true);
+        expect(err instanceof AuthError).toBe(true);
+        expect(err instanceof Error).toBe(true);
+        expect(err.errorCode).toBe(ClientAuthErrorMessage.logoutNotSupported.code);
+        expect(err.errorMessage.includes(ClientAuthErrorMessage.logoutNotSupported.desc)).toBe(true);
+        expect(err.message.includes(ClientAuthErrorMessage.logoutNotSupported.desc)).toBe(true);
+        expect(err.name).toBe("ClientAuthError");
+        expect(err.stack?.includes("ClientAuthError.spec.ts")).toBe(true);
+    });
+
+
 });
