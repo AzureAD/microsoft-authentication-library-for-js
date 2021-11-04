@@ -68,7 +68,7 @@ jobs:
       !failure() && 
       (contains(toJSON(needs.pre-publish.outputs.packages), 'msal-core') || 
       github.event.inputs.msal-core == 'y') 
-    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@publish-workflow
+    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@dev
     with:
       path: 'lib'
       lib-name: 'msal-core'
@@ -85,7 +85,7 @@ jobs:
       !failure() && 
       (contains(toJSON(needs.pre-publish.outputs.packages), 'msal-common') || 
       github.event.inputs.msal-common == 'y') 
-    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@publish-workflow
+    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@dev
     with:
       path: 'lib'
       lib-name: 'msal-common'
@@ -99,7 +99,7 @@ jobs:
       !failure() && 
       (contains(toJSON(needs.pre-publish.outputs.packages), 'msal-browser') || 
       github.event.inputs.msal-browser == 'y') 
-    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@publish-workflow
+    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@dev
     with:
       path: 'lib'
       lib-name: 'msal-browser'
@@ -116,7 +116,7 @@ jobs:
       !failure() && 
       (contains(toJSON(needs.pre-publish.outputs.packages), 'msal-node') || 
       github.event.inputs.msal-node == 'y') 
-    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@publish-workflow
+    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@dev
     with:
       path: 'lib'
       lib-name: 'msal-node'
@@ -130,7 +130,7 @@ jobs:
       !failure() && 
       (contains(toJSON(needs.pre-publish.outputs.packages), 'msal-angular') || 
       github.event.inputs.msal-angular == 'y') 
-    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@publish-workflow
+    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@dev
     with:
       path: 'lib'
       lib-name: 'msal-angular'
@@ -144,7 +144,7 @@ jobs:
       !failure() && 
       (contains(toJSON(needs.pre-publish.outputs.packages), 'msal-react') || 
       github.event.inputs.msal-react == 'y') 
-    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@publish-workflow
+    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@dev
     with:
       path: 'lib'
       lib-name: 'msal-react'
@@ -158,7 +158,7 @@ jobs:
       !failure() && 
       (contains(toJSON(needs.pre-publish.outputs.packages), 'msal-node-extensions') || 
       github.event.inputs.msal-node-extensions == 'y') 
-    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@publish-workflow
+    uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@dev
     with:
       path: 'extensions'
       lib-name: 'msal-node-extensions'
