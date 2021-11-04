@@ -2,7 +2,7 @@ name: Publish Packages
 
 # This action will trigger when Release PR from release-staging branch is merged into dev
 on:
-  pull_request:
+  pull_request_target:
     types: [closed]
     branches:
       - dev
@@ -175,8 +175,16 @@ jobs:
       publish-msal-node, 
       publish-msal-node-extensions
     ]
+    # Only run if no previous job failed and at least one succeeded
     if: |
-      !failure()
+      !failure() && (
+      needs.publish-msal-core.result == 'success' ||
+      needs.publish-msal-common.result == 'success' ||
+      needs.publish-msal-browser.result == 'success' ||
+      needs.publish-msal-angular.result == 'success' ||
+      needs.publish-msal-react.result == 'success' ||
+      needs.publish-msal-node.result == 'success' ||
+      needs.publish-msal-node-extensions.result == 'success')
     runs-on: ubuntu-latest
 
     steps:
