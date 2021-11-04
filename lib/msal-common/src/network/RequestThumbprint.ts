@@ -17,4 +17,6 @@ export type RequestThumbprint = {
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
     shrClaims?: string;
+    sshJwk?: string;
+    sshKid?: string;
 };

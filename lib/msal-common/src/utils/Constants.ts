@@ -64,7 +64,9 @@ export const OIDC_SCOPES = [
 export enum HeaderNames {
     CONTENT_TYPE = "Content-Type",
     RETRY_AFTER = "Retry-After",
-    CCS_HEADER = "X-AnchorMailbox"
+    CCS_HEADER = "X-AnchorMailbox",
+    WWWAuthenticate = "WWW-Authenticate",
+    AuthenticationInfo = "Authentication-Info"
 }
 
 /**
@@ -315,8 +317,9 @@ export const SERVER_TELEM_CONSTANTS = {
  * Type of the authentication request
  */
 export enum AuthenticationScheme {
+    BEARER = "Bearer",
     POP = "pop",
-    BEARER = "Bearer"
+    SSH = "ssh-cert"
 }
 
 /**
