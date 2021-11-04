@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, UrlString, AccountEntity, AuthError, ServerTelemetryManager } from "@azure/msal-common";
+import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, UrlString, AuthError, ServerTelemetryManager } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { ApiId, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -67,7 +67,7 @@ export class RedirectClient extends StandardInteractionClient {
     async handleRedirectPromise(hash?: string): Promise<AuthenticationResult | null> {
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.handleRedirectPromise);
         try {
-            if (!this.interactionInProgress()) {
+            if (!this.browserStorage.isInteractionInProgress(true)) {
                 this.logger.info("handleRedirectPromise called but there is no interaction in progress, returning null.");
                 return null;
             }
@@ -110,7 +110,7 @@ export class RedirectClient extends StandardInteractionClient {
             } else if (!this.config.auth.navigateToLoginRequestUrl) {
                 this.logger.verbose("NavigateToLoginRequestUrl set to false, handling hash");
                 return this.handleHash(responseHash, state, serverTelemetryManager);
-            } else if (!BrowserUtils.isInIframe()) {
+            } else if (!BrowserUtils.isInIframe() || this.config.system.allowRedirectInIframe) {
                 /*
                  * Returned from authority using redirect - need to perform navigation before processing response
                  * Cache the hash to be retrieved after the next redirect
@@ -211,25 +211,20 @@ export class RedirectClient extends StandardInteractionClient {
 
         try {
             this.eventHandler.emitEvent(EventType.LOGOUT_START, InteractionType.Redirect, logoutRequest);
-            const authClient = await this.createAuthCodeClient(serverTelemetryManager, logoutRequest && logoutRequest.authority);
-            this.logger.verbose("Auth code client created");
-
-            // Create logout string and navigate user window to logout.
-            const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
-
+                        
             // Clear cache on logout
-            await authClient.clearCacheOnLogout(validLogoutRequest);
-            
-            if (!validLogoutRequest.account || AccountEntity.accountInfoIsEqual(validLogoutRequest.account, this.browserStorage.getActiveAccount(), false)) {
-                this.logger.verbose("Setting active account to null");
-                this.browserStorage.setActiveAccount(null);
-            }
+            await this.clearCacheOnLogout(validLogoutRequest.account);
             
             const navigationOptions: NavigationOptions = {
                 apiId: ApiId.logout,
                 timeout: this.config.system.redirectNavigationTimeout,
                 noHistory: false
             };
+            const authClient = await this.createAuthCodeClient(serverTelemetryManager, logoutRequest && logoutRequest.authority);
+            this.logger.verbose("Auth code client created");
+
+            // Create logout string and navigate user window to logout.
+            const logoutUri: string = authClient.getLogoutUri(validLogoutRequest);
             
             this.eventHandler.emitEvent(EventType.LOGOUT_SUCCESS, InteractionType.Redirect, validLogoutRequest);
             // Check if onRedirectNavigate is implemented, and invoke it if so
@@ -253,6 +248,7 @@ export class RedirectClient extends StandardInteractionClient {
             }
             serverTelemetryManager.cacheFailedRequest(e);
             this.eventHandler.emitEvent(EventType.LOGOUT_FAILURE, InteractionType.Redirect, null, e);
+            this.eventHandler.emitEvent(EventType.LOGOUT_END, InteractionType.Redirect);
             throw e;
         }
 

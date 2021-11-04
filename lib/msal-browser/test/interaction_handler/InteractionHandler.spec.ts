@@ -116,7 +116,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
 
     let authCodeModule: AuthorizationCodeClient;
     let browserStorage: BrowserCacheManager;
-    const cryptoOpts = new CryptoOps();
+    const cryptoOpts = new CryptoOps(testBrowserRequestLogger);
 
     beforeEach(() => {
         const appConfig: Configuration = {
@@ -213,6 +213,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 fromCache: false,
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000)),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
@@ -280,6 +281,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
                 fromCache: false,
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000)),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,

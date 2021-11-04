@@ -34,13 +34,6 @@ describe("SilentIframeClient", () => {
     });
 
     describe("acquireToken", () => {
-        it("throws error if loginHint or sid are empty", async () => {
-            await expect(silentIframeClient.acquireToken({
-                redirectUri: TEST_URIS.TEST_REDIR_URI,
-                scopes: [TEST_CONFIG.MSAL_CLIENT_ID]
-            })).rejects.toMatchObject(BrowserAuthError.createSilentSSOInsufficientInfoError());
-        });
-
         it("throws error if prompt is not set to 'none'", async () => {
             const req: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
@@ -140,6 +133,7 @@ describe("SilentIframeClient", () => {
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -197,6 +191,7 @@ describe("SilentIframeClient", () => {
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER

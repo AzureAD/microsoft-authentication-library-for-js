@@ -7,9 +7,9 @@ var msal = require("@azure/msal-node");
 
 const msalConfig = {
     auth: {
-        clientId: "", // Enter your client_id here
-        authority: "", // Enter your authority here
-        clientSecret: "" // Enter your client_secret here
+        clientId: "ENTER_CLIENT_ID",
+        authority: "https://login.microsoftonline.com/ENTER_TENANT_INFO",
+        clientSecret: "ENTER_CLIENT_SECRET"
     }
 };
 

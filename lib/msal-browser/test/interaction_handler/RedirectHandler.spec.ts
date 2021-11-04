@@ -35,7 +35,7 @@ const testNetworkResult = {
     testParam: "testValue"
 };
 
-const browserCrypto = new CryptoOps();
+let browserCrypto: CryptoOps;
 
 const networkInterface = {
     sendGetRequestAsync<T>(): T {
@@ -67,7 +67,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
             authorityMetadata: ""
         }
         authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, browserStorage, authorityOptions);
-        const browserCrypto = new CryptoOps();
         const loggerConfig = {
             loggerCallback: (
                 level: LogLevel,
@@ -77,6 +76,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             piiLoggingEnabled: true,
         };
         const logger = new Logger(loggerConfig);
+        browserCrypto = new CryptoOps(logger);
         browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, browserCrypto, logger);
         authConfig = {
             authOptions: {
@@ -173,7 +173,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             navigationClient.navigateExternal = (requestUrl: string, options: NavigationOptions): Promise<boolean> => {
                 expect(requestUrl).toEqual(TEST_URIS.TEST_ALTERNATE_REDIR_URI);
                 expect(options.timeout).toEqual(3000);
-                expect(browserStorage.getTemporaryCache(TemporaryCacheKeys.INTERACTION_STATUS_KEY, true)).toEqual(BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+                expect(browserStorage.isInteractionInProgress(true)).toBe(true);
                 done();
                 return Promise.resolve(true);
             };
@@ -276,6 +276,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 fromCache: false,
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000)),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
@@ -297,7 +298,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             };
             browserStorage.setTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT), TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             browserStorage.setTemporaryCache(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest)));
-            browserStorage.setTemporaryCache(browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY), BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            browserStorage.setTemporaryCache(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, TEST_CONFIG.MSAL_CLIENT_ID);
             browserStorage.setTemporaryCache(browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
             sinon.stub(AuthorizationCodeClient.prototype, "handleFragmentResponse").returns(testCodeResponse);
             sinon.stub(AuthorizationCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
@@ -344,6 +345,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 fromCache: false,
                 scopes: ["scope1", "scope2"],
                 account: testAccount,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN * 1000)),
                 idTokenClaims: idTokenClaims,
                 tenantId: idTokenClaims.tid,
@@ -366,7 +368,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             };
             browserStorage.setTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT), TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             browserStorage.setTemporaryCache(browserStorage.generateCacheKey(TemporaryCacheKeys.REQUEST_PARAMS), browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest)));
-            browserStorage.setTemporaryCache(browserStorage.generateCacheKey(TemporaryCacheKeys.INTERACTION_STATUS_KEY), BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            browserStorage.setTemporaryCache(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, TEST_CONFIG.MSAL_CLIENT_ID);
             browserStorage.setTemporaryCache(browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH), TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
             browserStorage.setTemporaryCache(TemporaryCacheKeys.CCS_CREDENTIAL, JSON.stringify(testCcsCred));
             sinon.stub(AuthorizationCodeClient.prototype, "handleFragmentResponse").returns(testCodeResponse);

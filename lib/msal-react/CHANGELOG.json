@@ -2,6 +2,119 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Mon, 01 Nov 2021 23:53:22 GMT",
+      "tag": "@azure/msal-react_v1.1.1",
+      "version": "1.1.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "0d7e8c7b131d94c365bc114b69e3ca21f5300d41",
+            "comment": "Support React version 16.8.0+"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v2.19.0",
+            "commit": "6ac29855822ce1ba9531a68bcaa6f37443ef16c0"
+          }
+        ],
+        "none": [
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "c5a8de4a5dc7acb9bdf1759eb3cb9811459c3d82",
+            "comment": "Update package-locks to fix dependantbot alerts #4181"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 04 Oct 2021 23:12:35 GMT",
+      "tag": "@azure/msal-react_v1.1.0",
+      "version": "1.1.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "comment": "Update account state when user logs in or out from a different tab or window #3981",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v2.18.0",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          }
+        ],
+        "none": [
+          {
+            "author": "kamausamuel11@gmail.com",
+            "package": "@azure/msal-react",
+            "comment": "fix: add forked bindings library to node-extensins",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "comment": "Disallow major bumps",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          },
+          {
+            "author": "prkanher@microsoft.com",
+            "package": "@azure/msal-react",
+            "comment": "docs update for ssoSilent #4123",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "comment": "Export library version #4124",
+            "commit": "d03c16f09026bac36048241da4635e73d32a6eed"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Sep 2021 23:22:24 GMT",
+      "tag": "@azure/msal-react_v1.0.2",
+      "version": "1.0.2",
+      "comments": {
+        "none": [
+          {
+            "comment": "Unit test updates #3947",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "75dbe00f7982abf5734698b7ab35fd55b1b8e030",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "patch fix",
+            "author": "ellymakuba@microsoft.com",
+            "commit": "6f6c1fa9987d62a68583c513c4baabe4041eaf17",
+            "package": "@azure/msal-react"
+          },
+          {
+            "comment": "Update docs with self-service sign-up FAQ #3934",
+            "author": "joliuac@gmail.com",
+            "commit": "323d7eabbbd95c499d2c2a2446cdea4531af71c5",
+            "package": "@azure/msal-react"
+          }
+        ],
+        "patch": [
+          {
+            "comment": "Fix inProgress state bug when returning from a redirect #4013",
+            "author": "thomas.norling@microsoft.com",
+            "commit": "09f8cece289c07dd9c5681a31ec285e4111db4ae",
+            "package": "@azure/msal-react"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 28 Jun 2021 23:39:48 GMT",
       "tag": "@azure/msal-react_v1.0.1",
       "version": "1.0.1",

@@ -12,7 +12,8 @@ import {
     TEST_POP_VALUES,
     POP_AUTHENTICATION_RESULT,
     TEST_ACCOUNT_INFO,
-    CORS_SIMPLE_REQUEST_HEADERS
+    CORS_SIMPLE_REQUEST_HEADERS,
+    TEST_SSH_VALUES
 } from "../test_kit/StringConstants";
 import { ClientConfiguration } from "../../src/config/ClientConfiguration";
 import { BaseClient } from "../../src/client/BaseClient";
@@ -27,11 +28,8 @@ import { ServerError } from "../../src/error/ServerError";
 import { CommonAuthorizationCodeRequest } from "../../src/request/CommonAuthorizationCodeRequest";
 import { AuthToken } from "../../src/account/AuthToken";
 import { ICrypto } from "../../src/crypto/ICrypto";
-import { AccountInfo } from "../../src/account/AccountInfo";
-import { CacheManager } from "../../src/cache/CacheManager";
-import { AccountEntity } from "../../src/cache/entities/AccountEntity";
 import { ClientAuthError } from "../../src/error/ClientAuthError";
-import { CcsCredentialType } from "../../src";
+import { CcsCredentialType, ClientConfigurationError } from "../../src";
 
 describe("AuthorizationCodeClient unit tests", () => {
     afterEach(() => {
@@ -315,7 +313,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
             const testAccount = TEST_ACCOUNT_INFO;
-            const testTokenClaims: Required<Omit<TokenClaims, "home_oid"|"upn"|"cloud_instance_host_name"|"cnf"|"emails"|"iat"|"x5c_ca">> = {
+            const testTokenClaims: Required<Omit<TokenClaims, "home_oid"|"upn"|"cloud_instance_host_name"|"cnf"|"emails"|"iat"|"x5c_ca"|"ts"|"at"|"u"|"p"|"m">> = {
                 ver: "2.0",
                 iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
                 sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
@@ -352,7 +350,7 @@ describe("AuthorizationCodeClient unit tests", () => {
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
             const testAccount = TEST_ACCOUNT_INFO;
-            const testTokenClaims: Required<Omit<TokenClaims, "home_oid"|"upn"|"cloud_instance_host_name"|"cnf"|"emails"|"sid"|"iat"|"x5c_ca">> = {
+            const testTokenClaims: Required<Omit<TokenClaims, "home_oid"|"upn"|"cloud_instance_host_name"|"cnf"|"emails"|"sid"|"iat"|"x5c_ca"|"ts"|"at"|"u"|"p"|"m">> = {
                 ver: "2.0",
                 iss: `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
                 sub: "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
@@ -995,7 +993,7 @@ describe("AuthorizationCodeClient unit tests", () => {
 
         it("Adds tokenQueryParameters to the /token request", (done) => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").callsFake((url) => {
+            sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").callsFake((url: string) => {
                 expect(url.includes("/token?testParam=testValue")).toBe(true);
                 done();
             });
@@ -1131,6 +1129,209 @@ describe("AuthorizationCodeClient unit tests", () => {
             expect(returnVal.includes(`${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.POP}`)).toBe(true);
             expect(returnVal.includes(`${AADServerParamKeys.REQ_CNF}=${encodeURIComponent(TEST_POP_VALUES.ENCODED_REQ_CNF)}`)).toBe(true);
             expect(returnVal.includes(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`)).toBe(true);
+        });
+
+        it("Sends the required parameters when a SSH certificate is requested", async () => {
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").resolves(POP_AUTHENTICATION_RESULT);
+            const createTokenRequestBodySpy = sinon.spy(AuthorizationCodeClient.prototype, <any>"createTokenRequestBody");
+
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
+            if (!config.cryptoInterface) {
+                throw TestError.createTestSetupError("configuration cryptoInterface not initialized correctly.");
+            }
+
+            // Set up required objects and mocked return values
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
+            const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
+            
+            config.cryptoInterface.base64Decode = (input: string): string => {
+                switch (input) {
+                    case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                        return TEST_POP_VALUES.DECODED_REQ_CNF;
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
+                        return decodedLibState;
+                    default:
+                        return input;
+                }
+            };
+
+            // @ts-ignore
+            config.cryptoInterface.base64Encode = (input: string): string => {
+                switch (input) {
+                    case TEST_POP_VALUES.DECODED_REQ_CNF:
+                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                    case "123-test-uid":
+                        return "MTIzLXRlc3QtdWlk";
+                    case "456-test-utid":
+                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    default:
+                        return input;
+                }
+            };
+            const signedJwt = "signedJwt";
+            // @ts-ignore
+            config.cryptoInterface.signJwt = async (payload: SignedHttpRequest, kid: string): Promise<string> => {
+                expect(payload.at).toBe(POP_AUTHENTICATION_RESULT.body.access_token);
+                return signedJwt;
+            };
+            // Set up stubs
+            const idTokenClaims = {
+                "ver": "2.0",
+                "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "exp": 1536361411,
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+            };
+            sinon.stub(AuthToken, "extractTokenClaims").callsFake((encodedToken: string, crypto: ICrypto): TokenClaims => {
+                switch (encodedToken) {
+                    case POP_AUTHENTICATION_RESULT.body.id_token:
+                        return idTokenClaims as TokenClaims;
+                    case POP_AUTHENTICATION_RESULT.body.access_token:
+                        return {
+                            cnf: {
+                                kid: TEST_POP_VALUES.KID
+                            }
+                        };
+                    default:
+                        return {};
+                }
+            });
+            const client = new AuthorizationCodeClient(config);
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authenticationScheme: AuthenticationScheme.SSH,
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+                sshJwk: TEST_SSH_VALUES.SSH_JWK,
+                sshKid: TEST_SSH_VALUES.SSH_KID
+            };
+
+            const authenticationResult = await client.acquireToken(authCodeRequest, {
+                code: authCodeRequest.code,
+                nonce: idTokenClaims.nonce,
+                state: testState
+            });
+
+            expect(authenticationResult.accessToken).toBe(signedJwt);
+            // @ts-ignore
+            expect((Date.now() + (POP_AUTHENTICATION_RESULT.body.expires_in * 1000)) >= authenticationResult.expiresOn.getMilliseconds()).toBe(true);
+            expect(createTokenRequestBodySpy.calledWith(authCodeRequest)).toBeTruthy();
+            const returnVal = await createTokenRequestBodySpy.returnValues[0] as string;
+            expect(returnVal.includes(`${AADServerParamKeys.SCOPE}=${TEST_CONFIG.DEFAULT_GRAPH_SCOPE}%20${Constants.OPENID_SCOPE}%20${Constants.PROFILE_SCOPE}%20${Constants.OFFLINE_ACCESS_SCOPE}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.CLIENT_ID}=${TEST_CONFIG.MSAL_CLIENT_ID}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.REDIRECT_URI}=${encodeURIComponent(TEST_URIS.TEST_REDIRECT_URI_LOCALHOST)}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.CODE}=${TEST_TOKENS.AUTHORIZATION_CODE}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.GRANT_TYPE}=${Constants.CODE_GRANT_TYPE}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.CODE_VERIFIER}=${TEST_CONFIG.TEST_VERIFIER}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.CLIENT_SECRET}=${TEST_CONFIG.MSAL_CLIENT_SECRET}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.TOKEN_TYPE}=${AuthenticationScheme.SSH}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.REQ_CNF}=${TEST_SSH_VALUES.ENCODED_SSH_JWK}`)).toBe(true);
+            expect(returnVal.includes(`${AADServerParamKeys.CLAIMS}=${encodeURIComponent(TEST_CONFIG.CLAIMS)}`)).toBe(true);
+        });
+
+        it("Throws missing SSH JWK error when the token request has Authentication Scheme set to SSH and SSH JWK is missing", async () => {
+            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
+            sinon.stub(AuthorizationCodeClient.prototype, <any>"executePostToTokenEndpoint").resolves(POP_AUTHENTICATION_RESULT);
+
+            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
+            if (!config.cryptoInterface) {
+                throw TestError.createTestSetupError("configuration cryptoInterface not initialized correctly.");
+            }
+
+            // Set up required objects and mocked return values
+            const testState = `eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9${Constants.RESOURCE_DELIM}userState`;
+            const decodedLibState = "{ \"id\": \"testid\", \"ts\": 1592846482 }";
+            
+            config.cryptoInterface.base64Decode = (input: string): string => {
+                switch (input) {
+                    case TEST_POP_VALUES.ENCODED_REQ_CNF:
+                        return TEST_POP_VALUES.DECODED_REQ_CNF;
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    case "eyAiaWQiOiAidGVzdGlkIiwgInRzIjogMTU5Mjg0NjQ4MiB9":
+                        return decodedLibState;
+                    default:
+                        return input;
+                }
+            };
+
+            // @ts-ignore
+            config.cryptoInterface.base64Encode = (input: string): string => {
+                switch (input) {
+                    case TEST_POP_VALUES.DECODED_REQ_CNF:
+                        return TEST_POP_VALUES.ENCODED_REQ_CNF;
+                    case "123-test-uid":
+                        return "MTIzLXRlc3QtdWlk";
+                    case "456-test-utid":
+                        return "NDU2LXRlc3QtdXRpZA==";
+                    case TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO:
+                        return TEST_DATA_CLIENT_INFO.TEST_DECODED_CLIENT_INFO;
+                    default:
+                        return input;
+                }
+            };
+            const signedJwt = "signedJwt";
+            // @ts-ignore
+            config.cryptoInterface.signJwt = async (payload: SignedHttpRequest, kid: string): Promise<string> => {
+                expect(payload.at).toBe(POP_AUTHENTICATION_RESULT.body.access_token);
+                return signedJwt;
+            };
+            // Set up stubs
+            const idTokenClaims = {
+                "ver": "2.0",
+                "iss": `${TEST_URIS.DEFAULT_INSTANCE}9188040d-6c67-4c5b-b112-36a304b66dad/v2.0`,
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "exp": 1536361411,
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+            };
+            sinon.stub(AuthToken, "extractTokenClaims").callsFake((encodedToken: string, crypto: ICrypto): TokenClaims => {
+                switch (encodedToken) {
+                    case POP_AUTHENTICATION_RESULT.body.id_token:
+                        return idTokenClaims as TokenClaims;
+                    case POP_AUTHENTICATION_RESULT.body.access_token:
+                        return {
+                            cnf: {
+                                kid: TEST_POP_VALUES.KID
+                            }
+                        };
+                    default:
+                        return {};
+                }
+            });
+            const client = new AuthorizationCodeClient(config);
+            const authCodeRequest: CommonAuthorizationCodeRequest = {
+                authenticationScheme: AuthenticationScheme.SSH,
+                authority: Constants.DEFAULT_AUTHORITY,
+                scopes: [...TEST_CONFIG.DEFAULT_GRAPH_SCOPE, ...TEST_CONFIG.DEFAULT_SCOPES],
+                redirectUri: TEST_URIS.TEST_REDIRECT_URI_LOCALHOST,
+                code: TEST_TOKENS.AUTHORIZATION_CODE,
+                codeVerifier: TEST_CONFIG.TEST_VERIFIER,
+                claims: TEST_CONFIG.CLAIMS,
+                correlationId: RANDOM_TEST_GUID,
+            };
+
+            expect(client.acquireToken(authCodeRequest, {
+                code: authCodeRequest.code,
+                nonce: idTokenClaims.nonce,
+                state: testState
+            })).rejects.toThrow(ClientConfigurationError.createMissingSshJwkError());
         });
 
         it("properly handles expiration timestamps as strings", async () => {
@@ -1318,18 +1519,20 @@ describe("AuthorizationCodeClient unit tests", () => {
         });
 
 
-        it("Returns a uri with given postLogoutUri and correlationId", async () => {
+        it("Returns a uri with given parameters", async () => {
             sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
             const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
             const client = new AuthorizationCodeClient(config);
 
             const logoutUri = client.getLogoutUri({
                 correlationId: RANDOM_TEST_GUID,
-                postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
-                idTokenHint: "id_token_hint"
+                postLogoutRedirectUri: 
+                TEST_URIS.TEST_LOGOUT_URI,
+                idTokenHint: "id_token_hint",
+                state: "test_state" 
             });
-
-            const testLogoutUriWithParams = `${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common")}?${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI)}&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}&${AADServerParamKeys.ID_TOKEN_HINT}=id_token_hint`;
+          
+            const testLogoutUriWithParams = `${DEFAULT_OPENID_CONFIG_RESPONSE.body.end_session_endpoint.replace("{tenant}", "common")}?${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI)}&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}&${AADServerParamKeys.ID_TOKEN_HINT}=id_token_hint&${AADServerParamKeys.STATE}=test_state`;
             expect(logoutUri).toBe(testLogoutUriWithParams);
         });
 
@@ -1347,40 +1550,15 @@ describe("AuthorizationCodeClient unit tests", () => {
             const logoutUri = client.getLogoutUri({
                 correlationId: RANDOM_TEST_GUID,
                 postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
-                idTokenHint: "id_token_hint"
+                idTokenHint: "id_token_hint",
+                state: "test_state",
+                extraQueryParameters: {
+                    testParam: "test_val"
+                }
             });
-
-            const testLogoutUriWithParams = `https://login.windows.net/common/oauth2/v2.0/logout?param1=value1&${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI)}&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}&${AADServerParamKeys.ID_TOKEN_HINT}=id_token_hint`;
+          
+            const testLogoutUriWithParams = `https://login.windows.net/common/oauth2/v2.0/logout?param1=value1&${AADServerParamKeys.POST_LOGOUT_URI}=${encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI)}&${AADServerParamKeys.CLIENT_REQUEST_ID}=${encodeURIComponent(RANDOM_TEST_GUID)}&${AADServerParamKeys.ID_TOKEN_HINT}=id_token_hint&${AADServerParamKeys.STATE}=test_state&testParam=test_val`;
             expect(logoutUri).toBe(testLogoutUriWithParams);
-        });
-    });
-
-    describe("clearCacheOnLogout", () => {
-        it("Clears the cache", async() => {
-            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
-            const client = new AuthorizationCodeClient(config);
-            const clearCacheSpy = sinon.stub(MockStorageClass.prototype, "clear").resolves();
-
-            client.clearCacheOnLogout({ account: null, correlationId: RANDOM_TEST_GUID});
-            expect(clearCacheSpy.calledOnce).toBe(true);
-        });
-
-        it("Clears the cache for the account provided", async () => {
-            sinon.stub(Authority.prototype, <any>"getEndpointMetadataFromNetwork").resolves(DEFAULT_OPENID_CONFIG_RESPONSE.body);
-            const config: ClientConfiguration = await ClientTestUtils.createTestClientConfiguration();
-            const client = new AuthorizationCodeClient(config);
-            const testAccount: AccountInfo = {
-                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_ENCODED_HOME_ACCOUNT_ID,
-                environment: "login.windows.net",
-                tenantId: "testTenantId",
-                username: "test@contoso.com",
-                localAccountId: TEST_DATA_CLIENT_INFO.TEST_LOCAL_ACCOUNT_ID
-            };
-
-            const removeAccountSpy = sinon.stub(CacheManager.prototype, "removeAccount").returns(Promise.resolve(true));
-            await client.clearCacheOnLogout({account: testAccount, correlationId: RANDOM_TEST_GUID});
-            expect(removeAccountSpy.calledWith(AccountEntity.generateAccountCacheKey(testAccount))).toBe(true);
         });
     });
 });

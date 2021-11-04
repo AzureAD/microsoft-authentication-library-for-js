@@ -5,7 +5,7 @@
 
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
-import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, TEST_HASHES, DEFAULT_TENANT_DISCOVERY_RESPONSE, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrlNoRequest } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, TEST_HASHES, DEFAULT_TENANT_DISCOVERY_RESPONSE, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrlNoRequest, TEST_SSH_VALUES } from "../utils/StringConstants";
 import { ServerError, Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationUrlRequest, AuthorizationCodeClient, ResponseMode, AccountEntity, ProtocolUtils, AuthenticationScheme, RefreshTokenClient, Logger, ServerTelemetryEntity, CommonSilentFlowRequest, LogLevel, CommonAuthorizationCodeRequest } from "@azure/msal-common";
 import { ApiId, InteractionType, WrapperSKU, TemporaryCacheKeys, BrowserConstants, BrowserCacheLocation } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
@@ -71,6 +71,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 idTokenClaims: {},
                 accessToken: "test-accessToken",
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + 3600000),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -108,6 +109,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 idTokenClaims: {},
                 accessToken: "test-accessToken",
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + 3600000),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -168,14 +170,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("Multiple concurrent calls to handleRedirectPromise return the same promise", async () => {
             const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
 
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.AUTHORITY}.${stateId}`, TEST_CONFIG.validAuthority);
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`, TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
-            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, BrowserConstants.INTERACTION_IN_PROGRESS_VALUE);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`, TEST_CONFIG.MSAL_CLIENT_ID);
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.NONCE_IDTOKEN}.${stateId}`, "123523");
             const testTokenReq: CommonAuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}/`,
@@ -227,6 +229,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.body.access_token,
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.body.expires_in * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -455,6 +458,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -504,6 +508,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 idTokenClaims: {},
                 accessToken: "test-accessToken",
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + 3600000),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -532,6 +537,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 idTokenClaims: {},
                 accessToken: "test-accessToken",
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + 3600000),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -574,6 +580,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 idTokenClaims: {},
                 accessToken: "test-accessToken",
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + 3600000),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -687,6 +694,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 idTokenClaims: {},
                 accessToken: "test-accessToken",
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + 3600000),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -721,6 +729,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 idTokenClaims: {},
                 accessToken: "test-accessToken",
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + 3600000),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -753,6 +762,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 idTokenClaims: {},
                 accessToken: "test-accessToken",
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + 3600000),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -785,6 +795,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 idTokenClaims: {},
                 accessToken: "test-accessToken",
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + 3600000),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -836,6 +847,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
@@ -906,12 +918,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER
             };
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
             const silentATStub = sinon.stub(RefreshTokenClient.prototype, "acquireTokenByRefreshToken").resolves(testTokenResponse);
+            // Beaerer requests
             const tokenRequest1: CommonSilentFlowRequest = {
                 scopes: ["User.Read"],
                 account: testAccount,
@@ -942,14 +956,102 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 correlationId: RANDOM_TEST_GUID,
                 forceRefresh: false
             };
+
+            // PoP requests
+            const popTokenRequest1: CommonSilentFlowRequest = {
+                scopes: ["User.Read"],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: AuthenticationScheme.POP,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://testUri.com/user.read",
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false
+            }
+
+            const popTokenRequest2: CommonSilentFlowRequest = {
+                scopes: ["Mail.Read"],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: AuthenticationScheme.POP,
+                resourceRequestMethod: "GET",
+                resourceRequestUri: "https://testUri.com/mail.read",
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false
+            }
+            const expectedPopTokenRequest1: CommonSilentFlowRequest = {
+                ...popTokenRequest1,
+                scopes: ["User.Read"],
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID,
+                forceRefresh: false
+            };
+
+            const expectedPopTokenRequest2: CommonSilentFlowRequest = {
+                ...popTokenRequest2,
+                scopes: ["Mail.Read"],
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID,
+                forceRefresh: false
+            };
+
+            // SSH Certificate requests
+            const sshCertRequest1: CommonSilentFlowRequest = {
+                scopes: ["User.Read"],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: AuthenticationScheme.SSH,
+                sshJwk: TEST_SSH_VALUES.ENCODED_SSH_JWK,
+                sshKid: TEST_SSH_VALUES.SSH_KID,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false
+            }
+
+            const sshCertRequest2: CommonSilentFlowRequest = {
+                scopes: ["Mail.Read"],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: AuthenticationScheme.SSH,
+                sshJwk: TEST_SSH_VALUES.ALTERNATE_ENCODED_SSH_JWK,
+                sshKid: TEST_SSH_VALUES.ALTERNATE_SSH_KID,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false
+            }
+
+            const expectedSshCertificateRequest1: CommonSilentFlowRequest = {
+                ...sshCertRequest1,
+                scopes: ["User.Read"],
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID,
+                forceRefresh: false
+            };
+
+            const expectedSshCertificateRequest2: CommonSilentFlowRequest = {
+                ...sshCertRequest2,
+                scopes: ["Mail.Read"],
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID,
+                forceRefresh: false
+            };
+
             const silentRequest1 = pca.acquireTokenSilent(tokenRequest1);
             const silentRequest2 = pca.acquireTokenSilent(tokenRequest1);
             const silentRequest3 = pca.acquireTokenSilent(tokenRequest2);
-            await Promise.all([silentRequest1, silentRequest2, silentRequest3]);
+            const popSilentRequest1 = pca.acquireTokenSilent(popTokenRequest1);
+            const popSilentRequest2 = pca.acquireTokenSilent(popTokenRequest1);
+            const popSilentRequest3 = pca.acquireTokenSilent(popTokenRequest2);
+            const sshCertSilentRequest1 = pca.acquireTokenSilent(sshCertRequest1);
+            const sshCertSilentRequest2 = pca.acquireTokenSilent(sshCertRequest1);
+            const sshCertSilentRequest3 = pca.acquireTokenSilent(sshCertRequest2);
+            await Promise.all([silentRequest1, silentRequest2, silentRequest3, popSilentRequest1, popSilentRequest2, popSilentRequest3, sshCertSilentRequest1, sshCertSilentRequest2, sshCertSilentRequest3]);
 
             expect(silentATStub.calledWith(expectedTokenRequest1)).toBeTruthy();
             expect(silentATStub.calledWith(expectedTokenRequest2)).toBeTruthy();
-            expect(silentATStub.callCount).toEqual(2);
+            expect(silentATStub.calledWith(expectedPopTokenRequest1)).toBeTruthy();
+            expect(silentATStub.calledWith(expectedPopTokenRequest2)).toBeTruthy();
+            expect(silentATStub.calledWith(expectedSshCertificateRequest1)).toBeTruthy();
+            expect(silentATStub.calledWith(expectedSshCertificateRequest2)).toBeTruthy();
+            expect(silentATStub.callCount).toEqual(6);
         });
 
         it("throws error that SilentFlowClient.acquireToken() throws", async () => {
@@ -1054,6 +1156,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 idTokenClaims: testIdTokenClaims,
                 accessToken: testServerTokenResponse.access_token,
                 fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
                 expiresOn: new Date(Date.now() + (testServerTokenResponse.expires_in * 1000)),
                 account: testAccount,
                 tokenType: AuthenticationScheme.BEARER

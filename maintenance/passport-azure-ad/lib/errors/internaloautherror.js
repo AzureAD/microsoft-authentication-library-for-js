@@ -1,4 +1,9 @@
-'use strict';
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
+"use strict";
 
 /**
  * `InternalOAuthError` error.
@@ -12,7 +17,7 @@
 function InternalOAuthError(message, err) {
   Error.call(this);
   Error.captureStackTrace(this, InternalOAuthError);
-  this.name = 'InternalOAuthError';
+  this.name = "InternalOAuthError";
   this.message = message;
   this.oauthError = err;
 }

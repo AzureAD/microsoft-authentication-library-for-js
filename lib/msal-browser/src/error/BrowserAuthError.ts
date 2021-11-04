@@ -49,7 +49,7 @@ export const BrowserAuthErrorMessage = {
         code: "interaction_in_progress",
         desc: "Interaction is currently in progress. Please ensure that this interaction has been completed before calling an interactive API.  For more visit: aka.ms/msaljs/browser-errors."
     },
-    popUpWindowError: {
+    popupWindowError: {
         code: "popup_window_error",
         desc: "Error opening popup window. This can happen if you are using IE or if popups are blocked in the browser."
     },
@@ -85,10 +85,6 @@ export const BrowserAuthErrorMessage = {
         code: "iframe_closed_prematurely",
         desc: "The iframe being monitored was closed prematurely."
     },
-    silentSSOInsufficientInfoError: {
-        code: "silent_sso_error",
-        desc: "Silent SSO could not be completed - insufficient information was provided. Please provide either a loginHint or sid."
-    },
     silentLogoutUnsupportedError: {
         code: "silent_logout_unsupported",
         desc: "Silent logout not supported. Please call logoutRedirect or logoutPopup instead."
@@ -103,7 +99,7 @@ export const BrowserAuthErrorMessage = {
     },
     noTokenRequestCacheError: {
         code: "no_token_request_cache_error",
-        desc: "No token request in found in cache."
+        desc: "No token request found in cache."
     },
     unableToParseTokenRequestCacheError: {
         code: "unable_to_parse_token_request_cache_error",
@@ -152,6 +148,10 @@ export const BrowserAuthErrorMessage = {
     signingKeyNotFoundInStorage: {
         code: "crypto_key_not_found",
         desc: "Cryptographic Key or Keypair not found in browser storage."
+    },
+    databaseUnavailable: {
+        code: "database_unavailable",
+        desc: "IndexedDB, which is required for persistent cryptographic key storage, is unavailable. This may be caused by browser privacy features which block persistent storage in third-party contexts."
     }
 };
 
@@ -249,9 +249,9 @@ export class BrowserAuthError extends AuthError {
      * @param errDetail 
      */
     static createPopupWindowError(errDetail?: string): BrowserAuthError {
-        let errorMessage = BrowserAuthErrorMessage.popUpWindowError.desc;
+        let errorMessage = BrowserAuthErrorMessage.popupWindowError.desc;
         errorMessage = !StringUtils.isEmpty(errDetail) ? `${errorMessage} Details: ${errDetail}` : errorMessage;
-        return new BrowserAuthError(BrowserAuthErrorMessage.popUpWindowError.code, errorMessage);
+        return new BrowserAuthError(BrowserAuthErrorMessage.popupWindowError.code, errorMessage);
     }
 
     /**
@@ -317,13 +317,6 @@ export class BrowserAuthError extends AuthError {
      */
     static createIframeClosedPrematurelyError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.iframeClosedPrematurelyError.code, BrowserAuthErrorMessage.iframeClosedPrematurelyError.desc);
-    }
-
-    /**
-     * Creates an error thrown when the login_hint, sid or account object is not provided in the ssoSilent API.
-     */
-    static createSilentSSOInsufficientInfoError(): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.silentSSOInsufficientInfoError.code, BrowserAuthErrorMessage.silentSSOInsufficientInfoError.desc);
     }
 
     /**
@@ -440,5 +433,12 @@ export class BrowserAuthError extends AuthError {
      */
     static createSigningKeyNotFoundInStorageError(keyId: string): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code, `${BrowserAuthErrorMessage.signingKeyNotFoundInStorage.desc} | No match found for KeyId: ${keyId}`);
+    }
+
+    /**
+     * Create an error when IndexedDB is unavailable
+     */
+    static createDatabaseUnavailableError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.databaseUnavailable.code, BrowserAuthErrorMessage.databaseUnavailable.desc);
     }
 }
