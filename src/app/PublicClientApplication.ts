@@ -61,8 +61,12 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @param request
      */
     async loginRedirect(request?: RedirectRequest): Promise<void> {
-        this.logger.verbose("loginRedirect called");
-        return this.acquireTokenRedirect(request || DEFAULT_REQUEST);
+        const correlationId: string = (request && request.correlationId) || this.browserCrypto.createNewGuid();
+        this.logger.verbose("loginRedirect called", correlationId);
+        return this.acquireTokenRedirect({
+            correlationId,
+            ...(request || DEFAULT_REQUEST)
+        });
     }
 
     /**
@@ -73,8 +77,12 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     loginPopup(request?: PopupRequest): Promise<AuthenticationResult> {
-        this.logger.verbose("loginPopup called");
-        return this.acquireTokenPopup(request || DEFAULT_REQUEST);
+        const correlationId: string = (request && request.correlationId) || this.browserCrypto.createNewGuid();
+        this.logger.verbose("loginPopup called", correlationId);
+        return this.acquireTokenPopup({
+            correlationId,
+            ...(request || DEFAULT_REQUEST)
+        });
     }
 
     /**
@@ -84,6 +92,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
+        request.correlationId = request.correlationId || this.browserCrypto.createNewGuid();
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.verbose("acquireTokenSilent called", request.correlationId);
         const account = request.account || this.getActiveAccount();
