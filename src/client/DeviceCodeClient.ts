@@ -72,7 +72,9 @@ export class DeviceCodeClient extends BaseClient {
             authenticationScheme: request.authenticationScheme,
             resourceRequestMethod: request.resourceRequestMethod,
             resourceRequestUri: request.resourceRequestUri,
-            shrClaims: request.shrClaims
+            shrClaims: request.shrClaims,
+            sshJwk: request.sshJwk,
+            sshKid: request.sshKid
         };
 
         return this.executePostRequestToDeviceCodeEndpoint(this.authority.deviceCodeEndpoint, queryString, headers, thumbprint);
@@ -189,7 +191,9 @@ export class DeviceCodeClient extends BaseClient {
                 authenticationScheme: request.authenticationScheme,
                 resourceRequestMethod: request.resourceRequestMethod,
                 resourceRequestUri: request.resourceRequestUri,
-                shrClaims: request.shrClaims
+                shrClaims: request.shrClaims,
+                sshJwk: request.sshJwk,
+                sshKid: request.sshKid
             };
             const response = await this.executePostToTokenEndpoint(
                 this.authority.tokenEndpoint,
