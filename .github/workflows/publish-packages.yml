@@ -2,7 +2,7 @@ name: Publish Packages
 
 # This action will trigger when Release PR from release-staging branch is merged into dev
 on:
-  pull_request_target:
+  pull_request:
     types: [closed]
     branches:
       - dev
