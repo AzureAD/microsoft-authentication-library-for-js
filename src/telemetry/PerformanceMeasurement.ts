@@ -5,13 +5,15 @@
 
 export class PerformanceMeasurement {
     private measureName: string;
+    private correlationId: string;
     private startMark: string;
     private endMark: string;
 
-    constructor(measureName: string) {
-        this.measureName = `msal.measure.${measureName}`;
-        this.startMark = `msal.start.${measureName}`;
-        this.endMark = `msal.end.${measureName}`;
+    constructor(measureName: string, correlationId?: string) {
+        this.correlationId = correlationId || "";
+        this.measureName = `msal.measure.${measureName}.${correlationId}`;
+        this.startMark = `msal.start.${measureName}.${correlationId}`;
+        this.endMark = `msal.end.${measureName}.${correlationId}`;
     }
 
     static supportsBrowserPerformance(): boolean {
@@ -36,11 +38,11 @@ export class PerformanceMeasurement {
 
     flushMeasurement(): number {
         if (PerformanceMeasurement.supportsBrowserPerformance()) {
-            const duration = window.performance.getEntriesByName(this.measureName, "measure")[0].duration;
+            const durationMs = window.performance.getEntriesByName(this.measureName, "measure")[0].duration;
             window.performance.clearMeasures(this.measureName);
             window.performance.clearMarks(this.startMark);
             window.performance.clearMarks(this.endMark);
-            return duration;
+            return durationMs;
         }
         return 0;
     }
