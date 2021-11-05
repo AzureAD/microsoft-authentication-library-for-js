@@ -92,8 +92,8 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} object
      */
     async acquireTokenSilent(request: SilentRequest): Promise<AuthenticationResult> {
-        const endMeasurement = this.performanceManager.startMeasurement("acquireTokenSilent");
         request.correlationId = request.correlationId || this.browserCrypto.createNewGuid();
+        const endMeasurement = this.performanceManager.startMeasurement("acquireTokenSilent", request.correlationId);
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.verbose("acquireTokenSilent called", request.correlationId);
         const account = request.account || this.getActiveAccount();
@@ -119,19 +119,26 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             const response = this.acquireTokenSilentAsync(request, account)
                 .then((result) => {
                     this.activeSilentTokenRequests.delete(silentRequestKey);
-                    endMeasurement();
+                    endMeasurement({
+                        success: true,
+                        network: !result.fromCache
+                    });
                     return result;
                 })
                 .catch((error) => {
                     this.activeSilentTokenRequests.delete(silentRequestKey);
-                    endMeasurement();
+                    endMeasurement({
+                        success: false
+                    });
                     throw error;
                 });
             this.activeSilentTokenRequests.set(silentRequestKey, response);
             return response;
         } else {
             this.logger.verbose("acquireTokenSilent has been called previously, returning the result from the first call", request.correlationId);
-            endMeasurement();
+            endMeasurement({
+                success: true
+            });
             return cachedResponse;
         }
     }
@@ -143,25 +150,33 @@ export class PublicClientApplication extends ClientApplication implements IPubli
      * @returns {Promise.<AuthenticationResult>} - a promise that is fulfilled when this function has completed, or rejected if an error was raised. Returns the {@link AuthResponse} 
      */
     private async acquireTokenSilentAsync(request: SilentRequest, account: AccountInfo): Promise<AuthenticationResult>{
-        const endMeasurement = this.performanceManager.startMeasurement("acquireTokenSilentAsync");
+        const endMeasurement = this.performanceManager.startMeasurement("acquireTokenSilentAsync", request.correlationId);
         const silentCacheClient = new SilentCacheClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, request.correlationId);
         const silentRequest = silentCacheClient.initializeSilentRequest(request, account);
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
 
         return silentCacheClient.acquireToken(silentRequest)
             .then((result: AuthenticationResult) => {
-                endMeasurement();
+                endMeasurement({
+                    success: true,
+                    network: !result.fromCache
+                });
                 return result;
             })
             .catch(async () => {
                 try {
                     const tokenRenewalResult = await this.acquireTokenByRefreshToken(silentRequest);
                     this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, tokenRenewalResult);
-                    endMeasurement();
+                    endMeasurement({
+                        success: true,
+                        network: !tokenRenewalResult.fromCache
+                    });
                     return tokenRenewalResult;
                 } catch (tokenRenewalError) {
                     this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Silent, null, tokenRenewalError);
-                    endMeasurement();
+                    endMeasurement({
+                        success: false
+                    });
                     throw tokenRenewalError;
                 }
             });

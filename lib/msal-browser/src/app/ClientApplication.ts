@@ -26,7 +26,7 @@ import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
 import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient";
 import { TokenCache } from "../cache/TokenCache";
 import { ITokenCache } from "../cache/ITokenCache";
-import { PerformanceManager } from "../telemetry/PerformanceManager";
+import { PerformanceCallbackFunction, PerformanceManager } from "../telemetry/PerformanceManager";
 
 export abstract class ClientApplication {
 
@@ -118,7 +118,7 @@ export abstract class ClientApplication {
         this.tokenCache = new TokenCache(this.config, this.browserStorage, this.logger, this.browserCrypto);
 
         // Initialize performance manager
-        this.performanceManager = new PerformanceManager(this.logger);
+        this.performanceManager = new PerformanceManager(this.logger, this.browserCrypto);
     }
 
     // #region Redirect Flow
@@ -320,16 +320,19 @@ export abstract class ClientApplication {
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     protected async acquireTokenByRefreshToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
-        const endMeasurement = this.performanceManager.startMeasurement("acquireTokenByRefreshToken");
-        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, request);
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
+        const endMeasurement = this.performanceManager.startMeasurement("acquireTokenByRefreshToken", request.correlationId);
+        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, request);
 
         const silentRefreshClient = new SilentRefreshClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, request.correlationId);
 
         return silentRefreshClient.acquireToken(request)
             .then((result: AuthenticationResult) => {
-                endMeasurement();
+                endMeasurement({
+                    success: true,
+                    network: !result.fromCache
+                });
                 return result;
             })
             .catch(e => {
@@ -340,10 +343,25 @@ export abstract class ClientApplication {
                     this.logger.verbose("Refresh token expired or invalid, attempting acquire token by iframe", request.correlationId);
 
                     const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenSilent_authCode, request.correlationId);
-                    endMeasurement();
-                    return silentIframeClient.acquireToken(request);
+                    return silentIframeClient.acquireToken(request)
+                        .then((result: AuthenticationResult) => {
+                            endMeasurement({
+                                success: true,
+                                network: !result.fromCache
+                            });
+
+                            return result;
+                        })
+                        .catch((error) => {
+                            endMeasurement({
+                                success: false
+                            });
+                            throw error;
+                        });
                 }
-                endMeasurement();
+                endMeasurement({
+                    success: false
+                });
                 throw e;
             });
     }
@@ -529,6 +547,14 @@ export abstract class ClientApplication {
      */
     removeEventCallback(callbackId: string): void {
         this.eventHandler.removeEventCallback(callbackId);
+    }
+
+    addPerformanceCallback(callback: PerformanceCallbackFunction): string | null {
+        return this.performanceManager.addPerformanceCallback(callback);
+    }
+
+    removePerformanceCallback(callbackId: string): void {
+        this.performanceManager.removePerformanceCallback(callbackId);
     }
 
     /**
