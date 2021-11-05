@@ -66,7 +66,7 @@ jobs:
     needs: pre-publish
     if: |
       !failure() && 
-      (contains(toJSON(needs.pre-publish.outputs.packages), 'msal-core') || 
+      (contains(toJSON(needs.pre-publish.outputs.packages), 'core') || 
       github.event.inputs.msal-core == 'y') 
     uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@dev
     with:
@@ -83,7 +83,7 @@ jobs:
     needs: pre-publish
     if: |
       !failure() && 
-      (contains(toJSON(needs.pre-publish.outputs.packages), 'msal-common') || 
+      (contains(toJSON(needs.pre-publish.outputs.packages), 'common') || 
       github.event.inputs.msal-common == 'y') 
     uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@dev
     with:
@@ -97,7 +97,7 @@ jobs:
     needs: [pre-publish, publish-msal-common]
     if: |
       !failure() && 
-      (contains(toJSON(needs.pre-publish.outputs.packages), 'msal-browser') || 
+      (contains(toJSON(needs.pre-publish.outputs.packages), 'browser') || 
       github.event.inputs.msal-browser == 'y') 
     uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@dev
     with:
@@ -114,7 +114,7 @@ jobs:
     needs: [pre-publish, publish-msal-common]
     if: |
       !failure() && 
-      (contains(toJSON(needs.pre-publish.outputs.packages), 'msal-node') || 
+      (contains(toJSON(needs.pre-publish.outputs.packages), 'node') || 
       github.event.inputs.msal-node == 'y') 
     uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@dev
     with:
@@ -128,7 +128,7 @@ jobs:
     needs: [pre-publish, publish-msal-browser]
     if: |
       !failure() && 
-      (contains(toJSON(needs.pre-publish.outputs.packages), 'msal-angular') || 
+      (contains(toJSON(needs.pre-publish.outputs.packages), 'angular') || 
       github.event.inputs.msal-angular == 'y') 
     uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@dev
     with:
@@ -142,7 +142,7 @@ jobs:
     needs: [pre-publish, publish-msal-browser]
     if: |
       !failure() && 
-      (contains(toJSON(needs.pre-publish.outputs.packages), 'msal-react') || 
+      (contains(toJSON(needs.pre-publish.outputs.packages), 'react') || 
       github.event.inputs.msal-react == 'y') 
     uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@dev
     with:
@@ -156,7 +156,7 @@ jobs:
     needs: [pre-publish, publish-msal-common]
     if: |
       !failure() && 
-      (contains(toJSON(needs.pre-publish.outputs.packages), 'msal-node-extensions') || 
+      (contains(toJSON(needs.pre-publish.outputs.packages), 'node-extensions') || 
       github.event.inputs.msal-node-extensions == 'y') 
     uses: AzureAD/microsoft-authentication-library-for-js/.github/workflows/publish-template.yml@dev
     with:
