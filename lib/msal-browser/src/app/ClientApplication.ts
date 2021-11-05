@@ -196,8 +196,9 @@ export abstract class ClientApplication {
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         // Preflight request
+        request.correlationId = request.correlationId || this.browserCrypto.createNewGuid();
+        this.logger.verbose("acquireTokenRedirect called", request.correlationId);
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
-        this.logger.verbose("acquireTokenRedirect called");
 
         // If logged in, emit acquire token events
         const isLoggedIn = this.getAllAccounts().length > 0;
@@ -232,8 +233,9 @@ export abstract class ClientApplication {
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         try {
-            this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
+            request.correlationId = request.correlationId || this.browserCrypto.createNewGuid();
             this.logger.verbose("acquireTokenPopup called", request.correlationId);
+            this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
         } catch (e) {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
@@ -290,6 +292,7 @@ export abstract class ClientApplication {
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
+        request.correlationId = request.correlationId || this.browserCrypto.createNewGuid();
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.verbose("ssoSilent called", request.correlationId);
         this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
@@ -355,8 +358,12 @@ export abstract class ClientApplication {
      * @deprecated
      */
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
-        this.logger.warning("logout API is deprecated and will be removed in msal-browser v3.0.0. Use logoutRedirect instead.");
-        return this.logoutRedirect(logoutRequest);
+        const correlationId = (logoutRequest && logoutRequest.correlationId) || this.browserCrypto.createNewGuid();
+        this.logger.warning("logout API is deprecated and will be removed in msal-browser v3.0.0. Use logoutRedirect instead.", correlationId);
+        return this.logoutRedirect({
+            correlationId,
+            ...logoutRequest
+        });
     }
 
     /**
@@ -365,9 +372,13 @@ export abstract class ClientApplication {
      * @param logoutRequest
      */
     async logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void> {
+        const correlationId = (logoutRequest && logoutRequest.correlationId) || this.browserCrypto.createNewGuid();
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
-        const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, logoutRequest?.correlationId);
-        return redirectClient.logout(logoutRequest);
+        const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, correlationId);
+        return redirectClient.logout({
+            correlationId,
+            ...logoutRequest
+        });
     }
 
     /**
@@ -376,8 +387,9 @@ export abstract class ClientApplication {
      */
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void> {
         try{
+            const correlationId = (logoutRequest && logoutRequest.correlationId) || this.browserCrypto.createNewGuid();
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
-            const popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, logoutRequest?.correlationId);
+            const popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, correlationId);
             return popupClient.logout(logoutRequest);
         } catch (e) {
             // Since this function is syncronous we need to reject
