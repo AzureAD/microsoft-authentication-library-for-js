@@ -31,6 +31,9 @@ on:
         description: "Publish msal-node-extensions?"
         required: false
 
+concurrency:
+  group: publish-packages
+
 # Job will run on a ubuntu instance
 jobs:
   pre-publish:
