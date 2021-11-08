@@ -1,0 +1,6 @@
+{
+  "type": "patch",
+  "packageName": "@azure/msal-angular",
+  "email": "marionminayo@microsoft.com",
+  "dependentChangeType": "patch"
+}
