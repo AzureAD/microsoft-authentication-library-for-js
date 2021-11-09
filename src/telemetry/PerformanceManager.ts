@@ -6,7 +6,7 @@
 import { ICrypto, Logger } from "@azure/msal-common";
 import { PerformanceMeasurement } from "./PerformanceMeasurement";
 
-export type PerformanceCallbackFunction = (event: PerformanceEvent) => void;
+export type PerformanceCallbackFunction = (events: PerformanceEvent[]) => void;
 
 export type PerformanceEvent = {
     durationMs: number,
@@ -14,19 +14,22 @@ export type PerformanceEvent = {
     name: string,
     correlationId?: string,
     success: boolean | null,
-    visible: boolean | null,
-    network: boolean | null,
+    startPageVisibility: VisibilityState | null,
+    endPageVisibility: VisibilityState | null,
+    fromCache: boolean | null,
 };
 
 export class PerformanceManager {
     private logger: Logger;
     private crypto: ICrypto;
     private callbacks: Map<string, PerformanceCallbackFunction>;
+    private eventsByCorrelationId: Map<string, PerformanceEvent[]>;
     
     constructor(logger: Logger, crypto: ICrypto) {
         this.logger = logger;
         this.crypto = crypto;
         this.callbacks = new Map();
+        this.eventsByCorrelationId = new Map();
     }
 
     startMeasurement(measureName: string, correlationId?: string): (event?: Partial<PerformanceEvent>) => PerformanceEvent {
@@ -34,10 +37,12 @@ export class PerformanceManager {
         const performanceMeasure = new PerformanceMeasurement(measureName, correlationId);
         performanceMeasure.startMeasurement();
         const startTimeMs = Date.now();
+        const startPageVisibility = document.visibilityState || null;
 
         return (event?: Partial<PerformanceEvent>): PerformanceEvent => {
             return this.endMeasurement(performanceMeasure, {
                 startTimeMs,
+                startPageVisibility,
                 ...event
             }, measureName, correlationId);
         };
@@ -49,18 +54,43 @@ export class PerformanceManager {
         this.logger.trace(`Performance measurement ended for ${measureName}: ${durationMs} ms`, correlationId);
         const event: PerformanceEvent = {
             success: null,
-            network: null,
+            fromCache: null,
             startTimeMs: 0,
-            ...additionalEventData,
-            visible: document.visibilityState === "visible",
+            startPageVisibility: null,
+            endPageVisibility: document.visibilityState || null,
             durationMs,
             name: measureName,
-            correlationId
+            correlationId,
+            ...additionalEventData,
         };
 
-        this.emitEvent(event);
+        // Immediately flush events without correlation ids
+        if (!correlationId) {
+            this.emitEvents([event]);
+        } else {
+            const events = this.eventsByCorrelationId.get(correlationId);
+            if (events) {
+                this.logger.trace(`Performance measurement for ${measureName} added`, correlationId);
+                events.push(event);
+            } else {
+                this.logger.trace(`Performance measurement for ${measureName} started`, correlationId);
+                this.eventsByCorrelationId.set(correlationId, [event]);
+            }
+        }
 
         return event;
+    }
+
+    flushMeasurements(correlationId?: string): void {
+        if (correlationId) {
+            this.logger.trace("Performance measurements flushed", correlationId);
+            const events = this.eventsByCorrelationId.get(correlationId);
+            if (events) {
+                this.emitEvents(events);
+            }
+        } else {
+            // TODO: Flush all?
+        }
     }
 
     addPerformanceCallback(callback: PerformanceCallbackFunction): string | null {
@@ -80,13 +110,13 @@ export class PerformanceManager {
         this.logger.verbose(`Performance callback ${callbackId} removed.`);
     }
 
-    emitEvent(event: PerformanceEvent): void {
+    emitEvents(events: PerformanceEvent[], correlationId?: string): void {
         if (typeof window !== "undefined") {
-            this.logger.verbose(`Emitting performance event: ${event.name}`, event.correlationId);
+            this.logger.verbose("Emitting performance events", correlationId);
 
             this.callbacks.forEach((callback: PerformanceCallbackFunction, callbackId: string) => {
-                this.logger.verbose(`Emitting event to callback ${callbackId}: ${event.name}`, event.correlationId);
-                callback.apply(null, [event]);
+                this.logger.verbose(`Emitting event to callback ${callbackId}`, correlationId);
+                callback.apply(null, [events]);
             });
         }
     }
