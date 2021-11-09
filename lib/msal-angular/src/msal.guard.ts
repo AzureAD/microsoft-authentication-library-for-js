@@ -194,7 +194,8 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
     }
 
     includesCode(path: string): boolean {
-        return path.lastIndexOf("/code") === path.length - "/code".length || // path.endsWith("/code")
+        return (path.lastIndexOf("/code") > -1 &&
+            path.lastIndexOf("/code") === path.length - "/code".length) || // path.endsWith("/code")
             path.indexOf("#code=") > -1 || 
             path.indexOf("&code=") > -1;
     }

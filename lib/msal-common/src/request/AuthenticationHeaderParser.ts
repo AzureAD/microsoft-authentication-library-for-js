@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ClientConfigurationError } from "..";
+import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { HeaderNames } from "../utils/Constants";
 
 type WWWAuthenticateChallenges = {
