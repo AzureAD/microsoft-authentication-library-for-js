@@ -2,7 +2,9 @@
 
 ## About this sample
 
-This sample demonstrates one way you can integrate the `@azure/msal-browser` package into your Vue 3 application using the [composition API](https://v3.vuejs.org/api/composition-api.html). It is not exhaustive and there may simpler or more complex solutions depending on your specific use case.
+This sample demonstrates one way you can integrate the `@azure/msal-browser` package into your Vue 3 application using the [composition API](https://v3.vuejs.org/api/composition-api.html). It is not exhaustive and there may simpler or more complex solutions depending on your specific use case. 
+
+⚠️ This sample is currently for demonstration purposes only. Support will be limited.
 
 ## How to run the sample
 
@@ -53,7 +55,7 @@ The `cacheLocation` configures where you want your tokens to be stored. SessionS
 ```javascript
 const msalConfig = {
   auth: {
-    clientId: 'your-client-id',
+    clientId: 'ENTER_YOUR_CLIENT_ID_HERE',
     redirectUri: 'http://localhost:3000', // Must be registered as a SPA redirectURI on your app registration
     postLogoutRedirectUri: 'http://localhost:3000', // Must be registered as a SPA redirectURI on your app registration
   },
