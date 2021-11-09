@@ -331,7 +331,7 @@ export abstract class ClientApplication {
             .then((result: AuthenticationResult) => {
                 endMeasurement({
                     success: true,
-                    network: !result.fromCache
+                    fromCache: result.fromCache
                 });
                 return result;
             })
@@ -347,7 +347,7 @@ export abstract class ClientApplication {
                         .then((result: AuthenticationResult) => {
                             endMeasurement({
                                 success: true,
-                                network: !result.fromCache
+                                fromCache: result.fromCache
                             });
 
                             return result;

@@ -121,8 +121,9 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     this.activeSilentTokenRequests.delete(silentRequestKey);
                     endMeasurement({
                         success: true,
-                        network: !result.fromCache
+                        fromCache: result.fromCache
                     });
+                    this.performanceManager.flushMeasurements(request.correlationId);
                     return result;
                 })
                 .catch((error) => {
@@ -130,6 +131,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     endMeasurement({
                         success: false
                     });
+                    this.performanceManager.flushMeasurements(request.correlationId);
                     throw error;
                 });
             this.activeSilentTokenRequests.set(silentRequestKey, response);
@@ -139,6 +141,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             endMeasurement({
                 success: true
             });
+            this.performanceManager.flushMeasurements(request.correlationId);
             return cachedResponse;
         }
     }
@@ -159,7 +162,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             .then((result: AuthenticationResult) => {
                 endMeasurement({
                     success: true,
-                    network: !result.fromCache
+                    fromCache: result.fromCache
                 });
                 return result;
             })
@@ -169,7 +172,7 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                     this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Silent, tokenRenewalResult);
                     endMeasurement({
                         success: true,
-                        network: !tokenRenewalResult.fromCache
+                        fromCache: tokenRenewalResult.fromCache
                     });
                     return tokenRenewalResult;
                 } catch (tokenRenewalError) {

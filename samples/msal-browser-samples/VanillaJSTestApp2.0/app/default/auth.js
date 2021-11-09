@@ -15,8 +15,8 @@ let accountId = "";
 // configuration parameters are located at authConfig.js
 const myMSALObj = new msal.PublicClientApplication(msalConfig);
 
-myMSALObj.addPerformanceCallback((event) => {
-    console.log('perf', event);
+myMSALObj.addPerformanceCallback((events) => {
+    console.log('perf', events);
 })
 
 // Redirect: once login is successful and redirects with tokens, call Graph API

@@ -9,11 +9,11 @@ export class PerformanceMeasurement {
     private startMark: string;
     private endMark: string;
 
-    constructor(measureName: string, correlationId?: string) {
+    constructor(name: string, correlationId?: string) {
         this.correlationId = correlationId || "";
-        this.measureName = `msal.measure.${measureName}.${correlationId}`;
-        this.startMark = `msal.start.${measureName}.${correlationId}`;
-        this.endMark = `msal.end.${measureName}.${correlationId}`;
+        this.measureName = `msal.measure.${name}.${this.correlationId}`;
+        this.startMark = `msal.start.${name}.${this.correlationId}`;
+        this.endMark = `msal.end.${name}.${this.correlationId}`;
     }
 
     static supportsBrowserPerformance(): boolean {
