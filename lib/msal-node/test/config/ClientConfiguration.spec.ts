@@ -80,6 +80,17 @@ describe('ClientConfiguration tests', () => {
         expect(config.auth!.authority).toEqual(TEST_CONSTANTS.DEFAULT_AUTHORITY);
     });
 
+    test('builds configuration and assigns default authority when length of string equals zero', () => {
+        const config: Configuration = buildAppConfiguration({
+            auth: {
+                clientId: TEST_CONSTANTS.CLIENT_ID,
+                authority: ""
+            },
+        });
+
+        expect(config.auth!.authority).toEqual(TEST_CONSTANTS.DEFAULT_AUTHORITY);
+    });
+
     test('builds configuration and assigns default functions', () => {
         const testNetworkResult = {
             testParam: 'testValue',
