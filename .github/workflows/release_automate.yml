@@ -6,6 +6,10 @@ on:
     types: [closed]
     branches:
       - dev
+      
+concurrency:
+  group: release-staging
+  cancel-in-progress: true
 
 jobs:
   release:
@@ -34,7 +38,7 @@ jobs:
 
       - name: Get release date
         id: release-date
-        run: echo "::set-output name=date::$(node release-scripts/getReleaseDate.js)"
+        run: echo "::set-output name=date::$(node release-scripts/getReleaseDate.js -branch)"
 
       # Create/update Pull Request
       - name: Create Pull Request

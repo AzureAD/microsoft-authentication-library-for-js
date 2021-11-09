@@ -14,7 +14,7 @@ import {
     ProtocolMode,
     Logger,
     LogLevel
-} from '@azure/msal-common';
+} from '@azure/msal-common";
 
 import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest";
 import { DeviceCodeRequest } from "../../src/request/DeviceCodeRequest";

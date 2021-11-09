@@ -8,6 +8,7 @@ import App from './App';
 // MSAL imports
 import { PublicClientApplication, EventType, EventMessage, AuthenticationResult } from "@azure/msal-browser";
 import { msalConfig } from "./authConfig";
+import { AppInsightsProvider } from './AnalyticsProvider';
 
 export const msalInstance = new PublicClientApplication(msalConfig);
 
@@ -25,10 +26,14 @@ msalInstance.addEventCallback((event: EventMessage) => {
     }
 });
 
+
+
 ReactDOM.render(
     <Router>
         <ThemeProvider theme={theme}>
-            <App pca={msalInstance} />
+            <AppInsightsProvider>
+                <App pca={msalInstance} />
+            </AppInsightsProvider>
         </ThemeProvider>
     </Router>,
     document.getElementById('root')
