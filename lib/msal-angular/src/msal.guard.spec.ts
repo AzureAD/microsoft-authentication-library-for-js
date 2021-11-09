@@ -223,6 +223,45 @@ describe('MsalGuard', () => {
         });
   });
 
+  it("returns true if page route doesnt end with /code (short path)", (done) => {
+    initializeMsal([
+        {
+            provide: Location,
+            useValue: {
+                path: jasmine.createSpy("path").and.callFake((hash: boolean) => hash ? "/cod": "/"),
+                prepareExternalUrl: jasmine.createSpy("prepareExternalUrl").and.callFake((url: string) => "#/cod")
+            }
+        }
+    ])
+
+    routeStateMock = { 
+        snapshot: {}, 
+        url: '/cod',
+        root: {
+            fragment: null
+        }
+    };
+
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
+        //@ts-ignore
+        of("test")
+    );
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
+        homeAccountId: "test",
+        localAccountId: "test",
+        environment: "test",
+        tenantId: "test",
+        username: "test"
+      }]);
+  
+    guard.canActivate(routeMock, routeStateMock)
+        .subscribe((result: UrlTree) => {
+            expect(result).toBeTrue();
+            done();
+        });
+  });
+
   it("returns false if page contains known successful response (hash routing)", (done) => {
     initializeMsal([
         {
