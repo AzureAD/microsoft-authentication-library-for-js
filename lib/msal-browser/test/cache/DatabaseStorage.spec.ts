@@ -90,12 +90,12 @@ describe("DatabaseStorage.ts unit tests", () => {
         });
 
         it("successfully retrieves an asymmetric keypair", async () => {
-            const cachedAsymmetricKey = await asymmetricKeys.get(testKeyPairEntry.key);
+            const cachedAsymmetricKey = await asymmetricKeys.getItem(testKeyPairEntry.key);
             expect(cachedAsymmetricKey).toStrictEqual(testKeyPairEntry.value);
         });
 
         it("successfully retrieves a symmetric key", async () => {
-            const cachedSymmetrickey = await symmetricKeys.get(testSymmetricKeyEntry.key);
+            const cachedSymmetrickey = await symmetricKeys.getItem(testSymmetricKeyEntry.key);
             expect(cachedSymmetrickey).toStrictEqual(testSymmetricKeyEntry.value);
         });
     });

@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Support React version 16.8.0+",
-  "packageName": "@azure/msal-react",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
