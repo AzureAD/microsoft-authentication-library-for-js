@@ -237,8 +237,7 @@ jobs:
 
       - name: Get branch
         id: get-branch
-        # TODO: Update this script to output the date with '-' instead of ' '
-        run: echo "::set-output name=date::$(node release-scripts/getReleaseDate.js)"
+        run: echo "::set-output name=date::$(node release-scripts/getReleaseDate.js -branch)"
 
       # Create Pull Request from post-release-month-year to dev
       - name: Create Pull Request
@@ -246,7 +245,7 @@ jobs:
         uses: peter-evans/create-pull-request@v3
         with:
           commit-message: Post-release
-          branch: post-release-${{steps.release-date.outputs.date}}
+          branch: post-release-${{steps.get-branch.outputs.date}}
           title: "${{ steps.release-date.outputs.date }} Post Release"
           body: |
             This PR contains package lock updates & cdn README updates for msal-browser and msal-core.
