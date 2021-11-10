@@ -46,7 +46,6 @@
     "build:modules:watch": "rollup -cw",
     "build": "npm run clean && npm run build:modules",
     "build:all": "npm run build",
-    "link:localDeps": "echo No dependencies to link",
     "prepack": "npm run build"
   },
   "devDependencies": {
