@@ -19,7 +19,6 @@ export class SignedHttpRequest {
 
     constructor(shrParameters: SignedHttpRequestParameters, shrOptions?: SignedHttpRequestOptions) {
         const loggerOptions = (shrOptions && shrOptions.loggerOptions) || {};
-        
         this.logger = new Logger(loggerOptions, name, version);
         this.cryptoOps = new CryptoOps(this.logger);
         this.popTokenGenerator = new PopTokenGenerator(this.cryptoOps);
