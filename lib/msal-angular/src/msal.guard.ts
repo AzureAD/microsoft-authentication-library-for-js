@@ -12,7 +12,6 @@ import { MsalGuardConfiguration } from "./msal.guard.config";
 import { MSAL_GUARD_CONFIG } from "./constants";
 import { concatMap, catchError, map } from "rxjs/operators";
 import { Observable, of } from "rxjs";
-import { MsalBroadcastService } from "./msal.broadcast.service";
 
 @Injectable()
 export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
@@ -20,18 +19,14 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
 
     constructor(
         @Inject(MSAL_GUARD_CONFIG) private msalGuardConfig: MsalGuardConfiguration,
-        private msalBroadcastService: MsalBroadcastService,
         private authService: MsalService,
         private location: Location,
         private router: Router
-    ) { 
-        // Subscribing so events in MsalGuard will set inProgress$ observable
-        this.msalBroadcastService.inProgress$.subscribe();
-    }
+    ) { }
 
     /**
      * Parses url string to UrlTree
-     * @param url 
+     * @param url
      */
     parseUrl(url: string): UrlTree {
         return this.router.parseUrl(url);
@@ -97,7 +92,7 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
 
     /**
      * Helper which checks for the correct interaction type, prevents page with Guard to be set as reidrect, and calls handleRedirectObservable
-     * @param state 
+     * @param state
      */
     private activateHelper(state?: RouterStateSnapshot): Observable<boolean|UrlTree> {
         if (this.msalGuardConfig.interactionType !== InteractionType.Popup && this.msalGuardConfig.interactionType !== InteractionType.Redirect) {
@@ -136,7 +131,7 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
                         if (state) {
                             this.authService.getLogger().verbose("Guard - no accounts retrieved, log in required to activate");
                             return this.loginInteractively(state);
-                        } 
+                        }
                         this.authService.getLogger().verbose("Guard - no accounts retrieved, no state, cannot load");
                         return of(false);
                     }
@@ -163,12 +158,12 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
                         // Ensure code parameter is in fragment (and not in query parameter), or that hash hash routing is used
                         if (urlContainsCode && (fragmentContainsCode || hashRouting)) {
                             this.authService.getLogger().info("Guard - Hash contains known code response, stopping navigation.");
-                            
+
                             // Path routing (navigate to current path without hash)
                             if (currentPath.indexOf("#") > -1) {
                                 return of(this.parseUrl(this.location.path()));
                             }
-                            
+
                             // Hash routing (navigate to root path)
                             return of(this.parseUrl(""));
                         }
@@ -196,7 +191,7 @@ export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {
     includesCode(path: string): boolean {
         return (path.lastIndexOf("/code") > -1 &&
             path.lastIndexOf("/code") === path.length - "/code".length) || // path.endsWith("/code")
-            path.indexOf("#code=") > -1 || 
+            path.indexOf("#code=") > -1 ||
             path.indexOf("&code=") > -1;
     }
 
