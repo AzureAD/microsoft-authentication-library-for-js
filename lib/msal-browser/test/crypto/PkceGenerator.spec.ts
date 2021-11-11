@@ -45,7 +45,7 @@ describe("PkceGenerator.ts Unit Tests", () => {
 
     it("generateCodes() generates valid pkce codes with msCrypto", async () => {
         //@ts-ignore
-        jest.spyOn(MsBrowserCrypto.prototype, "digest").mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
+        jest.spyOn(BrowserCrypto.prototype, "sha256Digest").mockImplementation((data: Uint8Array): Promise<ArrayBuffer> => {
             return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
         });
         jest.spyOn(MsBrowserCrypto.prototype, "getRandomValues").mockImplementation((data: Uint8Array) => msrCrypto.getRandomValues(data));
