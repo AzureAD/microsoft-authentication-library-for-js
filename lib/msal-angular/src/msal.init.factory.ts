@@ -11,9 +11,9 @@ export function msalInitFactory(
     msalBroadcastService: MsalBroadcastService
 ): () => Promise<void> {
     return async (): Promise<void> => {
-        await authService.handleRedirectObservable().toPromise();
-
         // Subscribing so events in MsalGuard will set inProgress$ observable
         msalBroadcastService.inProgress$.subscribe();
+
+        await authService.handleRedirectObservable().toPromise();
     };
 }

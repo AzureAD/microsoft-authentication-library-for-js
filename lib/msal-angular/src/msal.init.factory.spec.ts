@@ -1,12 +1,8 @@
-import { APP_INITIALIZER } from '@angular/core';
+import { ApplicationInitStatus, APP_INITIALIZER } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
-import { InteractionType, PublicClientApplication } from '@azure/msal-browser';
-import { MsalBroadcastService } from './msal.broadcast.service';
+import { PublicClientApplication } from '@azure/msal-browser';
 import { msalInitFactory } from './msal.init.factory';
-import { MsalModule, MsalService } from './public-api';
-
-let handleRedirectPromiseSpy: jasmine.Spy;
-let inProgressSubscribeSpy: jasmine.Spy;
+import { MsalModule, MsalService, MsalBroadcastService } from './public-api';
 
 const msalInstance = new PublicClientApplication({
   auth: {
@@ -15,44 +11,42 @@ const msalInstance = new PublicClientApplication({
   }
 });
 
-describe('msalInitFactory', () => {
-  beforeEach(() => {
+fdescribe('msalInitFactory', () => {
+  let inProgressSubscribeSpy: jasmine.Spy;
+  let handleRedirectObservableSpy: jasmine.Spy;
+
+  it("should execute msalInitFactory on APP_INITIALIZER", async () => {
     TestBed.resetTestingModule();
-
-    const sampleAccessToken = {
-      accessToken: "123abc"
-    };
-
-    handleRedirectPromiseSpy = spyOn(PublicClientApplication.prototype, "handleRedirectPromise").and.returnValue((
-      new Promise((resolve) => {
-        //@ts-ignore
-        resolve(sampleAccessToken);
-      })
-    ));
-
-    inProgressSubscribeSpy = spyOn(MsalBroadcastService.prototype.inProgress$, "subscribe").and.callThrough();
 
     TestBed.configureTestingModule({
       imports: [
-        MsalModule.forRoot(msalInstance, null, {interactionType: InteractionType.Popup, protectedResourceMap: new Map()})
+        MsalModule.forRoot(msalInstance, null, null)
       ],
       providers: [
         {
           provide: APP_INITIALIZER,
-          useFactory: msalInitFactory,
+          useFactory: (
+            authService: MsalService,
+            msalBroadcastService: MsalBroadcastService
+          ) => {
+            inProgressSubscribeSpy = spyOn(msalBroadcastService.inProgress$, "subscribe").and.callThrough();
+            handleRedirectObservableSpy = spyOn(authService, "handleRedirectObservable").and.callThrough();
+
+            return msalInitFactory(authService, msalBroadcastService);
+          },
           deps: [
-              MsalService,
-              MsalBroadcastService
+            MsalService,
+            MsalBroadcastService
           ],
           multi: true
         },
       ]
     });
-  });
 
-  it("should execute msalInitFactory on APP_INITIALIZER", (done) => {
-    expect(handleRedirectPromiseSpy).toHaveBeenCalledTimes(1);
-    expect(inProgressSubscribeSpy).toHaveBeenCalledTimes(1);
+    await TestBed.inject(ApplicationInitStatus).donePromise;
+
+    expect(handleRedirectObservableSpy).toHaveBeenCalled();
+    expect(inProgressSubscribeSpy).toHaveBeenCalled();
   });
 
 });
