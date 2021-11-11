@@ -107,6 +107,7 @@ export class CryptoOps implements ICrypto {
             kty: publicKeyJwk.kty,
             n: publicKeyJwk.n
         };
+        
         const publicJwkString: string = BrowserStringUtils.getSortedObjectString(pubKeyThumprintObj);
         const publicJwkBuffer: ArrayBuffer = await this.browserCrypto.sha256Digest(publicJwkString);
         const publicJwkHash: string = this.b64Encode.urlEncodeArr(new Uint8Array(publicJwkBuffer));

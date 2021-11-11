@@ -72,9 +72,9 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 level: LogLevel,
                 message: string,
                 containsPii: boolean
-                ): void => {},
-                piiLoggingEnabled: true,
-            };
+            ): void => {},
+            piiLoggingEnabled: true,
+        };
         const logger = new Logger(loggerConfig);
         browserCrypto = new CryptoOps(logger);
         browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, browserCrypto, logger);
