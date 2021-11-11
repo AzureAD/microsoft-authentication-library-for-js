@@ -116,7 +116,7 @@ describe("InteractionHandler.ts Unit Tests", () => {
 
     let authCodeModule: AuthorizationCodeClient;
     let browserStorage: BrowserCacheManager;
-    const cryptoOpts = new CryptoOps();
+    const cryptoOpts = new CryptoOps(testBrowserRequestLogger);
 
     beforeEach(() => {
         const appConfig: Configuration = {

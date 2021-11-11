@@ -171,7 +171,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("Multiple concurrent calls to handleRedirectPromise return the same promise", async () => {
             const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
 
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);

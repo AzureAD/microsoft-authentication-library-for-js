@@ -68,7 +68,7 @@ describe("RedirectClient", () => {
         it("does nothing if no hash is detected", (done) => {
             browserStorage.setInteractionInProgress(true);
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             redirectClient.handleRedirectPromise().then((response) => {
@@ -82,7 +82,7 @@ describe("RedirectClient", () => {
         it("cleans temporary cache and return null if no state", (done) => {
             browserStorage.setInteractionInProgress(true);
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             sinon.stub(RedirectClient.prototype, <any>"getRedirectResponseHash").returns(TEST_HASHES.TEST_SUCCESS_HASH_NO_STATE);
@@ -97,7 +97,7 @@ describe("RedirectClient", () => {
         it("cleans temporary cache and return null if state is wrong interaction type", (done) => {
             browserStorage.setInteractionInProgress(true);
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             sinon.stub(RedirectClient.prototype, <any>"getRedirectResponseHash").returns(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
@@ -112,7 +112,7 @@ describe("RedirectClient", () => {
         it("cleans temporary cache and rethrows if error is thrown", (done) => {
             browserStorage.setInteractionInProgress(true);
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             const testError = {
@@ -131,7 +131,7 @@ describe("RedirectClient", () => {
         it("cleans temporary cache and return null if state cannot be decoded", (done) => {
             browserStorage.setInteractionInProgress(true);
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_STATE}.${stateId}`, TEST_STATE_VALUES.TEST_STATE_REDIRECT);
             //sinon.stub(BrowserProtocolUtils, "extractBrowserRequestState").returns(null);
@@ -147,7 +147,7 @@ describe("RedirectClient", () => {
         it("gets hash from cache and processes response", async () => {
             const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
 
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
@@ -234,7 +234,7 @@ describe("RedirectClient", () => {
         it("throws no cached authority error if authority is not in cache", (done) => {
             const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
 
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
@@ -271,7 +271,7 @@ describe("RedirectClient", () => {
             };
 
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
 
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.REQUEST_PARAMS}`, browserCrypto.base64Encode(JSON.stringify(testAuthCodeRequest)));
@@ -290,7 +290,7 @@ describe("RedirectClient", () => {
         it("processes hash if navigateToLoginRequestUri is false and request origin is the same", async () => {
             const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
 
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
@@ -393,7 +393,7 @@ describe("RedirectClient", () => {
         it("calls custom navigateInternal function then processes hash", async () => {
             const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
 
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
@@ -511,7 +511,7 @@ describe("RedirectClient", () => {
         it("processes hash if navigateToLoginRequestUri is false and request origin is different", async () => {
             const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
 
             window.location.hash = TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT;
@@ -619,7 +619,7 @@ describe("RedirectClient", () => {
         });
 
         it("returns null if interaction is in progress for a different clientId", async () => {
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const logger = new Logger({});
             const secondInstanceStorage = new BrowserCacheManager("different-client-id", cacheConfig, browserCrypto, logger);
             secondInstanceStorage.setInteractionInProgress(true);
@@ -822,7 +822,7 @@ describe("RedirectClient", () => {
         });
 
         it("throws if interaction is currently in progress for a different clientId", async () => {
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const logger = new Logger({});
             const secondInstanceStorage = new BrowserCacheManager("different-client-id", cacheConfig, browserCrypto, logger);
             secondInstanceStorage.setInteractionInProgress(true);
@@ -917,7 +917,7 @@ describe("RedirectClient", () => {
             });
             const testLogger = new Logger(loggerOptions);
 
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             await redirectClient.acquireToken(emptyRequest);
             expect(browserStorage.getTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(TEST_STATE_VALUES.TEST_STATE_REDIRECT);
@@ -964,7 +964,7 @@ describe("RedirectClient", () => {
             });
             const testLogger = new Logger(loggerOptions);
 
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             await redirectClient.acquireToken(emptyRequest);
             expect(browserStorage.getTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(TEST_STATE_VALUES.TEST_STATE_REDIRECT);
@@ -1019,7 +1019,7 @@ describe("RedirectClient", () => {
             });
             const testLogger = new Logger(loggerOptions);
 
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             await redirectClient.acquireToken(emptyRequest);
             expect(browserStorage.getTemporaryCache(browserStorage.generateStateKey(TEST_STATE_VALUES.TEST_STATE_REDIRECT))).toEqual(TEST_STATE_VALUES.TEST_STATE_REDIRECT);
@@ -1051,7 +1051,7 @@ describe("RedirectClient", () => {
                 return Promise.resolve(true);
             });
 
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             await redirectClient.acquireToken(tokenRequest);
@@ -1075,7 +1075,7 @@ describe("RedirectClient", () => {
                 authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
             };
 
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
@@ -1116,7 +1116,7 @@ describe("RedirectClient", () => {
                 "upn": "AbeLincoln@contoso.com"
             };
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
@@ -1169,7 +1169,7 @@ describe("RedirectClient", () => {
                 "preferred_username": "AbeLincoln@contoso.com"
             };
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
@@ -1223,7 +1223,7 @@ describe("RedirectClient", () => {
                 "preferred_username": "AbeLincoln@contoso.com"
             };
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
@@ -1276,7 +1276,7 @@ describe("RedirectClient", () => {
                 "preferred_username": "AbeLincoln@contoso.com"
             };
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             browserStorage.setTemporaryCache(PersistentCacheKeys.ID_TOKEN, TEST_TOKENS.IDTOKEN_V1, true);
@@ -1329,7 +1329,7 @@ describe("RedirectClient", () => {
                 "upn": "AbeLincoln@contoso.com"
             };
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
@@ -1438,7 +1438,7 @@ describe("RedirectClient", () => {
                 expect(urlNavigate).not.toBe("");
                 return Promise.resolve(true);
             });
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             await redirectClient.acquireToken(emptyRequest);
@@ -1468,7 +1468,7 @@ describe("RedirectClient", () => {
                 expect(urlNavigate).not.toBe("");
                 return Promise.resolve(true);
             });
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             await redirectClient.acquireToken(tokenRequest);
@@ -1492,7 +1492,7 @@ describe("RedirectClient", () => {
                 nonce: "",
                 authenticationScheme: TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme
             };
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
@@ -1533,7 +1533,7 @@ describe("RedirectClient", () => {
                 "upn": "AbeLincoln@contoso.com"
             };
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);
@@ -1586,7 +1586,7 @@ describe("RedirectClient", () => {
                 "upn": "AbeLincoln@contoso.com"
             };
             sinon.stub(AuthToken, "extractTokenClaims").returns(idTokenClaims);
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
             const browserStorage: BrowserCacheManager = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, testLogger);
             browserStorage.setTemporaryCache(PersistentCacheKeys.ADAL_ID_TOKEN, TEST_TOKENS.IDTOKEN_V1);

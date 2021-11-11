@@ -170,7 +170,7 @@ Our [Angular 10 sample](https://github.com/AzureAD/microsoft-authentication-libr
 
 ### Using the MSAL Guard with hash routing
 
-When using the `HashLocationStrategy` with your Angular app, we recommend setting placeholder routes (such as `/code`) in your *app-routing.module.ts* to prevent triggering the Angular router when AAD returns the auth code response in the hash. These placeholder routes should not be protected by the `MsalGuard`, and should not point to a component that triggers interaction or makes protected API calls on page load.
+When using the `HashLocationStrategy` with your Angular app, we strongly recommend setting placeholder routes (such as `/code`) in your *app-routing.module.ts* to prevent triggering the Angular router when AAD returns the auth code response in the hash, as you may experience issues completing authentication without doing so. These placeholder routes should not be protected by the `MsalGuard`, and should not point to a component that triggers interaction or makes protected API calls on page load.
 
 ```javascript
 const routes: Routes = [
