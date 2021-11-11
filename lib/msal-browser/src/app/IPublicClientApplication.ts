@@ -14,6 +14,7 @@ import { WrapperSKU } from "../utils/BrowserConstants";
 import { INavigationClient } from "../navigation/INavigationClient";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { ITokenCache } from "../cache/ITokenCache";
+import { BrowserConfiguration } from "../config/Configuration";
 
 export interface IPublicClientApplication {
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
@@ -21,6 +22,8 @@ export interface IPublicClientApplication {
     acquireTokenSilent(silentRequest: SilentRequest): Promise<AuthenticationResult>;
     addEventCallback(callback: Function): string | null;
     removeEventCallback(callbackId: string): void;
+    enableAccountStorageEvents(): void;
+    disableAccountStorageEvents(): void;
     getAccountByHomeId(homeAccountId: string): AccountInfo | null;
     getAccountByLocalId(localId: string): AccountInfo | null;
     getAccountByUsername(userName: string): AccountInfo | null;
@@ -39,6 +42,7 @@ export interface IPublicClientApplication {
     getActiveAccount(): AccountInfo | null;
     initializeWrapperLibrary(sku: WrapperSKU, version: string): void;
     setNavigationClient(navigationClient: INavigationClient): void;
+    getConfiguration(): BrowserConfiguration;
 }
 
 export const stubbedPublicClientApplication: IPublicClientApplication = {
@@ -90,6 +94,12 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     removeEventCallback: () => {
         return;
     },
+    enableAccountStorageEvents: () => {
+        return;
+    },
+    disableAccountStorageEvents: () => {
+        return;
+    },
     getTokenCache: () => {
         throw BrowserConfigurationAuthError.createStubPcaInstanceCalledError();
     },
@@ -110,5 +120,8 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
     },
     setNavigationClient: () => {
         return;
+    },
+    getConfiguration: () => {
+        throw BrowserConfigurationAuthError.createStubPcaInstanceCalledError();
     }
 };

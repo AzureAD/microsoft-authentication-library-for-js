@@ -111,12 +111,19 @@ describe('MsalGuard', () => {
         {
             provide: Location,
             useValue: {
-                path: jasmine.createSpy("path").and.callFake((hash: boolean) => hash ? "/path#code=": "/path")
+                path: jasmine.createSpy("path").and.callFake((hash: boolean) => hash ? "/path?code=123#code=456": "/path"),
+                prepareExternalUrl: jasmine.createSpy("prepareExternalUrl").and.callFake((url: string) => "/path")
             }
         }
     ])
 
-    routeStateMock = { snapshot: {}, url: '/path#code=' };
+    routeStateMock = { 
+        snapshot: {}, 
+        url: '/path?code=123#code=456',
+        root: {
+            fragment: "code=456"
+        }
+    };
 
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
         //@ts-ignore
@@ -138,17 +145,141 @@ describe('MsalGuard', () => {
         });
   });
 
+  it("returns true if page contains code= in query parameters only", (done) => {
+    initializeMsal([
+        {
+            provide: Location,
+            useValue: {
+                path: jasmine.createSpy("path").and.callFake((hash: boolean) => hash ? "/path?code=123": "/path"),
+                prepareExternalUrl: jasmine.createSpy("prepareExternalUrl").and.callFake((url: string) => "/path")
+            }
+        }
+    ])
+
+    routeStateMock = { 
+        snapshot: {}, 
+        url: '/path?code=123',
+        root: {
+            fragment: null
+        }
+    };
+
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
+        //@ts-ignore
+        of("test")
+    );
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
+        homeAccountId: "test",
+        localAccountId: "test",
+        environment: "test",
+        tenantId: "test",
+        username: "test"
+      }]);
+  
+    guard.canActivate(routeMock, routeStateMock)
+        .subscribe((result: UrlTree) => {
+            expect(result).toBeTrue();
+            done();
+        });
+  });
+
+  it("returns true if page route doesnt end with /code", (done) => {
+    initializeMsal([
+        {
+            provide: Location,
+            useValue: {
+                path: jasmine.createSpy("path").and.callFake((hash: boolean) => hash ? "/codes": "/"),
+                prepareExternalUrl: jasmine.createSpy("prepareExternalUrl").and.callFake((url: string) => "#/codes")
+            }
+        }
+    ])
+
+    routeStateMock = { 
+        snapshot: {}, 
+        url: '/codes',
+        root: {
+            fragment: null
+        }
+    };
+
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
+        //@ts-ignore
+        of("test")
+    );
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
+        homeAccountId: "test",
+        localAccountId: "test",
+        environment: "test",
+        tenantId: "test",
+        username: "test"
+      }]);
+  
+    guard.canActivate(routeMock, routeStateMock)
+        .subscribe((result: UrlTree) => {
+            expect(result).toBeTrue();
+            done();
+        });
+  });
+
+  it("returns true if page route doesnt end with /code (short path)", (done) => {
+    initializeMsal([
+        {
+            provide: Location,
+            useValue: {
+                path: jasmine.createSpy("path").and.callFake((hash: boolean) => hash ? "/cod": "/"),
+                prepareExternalUrl: jasmine.createSpy("prepareExternalUrl").and.callFake((url: string) => "#/cod")
+            }
+        }
+    ])
+
+    routeStateMock = { 
+        snapshot: {}, 
+        url: '/cod',
+        root: {
+            fragment: null
+        }
+    };
+
+    spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
+        //@ts-ignore
+        of("test")
+    );
+
+    spyOn(PublicClientApplication.prototype, "getAllAccounts").and.returnValue([{
+        homeAccountId: "test",
+        localAccountId: "test",
+        environment: "test",
+        tenantId: "test",
+        username: "test"
+      }]);
+  
+    guard.canActivate(routeMock, routeStateMock)
+        .subscribe((result: UrlTree) => {
+            expect(result).toBeTrue();
+            done();
+        });
+  });
+
   it("returns false if page contains known successful response (hash routing)", (done) => {
     initializeMsal([
         {
             provide: Location,
             useValue: {
-                path: jasmine.createSpy("path").and.callFake((hash: boolean) => hash ? "/code=": "/")
+                path: jasmine.createSpy("path").and.callFake((hash: boolean) => hash ? "/code=": "/"),
+                prepareExternalUrl: jasmine.createSpy("prepareExternalUrl").and.callFake((url: string) => "#/")
             }
         }
     ])
 
-    routeStateMock = { snapshot: {}, url: '/code=' };
+    routeStateMock = { 
+        snapshot: {}, 
+        url: '/code',
+        root: {
+            fragment: null
+        }
+    };
 
     spyOn(MsalService.prototype, "handleRedirectObservable").and.returnValue(
         //@ts-ignore

@@ -209,29 +209,23 @@ export class WindowUtils {
         if (typeof iframeId === "undefined") {
             return null;
         }
-
+        
+        logger.info("Add msal iframe to document");
         logger.infoPii("Add msal frame to document:" + iframeId);
         let adalFrame = document.getElementById(iframeId) as HTMLIFrameElement;
         if (!adalFrame) {
-            if (document.createElement &&
-        document.documentElement &&
-        (window.navigator.userAgent.indexOf("MSIE 5.0") === -1)) {
-                const ifr = document.createElement("iframe");
-                ifr.setAttribute("id", iframeId);
-                ifr.setAttribute("aria-hidden", "true");
-                ifr.style.visibility = "hidden";
-                ifr.style.position = "absolute";
-                ifr.style.width = ifr.style.height = "0";
-                ifr.style.border = "0";
-                ifr.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms");
-                adalFrame = (document.getElementsByTagName("body")[0].appendChild(ifr) as HTMLIFrameElement);
-            } else if (document.body && document.body.insertAdjacentHTML) {
-                document.body.insertAdjacentHTML("beforeend", "<iframe name='" + iframeId + "' id='" + iframeId + "' style='display:none'></iframe>");
-            }
-
-            if (window.frames && window.frames[iframeId]) {
-                adalFrame = window.frames[iframeId];
-            }
+            logger.verbose("Add msal iframe does not exist");
+            const ifr = document.createElement("iframe");
+            ifr.setAttribute("id", iframeId);
+            ifr.setAttribute("aria-hidden", "true");
+            ifr.style.visibility = "hidden";
+            ifr.style.position = "absolute";
+            ifr.style.width = ifr.style.height = "0";
+            ifr.style.border = "0";
+            ifr.setAttribute("sandbox", "allow-scripts allow-same-origin allow-forms");
+            adalFrame = (document.getElementsByTagName("body")[0].appendChild(ifr) as HTMLIFrameElement);
+        } else {
+            logger.verbose("Add msal iframe already exists");
         }
 
         return adalFrame;

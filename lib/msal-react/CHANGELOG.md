@@ -1,8 +1,30 @@
 # Change Log - @azure/msal-react
 
-This log was last generated on Tue, 07 Sep 2021 23:22:24 GMT and should not be manually modified.
+This log was last generated on Mon, 01 Nov 2021 23:53:22 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.1.1
+
+Mon, 01 Nov 2021 23:53:22 GMT
+
+### Patches
+
+- Support React version 16.8.0+ (thomas.norling@microsoft.com)
+- Bump @azure/msal-browser to v2.19.0
+
+## 1.1.0
+
+Mon, 04 Oct 2021 23:12:35 GMT
+
+### Minor changes
+
+- Update account state when user logs in or out from a different tab or window #3981 (thomas.norling@microsoft.com)
+- Bump @azure/msal-browser to v2.18.0
+
+### Patches
+
+- Export library version #4124 (thomas.norling@microsoft.com)
 
 ## 1.0.2
 
