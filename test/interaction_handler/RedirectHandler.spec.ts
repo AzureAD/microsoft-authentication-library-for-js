@@ -35,7 +35,7 @@ const testNetworkResult = {
     testParam: "testValue"
 };
 
-const browserCrypto = new CryptoOps();
+let browserCrypto: CryptoOps;
 
 const networkInterface = {
     sendGetRequestAsync<T>(): T {
@@ -67,7 +67,6 @@ describe("RedirectHandler.ts Unit Tests", () => {
             authorityMetadata: ""
         }
         authorityInstance = AuthorityFactory.createInstance(configObj.auth.authority, networkInterface, browserStorage, authorityOptions);
-        const browserCrypto = new CryptoOps();
         const loggerConfig = {
             loggerCallback: (
                 level: LogLevel,
@@ -77,6 +76,7 @@ describe("RedirectHandler.ts Unit Tests", () => {
             piiLoggingEnabled: true,
         };
         const logger = new Logger(loggerConfig);
+        browserCrypto = new CryptoOps(logger);
         browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, browserCrypto, logger);
         authConfig = {
             authOptions: {

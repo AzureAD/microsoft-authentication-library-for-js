@@ -37,7 +37,7 @@ export { LoadTokenOptions } from "./cache/TokenCache";
 export { EventMessage, EventPayload, EventError, EventCallbackFunction, EventMessageUtils, PopupEvent } from "./event/EventMessage";
 export { EventType } from "./event/EventType";
 
-export { SignedHttpRequest } from "./crypto/SignedHttpRequest";
+export { SignedHttpRequest, SignedHttpRequestOptions } from "./crypto/SignedHttpRequest";
 
 // Common Object Formats
 export {
@@ -71,7 +71,8 @@ export {
     ExternalTokenResponse,
     // Utils
     StringUtils,
-    UrlString
+    UrlString,
+    AuthenticationHeaderParser
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata";
