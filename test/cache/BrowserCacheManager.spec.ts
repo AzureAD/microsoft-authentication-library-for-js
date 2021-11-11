@@ -29,7 +29,7 @@ describe("BrowserCacheManager tests", () => {
             loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {},
             piiLoggingEnabled: true
         });
-        browserCrypto = new CryptoOps(logger)
+        browserCrypto = new CryptoOps(logger);
     });
 
     afterEach(() => {

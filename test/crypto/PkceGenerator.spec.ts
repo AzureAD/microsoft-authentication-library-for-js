@@ -1,7 +1,7 @@
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
 import { createHash } from "crypto";
 import { PkceGenerator } from "../../src/crypto/PkceGenerator";
-import { Logger, LogLevel, PkceCodes } from "@azure/msal-common";
+import { Logger, PkceCodes } from "@azure/msal-common";
 import { NUM_TESTS } from "../utils/StringConstants";
 import { MsBrowserCrypto } from "../../src/crypto/MsBrowserCrypto";
 const msrCrypto = require("../polyfills/msrcrypto.min");
@@ -50,7 +50,6 @@ describe("PkceGenerator.ts Unit Tests", () => {
         });
         jest.spyOn(MsBrowserCrypto.prototype, "getRandomValues").mockImplementation((data: Uint8Array) => msrCrypto.getRandomValues(data));
         jest.spyOn(BrowserCrypto.prototype, <any>"hasIECrypto").mockReturnValue(true);
-        jest.spyOn(BrowserCrypto.prototype, <any>"hasBrowserCrypto").mockReturnValue(false);
         const browserCrypto = new BrowserCrypto(new Logger({}));
 
         const pkceGenerator = new PkceGenerator(browserCrypto);

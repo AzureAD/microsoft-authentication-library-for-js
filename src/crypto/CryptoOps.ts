@@ -9,16 +9,24 @@ import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
 import { PkceGenerator } from "./PkceGenerator";
 import { BrowserCrypto } from "./BrowserCrypto";
-import { DatabaseStorage } from "../cache/DatabaseStorage";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
 import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
+import { AsyncMemoryStorage } from "../cache/AsyncMemoryStorage";
 
 export type CachedKeyPair = {
     publicKey: CryptoKey,
     privateKey: CryptoKey,
     requestMethod?: string,
     requestUri?: string
+};
+
+/**
+ * MSAL CryptoKeyStore DB Version 2
+ */
+export type CryptoKeyStore = {
+    asymmetricKeys: AsyncMemoryStorage<CachedKeyPair>;
+    symmetricKeys: AsyncMemoryStorage<CryptoKey>;
 };
 
 /**
@@ -36,22 +44,20 @@ export class CryptoOps implements ICrypto {
 
     private static POP_KEY_USAGES: Array<KeyUsage> = ["sign", "verify"];
     private static EXTRACTABLE: boolean = true;
-
-    private static DB_VERSION = 1;
-    private static DB_NAME = "msal.db";
-    private static TABLE_NAME =`${CryptoOps.DB_NAME}.keys`;
-    private cache: DatabaseStorage<CachedKeyPair>;
+    private cache: CryptoKeyStore;
 
     constructor(logger: Logger) {
         this.logger = logger;
-
         // Browser crypto needs to be validated first before any other classes can be set.
         this.browserCrypto = new BrowserCrypto(this.logger);
         this.b64Encode = new Base64Encode();
         this.b64Decode = new Base64Decode();
         this.guidGenerator = new GuidGenerator(this.browserCrypto);
         this.pkceGenerator = new PkceGenerator(this.browserCrypto);
-        this.cache = new DatabaseStorage(CryptoOps.DB_NAME, CryptoOps.TABLE_NAME, CryptoOps.DB_VERSION);
+        this.cache = {
+            asymmetricKeys: new AsyncMemoryStorage<CachedKeyPair>(this.logger),
+            symmetricKeys: new AsyncMemoryStorage<CryptoKey>(this.logger)
+        };
     }
 
     /**
@@ -91,10 +97,11 @@ export class CryptoOps implements ICrypto {
      */
     async getPublicKeyThumbprint(request: SignedHttpRequestParameters): Promise<string> {
         // Generate Keypair
-        const keyPair = await this.browserCrypto.generateKeyPair(CryptoOps.EXTRACTABLE, CryptoOps.POP_KEY_USAGES);
+        const keyPair: CryptoKeyPair = await this.browserCrypto.generateKeyPair(CryptoOps.EXTRACTABLE, CryptoOps.POP_KEY_USAGES);
 
         // Generate Thumbprint for Public Key
         const publicKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.publicKey);
+        
         const pubKeyThumprintObj: JsonWebKey = {
             e: publicKeyJwk.e,
             kty: publicKeyJwk.kty,
@@ -110,12 +117,15 @@ export class CryptoOps implements ICrypto {
         const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importJwk(privateKeyJwk, false, ["sign"]);
 
         // Store Keypair data in keystore
-        await this.cache.put(publicJwkHash, {
-            privateKey: unextractablePrivateKey,
-            publicKey: keyPair.publicKey,
-            requestMethod: request.resourceRequestMethod,
-            requestUri: request.resourceRequestUri
-        });
+        await this.cache.asymmetricKeys.setItem(
+            publicJwkHash, 
+            {
+                privateKey: unextractablePrivateKey,
+                publicKey: keyPair.publicKey,
+                requestMethod: request.resourceRequestMethod,
+                requestUri: request.resourceRequestUri
+            }
+        );
 
         return publicJwkHash;
     }
@@ -125,14 +135,18 @@ export class CryptoOps implements ICrypto {
      * @param kid 
      */
     async removeTokenBindingKey(kid: string): Promise<boolean> {
-        return this.cache.delete(kid);
+        await this.cache.asymmetricKeys.removeItem(kid);
+        const keyFound = await this.cache.asymmetricKeys.containsKey(kid);
+        return !keyFound;
     }
 
     /**
      * Removes all cryptographic keys from IndexedDB storage
      */
     async clearKeystore(): Promise<boolean> {
-        return this.cache.clear();
+        const dataStoreNames = Object.keys(this.cache);
+        const databaseStorage = this.cache[dataStoreNames[0]];
+        return databaseStorage ? await databaseStorage.deleteDatabase() : false;
     }
 
     /**
@@ -141,8 +155,8 @@ export class CryptoOps implements ICrypto {
      * @param kid 
      */
     async signJwt(payload: SignedHttpRequest, kid: string): Promise<string> {
-        const cachedKeyPair = await this.cache.get(kid);
-            
+        const cachedKeyPair = await this.cache.asymmetricKeys.getItem(kid);
+        
         if (!cachedKeyPair) {
             throw BrowserAuthError.createSigningKeyNotFoundInStorageError(kid);
         }

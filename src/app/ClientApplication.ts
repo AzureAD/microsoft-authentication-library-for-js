@@ -324,7 +324,7 @@ export abstract class ClientApplication {
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
                 this.logger.verbose("Refresh token expired or invalid, attempting acquire token by iframe", request.correlationId);
 
-                const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenSilent_authCode);
+                const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenSilent_authCode, request.correlationId);
                 return silentIframeClient.acquireToken(request);
             }
             throw e;
@@ -506,6 +506,20 @@ export abstract class ClientApplication {
     }
 
     /**
+     * Adds event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
+     */
+    enableAccountStorageEvents(): void {
+        this.eventHandler.enableAccountStorageEvents();
+    }
+
+    /**
+     * Removes event listener that emits an event when a user account is added or removed from localstorage in a different browser tab or window
+     */
+    disableAccountStorageEvents(): void {
+        this.eventHandler.disableAccountStorageEvents();
+    }
+
+    /**
      * Gets the token cache for the application.
      */
     getTokenCache(): ITokenCache {
@@ -544,5 +558,13 @@ export abstract class ClientApplication {
     setNavigationClient(navigationClient: INavigationClient): void {
         this.navigationClient = navigationClient;
     }
+
+    /**
+     * Returns the configuration object
+     */
+    getConfiguration(): BrowserConfiguration {
+        return this.config;
+    }
+
     // #endregion
 }

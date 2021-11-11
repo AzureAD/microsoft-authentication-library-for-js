@@ -1,8 +1,43 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 07 Sep 2021 23:22:24 GMT and should not be manually modified.
+This log was last generated on Mon, 01 Nov 2021 23:53:21 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.19.0
+
+Mon, 01 Nov 2021 23:53:21 GMT
+
+### Minor changes
+
+- Add support for in-memory storage of token binding keys #4183 (hemoral@microsoft.com)
+- Add support for ephemeral SSH certificate acquisition #4178 (hemoral@microsoft.com)
+- Add support for in-memory storage of token binding keys #4183 (hemoral@microsoft.com)
+- Add support for SHR nonce #3999 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v5.1.0
+
+### Patches
+
+- Add support for different key types in IndexedDB storage #4052 (hemoral@microsoft.com)
+- Ensure correlation is passed to all interaction clients in acquireTokenSilent #4186 (janutter@microsoft.com)
+- Fix typo in noTokenRequestCacheError (#4136) (Michael.Currie@rjwgroup.com)
+- Fix redirect processing when allowRedirectInIframe: true #4142 (thomas.norling@microsoft.com)
+
+## 2.18.0
+
+Mon, 04 Oct 2021 23:12:35 GMT
+
+### Minor changes
+
+- Emit event when user logs in or out from a different tab or window #3981 (thomas.norling@microsoft.com)
+- Remove requirement of user hint on ssoSilent API #4123 (prkanher@microsoft.com)
+- Bump @azure/msal-common to v5.0.1
+
+### Patches
+
+- Consistently export error types and messages for errors thrown by MSAL #4117 (jagore@microsoft.com)
+- Move helper functions up to BaseInteractionClient #4049 (thomas.norling@microsoft.com)
+- Export library version #4124 (thomas.norling@microsoft.com)
 
 ## 2.17.0
 
