@@ -98,9 +98,14 @@ export class WamInteractionClient extends BaseInteractionClient {
             return null;
         }
 
+        const request = {
+            ...cachedRequest,
+            prompt: PromptValue.NONE // If prompt was specified on the request, it was already shown before the "redirect". This prevents double prompts.
+        };
+
         const messageBody: WamExtensionRequestBody = {
             method: WamExtensionMethod.GetToken,
-            request: cachedRequest
+            request: request
         };
 
         const reqTimestamp = TimeUtils.nowSeconds();
@@ -108,7 +113,7 @@ export class WamInteractionClient extends BaseInteractionClient {
         try {
             const response: object = await this.provider.sendMessage(messageBody);
             this.validateWamResponse(response);
-            const result = this.handleWamResponse(response as WamResponse, cachedRequest, reqTimestamp);
+            const result = this.handleWamResponse(response as WamResponse, request, reqTimestamp);
             this.browserStorage.setInteractionInProgress(false);
             return result;
         } catch (e) {
