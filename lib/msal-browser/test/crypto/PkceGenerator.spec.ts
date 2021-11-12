@@ -1,7 +1,7 @@
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
 import { createHash } from "crypto";
 import { PkceGenerator } from "../../src/crypto/PkceGenerator";
-import { PkceCodes } from "@azure/msal-common";
+import { Logger, PkceCodes } from "@azure/msal-common";
 import { NUM_TESTS } from "../utils/StringConstants";
 const msrCrypto = require("../polyfills/msrcrypto.min");
 
@@ -29,7 +29,7 @@ describe("PkceGenerator.ts Unit Tests", () => {
             expect(algorithm).toBe("SHA-256");
             return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
         });
-        const browserCrypto = new BrowserCrypto();
+        const browserCrypto = new BrowserCrypto(new Logger({}));
 
         const pkceGenerator = new PkceGenerator(browserCrypto);
         /**
@@ -50,7 +50,7 @@ describe("PkceGenerator.ts Unit Tests", () => {
             return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
         });
         jest.spyOn(BrowserCrypto.prototype, <any>"hasIECrypto").mockReturnValue(true);
-        const browserCrypto = new BrowserCrypto();
+        const browserCrypto = new BrowserCrypto(new Logger({}));
 
         const pkceGenerator = new PkceGenerator(browserCrypto);
         /**

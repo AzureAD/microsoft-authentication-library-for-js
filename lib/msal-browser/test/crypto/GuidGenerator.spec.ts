@@ -1,12 +1,13 @@
 import { RANDOM_TEST_GUID } from "../utils/StringConstants";
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
 import { GuidGenerator } from "../../src/crypto/GuidGenerator";
+import { Logger } from "@azure/msal-common";
 
 describe("GuidGenerator Unit Tests", () => {
 
     let browserCrypto: BrowserCrypto;
     beforeEach(() => {
-        browserCrypto = new BrowserCrypto();
+        browserCrypto = new BrowserCrypto(new Logger({}));
     });
 
     afterEach(() => {
