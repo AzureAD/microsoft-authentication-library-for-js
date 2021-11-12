@@ -164,7 +164,7 @@ export abstract class ClientApplication {
                 const correlationId = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, true) || "";
 
                 if (this.config.system.platformSSO && this.wamExtensionProvider && !hash) {
-                    const wamClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.wamExtensionProvider, correlationId);
+                    const wamClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.handleRedirectPromise, this.wamExtensionProvider, correlationId);
                     response = wamClient.handleRedirectPromise();
                 } else {
                     const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, correlationId);
@@ -236,7 +236,7 @@ export abstract class ClientApplication {
         let result: Promise<void>;
         
         if (this.config.system.platformSSO && this.wamExtensionProvider) {
-            const wamClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.wamExtensionProvider, request.correlationId);
+            const wamClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenRedirect, this.wamExtensionProvider, request.correlationId);
             result = wamClient.acquireTokenRedirect(request).catch((e: AuthError) => {
                 if (e instanceof WamAuthError && e.isFatal()) {
                     this.wamExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt 
@@ -292,7 +292,7 @@ export abstract class ClientApplication {
         let result: Promise<AuthenticationResult>;
 
         if (this.config.system.platformSSO && this.wamExtensionProvider) {
-            result = this.acquireTokenNative(request).catch((e: AuthError) => {
+            result = this.acquireTokenNative(request, ApiId.acquireTokenPopup).catch((e: AuthError) => {
                 if (e instanceof WamAuthError && e.isFatal()) {
                     this.wamExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt 
                     const popupClient = this.createPopupClient(request.correlationId);
@@ -353,7 +353,7 @@ export abstract class ClientApplication {
         let result: Promise<AuthenticationResult>;
 
         if (this.config.system.platformSSO && this.wamExtensionProvider) {
-            result = this.acquireTokenNative(request).catch((e: AuthError) => {
+            result = this.acquireTokenNative(request, ApiId.ssoSilent).catch((e: AuthError) => {
                 // If native token acquisition fails for availability reasons fallback to standard flow
                 if (e instanceof WamAuthError && e.isFatal()) {
                     this.wamExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt 
@@ -571,12 +571,13 @@ export abstract class ClientApplication {
      * Acquire a token from native device (WAM)
      * @param request 
      */
-    protected acquireTokenNative(request: PopupRequest|SilentRequest|SsoSilentRequest): Promise<AuthenticationResult> {
+    protected acquireTokenNative(request: PopupRequest|SilentRequest|SsoSilentRequest, apiId: ApiId): Promise<AuthenticationResult> {
         if (!this.wamExtensionProvider) {
             throw BrowserAuthError.createWamConnectionNotEstablishedError();
         }
 
-        const wamClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, this.wamExtensionProvider, request.correlationId);
+        const wamClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, apiId, this.wamExtensionProvider, request.correlationId);
+
         return wamClient.acquireToken(request);
     }
 

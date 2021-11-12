@@ -23,10 +23,12 @@ import { INavigationClient } from "../navigation/INavigationClient";
 
 export class WamInteractionClient extends BaseInteractionClient {
     protected provider: WamMessageHandler;
+    protected apiId: ApiId;
 
-    constructor(config: BrowserConfiguration, browserStorage: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, provider: WamMessageHandler, correlationId?: string) {
+    constructor(config: BrowserConfiguration, browserStorage: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, provider: WamMessageHandler, correlationId?: string) {
         super(config, browserStorage, browserCrypto, logger, eventHandler, navigationClient, correlationId);
         this.provider = provider;
+        this.apiId = apiId;
     }
 
     /**
@@ -218,7 +220,6 @@ export class WamInteractionClient extends BaseInteractionClient {
             scopes: scopeSet.printScopes(),
             redirectUri: this.getRedirectUri(request.redirectUri),
             correlationId: this.correlationId,
-            prompt: request.prompt || PromptValue.NONE,
             instanceAware: false,
             extraParameters: {
                 ...request.extraQueryParameters,
@@ -226,6 +227,10 @@ export class WamInteractionClient extends BaseInteractionClient {
             },
             extendedExpiryToken: false // Make this configurable?
         };
+
+        if (this.apiId === ApiId.ssoSilent || this.apiId === ApiId.acquireTokenSilent_silentFlow) {
+            validatedRequest.prompt = PromptValue.NONE;
+        }
 
         let account = request.account || this.browserStorage.getActiveAccount();
         if (!account && (request.loginHint || request.sid)) {

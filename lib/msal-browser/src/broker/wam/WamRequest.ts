@@ -15,7 +15,7 @@ export type WamTokenRequest = {
     redirectUri: string;
     scopes: string;
     correlationId: string;
-    prompt: string;
+    prompt?: string;
     nonce?: string;
     accountId?: string; // WAM specific account id used for identification of WAM account. This can be any broker-id eventually
     claims?: string;

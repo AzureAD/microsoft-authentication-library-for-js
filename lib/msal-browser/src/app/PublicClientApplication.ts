@@ -3,9 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { AccountInfo, AuthenticationResult, RequestThumbprint, AuthError } from "@azure/msal-common";
+import { AccountInfo, AuthenticationResult, RequestThumbprint, AuthError, PromptValue } from "@azure/msal-common";
 import { Configuration } from "../config/Configuration";
-import { DEFAULT_REQUEST, InteractionType } from "../utils/BrowserConstants";
+import { DEFAULT_REQUEST, InteractionType, ApiId } from "../utils/BrowserConstants";
 import { IPublicClientApplication } from "./IPublicClientApplication";
 import { RedirectRequest } from "../request/RedirectRequest";
 import { PopupRequest } from "../request/PopupRequest";
@@ -134,7 +134,11 @@ export class PublicClientApplication extends ClientApplication implements IPubli
 
         let result: Promise<AuthenticationResult>;
         if (this.config.system.platformSSO && this.wamExtensionProvider) {
-            result = this.acquireTokenNative(request).catch((e: AuthError) => {
+            const silentRequest = {
+                ...request,
+                prompt: PromptValue.NONE
+            };
+            result = this.acquireTokenNative(silentRequest, ApiId.acquireTokenSilent_silentFlow).catch((e: AuthError) => {
                 // If native token acquisition fails for availability reasons fallback to standard flow
                 if (e instanceof WamAuthError && e.isFatal()) {
                     this.wamExtensionProvider = undefined; // Prevent future requests from continuing to attempt 
