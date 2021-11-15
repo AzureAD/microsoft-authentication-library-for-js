@@ -60,15 +60,15 @@
   },
   "module": "dist/msal-node.esm.js",
   "devDependencies": {
+    "@microsoft/api-extractor": "^7.13.0",
     "@types/jest": "^25.2.3",
-    "@types/jsonwebtoken": "^8.5.0",
+    "@types/jsonwebtoken": "^8.5.5",
     "@types/node": "^13.13.4",
     "@types/uuid": "^7.0.0",
     "husky": "^4.2.3",
     "tsdx": "^0.14.1",
     "tslib": "^1.10.0",
-    "typescript": "^3.8.3",
-    "@microsoft/api-extractor": "^7.13.0"
+    "typescript": "^3.8.3"
   },
   "dependencies": {
     "@azure/msal-common": "^5.1.0",
