@@ -1,8 +1,16 @@
 # Change Log - msal
 
-This log was last generated on Mon, 04 Oct 2021 23:12:35 GMT and should not be manually modified.
+This log was last generated on Mon, 01 Nov 2021 23:53:22 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.4.15
+
+Mon, 01 Nov 2021 23:53:22 GMT
+
+### Patches
+
+- Remove fallback logic for iframe creation in msal-core #4182 (janutter@microsoft.com)
 
 ## 1.4.14
 

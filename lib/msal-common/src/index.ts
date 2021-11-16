@@ -77,6 +77,7 @@ export { BoundServerAuthorizationTokenResponse } from "./response/BoundServerAut
 export { ExternalTokenResponse } from "./response/ExternalTokenResponse";
 export { DeviceCodeResponse } from "./response/DeviceCodeResponse";
 export { ScopeSet } from "./request/ScopeSet";
+export { AuthenticationHeaderParser } from "./request/AuthenticationHeaderParser";
 // Logger Callback
 export { ILoggerCallback, LogLevel, Logger } from "./logger/Logger";
 // Errors

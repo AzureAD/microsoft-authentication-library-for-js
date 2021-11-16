@@ -4,7 +4,7 @@
  */
 
 import { ClientConfiguration, Constants, PkceCodes, ClientAuthError, AccountEntity, CredentialEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, ProtocolMode , AuthorityFactory, AuthorityOptions, AuthorityMetadataEntity, ServerAuthorizationTokenResponse } from "../../src";
-import { DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES, RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES, TEST_TOKENS } from "../test_kit/StringConstants";
+import { AUTHENTICATION_RESULT, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES, ID_TOKEN_CLAIMS, RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES, TEST_TOKENS } from "../test_kit/StringConstants";
 
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
@@ -124,6 +124,9 @@ export const mockCrypto = {
         return RANDOM_TEST_GUID;
     },
     base64Decode(input: string): string {
+        if (AUTHENTICATION_RESULT.body.id_token.includes(input)) {
+            return JSON.stringify(ID_TOKEN_CLAIMS);
+        }
         switch (input) {
             case TEST_POP_VALUES.ENCODED_REQ_CNF:
                 return TEST_POP_VALUES.DECODED_REQ_CNF;

@@ -210,7 +210,7 @@ describe("PopupClient", () => {
                 return window;
             });
             sinon.stub(PopupHandler.prototype, "monitorPopupForHash").resolves(TEST_HASHES.TEST_SUCCESS_CODE_HASH_POPUP);
-            sinon.stub(PopupHandler.prototype, "handleCodeResponse").resolves(testTokenResponse);
+            sinon.stub(PopupHandler.prototype, "handleCodeResponseFromHash").resolves(testTokenResponse);
             sinon.stub(CryptoOps.prototype, "generatePkceCodes").resolves({
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
