@@ -292,7 +292,27 @@ describe("ResponseHandler.ts", () => {
             });
 
             const timestamp = TimeUtils.nowSeconds();
-            responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp, testRequest);
+            responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp, testRequest)
+        });
+
+        it("includes spa_code in response as code", async () => {
+            const testSpaCode = "sample-spa-code";
+
+            const testRequest: BaseAuthRequest = {
+                authority: testAuthority.canonicalAuthority,
+                correlationId: "CORRELATION_ID",
+                scopes: ["openid", "profile", "User.Read", "email"]
+            };
+            const testResponse: ServerAuthorizationTokenResponse = {
+                ...AUTHENTICATION_RESULT.body,
+                spa_code: testSpaCode
+            };
+
+            const responseHandler = new ResponseHandler("this-is-a-client-id", testCacheManager, cryptoInterface, new Logger(loggerOptions), null, null);
+
+            const timestamp = TimeUtils.nowSeconds();
+            const response = await responseHandler.handleServerTokenResponse(testResponse, testAuthority, timestamp, testRequest);
+            expect(response.code).toEqual(testSpaCode);
         });
     });
 
