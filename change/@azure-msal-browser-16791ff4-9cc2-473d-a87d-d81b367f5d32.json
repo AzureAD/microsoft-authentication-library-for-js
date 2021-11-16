@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "deps: run an audit fix on msal-browser",
+  "packageName": "@azure/msal-browser",
+  "email": "kamausamuel11@gmail.com",
+  "dependentChangeType": "none"
+}
