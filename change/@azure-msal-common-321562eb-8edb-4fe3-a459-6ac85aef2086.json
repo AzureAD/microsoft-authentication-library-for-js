@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fix circular dependencies in AuthenticationHeaderParser and AsyncMemoryStorage #4235",
+  "packageName": "@azure/msal-common",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}
