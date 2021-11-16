@@ -94,6 +94,7 @@ describe("PopTokenGenerator Unit Tests", () => {
             const resourceUrlComponents = resourceUrlString.getUrlComponents();
             const currTime = TimeUtils.nowSeconds();
             const shrClaims = TEST_POP_VALUES.CLIENT_CLAIMS;
+            const shrNonce = TEST_POP_VALUES.SHR_NONCE;
 
             // Set PoP parameters in auth request
             const popRequest = {
@@ -101,7 +102,8 @@ describe("PopTokenGenerator Unit Tests", () => {
                 authenticationScheme: AuthenticationScheme.POP,
                 resourceRequestMethod: resourceReqMethod,
                 resourceRequestUri: resourceUrl,
-                shrClaims: shrClaims
+                shrClaims: shrClaims,
+                shrNonce: shrNonce
             }
 
 
@@ -112,10 +114,10 @@ describe("PopTokenGenerator Unit Tests", () => {
                     ts: currTime,
                     m: resourceReqMethod,
                     u: resourceUrlComponents.HostNameAndPort,
-                    nonce: RANDOM_TEST_GUID,
+                    nonce: shrNonce,
                     p: resourceUrlComponents.AbsolutePath,
                     q: [[], resourceUrlComponents.QueryString],
-                    client_claims: shrClaims
+                    client_claims: shrClaims,
                 };
                 
                 expect(payload).toEqual(expectedPayload);

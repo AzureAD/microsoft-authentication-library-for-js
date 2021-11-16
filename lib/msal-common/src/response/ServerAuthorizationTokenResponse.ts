@@ -43,6 +43,7 @@ export type ServerAuthorizationTokenResponse = {
     id_token?: string;
     client_info?: string;
     foci?: string;
+    spa_code?: string;
     key_id?: string;
     // Bound Refresh Token Response in case of success
     response_jwe?: string;
