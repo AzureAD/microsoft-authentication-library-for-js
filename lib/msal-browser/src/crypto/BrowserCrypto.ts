@@ -253,4 +253,20 @@ export class BrowserCrypto {
     static getJwkString(jwk: JsonWebKey): string {
         return JSON.stringify(jwk, Object.keys(jwk).sort());
     }
+
+    /**
+     * Creates a thumbprint of the JsonWebKey object and returns it's SHA-256 hash as a Uint8Array
+     * @param jsonWebKey 
+     */
+    async generateJwkThumbprintHash(jsonWebKey: JsonWebKey): Promise<Uint8Array> {
+        const thumbprintObj: JsonWebKey = {
+            e: jsonWebKey.e,
+            kty: jsonWebKey.kty,
+            n: jsonWebKey.n
+        };
+
+        const publicJwkString: string = BrowserCrypto.getJwkString(thumbprintObj);
+        const publicJwkBuffer: ArrayBuffer = await this.sha256Digest(publicJwkString);
+        return new Uint8Array(publicJwkBuffer);
+    }
 }

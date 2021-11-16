@@ -7,7 +7,7 @@ import { version } from "../../src/packageMetadata";
 import { DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES, TEST_CONFIG, TEST_POP_VALUES} from "../test_kit/StringConstants";
 import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
 import { MockCache } from "../cache/entities/cacheConstants";
-import { Constants } from "../../src/utils/Constants";
+import { Constants, CryptoKeyTypes } from "../../src/utils/Constants";
 import { ServerAuthorizationTokenResponse } from "../../src/response/ServerAuthorizationTokenResponse";
 
 describe("ClientConfiguration.ts Class Unit Tests", () => {
@@ -159,7 +159,7 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
         expect(newConfig.cryptoInterface.generatePkceCodes).not.toBeNull();
         expect(newConfig.cryptoInterface.generatePkceCodes()).resolves.toBe(testPkceCodes);
         expect(newConfig.cryptoInterface.removeTokenBindingKey).not.toBeNull();
-        expect(newConfig.cryptoInterface.removeTokenBindingKey("testString")).resolves.toBe(true);
+        expect(newConfig.cryptoInterface.removeTokenBindingKey("testString", CryptoKeyTypes.StkJwk)).resolves.toBe(true);
         // Storage interface tests
         expect(newConfig.storageInterface).not.toBeNull();
         expect(newConfig.storageInterface.clear).not.toBeNull();

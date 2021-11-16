@@ -11,24 +11,34 @@
         }
     },
     "RefreshToken": {
-        "uid.utid-login.microsoftonline.com-refreshtoken-mock_client_id---": {
+        "uid.utid-login.microsoftonline.com-refreshtoken-mock_client_id--": {
             "environment": "login.microsoftonline.com",
             "credential_type": "RefreshToken",
             "secret": "a refresh token",
             "client_id": "mock_client_id",
             "home_account_id": "uid.utid"
         },
-        "uid.utid-login.microsoftonline.com-refreshtoken-1---": {
+        "uid.utid-login.microsoftonline.com-refreshtoken-1--": {
             "environment": "login.microsoftonline.com",
             "credential_type": "RefreshToken",
             "secret": "a refresh token",
             "client_id": "mock_client_id",
             "home_account_id": "uid.utid",
             "family_id": "1"
+        },
+        "uid.utid-login.microsoftonline.com-refreshtoken_with_authsceheme-1---pop": {
+            "environment": "login.microsoftonline.com",
+            "credential_type": "RefreshToken",
+            "secret": "a refresh token",
+            "client_id": "mock_client_id",
+            "home_account_id": "uid.utid",
+            "family_id": "1",
+            "stkKid": "testStkKid",
+            "skKid": "testSkKid"
         }
     },
     "AccessToken": {
-        "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3-": {
+        "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3": {
             "environment": "login.microsoftonline.com",
             "credential_type": "AccessToken",
             "secret": "an access token",
@@ -40,7 +50,7 @@
             "extended_expires_on": "4600",
             "expires_on": "4600"
         },
-        "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope4 scope5-": {
+        "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope4 scope5": {
             "environment": "login.microsoftonline.com",
             "credential_type": "AccessToken",
             "secret": "an access token",
@@ -68,7 +78,7 @@
         }
     },
     "IdToken": {
-        "uid.utid-login.microsoftonline.com-idtoken-mock_client_id-microsoft--": {
+        "uid.utid-login.microsoftonline.com-idtoken-mock_client_id-microsoft-": {
             "realm": "microsoft",
             "environment": "login.microsoftonline.com",
             "credential_type": "IdToken",

@@ -10,7 +10,7 @@ import { IAsyncStorage } from "./IAsyncMemoryStorage";
 import { MemoryStorage } from "./MemoryStorage";
 
 // Configure IndexedDB instance here
-const INDEXED_DB_INFO: DatabaseInfo = {
+export const INDEXED_DB_INFO: DatabaseInfo = {
     name: "msal.db",
     version: 2,
     tableNames: [DBTableNames.asymmetricKeys, DBTableNames.symmetricKeys]

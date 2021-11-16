@@ -117,16 +117,8 @@ export class CryptoOps implements ICrypto {
 
         // Generate Thumbprint for Public Key
         const publicKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.publicKey);
-        
-        const pubKeyThumprintObj: JsonWebKey = {
-            e: publicKeyJwk.e,
-            kty: publicKeyJwk.kty,
-            n: publicKeyJwk.n
-        };
-
-        const publicJwkString: string = BrowserCrypto.getJwkString(pubKeyThumprintObj);
-        const publicJwkBuffer: ArrayBuffer = await this.browserCrypto.sha256Digest(publicJwkString);
-        const publicJwkHash: string = this.b64Encode.urlEncodeArr(new Uint8Array(publicJwkBuffer));
+        const publicJwkHashBytes = await this.browserCrypto.generateJwkThumbprintHash(publicKeyJwk);
+        const publicJwkHash = this.b64Encode.urlEncodeArr(publicJwkHashBytes);
         
         // Generate Thumbprint for Private Key
         const privateKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.privateKey);
@@ -232,7 +224,7 @@ export class CryptoOps implements ICrypto {
     async decryptBoundTokenResponse(
         boundServerTokenResponse: BoundServerAuthorizationTokenResponse,
         request: BaseAuthRequest): Promise<ServerAuthorizationTokenResponse> {
-        const boundResponse = new BoundTokenResponse(boundServerTokenResponse, request, this.cache, this.logger);
+        const boundResponse = new BoundTokenResponse(boundServerTokenResponse, request, this.cache, this.browserCrypto, this.logger);
         return await boundResponse.decrypt();
     }
 }

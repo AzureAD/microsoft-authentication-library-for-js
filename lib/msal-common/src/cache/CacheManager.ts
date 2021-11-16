@@ -621,7 +621,6 @@ export abstract class CacheManager implements ICacheManager {
                     await this.cryptoImpl.removeTokenBindingKey(kid, CryptoKeyTypes.StkJwk);
                 } catch (error) {
                     throw ClientAuthError.createBindingKeyNotRemovedError();
-
                 }
             }
         }

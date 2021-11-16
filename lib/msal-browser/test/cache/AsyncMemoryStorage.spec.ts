@@ -1,6 +1,7 @@
 import { Logger, LogLevel } from "@azure/msal-common";
 import { BrowserAuthError } from "../../src";
 import { AsyncMemoryStorage } from "../../src/cache/AsyncMemoryStorage";
+import { DBTableNames } from "../../src/utils/BrowserConstants";
 
 let mockDatabase = {
     "TestDb.keys": {}
@@ -113,7 +114,7 @@ const DB_UNAVAILABLE = "DB_UNAVAILABLE";
 
 describe("AsyncMemoryStorage Unit Tests", () => {
     describe("IndexedDB available", () => {
-        const asyncMemoryStorage = new AsyncMemoryStorage<string>(new Logger({
+        const asyncMemoryStorage = new AsyncMemoryStorage<string>(TEST_DB_TABLE_NAME as DBTableNames, new Logger({
             loggerCallback: (level: LogLevel, message: string) => {
                 logMessages.push({ level: level, message: message });
             },
@@ -187,7 +188,7 @@ describe("AsyncMemoryStorage Unit Tests", () => {
     });
 
     describe("IndexedDB Unavailable", () => {
-        const asyncMemoryStorage = new AsyncMemoryStorage<string>(new Logger({
+        const asyncMemoryStorage = new AsyncMemoryStorage<string>(TEST_DB_TABLE_NAME as DBTableNames, new Logger({
             loggerCallback: (level: LogLevel, message: string) => {
                 logMessages.push({ level: level, message: message });
             },

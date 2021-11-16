@@ -5,7 +5,9 @@
 
 import { BaseAuthRequest, BoundServerAuthorizationTokenResponse, Logger, ServerAuthorizationTokenResponse } from "@azure/msal-common";
 import { BrowserAuthError } from "..";
+import { Base64Encode } from "../encode/Base64Encode";
 import { Algorithms, CryptoKeyFormats, CryptoKeyUsageSets, KeyDerivationLabels, Lengths } from "../utils/CryptoConstants";
+import { BrowserCrypto } from "./BrowserCrypto";
 import { CryptoKeyStore } from "./CryptoOps";
 import { JsonWebEncryption } from "./JsonWebEncryption";
 import { KeyDerivation } from "./KeyDerivation";
@@ -20,18 +22,21 @@ export class BoundTokenResponse {
     private responseJwe: JsonWebEncryption;
     private keyStore: CryptoKeyStore;
     private keyDerivation: KeyDerivation;
-    private keyId: string;
+    private stkKid: string;
+    private browserCrypto: BrowserCrypto;
+    private base64Encode: Base64Encode;
     private logger: Logger;
 
-    constructor(boundTokenResponse: BoundServerAuthorizationTokenResponse, request: BaseAuthRequest, keyStore: CryptoKeyStore, logger: Logger) {
+    constructor(boundTokenResponse: BoundServerAuthorizationTokenResponse, request: BaseAuthRequest, keyStore: CryptoKeyStore, browserCrypto: BrowserCrypto, logger: Logger) {
         this.logger = logger;
         this.sessionKeyJwe = new JsonWebEncryption(boundTokenResponse.session_key_jwe, this.logger);
         this.responseJwe = new JsonWebEncryption(boundTokenResponse.response_jwe, this.logger);
         this.keyDerivation = new KeyDerivation(Lengths.derivedKey, Lengths.prfOutput, Lengths.kdfCounter, this.logger);
         this.keyStore = keyStore;
-
+        this.browserCrypto = browserCrypto;
+        this.base64Encode = new Base64Encode();
         if (request.stkJwk) {
-            this.keyId = request.stkJwk;
+            this.stkKid = request.stkJwk;
         } else {
             throw BrowserAuthError.createMissingStkKidError();
         }
@@ -44,7 +49,7 @@ export class BoundTokenResponse {
     async decrypt(): Promise<ServerAuthorizationTokenResponse> {
         // Retrieve Session Transport Key from KeyStore
         this.logger.verbose("Retrieving Session Transport Key");
-        const sessionTransportKeypair = await this.keyStore.asymmetricKeys.getItem(this.keyId);
+        const sessionTransportKeypair = await this.keyStore.asymmetricKeys.getItem(this.stkKid);
 
         if (!sessionTransportKeypair) {
             throw BrowserAuthError.createSigningKeyNotFoundInStorageError();
@@ -54,12 +59,17 @@ export class BoundTokenResponse {
 
         const sessionKey = await this.getSessionKey(sessionTransportKeypair.privateKey);
         const decryptedResponse = await this.responseJwe.getDecryptedResponse(sessionKey);
-        await this.keyStore.symmetricKeys.setItem(this.keyId, sessionKey);
+
+        // Generate Thumbprint for Session Key
+        const sessionKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(sessionKey);
+        const sessionKeyIdBytes = await this.browserCrypto.generateJwkThumbprintHash(sessionKeyJwk);
+        const sessionKeyId = this.base64Encode.urlEncodeArr(sessionKeyIdBytes);
+        await this.keyStore.symmetricKeys.setItem(sessionKeyId, sessionKey);
             
         return {
             ...decryptedResponse,
-            stkKid: this.keyId,
-            skKid: this.keyId
+            stkKid: this.stkKid,
+            skKid: sessionKeyId
         };
     }
 
@@ -94,7 +104,7 @@ export class BoundTokenResponse {
             CryptoKeyFormats.raw,
             sessionKeyBytes,
             algorithm,
-            false,
+            true,
             CryptoKeyUsageSets.RefreshTokenBinding.SessionKey
         );
     }
