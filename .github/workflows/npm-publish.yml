@@ -13,104 +13,77 @@ jobs:
   build:
     if: (github.event.pull_request.merged == true && github.head_ref == 'release-staging')
     runs-on: ubuntu-latest
-    env:
-      NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     steps:
       # Checkout the code
       - uses: actions/checkout@v2
-        # Setup node with version 12.x and NPM registry url
+        # Setup node with version 12.x
       - uses: actions/setup-node@v1
-        with:
-          registry-url: "https://registry.npmjs.org"
 
-      - uses: dorny/paths-filter@v2
-        id: changes
-        with:
-          filters: |
-            core:
-              - 'lib/msal-core/src/package.json'
-            common: 
-              - 'lib/msal-common/src/package.json'
-            browser: 
-              - 'lib/msal-browser/src/package.json'
-            node:
-              - 'lib/msal-node/src/package.json'
-            angular:
-              - 'lib/msal-angular/src/package.json'
-            react:
-              - 'lib/msal-react/src/package.json'
-            node-extensions:
-              - 'extensions/msal-node-extensions/package.json'
-          list-files: json
-
-      - name: Set npm auth token
-        run: npm config set '//registry.npmjs.org/:_authToken' "${NODE_AUTH_TOKEN}"
-
-      - name: Publish  msal-core
-        if: steps.changes.outputs.core == 'true'
-        working-directory: lib/msal-core
-        env:
-          CDN_EUNO_SAS: ${{ secrets.CDN_EUNO_SAS}}
-          CDN_USWE_SAS: ${{ secrets.CDN_USWE_SAS}}
-        run: |
-          npm install
-          npm run cdn
-          npm publish
-
-      - name: Publish  msal-common
-        if: steps.changes.outputs.common == 'true'
+      - name: Publish msal-common
         working-directory: lib/msal-common
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+          echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' > .npmrc
           npm install
-          npm publish
+          rm .npmrc
 
       - name: Publish  msal-browser
-        if: steps.changes.outputs.browser == 'true'
         working-directory: lib/msal-browser
         env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           CDN_EUNO_SAS: ${{ secrets.CDN_EUNO_SAS}}
           CDN_USWE_SAS: ${{ secrets.CDN_USWE_SAS}}
         run: |
+          echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' > .npmrc
           npm install
           npm run cdn
-          npm publish
+          rm .npmrc
 
       - name: Publish  msal-node
-        if: steps.changes.outputs.node == 'true'
         working-directory: lib/msal-node
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+          echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' > .npmrc
           npm install
-          npm publish
+          rm .npmrc
 
       - name: Publish  msal-angular
-        if: steps.changes.outputs.angular == 'true'
         working-directory: lib/msal-angular
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+          echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' > .npmrc
           npm install
-          npm run deploy
+          rm .npmrc
 
       - name: Publish  msal-react
-        if: steps.changes.outputs.react == 'true'
         working-directory: lib/msal-react
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+          echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' > .npmrc
           npm install
-          npm publish
+          rm .npmrc
 
       - name: Publish node-extensions
-        if: steps.changes.outputs.node-extensions== 'true'
         working-directory: extensions/msal-node-extensions
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
         run: |
+          echo '//registry.npmjs.org/:_authToken=${NODE_AUTH_TOKEN}' > .npmrc
           npm install
-          npm publish
+          rm .npmrc
+
+      - name: Update package-locks
+        run: npm install
 
       - name: Create Github Releases and Discussions
         env:
           GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN}}
         run: npm run beachball:release
-
-      - name: Update package-locks
-        run: npm install
 
       - name: Get release date
         id: release-date
