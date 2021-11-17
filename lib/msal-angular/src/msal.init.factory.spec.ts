@@ -11,7 +11,7 @@ const msalInstance = new PublicClientApplication({
   }
 });
 
-fdescribe('msalInitFactory', () => {
+describe('msalInitFactory', () => {
   let inProgressSubscribeSpy: jasmine.Spy;
   let handleRedirectObservableSpy: jasmine.Spy;
 

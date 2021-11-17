@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { EventType, InteractionStatus, InteractionType, PublicClientApplication } from '@azure/msal-browser';
 import { MsalBroadcastService } from './msal.broadcast.service';
-import { MsalModule } from './public-api';
+import { MsalModule, MsalService, MSAL_GUARD_CONFIG, MSAL_INSTANCE, MSAL_INTERCEPTOR_CONFIG } from './public-api';
 import { Subscription } from "rxjs";
 
 const msalInstance = new PublicClientApplication({
@@ -20,10 +20,23 @@ describe('MsalBroadcastService', () => {
 
     TestBed.configureTestingModule({
       imports: [
-        MsalModule.forRoot(msalInstance, null, {interactionType: InteractionType.Popup, protectedResourceMap: new Map()})
+        MsalModule
       ],
       providers: [
-        MsalBroadcastService
+        MsalBroadcastService,
+        {
+            provide: MSAL_INSTANCE,
+            useValue: msalInstance
+        },
+        {
+            provide: MSAL_GUARD_CONFIG,
+            useValue: null
+        },
+        {
+            provide: MSAL_INTERCEPTOR_CONFIG,
+            useValue: {interactionType: InteractionType.Popup, protectedResourceMap: new Map()}
+        },
+        MsalService
       ]
     });
     broadcastService = TestBed.inject(MsalBroadcastService);
@@ -32,7 +45,7 @@ describe('MsalBroadcastService', () => {
   afterEach(() => {
     subscription.unsubscribe();
   })
-  
+
   it('broadcasts event from PublicClientApplication', (done) => {
     const sub = broadcastService.msalSubject$.subscribe((result) => {
       expect(result.eventType).toEqual(EventType.LOGIN_START);
