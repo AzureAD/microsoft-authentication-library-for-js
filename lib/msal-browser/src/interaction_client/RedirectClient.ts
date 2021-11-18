@@ -110,7 +110,7 @@ export class RedirectClient extends StandardInteractionClient {
             } else if (!this.config.auth.navigateToLoginRequestUrl) {
                 this.logger.verbose("NavigateToLoginRequestUrl set to false, handling hash");
                 return this.handleHash(responseHash, state, serverTelemetryManager);
-            } else if (!BrowserUtils.isInIframe()) {
+            } else if (!BrowserUtils.isInIframe() || this.config.system.allowRedirectInIframe) {
                 /*
                  * Returned from authority using redirect - need to perform navigation before processing response
                  * Cache the hash to be retrieved after the next redirect
@@ -196,7 +196,7 @@ export class RedirectClient extends StandardInteractionClient {
         const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority);
         this.logger.verbose("Auth code client created");
         const interactionHandler = new RedirectHandler(authClient, this.browserStorage, cachedRequest, this.logger, this.browserCrypto);
-        return await interactionHandler.handleCodeResponse(hash, state, authClient.authority, this.networkClient, this.config.auth.clientId);
+        return await interactionHandler.handleCodeResponseFromHash(hash, state, authClient.authority, this.networkClient, this.config.auth.clientId);
     }
 
     /**

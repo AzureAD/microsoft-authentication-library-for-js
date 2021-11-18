@@ -3,7 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { StringUtils, CommonAuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient, AuthorityFactory, Authority, INetworkModule, ClientAuthError, CcsCredential, Logger } from "@azure/msal-common";
+import { AuthorizationCodePayload , StringUtils, CommonAuthorizationCodeRequest, AuthenticationResult, AuthorizationCodeClient, AuthorityFactory, Authority, INetworkModule, ClientAuthError, CcsCredential, Logger } from "@azure/msal-common";
+
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -37,7 +38,7 @@ export abstract class InteractionHandler {
      * Function to handle response parameters from hash.
      * @param locationHash
      */
-    async handleCodeResponse(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule): Promise<AuthenticationResult> {
+    async handleCodeResponseFromHash(locationHash: string, state: string, authority: Authority, networkModule: INetworkModule): Promise<AuthenticationResult> {
         this.browserRequestLogger.verbose("InteractionHandler.handleCodeResponse called");
         // Check that location hash isn't empty.
         if (StringUtils.isEmpty(locationHash)) {
@@ -52,6 +53,27 @@ export abstract class InteractionHandler {
         }
         const authCodeResponse = this.authModule.handleFragmentResponse(locationHash, requestState);
 
+        return this.handleCodeResponseFromServer(authCodeResponse, state, authority, networkModule);
+    }
+
+    /**
+     * Process auth code response from AAD
+     * @param authCodeResponse 
+     * @param state 
+     * @param authority 
+     * @param networkModule 
+     * @returns 
+     */
+    async handleCodeResponseFromServer(authCodeResponse: AuthorizationCodePayload, state: string, authority: Authority, networkModule: INetworkModule, validateNonce: boolean = true): Promise<AuthenticationResult> {
+        this.browserRequestLogger.trace("InteractionHandler.handleCodeResponseFromServer called");
+
+        // Handle code response.
+        const stateKey = this.browserStorage.generateStateKey(state);
+        const requestState = this.browserStorage.getTemporaryCache(stateKey);
+        if (!requestState) {
+            throw ClientAuthError.createStateNotFoundError("Cached State");
+        }
+        
         // Get cached items
         const nonceKey = this.browserStorage.generateNonceKey(requestState);
         const cachedNonce = this.browserStorage.getTemporaryCache(nonceKey);
@@ -64,7 +86,11 @@ export abstract class InteractionHandler {
             await this.updateTokenEndpointAuthority(authCodeResponse.cloud_instance_host_name, authority, networkModule);
         }
 
-        authCodeResponse.nonce = cachedNonce || undefined;
+        // Nonce validation not needed when redirect not involved (e.g. hybrid spa, renewing token via rt)
+        if (validateNonce) {
+            authCodeResponse.nonce = cachedNonce || undefined;
+        }
+        
         authCodeResponse.state = requestState;
 
         // Add CCS parameters if available
