@@ -22,16 +22,21 @@ const getTokenAuthCode = function (port) {
     const app = express();
 
     const config = {
-        authority: "https://login.windows-ppe.net/common/"
+        authority: "https://login.microsoftonline.com/common/"
     };
 
     app.get("/", (req, res) => {
         const tokenValidator = new msIdentity.TokenValidator(config);
-        const rawToken = "";
+
+        // Instead of raw tokens and claims, will write a function here to populate this from header or body of request
+        const rawToken = "raw-id-token";
         const tokenValidationParams = {
             rawTokenString: rawToken,
+            issuer: "issuer-here",
+            audience: "audience-here"
         };
         tokenValidator.validateToken(tokenValidationParams).then((response) => {
+            // Check that token is valid
             console.log("Token was validated");
             console.log(response);
             res.sendStatus(200);

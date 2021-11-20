@@ -5,7 +5,7 @@
 
 export type TokenValidationParameters = {
     rawTokenString: string,
-    scp?: Array<string>,
-    iss?: string,
-    aud?: string
+    issuer: string,
+    scopes?: Array<string>,
+    audience?: string
 };
