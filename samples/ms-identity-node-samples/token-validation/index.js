@@ -28,8 +28,8 @@ const getTokenAuthCode = function (port) {
     app.get("/", (req, res) => {
         const tokenValidator = new msIdentity.TokenValidator(config);
 
-        // Instead of raw tokens and claims, will write a function here to populate this from header or body of request
-        const rawToken = "raw-id-token";
+        // Instead of raw tokens and claims, will write a function to populate this from header or body of request/response
+        const rawToken = "raw-access-token";
         const tokenValidationParams = {
             rawTokenString: rawToken,
             issuer: "issuer-here",
