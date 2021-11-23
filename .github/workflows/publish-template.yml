@@ -80,4 +80,8 @@ jobs:
         - name: Check npm for package availability
           run: node ../../release-scripts/checkPackageAvailability.js ${{ inputs.path }}/${{ inputs.lib-name }}
 
-          
+        - name: Create Github releases, discussions and milestones
+          run: node ../../.github/createReleases.js -lib ${{ inputs.lib-name }}
+
+        
+      

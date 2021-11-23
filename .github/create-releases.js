@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+const libNameIndex = process.argv.indexOf("-lib", 1);
+const libName=libNameIndex>=0?process.argv[libNameIndex+1]:null;
 const { Octokit } = require("@octokit/rest");
 const dotenv = require("dotenv");
 const semver = require("semver");
@@ -26,14 +28,6 @@ const repoMeta = {
     repo: "microsoft-authentication-library-for-js"
 };
 
-const libFolders = [
-    "msal-angular",
-    "msal-browser",
-    "msal-common",
-    "msal-core",
-    "msal-node",
-    "msal-react",
-];
 
 const CHANGELOGFILE = "CHANGELOG.json";
 
@@ -187,7 +181,12 @@ async function createReleaseForFolder(folderName) {
     }
 }
 
-Promise.all(libFolders.map(createReleaseForFolder))
+if(libName==null)
+{
+    return;
+}
+
+Promise.resolve(createReleaseForFolder(libName))
     .then(result => {
         process.exit(0);
     })

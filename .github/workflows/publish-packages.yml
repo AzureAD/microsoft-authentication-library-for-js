@@ -228,9 +228,6 @@ jobs:
       - name: Update package-locks
         run: npm install
 
-      - name: Create Github Releases and Discussions
-        run: node ./.github/create-releases.js
-
       - name: Get release date
         id: release-date
         run: echo "::set-output name=date::$(node release-scripts/getReleaseDate.js)"
@@ -238,6 +235,12 @@ jobs:
       - name: Get branch
         id: get-branch
         run: echo "::set-output name=date::$(node release-scripts/getReleaseDate.js -branch)"
+
+      - name: Build PR description
+        id: pr-desc
+        run: |
+          if(needs.publish-msal-core.result == 'success'):
+            node ./.github/getchanges.js -lib msal-core
 
       # Create Pull Request from post-release-month-year to dev
       - name: Create Pull Request
