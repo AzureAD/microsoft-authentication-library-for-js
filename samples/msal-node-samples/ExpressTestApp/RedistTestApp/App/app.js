@@ -10,48 +10,11 @@ const session = require('express-session');
 const RedisStore = require('connect-redis')(session); // persist session in redis
 
 const msalWrapper = require('msal-express-wrapper/dist/AuthProvider');
+const partitionManager = require('../App/utils/partitionManager');
 const appSettings = require('../appSettings.json');
 const router = require('./routes/router');
 
 const SERVER_PORT = process.env.PORT || 4000;
-
-/**
- * Define the partition key appropriate for the application
- */
-function getPartitionKey(sessionId) {
-    return async (persistenceManager) => {
-        return new Promise((resolve, reject) => {
-            persistenceManager.get("sess:" + sessionId, (err, sessionData) => {
-                if (err) {
-                    console.log(err);
-                    return reject(err);
-                }
-
-                if (sessionData) {
-                    try {
-                        const parsedSessionData = JSON.parse(sessionData); // parse the session data
-                        return resolve(parsedSessionData.account.homeAccountId);
-                    } catch (err) {
-                        console.log(err)
-                        reject(err);
-                    }
-                }
-
-                return null;
-            });
-        });
-    }
-}
-
-async function retrievePartitionKey(accountEntity) {
-    return new Promise((resolve, reject) => {
-        if (accountEntity.hasOwnProperty("homeAccountId")) {
-            resolve(accountEntity.homeAccountId); // the homeAccountId is the partition key
-        } else {
-            reject(new Error("homeAccountId is not defined"));
-        } 
-    })
-}
 
 /**
 * Instantiate the redis client, which is used in persistenceHelper.
@@ -59,8 +22,6 @@ async function retrievePartitionKey(accountEntity) {
 */
 const redisClient = redis.createClient();
 redisClient.on('error', console.error);
-
-const cachePlugin = require('./utils/redisCachePlugin')(redisClient, getPartitionKey(), retrievePartitionKey);
 
 const app = express();
 
@@ -88,7 +49,7 @@ app.use(session({
     }
 }));
 
-const authProvider = new msalWrapper.AuthProvider(appSettings, cachePlugin);
+const authProvider = new msalWrapper.AuthProvider(appSettings);
 
 /**
 * When using a distributed token cache, msal's in-memory cache should only load
@@ -97,8 +58,11 @@ const authProvider = new msalWrapper.AuthProvider(appSettings, cachePlugin);
 * then re-initializes msal's token cache plugin.
 */
 function initializeTokenCachePlugin(req, res, next) {
-    const cachePlugin = require('./utils/redisCachePlugin')(redisClient, getPartitionKey(req.session.id), retrievePartitionKey);
-    authProvider.msalClient.tokenCache.persistence = cachePlugin;
+    authProvider.msalClient.initializeRedisCachePlugin({
+        client: redisClient,
+        partitionManager: partitionManager(req.session.id, redisClient)
+    })
+
     next();
 }
 

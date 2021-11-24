@@ -10,6 +10,8 @@ import {
     ProtocolMode,
     ICachePlugin, Constants
 } from "@azure/msal-common";
+import { IPartitionManager } from "../cache/distributed/IPartitionManager";
+import { IRedisClient } from "../cache/distributed/redis/IRedisClient";
 import { NetworkUtils } from "../utils/NetworkUtils";
 
 /**
@@ -134,3 +136,15 @@ export function buildAppConfiguration({
         system: { ...DEFAULT_SYSTEM_OPTIONS, ...system },
     };
 }
+
+/**
+ * Defines the configuration required to initialize the redis cache
+ * 
+ * @param client - Redis Client
+ * @param partitionManager - Means to retrive the necessary partition key
+ */
+
+export type RedisConfiguration = {
+    client: IRedisClient
+    partitionManager: IPartitionManager
+};

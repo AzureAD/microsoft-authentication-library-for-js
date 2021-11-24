@@ -5,13 +5,13 @@
 */
 const RedisPersistenceManager = require("./redisPersistenceManager");
 
-module.exports = (redisClient, getPartitionKey, retrievePartitionKey) => {
+module.exports = (redisClient, partitionManager) => {
     const persistenceManager = RedisPersistenceManager(redisClient);
 
     return {
         beforeCacheAccess: async (cacheContext) => {
             return new Promise(async (resolve, reject) => {
-                const partitionKey = await getPartitionKey(persistenceManager);
+                const partitionKey = await partitionManager.getKey(persistenceManager);
 
                 persistenceManager.get(partitionKey, (err, cacheData) => {
                     if (err) {
@@ -33,7 +33,7 @@ module.exports = (redisClient, getPartitionKey, retrievePartitionKey) => {
 
                         if (Object.keys(kvStore).length > 0) {
                             const accountEntity = Object.values(kvStore)[1]; // the second entity is the account
-                            const partitionKey = await retrievePartitionKey(accountEntity);
+                            const partitionKey = await partitionManager.extractKey(accountEntity);
                         
                             persistenceManager.set(partitionKey, cacheContext.tokenCache.serialize(), (err, data) => {
                                 if (err) {

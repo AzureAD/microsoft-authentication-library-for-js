@@ -4,7 +4,7 @@
  */
 
 import { ClientApplication } from "./ClientApplication";
-import { Configuration } from "../config/Configuration";
+import { Configuration, RedisConfiguration } from "../config/Configuration";
 import { ClientAssertion } from "./ClientAssertion";
 import { ApiId , REGION_ENVIRONMENT_VARIABLE } from "../utils/Constants";
 import {
@@ -21,6 +21,7 @@ import {
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
+import { RedisCachePlugin } from "../cache/distributed/redis/RedisCachePlugin";
 
 /**
  *  This class is to be used to acquire tokens for confidential client applications (webApp, webAPI). Confidential client applications
@@ -117,6 +118,16 @@ export class ConfidentialClientApplication extends ClientApplication implements 
             }
             throw e;
         }
+    }
+
+    /**
+     * Initialize the redis cache and have it be the persistence used for the token cache
+     * 
+     * @param config RedisConfiguration
+     */
+    public initializeRedisCachePlugin(config: RedisConfiguration): void {
+        const redisCachePlugin = new RedisCachePlugin(config.client, config.partitionManager);
+        this.getTokenCache().updatePersistence(redisCachePlugin);
     }
 
     private setClientCredential(configuration: Configuration): void {

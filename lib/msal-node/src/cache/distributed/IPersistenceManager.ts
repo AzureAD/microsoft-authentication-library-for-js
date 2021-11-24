@@ -5,6 +5,6 @@
 
 // TODO: Replace the any in this interface
 export interface IPersistenceManager {
-    get(key: string): Promise<any>
-    set(key: string, value: any): Promise<void>
+    get(key: string): Promise<string>
+    set(key: string, value: string): Promise<void>
 }

@@ -27,7 +27,7 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
     private storage: NodeStorage;
     private cacheHasChanged: boolean;
     private cacheSnapshot: string;
-    private readonly persistence: ICachePlugin;
+    private persistence: ICachePlugin;
     private logger: Logger;
 
     constructor(storage: NodeStorage, logger: Logger, cachePlugin?: ICachePlugin) {
@@ -165,6 +165,15 @@ export class TokenCache implements ISerializableTokenCache, ITokenCache {
                 await this.persistence.afterCacheAccess(cacheContext);
             }
         }
+    }
+
+    /**
+     * Update the cache plugin being used by the token cache instance
+     * 
+     * @param plugin ICachePlugin
+     */
+    updatePersistence(plugin: ICachePlugin): void {
+        this.persistence = plugin;
     }
 
     /**
