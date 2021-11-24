@@ -4,6 +4,7 @@ import { TokenCache } from '../../src/cache/TokenCache';
 import { promises as fs } from 'fs';
 import { version, name } from '../../package.json';
 import { DEFAULT_CRYPTO_IMPLEMENTATION, TEST_CONSTANTS } from '../utils/TestConstants';
+import * as msalCommon from '@azure/msal-common';
 
 describe("TokenCache tests", () => {
 
@@ -18,6 +19,7 @@ describe("TokenCache tests", () => {
             logLevel: LogLevel.Info,
         };
         logger = new Logger(loggerOptions!, name, version);
+        jest.restoreAllMocks();
     });
 
     it("Constructor tests builds default token cache", async () => {
@@ -95,7 +97,18 @@ describe("TokenCache tests", () => {
         const storage = new NodeStorage(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
         const tokenCache = new TokenCache(storage, logger, cachePlugin);
 
+        const mockTokenCacheContextInstance = {
+            hasChanged: false,
+            cache: tokenCache,
+            cacheHasChanged: false,
+            tokenCache
+        }
+
+        jest.spyOn(msalCommon, 'TokenCacheContext')
+            .mockImplementation(() => mockTokenCacheContextInstance as unknown as TokenCacheContext)
+
         const accounts = await tokenCache.getAllAccounts();
+        expect(msalCommon.TokenCacheContext).toHaveBeenCalled();
         expect(accounts.length).toBe(1);
         expect(require('./cache-test-files/temp-cache.json')).toEqual(require('./cache-test-files/cache-unrecognized-entities.json'));
 
