@@ -8,9 +8,9 @@ import { AccountInfo, IPublicClientApplication, InteractionStatus, AccountEntity
 import { useMsal } from "./useMsal";
 import { AccountIdentifiers } from "../types/AccountIdentifiers";
 
-function getAccount(instance: IPublicClientApplication, accountIdentifiers: AccountIdentifiers): AccountInfo | null {
+function getAccount(instance: IPublicClientApplication, accountIdentifiers?: AccountIdentifiers): AccountInfo | null {
     const allAccounts = instance.getAllAccounts();
-    if (allAccounts.length > 0 && (accountIdentifiers.homeAccountId || accountIdentifiers.localAccountId || accountIdentifiers.username)) {
+    if (allAccounts.length > 0 && accountIdentifiers && (accountIdentifiers.homeAccountId || accountIdentifiers.localAccountId || accountIdentifiers.username)) {
         const matchedAccounts = allAccounts.filter(accountObj => {
             if (accountIdentifiers.username && accountIdentifiers.username.toLowerCase() !== accountObj.username.toLowerCase()) {
                 return false;
@@ -26,6 +26,8 @@ function getAccount(instance: IPublicClientApplication, accountIdentifiers: Acco
         });
 
         return matchedAccounts[0] || null;
+    } else if (allAccounts.length > 0) {
+        return instance.getActiveAccount();
     } else {
         return null;
     }
@@ -35,7 +37,7 @@ function getAccount(instance: IPublicClientApplication, accountIdentifiers: Acco
  * Given 1 or more accountIdentifiers, returns the Account object if the user is signed-in
  * @param accountIdentifiers 
  */
-export function useAccount(accountIdentifiers: AccountIdentifiers): AccountInfo | null {
+export function useAccount(accountIdentifiers?: AccountIdentifiers): AccountInfo | null {
     const { instance, inProgress } = useMsal();
 
     const initialStateValue = inProgress === InteractionStatus.Startup ? null : getAccount(instance, accountIdentifiers);

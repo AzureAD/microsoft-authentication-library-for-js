@@ -23,7 +23,7 @@ function isAuthenticated(allAccounts: AccountIdentifiers[], account: AccountInfo
  */
 export function useIsAuthenticated(matchAccount?: AccountIdentifiers): boolean {
     const { accounts: allAccounts, inProgress } = useMsal();
-    const account = useAccount(matchAccount || {});
+    const account = useAccount(matchAccount);
 
     const initialStateValue = inProgress === InteractionStatus.Startup ? false : isAuthenticated(allAccounts, account, matchAccount);
     const [hasAuthenticated, setHasAuthenticated] = useState<boolean>(initialStateValue);
