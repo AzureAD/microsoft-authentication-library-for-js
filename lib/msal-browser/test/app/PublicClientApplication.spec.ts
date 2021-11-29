@@ -25,8 +25,9 @@ import { RedirectClient } from "../../src/interaction_client/RedirectClient";
 import { PopupClient } from "../../src/interaction_client/PopupClient";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
-import { EndSessionRequest, BrowserConfigurationAuthError } from "../../src";
+import { BrowserConfigurationAuthError } from "../../src";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
+import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient";
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     let pca: PublicClientApplication;
@@ -704,6 +705,129 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
             const response = await pca.ssoSilent({scopes: ["openid"]});
             expect(response).toEqual(testTokenResponse);
             expect(silentClientSpy.calledOnce).toBe(true);
+        });
+    });
+
+    describe("acquireTokenByCode", () => {
+        it("Calls SilentAuthCodeClient.acquireToken and returns its response", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            const silentClientSpy = sinon.stub(SilentAuthCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
+
+            const response = await pca.acquireTokenByCode({
+                code: "auth-code"
+            });
+            expect(response).toEqual(testTokenResponse);
+            expect(silentClientSpy.calledWith({
+                code: "auth-code"
+            })).toBe(true);
+        });
+
+        it("calls SilentAuthCodeClient.acquireToken once if multiple concurrent calls are made", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            const silentClientSpy = sinon.stub(SilentAuthCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
+
+            const [
+                response,
+                response2
+            ] = await Promise.all([
+                pca.acquireTokenByCode({
+                    code: "auth-code"
+                }),
+                pca.acquireTokenByCode({
+                    code: "auth-code"
+                })
+            ]);
+
+            expect(response).toEqual(testTokenResponse);
+            expect(response2).toEqual(testTokenResponse);
+            expect(silentClientSpy.callCount).toBe(1);
+            expect(silentClientSpy.calledWith({
+                code: "auth-code"
+            })).toBe(true);
+        });
+
+        it("calls SilentAuthCodeClient.acquireToken twice if multiple serial calls are made", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            const silentClientSpy = sinon.stub(SilentAuthCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
+
+            const response = await pca.acquireTokenByCode({
+                code: "auth-code"
+            });
+
+            const response2 = await pca.acquireTokenByCode({
+                code: "auth-code"
+            });
+
+            expect(response).toEqual(testTokenResponse);
+            expect(response2).toEqual(testTokenResponse);
+            expect(silentClientSpy.callCount).toBe(2);
+            expect(silentClientSpy.calledWith({
+                code: "auth-code"
+            })).toBe(true);
+        });
+
+        it("throws an error if falsey code is provided", () => {
+            expect(pca.acquireTokenByCode({ code: "" })).rejects.toMatchObject(BrowserAuthError.createAuthCodeRequiredError())
         });
     });
 
