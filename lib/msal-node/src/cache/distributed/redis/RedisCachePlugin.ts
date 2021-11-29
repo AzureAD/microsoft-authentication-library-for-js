@@ -6,23 +6,21 @@
 import { ICachePlugin, TokenCacheContext } from "@azure/msal-common";
 import { TokenCache } from "../../TokenCache";
 import { IPartitionManager } from "../IPartitionManager";
-import { IPersistenceManager } from "../IPersistenceManager";
-import { IRedisClient } from "./IRedisClient";
-import { RedisPersistenceManager } from "./RedisPersistenceManager";
+import { ICacheClient } from "../ICacheClient";
 
 export class RedisCachePlugin implements ICachePlugin {
+    private client: ICacheClient;
     private partitionManager?: IPartitionManager;
-    private persistenceManager: IPersistenceManager;
 
-    constructor(client: IRedisClient, partitionManager?: IPartitionManager) {
+    constructor(client: ICacheClient, partitionManager?: IPartitionManager) {
+        this.client = client;
         this.partitionManager = partitionManager;
-        this.persistenceManager = new RedisPersistenceManager(client);
     }
   
     public async beforeCacheAccess(cacheContext: TokenCacheContext): Promise<void> {
         if (this.partitionManager) {
             const partitionKey = await this.partitionManager.getKey();
-            const cacheData = await this.persistenceManager.get(partitionKey);
+            const cacheData = await this.client.get(partitionKey);
             cacheContext.tokenCache.deserialize(cacheData);
         }
     }
@@ -35,7 +33,7 @@ export class RedisCachePlugin implements ICachePlugin {
                 const accountEntity = Object.values(kvStore)[1]; // the second entity is the account
                 const partitionKey = await this.partitionManager.extractKey(accountEntity);
                           
-                await this.persistenceManager.set(partitionKey, cacheContext.tokenCache.serialize());           
+                await this.client.set(partitionKey, cacheContext.tokenCache.serialize());           
             }
         }
     }

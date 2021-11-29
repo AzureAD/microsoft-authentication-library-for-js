@@ -12,6 +12,7 @@ const RedisStore = require('connect-redis')(session); // persist session in redi
 
 const msalWrapper = require('msal-express-wrapper/dist/AuthProvider');
 const partitionManager = require('../App/utils/partitionManager');
+const redisClientWrapper = require('./utils/redisClientWrapper');
 const appSettings = require('../appSettings.json');
 const router = require('./routes/router');
 
@@ -33,7 +34,7 @@ redisClient.on('error', console.error);
  * initialize the partition manager until the session
  * is initialize.
  */
-const redisCachePlugin = new RedisCachePlugin(redisClient);
+const redisCachePlugin = new RedisCachePlugin(redisClientWrapper(redisClient));
 
 const app = express();
 
@@ -53,8 +54,8 @@ app.use(express.static(path.join(__dirname, './public')));
  */
 app.use(session({
     store: new RedisStore({ client: redisClient }),
-    secret: 'ENTER_YOUR_SECRET_HERE', 
-    resave: false, 
+    secret: 'ENTER_YOUR_SECRET_HERE',
+    resave: false,
     saveUninitialized: false,
     cookie: {
         secure: false, // set this to true when deploying

@@ -3,8 +3,7 @@
  * Licensed under the MIT License.
  */
 
-// TODO: Replace the any in this interface
-export interface IPersistenceManager {
+export interface ICacheClient {
     get(key: string): Promise<string>
-    set(key: string, value: string): Promise<void>
+    set(key: string, value: string): Promise<string>
 }
