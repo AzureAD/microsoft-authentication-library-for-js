@@ -25,13 +25,13 @@ See also: [Caching](../../../lib/msal-node/docs/caching.md)
 
 - [Node.js](https://nodejs.org/en/download/) must be installed to run this sample.
 - [Visual Studio Code](https://code.visualstudio.com/download) is recommended for running and editing this sample.
-- (Optional) [Redis](https://redis.io/) if you like to persist the app's token cache.
+- [Redis](https://redis.io/) to persist the app's token cache.
 - An **Azure AD** tenant. For more information, see: [How to get an Azure AD tenant](https://docs.microsoft.com/azure/active-directory/develop/quickstart-create-new-tenant)
 - A user account in your **Azure AD** tenant.
 
 ## Setup
 
-Locate the root of the sample folder (i.e. `TestApp`). Then:
+Locate the root of the sample folder (i.e. `RedisTestApp`). Then:
 
 ```console
     npm install
@@ -85,7 +85,7 @@ Open the project in your IDE (like Visual Studio or Visual Studio Code) to confi
 
 ## Running the sample
 
-Make sure that Redis server is currently running. Start the Redis server if needed. You will need [WSL](https://docs.microsoft.com/windows/wsl/install-win10) if on Windows:
+Make sure that Redis server is currently running. Start the Redis server. You will need [WSL](https://docs.microsoft.com/windows/wsl/install-win10) if on Windows:
 
 ```console
     redis-server
