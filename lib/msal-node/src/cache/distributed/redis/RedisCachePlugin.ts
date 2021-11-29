@@ -11,22 +11,24 @@ import { IRedisClient } from "./IRedisClient";
 import { RedisPersistenceManager } from "./RedisPersistenceManager";
 
 export class RedisCachePlugin implements ICachePlugin {
-    private partitionManager: IPartitionManager;
+    private partitionManager?: IPartitionManager;
     private persistenceManager: IPersistenceManager;
 
-    constructor(client: IRedisClient, partitionManager: IPartitionManager) {
+    constructor(client: IRedisClient, partitionManager?: IPartitionManager) {
         this.partitionManager = partitionManager;
         this.persistenceManager = new RedisPersistenceManager(client);
     }
   
     public async beforeCacheAccess(cacheContext: TokenCacheContext): Promise<void> {
-        const partitionKey = await this.partitionManager.getKey();
-        const cacheData = await this.persistenceManager.get(partitionKey);
-        cacheContext.tokenCache.deserialize(cacheData);
+        if (this.partitionManager) {
+            const partitionKey = await this.partitionManager.getKey();
+            const cacheData = await this.persistenceManager.get(partitionKey);
+            cacheContext.tokenCache.deserialize(cacheData);
+        }
     }
   
     public async afterCacheAccess(cacheContext: TokenCacheContext): Promise<void> {
-        if (cacheContext.cacheHasChanged) {
+        if (cacheContext.cacheHasChanged && this.partitionManager) {
             const kvStore = (cacheContext.tokenCache as TokenCache).getKVStore();
   
             if (Object.keys(kvStore).length >= 2) {
@@ -37,5 +39,8 @@ export class RedisCachePlugin implements ICachePlugin {
             }
         }
     }
+
+    public setPartitionManager(partitionManager: IPartitionManager): void {
+        this.partitionManager = partitionManager;
+    }
 }
-  

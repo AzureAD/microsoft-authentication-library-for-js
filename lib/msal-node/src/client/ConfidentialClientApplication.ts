@@ -120,16 +120,6 @@ export class ConfidentialClientApplication extends ClientApplication implements 
         }
     }
 
-    /**
-     * Initialize the redis cache and have it be the persistence used for the token cache
-     * 
-     * @param config RedisConfiguration
-     */
-    public initializeRedisCachePlugin(config: RedisConfiguration): void {
-        const redisCachePlugin = new RedisCachePlugin(config.client, config.partitionManager);
-        this.getTokenCache().updatePersistence(redisCachePlugin);
-    }
-
     private setClientCredential(configuration: Configuration): void {
 
         const clientSecretNotEmpty = !StringUtils.isEmpty(configuration.auth.clientSecret);

@@ -6,6 +6,7 @@
 const path = require('path');
 const redis = require('redis');
 const express = require('express');
+const { RedisCachePlugin } = require('@azure/msal-node');
 const session = require('express-session');
 const RedisStore = require('connect-redis')(session); // persist session in redis
 
@@ -16,12 +17,23 @@ const router = require('./routes/router');
 
 const SERVER_PORT = process.env.PORT || 4000;
 
+
 /**
 * Instantiate the redis client, which is used in persistenceHelper.
 * This provides basic get and set methods for the cachePlugin.
 */
 const redisClient = redis.createClient();
 redisClient.on('error', console.error);
+
+/**
+ * Initialize the redis cache plugin
+ * 
+ * Keeping a copy of the cache plugin instance to update later 
+ * with a partition manager as in this use case we cannot
+ * initialize the partition manager until the session
+ * is initialize.
+ */
+const redisCachePlugin = new RedisCachePlugin(redisClient);
 
 const app = express();
 
@@ -49,7 +61,8 @@ app.use(session({
     }
 }));
 
-const authProvider = new msalWrapper.AuthProvider(appSettings);
+
+const authProvider = new msalWrapper.AuthProvider(appSettings, redisCachePlugin);
 
 /**
 * When using a distributed token cache, msal's in-memory cache should only load
@@ -58,11 +71,7 @@ const authProvider = new msalWrapper.AuthProvider(appSettings);
 * then re-initializes msal's token cache plugin.
 */
 function initializeTokenCachePlugin(req, res, next) {
-    authProvider.msalClient.initializeRedisCachePlugin({
-        client: redisClient,
-        partitionManager: partitionManager(req.session.id, redisClient)
-    })
-
+    redisCachePlugin.setPartitionManager(partitionManager(req.session.id, redisClient));
     next();
 }
 
