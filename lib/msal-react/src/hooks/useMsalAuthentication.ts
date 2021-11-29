@@ -4,11 +4,12 @@
  */
 
 import { useCallback, useEffect, useState } from "react";
-import { PopupRequest, RedirectRequest, SsoSilentRequest, InteractionType, AuthenticationResult, AuthError, EventMessage, EventType, InteractionStatus, SilentRequest, InteractionRequiredAuthError, OIDC_DEFAULT_SCOPES } from "@azure/msal-browser";
+import { PopupRequest, RedirectRequest, SsoSilentRequest, InteractionType, AuthenticationResult, AuthError, EventMessage, EventType, InteractionStatus, SilentRequest, InteractionRequiredAuthError, OIDC_DEFAULT_SCOPES, BrowserAuthErrorMessage } from "@azure/msal-browser";
 import { useIsAuthenticated } from "./useIsAuthenticated";
 import { AccountIdentifiers } from "../types/AccountIdentifiers";
 import { useMsal } from "./useMsal";
 import { useAccount } from "./useAccount";
+import { ReactAuthError, ReactAuthErrorCodes } from "../error/ReactAuthError";
 
 export type MsalAuthenticationResult = {
     login: (callbackInteractionType?: InteractionType | undefined, callbackRequest?: PopupRequest | RedirectRequest | SilentRequest) => Promise<AuthenticationResult | null>; 
@@ -51,7 +52,7 @@ export function useMsalAuthentication(
                 logger.verbose("useMsalAuthentication - Calling ssoSilent");
                 return instance.ssoSilent(loginRequest as SsoSilentRequest);
             default:
-                throw "Invalid interaction type provided.";
+                throw ReactAuthError.createReactAuthError(ReactAuthErrorCodes.INVALID_INTERACTION_TYPE);
         }
     }, [instance, interactionType, authenticationRequest, logger]);
 
@@ -85,15 +86,31 @@ export function useMsalAuthentication(
                 switch (fallbackInteractionType) {
                     case InteractionType.Popup:
                         logger.verbose("useMsalAuthentication - Calling acquireTokenPopup");
-                        return instance.acquireTokenPopup(tokenRequest as PopupRequest);
+                        return instance.acquireTokenPopup(tokenRequest as PopupRequest).catch((e) => {
+                            if (e.errorCode === BrowserAuthErrorMessage.interactionInProgress.code) {
+                                throw ReactAuthError.createReactAuthError(ReactAuthErrorCodes.UNABLE_TO_FALLBACK_TO_INTERACTION);
+                            } else {
+                                throw e;
+                            }
+                        });
                     case InteractionType.Redirect:
                         // This promise is not expected to resolve due to full frame redirect
                         logger.verbose("useMsalAuthentication - Calling acquireTokenRedirect");
-                        return instance.acquireTokenRedirect(tokenRequest as RedirectRequest).then(() => null);
+                        return instance.acquireTokenRedirect(tokenRequest as RedirectRequest)
+                            .then(() => null)
+                            .catch((e) => {
+                                if (e.errorCode === BrowserAuthErrorMessage.interactionInProgress.code) {
+                                    throw ReactAuthError.createReactAuthError(ReactAuthErrorCodes.UNABLE_TO_FALLBACK_TO_INTERACTION);
+                                } else {
+                                    throw e;
+                                }
+                            });
+                    case InteractionType.Silent:
+                        logger.verbose("useMsalAuthentication - Calling ssoSilent");
+                        return instance.ssoSilent(tokenRequest as SsoSilentRequest);
                     default:
-                        logger.verbose("useMsalAuthentication - Did not specify valid fallback interaction type, surfacing error thrown by acquireTokenSilent");
-                        throw e;
-                } 
+                        throw ReactAuthError.createReactAuthError(ReactAuthErrorCodes.INVALID_INTERACTION_TYPE);
+                }
             } else {
                 throw e;
             }
@@ -151,7 +168,7 @@ export function useMsalAuthentication(
                 });
             }
         }
-    }, [isAuthenticated, account, inProgress, error, hasBeenCalled, login, acquireToken, logger]);
+    }, [isAuthenticated, account, inProgress, error, result, hasBeenCalled, login, acquireToken, logger]);
 
     return { login, acquireToken, result, error };
 }
