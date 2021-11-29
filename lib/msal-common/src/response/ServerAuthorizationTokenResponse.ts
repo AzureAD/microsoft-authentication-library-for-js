@@ -15,6 +15,7 @@ import { AuthenticationScheme } from "../utils/Constants";
  * - access_token: The requested access token. The app can use this token to authenticate to the secured resource, such as a web API.
  * - refresh_token: An OAuth 2.0 refresh token. The app can use this token acquire additional access tokens after the current access token expires.
  * - id_token: A JSON Web Token (JWT). The app can decode the segments of this token to request information about the user who signed in.
+ * - key_id: A string that uniquely identifies a public key that the request is bound to.
  *
  * In case of error:
  * - error: An error code string that can be used to classify types of errors that occur, and can be used to react to errors.
@@ -35,7 +36,9 @@ export type ServerAuthorizationTokenResponse = {
     refresh_token?: string;
     id_token?: string;
     client_info?: string;
-    foci?: string
+    foci?: string;
+    spa_code?: string;
+    key_id?: string;
     // Error
     error?: string;
     error_description?: string;

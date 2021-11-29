@@ -26,6 +26,9 @@ import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
 import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient";
 import { TokenCache } from "../cache/TokenCache";
 import { ITokenCache } from "../cache/ITokenCache";
+import { SilentAuthCodeClient } from "../interaction_client/SilentAuthCodeClient";
+import { BrowserAuthError  } from "../error/BrowserAuthError";
+import { AuthorizationCodeRequest } from "../request/AuthorizationCodeRequest";
 
 export abstract class ClientApplication {
 
@@ -57,6 +60,9 @@ export abstract class ClientApplication {
 
     // Redirect Response Object
     private redirectResponse: Map<string, Promise<AuthenticationResult | null>>;
+
+    // Hybrid auth code responses
+    private hybridAuthCodeResponses: Map<string, Promise<AuthenticationResult>>;
 
     /**
      * @constructor
@@ -100,9 +106,12 @@ export abstract class ClientApplication {
         
         // Initialize redirectResponse Map
         this.redirectResponse = new Map();
+
+        // Initial hybrid spa map
+        this.hybridAuthCodeResponses = new Map();
         
         // Initialize the crypto class.
-        this.browserCrypto = this.isBrowserEnvironment ? new CryptoOps() : DEFAULT_CRYPTO_IMPLEMENTATION;
+        this.browserCrypto = this.isBrowserEnvironment ? new CryptoOps(this.logger) : DEFAULT_CRYPTO_IMPLEMENTATION;
 
         this.eventHandler = new EventHandler(this.logger, this.browserCrypto);
 
@@ -300,6 +309,64 @@ export abstract class ClientApplication {
     }
 
     /**
+     * This function redeems an authorization code (passed as code) from the eSTS token endpoint.
+     * This authorization code should be acquired server-side using a confidential client to acquire a spa_code.
+     * This API is not indended for normal authorization code acquisition and redemption.
+     * 
+     * Redemption of this authorization code will not require PKCE, as it was acquired by a confidential client.
+     * 
+     * @param request {@link AuthorizationCodeRequest}
+     * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
+     */
+    async acquireTokenByCode(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
+        this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
+        this.logger.trace("acquireTokenByCode called", request.correlationId);
+        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_START, InteractionType.Silent, request);
+
+        try {
+            if (!request.code) {
+                throw BrowserAuthError.createAuthCodeRequiredError();
+            }
+
+            let response = this.hybridAuthCodeResponses.get(request.code);
+            if (!response) {
+                this.logger.verbose("Initiating new acquireTokenByCode request", request.correlationId);
+                response = this.acquireTokenByCodeAsync(request)
+                    .then((result: AuthenticationResult) => {
+                        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_SUCCESS, InteractionType.Silent, result);
+                        this.hybridAuthCodeResponses.delete(request.code);
+                        return result;
+                    })
+                    .catch((error: Error) => {
+                        this.hybridAuthCodeResponses.delete(request.code);
+                        throw error;
+                    });
+
+                this.hybridAuthCodeResponses.set(request.code, response);
+            } else {
+                this.logger.verbose("Existing acquireTokenByCode request found", request.correlationId);
+            }
+            
+            return response;
+        } catch (e) {
+            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_BY_CODE_FAILURE, InteractionType.Silent, null, e);
+            throw e;
+        }
+    }
+
+    /**
+     * Creates a SilentAuthCodeClient to redeem an authorization code.
+     * @param request 
+     * @returns Result of the operation to redeem the authorization code
+     */
+    private async acquireTokenByCodeAsync(request: AuthorizationCodeRequest): Promise<AuthenticationResult> {
+        this.logger.trace("acquireTokenByCodeAsync called", request.correlationId);
+        const silentAuthCodeClient = new SilentAuthCodeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenByCode, request.correlationId);
+        const silentTokenResult = await silentAuthCodeClient.acquireToken(request);
+        return silentTokenResult;
+    }
+
+    /**
      * Use this function to obtain a token before every call to the API / resource provider
      *
      * MSAL return's a cached token when available
@@ -324,7 +391,7 @@ export abstract class ClientApplication {
             if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
                 this.logger.verbose("Refresh token expired or invalid, attempting acquire token by iframe", request.correlationId);
 
-                const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenSilent_authCode);
+                const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenSilent_authCode, request.correlationId);
                 return silentIframeClient.acquireToken(request);
             }
             throw e;

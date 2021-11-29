@@ -1,0 +1,53 @@
+<a href="/">Go Back</a>
+
+<script src="https://alcdn.msauth.net/lib/1.4.13/js/msal.min.js"></script>
+<script type="text/javascript">
+    const msalInstance = new Msal.UserAgentApplication({
+        auth: {
+            clientId: "{{clientId}}",
+            redirectUri: "http://localhost:3000/auth/implicit-redirect",
+            authority: "{{authority}}"
+        }
+    })
+
+    const sid = "{{sid}}";
+    const preferredUsername = "{{preferredUsername}}";
+    const loginHint = "{{loginHint}}";
+
+    // Only handle hash when in top frame
+    if (window === window.top) {
+        const timeLabel = "Time for ssoSilent";
+        console.time(timeLabel);
+
+        const scopes = [ "user.read" ];
+
+        msalInstance.ssoSilent({
+            sid: loginHint ? undefined : sid, // If loginHint claim is provided, dont use sid
+            loginHint: loginHint || preferredUsername, // Prefer loginHint claim over email
+            scopes,
+            forceRefresh: true
+        })
+            .then(result => {
+                console.timeEnd(timeLabel);
+                console.log('MSAL: ssoSilent completed successfully', result);
+            })
+            .catch((error) => {
+                console.timeEnd(timeLabel);
+                console.error('MSAL: ssoSilent failed', error);
+
+                if (error instanceof Msal.InteractionRequiredAuthError) {
+                    console.log('MSAL: ssoSilent failed, opening popup')
+                    // Use loginHint from server to ensure same user
+                    return msalInstance.loginPopup({
+                        loginHint,
+                        scopes
+                    })
+                }
+            })
+            .then(result => {
+                if (result) {
+                    console.log('MSAL: ', result);
+                }
+            })
+    }
+</script>
