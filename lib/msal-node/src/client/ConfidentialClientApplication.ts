@@ -4,7 +4,7 @@
  */
 
 import { ClientApplication } from "./ClientApplication";
-import { Configuration, RedisConfiguration } from "../config/Configuration";
+import { Configuration } from "../config/Configuration";
 import { ClientAssertion } from "./ClientAssertion";
 import { ApiId , REGION_ENVIRONMENT_VARIABLE } from "../utils/Constants";
 import {
@@ -21,7 +21,6 @@ import {
 import { IConfidentialClientApplication } from "./IConfidentialClientApplication";
 import { OnBehalfOfRequest } from "../request/OnBehalfOfRequest";
 import { ClientCredentialRequest } from "../request/ClientCredentialRequest";
-import { RedisCachePlugin } from "../cache/distributed/redis/RedisCachePlugin";
 
 /**
  *  This class is to be used to acquire tokens for confidential client applications (webApp, webAPI). Confidential client applications
