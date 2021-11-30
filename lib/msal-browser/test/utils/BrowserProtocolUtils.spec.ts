@@ -1,7 +1,7 @@
 import sinon from "sinon";
 import { BrowserProtocolUtils, BrowserStateObject } from "../../src/utils/BrowserProtocolUtils";
 import { InteractionType } from "../../src/utils/BrowserConstants";
-import { ProtocolUtils } from "@azure/msal-common";
+import { Logger, ProtocolUtils } from "@azure/msal-common";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { TEST_HASHES } from "./StringConstants";
@@ -17,7 +17,7 @@ describe("BrowserProtocolUtils.ts Unit Tests", () => {
         sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
             dbStorage = {};
         });
-        cryptoInterface = new CryptoOps();
+        cryptoInterface = new CryptoOps(new Logger({}));
     });
 
     afterEach(() => {
