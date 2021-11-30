@@ -9,7 +9,7 @@ import { useIsAuthenticated } from "./useIsAuthenticated";
 import { AccountIdentifiers } from "../types/AccountIdentifiers";
 import { useMsal } from "./useMsal";
 import { useAccount } from "./useAccount";
-import { ReactAuthError, ReactAuthErrorCodes } from "../error/ReactAuthError";
+import { ReactAuthError } from "../error/ReactAuthError";
 
 export type MsalAuthenticationResult = {
     login: (callbackInteractionType?: InteractionType | undefined, callbackRequest?: PopupRequest | RedirectRequest | SilentRequest) => Promise<AuthenticationResult | null>; 
@@ -52,7 +52,7 @@ export function useMsalAuthentication(
                 logger.verbose("useMsalAuthentication - Calling ssoSilent");
                 return instance.ssoSilent(loginRequest as SsoSilentRequest);
             default:
-                throw ReactAuthError.createReactAuthError(ReactAuthErrorCodes.INVALID_INTERACTION_TYPE);
+                throw ReactAuthError.createInvalidInteractionTypeError();
         }
     }, [instance, interactionType, authenticationRequest, logger]);
 
@@ -88,7 +88,7 @@ export function useMsalAuthentication(
                         logger.verbose("useMsalAuthentication - Calling acquireTokenPopup");
                         return instance.acquireTokenPopup(tokenRequest as PopupRequest).catch((e) => {
                             if (e.errorCode === BrowserAuthErrorMessage.interactionInProgress.code) {
-                                throw ReactAuthError.createReactAuthError(ReactAuthErrorCodes.UNABLE_TO_FALLBACK_TO_INTERACTION);
+                                throw ReactAuthError.createUnableToFallbackInteractionError();
                             } else {
                                 throw e;
                             }
@@ -100,7 +100,7 @@ export function useMsalAuthentication(
                             .then(() => null)
                             .catch((e) => {
                                 if (e.errorCode === BrowserAuthErrorMessage.interactionInProgress.code) {
-                                    throw ReactAuthError.createReactAuthError(ReactAuthErrorCodes.UNABLE_TO_FALLBACK_TO_INTERACTION);
+                                    throw ReactAuthError.createUnableToFallbackInteractionError();
                                 } else {
                                     throw e;
                                 }
@@ -109,7 +109,7 @@ export function useMsalAuthentication(
                         logger.verbose("useMsalAuthentication - Calling ssoSilent");
                         return instance.ssoSilent(tokenRequest as SsoSilentRequest);
                     default:
-                        throw ReactAuthError.createReactAuthError(ReactAuthErrorCodes.INVALID_INTERACTION_TYPE);
+                        throw ReactAuthError.createInvalidInteractionTypeError();
                 }
             } else {
                 throw e;

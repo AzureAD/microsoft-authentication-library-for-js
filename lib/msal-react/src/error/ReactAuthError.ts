@@ -5,14 +5,15 @@
 
 import { AuthError } from "@azure/msal-browser";
 
-export enum ReactAuthErrorCodes {
-    INVALID_INTERACTION_TYPE = "invalid_interaction_type",
-    UNABLE_TO_FALLBACK_TO_INTERACTION = "unable_to_fallback_to_interaction"
-}
-
-const ReactAuthErrorMessage = {
-    [ReactAuthErrorCodes.INVALID_INTERACTION_TYPE]: "The provided interaction type is invalid.",
-    [ReactAuthErrorCodes.UNABLE_TO_FALLBACK_TO_INTERACTION]: "Interaction is required, but another interaction is currently in progress. Please try again when the current interaction is complete."
+export const ReactAuthErrorMessage = {
+    invalidInteractionType: {
+        code: "invalid_interaction_type",
+        desc: "The provided interaction type is invalid."
+    },
+    unableToFallbackInteraction: {
+        code: "unable_to_fallback_to_interaction",
+        desc: "Interaction is required, but another interaction is currently in progress. Please try again when the current interaction is complete."
+    }
 };
 
 export class ReactAuthError extends AuthError {
@@ -23,7 +24,11 @@ export class ReactAuthError extends AuthError {
         this.name = "ReactAuthError";
     }
 
-    static createReactAuthError(code: ReactAuthErrorCodes): ReactAuthError {
-        return new ReactAuthError(code, ReactAuthErrorMessage[code]);
+    static createInvalidInteractionTypeError(): ReactAuthError {
+        return new ReactAuthError(ReactAuthErrorMessage.invalidInteractionType.code, ReactAuthErrorMessage.invalidInteractionType.desc);
+    }
+
+    static createUnableToFallbackInteractionError(): ReactAuthError {
+        return new ReactAuthError(ReactAuthErrorMessage.unableToFallbackInteraction.code, ReactAuthErrorMessage.unableToFallbackInteraction.desc);
     }
 }
