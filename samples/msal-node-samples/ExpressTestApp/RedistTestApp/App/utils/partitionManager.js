@@ -3,38 +3,26 @@
  * Licensed under the MIT License.
  */
 
-function partitionManager(sessionId, redisClient) {
+function partitionManager(redisClient, sessionId) {
+    this.sessionId = sessionId;
+    this.redisClient = redisClient;
+
     return {
+        setSessionId: (sessionId) => { 
+            this.sessionId = sessionId
+        },
         getKey: async () => {
-            return new Promise((resolve, reject) => {
-                redisClient.get(`sess:${sessionId}`, (err, sessionData) => {
-                    if (err) {
-                        console.log(err);
-                        return reject(err);
-                    }
+            const sessionData = await this.redisClient.get(`sess:${this.sessionId}`);
+            const parsedSessionData = JSON.parse(sessionData); // parse the session data
 
-                    if (sessionData) {
-                        try {
-                            const parsedSessionData = JSON.parse(sessionData); // parse the session data
-                            return resolve(parsedSessionData.account.homeAccountId);
-                        } catch (err) {
-                            console.log(err)
-                            reject(err);
-                        }
-                    }
-
-                    return null;
-                });
-            });
+            return parsedSessionData.account.homeAccountId;
         },
         extractKey: async (accountEntity) => {
-            return new Promise((resolve, reject) => {
-                if (accountEntity.hasOwnProperty("homeAccountId")) {
-                    resolve(accountEntity.homeAccountId); // the homeAccountId is the partition key
-                } else {
-                    reject(new Error("homeAccountId is not defined"));
-                } 
-            })
+            if (accountEntity.hasOwnProperty("homeAccountId")) {
+                return accountEntity.homeAccountId; // the homeAccountId is the partition key
+            } else {
+                throw new Error("homeAccountId is not defined");
+            } 
         }
     }
 }

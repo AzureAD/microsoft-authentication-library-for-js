@@ -37,8 +37,4 @@ export class RedisCachePlugin implements ICachePlugin {
             }
         }
     }
-
-    public setPartitionManager(partitionManager: IPartitionManager): void {
-        this.partitionManager = partitionManager;
-    }
 }

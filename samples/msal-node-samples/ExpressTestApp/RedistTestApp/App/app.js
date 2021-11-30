@@ -11,13 +11,10 @@ const session = require('express-session');
 const RedisStore = require('connect-redis')(session); // persist session in redis
 
 const msalWrapper = require('msal-express-wrapper/dist/AuthProvider');
-const partitionManager = require('../App/utils/partitionManager');
-const redisClientWrapper = require('./utils/redisClientWrapper');
 const appSettings = require('../appSettings.json');
 const router = require('./routes/router');
 
 const SERVER_PORT = process.env.PORT || 4000;
-
 
 /**
 * Instantiate the redis client, which is used in persistenceHelper.
@@ -26,15 +23,18 @@ const SERVER_PORT = process.env.PORT || 4000;
 const redisClient = redis.createClient();
 redisClient.on('error', console.error);
 
+const redisClientWrapper = require('./utils/redisClientWrapper')(redisClient);
+
 /**
- * Initialize the redis cache plugin
+ * Initialize the partition manager 
  * 
- * Keeping a copy of the cache plugin instance to update later 
- * with a partition manager as in this use case we cannot
- * initialize the partition manager until the session
- * is initialize.
+ * Keeping a copy of the partition manager instance to update later 
+ * with the session id as in this use case we are using the
+ * session id in the storage and retrieval of
+ * our tokens in the cache
  */
-const redisCachePlugin = new RedisCachePlugin(redisClientWrapper(redisClient));
+
+const partitionManager = require('./utils/partitionManager')(redisClientWrapper);
 
 const app = express();
 
@@ -63,7 +63,7 @@ app.use(session({
 }));
 
 
-const authProvider = new msalWrapper.AuthProvider(appSettings, redisCachePlugin);
+const authProvider = new msalWrapper.AuthProvider(appSettings, new RedisCachePlugin(redisClientWrapper, partitionManager));
 
 /**
 * When using a distributed token cache, msal's in-memory cache should only load
@@ -71,8 +71,8 @@ const authProvider = new msalWrapper.AuthProvider(appSettings, redisCachePlugin)
 * This custom middleware first passes the session variable to cachePlugin object, and 
 * then re-initializes msal's token cache plugin.
 */
-function initializeTokenCachePlugin(req, res, next) {
-    redisCachePlugin.setPartitionManager(partitionManager(req.session.id, redisClient));
+function initializeTokenCachePlugin(req, _, next) {
+    partitionManager.setSessionId(req.session.id);
     next();
 }
 
