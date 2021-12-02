@@ -26,6 +26,7 @@ import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
 import { SilentRefreshClient } from "../interaction_client/SilentRefreshClient";
 import { TokenCache } from "../cache/TokenCache";
 import { ITokenCache } from "../cache/ITokenCache";
+import { PerformanceCallbackFunction, PerformanceManager } from "../telemetry/PerformanceManager";
 
 export abstract class ClientApplication {
 
@@ -57,6 +58,8 @@ export abstract class ClientApplication {
 
     // Redirect Response Object
     private redirectResponse: Map<string, Promise<AuthenticationResult | null>>;
+
+    protected performanceManager: PerformanceManager;
 
     /**
      * @constructor
@@ -113,6 +116,9 @@ export abstract class ClientApplication {
 
         // Initialize the token cache
         this.tokenCache = new TokenCache(this.config, this.browserStorage, this.logger, this.browserCrypto);
+
+        // Initialize performance manager
+        this.performanceManager = new PerformanceManager(this.logger, this.browserCrypto);
     }
 
     // #region Redirect Flow
@@ -190,8 +196,9 @@ export abstract class ClientApplication {
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         // Preflight request
+        request.correlationId = request.correlationId || this.browserCrypto.createNewGuid();
+        this.logger.verbose("acquireTokenRedirect called", request.correlationId);
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
-        this.logger.verbose("acquireTokenRedirect called");
 
         // If logged in, emit acquire token events
         const isLoggedIn = this.getAllAccounts().length > 0;
@@ -226,8 +233,9 @@ export abstract class ClientApplication {
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         try {
-            this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
+            request.correlationId = request.correlationId || this.browserCrypto.createNewGuid();
             this.logger.verbose("acquireTokenPopup called", request.correlationId);
+            this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
         } catch (e) {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
@@ -284,6 +292,7 @@ export abstract class ClientApplication {
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     async ssoSilent(request: SsoSilentRequest): Promise<AuthenticationResult> {
+        request.correlationId = request.correlationId || this.browserCrypto.createNewGuid();
         this.preflightBrowserEnvironmentCheck(InteractionType.Silent);
         this.logger.verbose("ssoSilent called", request.correlationId);
         this.eventHandler.emitEvent(EventType.SSO_SILENT_START, InteractionType.Silent, request);
@@ -311,24 +320,50 @@ export abstract class ClientApplication {
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
     protected async acquireTokenByRefreshToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
-        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, request);
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
+        const endMeasurement = this.performanceManager.startMeasurement("acquireTokenByRefreshToken", request.correlationId);
+        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_NETWORK_START, InteractionType.Silent, request);
 
         const silentRefreshClient = new SilentRefreshClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, request.correlationId);
 
-        return silentRefreshClient.acquireToken(request).catch(e => {
-            const isServerError = e instanceof ServerError;
-            const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
-            const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
-            if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
-                this.logger.verbose("Refresh token expired or invalid, attempting acquire token by iframe", request.correlationId);
+        return silentRefreshClient.acquireToken(request)
+            .then((result: AuthenticationResult) => {
+                endMeasurement({
+                    success: true,
+                    fromCache: result.fromCache
+                });
+                return result;
+            })
+            .catch(e => {
+                const isServerError = e instanceof ServerError;
+                const isInteractionRequiredError = e instanceof InteractionRequiredAuthError;
+                const isInvalidGrantError = (e.errorCode === BrowserConstants.INVALID_GRANT_ERROR);
+                if (isServerError && isInvalidGrantError && !isInteractionRequiredError) {
+                    this.logger.verbose("Refresh token expired or invalid, attempting acquire token by iframe", request.correlationId);
 
-                const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenSilent_authCode, request.correlationId);
-                return silentIframeClient.acquireToken(request);
-            }
-            throw e;
-        });
+                    const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenSilent_authCode, request.correlationId);
+                    return silentIframeClient.acquireToken(request)
+                        .then((result: AuthenticationResult) => {
+                            endMeasurement({
+                                success: true,
+                                fromCache: result.fromCache
+                            });
+
+                            return result;
+                        })
+                        .catch((error) => {
+                            endMeasurement({
+                                success: false
+                            });
+                            throw error;
+                        });
+                }
+                endMeasurement({
+                    success: false
+                });
+                throw e;
+            });
     }
 
     // #endregion
@@ -341,8 +376,12 @@ export abstract class ClientApplication {
      * @deprecated
      */
     async logout(logoutRequest?: EndSessionRequest): Promise<void> {
-        this.logger.warning("logout API is deprecated and will be removed in msal-browser v3.0.0. Use logoutRedirect instead.");
-        return this.logoutRedirect(logoutRequest);
+        const correlationId = (logoutRequest && logoutRequest.correlationId) || this.browserCrypto.createNewGuid();
+        this.logger.warning("logout API is deprecated and will be removed in msal-browser v3.0.0. Use logoutRedirect instead.", correlationId);
+        return this.logoutRedirect({
+            correlationId,
+            ...logoutRequest
+        });
     }
 
     /**
@@ -351,9 +390,13 @@ export abstract class ClientApplication {
      * @param logoutRequest
      */
     async logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void> {
+        const correlationId = (logoutRequest && logoutRequest.correlationId) || this.browserCrypto.createNewGuid();
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
-        const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, logoutRequest?.correlationId);
-        return redirectClient.logout(logoutRequest);
+        const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, correlationId);
+        return redirectClient.logout({
+            correlationId,
+            ...logoutRequest
+        });
     }
 
     /**
@@ -362,8 +405,9 @@ export abstract class ClientApplication {
      */
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void> {
         try{
+            const correlationId = (logoutRequest && logoutRequest.correlationId) || this.browserCrypto.createNewGuid();
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
-            const popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, logoutRequest?.correlationId);
+            const popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, correlationId);
             return popupClient.logout(logoutRequest);
         } catch (e) {
             // Since this function is syncronous we need to reject
@@ -503,6 +547,14 @@ export abstract class ClientApplication {
      */
     removeEventCallback(callbackId: string): void {
         this.eventHandler.removeEventCallback(callbackId);
+    }
+
+    addPerformanceCallback(callback: PerformanceCallbackFunction): string | null {
+        return this.performanceManager.addPerformanceCallback(callback);
+    }
+
+    removePerformanceCallback(callbackId: string): void {
+        this.performanceManager.removePerformanceCallback(callbackId);
     }
 
     /**
