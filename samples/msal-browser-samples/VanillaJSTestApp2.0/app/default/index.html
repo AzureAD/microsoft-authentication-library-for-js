@@ -27,6 +27,11 @@
     <br>
     <h5 class="card-header text-center">Vanilla JavaScript SPA calling MS Graph API with MSAL.JS</h5>
     <br>
+    <p>test</p>
+    <button onclick="msal.sendSimpleEvent('vanillaJsSimpleEvent1')">Send simple event</button>
+    <button onclick="msal.sendCustomEvent()">Send custom event</button>
+    <button onclick="msal.sendSampleError()">Send error</button>
+    
     <div class="row" style="margin:auto" >
     <div id="card-div" class="col-md-3" style="display:none">
     <div class="card text-center">
@@ -66,5 +71,7 @@
     <script type="text/javascript" src="./ui.js"></script>  
     <script type="text/javascript" src="./auth.js"></script>
     <script type="text/javascript" src="./graph.js"></script>
+    
+    
   </body>
 </html>
