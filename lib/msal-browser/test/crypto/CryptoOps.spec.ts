@@ -139,7 +139,7 @@ describe("CryptoOps.ts Unit Tests", () => {
         expect(generateKeyPairSpy).toHaveBeenCalledWith(true, ["sign", "verify"]);
         const result = await generateKeyPairSpy.mock.results[0].value;
         expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
-    expect(regExp.test(pkThumbprint)).toBe(true);
+        expect(regExp.test(pkThumbprint)).toBe(true);
         expect(mockDatabase["TestDB.keys"][pkThumbprint]).not.toBe(undefined);
     }, 30000);
 

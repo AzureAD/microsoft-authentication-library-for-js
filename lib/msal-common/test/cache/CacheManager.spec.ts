@@ -9,7 +9,8 @@ import {
     TEST_TOKENS,
     CACHE_MOCKS,
     TEST_POP_VALUES,
-    TEST_SSH_VALUES
+    TEST_SSH_VALUES,
+    TEST_CRYPTO_VALUES
 } from "../test_kit/StringConstants";
 import { ClientAuthError, ClientAuthErrorMessage } from "../../src/error/ClientAuthError";
 import { AccountInfo } from "../../src/account/AccountInfo";
@@ -400,6 +401,30 @@ describe("CacheManager.ts test cases", () => {
             };
             
             credentials = mockCache.cacheManager.getCredentialsFilteredBy(wrongFilter);
+            expect(Object.keys(credentials.idTokens).length).toEqual(0);
+            expect(Object.keys(credentials.accessTokens).length).toEqual(0);
+            expect(Object.keys(credentials.refreshTokens).length).toEqual(0);
+        });
+
+        it("requestedClaimsHash filter", () => {
+            // requestedClaimsHash present and matching in request and cache
+            const successFilterWithRCHash = { 
+                credentialType: CredentialType.ACCESS_TOKEN,
+                requestedClaimsHash: TEST_CRYPTO_VALUES.TEST_SHA256_HASH
+            };
+            
+            let credentials = mockCache.cacheManager.getCredentialsFilteredBy(successFilterWithRCHash);
+            expect(Object.keys(credentials.idTokens).length).toEqual(0);
+            expect(Object.keys(credentials.accessTokens).length).toEqual(1);
+            expect(Object.keys(credentials.refreshTokens).length).toEqual(0);
+
+            // requestedClaimsHash present in requeste and cache, not matching
+            const wrongFilterWithRCHash = { 
+                ...successFilterWithRCHash,
+                requestedClaimsHash: "wrong_hash"
+            };
+            
+            credentials = mockCache.cacheManager.getCredentialsFilteredBy(wrongFilterWithRCHash);
             expect(Object.keys(credentials.idTokens).length).toEqual(0);
             expect(Object.keys(credentials.accessTokens).length).toEqual(0);
             expect(Object.keys(credentials.refreshTokens).length).toEqual(0);
