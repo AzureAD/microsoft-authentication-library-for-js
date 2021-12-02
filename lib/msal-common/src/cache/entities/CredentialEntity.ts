@@ -5,6 +5,7 @@
 
 import { Separators, CredentialType, CacheType, Constants, AuthenticationScheme } from "../../utils/Constants";
 import { ClientAuthError } from "../../error/ClientAuthError";
+import { StringUtils } from "../../utils/StringUtils";
 
 /**
  * Base type for credentials to be stored in the cache: eg: ACCESS_TOKEN, ID_TOKEN etc
@@ -25,6 +26,7 @@ import { ClientAuthError } from "../../error/ClientAuthError";
  *      target: Permissions that are included in the token, or for refresh tokens, the resource identifier.
  *      oboAssertion: access token passed in as part of OBO request
  *      tokenType: Matches the authentication scheme for which the token was issued (i.e. Bearer or pop)
+ *      requestedClaimsHash: Matches the SHA 256 hash of the claims object included in the token request
  * }
  */
 export class CredentialEntity {
@@ -39,6 +41,7 @@ export class CredentialEntity {
     oboAssertion?: string;
     tokenType?: AuthenticationScheme;
     keyId?: string;
+    requestedClaimsHash?: string;
 
     /**
      * Generate Account Id key component as per the schema: <home_account_id>-<environment>
@@ -78,7 +81,8 @@ export class CredentialEntity {
             this.realm,
             this.target,
             this.familyId,
-            this.tokenType
+            this.tokenType,
+            this.requestedClaimsHash
         );
     }
 
@@ -133,13 +137,19 @@ export class CredentialEntity {
         realm?: string,
         target?: string,
         familyId?: string,
-        tokenType?: AuthenticationScheme
+        tokenType?: AuthenticationScheme,
+        requestedClaimsHash?: string
     ): string {
         const credentialKey = [
             this.generateAccountIdForCacheKey(homeAccountId, environment),
             this.generateCredentialIdForCacheKey(credentialType, clientId, realm, familyId),
             this.generateTargetForCacheKey(target)
         ];
+
+        // If claims were requested, cache key should include the claims string hash
+        if (requestedClaimsHash && !StringUtils.isEmpty(requestedClaimsHash)) {
+            credentialKey.push(requestedClaimsHash);
+        }
 
         // PoP Tokens and SSH certs include scheme in cache key
         if (tokenType && tokenType !== AuthenticationScheme.BEARER) {

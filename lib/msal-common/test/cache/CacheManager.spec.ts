@@ -4,7 +4,6 @@ import { AccessTokenEntity } from "../../src/cache/entities/AccessTokenEntity";
 import { CacheRecord } from "../../src/cache/entities/CacheRecord";
 import { AccountFilter, CredentialFilter } from "../../src/cache/utils/CacheTypes";
 import sinon from "sinon";
-import { ScopeSet } from "../../src/request/ScopeSet";
 import {
     TEST_CONFIG,
     TEST_TOKENS,
@@ -22,6 +21,7 @@ import { AuthorityMetadataEntity } from "../../src/cache/entities/AuthorityMetad
 import { AppMetadataEntity } from "../../src/cache/entities/AppMetadataEntity";
 import { RefreshTokenEntity } from "../../src/cache/entities/RefreshTokenEntity";
 import { IdTokenEntity } from "../../src/cache/entities/IdTokenEntity";
+import { CommonSilentFlowRequest } from "../../src";
 
 describe("CacheManager.ts test cases", () => {
     let mockCache = new MockCache(CACHE_MOCKS.MOCK_CLIENT_ID_1, mockCrypto);
@@ -587,7 +587,16 @@ describe("CacheManager.ts test cases", () => {
         if (!mockedAccountInfo) {
             throw TestError.createTestSetupError("mockedAccountInfo does not have a value");
         }
-        expect(() => mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, new ScopeSet(["user.read"]), AuthenticationScheme.BEARER)).toThrowError(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
+
+        const silentFlowRequest: CommonSilentFlowRequest = {
+            scopes: ["user.read"],
+            account: mockedAccountInfo,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            forceRefresh: false
+        };
+
+        expect(() => mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, silentFlowRequest)).toThrowError(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
     });
 
     it("readAccessTokenFromCache only matches a Bearer Token when Authentication Scheme is set to Bearer", () => {
@@ -623,8 +632,17 @@ describe("CacheManager.ts test cases", () => {
             tenantId: TEST_CONFIG.TENANT,
             username: "John Doe"
         };
-        expect(mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, new ScopeSet(["user.read"]), AuthenticationScheme.BEARER)).toEqual(mockedAtEntity);
-        expect(() => mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, new ScopeSet(["user.read"]), AuthenticationScheme.BEARER)).not.toThrowError(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
+
+        const silentFlowRequest: CommonSilentFlowRequest = {
+            scopes: ["user.read"],
+            account: mockedAccountInfo,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            forceRefresh: false
+        };
+
+        expect(mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, silentFlowRequest)).toEqual(mockedAtEntity);
+        expect(() => mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, silentFlowRequest)).not.toThrowError(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
     });
 
     it("readAccessTokenFromCache only matches a POP Token when Authentication Scheme is set to pop", () => {
@@ -660,8 +678,18 @@ describe("CacheManager.ts test cases", () => {
             tenantId: TEST_CONFIG.TENANT,
             username: "John Doe"
         };
-        expect(mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, new ScopeSet(["user.read"]), AuthenticationScheme.POP)).toEqual(mockedPopAtEntity);
-        expect(() => mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, new ScopeSet(["user.read"]), AuthenticationScheme.POP)).not.toThrowError(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
+
+        const silentFlowRequest: CommonSilentFlowRequest = {
+            scopes: ["user.read"],
+            account: mockedAccountInfo,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            forceRefresh: false,
+            authenticationScheme: AuthenticationScheme.POP
+        };
+
+        expect(mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, silentFlowRequest)).toEqual(mockedPopAtEntity);
+        expect(() => mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, silentFlowRequest)).not.toThrowError(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
     });
 
     it("readAccessTokenFromCache only matches an SSH Certificate when Authentication Scheme is set to ssh-cert", () => {
@@ -697,8 +725,19 @@ describe("CacheManager.ts test cases", () => {
             tenantId: TEST_CONFIG.TENANT,
             username: "John Doe"
         };
-        expect(mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, new ScopeSet(["user.read"]), AuthenticationScheme.SSH, TEST_SSH_VALUES.SSH_KID)).toEqual(mockedSshAtEntity);
-        expect(() => mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, new ScopeSet(["user.read"]), AuthenticationScheme.SSH, TEST_SSH_VALUES.SSH_KID)).not.toThrowError(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
+
+        const silentFlowRequest: CommonSilentFlowRequest = {
+            scopes: ["user.read"],
+            account: mockedAccountInfo,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            forceRefresh: false,
+            authenticationScheme: AuthenticationScheme.SSH,
+            sshKid: TEST_SSH_VALUES.SSH_KID
+        };
+
+        expect(mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, silentFlowRequest)).toEqual(mockedSshAtEntity);
+        expect(() => mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, silentFlowRequest)).not.toThrowError(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
     });
 
     it("readIdTokenFromCache", () => {

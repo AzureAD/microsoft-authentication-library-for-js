@@ -4,7 +4,7 @@
  */
 
 import { ClientConfiguration, Constants, PkceCodes, ClientAuthError, AccountEntity, CredentialEntity, AppMetadataEntity, ThrottlingEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, CredentialType, ProtocolMode , AuthorityFactory, AuthorityOptions, AuthorityMetadataEntity } from "../../src";
-import { AUTHENTICATION_RESULT, ID_TOKEN_CLAIMS, RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES, TEST_TOKENS } from "../test_kit/StringConstants";
+import { AUTHENTICATION_RESULT, ID_TOKEN_CLAIMS, RANDOM_TEST_GUID, TEST_CONFIG, TEST_CRYPTO_VALUES, TEST_POP_VALUES, TEST_TOKENS } from "../test_kit/StringConstants";
 
 import { CacheManager } from "../../src/cache/CacheManager";
 import { ServerTelemetryEntity } from "../../src/cache/entities/ServerTelemetryEntity";
@@ -161,6 +161,9 @@ export const mockCrypto = {
     },
     async clearKeystore(): Promise<boolean> {
         return Promise.resolve(true);
+    },
+    async hashString(): Promise<string> {
+        return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
     }
 };
 

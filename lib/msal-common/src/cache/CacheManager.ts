@@ -22,6 +22,7 @@ import { ThrottlingEntity } from "./entities/ThrottlingEntity";
 import { AuthToken } from "../account/AuthToken";
 import { ICrypto } from "../crypto/ICrypto";
 import { AuthorityMetadataEntity } from "./entities/AuthorityMetadataEntity";
+import { BaseAuthRequest } from "../request/BaseAuthRequest";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -227,7 +228,8 @@ export abstract class CacheManager implements ICacheManager {
             environment: credential.environment,
             homeAccountId: credential.homeAccountId,
             realm: credential.realm,
-            tokenType: credential.tokenType
+            tokenType: credential.tokenType,
+            requestedClaimsHash: credential.requestedClaimsHash
         });
 
         const currentScopes = ScopeSet.fromString(credential.target);
@@ -321,7 +323,8 @@ export abstract class CacheManager implements ICacheManager {
             filter.target,
             filter.oboAssertion,
             filter.tokenType,
-            filter.keyId
+            filter.keyId,
+            filter.requestedClaimsHash
         );
     }
 
@@ -346,7 +349,8 @@ export abstract class CacheManager implements ICacheManager {
         target?: string,
         oboAssertion?: string,
         tokenType?: AuthenticationScheme,
-        keyId?: string
+        keyId?: string,
+        requestedClaimsHash?: string
     ): CredentialCache {
         const allCacheKeys = this.getKeys();
         const matchingCredentials: CredentialCache = {
@@ -404,6 +408,14 @@ export abstract class CacheManager implements ICacheManager {
              */
             if (!!target && !this.matchTarget(entity, target)) {
                 return;
+            }
+            
+            // If request OR cached entity has requested Claims Hash, check if they match
+            if (requestedClaimsHash || entity.requestedClaimsHash) {
+                // Don't match if either is undefined or they are different
+                if (!this.matchRequestedClaimsHash(entity, requestedClaimsHash)) {
+                    return;
+                }
             }
 
             // Access Token with Auth Scheme specific matching
@@ -636,10 +648,11 @@ export abstract class CacheManager implements ICacheManager {
      * @param environment
      * @param authScheme
      */
-    readCacheRecord(account: AccountInfo, clientId: string, scopes: ScopeSet, environment: string, authScheme: AuthenticationScheme, keyId?: string): CacheRecord {
+    readCacheRecord(account: AccountInfo, clientId: string, request: BaseAuthRequest, environment: string): CacheRecord {
+
         const cachedAccount = this.readAccountFromCache(account);
         const cachedIdToken = this.readIdTokenFromCache(clientId, account);
-        const cachedAccessToken = this.readAccessTokenFromCache(clientId, account, scopes, authScheme, keyId);
+        const cachedAccessToken = this.readAccessTokenFromCache(clientId, account, request);
         const cachedRefreshToken = this.readRefreshTokenFromCache(clientId, account, false);
         const cachedAppMetadata = this.readAppMetadataFromCache(environment, clientId);
 
@@ -700,7 +713,9 @@ export abstract class CacheManager implements ICacheManager {
      * @param scopes
      * @param authScheme
      */
-    readAccessTokenFromCache(clientId: string, account: AccountInfo, scopes: ScopeSet, authScheme: AuthenticationScheme, keyId?: string): AccessTokenEntity | null {
+    readAccessTokenFromCache(clientId: string, account: AccountInfo, request: BaseAuthRequest): AccessTokenEntity | null {
+        const scopes =  new ScopeSet(request.scopes || []);
+        const authScheme = request.authenticationScheme || AuthenticationScheme.BEARER;
         // Distinguish between Bearer and PoP/SSH token cache types
         const credentialType = (authScheme && authScheme !== AuthenticationScheme.BEARER) ? CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME : CredentialType.ACCESS_TOKEN;
 
@@ -712,11 +727,12 @@ export abstract class CacheManager implements ICacheManager {
             realm: account.tenantId,
             target: scopes.printScopesLowerCase(),
             tokenType: authScheme,
-            keyId: keyId
+            keyId: request.sshKid,
+            requestedClaimsHash: request.requestedClaimsHash
         };
 
         const credentialCache: CredentialCache = this.getCredentialsFilteredBy(accessTokenFilter);
-
+        
         const accessTokens = Object.keys(credentialCache.accessTokens).map((key) => credentialCache.accessTokens[key]);
         
         const numAccessTokens = accessTokens.length;
@@ -878,6 +894,15 @@ export abstract class CacheManager implements ICacheManager {
             requestTargetScopeSet.removeScope(Constants.OFFLINE_ACCESS_SCOPE);
         }
         return entityScopeSet.containsScopeSet(requestTargetScopeSet);
+    }
+
+    /**
+     * Returns true if the request claims hash matches the cache key's hashed claims, false otherwise.
+     * @param entity
+     * @param requestedClaimsHash
+     */
+    private matchRequestedClaimsHash(entity: CredentialEntity, requestedClaimsHash?: string): boolean {
+        return (requestedClaimsHash === entity.requestedClaimsHash);
     }
 
     /**
