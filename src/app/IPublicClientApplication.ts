@@ -15,6 +15,7 @@ import { INavigationClient } from "../navigation/INavigationClient";
 import { EndSessionPopupRequest } from "../request/EndSessionPopupRequest";
 import { ITokenCache } from "../cache/ITokenCache";
 import { BrowserConfiguration } from "../config/Configuration";
+import { PerformanceCallbackFunction } from "../telemetry/PerformanceManager";
 
 export interface IPublicClientApplication {
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult>;
@@ -22,6 +23,8 @@ export interface IPublicClientApplication {
     acquireTokenSilent(silentRequest: SilentRequest): Promise<AuthenticationResult>;
     addEventCallback(callback: Function): string | null;
     removeEventCallback(callbackId: string): void;
+    addPerformanceCallback(callback: PerformanceCallbackFunction): string | null;
+    removePerformanceCallback(callbackId: string): void;
     enableAccountStorageEvents(): void;
     disableAccountStorageEvents(): void;
     getAccountByHomeId(homeAccountId: string): AccountInfo | null;
@@ -92,6 +95,12 @@ export const stubbedPublicClientApplication: IPublicClientApplication = {
         return null;
     },
     removeEventCallback: () => {
+        return;
+    },
+    addPerformanceCallback: () => {
+        return null;
+    },
+    removePerformanceCallback: () => {
         return;
     },
     enableAccountStorageEvents: () => {
