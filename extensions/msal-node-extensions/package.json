@@ -27,12 +27,13 @@
   "scripts": {
     "start": "tsdx watch",
     "build": "tsdx build",
-    "build:common": "cd ../../lib/msal-common && npm i && npm run build && npm link",
-    "link:common": "npm link @azure/msal-common",
+    "build:common": "cd ../../lib/msal-common && npm run build",
+    "build:all": "npm run build:common && npm run build",
     "test": "tsdx test",
     "lint": "cd ../../ && npm run lint:node:extensions",
     "lint:fix": "npm run lint -- -- --fix",
-    "prepack": "npm run build"
+    "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/msal-node-extensions",
+    "prepack": "npm run build:all"
   },
   "author": {
     "name": "Microsoft",
