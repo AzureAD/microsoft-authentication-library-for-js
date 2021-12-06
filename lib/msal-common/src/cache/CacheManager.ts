@@ -413,7 +413,7 @@ export abstract class CacheManager implements ICacheManager {
             // If request OR cached entity has requested Claims Hash, check if they match
             if (requestedClaimsHash || entity.requestedClaimsHash) {
                 // Don't match if either is undefined or they are different
-                if (!this.matchRequestedClaimsHash(entity, requestedClaimsHash)) {
+                if (entity.requestedClaimsHash !== requestedClaimsHash) {
                     return;
                 }
             }
