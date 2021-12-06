@@ -143,7 +143,7 @@ export class CryptoOps implements ICrypto {
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid 
      */
-    async removeTokenBindingKey(kid: string, keyType?: CryptoKeyTypes): Promise<boolean> {
+    async removeTokenBindingKey(kid: string, keyType: CryptoKeyTypes): Promise<boolean> {
         const keyStore = (keyType === CryptoKeyTypes.SessionKeyJwk) ? this.cache.symmetricKeys : this.cache.asymmetricKeys;
         await keyStore.removeItem(kid);
         return !keyStore.containsKey(kid);
