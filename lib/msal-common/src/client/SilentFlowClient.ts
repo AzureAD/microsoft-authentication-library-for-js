@@ -15,7 +15,6 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { CacheRecord } from "../cache/entities/CacheRecord";
 import { CacheOutcome } from "../utils/Constants";
-import { StringUtils } from "../utils/StringUtils";
 
 export class SilentFlowClient extends BaseClient {
 
@@ -62,10 +61,6 @@ export class SilentFlowClient extends BaseClient {
         if (!request.account) {
             throw ClientAuthError.createNoAccountInSilentRequestError();
         }
-
-        if (request.claims && !StringUtils.isEmpty(request.claims)) {
-            request.requestedClaimsHash = await this.cryptoUtils.hashString(request.claims);
-        } 
 
         const environment = request.authority || this.authority.getPreferredCache();
 

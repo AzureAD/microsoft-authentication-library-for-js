@@ -139,10 +139,6 @@ export class ResponseHandler {
         // Add keyId from request to serverTokenResponse if defined
         serverTokenResponse.key_id = serverTokenResponse.key_id || request.sshKid || undefined;
 
-        if(request.claims && !StringUtils.isEmpty(request.claims)) {
-            request.requestedClaimsHash = await this.cryptoObj.hashString(request.claims);
-        }
-
         const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, reqTimestamp, request, idTokenObj, oboAssertion, authCodePayload);
         let cacheContext;
         try {
