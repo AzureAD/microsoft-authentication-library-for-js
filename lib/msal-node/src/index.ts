@@ -24,7 +24,7 @@ export { ClientAssertion } from "./client/ClientAssertion";
 export { TokenCache } from "./cache/TokenCache";
 export { NodeStorage } from "./cache/NodeStorage";
 export { CacheKVStore, JsonCache, InMemoryCache, SerializedAccountEntity, SerializedIdTokenEntity, SerializedAccessTokenEntity, SerializedAppMetadataEntity, SerializedRefreshTokenEntity } from "./cache/serializer/SerializerTypes";
-export { RedisCachePlugin } from "./cache/distributed/redis/RedisCachePlugin";
+export { DistributedCachePlugin } from "./cache/distributed/DistributedCachePlugin";
 
 // Crypto
 export { CryptoProvider } from "./crypto/CryptoProvider";

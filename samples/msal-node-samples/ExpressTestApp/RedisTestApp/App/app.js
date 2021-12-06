@@ -6,7 +6,7 @@
 const path = require('path');
 const redis = require('redis');
 const express = require('express');
-const { RedisCachePlugin } = require('@azure/msal-node');
+const { DistributedCachePlugin } = require('@azure/msal-node');
 const session = require('express-session');
 const RedisStore = require('connect-redis')(session); // persist session in redis
 
@@ -63,7 +63,7 @@ app.use(session({
 }));
 
 
-const authProvider = new msalWrapper.AuthProvider(appSettings, new RedisCachePlugin(redisClientWrapper, partitionManager));
+const authProvider = new msalWrapper.AuthProvider(appSettings, new DistributedCachePlugin(redisClientWrapper, partitionManager));
 
 /**
 * When using a distributed token cache, msal's in-memory cache should only load

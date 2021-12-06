@@ -4,11 +4,11 @@
  */
 
 import { ICachePlugin, TokenCacheContext } from "@azure/msal-common";
-import { TokenCache } from "../../TokenCache";
-import { IPartitionManager } from "../IPartitionManager";
-import { ICacheClient } from "../ICacheClient";
+import { TokenCache } from "../TokenCache";
+import { IPartitionManager } from "./IPartitionManager";
+import { ICacheClient } from "./ICacheClient";
 
-export class RedisCachePlugin implements ICachePlugin {
+export class DistributedCachePlugin implements ICachePlugin {
     private client: ICacheClient;
     private partitionManager?: IPartitionManager;
 
