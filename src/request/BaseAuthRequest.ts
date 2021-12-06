@@ -4,7 +4,7 @@
  */
 
 import { AuthenticationScheme } from "../utils/Constants";
-import { AzureAuthOptions } from "../config/ClientConfiguration";
+import { AzureCloudOptions } from "../config/ClientConfiguration";
 
 /**
  * BaseAuthRequest
@@ -19,7 +19,7 @@ import { AzureAuthOptions } from "../config/ClientConfiguration";
  * - resourceRequestUri      - URI that token will be used for. Used for proof-of-possession flows.
  * - sshJwk                  - A stringified JSON Web Key representing a public key that can be signed by an SSH certificate.
  * - sshKid                  - Key ID that uniquely identifies the SSH public key mentioned above.
- * - azureAuthOptions        - Convenience string enums for users to provide public/sovereign cloud ids
+ * - azureCloudOptions        - Convenience string enums for users to provide public/sovereign cloud ids
  */
 export type BaseAuthRequest = {
     authority: string;
@@ -33,5 +33,5 @@ export type BaseAuthRequest = {
     resourceRequestUri?: string;
     sshJwk?: string,
     sshKid?: string,
-    azureAuthOptions?: AzureAuthOptions;
+    azureCloudOptions?: AzureCloudOptions;
 };

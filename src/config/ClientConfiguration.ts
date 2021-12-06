@@ -74,7 +74,7 @@ export type AuthOptions = {
     clientId: string;
     authority: Authority;
     clientCapabilities?: Array<string>;
-    azureAuthOptions?: AzureAuthOptions;
+    azureCloudOptions?: AzureCloudOptions;
 };
 
 /**
@@ -129,7 +129,7 @@ export type ClientCredentials = {
  * - azureCloudInstance             - string enum providing short notation for soverign and public cloud authorities
  * - tenant                         - provision to provide the tenant info
  */
-export type AzureAuthOptions = {
+export type AzureCloudOptions = {
     azureCloudInstance?: AzureCloudInstance;
     tenant: string,
 };
@@ -171,7 +171,7 @@ const DEFAULT_CLIENT_CREDENTIALS: ClientCredentials = {
     clientAssertion: undefined
 };
 
-const DEFAULT_AZURE_AUTH_OPTIONS: AzureAuthOptions = {
+const DEFAULT_AZURE_CLOUD_OPTIONS: AzureCloudOptions = {
     azureCloudInstance: AzureCloudInstance.None,
     tenant: `${Constants.DEFAULT_COMMON_TENANT}`
 };
@@ -222,7 +222,7 @@ export function buildClientConfiguration(
 function buildAuthOptions(authOptions: AuthOptions): Required<AuthOptions> {
     return {
         clientCapabilities: [],
-        azureAuthOptions: DEFAULT_AZURE_AUTH_OPTIONS,
+        azureCloudOptions: DEFAULT_AZURE_CLOUD_OPTIONS,
         ...authOptions
     };
 }
