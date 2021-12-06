@@ -52,7 +52,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
 
             // Initialize the client
-            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentRequest.authority, silentRequest.azureAuthOptions);
+            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentRequest.authority, silentRequest.azureCloudOptions);
             this.logger.verbose("Auth code client created");
 
             // Create authorize request url
