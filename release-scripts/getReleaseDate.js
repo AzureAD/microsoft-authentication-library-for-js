@@ -1,3 +1,4 @@
+const noSpaces = process.argv.indexOf("-branch", 1) >= 0;
 const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const date = new Date();
 const currentDay = date.getDate();
@@ -18,4 +19,7 @@ if (dateOfNextRelease > 7) {
     }
 }
 
-console.log(months[month], year);
+const delimiter = noSpaces ? '-' : ' ';
+const dateComponents = [months[month], year]
+const formattedDate = noSpaces ? dateComponents.join(delimiter).toLowerCase() : dateComponents.join(delimiter);
+console.log(formattedDate);

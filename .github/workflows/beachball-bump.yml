@@ -1,5 +1,5 @@
 # Bump package version numbers and create a release branch
-name: Automate Release
+name: Beachball Bump
 
 on:
   pull_request:
@@ -7,8 +7,12 @@ on:
     branches:
       - dev
 
+concurrency:
+  group: beachball-bump
+  cancel-in-progress: true
+
 jobs:
-  release:
+  bump:
     if: github.event.pull_request.merged == true && !contains(github.head_ref, 'release')
     name: Bump versions and create changelogs
     runs-on: ubuntu-latest
@@ -45,5 +49,6 @@ jobs:
           branch: release-staging
           title: "${{ steps.release-date.outputs.date }} Release"
           body: |
-            Release PR : This PR contains the changelogs and version bumps for the ${{ steps.month.outputs.month }} releases.
+            Release PR : This PR contains the changelogs and version bumps for the ${{ steps.release-date.outputs.date }} releases.
+          labels: release
           draft: true
