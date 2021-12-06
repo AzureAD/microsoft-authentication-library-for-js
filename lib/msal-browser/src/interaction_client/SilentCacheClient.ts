@@ -4,7 +4,7 @@
  */
 
 import { StandardInteractionClient } from "./StandardInteractionClient";
-import { CommonSilentFlowRequest, AuthenticationResult, SilentFlowClient, ServerTelemetryManager, AccountInfo, AzureAuthOptions} from "@azure/msal-common";
+import { CommonSilentFlowRequest, AuthenticationResult, SilentFlowClient, ServerTelemetryManager, AccountInfo, AzureCloudOptions} from "@azure/msal-common";
 import { SilentRequest } from "../request/SilentRequest";
 import { EventType } from "../event/EventType";
 import { InteractionType, ApiId } from "../utils/BrowserConstants";
@@ -19,7 +19,7 @@ export class SilentCacheClient extends StandardInteractionClient {
         // Telemetry manager only used to increment cacheHits here
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow);
 
-        const silentAuthClient = await this.createSilentFlowClient(serverTelemetryManager, silentRequest.authority, silentRequest.azureAuthOptions);
+        const silentAuthClient = await this.createSilentFlowClient(serverTelemetryManager, silentRequest.authority, silentRequest.azureCloudOptions);
         this.logger.verbose("Silent auth client created");
 
         try {
@@ -47,9 +47,9 @@ export class SilentCacheClient extends StandardInteractionClient {
      * @param serverTelemetryManager
      * @param authorityUrl
      */
-    protected async createSilentFlowClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, azureAuthOptions?: AzureAuthOptions): Promise<SilentFlowClient> {
+    protected async createSilentFlowClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, azureCloudOptions?: AzureCloudOptions): Promise<SilentFlowClient> {
         // Create auth module.
-        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, azureAuthOptions);
+        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, azureCloudOptions);
         return new SilentFlowClient(clientConfig);
     }
 

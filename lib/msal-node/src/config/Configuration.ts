@@ -11,7 +11,7 @@ import {
     ICachePlugin,
     Constants,
     AzureCloudInstance,
-    AzureAuthOptions
+    AzureCloudOptions
 } from "@azure/msal-common";
 import { NetworkUtils } from "../utils/NetworkUtils";
 
@@ -40,7 +40,7 @@ export type NodeAuthOptions = {
     authorityMetadata?: string;
     clientCapabilities?: Array<string>;
     protocolMode?: ProtocolMode;
-    azureAuthOptions?: AzureAuthOptions;
+    azureCloudOptions?: AzureCloudOptions;
 };
 
 /**
@@ -94,7 +94,7 @@ const DEFAULT_AUTH_OPTIONS: Required<NodeAuthOptions> = {
     authorityMetadata: "",
     clientCapabilities: [],
     protocolMode: ProtocolMode.AAD,
-    azureAuthOptions: {
+    azureCloudOptions: {
         azureCloudInstance: AzureCloudInstance.None,
         tenant: ""
     }

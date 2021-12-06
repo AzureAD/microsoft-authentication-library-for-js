@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, Logger, ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, AzureAuthOptions } from "@azure/msal-common";
+import { ICrypto, Logger, ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, AzureCloudOptions } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
@@ -98,9 +98,9 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param serverTelemetryManager
      * @param authorityUrl
      */
-    protected async createAuthCodeClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, requestAzureAuthOptions?: AzureAuthOptions): Promise<AuthorizationCodeClient> {
+    protected async createAuthCodeClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, requestAzureCloudOptions?: AzureCloudOptions): Promise<AuthorizationCodeClient> {
         // Create auth module.
-        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, requestAzureAuthOptions);
+        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, requestAzureCloudOptions);
         return new AuthorizationCodeClient(clientConfig);
     }
 
@@ -110,9 +110,9 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param requestAuthority
      * @param requestCorrelationId
      */
-    protected async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string, requestAzureAuthOptions?: AzureAuthOptions): Promise<ClientConfiguration> {
+    protected async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string, requestAzureCloudOptions?: AzureCloudOptions): Promise<ClientConfiguration> {
         this.logger.verbose("getClientConfiguration called");
-        const discoveredAuthority = await this.getDiscoveredAuthority(requestAuthority, requestAzureAuthOptions);
+        const discoveredAuthority = await this.getDiscoveredAuthority(requestAuthority, requestAzureCloudOptions);
 
         return {
             authOptions: {
@@ -173,7 +173,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param requestAuthority
      * @param requestCorrelationId
      */
-    protected async getDiscoveredAuthority(requestAuthority?: string, requestAzureAuthOptions?: AzureAuthOptions): Promise<Authority> {
+    protected async getDiscoveredAuthority(requestAuthority?: string, requestAzureCloudOptions?: AzureCloudOptions): Promise<Authority> {
         this.logger.verbose("getDiscoveredAuthority called");
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode,
@@ -187,19 +187,19 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         let authorityAzureCloudInstance;
 
         // Fetch the authority from request if provided
-        if (requestAuthority || requestAzureAuthOptions) {
-            if (requestAzureAuthOptions) {
-                const tenant = requestAzureAuthOptions.tenant ? requestAzureAuthOptions.tenant : Constants.DEFAULT_COMMON_TENANT;
-                authorityAzureCloudInstance = `${requestAzureAuthOptions.azureCloudInstance}/${tenant}/`;
+        if (requestAuthority || requestAzureCloudOptions) {
+            if (requestAzureCloudOptions) {
+                const tenant = requestAzureCloudOptions.tenant ? requestAzureCloudOptions.tenant : Constants.DEFAULT_COMMON_TENANT;
+                authorityAzureCloudInstance = `${requestAzureCloudOptions.azureCloudInstance}/${tenant}/`;
             }
 
             userRequestedAuthority = authorityAzureCloudInstance ? authorityAzureCloudInstance : requestAuthority;
         }
         // fall back to the authority from config
         else {
-            if (this.config.auth.azureAuthOptions) {
-                const tenant = this.config.auth.azureAuthOptions.tenant ? this.config.auth.azureAuthOptions.tenant : Constants.DEFAULT_COMMON_TENANT;
-                authorityAzureCloudInstance = `${this.config.auth.azureAuthOptions.azureCloudInstance}/${tenant}/`;
+            if (this.config.auth.azureCloudOptions) {
+                const tenant = this.config.auth.azureCloudOptions.tenant ? this.config.auth.azureCloudOptions.tenant : Constants.DEFAULT_COMMON_TENANT;
+                authorityAzureCloudInstance = `${this.config.auth.azureCloudOptions.azureCloudInstance}/${tenant}/`;
             }
         }
 
