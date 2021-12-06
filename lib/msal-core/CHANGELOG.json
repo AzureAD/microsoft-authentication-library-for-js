@@ -2,6 +2,29 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Mon, 01 Nov 2021 23:53:22 GMT",
+      "tag": "msal_v1.4.15",
+      "version": "1.4.15",
+      "comments": {
+        "patch": [
+          {
+            "author": "janutter@microsoft.com",
+            "package": "msal",
+            "commit": "b057fbd6775ea4bc1b513517bab727b773ee3fba",
+            "comment": "Remove fallback logic for iframe creation in msal-core #4182"
+          }
+        ],
+        "none": [
+          {
+            "author": "janutter@microsoft.com",
+            "package": "msal",
+            "commit": "c5a8de4a5dc7acb9bdf1759eb3cb9811459c3d82",
+            "comment": "Update package-locks to fix dependantbot alerts #4181"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 04 Oct 2021 23:12:35 GMT",
       "tag": "msal_v1.4.14",
       "version": "1.4.14",
