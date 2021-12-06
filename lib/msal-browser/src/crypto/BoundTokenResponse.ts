@@ -4,7 +4,7 @@
  */
 
 import { BaseAuthRequest, BoundServerAuthorizationTokenResponse, Logger, ServerAuthorizationTokenResponse } from "@azure/msal-common";
-import { BrowserAuthError } from "..";
+import { BrowserAuthError } from "../error/BrowserAuthError";
 import { Algorithms, CryptoKeyFormats, CryptoKeyUsageSets, KeyDerivationLabels, Lengths } from "../utils/CryptoConstants";
 import { CryptoKeyStore } from "./CryptoOps";
 import { JsonWebEncryption } from "./JsonWebEncryption";
