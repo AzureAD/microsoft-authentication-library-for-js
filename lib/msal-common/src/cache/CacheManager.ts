@@ -896,14 +896,6 @@ export abstract class CacheManager implements ICacheManager {
         return entityScopeSet.containsScopeSet(requestTargetScopeSet);
     }
 
-    /**
-     * Returns true if the request claims hash matches the cache key's hashed claims, false otherwise.
-     * @param entity
-     * @param requestedClaimsHash
-     */
-    private matchRequestedClaimsHash(entity: CredentialEntity, requestedClaimsHash?: string): boolean {
-        return (requestedClaimsHash === entity.requestedClaimsHash);
-    }
 
     /**
      * Returns true if the credential's tokenType or Authentication Scheme matches the one in the request, false otherwise
