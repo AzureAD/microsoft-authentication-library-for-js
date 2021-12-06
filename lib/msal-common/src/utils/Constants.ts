@@ -357,7 +357,8 @@ export enum PasswordGrantConstants {
  */
 export enum CryptoKeyTypes {
     ReqCnf = "req_cnf",
-    StkJwk = "stk_jwk"
+    StkJwk = "stk_jwk",
+    SessionKeyJwk = "session_key_jwk"
 }
 
 /**

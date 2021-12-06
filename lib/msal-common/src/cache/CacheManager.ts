@@ -614,11 +614,12 @@ export abstract class CacheManager implements ICacheManager {
         // Remove Token Binding Keys from key store for RT with Auth Scheme Credentials
         if (credential.credentialType.toLowerCase() === CredentialType.REFRESH_TOKEN_WITH_AUTH_SCHEME.toLowerCase()) {
             const refreshTokenWithAuthSchemeEntity = credential as RefreshTokenEntity;
-            const kid = refreshTokenWithAuthSchemeEntity.stkKid;
+            const { stkKid, skKid } = refreshTokenWithAuthSchemeEntity;
 
-            if (kid) {
+            if (stkKid && skKid) {
                 try {
-                    await this.cryptoImpl.removeTokenBindingKey(kid, CryptoKeyTypes.StkJwk);
+                    await this.cryptoImpl.removeTokenBindingKey(stkKid, CryptoKeyTypes.StkJwk);
+                    await this.cryptoImpl.removeTokenBindingKey(skKid, CryptoKeyTypes.SessionKeyJwk);
                 } catch (error) {
                     throw ClientAuthError.createBindingKeyNotRemovedError();
                 }
