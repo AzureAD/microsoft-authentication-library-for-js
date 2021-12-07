@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix inProgress stuck in startup state #4302",
-  "packageName": "@azure/msal-react",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

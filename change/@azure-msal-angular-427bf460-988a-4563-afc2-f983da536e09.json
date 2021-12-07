@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "deps: audit fix on msal-angular",
-  "packageName": "@azure/msal-angular",
-  "email": "kamausamuel11@gmail.com",
-  "dependentChangeType": "none"
-}
