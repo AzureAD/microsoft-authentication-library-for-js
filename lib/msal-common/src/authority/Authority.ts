@@ -19,6 +19,7 @@ import { CloudInstanceDiscoveryResponse, isCloudInstanceDiscoveryResponse } from
 import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
 import { RegionDiscovery } from "./RegionDiscovery";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
+import { AzureCloudOptions } from "../config/ClientConfiguration";
 
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
@@ -431,6 +432,21 @@ export class Authority {
         });
 
         return matches.length > 0;
+    }
+
+    /**
+     * helper function to populate the authority based on azureCloudOptions
+     * @param authorityString
+     * @param azureCloudOptions
+     */
+    static generateAuthority(authorityString: string, azureCloudOptions?: AzureCloudOptions): string {
+        let authorityAzureCloudInstance;
+        if (azureCloudOptions) {
+            const tenant = azureCloudOptions.tenant ? azureCloudOptions.tenant : Constants.DEFAULT_COMMON_TENANT;
+            authorityAzureCloudInstance = `${azureCloudOptions.azureCloudInstance}/${tenant}/`;
+        }
+
+        return authorityAzureCloudInstance ? authorityAzureCloudInstance : authorityString;
     }
 
     /**
