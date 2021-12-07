@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "deps: run an audit fix for msal-node-extensions",
-  "packageName": "@azure/msal-node-extensions",
-  "email": "kamausamuel11@gmail.com",
-  "dependentChangeType": "none"
-}

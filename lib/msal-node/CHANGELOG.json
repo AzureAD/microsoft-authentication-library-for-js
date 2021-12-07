@@ -2,6 +2,41 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 07 Dec 2021 00:17:01 GMT",
+      "tag": "@azure/msal-node_v1.4.0",
+      "version": "1.4.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "4741b6c3a6a3dd58feefde93c095c05e1eca5e03",
+            "comment": "Add support for hybrid spa flow #3478"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v5.2.0",
+            "commit": "d7c209f7aa3ae4380a77a31ff1319fbf7201ae45"
+          }
+        ],
+        "none": [
+          {
+            "author": "kamausamuel11@gmail.com",
+            "package": "@azure/msal-node",
+            "commit": "8259de7520d2940d290332cd03c5b8babeb0966e",
+            "comment": "deps: npm audit fix msal-node"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "02dbd9172368bfc69e4a47f01a3ada0b96345c81",
+            "comment": "Package.json updates"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 01 Nov 2021 23:53:22 GMT",
       "tag": "@azure/msal-node_v1.3.3",
       "version": "1.3.3",

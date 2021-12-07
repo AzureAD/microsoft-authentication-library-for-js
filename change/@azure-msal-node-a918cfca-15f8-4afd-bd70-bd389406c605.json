@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "deps: npm audit fix msal-node",
-  "packageName": "@azure/msal-node",
-  "email": "kamausamuel11@gmail.com",
-  "dependentChangeType": "none"
-}
