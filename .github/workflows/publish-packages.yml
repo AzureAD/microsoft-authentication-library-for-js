@@ -229,6 +229,8 @@ jobs:
         run: npm install
 
       - name: Create Github Releases and Discussions
+        env:
+          GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN}}
         run: node ./.github/create-releases.js
 
       - name: Get release date
