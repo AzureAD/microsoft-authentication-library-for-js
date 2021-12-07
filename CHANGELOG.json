@@ -2,6 +2,37 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 07 Dec 2021 00:17:01 GMT",
+      "tag": "@azure/msal-common_v5.2.0",
+      "version": "5.2.0",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "02dbd9172368bfc69e4a47f01a3ada0b96345c81",
+            "comment": "Package.json updates"
+          }
+        ],
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "e983e25ba899bb437a135ec50ad6c77023c72e5b",
+            "comment": "Fix circular dependencies in AuthenticationHeaderParser and AsyncMemoryStorage #4235"
+          }
+        ],
+        "minor": [
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "4741b6c3a6a3dd58feefde93c095c05e1eca5e03",
+            "comment": "Add APIs needed for hybrid spa flow #3978"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 01 Nov 2021 23:53:21 GMT",
       "tag": "@azure/msal-common_v5.1.0",
       "version": "5.1.0",
