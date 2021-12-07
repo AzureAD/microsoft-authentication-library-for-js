@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AccessTokenEntity, ICrypto, IdTokenEntity, Logger, ScopeSet, Authority, AuthorityOptions, ExternalTokenResponse, AccountEntity, AuthToken , AuthorizationCodeClient , Constants } from "@azure/msal-common";
+import { AccessTokenEntity, ICrypto, IdTokenEntity, Logger, ScopeSet, Authority, AuthorityOptions, ExternalTokenResponse, AccountEntity, AuthToken } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { SilentRequest } from "../request/SilentRequest";
 import { BrowserCacheManager } from "./BrowserCacheManager";
@@ -58,14 +58,7 @@ export class TokenCache implements ITokenCache {
             this.loadAccessToken(request, response, request.account.homeAccountId, request.account.environment, request.account.tenantId, options);
         } else if (request.authority) {
 
-            let authorityAzureCloudInstance;
-            if (request.azureCloudOptions) {
-                const tenant = request.azureCloudOptions.tenant ? request.azureCloudOptions.tenant : Constants.DEFAULT_COMMON_TENANT;
-                authorityAzureCloudInstance = `${request.azureCloudOptions.azureCloudInstance}/${tenant}/`;
-            }
-            // final authority from the request
-            const authorityUrl = authorityAzureCloudInstance ? authorityAzureCloudInstance : request.authority;
-
+            const authorityUrl = Authority.generateAuthority(request.authority, request.azureCloudOptions);
             const authorityOptions: AuthorityOptions = {
                 protocolMode: this.config.auth.protocolMode,
                 knownAuthorities: this.config.auth.knownAuthorities,
