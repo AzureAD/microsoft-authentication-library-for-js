@@ -12,7 +12,6 @@ export type AuthorityOptions = {
     cloudDiscoveryMetadata: string;
     authorityMetadata: string;
     azureRegionConfiguration?: AzureRegionConfiguration;
-    azureCloudInstance?: AzureCloudInstance;
 };
 
 export enum AzureCloudInstance {
