@@ -1,8 +1,20 @@
 # Change Log - @azure/msal-common
 
-This log was last generated on Mon, 01 Nov 2021 23:53:21 GMT and should not be manually modified.
+This log was last generated on Tue, 07 Dec 2021 00:17:01 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 5.2.0
+
+Tue, 07 Dec 2021 00:17:01 GMT
+
+### Minor changes
+
+- Add APIs needed for hybrid spa flow #3978 (janutter@microsoft.com)
+
+### Patches
+
+- Fix circular dependencies in AuthenticationHeaderParser and AsyncMemoryStorage #4235 (hemoral@microsoft.com)
 
 ## 5.1.0
 
