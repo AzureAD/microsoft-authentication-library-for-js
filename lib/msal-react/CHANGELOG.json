@@ -2,6 +2,35 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Tue, 07 Dec 2021 00:17:01 GMT",
+      "tag": "@azure/msal-react_v1.1.2",
+      "version": "1.1.2",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "02dbd9172368bfc69e4a47f01a3ada0b96345c81",
+            "comment": "Package.json updates"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "54d0d9457e39691222c40b106b8c674dc3e4d761",
+            "comment": "Fix inProgress stuck in startup state #4302"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v2.20.0",
+            "commit": "d7c209f7aa3ae4380a77a31ff1319fbf7201ae45"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 01 Nov 2021 23:53:22 GMT",
       "tag": "@azure/msal-react_v1.1.1",
       "version": "1.1.1",
