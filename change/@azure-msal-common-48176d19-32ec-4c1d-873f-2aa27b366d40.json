@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add APIs needed for hybrid spa flow #3978",
-  "packageName": "@azure/msal-common",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "patch"
-}

@@ -63,6 +63,7 @@ describe("MsalProvider tests", () => {
 
     afterEach(() => {
         // cleanup on exiting
+        jest.restoreAllMocks();
         jest.clearAllMocks();
         cachedAccounts = [];
     });
@@ -118,6 +119,30 @@ describe("MsalProvider tests", () => {
                     callback(eventMessage);
                 });
             });
+    
+            expect(await screen.findByText("Test Success!")).toBeInTheDocument();
+        });
+
+        test("inProgress is set to None even if handleRedirectPromise is called before MsalProvider is rendered", async () => {
+            jest.restoreAllMocks();
+
+            const TestComponent = ({inProgress}: IMsalContext) => {    
+                if (inProgress === InteractionStatus.None) {
+                    return <p>Test Success!</p>;
+                } else {
+                    return <p>Interaction Status: { inProgress }</p>;
+                }
+            };
+
+            await pca.handleRedirectPromise();
+    
+            render(
+                <MsalProvider instance={pca}>
+                    <MsalConsumer>
+                        {TestComponent}
+                    </MsalConsumer>
+                </MsalProvider>
+            );
     
             expect(await screen.findByText("Test Success!")).toBeInTheDocument();
         });

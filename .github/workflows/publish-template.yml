@@ -63,13 +63,13 @@ jobs:
           run: echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > .npmrc
 
         - name: Publish to npm
-          if: ${{ inputs.lib-name }} != 'msal-angular'
+          if: inputs.lib-name != 'msal-angular'
           env:
             NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           run: npm publish
 
         - name: Deploy to npm (Angular only)
-          if: ${{ inputs.lib-name }} == 'msal-angular'
+          if: inputs.lib-name == 'msal-angular'
           env:
             NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
           run: npm run deploy
