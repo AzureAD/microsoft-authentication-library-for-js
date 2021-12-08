@@ -853,6 +853,7 @@ export class BrowserCacheManager extends CacheManager {
             }
         });
         this.clearMsalCookies();
+        this.setInteractionInProgress(false);
     }
 
     cacheCodeRequest(authCodeRequest: CommonAuthorizationCodeRequest, browserCrypto: ICrypto): void {

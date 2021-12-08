@@ -1054,6 +1054,20 @@ describe("BrowserCacheManager tests", () => {
             browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
             expect(browserStorage.getKeys()).toHaveLength(0);
         });
+        it("cleanRequestByInteractionType() interaction status even no request is in progress", () => {
+            let dbStorage = {};
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+                dbStorage = {};
+            });
+            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, {
+                ...cacheConfig,
+                storeAuthStateInCookie: true
+            }, browserCrypto, logger);
+            
+            browserStorage.setInteractionInProgress(true);
+            browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
+            expect(browserStorage.getInteractionInProgress()).toBeFalsy();
+        });
 
         describe("getAccountInfoByFilter", () => {
             cacheConfig = {
