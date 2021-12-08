@@ -9,10 +9,6 @@ export const ReactAuthErrorMessage = {
     invalidInteractionType: {
         code: "invalid_interaction_type",
         desc: "The provided interaction type is invalid."
-    },
-    unableToFallbackInteraction: {
-        code: "unable_to_fallback_to_interaction",
-        desc: "Interaction is required, but another interaction is currently in progress. Please try again when the current interaction is complete."
     }
 };
 
@@ -26,9 +22,5 @@ export class ReactAuthError extends AuthError {
 
     static createInvalidInteractionTypeError(): ReactAuthError {
         return new ReactAuthError(ReactAuthErrorMessage.invalidInteractionType.code, ReactAuthErrorMessage.invalidInteractionType.desc);
-    }
-
-    static createUnableToFallbackInteractionError(): ReactAuthError {
-        return new ReactAuthError(ReactAuthErrorMessage.unableToFallbackInteraction.code, ReactAuthErrorMessage.unableToFallbackInteraction.desc);
     }
 }

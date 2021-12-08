@@ -249,6 +249,79 @@ export default YourWrappedComponent = withMsal(LoginButton);
 
 ## Acquiring an access token
 
+To acquire an access token you can either use the `useMsalAuthentication` hook or call the `acquireTokenSilent` API on your `PublicClientApplication` instance. Examples for both approaches can be found below.
+
+### Using the useMsalAuthentication hook
+
+If you are using the `useMsalAuthentication` hook to protect your component, you can use the `acquireToken` function returned each time you need to call a protected API. This function will call the `acquireTokenSilent` API under the hood and fallback to the interaction type you've specified, if interaction is needed. The `result` and `error` values returned by the `useMsalAuthentication` hook will be updated each time `acquireToken` is called.
+
+```javascript
+import React, { useState, useEffect, useRef } from "react";
+import { InteractionStatus } from "@azure/msal-browser";
+import { useMsal, useMsalAuthentication } from "@azure/msal-react";
+
+export function App() {
+    const { instance, inProgress, accounts } = useMsal();
+    const [graphData, setGraphData] = useState(null);
+
+    const tokenRequest = {
+        scopes: ["User.Read"]
+    }
+    const { result, error, acquireToken, tokenAcquisitionInProgress } = useMsalAuthentication(InteractionType.Popup, tokenRequest);
+
+    useEffect(() => {
+        /* 
+         * To acquire tokens you need to either explicitly provide account on the tokenRequest object or call setActiveAccount with the account.
+         * If you choose to call setActiveAccount you only need to do this once, most common scenarios should use the event API to listen for 
+         * login/logout events and call setActiveAccount in the event callback. 
+         * This logic does not need to live in your protected component but is shown here for demonstration purposes.
+         */
+        const callbackId = instance.addEventCallback((message) => {
+            // This will be run every time an event is emitted after registering this callback
+            if (message.eventType === EventType.LOGIN_SUCCESS) {
+                const result = message.payload;    
+                instance.setActiveAccount(result.account);
+            } else if (message.eventType === EventType.LOGOUT_SUCCESS) {
+                instance.setActiveAccount(null);
+            }
+        });
+
+        return () => {
+            // This will be run on component unmount
+            if (callbackId) {
+                instance.removeEventCallback(callbackId);
+            }
+        }
+    }, []);
+
+    useEffect(() => {
+        if (!graphData && 
+            !tokenAcquisitionInProgress && // Ensure token acquisition isn't already in progress
+            inProgress === InteractionStatus.None // acquireToken can invoke interaction if needed, make sure no other interaction is already in progress
+        ) {
+            acquireToken().then((response) => {
+                callMsGraph(response.accessToken).then((data) => setApiData(data))
+            });
+        }
+    }, [graphData, acquireToken, inProgress, tokenAcquisitionInProgress]);
+  
+    if (accounts.length > 0) {
+        return (
+            <>
+                <span>There are currently {accounts.length} users signed in!</span>
+                {apiData && (<span>Data retreived from API: {JSON.stringify(apiData)}</span>)}
+            </>
+        );
+    } else if (inProgress === InteractionStatus.Login) {
+        return <span>Login is currently in progress!</span>
+    } else {
+        return <span>There are currently no users signed in!</span>
+    }
+};
+```
+
+### Using the acquireTokenSilent API
+
 We recommend that your app calls the `acquireTokenSilent` API on your `PublicClientApplication` object each time you need an access token to access an API. This can be done similar to the ways laid out in the previous section: [Call login APIs provided by `@azure/msal-browser`](#call-login-apis-provided-by-@azure/msal-browser)
 
 ```javascript
@@ -288,7 +361,7 @@ export function App() {
 }
 ```
 
-## Acquiring an access token outside of a React component
+### Acquiring an access token outside of a React component
 
 If you require an access token outside of a React component you can directly call the `acquireTokenSilent` function on the `PublicClientApplication`.
 We do not recommend calling functions that change the user's authenticated state (login, logout) outside the react context provided by `MsalProvider` as the components inside the context may not properly update.

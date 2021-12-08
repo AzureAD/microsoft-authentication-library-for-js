@@ -16,10 +16,12 @@ export type MsalAuthenticationResult = {
     acquireToken: (callbackInteractionType?: InteractionType | undefined, callbackRequest?: SilentRequest | undefined) => Promise<AuthenticationResult | null>;
     result: AuthenticationResult|null;
     error: AuthError|null;
+    tokenAcquisitionInProgress: boolean;
 };
 
 /**
- * Invokes a login call if a user is not currently signed-in. Failed logins can be retried using the login callback returned.
+ * If a user is not currently signed in this hook invokes a login. Failed logins can be retried using the login callback returned.
+ * If a user is currently signed in this hook attempts to acquire a token. Subsequent token requests can use the acquireToken callback returned.
  * Optionally provide a request object to be used in the login call.
  * Optionally provide a specific user that should be logged in.
  * @param interactionType 
@@ -36,8 +38,10 @@ export function useMsalAuthentication(
     const account = useAccount(accountIdentifiers);
     const [[result, error], setResponse] = useState<[AuthenticationResult|null, AuthError|null]>([null, null]);
     const [hasBeenCalled, setHasBeenCalled] = useState<boolean>(false);
+    const [tokenAcquisitionInProgress, setTokenAcquisitionInProgress] = useState<boolean>(true);
 
     const login = useCallback(async (callbackInteractionType?: InteractionType, callbackRequest?: PopupRequest|RedirectRequest|SsoSilentRequest): Promise<AuthenticationResult|null> => {
+        setTokenAcquisitionInProgress(true);
         const loginType = callbackInteractionType || interactionType;
         const loginRequest = callbackRequest || authenticationRequest;
         switch (loginType) {
@@ -57,6 +61,7 @@ export function useMsalAuthentication(
     }, [instance, interactionType, authenticationRequest, logger]);
 
     const acquireToken = useCallback(async (callbackInteractionType?: InteractionType, callbackRequest?: SilentRequest): Promise<AuthenticationResult|null> => {
+        setTokenAcquisitionInProgress(true);
         const fallbackInteractionType = callbackInteractionType || interactionType;
 
         let tokenRequest: SilentRequest;
@@ -86,25 +91,12 @@ export function useMsalAuthentication(
                 switch (fallbackInteractionType) {
                     case InteractionType.Popup:
                         logger.verbose("useMsalAuthentication - Calling acquireTokenPopup");
-                        return instance.acquireTokenPopup(tokenRequest as PopupRequest).catch((e) => {
-                            if (e.errorCode === BrowserAuthErrorMessage.interactionInProgress.code) {
-                                throw ReactAuthError.createUnableToFallbackInteractionError();
-                            } else {
-                                throw e;
-                            }
-                        });
+                        return instance.acquireTokenPopup(tokenRequest as PopupRequest);
                     case InteractionType.Redirect:
                         // This promise is not expected to resolve due to full frame redirect
                         logger.verbose("useMsalAuthentication - Calling acquireTokenRedirect");
                         return instance.acquireTokenRedirect(tokenRequest as RedirectRequest)
-                            .then(() => null)
-                            .catch((e) => {
-                                if (e.errorCode === BrowserAuthErrorMessage.interactionInProgress.code) {
-                                    throw ReactAuthError.createUnableToFallbackInteractionError();
-                                } else {
-                                    throw e;
-                                }
-                            });
+                            .then(() => null);
                     case InteractionType.Silent:
                         logger.verbose("useMsalAuthentication - Calling ssoSilent");
                         return instance.ssoSilent(tokenRequest as SsoSilentRequest);
@@ -116,9 +108,11 @@ export function useMsalAuthentication(
             }
         }).then((response: AuthenticationResult|null) => {
             setResponse([response, null]);
+            setTokenAcquisitionInProgress(false);
             return response;
         }).catch((e: AuthError) => {
             setResponse([null, e]);
+            setTokenAcquisitionInProgress(false);
             throw e;
         });
     }, [instance, interactionType, authenticationRequest, logger, account]);
@@ -130,12 +124,14 @@ export function useMsalAuthentication(
                 case EventType.SSO_SILENT_SUCCESS:
                     if (message.payload) {
                         setResponse([message.payload as AuthenticationResult, null]);
+                        setTokenAcquisitionInProgress(false);
                     }
                     break;
                 case EventType.LOGIN_FAILURE:
                 case EventType.SSO_SILENT_FAILURE:
                     if (message.error) {
                         setResponse([null, message.error as AuthError]);
+                        setTokenAcquisitionInProgress(false);
                     }
                     break;
             }
@@ -156,7 +152,7 @@ export function useMsalAuthentication(
             // Ensure login is only called one time from within this hook, any subsequent login attempts should use the callback returned
             setHasBeenCalled(true);
 
-            if(!isAuthenticated) {
+            if (!isAuthenticated) {
                 login().catch(() => {
                     // Errors are handled by the event handler above
                     return;
@@ -170,5 +166,11 @@ export function useMsalAuthentication(
         }
     }, [isAuthenticated, account, inProgress, error, result, hasBeenCalled, login, acquireToken, logger]);
 
-    return { login, acquireToken, result, error };
+    return { 
+        login, 
+        acquireToken, 
+        result, 
+        error, 
+        tokenAcquisitionInProgress
+    };
 }
