@@ -99,8 +99,11 @@ export class AccessTokenEntity extends CredentialEntity {
 
         atEntity.tokenType = StringUtils.isEmpty(tokenType) ? AuthenticationScheme.BEARER : tokenType;
 
-        // Create Access Token With Auth Scheme instead of regular access token
-        if (atEntity.tokenType !== AuthenticationScheme.BEARER) {
+        /*
+         * Create Access Token With Auth Scheme instead of regular access token
+         * Cast to lower to handle "bearer" from ADFS
+         */
+        if (atEntity.tokenType?.toLowerCase() !== AuthenticationScheme.BEARER.toLowerCase()) {
             atEntity.credentialType = CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME;
             switch (atEntity.tokenType) {
                 case AuthenticationScheme.POP:

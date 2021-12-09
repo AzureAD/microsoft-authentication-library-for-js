@@ -17,6 +17,11 @@ describe("AccessTokenEntity.ts Unit Tests", () => {
             );
         });
 
+        it("Generate AccessTokenEntity key (adfs)", () => {
+            const at = mockCache.createMockAdfsAt();
+            expect(at.generateCredentialKey()).toEqual("uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3");
+        });
+
         it("Throws error if AccessTokenEntity is not assigned a type", () => {
             const at = new AccessTokenEntity();
             expect(() => at.generateType()).toThrowError(ClientAuthError);
