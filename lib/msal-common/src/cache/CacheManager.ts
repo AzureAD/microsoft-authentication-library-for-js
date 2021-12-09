@@ -163,6 +163,11 @@ export abstract class CacheManager implements ICacheManager {
     abstract clear(): Promise<void>;
 
     /**
+     * Function which updates an outdated credential cache key
+     */
+    abstract updateCredentialCacheKey(currentCacheKey: string, credential: ValidCredentialType): string;
+
+    /**
      * Returns all accounts in cache
      */
     getAllAccounts(): AccountInfo[] {
@@ -424,34 +429,27 @@ export abstract class CacheManager implements ICacheManager {
                     return;
                 }
 
-                switch (tokenType) {
-                    case AuthenticationScheme.POP:
-                        // This check avoids matching outdated POP tokens that don't have the <-scheme> in the cache key
-                        if(cacheKey.indexOf(AuthenticationScheme.POP) === -1) {
-                            // AccessToken_With_AuthScheme that doesn't have "-pop" in the key is outdated and needs to be removed
-                            this.removeItem(cacheKey, CacheSchemaType.CREDENTIAL);
-                            return;
-                        }
-                        break;
-                    case AuthenticationScheme.SSH:
-                        // KeyId (sshKid) in request must match cached SSH certificate keyId because SSH cert is bound to a specific key
-                        if(keyId && !this.matchKeyId(entity, keyId)) {
-                            return;
-                        }
-                        break;
+                // KeyId (sshKid) in request must match cached SSH certificate keyId because SSH cert is bound to a specific key
+                if (tokenType === AuthenticationScheme.SSH) {
+                    if(keyId && !this.matchKeyId(entity, keyId)) {
+                        return;
+                    }
                 }
             }
 
+            // At this point, the entity matches the request, update cache key if key schema has changed
+            const updatedCacheKey = this.updateCredentialCacheKey(cacheKey, entity);
+
             switch (credType) {
                 case CredentialType.ID_TOKEN:
-                    matchingCredentials.idTokens[cacheKey] = entity as IdTokenEntity;
+                    matchingCredentials.idTokens[updatedCacheKey] = entity as IdTokenEntity;
                     break;
                 case CredentialType.ACCESS_TOKEN:
                 case CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME:
-                    matchingCredentials.accessTokens[cacheKey] = entity as AccessTokenEntity;
+                    matchingCredentials.accessTokens[updatedCacheKey] = entity as AccessTokenEntity;
                     break;
                 case CredentialType.REFRESH_TOKEN:
-                    matchingCredentials.refreshTokens[cacheKey] = entity as RefreshTokenEntity;
+                    matchingCredentials.refreshTokens[updatedCacheKey] = entity as RefreshTokenEntity;
                     break;
             }
         });
@@ -1055,6 +1053,10 @@ export class DefaultStorageClass extends CacheManager {
     }
     async clear(): Promise<void> {
         const notImplErr = "Storage interface - clear() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    updateCredentialCacheKey(): string {
+        const notImplErr = "Storage interface - updateCredentialCacheKey() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
 }

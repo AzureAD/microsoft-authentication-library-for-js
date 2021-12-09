@@ -5,14 +5,13 @@
 
 import { Separators, CredentialType, CacheType, Constants, AuthenticationScheme } from "../../utils/Constants";
 import { ClientAuthError } from "../../error/ClientAuthError";
-import { StringUtils } from "../../utils/StringUtils";
 
 /**
  * Base type for credentials to be stored in the cache: eg: ACCESS_TOKEN, ID_TOKEN etc
  *
  * Key:Value Schema:
  *
- * Key: <home_account_id*>-<environment>-<credential_type>-<client_id>-<realm*>-<target*>-<scheme>
+ * Key: <home_account_id*>-<environment>-<credential_type>-<client_id>-<realm*>-<target*>-<requestedClaims*>-<scheme*>
  *
  * Value Schema:
  * {
@@ -143,13 +142,9 @@ export class CredentialEntity {
         const credentialKey = [
             this.generateAccountIdForCacheKey(homeAccountId, environment),
             this.generateCredentialIdForCacheKey(credentialType, clientId, realm, familyId),
-            this.generateTargetForCacheKey(target)
+            this.generateTargetForCacheKey(target),
+            this.generateClaimsHashForCacheKey(requestedClaimsHash)
         ];
-
-        // If claims were requested, cache key should include the claims string hash
-        if (requestedClaimsHash && !StringUtils.isEmpty(requestedClaimsHash)) {
-            credentialKey.push(requestedClaimsHash);
-        }
 
         // PoP Tokens and SSH certs include scheme in cache key
         if (tokenType && tokenType !== AuthenticationScheme.BEARER) {
@@ -203,5 +198,12 @@ export class CredentialEntity {
      */
     private static generateTargetForCacheKey(scopes?: string): string {
         return (scopes || "").toLowerCase();
+    }
+
+    /**
+     * Generate requested claims key component as per schema: <requestedClaims>
+     */
+    private static generateClaimsHashForCacheKey(requestedClaimsHash?: string): string {
+        return(requestedClaimsHash || "").toLowerCase();
     }
 }
