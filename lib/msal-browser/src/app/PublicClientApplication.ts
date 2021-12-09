@@ -95,11 +95,11 @@ export class PublicClientApplication extends ClientApplication implements IPubli
             authority: request.authority || "",
             scopes: request.scopes,
             homeAccountIdentifier: account.homeAccountId,
+            claims: request.claims,
             authenticationScheme: request.authenticationScheme,
             resourceRequestMethod: request.resourceRequestMethod,
             resourceRequestUri: request.resourceRequestUri,
             shrClaims: request.shrClaims,
-            sshJwk: request.sshJwk,
             sshKid: request.sshKid
         };
         const silentRequestKey = JSON.stringify(thumbprint);
