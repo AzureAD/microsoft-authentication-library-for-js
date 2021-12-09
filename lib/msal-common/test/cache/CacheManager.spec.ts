@@ -627,6 +627,48 @@ describe("CacheManager.ts test cases", () => {
         expect(() => mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, new ScopeSet(["user.read"]), AuthenticationScheme.BEARER)).not.toThrowError(`${ClientAuthErrorMessage.multipleMatchingTokens.desc}`);
     });
 
+    it("readAccessTokenFromCache matches a Bearer Token when Authentication Scheme is set to bearer (lowercase from adfs)", () => {
+        const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
+            "uid.utid", 
+            "login.microsoftonline.com", 
+            "access_token", 
+            CACHE_MOCKS.MOCK_CLIENT_ID, 
+            TEST_CONFIG.TENANT, 
+            TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 
+            4600, 
+            4600, 
+            mockCrypto, 
+            500, 
+            // @ts-ignore
+            AuthenticationScheme.BEARER.toLowerCase(), 
+            TEST_TOKENS.ACCESS_TOKEN
+        );
+
+        const accountData = {
+            "username": "John Doe",
+            "localAccountId": "uid",
+            "realm": "common",
+            "environment": "login.microsoftonline.com",
+            "homeAccountId": "uid.utid",
+            "authorityType": "MSSTS",
+            "clientInfo": "eyJ1aWQiOiJ1aWQiLCAidXRpZCI6InV0aWQifQ=="
+        };
+        const mockedAccount: AccountEntity = CacheManager.toObject(new AccountEntity(), accountData);
+
+        mockCache.cacheManager.setAccessTokenCredential(mockedAtEntity);
+
+        mockCache.cacheManager.setAccount(mockedAccount);
+
+        const mockedAccountInfo: AccountInfo = {
+            homeAccountId: "uid.utid",
+            localAccountId: "uid",
+            environment: "login.microsoftonline.com",
+            tenantId: TEST_CONFIG.TENANT,
+            username: "John Doe"
+        };
+        expect(mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, new ScopeSet(["user.read"]), AuthenticationScheme.BEARER)).toEqual(mockedAtEntity);
+    });
+
     it("readAccessTokenFromCache only matches a POP Token when Authentication Scheme is set to pop", () => {
         const mockedAtEntity: AccessTokenEntity = AccessTokenEntity.createAccessTokenEntity(
             "uid.utid", "login.microsoftonline.com", "access_token", CACHE_MOCKS.MOCK_CLIENT_ID, TEST_CONFIG.TENANT, TEST_CONFIG.DEFAULT_GRAPH_SCOPE.toString(), 4600, 4600, mockCrypto, 500, AuthenticationScheme.BEARER, TEST_TOKENS.ACCESS_TOKEN);
