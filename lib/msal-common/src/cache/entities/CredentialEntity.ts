@@ -143,13 +143,9 @@ export class CredentialEntity {
             this.generateAccountIdForCacheKey(homeAccountId, environment),
             this.generateCredentialIdForCacheKey(credentialType, clientId, realm, familyId),
             this.generateTargetForCacheKey(target),
-            this.generateClaimsHashForCacheKey(requestedClaimsHash)
+            this.generateClaimsHashForCacheKey(requestedClaimsHash),
+            this.generateSchemeForCacheKey(tokenType)
         ];
-
-        // PoP Tokens and SSH certs include scheme in cache key
-        if (tokenType && tokenType !== AuthenticationScheme.BEARER) {
-            credentialKey.push(tokenType.toLowerCase());
-        }
 
         return credentialKey.join(Separators.CACHE_KEY_SEPARATOR).toLowerCase();
     }
@@ -205,5 +201,13 @@ export class CredentialEntity {
      */
     private static generateClaimsHashForCacheKey(requestedClaimsHash?: string): string {
         return(requestedClaimsHash || "").toLowerCase();
+    }
+
+    /**
+     * Generate scheme key componenet as per schema: <scheme>
+     */
+    private static generateSchemeForCacheKey(tokenType?: string): string {
+        // PoP Tokens and SSH certs include scheme in cache key
+        return (tokenType && tokenType !== AuthenticationScheme.BEARER) ? tokenType.toLowerCase() : "";
     }
 }

@@ -13,7 +13,7 @@ describe("AccessTokenEntity.ts Unit Tests", () => {
         it("Generate AccessTokenEntity key", () => {
             const at = mockCache.createMockATOne();
             expect(at.generateCredentialKey()).toEqual(
-                "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3-"
+                "uid.utid-login.microsoftonline.com-accesstoken-mock_client_id-microsoft-scope1 scope2 scope3--"
             );
         });
 
