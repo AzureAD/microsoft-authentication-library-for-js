@@ -95,6 +95,8 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
     return app.listen(serverPort, () => console.log(`Msal Node Auth Code Sample app listening on port ${serverPort}!`));
 }
 
+
+
 /**
  * The code below checks if the script is being executed manually or in automation.
  * If the script was executed manually, it will initialize a PublicClientApplication object
