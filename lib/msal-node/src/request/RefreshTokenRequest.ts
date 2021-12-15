@@ -15,7 +15,7 @@ import { CommonRefreshTokenRequest } from "@azure/msal-common";
  * - tokenQueryParameters       - String to string map of custom query parameters added to the /token call
  * @public
  */
-export type RefreshTokenRequest = Partial<Omit<CommonRefreshTokenRequest, "scopes"|"refreshToken"|"authenticationScheme"|"resourceRequestMethod"|"resourceRequestUri">> & {
+export type RefreshTokenRequest = Partial<Omit<CommonRefreshTokenRequest, "scopes"|"refreshToken"|"authenticationScheme"|"resourceRequestMethod"|"resourceRequestUri"|"requestedClaimsHash">> & {
     scopes: Array<string>;
     refreshToken: string;
 };
