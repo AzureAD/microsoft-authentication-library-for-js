@@ -207,7 +207,10 @@ export class CredentialEntity {
      * Generate scheme key componenet as per schema: <scheme>
      */
     private static generateSchemeForCacheKey(tokenType?: string): string {
-        // PoP Tokens and SSH certs include scheme in cache key
-        return (tokenType && tokenType !== AuthenticationScheme.BEARER) ? tokenType.toLowerCase() : "";
+        /*
+         * PoP Tokens and SSH certs include scheme in cache key
+         * Cast to lowercase to handle "bearer" from ADFS
+         */
+        return (tokenType && tokenType.toLowerCase() !== AuthenticationScheme.BEARER.toLowerCase()) ? tokenType.toLowerCase() : "";
     }
 }

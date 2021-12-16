@@ -714,8 +714,11 @@ export abstract class CacheManager implements ICacheManager {
     readAccessTokenFromCache(clientId: string, account: AccountInfo, request: BaseAuthRequest): AccessTokenEntity | null {
         const scopes =  new ScopeSet(request.scopes || []);
         const authScheme = request.authenticationScheme || AuthenticationScheme.BEARER;
-        // Distinguish between Bearer and PoP/SSH token cache types
-        const credentialType = (authScheme && authScheme !== AuthenticationScheme.BEARER) ? CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME : CredentialType.ACCESS_TOKEN;
+        /*
+         * Distinguish between Bearer and PoP/SSH token cache types
+         * Cast to lowercase to handle "bearer" from ADFS
+         */
+        const credentialType = (authScheme && authScheme.toLowerCase() !== AuthenticationScheme.BEARER.toLowerCase()) ? CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME : CredentialType.ACCESS_TOKEN;
 
         const accessTokenFilter: CredentialFilter = {
             homeAccountId: account.homeAccountId,
