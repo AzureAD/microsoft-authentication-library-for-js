@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Add support for requested claims in silent token acquisition #4296",
+  "packageName": "@azure/msal-angular",
+  "email": "hectormg@hey.com",
+  "dependentChangeType": "none"
+}
