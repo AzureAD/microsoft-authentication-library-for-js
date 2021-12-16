@@ -709,7 +709,16 @@ describe("CacheManager.ts test cases", () => {
             tenantId: TEST_CONFIG.TENANT,
             username: "John Doe"
         };
-        expect(mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, new ScopeSet(["user.read"]), AuthenticationScheme.BEARER)).toEqual(mockedAtEntity);
+
+        const silentFlowRequest: CommonSilentFlowRequest = {
+            scopes: ["user.read"],
+            account: mockedAccountInfo,
+            authority: TEST_CONFIG.validAuthority,
+            correlationId: TEST_CONFIG.CORRELATION_ID,
+            forceRefresh: false
+        };
+
+        expect(mockCache.cacheManager.readAccessTokenFromCache(CACHE_MOCKS.MOCK_CLIENT_ID, mockedAccountInfo, silentFlowRequest)).toEqual(mockedAtEntity);
     });
 
     it("readAccessTokenFromCache only matches a POP Token when Authentication Scheme is set to pop", () => {
