@@ -36,6 +36,7 @@
   },
   "dependencies": {
     "async": "^1.5.2",
+    "axios": "^0.24.0",
     "base64url": "^3.0.0",
     "bunyan": "^1.8.14",
     "cache-manager": "2.10.2",
@@ -45,7 +46,6 @@
     "node-jose": "^2.0.0",
     "oauth": "0.9.15",
     "passport": "^0.4.1",
-    "request": "^2.72.0",
     "valid-url": "^1.0.6"
   },
   "scripts": {

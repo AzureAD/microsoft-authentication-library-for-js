@@ -5,7 +5,7 @@
 
 "use strict";
 
-const request = require("request");
+const axios = require("axios");
 const async = require("async");
 const aadutils = require("./aadutils");
 const HttpsProxyAgent = require("https-proxy-agent");
@@ -85,16 +85,18 @@ Metadata.prototype.updateOidcMetadata = function updateOidcMetadata(doc, next) {
   }
 
   // fetch the signing keys
-  request.get({ uri: jwksUri, agent: self.httpsProxyAgent, json: true }, (err, response, body) => {
-    if (err) {
-      return next(err);
-    }
-    if (response.statusCode !== 200) {
-      return next(new Error(`Error: ${response.statusCode} Cannot get AAD Signing Keys`));
-    }
-    self.oidc.keys = body.keys;
-    return next();
-  });
+  axios.get({url: jwksUri, httpsProxyAgent: self.httpsProxyAgent})
+    .then((response) => {
+      if (response.statusCode !== 200) {
+        return next(new Error(`Error: ${response.statusCode} Cannot get AAD Signing Keys`));
+      }
+      self.oidc.keys = body.keys;
+      return next();
+    })
+    .catch((error) => {
+      return next(error);
+    });
+
 };
 
 Metadata.prototype.generateOidcPEM = function generateOidcPEM(kid) {
@@ -170,10 +172,8 @@ Metadata.prototype.fetch = function fetch(callback) {
   async.waterfall([
     // fetch the Federation metadata for the AAD tenant
     (next) => {
-      request.get({ uri: self.url, agent: self.httpsProxyAgent }, (err, response, body) => {
-        if (err) {
-          return next(err);
-        }
+      axios.get({url: self.url, httpsProxyAgent: self.httpsProxyAgent})
+      .then((response) => {
         if (response.statusCode !== 200) {
           if (self.loggingNoPII) {
             log.error("cannot get AAD Federation metadata from endpoint you specified");
@@ -185,6 +185,9 @@ Metadata.prototype.fetch = function fetch(callback) {
           }
         }
         return next(null, body);
+      })
+      .catch((error) => {
+        return next(error);
       });
     },
     // parse retrieved metadata
