@@ -236,11 +236,6 @@ jobs:
         id: get-branch
         run: echo "::set-output name=date::$(node release-scripts/getReleaseDate.js -branch)"
 
-      - name: Build PR description
-        id: pr-desc
-        run: |
-          if(needs.publish-msal-core.result == 'success'):
-            node ./.github/getchanges.js -lib msal-core
 
       # Create Pull Request from post-release-month-year to dev
       - name: Create Pull Request
