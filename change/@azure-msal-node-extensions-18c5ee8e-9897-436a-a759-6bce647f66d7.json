@@ -1,7 +1,0 @@
-{
-  "type": "prerelease",
-  "comment": "Use https to install bindings dependency #4234",
-  "packageName": "@azure/msal-node-extensions",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}
