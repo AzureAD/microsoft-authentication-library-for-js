@@ -9,8 +9,13 @@ import { useMsal } from "./useMsal";
 import { AccountIdentifiers } from "../types/AccountIdentifiers";
 
 function getAccount(instance: IPublicClientApplication, accountIdentifiers?: AccountIdentifiers): AccountInfo | null {
+    if (!accountIdentifiers || (!accountIdentifiers.homeAccountId && !accountIdentifiers.localAccountId && !accountIdentifiers.username)) {
+        // If no account identifiers are provided, return active account
+        return instance.getActiveAccount();
+    }
+
     const allAccounts = instance.getAllAccounts();
-    if (allAccounts.length > 0 && accountIdentifiers && (accountIdentifiers.homeAccountId || accountIdentifiers.localAccountId || accountIdentifiers.username)) {
+    if (allAccounts.length > 0) {
         const matchedAccounts = allAccounts.filter(accountObj => {
             if (accountIdentifiers.username && accountIdentifiers.username.toLowerCase() !== accountObj.username.toLowerCase()) {
                 return false;
@@ -26,8 +31,6 @@ function getAccount(instance: IPublicClientApplication, accountIdentifiers?: Acc
         });
 
         return matchedAccounts[0] || null;
-    } else if (allAccounts.length > 0) {
-        return instance.getActiveAccount();
     } else {
         return null;
     }
@@ -40,8 +43,10 @@ function getAccount(instance: IPublicClientApplication, accountIdentifiers?: Acc
 export function useAccount(accountIdentifiers?: AccountIdentifiers): AccountInfo | null {
     const { instance, inProgress } = useMsal();
 
-    const initialStateValue = inProgress === InteractionStatus.Startup ? null : getAccount(instance, accountIdentifiers);
-    const [account, setAccount] = useState<AccountInfo|null>(initialStateValue);
+    const [account, setAccount] = useState<AccountInfo|null>(() => {
+        // Lazy intialization ensures getAccount is only called on the first render
+        return inProgress === InteractionStatus.Startup ? null : getAccount(instance, accountIdentifiers);
+    });
 
     useEffect(() => {
         const currentAccount = getAccount(instance, accountIdentifiers);
