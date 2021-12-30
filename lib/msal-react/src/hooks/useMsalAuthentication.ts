@@ -3,8 +3,8 @@
  * Licensed under the MIT License.
  */
 
-import { useCallback, useEffect, useState } from "react";
-import { PopupRequest, RedirectRequest, SsoSilentRequest, InteractionType, AuthenticationResult, AuthError, EventMessage, EventType, InteractionStatus, SilentRequest, InteractionRequiredAuthError, OIDC_DEFAULT_SCOPES, BrowserAuthErrorMessage } from "@azure/msal-browser";
+import { useCallback, useEffect, useState, useRef } from "react";
+import { PopupRequest, RedirectRequest, SsoSilentRequest, InteractionType, AuthenticationResult, AuthError, EventMessage, EventType, InteractionStatus, SilentRequest, InteractionRequiredAuthError, OIDC_DEFAULT_SCOPES } from "@azure/msal-browser";
 import { useIsAuthenticated } from "./useIsAuthenticated";
 import { AccountIdentifiers } from "../types/AccountIdentifiers";
 import { useMsal } from "./useMsal";
@@ -16,13 +16,12 @@ export type MsalAuthenticationResult = {
     acquireToken: (callbackInteractionType?: InteractionType | undefined, callbackRequest?: SilentRequest | undefined) => Promise<AuthenticationResult | null>;
     result: AuthenticationResult|null;
     error: AuthError|null;
-    tokenAcquisitionInProgress: boolean;
 };
 
 /**
  * If a user is not currently signed in this hook invokes a login. Failed logins can be retried using the login callback returned.
  * If a user is currently signed in this hook attempts to acquire a token. Subsequent token requests can use the acquireToken callback returned.
- * Optionally provide a request object to be used in the login call.
+ * Optionally provide a request object to be used in the login/acquireToken call.
  * Optionally provide a specific user that should be logged in.
  * @param interactionType 
  * @param authenticationRequest 
@@ -37,11 +36,30 @@ export function useMsalAuthentication(
     const isAuthenticated = useIsAuthenticated(accountIdentifiers);
     const account = useAccount(accountIdentifiers);
     const [[result, error], setResponse] = useState<[AuthenticationResult|null, AuthError|null]>([null, null]);
-    const [hasBeenCalled, setHasBeenCalled] = useState<boolean>(false);
-    const [tokenAcquisitionInProgress, setTokenAcquisitionInProgress] = useState<boolean>(true);
+
+    // Boolean used to check if interaction is in progress in acquireTokenSilent fallback. Use Ref instead of state to prevent acquireToken function from being regenerated on each change to interactionInProgress value
+    const interactionInProgress = useRef(inProgress !== InteractionStatus.None);
+    useEffect(() => {
+        interactionInProgress.current = inProgress !== InteractionStatus.None;
+    }, [inProgress]);
+
+    // Flag used to control when the hook calls login/acquireToken
+    const shouldAcquireToken = useRef(true);
+    useEffect(() => {
+        if (!!error) {
+            // Errors should be handled by consuming component
+            shouldAcquireToken.current = false;
+            return;
+        }
+
+        if (!!result) {
+            // Token has already been acquired, consuming component/application is responsible for renewing
+            shouldAcquireToken.current = false;
+            return;
+        }
+    }, [error, result]);
 
     const login = useCallback(async (callbackInteractionType?: InteractionType, callbackRequest?: PopupRequest|RedirectRequest|SsoSilentRequest): Promise<AuthenticationResult|null> => {
-        setTokenAcquisitionInProgress(true);
         const loginType = callbackInteractionType || interactionType;
         const loginRequest = callbackRequest || authenticationRequest;
         switch (loginType) {
@@ -61,7 +79,6 @@ export function useMsalAuthentication(
     }, [instance, interactionType, authenticationRequest, logger]);
 
     const acquireToken = useCallback(async (callbackInteractionType?: InteractionType, callbackRequest?: SilentRequest): Promise<AuthenticationResult|null> => {
-        setTokenAcquisitionInProgress(true);
         const fallbackInteractionType = callbackInteractionType || interactionType;
 
         let tokenRequest: SilentRequest;
@@ -85,37 +102,31 @@ export function useMsalAuthentication(
             tokenRequest.account = account;
         }
 
-        logger.verbose("useMsalAuthentication - Calling acquireTokenSilent");
-        return instance.acquireTokenSilent(tokenRequest).catch((e: AuthError) => {
-            if (e instanceof InteractionRequiredAuthError) {
-                switch (fallbackInteractionType) {
-                    case InteractionType.Popup:
-                        logger.verbose("useMsalAuthentication - Calling acquireTokenPopup");
-                        return instance.acquireTokenPopup(tokenRequest as PopupRequest);
-                    case InteractionType.Redirect:
-                        // This promise is not expected to resolve due to full frame redirect
-                        logger.verbose("useMsalAuthentication - Calling acquireTokenRedirect");
-                        return instance.acquireTokenRedirect(tokenRequest as RedirectRequest)
-                            .then(() => null);
-                    case InteractionType.Silent:
-                        logger.verbose("useMsalAuthentication - Calling ssoSilent");
-                        return instance.ssoSilent(tokenRequest as SsoSilentRequest);
-                    default:
-                        throw ReactAuthError.createInvalidInteractionTypeError();
+        const getToken = async (): Promise<AuthenticationResult|null> => {
+            logger.verbose("useMsalAuthentication - Calling acquireTokenSilent");
+            return instance.acquireTokenSilent(tokenRequest).catch(async (e: AuthError) => {
+                if (e instanceof InteractionRequiredAuthError) {
+                    if (!interactionInProgress.current) {
+                        logger.verbose("useMsalAuthentication - Interaction required, falling back to interaction");
+                        return login(fallbackInteractionType, tokenRequest);
+                    } else {
+                        logger.verbose("useMsalAuthentication - Interaction required but is already in progress. Please try again, if needed, after interaction completes.");
+                        throw ReactAuthError.createUnableToFallbackToInteractionError();
+                    }
                 }
-            } else {
+
                 throw e;
-            }
-        }).then((response: AuthenticationResult|null) => {
+            });
+        };
+
+        return getToken().then((response: AuthenticationResult|null) => {
             setResponse([response, null]);
-            setTokenAcquisitionInProgress(false);
             return response;
         }).catch((e: AuthError) => {
             setResponse([null, e]);
-            setTokenAcquisitionInProgress(false);
             throw e;
         });
-    }, [instance, interactionType, authenticationRequest, logger, account]);
+    }, [instance, interactionType, authenticationRequest, logger, account, login]);
 
     useEffect(() => {
         const callbackId = instance.addEventCallback((message: EventMessage) => {
@@ -124,14 +135,12 @@ export function useMsalAuthentication(
                 case EventType.SSO_SILENT_SUCCESS:
                     if (message.payload) {
                         setResponse([message.payload as AuthenticationResult, null]);
-                        setTokenAcquisitionInProgress(false);
                     }
                     break;
                 case EventType.LOGIN_FAILURE:
                 case EventType.SSO_SILENT_FAILURE:
                     if (message.error) {
                         setResponse([null, message.error as AuthError]);
-                        setTokenAcquisitionInProgress(false);
                     }
                     break;
             }
@@ -147,30 +156,28 @@ export function useMsalAuthentication(
     }, [instance, logger]);
 
     useEffect(() => {
-        if (!hasBeenCalled && !error && !result && inProgress === InteractionStatus.None) {
-            logger.info("useMsalAuthentication - No user is authenticated, attempting to login");
-            // Ensure login is only called one time from within this hook, any subsequent login attempts should use the callback returned
-            setHasBeenCalled(true);
-
+        if (shouldAcquireToken.current && inProgress === InteractionStatus.None) {
+            shouldAcquireToken.current = false;
             if (!isAuthenticated) {
+                logger.info("useMsalAuthentication - No user is authenticated, attempting to login");
                 login().catch(() => {
-                    // Errors are handled by the event handler above
+                    // Errors are saved in state above
                     return;
                 });
             } else if (account) {
+                logger.info("useMsalAuthentication - User is authenticated, attempting to acquire token");
                 acquireToken().catch(() => {
-                    // Errors are added to state above
+                    // Errors are saved in state above
                     return;
                 });
             }
         }
-    }, [isAuthenticated, account, inProgress, error, result, hasBeenCalled, login, acquireToken, logger]);
+    }, [isAuthenticated, account, inProgress, login, acquireToken, logger]);
 
     return { 
         login, 
         acquireToken, 
         result, 
-        error, 
-        tokenAcquisitionInProgress
+        error
     };
 }

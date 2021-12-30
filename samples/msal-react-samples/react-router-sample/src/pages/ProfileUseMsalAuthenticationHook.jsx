@@ -1,8 +1,8 @@
 import { useEffect, useState } from "react";
 
 // Msal imports
-import { useMsal, useMsalAuthentication } from "@azure/msal-react";
-import { InteractionStatus, InteractionType, InteractionRequiredAuthError } from "@azure/msal-browser";
+import { useMsalAuthentication } from "@azure/msal-react";
+import { InteractionType } from "@azure/msal-browser";
 import { loginRequest } from "../authConfig";
 
 // Sample app imports
@@ -14,18 +14,24 @@ import { callMsGraph } from "../utils/MsGraphApiCall";
 import Paper from "@material-ui/core/Paper";
 
 const ProfileContent = () => {
-    const { inProgress } = useMsal();
     const [graphData, setGraphData] = useState(null);
-    const { error, acquireToken, tokenAcquisitionInProgress } = useMsalAuthentication(InteractionType.Popup, loginRequest);
+    const { result, error } = useMsalAuthentication(InteractionType.Popup, loginRequest);
 
     useEffect(() => {
-        // Since acquireToken can invoke interaction, make sure no other interaction is already in progress
-        if (!graphData && !tokenAcquisitionInProgress && inProgress === InteractionStatus.None) {
-            acquireToken().then((tokenResponse) => {
-                callMsGraph(tokenResponse.accessToken).then(response => setGraphData(response))
-            });
+        if (!!graphData) {
+            // We already have the data, no need to call the API
+            return;
         }
-    }, [graphData, acquireToken, tokenAcquisitionInProgress, inProgress]);
+
+        if (!!error) {
+            // Error occurred attempting to acquire a token, either handle the error or do nothing
+            return;
+        }
+
+        if (result) {
+            callMsGraph().then(response => setGraphData(response));
+        }
+    }, [error, result, graphData]);
   
     if (error) {
         return <ErrorComponent error={error} />;
