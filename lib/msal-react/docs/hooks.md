@@ -7,16 +7,14 @@
 
 ## `useAccount` hook
 
-The `useAccount` hook accepts an `accountIdentifier` parameter and returns the `AccountInfo` object for that account if it is signed in or `null` if it is not.
+The `useAccount` hook accepts an `accountIdentifier` parameter and returns the `AccountInfo` object for that account if it is signed in or `null` if it is not. If no account identifier is provided the current [active account](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/accounts.md#active-account-apis) will be returned.
 You can read more about the `AccountInfo` object returned in the `@azure/msal-browser` docs [here](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/dev/lib/msal-browser/docs/login-user.md#account-apis).
-
-Note: At least one account identifier must be provided, all others are optional. Additionally we do not recommend relying only on `username`.
 
 ```javascript
 const accountIdentifier = {
     localAccountId: "example-local-account-identifier",
     homeAccountId: "example-home-account-identifier"
-    username: "example-username"
+    username: "example-username" // We do not recommend relying only on username
 }
 
 const accountInfo = useAccount(accountIdentifier);
