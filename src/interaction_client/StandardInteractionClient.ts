@@ -184,23 +184,12 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
 
         // build authority string based on auth params, precedence - azureCloudInstance + tenant >> authority and request parameters  >> config parameters
         let userRequestedAuthority;
-        let authorityAzureCloudInstance;
 
         // Fetch the authority from request if provided
-        if (requestAuthority || requestAzureCloudOptions) {
-            if (requestAzureCloudOptions) {
-                const tenant = requestAzureCloudOptions.tenant ? requestAzureCloudOptions.tenant : Constants.DEFAULT_COMMON_TENANT;
-                authorityAzureCloudInstance = `${requestAzureCloudOptions.azureCloudInstance}/${tenant}/`;
-            }
-
-            userRequestedAuthority = authorityAzureCloudInstance ? authorityAzureCloudInstance : requestAuthority;
-        }
-        // fall back to the authority from config
-        else {
-            if (this.config.auth.azureCloudOptions) {
-                const tenant = this.config.auth.azureCloudOptions.tenant ? this.config.auth.azureCloudOptions.tenant : Constants.DEFAULT_COMMON_TENANT;
-                authorityAzureCloudInstance = `${this.config.auth.azureCloudOptions.azureCloudInstance}/${tenant}/`;
-            }
+        if (requestAuthority) {
+            userRequestedAuthority = requestAzureCloudOptions ?
+                Authority.generateAuthority(requestAuthority, requestAzureCloudOptions) :
+                Authority.generateAuthority(requestAuthority);
         }
 
         if (userRequestedAuthority) {
@@ -208,7 +197,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             return await AuthorityFactory.createDiscoveredInstance(userRequestedAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions);
         }
 
-        const configAuthority = authorityAzureCloudInstance ? authorityAzureCloudInstance : this.config.auth.authority;
+        // fall back to the authority from config
+        const configAuthority = Authority.generateAuthority(this.config.auth.authority, this.config.auth.azureCloudOptions);
         this.logger.verbose("Creating discovered authority with configured authority");
         return await AuthorityFactory.createDiscoveredInstance(configAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions);
     }
