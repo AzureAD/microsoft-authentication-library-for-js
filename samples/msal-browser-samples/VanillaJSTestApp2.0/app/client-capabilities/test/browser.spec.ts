@@ -13,7 +13,7 @@ const SAMPLE_HOME_URL = "http://localhost:30662/";
 let username = "";
 let accountPwd = "";
 
-describe.only("Browser tests", function () {
+describe("Browser tests", function () {
     this.timeout(0);
     this.retries(1);
 
