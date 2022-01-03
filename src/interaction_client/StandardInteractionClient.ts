@@ -196,7 +196,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param request
      * @param interactionType
      */
-    protected preflightInteractiveRequest(request: RedirectRequest|PopupRequest, interactionType: InteractionType): AuthorizationUrlRequest {
+    protected async preflightInteractiveRequest(request: RedirectRequest|PopupRequest, interactionType: InteractionType): Promise<AuthorizationUrlRequest> {
         this.logger.verbose("preflightInteractiveRequest called, validating app environment", request?.correlationId);
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
@@ -206,7 +206,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             throw BrowserAuthError.createInteractionInProgressError();
         }
     
-        return this.initializeAuthorizationRequest(request, interactionType);
+        return await this.initializeAuthorizationRequest(request, interactionType);
     }
 
     /**
@@ -214,7 +214,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param request
      * @param interactionType
      */
-    protected initializeAuthorizationRequest(request: RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
+    protected async initializeAuthorizationRequest(request: RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): Promise<AuthorizationUrlRequest> {
         this.logger.verbose("initializeAuthorizationRequest called");
         const redirectUri = this.getRedirectUri(request.redirectUri);
         const browserState: BrowserStateObject = {
@@ -228,7 +228,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         );
 
         const validatedRequest: AuthorizationUrlRequest = {
-            ...this.initializeBaseRequest(request),
+            ...await this.initializeBaseRequest(request),
             redirectUri: redirectUri,
             state: state,
             nonce: request.nonce || this.browserCrypto.createNewGuid(),

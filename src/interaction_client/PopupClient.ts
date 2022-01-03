@@ -20,9 +20,9 @@ export class PopupClient extends StandardInteractionClient {
      * Acquires tokens by opening a popup window to the /authorize endpoint of the authority
      * @param request 
      */
-    acquireToken(request: PopupRequest): Promise<AuthenticationResult> {
+    async acquireToken(request: PopupRequest): Promise<AuthenticationResult> {
         try {
-            const validRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
+            const validRequest = await this.preflightInteractiveRequest(request, InteractionType.Popup);
             const popupName = PopupUtils.generatePopupName(this.config.auth.clientId, validRequest);
             const popupWindowAttributes = request.popupWindowAttributes || {};
 
