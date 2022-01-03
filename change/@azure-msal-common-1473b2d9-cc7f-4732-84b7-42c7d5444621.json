@@ -1,6 +1,6 @@
 {
   "type": "minor",
-  "comment": "Add APIs needed for hybrid spa flow #3978",
+  "comment": "Gracefully handle tokenType set as bearer for ADFS #4318",
   "packageName": "@azure/msal-common",
   "email": "janutter@microsoft.com",
   "dependentChangeType": "patch"
