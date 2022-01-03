@@ -28,7 +28,6 @@ import {
     AzureRegionConfiguration,
     AuthError,
     AzureCloudOptions,
-    Constants
 } from "@azure/msal-common";
 import { Configuration, buildAppConfiguration, NodeConfiguration } from "../config/Configuration";
 import { CryptoProvider } from "../crypto/CryptoProvider";
@@ -397,14 +396,7 @@ export abstract class ClientApplication {
         this.logger.verbose("createAuthority called", requestCorrelationId);
 
         // build authority string based on auth params - azureCloudInstance is prioritized if provided
-        let authorityAzureCloudInstance;
-
-        if (azureCloudOptions) {
-            const tenant = azureCloudOptions.tenant ? azureCloudOptions.tenant : Constants.DEFAULT_COMMON_TENANT;
-            authorityAzureCloudInstance = `${azureCloudOptions.azureCloudInstance}/${tenant}/`;
-        }
-
-        const authorityUrl = authorityAzureCloudInstance ? authorityAzureCloudInstance : authorityString;
+        const authorityUrl = Authority.generateAuthority(authorityString, azureCloudOptions);
 
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode,
