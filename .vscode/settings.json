@@ -15,5 +15,5 @@
         "**/build/*.yml": "azure-pipelines",
         "*.json": "jsonc"
     },
-    "java.configuration.updateBuildConfiguration": "interactive",
+    "java.configuration.updateBuildConfiguration": "interactive"
 }
