@@ -21,7 +21,7 @@ export class RedirectClient extends StandardInteractionClient {
      * @param request 
      */
     async acquireToken(request: RedirectRequest): Promise<void> {
-        const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Redirect);
+        const validRequest: AuthorizationUrlRequest = await this.preflightInteractiveRequest(request, InteractionType.Redirect);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect);
 
         try {

@@ -52,10 +52,10 @@ export class SilentCacheClient extends StandardInteractionClient {
         return new SilentFlowClient(clientConfig);
     }
 
-    initializeSilentRequest(request: SilentRequest, account: AccountInfo): CommonSilentFlowRequest {
+    async initializeSilentRequest(request: SilentRequest, account: AccountInfo): Promise<CommonSilentFlowRequest> {
         return {
             ...request,
-            ...this.initializeBaseRequest(request),
+            ...await this.initializeBaseRequest(request),
             account: account,
             forceRefresh: request.forceRefresh || false
         };
