@@ -208,8 +208,9 @@ describe("Configuration.ts Class Unit Tests", () => {
                 redirectUri: TEST_URIS.TEST_ALTERNATE_REDIR_URI,
                 postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
                 navigateToLoginRequestUrl: false,
-                azureAuthOptions: {
-                    azureCloudInstance: AzureCloudInstance.AzureChina
+                azureCloudOptions: {
+                    azureCloudInstance: AzureCloudInstance.AzureChina,
+                    tenant: "commons"
                 }
             },
             cache: {
@@ -239,15 +240,14 @@ describe("Configuration.ts Class Unit Tests", () => {
                 redirectUri: TEST_URIS.TEST_ALTERNATE_REDIR_URI,
                 postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
                 navigateToLoginRequestUrl: false,
-                azureAuthOptions: {
+                azureCloudOptions: {
                     azureCloudInstance: AzureCloudInstance.AzureGermany,
-                    tenant: "common"
                 }
             },
             cache: {
                 cacheLocation: BrowserCacheLocation.LocalStorage,
                 storeAuthStateInCookie: true,
-                secureCookies: true
+                secureCookies: trues
             },
             system: {
                 windowHashTimeout: TEST_POPUP_TIMEOUT_MS,
@@ -271,7 +271,7 @@ describe("Configuration.ts Class Unit Tests", () => {
                 redirectUri: TEST_URIS.TEST_ALTERNATE_REDIR_URI,
                 postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
                 navigateToLoginRequestUrl: false,
-                azureAuthOptions: {
+                azureCloudOptions: {
                     azureCloudInstance: AzureCloudInstance.AzureUsGovernment
                 }
             },
@@ -304,7 +304,7 @@ describe("Configuration.ts Class Unit Tests", () => {
                     redirectUri: TEST_URIS.TEST_ALTERNATE_REDIR_URI,
                     postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
                     navigateToLoginRequestUrl: false,
-                    azureAuthOptions: {
+                    azureCloudOptions: {
                         azureCloudInstance: "random string"
                     }
                 },
