@@ -8,7 +8,7 @@ import { CommonAuthorizationUrlRequest } from "@azure/msal-common";
 /**
  * This type is deprecated and will be removed on the next major version update
  */
-export type AuthorizationUrlRequest = Omit<CommonAuthorizationUrlRequest, "state"|"nonce"> & {
+export type AuthorizationUrlRequest = Omit<CommonAuthorizationUrlRequest, "state"|"nonce"|"requestedClaimsHash"> & {
     state: string;
     nonce: string;
 };
