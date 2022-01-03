@@ -22,6 +22,7 @@ import { ThrottlingEntity } from "./entities/ThrottlingEntity";
 import { AuthToken } from "../account/AuthToken";
 import { ICrypto } from "../crypto/ICrypto";
 import { AuthorityMetadataEntity } from "./entities/AuthorityMetadataEntity";
+import { BaseAuthRequest } from "../request/BaseAuthRequest";
 
 /**
  * Interface class which implement cache storage functions used by MSAL to perform validity checks, and store tokens.
@@ -162,6 +163,11 @@ export abstract class CacheManager implements ICacheManager {
     abstract clear(): Promise<void>;
 
     /**
+     * Function which updates an outdated credential cache key
+     */
+    abstract updateCredentialCacheKey(currentCacheKey: string, credential: ValidCredentialType): string;
+
+    /**
      * Returns all accounts in cache
      */
     getAllAccounts(): AccountInfo[] {
@@ -227,7 +233,8 @@ export abstract class CacheManager implements ICacheManager {
             environment: credential.environment,
             homeAccountId: credential.homeAccountId,
             realm: credential.realm,
-            tokenType: credential.tokenType
+            tokenType: credential.tokenType,
+            requestedClaimsHash: credential.requestedClaimsHash
         });
 
         const currentScopes = ScopeSet.fromString(credential.target);
@@ -321,7 +328,8 @@ export abstract class CacheManager implements ICacheManager {
             filter.target,
             filter.oboAssertion,
             filter.tokenType,
-            filter.keyId
+            filter.keyId,
+            filter.requestedClaimsHash
         );
     }
 
@@ -346,7 +354,8 @@ export abstract class CacheManager implements ICacheManager {
         target?: string,
         oboAssertion?: string,
         tokenType?: AuthenticationScheme,
-        keyId?: string
+        keyId?: string,
+        requestedClaimsHash?: string
     ): CredentialCache {
         const allCacheKeys = this.getKeys();
         const matchingCredentials: CredentialCache = {
@@ -405,6 +414,14 @@ export abstract class CacheManager implements ICacheManager {
             if (!!target && !this.matchTarget(entity, target)) {
                 return;
             }
+            
+            // If request OR cached entity has requested Claims Hash, check if they match
+            if (requestedClaimsHash || entity.requestedClaimsHash) {
+                // Don't match if either is undefined or they are different
+                if (entity.requestedClaimsHash !== requestedClaimsHash) {
+                    return;
+                }
+            }
 
             // Access Token with Auth Scheme specific matching
             if (credentialType === CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME) {
@@ -412,34 +429,27 @@ export abstract class CacheManager implements ICacheManager {
                     return;
                 }
 
-                switch (tokenType) {
-                    case AuthenticationScheme.POP:
-                        // This check avoids matching outdated POP tokens that don't have the <-scheme> in the cache key
-                        if(cacheKey.indexOf(AuthenticationScheme.POP) === -1) {
-                            // AccessToken_With_AuthScheme that doesn't have "-pop" in the key is outdated and needs to be removed
-                            this.removeItem(cacheKey, CacheSchemaType.CREDENTIAL);
-                            return;
-                        }
-                        break;
-                    case AuthenticationScheme.SSH:
-                        // KeyId (sshKid) in request must match cached SSH certificate keyId because SSH cert is bound to a specific key
-                        if(keyId && !this.matchKeyId(entity, keyId)) {
-                            return;
-                        }
-                        break;
+                // KeyId (sshKid) in request must match cached SSH certificate keyId because SSH cert is bound to a specific key
+                if (tokenType === AuthenticationScheme.SSH) {
+                    if(keyId && !this.matchKeyId(entity, keyId)) {
+                        return;
+                    }
                 }
             }
 
+            // At this point, the entity matches the request, update cache key if key schema has changed
+            const updatedCacheKey = this.updateCredentialCacheKey(cacheKey, entity);
+
             switch (credType) {
                 case CredentialType.ID_TOKEN:
-                    matchingCredentials.idTokens[cacheKey] = entity as IdTokenEntity;
+                    matchingCredentials.idTokens[updatedCacheKey] = entity as IdTokenEntity;
                     break;
                 case CredentialType.ACCESS_TOKEN:
                 case CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME:
-                    matchingCredentials.accessTokens[cacheKey] = entity as AccessTokenEntity;
+                    matchingCredentials.accessTokens[updatedCacheKey] = entity as AccessTokenEntity;
                     break;
                 case CredentialType.REFRESH_TOKEN:
-                    matchingCredentials.refreshTokens[cacheKey] = entity as RefreshTokenEntity;
+                    matchingCredentials.refreshTokens[updatedCacheKey] = entity as RefreshTokenEntity;
                     break;
             }
         });
@@ -636,10 +646,11 @@ export abstract class CacheManager implements ICacheManager {
      * @param environment
      * @param authScheme
      */
-    readCacheRecord(account: AccountInfo, clientId: string, scopes: ScopeSet, environment: string, authScheme: AuthenticationScheme, keyId?: string): CacheRecord {
+    readCacheRecord(account: AccountInfo, clientId: string, request: BaseAuthRequest, environment: string): CacheRecord {
+
         const cachedAccount = this.readAccountFromCache(account);
         const cachedIdToken = this.readIdTokenFromCache(clientId, account);
-        const cachedAccessToken = this.readAccessTokenFromCache(clientId, account, scopes, authScheme, keyId);
+        const cachedAccessToken = this.readAccessTokenFromCache(clientId, account, request);
         const cachedRefreshToken = this.readRefreshTokenFromCache(clientId, account, false);
         const cachedAppMetadata = this.readAppMetadataFromCache(environment, clientId);
 
@@ -700,7 +711,9 @@ export abstract class CacheManager implements ICacheManager {
      * @param scopes
      * @param authScheme
      */
-    readAccessTokenFromCache(clientId: string, account: AccountInfo, scopes: ScopeSet, authScheme: AuthenticationScheme, keyId?: string): AccessTokenEntity | null {
+    readAccessTokenFromCache(clientId: string, account: AccountInfo, request: BaseAuthRequest): AccessTokenEntity | null {
+        const scopes =  new ScopeSet(request.scopes || []);
+        const authScheme = request.authenticationScheme || AuthenticationScheme.BEARER;
         /*
          * Distinguish between Bearer and PoP/SSH token cache types
          * Cast to lowercase to handle "bearer" from ADFS
@@ -715,11 +728,12 @@ export abstract class CacheManager implements ICacheManager {
             realm: account.tenantId,
             target: scopes.printScopesLowerCase(),
             tokenType: authScheme,
-            keyId: keyId
+            keyId: request.sshKid,
+            requestedClaimsHash: request.requestedClaimsHash
         };
 
         const credentialCache: CredentialCache = this.getCredentialsFilteredBy(accessTokenFilter);
-
+        
         const accessTokens = Object.keys(credentialCache.accessTokens).map((key) => credentialCache.accessTokens[key]);
         
         const numAccessTokens = accessTokens.length;
@@ -1042,6 +1056,10 @@ export class DefaultStorageClass extends CacheManager {
     }
     async clear(): Promise<void> {
         const notImplErr = "Storage interface - clear() has not been implemented for the cacheStorage interface.";
+        throw AuthError.createUnexpectedError(notImplErr);
+    }
+    updateCredentialCacheKey(): string {
+        const notImplErr = "Storage interface - updateCredentialCacheKey() has not been implemented for the cacheStorage interface.";
         throw AuthError.createUnexpectedError(notImplErr);
     }
 }

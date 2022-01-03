@@ -45,6 +45,8 @@ export class AccessTokenEntity extends CredentialEntity {
     refreshOn?: string;
     keyId?: string; // for POP and SSH tokenTypes
     tokenType?: AuthenticationScheme;
+    requestedClaims?: string;
+    requestedClaimsHash?: string;
 
     /**
      * Create AccessTokenEntity
@@ -70,7 +72,9 @@ export class AccessTokenEntity extends CredentialEntity {
         refreshOn?: number,
         tokenType?: AuthenticationScheme,
         oboAssertion?: string,
-        keyId?: string 
+        keyId?: string,
+        requestedClaims?: string,
+        requestedClaimsHash?: string 
     ): AccessTokenEntity {
         const atEntity: AccessTokenEntity = new AccessTokenEntity();
 
@@ -98,6 +102,11 @@ export class AccessTokenEntity extends CredentialEntity {
         atEntity.oboAssertion = oboAssertion;
 
         atEntity.tokenType = StringUtils.isEmpty(tokenType) ? AuthenticationScheme.BEARER : tokenType;
+
+        if (requestedClaims) {
+            atEntity.requestedClaims = requestedClaims;
+            atEntity.requestedClaimsHash = requestedClaimsHash;
+        }
 
         /*
          * Create Access Token With Auth Scheme instead of regular access token
