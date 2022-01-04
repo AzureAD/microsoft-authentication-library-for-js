@@ -28,7 +28,15 @@ const repoMeta = {
     repo: "microsoft-authentication-library-for-js"
 };
 
-
+const defaultLibFolders = [
+    "lib/msal-angular",
+    "lib/msal-browser",
+    "lib/msal-common",
+    "lib/msal-core",
+    "lib/msal-node",
+    "lib/msal-react",
+    "extensions/msal-node-extensions"
+];
 const CHANGELOGFILE = "CHANGELOG.json";
 
 function buildNotesForComments(commits, label) {
@@ -72,7 +80,7 @@ async function createReleaseForFolder(folderName) {
                 }
             }
         ]
-    } = require(`../lib/${folderName}/${CHANGELOGFILE}`);
+    } = require(`../${folderName}/${CHANGELOGFILE}`);
 
     const shortName = name.split("@azure/").pop();
     const tag_name = `${shortName}-v${version}`;
@@ -181,11 +189,9 @@ async function createReleaseForFolder(folderName) {
     }
 }
 
-if (libName == null) {
-    return;
-}
+const libFolders = libName ? [libName] : defaultLibFolders;
 
-Promise.resolve(createReleaseForFolder(libName))
+Promise.all(libFolders.map(createReleaseForFolder))
     .then(result => {
         process.exit(0);
     })
