@@ -40,7 +40,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         }
 
         // Create silent request
-        const silentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
+        const silentRequest: AuthorizationUrlRequest = await this.initializeAuthorizationRequest({
             ...request,
             prompt: PromptValue.NONE
         }, InteractionType.Silent);

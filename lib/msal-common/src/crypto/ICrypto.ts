@@ -60,6 +60,11 @@ export interface ICrypto {
      * @param accessToken 
      */
     signJwt(payload: SignedHttpRequest, kid: string): Promise<string>;
+    /**
+     * Returns the SHA-256 hash of an input string
+     * @param plainText
+     */
+    hashString(plainText: string): Promise<string>;
 }
 
 export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
@@ -93,6 +98,10 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     },
     async signJwt(): Promise<string> {
         const notImplErr = "Crypto interface - signJwt() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async hashString(): Promise<string> {
+        const notImplErr = "Crypto interface - hashString() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
     }
 };

@@ -1,5 +1,5 @@
 import { ProtocolUtils } from "../../src/utils/ProtocolUtils";
-import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_POP_VALUES } from "../test_kit/StringConstants";
+import { RANDOM_TEST_GUID, TEST_CONFIG, TEST_CRYPTO_VALUES, TEST_POP_VALUES } from "../test_kit/StringConstants";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { Constants } from "../../src/utils/Constants";
 import sinon from "sinon";
@@ -55,6 +55,9 @@ describe("ProtocolUtils.ts Class Unit Tests", () => {
             },
             async clearKeystore(): Promise<boolean> {
                 return Promise.resolve(true);
+            },
+            async hashString(): Promise<string> {
+                return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
             }
         };
     });
