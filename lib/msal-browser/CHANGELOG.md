@@ -1,8 +1,21 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 07 Dec 2021 00:17:01 GMT and should not be manually modified.
+This log was last generated on Tue, 04 Jan 2022 00:20:29 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.21.0
+
+Tue, 04 Jan 2022 00:20:29 GMT
+
+### Minor changes
+
+- Add support for requested claims in silent token acquisition #4296 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v6.0.0
+
+### Patches
+
+- Clear interaction status even if there is no ongoing request #4314 (janutter@microsoft.com)
 
 ## 2.20.0
 
