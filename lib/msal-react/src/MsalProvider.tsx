@@ -86,6 +86,15 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
         instance.handleRedirectPromise().catch(() => {
             // Errors should be handled by listening to the LOGIN_FAILURE event
             return;
+        }).finally(() => {
+            /*
+             * If handleRedirectPromise returns a cached promise the necessary events may not be fired
+             * This is a fallback to prevent inProgress from getting stuck in 'startup'
+             */
+            if (inProgressRef.current === InteractionStatus.Startup) {
+                inProgressRef.current = InteractionStatus.None;
+                setInProgress(InteractionStatus.None);
+            }
         });
 
         return () => {
