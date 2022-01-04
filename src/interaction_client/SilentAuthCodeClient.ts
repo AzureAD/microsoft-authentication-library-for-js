@@ -37,7 +37,7 @@ export class SilentAuthCodeClient extends StandardInteractionClient {
         }
 
         // Create silent request
-        const silentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest(request, InteractionType.Silent);
+        const silentRequest: AuthorizationUrlRequest = await this.initializeAuthorizationRequest(request, InteractionType.Silent);
 
         const serverTelemetryManager = this.initializeServerTelemetryManager(this.apiId);
 
