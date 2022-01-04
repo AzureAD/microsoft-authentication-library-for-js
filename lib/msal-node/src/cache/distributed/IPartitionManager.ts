@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ValidCacheType } from "@azure/msal-common";
+import { AccountEntity } from "@azure/msal-common";
 
 export interface IPartitionManager {
     /**
@@ -24,6 +24,6 @@ export interface IPartitionManager {
      * @param accountEntity: AccountEntity
      * @returns Promise<string>
      */
-    extractKey(accountEntity: ValidCacheType): Promise<string>
+    extractKey(accountEntity: AccountEntity): Promise<string>
 }
   
