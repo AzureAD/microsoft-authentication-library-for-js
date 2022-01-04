@@ -168,11 +168,11 @@ export class OnBehalfOfClient extends BaseClient {
             clientId: this.config.authOptions.clientId,
             authority: request.authority,
             scopes: request.scopes,
+            claims: request.claims,
             authenticationScheme: request.authenticationScheme,
             resourceRequestMethod: request.resourceRequestMethod,
             resourceRequestUri: request.resourceRequestUri,
             shrClaims: request.shrClaims,
-            sshJwk: request.sshJwk,
             sshKid: request.sshKid
         };
 

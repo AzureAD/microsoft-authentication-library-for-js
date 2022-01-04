@@ -18,6 +18,7 @@ import { AuthenticationScheme } from "../utils/Constants";
  * - resourceRequestUri         - URI that token will be used for. Used for proof-of-possession flows.
  * - sshJwk                     - A stringified JSON Web Key representing a public key that can be signed by an SSH certificate.
  * - sshKid                     - Key ID that uniquely identifies the SSH public key mentioned above.
+ * - requestedClaimsHash        - SHA 256 hash string of the requested claims string, used as part of an access token cache key so tokens can be filtered by requested claims
  * - stkJwk                     - String representatin of the session transport key JWK used for Refresh Token Binding
  */
 export type BaseAuthRequest = {
@@ -32,5 +33,6 @@ export type BaseAuthRequest = {
     resourceRequestUri?: string;
     sshJwk?: string,
     sshKid?: string,
+    requestedClaimsHash?: string;
     stkJwk?: string
 };

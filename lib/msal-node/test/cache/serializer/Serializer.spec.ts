@@ -29,6 +29,7 @@ describe('Serializer test cases', () => {
 
         // serialize the mock IdToken and Test equivalency with the cache.json provided
         const serializedIdT = Serializer.serializeIdTokens(idt);
+        console.log(MockCache.idTKey);
         expect(serializedIdT[MockCache.idTKey]).toMatchObject(jsonCache.IdToken[MockCache.idTKey]);
     });
 

@@ -1,6 +1,6 @@
 import sinon from "sinon";
 import { ICrypto, PkceCodes, AuthenticationScheme, CryptoKeyTypes } from "../../src";
-import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS } from "../test_kit/StringConstants";
+import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS, TEST_CRYPTO_VALUES } from "../test_kit/StringConstants";
 import { CryptoKeyManager } from "../../src/crypto/CryptoKeyManager";
 
 describe("CryptoKeyManager Unit Tests", () => {
@@ -56,6 +56,9 @@ describe("CryptoKeyManager Unit Tests", () => {
         },
         async clearKeystore(): Promise<boolean> {
             return Promise.resolve(true);
+        },
+        async hashString(): Promise<string> {
+            return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
         },
         async getAsymmetricPublicKey(): Promise<string> {
             return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
