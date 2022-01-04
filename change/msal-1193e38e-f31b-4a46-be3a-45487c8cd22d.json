@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Add support for requested claims in silent token acquisition #4296",
-  "packageName": "msal",
-  "email": "hemoral@microsoft.com",
-  "dependentChangeType": "none"
-}
