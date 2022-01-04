@@ -20,7 +20,8 @@ describe("MsalAuthenticationTemplate tests", () => {
 
     let eventCallbacks: EventCallbackFunction[];
     let handleRedirectSpy: jest.SpyInstance;
-    let accounts: AccountInfo[] = [];  
+    let accounts: AccountInfo[] = [];
+    let activeAccount: AccountInfo | null = null;
 
     beforeEach(() => {
         eventCallbacks = [];
@@ -59,12 +60,17 @@ describe("MsalAuthenticationTemplate tests", () => {
         });
 
         jest.spyOn(pca, "getAllAccounts").mockImplementation(() => accounts);
+        jest.spyOn(pca, "getActiveAccount").mockImplementation(() => activeAccount);
+        jest.spyOn(pca, "setActiveAccount").mockImplementation((account) => {
+            activeAccount = account;
+        });
     });
 
     afterEach(() => {
     // cleanup on exiting
         jest.clearAllMocks();
         accounts = [];
+        activeAccount = null;
     });
 
     test("Calls loginPopup if no account is signed in", async () => {              
@@ -368,6 +374,47 @@ describe("MsalAuthenticationTemplate tests", () => {
         expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
         expect(await screen.findByText("A user is authenticated!")).toBeInTheDocument();
         expect(loginRedirectSpy).not.toHaveBeenCalled();
+    });
+
+    describe("AcquireToken tests", () => {
+        test("Calls acquireTokenSilent if a user is signed in and set as the active account", async () => {
+            accounts = [testAccount];
+            pca.setActiveAccount(testAccount);
+            const acquireTokenSilentSpy = jest.spyOn(pca, "acquireTokenSilent").mockImplementation((request) => {
+                expect(request).toBeDefined();
+                expect(request.account).toBe(testAccount);
+                return Promise.resolve(testResult);
+            });
+    
+            render(
+                <MsalProvider instance={pca}>
+                    <p>This text will always display.</p>
+                    <MsalAuthenticationTemplate interactionType={InteractionType.Popup}>
+                        <span> A user is authenticated!</span>
+                    </MsalAuthenticationTemplate>
+                </MsalProvider>
+            );
+
+            await waitFor(() => expect(acquireTokenSilentSpy).toHaveBeenCalledTimes(1));
+            expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
+            expect(screen.queryByText("A user is authenticated!")).toBeInTheDocument();
+        });
+
+        test("Calls acquireTokenSilent if a user is signed in and account identifiers are provided", async () => {
+
+        });
+
+        test("Calls acquireTokenSilent and falls back to popup", async () => {
+
+        });
+
+        test("Calls acquireTokenSilent and falls back to redirect", async () => {
+
+        });
+
+        test("Calls acquireTokenSilent and falls back to ssoSilent", async () => {
+
+        });
     });
 
     test("Renders provided error component when an error occurs", async () => {
