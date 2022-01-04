@@ -19,7 +19,3 @@ steps:
     npm install
     npm run build
   displayName: 'npm install and build'
-
-- task: CmdLine@2
-  inputs:
-    script: 'git subtree split --prefix lib/msal-browser -b msal-browser-latest'
