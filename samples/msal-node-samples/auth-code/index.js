@@ -93,6 +93,9 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
     });
 
     /** Logout endpoint */
+    app.get("/logout", (req, res) => {
+        res.send(`Logout`);
+    });
 
     return app.listen(serverPort, () => console.log(`Msal Node Auth Code Sample app listening on port ${serverPort}!`));
 }
