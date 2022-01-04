@@ -1,5 +1,5 @@
 {
-  "name": "@azure/ms-identity-node",
+  "name": "@azure/node-token-validation",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
