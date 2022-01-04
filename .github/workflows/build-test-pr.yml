@@ -128,16 +128,6 @@ jobs:
     - name: Use Node.js
       uses: actions/setup-node@v2
 
-    - name: Restore node_modules
-      uses: actions/cache@v2
-      id: cache
-      with:
-        path: |
-          node_modules
-          lib/msal-common/node_modules
-          extensions/msal-node-extensions/node_modules
-        key: ${{ runner.os }}-${{ hashFiles('package-lock.json', 'lib/msal-common/package-lock.json', 'extensions/msal-node-extensions/package-lock.json') }}
-
     - name: Clean Install
       if: steps.cache.outputs.cache-hit != 'true'
       env:
