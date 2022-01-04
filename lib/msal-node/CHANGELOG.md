@@ -1,8 +1,16 @@
 # Change Log - @azure/msal-node
 
-This log was last generated on Tue, 07 Dec 2021 00:17:01 GMT and should not be manually modified.
+This log was last generated on Tue, 04 Jan 2022 00:20:29 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 1.5.0
+
+Tue, 04 Jan 2022 00:20:29 GMT
+
+### Minor changes
+
+- Bump @azure/msal-common to v6.0.0
 
 ## 1.4.0
 
