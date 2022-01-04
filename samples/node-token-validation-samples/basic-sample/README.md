@@ -1,6 +1,6 @@
 # Sample for Token Validation prototype
 
-This is a sample that can run the prototype at `experimental/ms-identity-node`. Note that this is not a finished prototype or a finished sample, and is used for experimental purposes only.
+This is a sample that can run `node-token-validation`. Note that this is not a finished prototype or a finished sample, and is used for experimental purposes only.
 
 ## Instructions to run prototype
 
@@ -18,7 +18,7 @@ This is a sample that can run the prototype at `experimental/ms-identity-node`. 
 
 1. In the developers console, get the secret from the access token that has the custom scope (not Graph scopes).
 
-### In the src/experimental/ms-identity-node POC library
+### In the src/experimental/node-token-validation POC library
 
 1. Open `src/api/TokenValidator.ts`. Replace the URL in line 38 with your tenant information: e.g. `https://login.microsoftonline.com/<YOUR-SPA-APP-TENANT-ID>/discovery/v2.0/keys`
 

@@ -4,7 +4,7 @@
  */
 
 const express = require("express");
-const msIdentity = require("@azure/ms-identity-node")
+const nodeTokenValidation = require("@azure/node-token-validation")
 
 /**
  * Command line arguments can be used to configure:
@@ -21,19 +21,32 @@ const getTokenAuthCode = function (port) {
     // Create Express App and Routes
     const app = express();
 
+    const loggerOptions = {
+        loggerCallback(loglevel, message, containsPii) {
+            console.log(message);
+        },
+        piiLoggingEnabled: false,
+        logLevel: nodeTokenValidation.LogLevel.Verbose,
+    }
+
     const config = {
-        authority: "https://login.microsoftonline.com/common/"
+        authority: "https://login.microsoftonline.com/common/",
+        system: {
+            loggerOptions: loggerOptions
+        } 
     };
 
     app.get("/", (req, res) => {
-        const tokenValidator = new msIdentity.TokenValidator(config);
+        const tokenValidator = new nodeTokenValidation.TokenValidator(config);
 
         // Instead of raw tokens and claims, will write a function to populate this from header or body of request/response
-        const rawToken = "raw-access-token";
+        const rawToken = "token-here";
         const tokenValidationParams = {
             rawTokenString: rawToken,
-            issuer: "issuer-here",
-            audience: "audience-here"
+            audience: "audience-here",
+            algorithm: ["algorithm-here"],
+            subject: "subject-here",
+            scopes: ["scopes-here"]
         };
         tokenValidator.validateToken(tokenValidationParams).then((response) => {
             // Check that token is valid
