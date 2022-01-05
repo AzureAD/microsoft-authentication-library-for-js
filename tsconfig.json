@@ -1,5 +1,5 @@
 {
-    "include": ["lib", "experimental/ms-identity-node"],
+    "include": ["lib"],
     "exclude": ["**/node_modules", "**/test", "**/stories", "**/*.spec.ts"],
     "compilerOptions": {
         "module": "esnext",
@@ -17,8 +17,7 @@
         "experimentalDecorators": true,
         "paths": {
             "@azure/*": [
-                "./lib/*/src",
-                "./experimental/*/src"
+                "./lib/*/src"
             ]
         }
     }
