@@ -80,4 +80,11 @@ export class CryptoProvider implements ICrypto {
     signJwt(): Promise<string> {
         throw new Error("Method not implemented.");
     }
+
+    /**
+     * Returns the SHA-256 hash of an input string
+     */
+    hashString(): Promise<string> {
+        throw new Error("Method not implemented.");
+    }
 }
