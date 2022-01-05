@@ -12,5 +12,6 @@ module.exports = {
     testEnvironmentOptions: {
         url: "https://localhost:8081/index.html"
     },
-    collectCoverageFrom: ["src/**/*.ts"]
+    collectCoverageFrom: ["src/**/*.ts"],
+    coverageReporters: [["lcov", {"projectRoot": "../../"}]]
 };
