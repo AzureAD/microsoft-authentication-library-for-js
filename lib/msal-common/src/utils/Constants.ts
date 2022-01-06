@@ -136,7 +136,8 @@ export enum AADServerParamKeys {
     REQUESTED_TOKEN_USE = "requested_token_use",
     ON_BEHALF_OF = "on_behalf_of",
     FOCI = "foci",
-    CCS_HEADER = "X-AnchorMailbox"
+    CCS_HEADER = "X-AnchorMailbox",
+    RETURN_SPA_CODE = "return_spa_code"
 }
 
 /**

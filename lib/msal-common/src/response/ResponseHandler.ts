@@ -118,7 +118,7 @@ export class ResponseHandler {
         let idTokenObj: AuthToken | undefined;
         if (serverTokenResponse.id_token) {
             idTokenObj = new AuthToken(serverTokenResponse.id_token || Constants.EMPTY_STRING, this.cryptoObj);
-    
+            
             // token nonce check (TODO: Add a warning if no nonce is given?)
             if (authCodePayload && !StringUtils.isEmpty(authCodePayload.nonce)) {
                 if (idTokenObj.claims.nonce !== authCodePayload.nonce) {
@@ -167,7 +167,7 @@ export class ResponseHandler {
                 await this.persistencePlugin.afterCacheAccess(cacheContext);
             }
         }
-        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj);
+        return ResponseHandler.generateAuthenticationResult(this.cryptoObj, authority, cacheRecord, false, request, idTokenObj, requestStateObj, serverTokenResponse.spa_code);
     }
 
     /**
@@ -306,7 +306,9 @@ export class ResponseHandler {
         fromTokenCache: boolean, 
         request: BaseAuthRequest,
         idTokenObj?: AuthToken,
-        requestState?: RequestStateObject): Promise<AuthenticationResult> {
+        requestState?: RequestStateObject,
+        code?: string
+    ): Promise<AuthenticationResult> {
         let accessToken: string = "";
         let responseScopes: Array<string> = [];
         let expiresOn: Date | null = null;
@@ -348,7 +350,8 @@ export class ResponseHandler {
             tokenType: cacheRecord.accessToken?.tokenType || Constants.EMPTY_STRING,
             state: requestState ? requestState.userRequestState : Constants.EMPTY_STRING,
             cloudGraphHostName: cacheRecord.account?.cloudGraphHostName || Constants.EMPTY_STRING,
-            msGraphHost: cacheRecord.account?.msGraphHost || Constants.EMPTY_STRING
+            msGraphHost: cacheRecord.account?.msGraphHost || Constants.EMPTY_STRING,
+            code
         };
     }
 }

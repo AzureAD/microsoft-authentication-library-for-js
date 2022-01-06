@@ -141,8 +141,11 @@ export class CredentialEntity {
             this.generateTargetForCacheKey(target)
         ];
 
-        // PoP Tokens and SSH certs include scheme in cache key
-        if (tokenType && tokenType !== AuthenticationScheme.BEARER) {
+        /*
+         * PoP Tokens and SSH certs include scheme in cache key
+         * Cast to lowercase to handle "bearer" from ADFS
+         */
+        if (tokenType && tokenType.toLowerCase() !== AuthenticationScheme.BEARER.toLowerCase()) {
             credentialKey.push(tokenType.toLowerCase());
         }
 
