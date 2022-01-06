@@ -16,7 +16,7 @@ In addition to npm, `msal` can be consumed from Microsoft-hosted CDNs.
 
 <!-- CDN_LATEST -->
 ```html
-<script type="text/javascript" src="https://alcdn.msauth.net/browser/2.20.0/js/msal-browser.min.js"></script>
+<script type="text/javascript" src="https://alcdn.msauth.net/browser/2.21.0/js/msal-browser.min.js"></script>
 ```
 
 ## Unminified builds
@@ -84,6 +84,8 @@ It is highly recommended to use SRI Hashes with CDN builds of MSAL.js to help se
 <!-- SRI_TABLE_START -->
 Version      | Build               | SRI Hash
 ------------ | ------------------- | ---------------------------
+2.21.0        | msal-browser.js     | `sha384-928QQ3wSVfsx4ZV1MR0896l8lK21YX1xWK3gSl8AW/lMEAZ2GeYqvFkm/VPzgn4y`
+2.21.0        | msal-browser.min.js | `sha384-s/NxjjAgw1QgpDhOlVjTceLl4axrp5nqpUbCPOEQy1PqbFit9On6uw2XmEF1eq0s`
 2.20.0        | msal-browser.js     | `sha384-Ky1dhcw3VPMuZV6VlVBcQBtWHs5Ry8rkG2LGdxdEOoaApfNShXhD3OQTgN3klUN5`
 2.20.0        | msal-browser.min.js | `sha384-WV/465aYIrPn7bcKutSAFz+3JedxtCaRXxYu5EEjgGKPaOz7gjN06C8tBoGEmlZm`
 2.19.0        | msal-browser.js     | `sha384-qMZg1SlV+Gm/R5MbEArouisSUHYzmBo05auTya2W3UOOr2Mlr2UvzzP1+nw5zc01`

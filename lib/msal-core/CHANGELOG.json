@@ -2,6 +2,21 @@
   "name": "msal",
   "entries": [
     {
+      "date": "Tue, 04 Jan 2022 00:20:29 GMT",
+      "tag": "msal_v1.4.15",
+      "version": "1.4.15",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "msal",
+            "commit": "60e2cfc0e9daa3c24e994617b4ac42aef6880b74",
+            "comment": "Add support for requested claims in silent token acquisition #4296"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 07 Dec 2021 00:17:01 GMT",
       "tag": "msal_v1.4.15",
       "version": "1.4.15",
