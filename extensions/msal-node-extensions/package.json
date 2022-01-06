@@ -30,6 +30,7 @@
     "build:common": "cd ../../lib/msal-common && npm run build",
     "build:all": "npm run build:common && npm run build",
     "test": "tsdx test",
+    "test:coverage": "tsdx test --coverage",
     "lint": "cd ../../ && npm run lint:node:extensions",
     "lint:fix": "npm run lint -- -- --fix",
     "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/msal-node-extensions",
