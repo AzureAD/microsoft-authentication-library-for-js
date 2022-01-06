@@ -9,23 +9,23 @@ import { PersistenceError } from "../error/PersistenceError";
 import { StringUtils } from "@azure/msal-common";
 
 export class Environment {
-    static get homeEnvVar() {
+    static get homeEnvVar(): string {
         return this.getEnvironmentVariable(Constants.ENVIRONMENT.HOME);
     }
     
-    static get lognameEnvVar() {
+    static get lognameEnvVar(): string {
         return this.getEnvironmentVariable(Constants.ENVIRONMENT.LOGNAME);
     }
 
-    static get userEnvVar() {
+    static get userEnvVar(): string {
         return this.getEnvironmentVariable(Constants.ENVIRONMENT.USER);
     }
 
-    static get lnameEnvVar() {
+    static get lnameEnvVar(): string {
         return this.getEnvironmentVariable(Constants.ENVIRONMENT.LNAME);
     }
 
-    static get usernameEnvVar() {
+    static get usernameEnvVar(): string {
         return this.getEnvironmentVariable(Constants.ENVIRONMENT.USERNAME);
     }
 
@@ -50,13 +50,13 @@ export class Environment {
     }
 
     static isLinuxRootUser(): boolean {
-        return process.getuid() == Constants.LINUX_ROOT_USER_GUID;
+        return process.getuid() === Constants.LINUX_ROOT_USER_GUID;
     }
 
     static getUserRootDirectory(): string {
         return !this.isWindowsPlatform ?
             this.getUserHomeDirOnUnix() :
-            this.getUserHomeDirOnWindows()
+            this.getUserHomeDirOnWindows();
     }
 
     static getUserHomeDirOnWindows(): string {
@@ -65,7 +65,7 @@ export class Environment {
 
     static getUserHomeDirOnUnix(): string | null {
         if (this.isWindowsPlatform()) {
-            throw PersistenceError.createNotSupportedError("Getting the user home directory for unix is not supported in windows")
+            throw PersistenceError.createNotSupportedError("Getting the user home directory for unix is not supported in windows");
         }
 
         if (!StringUtils.isEmpty(this.homeEnvVar)) {
@@ -92,7 +92,7 @@ export class Environment {
                 return !StringUtils.isEmpty(username) ? path.join("/home", username) : null;
             }
         } else {
-            throw PersistenceError.createNotSupportedError("Getting the user home directory for unix is not supported in windows")
+            throw PersistenceError.createNotSupportedError("Getting the user home directory for unix is not supported in windows");
         }
 
     }
