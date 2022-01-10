@@ -1,6 +1,6 @@
 {
   "name": "@azure/msal-react",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "author": {
     "name": "Microsoft",
     "email": "nugetaad@microsoft.com",
@@ -37,15 +37,16 @@
     "build:all": "npm run build:common && npm run build:browser && npm run build",
     "build:browser": "cd ../msal-browser && npm run build",
     "build:common": "cd ../msal-common && npm run build",
+    "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/msal-browser --scope @azure/msal-react",
     "prepack": "npm run build:all"
   },
   "peerDependencies": {
-    "@azure/msal-browser": "^2.19.0",
+    "@azure/msal-browser": "^2.21.0",
     "react": "^16.8.0 || ^17"
   },
   "module": "dist/msal-react.esm.js",
   "devDependencies": {
-    "@azure/msal-browser": "^2.19.0",
+    "@azure/msal-browser": "^2.21.0",
     "@testing-library/jest-dom": "^5.11.5",
     "@testing-library/react": "^11.2.3",
     "@types/jest": "^26.0.15",

@@ -1,5 +1,5 @@
 {
-    "include": ["lib"],
+    "include": ["lib", "extensions"],
     "exclude": ["**/node_modules", "**/test", "**/stories", "**/*.spec.ts"],
     "compilerOptions": {
         "module": "esnext",
