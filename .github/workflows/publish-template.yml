@@ -31,53 +31,54 @@ jobs:
         working-directory: ${{ inputs.path }}/${{ inputs.lib-name }}
 
     steps:
-        - uses: actions/checkout@v2
+      - uses: actions/checkout@v2
 
-        - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v1
 
-        - name: Install dependencies
-          run: npm install
+      - name: Install dependencies
+        run: npm install
 
-        # Runs lerna bootstrap scoped to this package and any local dependencies so that npm run build:all commands work
-        - name: Link dependencies
-          run: npm run link:localDeps --if-present
+      # Runs lerna bootstrap scoped to this package and any local dependencies so that npm run build:all commands work
+      - name: Link dependencies
+        run: npm run link:localDeps --if-present
 
-        - name: Publish to CDN
-          if: inputs.cdn
-          env:
-            CDN_EUNO_SAS: ${{ secrets.CDN_EUNO_SAS }}
-            CDN_USWE_SAS: ${{ secrets.CDN_USWE_SAS }}
-          run: npm run cdn
-        
-        - name: Upload CDN Artifacts
-          uses: actions/upload-artifact@v2
-          if: inputs.cdn
-          with:
-            name: ${{ inputs.lib-name }}-artifacts
-            path: |
-              lib/${{ inputs.lib-name }}/README.md
-              lib/${{ inputs.lib-name }}/docs/cdn-usage.md
-            retention-days: 7
-        
-        - name: Write npm authToken 
-          run: echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > .npmrc
+      - name: Publish to CDN
+        if: inputs.cdn
+        env:
+          CDN_EUNO_SAS: ${{ secrets.CDN_EUNO_SAS }}
+          CDN_USWE_SAS: ${{ secrets.CDN_USWE_SAS }}
+        run: npm run cdn
 
-        - name: Publish to npm
-          if: inputs.lib-name != 'msal-angular'
-          env:
-            NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          run: npm publish
+      - name: Upload CDN Artifacts
+        uses: actions/upload-artifact@v2
+        if: inputs.cdn
+        with:
+          name: ${{ inputs.lib-name }}-artifacts
+          path: |
+            lib/${{ inputs.lib-name }}/README.md
+            lib/${{ inputs.lib-name }}/docs/cdn-usage.md
+          retention-days: 7
 
-        - name: Deploy to npm (Angular only)
-          if: inputs.lib-name == 'msal-angular'
-          env:
-            NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-          run: npm run deploy
+      - name: Write npm authToken
+        run: echo '//registry.npmjs.org/:_authToken=${NPM_TOKEN}' > .npmrc
 
-        - name: Remove .npmrc file
-          run: rm .npmrc
+      - name: Publish to npm
+        if: inputs.lib-name != 'msal-angular'
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm publish
 
-        - name: Check npm for package availability
-          run: node ../../release-scripts/checkPackageAvailability.js ${{ inputs.path }}/${{ inputs.lib-name }}
+      - name: Deploy to npm (Angular only)
+        if: inputs.lib-name == 'msal-angular'
+        env:
+          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: npm run deploy
 
-          
+      - name: Remove .npmrc file
+        run: rm .npmrc
+
+      - name: Check npm for package availability
+        run: node ../../release-scripts/checkPackageAvailability.js ${{ inputs.path }}/${{ inputs.lib-name }}
+
+      - name: Create Github releases, discussions and milestones
+        run: node ../../.github/createReleases.js -lib ${{ inputs.path }}/${{ inputs.lib-name }}
