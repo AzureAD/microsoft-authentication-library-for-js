@@ -24,8 +24,8 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.auth.redirectUri).toBe("");
         expect(emptyConfig.auth.postLogoutRedirectUri).toBe("");
         expect(emptyConfig.auth.navigateToLoginRequestUrl).toBe(true);
-        expect(emptyConfig.auth.azureAuthOptions.azureCloudInstance).toBe(0);
-        expect(emptyConfig.auth.azureAuthOptions.tenant).toBe("");
+        expect(emptyConfig.auth?.azureCloudOptions?.azureCloudInstance).toBe(AzureCloudInstance.None);
+        expect(emptyConfig.auth?.azureCloudOptions?.tenant).toBe("");
         // Cache config checks
         expect(emptyConfig.cache).toBeDefined()
         expect(emptyConfig.cache?.cacheLocation).toBeDefined();
@@ -210,7 +210,7 @@ describe("Configuration.ts Class Unit Tests", () => {
                 navigateToLoginRequestUrl: false,
                 azureCloudOptions: {
                     azureCloudInstance: AzureCloudInstance.AzureChina,
-                    tenant: "commons"
+                    tenant: "common"
                 }
             },
             cache: {
@@ -242,12 +242,13 @@ describe("Configuration.ts Class Unit Tests", () => {
                 navigateToLoginRequestUrl: false,
                 azureCloudOptions: {
                     azureCloudInstance: AzureCloudInstance.AzureGermany,
+                    tenant: "common"
                 }
             },
             cache: {
                 cacheLocation: BrowserCacheLocation.LocalStorage,
                 storeAuthStateInCookie: true,
-                secureCookies: trues
+                secureCookies: true
             },
             system: {
                 windowHashTimeout: TEST_POPUP_TIMEOUT_MS,
@@ -272,7 +273,8 @@ describe("Configuration.ts Class Unit Tests", () => {
                 postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
                 navigateToLoginRequestUrl: false,
                 azureCloudOptions: {
-                    azureCloudInstance: AzureCloudInstance.AzureUsGovernment
+                    azureCloudInstance: AzureCloudInstance.AzureUsGovernment,
+                    tenant: "common"
                 }
             },
             cache: {
@@ -292,41 +294,5 @@ describe("Configuration.ts Class Unit Tests", () => {
         }, true);
         // Auth config checks
         expect(newConfig.auth.authority).toBe(TEST_CONFIG.usGovAuthority);
-    });
-
-    it("buildConfiguration throws error with invalid azureCoudInstance", () => {
-
-        try {
-            const configuration = buildConfiguration({
-                auth: {
-                    clientId: TEST_CONFIG.MSAL_CLIENT_ID,
-                    authority: TEST_CONFIG.validAuthority,
-                    redirectUri: TEST_URIS.TEST_ALTERNATE_REDIR_URI,
-                    postLogoutRedirectUri: TEST_URIS.TEST_LOGOUT_URI,
-                    navigateToLoginRequestUrl: false,
-                    azureCloudOptions: {
-                        azureCloudInstance: "random string"
-                    }
-                },
-                cache: {
-                    cacheLocation: BrowserCacheLocation.LocalStorage,
-                    storeAuthStateInCookie: true,
-                    secureCookies: true
-                },
-                system: {
-                    windowHashTimeout: TEST_POPUP_TIMEOUT_MS,
-                    tokenRenewalOffsetSeconds: TEST_OFFSET,
-                    loggerOptions: {
-                        loggerCallback: testLoggerCallback,
-                        piiLoggingEnabled: true
-                    },
-                    asyncPopups: true
-                }
-            }, true);
-        } catch(e) {
-            expect(e).toBeInstanceOf(ClientConfigurationError);
-            expect(e.errorCode).toEqual(ClientConfigurationErrorMessage.invalidAzureCloudInstance.code);
-            expect(e.errorMessage).toEqual(ClientConfigurationErrorMessage.invalidAzureCloudInstance.desc);
-        }
     });
 });
