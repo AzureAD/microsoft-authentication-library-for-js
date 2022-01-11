@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "fix: BrowserStorage was not working properly one enumerable context (getKeys, containsKey)",
+  "packageName": "@azure/msal-browser",
+  "email": "bartheleway@gmail.com",
+  "dependentChangeType": "patch"
+}
