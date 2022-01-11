@@ -83,5 +83,14 @@ describe("BrowserStorage.ts unit tests", () => {
             expect(browserLocalStorage.getItem(msalKey)).toEqual(val);
             expect(browserSessionStorage.getItem(msalKey2)).toEqual(val);
         })
+
+        it("containsKey()", () => {
+            // Old version of containsKey was using hasOwnProperty
+            expect(localStorage.hasOwnProperty(msalKey)).toEqual(false);
+            expect(sessionStorage.hasOwnProperty(msalKey2)).toEqual(false);
+
+            expect(browserLocalStorage.containsKey(msalKey)).toEqual(true);
+            expect(browserSessionStorage.containsKey(msalKey2)).toEqual(true);
+        })
     })
 })

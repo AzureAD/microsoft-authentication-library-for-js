@@ -50,6 +50,7 @@ export class BrowserStorage implements IWindowStorage<string> {
     }
 
     containsKey(key: string): boolean {
-        return this.windowStorage.hasOwnProperty(key);
+        // Use getKeys to properly support environments where localStorage/sessionStorage are not enumerable, e.g. Salesforce
+        return this.getKeys().includes(key);
     }
 }
