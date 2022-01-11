@@ -39,7 +39,14 @@ export class BrowserStorage implements IWindowStorage<string> {
     }
 
     getKeys(): string[] {
-        return Object.keys(this.windowStorage);
+        const keys: string[] = [];
+
+        // Manually iterate to properly support environments where localStorage/sessionStorage are not enumerable, e.g. Salesforce
+        for (let i = 0; i < this.windowStorage.length; ++i) {
+            keys.push(this.windowStorage.key(i) || "");
+        }
+
+        return keys;
     }
 
     containsKey(key: string): boolean {
