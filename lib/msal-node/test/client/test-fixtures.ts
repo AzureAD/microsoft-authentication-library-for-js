@@ -48,14 +48,3 @@ export const setupAuthorityFactory_createDiscoveredInstance_mock = (authority = 
     jest.spyOn(AuthorityFactory, 'createDiscoveredInstance')
         .mockReturnValue(Promise.resolve(authority));
 }
-
-
-/*
-export function mockMSALClass <T> (cls: keyof T, mod: T): typeof T  {
-    const MockClass = jest.genMockFromModule<typeof msalCommon>("@azure/msal-common")[cls];
-    jest.spyOn(msalCommon, cls).mockImplementation((...args) => new MockClass(...args));
-    return MockClass;
-}
-
-
-*/
