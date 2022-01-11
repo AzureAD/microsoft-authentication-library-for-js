@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Clear interaction status even if there is no ongoing request #4314",
-  "packageName": "@azure/msal-browser",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "patch"
-}

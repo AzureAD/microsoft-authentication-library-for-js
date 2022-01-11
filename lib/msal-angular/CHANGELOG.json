@@ -2,6 +2,29 @@
   "name": "@azure/msal-angular",
   "entries": [
     {
+      "date": "Tue, 04 Jan 2022 00:20:29 GMT",
+      "tag": "@azure/msal-angular_v2.1.0",
+      "version": "2.1.0",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-angular",
+            "commit": "60e2cfc0e9daa3c24e994617b4ac42aef6880b74",
+            "comment": "Add support for requested claims in silent token acquisition #4296"
+          }
+        ],
+        "minor": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-angular",
+            "comment": "Bump @azure/msal-browser to v2.21.0",
+            "commit": "bd9b1af91c278926ab2e6943cf90817a7ac4957b"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 07 Dec 2021 00:17:01 GMT",
       "tag": "@azure/msal-angular_v2.0.6",
       "version": "2.0.6",

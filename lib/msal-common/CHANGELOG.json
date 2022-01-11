@@ -2,6 +2,29 @@
   "name": "@azure/msal-common",
   "entries": [
     {
+      "date": "Tue, 04 Jan 2022 00:20:29 GMT",
+      "tag": "@azure/msal-common_v6.0.0",
+      "version": "6.0.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "a517a4f2ea228e4278cba6da20c8919c61ad252b",
+            "comment": "Gracefully handle tokenType set as bearer for ADFS #4318"
+          }
+        ],
+        "major": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-common",
+            "commit": "60e2cfc0e9daa3c24e994617b4ac42aef6880b74",
+            "comment": "Add support for requested claims in silent token acquisition #4296"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 07 Dec 2021 00:17:01 GMT",
       "tag": "@azure/msal-common_v5.2.0",
       "version": "5.2.0",
