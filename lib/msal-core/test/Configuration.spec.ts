@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import { buildConfiguration, Configuration } from "../src/Configuration";
 import { Logger } from "../src/Logger";
 
@@ -10,9 +9,9 @@ describe("Configuration.ts Type", () => {
             }
         };
         const configWithDefaults: Configuration = buildConfiguration(config);
-        expect(configWithDefaults.hasOwnProperty("cache")).to.be.true;
-        expect(configWithDefaults.hasOwnProperty("system")).to.be.true;
-        expect(configWithDefaults.hasOwnProperty("framework")).to.be.true;
+        expect(configWithDefaults.hasOwnProperty("cache")).toBe(true);
+        expect(configWithDefaults.hasOwnProperty("system")).toBe(true);
+        expect(configWithDefaults.hasOwnProperty("framework")).toBe(true);
     });
     it("buildConfiguration auth defaults", () => {
         const config: Configuration = {
@@ -22,7 +21,7 @@ describe("Configuration.ts Type", () => {
         };
         const configWithDefaults: Configuration = buildConfiguration(config);
         const { auth } = configWithDefaults;
-        expect(auth.validateAuthority).to.be.true;
+        expect(auth.validateAuthority).toBe(true);
     });
     it("buildConfiguration respects auth passed in", () => {
         const fake_state = "fake";
@@ -35,7 +34,7 @@ describe("Configuration.ts Type", () => {
         };
         const configWithDefaults: Configuration = buildConfiguration(config);
         const { auth } = configWithDefaults;
-        expect(auth.validateAuthority).to.eq(fake_validateAuthority);
+        expect(auth.validateAuthority).toBe(fake_validateAuthority);
     });
     it("buildConfiguration cache defaults", () => {
         const config: Configuration = {
@@ -46,8 +45,8 @@ describe("Configuration.ts Type", () => {
         };
         const configWithDefaults: Configuration = buildConfiguration(config);
         const { cache } = configWithDefaults;
-        expect(cache.cacheLocation).to.eq("sessionStorage");
-        expect(cache.storeAuthStateInCookie).to.be.false;
+        expect(cache.cacheLocation).toBe("sessionStorage");
+        expect(cache.storeAuthStateInCookie).toBe(false);
     });
     it("buildConfiguration respects cache passed in", () => {
         const fake_cacheLocation = "localStorage";
@@ -63,8 +62,8 @@ describe("Configuration.ts Type", () => {
         };
         const configWithDefaults: Configuration = buildConfiguration(config);
         const { cache } = configWithDefaults;
-        expect(cache.cacheLocation).to.eq(fake_cacheLocation);
-        expect(cache.storeAuthStateInCookie).to.eq(fake_storeAuthStateInCookie);
+        expect(cache.cacheLocation).toBe(fake_cacheLocation);
+        expect(cache.storeAuthStateInCookie).toBe(fake_storeAuthStateInCookie);
     });
     it("buildConfiguration system defaults", () => {
         const config: Configuration = {
@@ -74,8 +73,8 @@ describe("Configuration.ts Type", () => {
         };
         const configWithDefaults: Configuration = buildConfiguration(config);
         const { system } = configWithDefaults;
-        expect(system.logger).to.not.be.null;
-        expect(system.tokenRenewalOffsetSeconds).to.eq(300);
+        expect(system.logger).not.toBeNull();
+        expect(system.tokenRenewalOffsetSeconds).toBe(300);
     });
     it("buildConfiguration system defaults", () => {
         const fake_logger = new Logger(console.log);
@@ -91,8 +90,8 @@ describe("Configuration.ts Type", () => {
         };
         const configWithDefaults: Configuration = buildConfiguration(config);
         const { system } = configWithDefaults;
-        expect(system.logger).to.eq(fake_logger);
-        expect(system.tokenRenewalOffsetSeconds).to.eq(fake_tokenOffset);
+        expect(system.logger).toBe(fake_logger);
+        expect(system.tokenRenewalOffsetSeconds).toBe(fake_tokenOffset);
     });
     it("buildConfiguration framework defaults", () => {
         const config: Configuration = {
@@ -102,7 +101,7 @@ describe("Configuration.ts Type", () => {
         };
         const configWithDefaults: Configuration = buildConfiguration(config);
         const { framework } = configWithDefaults;
-        expect(framework.isAngular).to.be.false;
+        expect(framework.isAngular).toBe(false);
     });
     it("buildConfiguration framework defaults", () => {
         const fake_isAngular = true;
@@ -116,7 +115,7 @@ describe("Configuration.ts Type", () => {
         };
         const configWithDefaults: Configuration = buildConfiguration(config);
         const { framework } = configWithDefaults;
-        expect(framework.isAngular).to.eq(fake_isAngular);
+        expect(framework.isAngular).toBe(fake_isAngular);
     });
     it("does not set defaults for telemetry object", () => {
         const config: Configuration = {
@@ -126,7 +125,7 @@ describe("Configuration.ts Type", () => {
         };
         const configWithDefaults: Configuration = buildConfiguration(config);
         const { system } = configWithDefaults;
-        expect(system.telemetry).to.be.undefined;
+        expect(system.telemetry).toBeUndefined();
     });
     it("does not set defaults for telemetry object memebers", () => {
         const config: Configuration = {
@@ -143,8 +142,8 @@ describe("Configuration.ts Type", () => {
         const configWithDefaults: Configuration = buildConfiguration(config);
         const { system } = configWithDefaults;
         // @ts-ignore
-        expect(system.telemetry.a).to.be.true;
-        expect(system.telemetry.applicationName).to.be.undefined;
-        expect(Object.keys(system.telemetry).length).to.eq(1);
+        expect(system.telemetry.a).toBe(true);
+        expect(system.telemetry.applicationName).toBeUndefined();
+        expect(Object.keys(system.telemetry).length).toBe(1);
     });
 });

@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import { IdToken } from "../src/IdToken";
 import { AuthError, ClientAuthError } from "../src";
 import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
@@ -12,9 +11,9 @@ describe("IdToken.ts Class", function() {
         const iss: string = "https://sts.windows.net/fa15d692-e9c7-4460-a743-29f2956fd429/";
         const tid: string = "fa15d692-e9c7-4460-a743-29f2956fd429";
 
-        expect(idToken instanceof IdToken).to.be.true;
-        expect(idToken.issuer).to.equal(iss);
-        expect(idToken.tenantId).to.equal(tid);
+        expect(idToken instanceof IdToken).toBe(true);
+        expect(idToken.issuer).toBe(iss);
+        expect(idToken.tenantId).toBe(tid);
    });
 
 
@@ -24,15 +23,15 @@ describe("IdToken.ts Class", function() {
          const iss: string = "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0";
          const exp: number = 1536361411;
 
-         expect(idToken instanceof IdToken).to.be.true;
-         expect(idToken.issuer).to.equal(iss);
-         expect(idToken.expiration).to.equal(exp);
+         expect(idToken instanceof IdToken).toBe(true);
+         expect(idToken.issuer).toBe(iss);
+         expect(idToken.expiration).toBe(exp);
     });
 
     it("verfies the rawIdToken is saved correctly", function () {
 
         const idToken: IdToken = new IdToken(TEST_TOKENS.IDTOKEN_V2);
-        expect(idToken.rawIdToken).to.equal(TEST_TOKENS.IDTOKEN_V2);
+        expect(idToken.rawIdToken).toBe(TEST_TOKENS.IDTOKEN_V2);
     });
 
     it("verifies claims are generated properly in the idToken class", function () {
@@ -42,7 +41,7 @@ describe("IdToken.ts Class", function() {
         const iss: string = "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0";
         const claimIss = "iss";
 
-        expect(idTokenClaims[claimIss]).to.equal(iss);
+        expect(idTokenClaims[claimIss]).toBe(iss);
     });
 
     it("verifies if new claim is added, it reflects in the idTokena", function () {
@@ -51,7 +50,7 @@ describe("IdToken.ts Class", function() {
         const idTokenClaims = idToken.claims;
         const claimEmail = "email";
 
-        expect(idTokenClaims[claimEmail]).to.equal("AbeLi@microsoft.com");
+        expect(idTokenClaims[claimEmail]).toBe("AbeLi@microsoft.com");
     });
 
     describe("constructor parsing the raw id token string", function () {
@@ -71,12 +70,12 @@ describe("IdToken.ts Class", function() {
                 authErr = e;
             }
 
-            expect(authErr instanceof ClientAuthError).to.be.true;
-            expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.nullOrEmptyIdToken.code);
-            expect(authErr.errorMessage).to.contain(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
-            expect(authErr.message).to.contain(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
-            expect(authErr.name).to.equal("ClientAuthError");
-            expect(authErr.stack).to.include("IdToken.spec.ts");
+            expect(authErr instanceof ClientAuthError).toBe(true);
+            expect(authErr.errorCode).toBe(ClientAuthErrorMessage.nullOrEmptyIdToken.code);
+            expect(authErr.errorMessage).toContain(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
+            expect(authErr.message).toContain(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
+            expect(authErr.name).toBe("ClientAuthError");
+            expect(authErr.stack).toContain("IdToken.spec.ts");
         });
 
         it("throws an error if an empty string is passed", function () {
@@ -88,12 +87,12 @@ describe("IdToken.ts Class", function() {
                 authErr = e;
             }
 
-            expect(authErr instanceof ClientAuthError).to.be.true;
-            expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.nullOrEmptyIdToken.code);
-            expect(authErr.errorMessage).to.contain(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
-            expect(authErr.message).to.contain(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
-            expect(authErr.name).to.equal("ClientAuthError");
-            expect(authErr.stack).to.include("IdToken.spec.ts");
+            expect(authErr instanceof ClientAuthError).toBe(true);
+            expect(authErr.errorCode).toBe(ClientAuthErrorMessage.nullOrEmptyIdToken.code);
+            expect(authErr.errorMessage).toContain(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
+            expect(authErr.message).toContain(ClientAuthErrorMessage.nullOrEmptyIdToken.desc);
+            expect(authErr.name).toBe("ClientAuthError");
+            expect(authErr.stack).toContain("IdToken.spec.ts");
         });
 
     });
