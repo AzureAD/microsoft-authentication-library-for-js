@@ -148,7 +148,7 @@ describe('PublicClientApplication', () => {
 
 
         const authApp = new PublicClientApplication(appConfig);
-        await authApp.getAuthCodeUrl(request); // ??????
+        await authApp.getAuthCodeUrl(request);
         expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
         expect(AuthorizationCodeClient).toHaveBeenCalledWith(
             expect.objectContaining(expectedConfig)
@@ -180,7 +180,6 @@ describe('PublicClientApplication', () => {
 
     test('acquireToken default authority', async () => {
         // No authority set in app configuration or request, should default to common authority 
-        // ?????
         const config: Configuration = {
             auth: {
                 clientId: TEST_CONSTANTS.CLIENT_ID,
@@ -191,8 +190,6 @@ describe('PublicClientApplication', () => {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
         };
-
-        //Mocking Authority using AuthorityFactory's mock, but not RefreshToken Client ????
 
         const authorityMock = mocked(AuthorityFactory.createDiscoveredInstance);
         authorityMock.mockResolvedValue(authority);
@@ -223,7 +220,6 @@ describe('PublicClientApplication', () => {
             authority: TEST_CONSTANTS.ALTERNATE_AUTHORITY,
         };
 
-        //mocking Authority using Authority Factory's mock ???
         const authorityMock = mocked(AuthorityFactory.createDiscoveredInstance);
         authorityMock.mockResolvedValue(authority);
 
