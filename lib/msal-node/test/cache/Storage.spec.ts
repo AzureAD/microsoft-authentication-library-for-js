@@ -1,11 +1,9 @@
-import { LogLevel, Logger, AccountEntity, CacheManager, AccessTokenEntity, AuthorityMetadataEntity, ThrottlingEntity, IdTokenEntity, RefreshTokenClient, RefreshTokenEntity } from '@azure/msal-common';
+import { LogLevel, Logger, AccountEntity, CacheManager, AccessTokenEntity, AuthorityMetadataEntity, IdTokenEntity, RefreshTokenEntity } from '@azure/msal-common';
 import { JsonCache, InMemoryCache } from './../../src/cache/serializer/SerializerTypes';
 import { Deserializer } from './../../src/cache/serializer/Deserializer';
 import { NodeStorage } from '../../src/cache/NodeStorage';
 import { version, name } from '../../package.json';
 import { DEFAULT_CRYPTO_IMPLEMENTATION, DEFAULT_OPENID_CONFIG_RESPONSE, TEST_CONSTANTS } from '../utils/TestConstants';
-import { hasUncaughtExceptionCaptureCallback } from 'process';
-import { notDeepStrictEqual } from 'assert';
 
 const cacheJson = require('./serializer/cache.json');
 const clientId = TEST_CONSTANTS.CLIENT_ID;
@@ -29,7 +27,7 @@ describe("Storage tests for msal-node: ", () => {
 
         const loggerOptions = {
             loggerCallback: () => {
-               // allow user to not set a loggerCallback
+                // allow user to not set a loggerCallback
             },
             piiLoggingEnabled: false,
             logLevel: LogLevel.Info,
@@ -196,7 +194,6 @@ describe("Storage tests for msal-node: ", () => {
     it('setIdTokenCredential() and getIdTokenCredential() tests', () => {
         const nodeStorage = new NodeStorage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
 
-        //                  uid1.utid1-login.windows.net-idtoken-mock_client_id-samplerealm-
         const idTokenKey = 'uid1.utid1-login.windows.net-idtoken-mock_client_id-samplerealm-';
         const invalidIdTokenKey = 'uid1.utid1-login.windows.net-idtoken_invalid-mock_client_id-samplerealm-';
         const newMockEntityData = {
@@ -213,7 +210,6 @@ describe("Storage tests for msal-node: ", () => {
 
         nodeStorage.setIdTokenCredential(idToken);
 
-        require('fs').writeFileSync("temp.json", JSON.stringify(nodeStorage.getCache(), undefined, 2))
         const fetchedIdToken = nodeStorage.getIdTokenCredential(idTokenKey);
         const invalidIdToken = nodeStorage.getIdTokenCredential(invalidIdTokenKey);
 
@@ -224,7 +220,6 @@ describe("Storage tests for msal-node: ", () => {
     it('setRefreshTokenCredential() and getRefreshTokenCredential() tests', () => {
         const nodeStorage = new NodeStorage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
 
-        //                  uid1.utid1-login.windows.net-idtoken-mock_client_id-samplerealm-
         const refreshTokenKey = 'uid1.utid1-login.windows.net-refreshtoken-mock_client_id-samplerealm-';
         const invalidRefreshTokenKey = 'uid1.utid1-login.windows.net-refreshtoken_invalid-mock_client_id-samplerealm-';
         const newMockEntityData = {
@@ -241,7 +236,6 @@ describe("Storage tests for msal-node: ", () => {
 
         nodeStorage.setRefreshTokenCredential(refreshToken);
 
-        require('fs').writeFileSync("temp.json", JSON.stringify(nodeStorage.getCache(), undefined, 2))
         const fetchedRefreshToken = nodeStorage.getRefreshTokenCredential(refreshTokenKey);
         const invalidRefreshToken = nodeStorage.getRefreshTokenCredential(invalidRefreshTokenKey);
 
@@ -287,7 +281,7 @@ describe("Storage tests for msal-node: ", () => {
         nodeStorage.clear();
 
         expect(nodeStorage.getAccount(accountKey)).toBeNull();
-        
+
         const newInMemoryCache = nodeStorage.getInMemoryCache();
         Object.values(newInMemoryCache).forEach(cacheSection => {
             expect(cacheSection).toEqual({});
@@ -296,7 +290,7 @@ describe("Storage tests for msal-node: ", () => {
     })
 
     describe("Getters and Setters", () => {
-        describe("AuthorityMetadata", () =>{
+        describe("AuthorityMetadata", () => {
             const host = "login.microsoftonline.com";
             const key = `authority-metadata-${clientId}-${host}`;
             const testObj: AuthorityMetadataEntity = new AuthorityMetadataEntity();

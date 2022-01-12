@@ -7,7 +7,6 @@ import { DEFAULT_CRYPTO_IMPLEMENTATION, TEST_CONSTANTS } from '../utils/TestCons
 import * as msalCommon from '@azure/msal-common';
 import { Deserializer } from '../../src/cache/serializer/Deserializer';
 import { JsonCache } from '../../src';
-import { toKeyAlias } from '@babel/types';
 
 describe("TokenCache tests", () => {
 
@@ -113,7 +112,7 @@ describe("TokenCache tests", () => {
             tokenCache
         }
 
-        jest.spyOn(msalCommon, 'TokenCacheContext') // ???
+        jest.spyOn(msalCommon, 'TokenCacheContext')
             .mockImplementation(() => mockTokenCacheContextInstance as unknown as TokenCacheContext)
 
         const accounts = await tokenCache.getAllAccounts();

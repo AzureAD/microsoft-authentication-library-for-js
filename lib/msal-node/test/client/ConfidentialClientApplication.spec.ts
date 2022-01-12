@@ -54,9 +54,8 @@ describe('ConfidentialClientApplication', () => {
 
             acquireToken: jest.fn()
         }
-        // const { AuthorizationCodeClient: MockAuthorizationCodeClient } = jest.genMockFromModule<typeof msalCommon>("@azure/msal-common")
         jest.spyOn(msalCommon, 'AuthorizationCodeClient')
-            .mockImplementation(() => mockAuthCodeClientInstance as unknown as AuthorizationCodeClient) // new MockAuthorizationCodeClient(config));
+            .mockImplementation(() => mockAuthCodeClientInstance as unknown as AuthorizationCodeClient)
 
         const authApp = new ConfidentialClientApplication(appConfig);
         await authApp.acquireTokenByCode(request);
@@ -77,8 +76,6 @@ describe('ConfidentialClientApplication', () => {
 
 
         const { RefreshTokenClient: mockRefreshTokenClient } = getMsalCommonAutoMock();
-        // const mockRefreshTokenClient = getMsalCommonAutoMock().RefreshTokenClient;
-        // const { RefreshTokenClient } = getMsalCommonAutoMock();
 
 
         jest.spyOn(msalCommon, 'RefreshTokenClient')

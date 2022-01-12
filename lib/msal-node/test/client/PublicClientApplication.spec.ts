@@ -16,6 +16,7 @@ import { mocked } from 'ts-jest/utils';
 
 import * as msalCommon from '@azure/msal-common';
 import { fakeAuthority, setupAuthorityFactory_createDiscoveredInstance_mock, setupServerTelemetryManagerMock } from './test-fixtures';
+import { getMsalCommonAutoMock } from '../utils/MockUtils';
 
 describe('PublicClientApplication', () => {
 
@@ -69,7 +70,7 @@ describe('PublicClientApplication', () => {
             updateAuthority: jest.fn(),
         }
 
-        const MockDeviceCodeClient2 = jest.genMockFromModule<typeof msalCommon>('@azure/msal-common').DeviceCodeClient;
+        const MockDeviceCodeClient2 = getMsalCommonAutoMock().DeviceCodeClient;
 
 
         jest.spyOn(msalCommon, 'DeviceCodeClient')
@@ -90,9 +91,7 @@ describe('PublicClientApplication', () => {
         console.log(expectedConfig)
     });
 
-    test.only('acquireTokenByAuthorizationCode', async () => {
-        //mock AuthorityFactory (alfrady done in beforeEach()
-        //mock AuthoritizationCodeClient
+    test('acquireTokenByAuthorizationCode', async () => {
 
 
         const request: AuthorizationCodeRequest = {
@@ -103,7 +102,8 @@ describe('PublicClientApplication', () => {
 
 
 
-        const MockAuthorizationCodeClient = jest.genMockFromModule<typeof msalCommon>("@azure/msal-common").AuthorizationCodeClient
+        const MockAuthorizationCodeClient = getMsalCommonAutoMock().AuthorizationCodeClient;
+
         jest.spyOn(msalCommon, 'AuthorizationCodeClient')
             .mockImplementation((config) => new MockAuthorizationCodeClient(config));
 
@@ -125,7 +125,7 @@ describe('PublicClientApplication', () => {
             refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
         };
 
-        const mockRefreshTokenClient = jest.genMockFromModule<typeof msalCommon>("@azure/msal-common").RefreshTokenClient
+        const mockRefreshTokenClient = getMsalCommonAutoMock().RefreshTokenClient;
         jest.spyOn(msalCommon, 'RefreshTokenClient')
             .mockImplementation((config) => new mockRefreshTokenClient(config));
 
@@ -148,7 +148,7 @@ describe('PublicClientApplication', () => {
 
 
         const authApp = new PublicClientApplication(appConfig);
-        await authApp.getAuthCodeUrl(request); // ??????
+        await authApp.getAuthCodeUrl(request);
         expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
         expect(AuthorizationCodeClient).toHaveBeenCalledWith(
             expect.objectContaining(expectedConfig)
@@ -164,7 +164,7 @@ describe('PublicClientApplication', () => {
             password: TEST_CONSTANTS.PASSWORD
         };
 
-        const mockUsernamePasswordClient = jest.genMockFromModule<typeof msalCommon>("@azure/msal-common").UsernamePasswordClient
+        const mockUsernamePasswordClient = getMsalCommonAutoMock().UsernamePasswordClient;
         jest.spyOn(msalCommon, 'UsernamePasswordClient')
             .mockImplementation((config) => new mockUsernamePasswordClient(config));
 
@@ -180,7 +180,6 @@ describe('PublicClientApplication', () => {
 
     test('acquireToken default authority', async () => {
         // No authority set in app configuration or request, should default to common authority 
-        // ?????
         const config: Configuration = {
             auth: {
                 clientId: TEST_CONSTANTS.CLIENT_ID,
@@ -192,7 +191,6 @@ describe('PublicClientApplication', () => {
             refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
         };
 
-        //Mocking Authority using AuthorityFactory's mock, but not RefreshToken Client ????
 
         const authorityMock = mocked(AuthorityFactory.createDiscoveredInstance);
         authorityMock.mockResolvedValue(authority);
@@ -223,7 +221,7 @@ describe('PublicClientApplication', () => {
             authority: TEST_CONSTANTS.ALTERNATE_AUTHORITY,
         };
 
-        //mocking Authority using Authority Factory's mock ???
+
         const authorityMock = mocked(AuthorityFactory.createDiscoveredInstance);
         authorityMock.mockResolvedValue(authority);
 
