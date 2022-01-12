@@ -133,7 +133,7 @@ function Example() {
     useEffect(() => {
         const callbackId = instance.addEventCallback((event) => {
             if (event.eventType === EventType.LOGIN_FAILURE) {
-                if (event.error && event.error.errorMessage.indexOf("AADB2C90118") > -1) {
+                if (event.error && event.error.message.indexOf("AADB2C90118") > -1) {
                     if (event.interactionType === InteractionType.Redirect) {
                         instance.loginRedirect(forgotPasswordRequest);
                     } else if (event.interactionType === InteractionType.Popup) {
