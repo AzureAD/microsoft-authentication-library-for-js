@@ -29,7 +29,7 @@
     <br>
     <p>test</p>
     <button onclick="msal.sendSimpleEvent('vanillaJsSimpleEvent1')">Send simple event</button>
-    <button onclick="msal.sendCustomEvent()">Send custom event</button>
+    <button onclick="msal.sendCustomEvent({ testMessage: 'Hello, world! ' + new Date().getTime() })">Send custom event</button>
     <button onclick="msal.sendSampleError()">Send error</button>
     
     <div class="row" style="margin:auto" >

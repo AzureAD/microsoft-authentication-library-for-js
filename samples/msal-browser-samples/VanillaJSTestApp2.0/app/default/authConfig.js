@@ -23,7 +23,7 @@ const msalConfig = {
                         console.info(message);	
                         return;	
                     case msal.LogLevel.Verbose:	
-                        console.debug(message);	
+                        console.log(message);	
                         return;	
                     case msal.LogLevel.Warning:	
                         console.warn(message);	

@@ -3,11 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { IWeb, SeverityLevel } from "@microsoft/applicationinsights-common";
 import {
     ApplicationInsights, IExtendedConfiguration, IWebAnalyticsConfiguration, IExtendedTelemetryItem
 } from "@ms/1ds-analytics-web-js";
-import { EventType } from "@ms/1ds-wa-js";
 
 const initializeTelemetry = () => {
     const appInsights = new ApplicationInsights();
@@ -48,9 +46,9 @@ const initializeTelemetry = () => {
              * Toggles automatic clientError event capturing when js errors are thrown in the webpage. Default is true.
              */
             jsError: false,
-            
+
         },
-        
+
     };
 
     const config: IExtendedConfiguration = {
@@ -58,7 +56,7 @@ const initializeTelemetry = () => {
         // Extra extensions
         extensions: [],
         webAnalyticsConfiguration: webAnalyticsConfig,
-        
+
     };
 
     // Initialize SDK
@@ -80,28 +78,25 @@ export function sendSimpleEvent(name: string): void {
     appInsights.track({ name });
 }
 
-export function sendCustomEvent(): void {
-    const event1:IExtendedTelemetryItem ={name:"Event1", data:{
-        correlationId: "03cad3ff-6682-4e3d-a0b4-d517b531c718",
-	  durationMs: 1873,
-	  endPageVisibility: "hidden",
-	  fromCache: false,
-	  name: "acquireTokenByRefreshToken",
-	  startPageVisibility: "visible",
-	  startTimeMs: 1636414041888,
-	  success: true
-    }};
-    
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export function sendCustomEvent(event: IExtendedTelemetryItem["data"]): void {
+    const event1: IExtendedTelemetryItem = {
+        name: "CustomEventWithoutName", 
+        data: event
+    };
+
     const appInsights = getTelemetryClient();
     appInsights.track(event1);
 }
 
-export function sendSampleError(): void {
-    const appInsights = getTelemetryClient();
-    appInsights.trackException({
-        exception: new Error("Sample Error"),
-        severityLevel: SeverityLevel.Warning
-    }, {
-        custom:"data"
-    });
-}
+/*
+ *export function sendSampleError(): void {
+ *    const appInsights = getTelemetryClient();
+ *    appInsights.trackException({
+ *        exception: new Error("Sample Error"),
+ *        severityLevel: SeverityLevel.Warning
+ *    }, {
+ *        custom: "data"
+ *    });
+ *}
+ */

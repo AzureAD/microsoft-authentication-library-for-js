@@ -1,5 +1,7 @@
 // Browser check variables
 // If you support IE, our recommendation is that you sign-in using Redirect APIs
+
+
 // If you as a developer are testing using Edge InPrivate mode, please add "isEdge" to the if check
 const ua = window.navigator.userAgent;
 const msie = ua.indexOf("MSIE ");
@@ -16,6 +18,7 @@ let accountId = "";
 const myMSALObj = new msal.PublicClientApplication(msalConfig);
 
 myMSALObj.addPerformanceCallback((events) => {
+    events.forEach(event=> msal.sendCustomEvent(event));
     console.log('perf', events);
 })
 
