@@ -18,6 +18,9 @@ import * as msalCommon from '@azure/msal-common';
 import { fakeAuthority, setupAuthorityFactory_createDiscoveredInstance_mock, setupServerTelemetryManagerMock } from './test-fixtures';
 import { getMsalCommonAutoMock } from '../utils/MockUtils';
 
+import {NodeStorage} from '../../src/cache/NodeStorage'
+import { version, name } from '../../package.json'
+
 describe('PublicClientApplication', () => {
 
     let appConfig: Configuration = {
@@ -87,8 +90,6 @@ describe('PublicClientApplication', () => {
             expect.objectContaining(expectedConfig)
         );
         expect(result).toEqual(fakeAuthResult);
-
-        console.log(expectedConfig)
     });
 
     test('acquireTokenByAuthorizationCode', async () => {
@@ -192,8 +193,7 @@ describe('PublicClientApplication', () => {
         };
 
 
-        const authorityMock = mocked(AuthorityFactory.createDiscoveredInstance);
-        authorityMock.mockResolvedValue(authority);
+        const authorityMock = setupAuthorityFactory_createDiscoveredInstance_mock();
 
         const authApp = new PublicClientApplication(config);
         await authApp.acquireTokenByRefreshToken(request);
@@ -222,8 +222,7 @@ describe('PublicClientApplication', () => {
         };
 
 
-        const authorityMock = mocked(AuthorityFactory.createDiscoveredInstance);
-        authorityMock.mockResolvedValue(authority);
+        const authorityMock = setupAuthorityFactory_createDiscoveredInstance_mock()
 
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByRefreshToken(request);

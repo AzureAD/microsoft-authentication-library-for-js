@@ -45,6 +45,6 @@ export const fakeAuthority: Authority = {
 } as unknown as Authority;
 
 export const setupAuthorityFactory_createDiscoveredInstance_mock = (authority = fakeAuthority) => {
-    jest.spyOn(AuthorityFactory, 'createDiscoveredInstance')
+    return jest.spyOn(AuthorityFactory, 'createDiscoveredInstance')
         .mockReturnValue(Promise.resolve(authority));
 }
