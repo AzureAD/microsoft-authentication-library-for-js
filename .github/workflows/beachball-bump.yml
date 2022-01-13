@@ -40,6 +40,10 @@ jobs:
         id: release-date
         run: echo "::set-output name=date::$(node release-scripts/getReleaseDate.js)"
 
+      - name: Get a list of packages with bumped versions
+        id: bumped-package-list
+        run: echo "::set-output name=list::$(node release-scripts/getUpdatedVersions.js)"
+
       # Create/update Pull Request
       - name: Create Pull Request
         id: pr
