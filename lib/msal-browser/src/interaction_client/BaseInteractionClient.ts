@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, INetworkModule, Logger, AuthenticationResult, AccountInfo, AccountEntity, BaseAuthRequest, AuthenticationScheme, UrlString, ServerTelemetryManager, ServerTelemetryRequest, ClientConfigurationError } from "@azure/msal-common";
+import { ICrypto, INetworkModule, Logger, AuthenticationResult, AccountInfo, AccountEntity, BaseAuthRequest, AuthenticationScheme, UrlString, ServerTelemetryManager, ServerTelemetryRequest, ClientConfigurationError, StringUtils } from "@azure/msal-common";
 import { BrowserConfiguration } from "../config/Configuration";
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
@@ -72,7 +72,7 @@ export abstract class BaseInteractionClient {
      * Initializer function for all request APIs
      * @param request
      */
-    protected initializeBaseRequest(request: Partial<BaseAuthRequest>): BaseAuthRequest {
+    protected async initializeBaseRequest(request: Partial<BaseAuthRequest>): Promise<BaseAuthRequest> {
         this.logger.verbose("Initializing BaseAuthRequest");
         const authority = request.authority || this.config.auth.authority;
 
@@ -93,6 +93,11 @@ export abstract class BaseInteractionClient {
             }
             this.logger.verbose(`Authentication Scheme set to "${request.authenticationScheme}" as configured in Auth request`);
         }
+
+        // Set requested claims hash if claims were requested
+        if (request.claims && !StringUtils.isEmpty(request.claims)) {
+            request.requestedClaimsHash = await this.browserCrypto.hashString(request.claims);
+        } 
 
         const validatedRequest: BaseAuthRequest = {
             ...request,

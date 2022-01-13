@@ -13,7 +13,7 @@ import { CommonOnBehalfOfRequest } from "@azure/msal-common";
  * - skipCache               - Skip token cache lookup and force request to authority to get a a new token. Defaults to false.
  * @public
  */
-export type OnBehalfOfRequest = Partial<Omit<CommonOnBehalfOfRequest, "oboAssertion"|"scopes"|"resourceRequestMethod"|"resourceRequestUri">> & {
+export type OnBehalfOfRequest = Partial<Omit<CommonOnBehalfOfRequest, "oboAssertion"|"scopes"|"resourceRequestMethod"|"resourceRequestUri"|"requestedClaimsHash">> & {
     oboAssertion: string;
     scopes: Array<string>;
 };

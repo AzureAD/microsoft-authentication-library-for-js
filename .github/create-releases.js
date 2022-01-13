@@ -3,6 +3,8 @@
  * Licensed under the MIT License.
  */
 
+const libNameIndex = process.argv.indexOf("-lib", 1);
+const libName = libNameIndex >= 0 ? process.argv[libNameIndex + 1] : null;
 const { Octokit } = require("@octokit/rest");
 const dotenv = require("dotenv");
 const semver = require("semver");
@@ -26,15 +28,15 @@ const repoMeta = {
     repo: "microsoft-authentication-library-for-js"
 };
 
-const libFolders = [
-    "msal-angular",
-    "msal-browser",
-    "msal-common",
-    "msal-core",
-    "msal-node",
-    "msal-react",
+const defaultLibFolders = [
+    "lib/msal-angular",
+    "lib/msal-browser",
+    "lib/msal-common",
+    "lib/msal-core",
+    "lib/msal-node",
+    "lib/msal-react",
+    "extensions/msal-node-extensions"
 ];
-
 const CHANGELOGFILE = "CHANGELOG.json";
 
 function buildNotesForComments(commits, label) {
@@ -78,7 +80,7 @@ async function createReleaseForFolder(folderName) {
                 }
             }
         ]
-    } = require(`../lib/${folderName}/${CHANGELOGFILE}`);
+    } = require(`../${folderName}/${CHANGELOGFILE}`);
 
     const shortName = name.split("@azure/").pop();
     const tag_name = `${shortName}-v${version}`;
@@ -159,7 +161,7 @@ async function createReleaseForFolder(folderName) {
         if (milestone) {
             const closeExistingMilestone = await octokit.issues.updateMilestone({
                 ...repoMeta,
-                milestone_number: milestone.number, 
+                milestone_number: milestone.number,
                 state: "closed"
             });
             console.log(`Milestone closed: ${name}@${version}`)
@@ -168,11 +170,11 @@ async function createReleaseForFolder(folderName) {
         }
 
         const currentVersion = new semver.SemVer(version);
-        
+
         // Next patch milestone
         const nextPatchVersion = semver.inc(currentVersion.raw, "patch");
         await createGithubMilestone(name, nextPatchVersion);
-        
+
         if (currentVersion.prerelease.length) {
             // Next prerelease milestone
             const nextPrereleaseVersion = semver.inc(currentVersion.raw, "prerelease")
@@ -186,6 +188,8 @@ async function createReleaseForFolder(folderName) {
         console.log(`Release exists for: ${tag_name}`);
     }
 }
+
+const libFolders = libName ? [libName] : defaultLibFolders;
 
 Promise.all(libFolders.map(createReleaseForFolder))
     .then(result => {
