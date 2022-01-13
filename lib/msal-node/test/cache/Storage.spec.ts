@@ -194,7 +194,7 @@ describe("Storage tests for msal-node: ", () => {
     it('setIdTokenCredential() and getIdTokenCredential() tests', () => {
         const nodeStorage = new NodeStorage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
 
-        const idTokenKey = 'uid1.utid1-login.windows.net-idtoken-mock_client_id-samplerealm-';
+        const idTokenKey = 'uid1.utid1-login.windows.net-idtoken-mock_client_id-samplerealm---';
         const invalidIdTokenKey = 'uid1.utid1-login.windows.net-idtoken_invalid-mock_client_id-samplerealm-';
         const newMockEntityData = {
             homeAccountId: 'uid1.utid1',
@@ -220,7 +220,7 @@ describe("Storage tests for msal-node: ", () => {
     it('setRefreshTokenCredential() and getRefreshTokenCredential() tests', () => {
         const nodeStorage = new NodeStorage(logger, clientId, DEFAULT_CRYPTO_IMPLEMENTATION);
 
-        const refreshTokenKey = 'uid1.utid1-login.windows.net-refreshtoken-mock_client_id-samplerealm-';
+        const refreshTokenKey = 'uid1.utid1-login.windows.net-refreshtoken-mock_client_id-samplerealm---';
         const invalidRefreshTokenKey = 'uid1.utid1-login.windows.net-refreshtoken_invalid-mock_client_id-samplerealm-';
         const newMockEntityData = {
             homeAccountId: 'uid1.utid1',
