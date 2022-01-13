@@ -38,11 +38,6 @@ describe('PublicClientApplication', () => {
         },
     };
 
-    // const expectedOauthClientConfig: ClientConfiguration = {
-    //     authOptions: appConfig.auth,
-    // };
-
-
     beforeEach(() => {
         jest.clearAllMocks();
 
@@ -193,7 +188,8 @@ describe('PublicClientApplication', () => {
         };
 
 
-        const authorityMock = setupAuthorityFactory_createDiscoveredInstance_mock();
+        const fakeAuthority = ...;
+        const authorityMock = setupAuthorityFactory_createDiscoveredInstance_mock(fakeAuthority);
 
         const authApp = new PublicClientApplication(config);
         await authApp.acquireTokenByRefreshToken(request);
