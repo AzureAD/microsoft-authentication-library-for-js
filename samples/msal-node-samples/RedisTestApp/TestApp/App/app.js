@@ -6,11 +6,11 @@
 const path = require('path');
 const redis = require('redis');
 const express = require('express');
-const { DistributedCachePlugin } = require('@azure/msal-node');
 const session = require('express-session');
 const RedisStore = require('connect-redis')(session); // persist session in redis
 
 const msalWrapper = require('msal-express-wrapper/dist/AuthProvider');
+const partitionManager = require('./utils/partitionManager');
 const appSettings = require('../appSettings.json');
 const router = require('./routes/router');
 
@@ -18,23 +18,13 @@ const SERVER_PORT = process.env.PORT || 4000;
 
 /**
 * Instantiate the redis client, which is used in persistenceHelper.
-* This provides basic get and set methods for the cachePlugin.
+* This provides basic get and set methods for the cachePlugin,
+* by implementing the ICachePlugin interface
 */
 const redisClient = redis.createClient();
 redisClient.on('error', console.error);
 
 const redisClientWrapper = require('./utils/redisClientWrapper')(redisClient);
-
-/**
- * Initialize the partition manager 
- * 
- * Keeping a copy of the partition manager instance to update later 
- * with the session id as in this use case we are using the
- * session id in the storage and retrieval of
- * our tokens in the cache
- */
-
-const partitionManager = require('./utils/partitionManager')(redisClientWrapper);
 
 const app = express();
 
@@ -63,20 +53,21 @@ app.use(session({
 }));
 
 
-const authProvider = new msalWrapper.AuthProvider(appSettings, new DistributedCachePlugin(redisClientWrapper, partitionManager));
+const authProvider = new msalWrapper.AuthProvider(appSettings, redisClientWrapper);
 
 /**
-* When using a distributed token cache, msal's in-memory cache should only load
-* the cache blob for the currently served user from the persistence store (here, Redis). 
-* This custom middleware first passes the session variable to cachePlugin object, and 
-* then re-initializes msal's token cache plugin.
-*/
-function initializeTokenCachePlugin(req, _, next) {
-    partitionManager.setSessionId(req.session.id);
+ * Initialize the partition manager 
+ * 
+ * Initialize a new instance of the partition manager with each request to ensure
+ * users can only access information from cache tied to their individual
+ * session in each request.
+ */
+function initializePartitionManager(req, _, next) {
+    req.partitionManager = partitionManager(redisClientWrapper, req.session.id);
     next();
 }
 
-app.use(initializeTokenCachePlugin);
+app.use(initializePartitionManager);
 
 app.use(router(authProvider));
 

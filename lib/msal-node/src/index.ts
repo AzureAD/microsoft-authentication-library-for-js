@@ -12,6 +12,8 @@
 export { IPublicClientApplication } from "./client/IPublicClientApplication";
 export { IConfidentialClientApplication } from "./client/IConfidentialClientApplication";
 export { ITokenCache } from "./cache/ITokenCache";
+export { ICacheClient } from "./cache/distributed/ICacheClient";
+export { IPartitionManager } from "./cache/distributed/IPartitionManager";
 
 // Clients and Configuration
 export { PublicClientApplication } from "./client/PublicClientApplication";
