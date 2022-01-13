@@ -3,8 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { LoggerOptions, LogLevel } from "@azure/msal-common";
+import { INetworkModule, LoggerOptions, LogLevel } from "@azure/msal-common";
 import { Constants } from "../utils/Constants";
+import { NetworkUtils } from "../utils/NetworkUtils";
 
 export type Configuration = {
     auth: TokenValidationOptions,
@@ -18,7 +19,8 @@ export type TokenValidationOptions = {
 }
 
 export type SystemOptions = {
-    loggerOptions: LoggerOptions
+    loggerOptions?: LoggerOptions;
+    networkClient?: INetworkModule;
 }
 
 export type TokenValidationConfiguration = {
@@ -41,7 +43,8 @@ const DEFAULT_TOKEN_VALIDATION_OPTIONS = {
 };
 
 const DEFAULT_SYSTEM_OPTIONS = {
-    loggerOptions: DEFAULT_LOGGER_OPTIONS
+    loggerOptions: DEFAULT_LOGGER_OPTIONS,
+    networkClient: NetworkUtils.getNetworkClient()
 };
 
 export function buildConfiguration({

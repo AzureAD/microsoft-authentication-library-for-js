@@ -59,6 +59,7 @@
   },
   "dependencies": {
     "@azure/msal-common": "^5.2.0",
+    "axios": "^0.24.0",
     "jose": "^4.0.1"
   }
 }

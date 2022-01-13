@@ -3,10 +3,9 @@
  * Licensed under the MIT License.
  */
 
-import { Constants } from "../utils/Constants";
+import { JwtConstants } from "../utils/Constants";
 
 export type TokenValidationParameters = {
-    rawTokenString: string,
     algorithm: Array<string>,
     issuer: string,
     audience?: string,
@@ -22,11 +21,11 @@ export type TokenValidationParameters = {
 
 export function buildTokenValidationParameters(params: TokenValidationParameters): TokenValidationParameters {
     const DEFAULT_VALIDATION_PARAMS = { // Are there defaults for these? Which ones should not have defaults?
-        algorithm: ["RS256"],
+        algorithm: [JwtConstants.RSA_256],
         issuer: "",
         audience: "",
         jweKeyStore: "",
-        jwksUri: Constants.DEFAULT_JWKS_URI
+        jwksUri: ""
     };
 
     const DEFAULT_ID_TOKEN_PARAMS = {
@@ -41,7 +40,6 @@ export function buildTokenValidationParameters(params: TokenValidationParameters
     };
 
     const overlayedParams: TokenValidationParameters = {
-        rawTokenString: params.rawTokenString,
         algorithm: params.algorithm || DEFAULT_VALIDATION_PARAMS.algorithm,
         issuer: params.issuer || DEFAULT_VALIDATION_PARAMS.issuer,
         audience: params.audience || DEFAULT_VALIDATION_PARAMS.audience,
