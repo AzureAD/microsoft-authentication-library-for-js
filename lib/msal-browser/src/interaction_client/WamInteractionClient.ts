@@ -200,11 +200,6 @@ export class WamInteractionClient extends BaseInteractionClient {
     protected initializeWamRequest(request: PopupRequest|SsoSilentRequest): WamTokenRequest {
         this.logger.trace("WamInteractionClient - initializeWamRequest called");
 
-        if (request.authenticationScheme && request.authenticationScheme !== AuthenticationScheme.BEARER) {
-            // Only Bearer flows are supported right now
-            throw WamAuthError.createWamAtPopNotSupportedError();
-        }
-
         const authority = request.authority || this.config.auth.authority;
         const canonicalAuthority = new UrlString(authority);
         canonicalAuthority.validateAsUri();

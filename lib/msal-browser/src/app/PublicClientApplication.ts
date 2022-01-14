@@ -133,9 +133,10 @@ export class PublicClientApplication extends ClientApplication implements IPubli
         this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_START, InteractionType.Silent, request);
 
         let result: Promise<AuthenticationResult>;
-        if (this.config.system.platformSSO && this.wamExtensionProvider) {
+        if (this.isNativeAvailable(request.authenticationScheme) && account.nativeAccountId) {
             const silentRequest = {
                 ...request,
+                account,
                 prompt: PromptValue.NONE
             };
             result = this.acquireTokenNative(silentRequest, ApiId.acquireTokenSilent_silentFlow).catch(async (e: AuthError) => {

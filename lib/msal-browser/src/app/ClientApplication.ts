@@ -4,7 +4,7 @@
  */
 
 import { CryptoOps } from "../crypto/CryptoOps";
-import { StringUtils, ServerError, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError } from "@azure/msal-common";
+import { StringUtils, ServerError, InteractionRequiredAuthError, AccountInfo, Constants, INetworkModule, AuthenticationResult, Logger, CommonSilentFlowRequest, ICrypto, DEFAULT_CRYPTO_IMPLEMENTATION, AuthError, AuthenticationScheme, PromptValue } from "@azure/msal-common";
 import { BrowserCacheManager, DEFAULT_BROWSER_CACHE_MANAGER } from "../cache/BrowserCacheManager";
 import { BrowserConfiguration, buildConfiguration, Configuration } from "../config/Configuration";
 import { InteractionType, ApiId, BrowserConstants, BrowserCacheLocation, WrapperSKU, TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -170,41 +170,34 @@ export abstract class ClientApplication {
                 this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_START, InteractionType.Redirect);
                 this.logger.verbose("handleRedirectPromise has been called for the first time, storing the promise");
                 const correlationId = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.CORRELATION_ID, true) || "";
-
-                if (this.config.system.platformSSO && this.wamExtensionProvider && !hash) {
-                    const wamClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.handleRedirectPromise, this.wamExtensionProvider, correlationId);
-                    response = wamClient.handleRedirectPromise();
-                } else {
-                    const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, correlationId);
-                    response = redirectClient.handleRedirectPromise(hash);
-                }
-                
-                response.then((result: AuthenticationResult | null) => {
-                    if (result) {
-                        // Emit login event if number of accounts change
-                        const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
-                        if (isLoggingIn) {
-                            this.eventHandler.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect, result);
-                            this.logger.verbose("handleRedirectResponse returned result, login success");
-                        } else {
-                            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Redirect, result);
-                            this.logger.verbose("handleRedirectResponse returned result, acquire token success");
+                const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, correlationId);
+                response = redirectClient.handleRedirectPromise(hash)
+                    .then((result: AuthenticationResult | null) => {
+                        if (result) {
+                            // Emit login event if number of accounts change
+                            const isLoggingIn = loggedInAccounts.length < this.getAllAccounts().length;
+                            if (isLoggingIn) {
+                                this.eventHandler.emitEvent(EventType.LOGIN_SUCCESS, InteractionType.Redirect, result);
+                                this.logger.verbose("handleRedirectResponse returned result, login success");
+                            } else {
+                                this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_SUCCESS, InteractionType.Redirect, result);
+                                this.logger.verbose("handleRedirectResponse returned result, acquire token success");
+                            }
                         }
-                    }
-                    this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
+                        this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
 
-                    return result;
-                }).catch((e) => {
-                    // Emit login event if there is an account
-                    if (loggedInAccounts.length > 0) {
-                        this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Redirect, null, e);
-                    } else {
-                        this.eventHandler.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
-                    }
-                    this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
+                        return result;
+                    }).catch((e) => {
+                        // Emit login event if there is an account
+                        if (loggedInAccounts.length > 0) {
+                            this.eventHandler.emitEvent(EventType.ACQUIRE_TOKEN_FAILURE, InteractionType.Redirect, null, e);
+                        } else {
+                            this.eventHandler.emitEvent(EventType.LOGIN_FAILURE, InteractionType.Redirect, null, e);
+                        }
+                        this.eventHandler.emitEvent(EventType.HANDLE_REDIRECT_END, InteractionType.Redirect);
 
-                    throw e;
-                });
+                        throw e;
+                    });
                 this.redirectResponse.set(redirectResponseKey, response);
             } else {
                 this.logger.verbose("handleRedirectPromise has been called previously, returning the result from the first call");
@@ -243,7 +236,7 @@ export abstract class ClientApplication {
 
         let result: Promise<void>;
         
-        if (this.config.system.platformSSO && this.wamExtensionProvider) {
+        if (this.wamExtensionProvider && this.canUseNative(request)) {
             const wamClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenRedirect, this.wamExtensionProvider, request.correlationId);
             result = wamClient.acquireTokenRedirect(request).catch((e: AuthError) => {
                 if (e instanceof WamAuthError && e.isFatal()) {
@@ -299,7 +292,7 @@ export abstract class ClientApplication {
 
         let result: Promise<AuthenticationResult>;
 
-        if (this.config.system.platformSSO && this.wamExtensionProvider) {
+        if (this.canUseNative(request)) {
             result = this.acquireTokenNative(request, ApiId.acquireTokenPopup).catch((e: AuthError) => {
                 if (e instanceof WamAuthError && e.isFatal()) {
                     this.wamExtensionProvider = undefined; // If extension gets uninstalled during session prevent future requests from continuing to attempt 
@@ -360,7 +353,7 @@ export abstract class ClientApplication {
 
         let result: Promise<AuthenticationResult>;
 
-        if (this.config.system.platformSSO && this.wamExtensionProvider) {
+        if (this.canUseNative(request)) {
             result = this.acquireTokenNative(request, ApiId.ssoSilent).catch((e: AuthError) => {
                 // If native token acquisition fails for availability reasons fallback to standard flow
                 if (e instanceof WamAuthError && e.isFatal()) {
@@ -645,6 +638,50 @@ export abstract class ClientApplication {
         const wamClient = new WamInteractionClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, apiId, this.wamExtensionProvider, request.correlationId);
 
         return wamClient.acquireToken(request);
+    }
+
+    /**
+     * Returns boolean indicating whether or not the request should attempt to use native broker
+     * @param account 
+     * @param authenticationScheme 
+     */
+    protected isNativeAvailable(authenticationScheme?: AuthenticationScheme): boolean {
+        if (!this.config.system.platformSSO) {
+            // Developer disabled WAM
+            return false;
+        }
+
+        if (!this.wamExtensionProvider) {
+            // Extension is not available
+            return false;
+        }
+
+        if (AuthenticationScheme && authenticationScheme !== AuthenticationScheme.BEARER) {
+            // Only Bearer is supported right now. Remove when AT POP is supported by WAM
+            return false;
+        }
+
+        return true;
+    }
+
+    /**
+     * Returns boolean indicating if this request can use the native broker
+     * @param request 
+     */
+    protected canUseNative(request: RedirectRequest|PopupRequest|SsoSilentRequest): boolean {
+        if (!this.isNativeAvailable(request.authenticationScheme)) {
+            return false;
+        }
+
+        if (request.prompt && (request.prompt === PromptValue.SELECT_ACCOUNT || request.prompt === PromptValue.CREATE)) {
+            return false;
+        }
+
+        if (!request.account || !request.account.nativeAccountId) {
+            return false;
+        }
+
+        return true;
     }
 
     /**
