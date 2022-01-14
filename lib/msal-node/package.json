@@ -40,20 +40,6 @@
     "prepack": "npm run build:all"
   },
   "peerDependencies": {},
-  "jest": {
-    "verbose": true,
-    "moduleFileExtensions": [
-      "ts",
-      "tsx",
-      "js",
-      "json",
-      "jsx",
-      "node"
-    ],
-    "testMatch": [
-      "<rootDir>/test/**/*.spec.ts"
-    ]
-  },
   "beachball": {
     "disallowedChangeTypes": [
       "major"

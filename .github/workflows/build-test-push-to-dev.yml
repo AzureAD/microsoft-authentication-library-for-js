@@ -14,7 +14,7 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build-test:
+  lib-build-test:
     runs-on: ubuntu-latest
 
     strategy:
@@ -61,9 +61,42 @@ jobs:
 
     - name: Upload Test Coverage to CodeCov
       if: success()
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v2
       with:
         files: lib/${{matrix.library}}/coverage/lcov.info
         flags: ${{ matrix.library }}
-        root_dir: lib/${{ matrix.library }}
-        gcov_prefix: lib/${{ matrix.library }}
+        
+  extensions-build-test:
+    runs-on: windows-latest
+  
+    name: msal-node-extensions
+    
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Use Node.js
+      uses: actions/setup-node@v2
+
+    - name: Clean Install
+      env:
+        RUNNING_NODE_CI: 1
+      run: npm ci
+
+    - name: Build packages
+      working-directory: extensions/msal-node-extensions
+      run: npm run build:all
+
+    - name: Lint
+      working-directory: extensions/msal-node-extensions
+      run: npm run lint
+
+    - name: Unit Tests with coverage
+      working-directory: extensions/msal-node-extensions
+      run: npm run test:coverage
+
+    - name: Upload Test Coverage to CodeCov
+      if: success()
+      uses: codecov/codecov-action@v2
+      with:
+        files: extensions/msal-node-extensions/coverage/lcov.info
+        flags: msal-node-extensions
