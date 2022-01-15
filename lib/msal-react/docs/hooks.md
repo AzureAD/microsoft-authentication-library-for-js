@@ -134,6 +134,7 @@ The `useMsalAuthentication` hook will initiate a login if a user is not already 
 - `login` - function which can be used to retry a failed login. The `response` and `error` properties will be updated.
 - `acquireToken` - function which can be used to get a new access token before calling a protected API. The `response` and `error` properties will be updated.
 
+
 Note: Passing the "Silent" interaction type will call `ssoSilent` which attempts to open a hidden iframe and reuse an existing session with AAD. This will not work in browsers that block 3rd party cookies such as Safari. Additionally, when using the "Silent" type the request object is required and should contain either a `loginHint` or `sid` parameter.
 
 ### `ssoSilent` example
