@@ -58,25 +58,20 @@ export class AuthProvider {
 
     appSettings: AppSettings;
     cacheClient: ICacheClient;
+    tokenValidator: TokenValidator;
 
     private cryptoProvider: CryptoProvider;
 
     constructor(appSettings: AppSettings, cacheClient: ICacheClient = null) {
         ConfigurationUtils.validateAppSettings(appSettings);
 
-        this.cryptoProvider = new CryptoProvider();
         this.cacheClient = cacheClient;
         this.appSettings = appSettings;
+        this.cryptoProvider = new CryptoProvider();
+        this.tokenValidator = new TokenValidator(this.appSettings, ConfigurationUtils.getMsalConfiguration(this.appSettings))
     }
 
     // ========== Getters and Initializors ===============
-
-    getTokenValidator(req: Request): TokenValidator {
-        let cachePlugin = new DistributedCachePlugin(this.cacheClient, req.partitionManager)
-        let msalConfig = ConfigurationUtils.getMsalConfiguration(this.appSettings, cachePlugin);
-
-        return new TokenValidator(this.appSettings, msalConfig); 
-    }
 
     getMsalConfig(req: Request): Configuration {
         let cachePlugin = new DistributedCachePlugin(this.cacheClient, req.partitionManager)
@@ -211,7 +206,7 @@ export class AuthProvider {
                             console.log("\nResponse: \n:", tokenResponse);
 
                             try {
-                                const isIdTokenValid = await this.getTokenValidator(req).validateIdToken(tokenResponse.idToken);
+                                const isIdTokenValid = await this.tokenValidator.validateIdToken(tokenResponse.idToken);
 
                                 if (isIdTokenValid) {
 

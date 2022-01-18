@@ -4,15 +4,9 @@
  */
 
 function partitionManager(redisClient, sessionId) {
-    this.sessionId = sessionId;
-    this.redisClient = redisClient;
-
     return {
-        setSessionId: (sessionId) => { 
-            this.sessionId = sessionId
-        },
         getKey: async () => {
-            const sessionData = await this.redisClient.get(`sess:${this.sessionId}`);
+            const sessionData = await redisClient.get(`sess:${sessionId}`);
             const parsedSessionData = JSON.parse(sessionData); // parse the session data
 
             return parsedSessionData.account.homeAccountId;
