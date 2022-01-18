@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Update node testing to overhaul msal-common mocking and add new tests",
+  "packageName": "@azure/msal-node",
+  "email": "bmahal@microsoft.com",
+  "dependentChangeType": "patch"
+}

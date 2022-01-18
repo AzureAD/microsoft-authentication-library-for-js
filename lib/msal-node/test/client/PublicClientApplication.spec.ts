@@ -59,15 +59,6 @@ describe('PublicClientApplication', () => {
         };
 
 
-
-        // @ts-ignore
-        const mockDeviceCodeClient: DeviceCodeClient = {
-            acquireToken: jest.fn(),
-            createTokenRequestHeaders: jest.fn(),
-            executePostToTokenEndpoint: jest.fn(),
-            updateAuthority: jest.fn(),
-        }
-
         const MockDeviceCodeClient2 = getMsalCommonAutoMock().DeviceCodeClient;
 
 
