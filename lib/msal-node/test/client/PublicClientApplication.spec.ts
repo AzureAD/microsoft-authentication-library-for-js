@@ -2,7 +2,7 @@ import { PublicClientApplication } from './../../src/client/PublicClientApplicat
 import { Configuration } from './../../src/index';
 import { TEST_CONSTANTS } from '../utils/TestConstants';
 import {
-    DeviceCodeClient, ClientConfiguration, AuthenticationResult,
+    ClientConfiguration, AuthenticationResult,
     AuthorizationCodeClient, RefreshTokenClient, UsernamePasswordClient, ProtocolMode, Logger, LogLevel
 } from '@azure/msal-common';
 import { DeviceCodeRequest } from '../../src/request/DeviceCodeRequest';
@@ -18,7 +18,7 @@ import * as msalCommon from '@azure/msal-common';
 import { fakeAuthority, setupAuthorityFactory_createDiscoveredInstance_mock, setupServerTelemetryManagerMock } from './test-fixtures';
 import { getMsalCommonAutoMock } from '../utils/MockUtils';
 
-import {NodeStorage} from '../../src/cache/NodeStorage'
+import { NodeStorage } from '../../src/cache/NodeStorage'
 import { version, name } from '../../package.json'
 
 describe('PublicClientApplication', () => {
@@ -179,7 +179,6 @@ describe('PublicClientApplication', () => {
         };
 
 
-        const fakeAuthority = ...;
         const authorityMock = setupAuthorityFactory_createDiscoveredInstance_mock(fakeAuthority);
 
         const authApp = new PublicClientApplication(config);

@@ -68,7 +68,8 @@ describe("TokenCache tests", () => {
     });
 
     it("TokenCache.mergeRemovals removes entities from the cache, but does not remove other entities", async () => {
-        // TokenCache should not remove unrecognized entities from JSON file
+        // TokenCache should not remove unrecognized entities from JSON file, even if they are
+        // are deeply nested, and should write them back out
         const cache = require('./cache-test-files/cache-unrecognized-entities.json');
         const storage: NodeStorage = new NodeStorage(logger, TEST_CONSTANTS.CLIENT_ID, DEFAULT_CRYPTO_IMPLEMENTATION);
         const tokenCache = new TokenCache(storage, logger);
@@ -124,7 +125,7 @@ describe("TokenCache tests", () => {
         try {
             await fs.unlink(cachePath);
         } catch (err) {
-            if ((err as any).code == "ENOENT") {
+            if (err.code == "ENOENT") {
                 console.log("Tried to delete temp cache file but it does not exist");
             }
         }

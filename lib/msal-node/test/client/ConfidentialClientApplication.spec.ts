@@ -12,7 +12,7 @@ import * as msalCommon from '@azure/msal-common';
 import { ClientCredentialRequest } from '../../src/request/ClientCredentialRequest';
 import { OnBehalfOfRequest } from '../../src';
 import { getMsalCommonAutoMock } from '../utils/MockUtils';
-
+import { AuthError } from "@azure/msal-common";
 
 describe('ConfidentialClientApplication', () => {
     let appConfig: Configuration = {
@@ -155,9 +155,7 @@ describe('ConfidentialClientApplication', () => {
             expect.objectContaining(expectedConfig)
         );
     });
-    
-    
-    
+
     test('acquireTokenByClientCredential handles AuthErrors as expected', async () => {
         const request: ClientCredentialRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
@@ -186,5 +184,4 @@ describe('ConfidentialClientApplication', () => {
             expect(AuthError.prototype.setCorrelationId).toHaveBeenCalledTimes(1);
         }
     });
-
 });
