@@ -13,8 +13,6 @@ import { ClientCredentialRequest } from '../../src/request/ClientCredentialReque
 import { OnBehalfOfRequest } from '../../src';
 import { getMsalCommonAutoMock } from '../utils/MockUtils';
 
-// jest.mock('@azure/msal-common');
-
 
 describe('ConfidentialClientApplication', () => {
     let appConfig: Configuration = {
