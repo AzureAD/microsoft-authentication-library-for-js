@@ -26,6 +26,7 @@ jobs:
         filters: |
           lib:
             - 'lib/**/**.!(md)'
+            - 'extensions/msal-node-extensions/**/**.!(md)'
 
     - uses: actions/checkout@v2
       if: ${{ steps.filter.outputs.lib == 'true' }}
