@@ -54,5 +54,7 @@ jobs:
           title: "${{ steps.release-date.outputs.date }} Release"
           body: |
             Release PR : This PR contains the changelogs and version bumps for the ${{ steps.release-date.outputs.date }} releases.
+            
+            ${{ steps.bumped-package-list.outputs.list }}
           labels: release
           draft: true
