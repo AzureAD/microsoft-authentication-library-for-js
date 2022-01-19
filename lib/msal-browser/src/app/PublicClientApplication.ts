@@ -14,6 +14,7 @@ import { SilentRequest } from "../request/SilentRequest";
 import { EventType } from "../event/EventType";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { WamAuthError } from "../error/WamAuthError";
+import { SilentIframeClient } from "../interaction_client/SilentIframeClient";
 
 /**
  * The PublicClientApplication class is the object exposed by the library to perform authentication and authorization functions in Single Page Applications
@@ -140,14 +141,13 @@ export class PublicClientApplication extends ClientApplication implements IPubli
                 prompt: PromptValue.NONE
             };
             result = this.acquireTokenNative(silentRequest, ApiId.acquireTokenSilent_silentFlow).catch(async (e: AuthError) => {
-                // If native token acquisition fails for availability reasons fallback to standard flow
+                // If native token acquisition fails for availability reasons fallback to web flow
                 if (e instanceof WamAuthError && e.isFatal()) {
                     this.wamExtensionProvider = undefined; // Prevent future requests from continuing to attempt 
-                    const silentCacheClient = this.createSilentCacheClient(request.correlationId);
-                    const silentRequest = await silentCacheClient.initializeSilentRequest(request, account);
-                    result = silentCacheClient.acquireToken(silentRequest).catch(async () => {
-                        return this.acquireTokenByRefreshToken(silentRequest);
-                    });
+
+                    // Cache will not contain tokens, given that previous WAM requests succeeded. Skip cache and RT renewal and go straight to iframe renewal
+                    const silentIframeClient = new SilentIframeClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, ApiId.acquireTokenSilent_authCode, request.correlationId);
+                    return silentIframeClient.acquireToken(request);
                 }
                 throw e;
             });     
