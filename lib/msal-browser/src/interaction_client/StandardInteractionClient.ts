@@ -136,10 +136,8 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param hash
      * @param interactionType
      */
-    protected validateAndExtractStateFromHash(hash: string, interactionType: InteractionType, requestCorrelationId?: string): string {
+    protected validateAndExtractStateFromHash(serverParams: ServerAuthorizationCodeResponse, interactionType: InteractionType, requestCorrelationId?: string): string {
         this.logger.verbose("validateAndExtractStateFromHash called", requestCorrelationId);
-        // Deserialize hash fragment response parameters.
-        const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(hash);
         if (!serverParams.state) {
             throw BrowserAuthError.createHashDoesNotContainStateError();
         }

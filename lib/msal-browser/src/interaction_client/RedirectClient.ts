@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, UrlString, AuthError, ServerTelemetryManager } from "@azure/msal-common";
+import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, UrlString, AuthError, ServerTelemetryManager, ServerAuthorizationCodeResponse } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { ApiId, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
@@ -36,7 +36,10 @@ export class RedirectClient extends StandardInteractionClient {
             const interactionHandler = new RedirectHandler(authClient, this.browserStorage, authCodeRequest, this.logger, this.browserCrypto);
 
             // Create acquire token url.
-            const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
+            const navigateUrl = await authClient.getAuthCodeUrl({
+                ...validRequest,
+                nativeBridge: this.config.system.platformSSO
+            });
 
             const redirectStartPage = this.getRedirectStartPage(request.redirectStartPage);
             this.logger.verbosePii(`Redirect start page: ${redirectStartPage}`);
@@ -82,7 +85,9 @@ export class RedirectClient extends StandardInteractionClient {
 
             let state: string;
             try {
-                state = this.validateAndExtractStateFromHash(responseHash, InteractionType.Redirect);
+                // Deserialize hash fragment response parameters.
+                const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(responseHash);
+                state = this.validateAndExtractStateFromHash(serverParams, InteractionType.Redirect);
                 BrowserUtils.clearHash(window);
                 this.logger.verbose("State extracted from hash");
             } catch (e) {

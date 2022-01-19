@@ -42,6 +42,16 @@ export class RequestParameterBuilder {
     }
 
     /**
+     * Add flag to indicate STS should attempt to use WAM if available
+     */
+    addNativeBridge(): void {
+        this.parameters.set(
+            AADServerParamKeys.NATIVE_BRIDGE,
+            encodeURIComponent("1")
+        );
+    }
+
+    /**
      * add scopes. set addOidcScopes to false to prevent default scopes in non-user scenarios
      * @param scopeSet
      * @param addOidcScopes

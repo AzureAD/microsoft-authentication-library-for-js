@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, UrlString, AuthError } from "@azure/msal-common";
+import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, UrlString, AuthError, ServerAuthorizationCodeResponse } from "@azure/msal-common";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { PopupWindowAttributes, PopupUtils } from "../utils/PopupUtils";
@@ -95,7 +95,10 @@ export class PopupClient extends StandardInteractionClient {
             this.logger.verbose("Auth code client created");
 
             // Create acquire token url.
-            const navigateUrl = await authClient.getAuthCodeUrl(validRequest);
+            const navigateUrl = await authClient.getAuthCodeUrl({
+                ...validRequest,
+                nativeBridge: this.config.system.platformSSO
+            });
 
             // Create popup interaction handler.
             const interactionHandler = new PopupHandler(authClient, this.browserStorage, authCodeRequest, this.logger);
@@ -111,7 +114,9 @@ export class PopupClient extends StandardInteractionClient {
 
             // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
             const hash = await interactionHandler.monitorPopupForHash(popupWindow);
-            const state = this.validateAndExtractStateFromHash(hash, InteractionType.Popup, validRequest.correlationId);
+            // Deserialize hash fragment response parameters.
+            const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(hash);
+            const state = this.validateAndExtractStateFromHash(serverParams, InteractionType.Popup, validRequest.correlationId);
 
             // Remove throttle if it exists
             ThrottlingUtils.removeThrottle(this.browserStorage, this.config.auth.clientId, authCodeRequest);

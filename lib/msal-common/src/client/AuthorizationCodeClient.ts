@@ -403,6 +403,10 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addExtraQueryParameters(request.extraQueryParameters);
         }
 
+        if (request.nativeBridge) {
+            parameterBuilder.addNativeBridge();
+        }
+
         return parameterBuilder.createQueryString();
     }
 

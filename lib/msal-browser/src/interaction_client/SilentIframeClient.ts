@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, ICrypto, Logger, StringUtils, PromptValue, CommonAuthorizationCodeRequest, AuthorizationCodeClient, AuthError } from "@azure/msal-common";
+import { AuthenticationResult, ICrypto, Logger, StringUtils, PromptValue, CommonAuthorizationCodeRequest, AuthorizationCodeClient, AuthError, UrlString, ServerAuthorizationCodeResponse } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConfiguration } from "../config/Configuration";
@@ -56,7 +56,10 @@ export class SilentIframeClient extends StandardInteractionClient {
             this.logger.verbose("Auth code client created");
 
             // Create authorize request url
-            const navigateUrl = await authClient.getAuthCodeUrl(silentRequest);
+            const navigateUrl = await authClient.getAuthCodeUrl({
+                ...silentRequest,
+                nativeBridge: this.config.system.platformSSO
+            });
 
             return await this.silentTokenHelper(navigateUrl, authCodeRequest, authClient, this.logger);
         } catch (e) {
@@ -90,7 +93,9 @@ export class SilentIframeClient extends StandardInteractionClient {
         const msalFrame = await silentHandler.initiateAuthRequest(navigateUrl);
         // Monitor the window for the hash. Return the string value and close the popup when the hash is received. Default timeout is 60 seconds.
         const hash = await silentHandler.monitorIframeForHash(msalFrame, this.config.system.iframeHashTimeout);
-        const state = this.validateAndExtractStateFromHash(hash, InteractionType.Silent, authCodeRequest.correlationId);
+        // Deserialize hash fragment response parameters.
+        const serverParams: ServerAuthorizationCodeResponse = UrlString.getDeserializedHash(hash);
+        const state = this.validateAndExtractStateFromHash(serverParams, InteractionType.Silent, authCodeRequest.correlationId);
 
         // Handle response from hash string
         return silentHandler.handleCodeResponseFromHash(hash, state, authClient.authority, this.networkClient);
