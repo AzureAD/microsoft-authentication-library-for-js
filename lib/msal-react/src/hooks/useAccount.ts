@@ -23,16 +23,21 @@ function getAccount(instance: IPublicClientApplication, accountIdentifiers?: Acc
  * @param accountIdentifiers 
  */
 export function useAccount(accountIdentifiers?: AccountIdentifiers): AccountInfo | null {
-    const { instance, inProgress } = useMsal();
+    const { instance, inProgress, logger } = useMsal();
 
     const [account, setAccount] = useState<AccountInfo|null>(() => getAccount(instance, accountIdentifiers));
 
     useEffect(() => {
-        const currentAccount = getAccount(instance, accountIdentifiers);
-        if (!AccountEntity.accountInfoIsEqual(account, currentAccount, true)) {
-            setAccount(currentAccount);
-        }
-    }, [inProgress, accountIdentifiers, instance, account]);
+        setAccount((currentAccount: AccountInfo | null) => {
+            const nextAccount = getAccount(instance, accountIdentifiers);
+            if (!AccountEntity.accountInfoIsEqual(currentAccount, nextAccount, true)) {
+                logger.info("useAccount - Updating account");
+                return nextAccount;
+            }
+
+            return currentAccount;
+        });
+    }, [inProgress, accountIdentifiers, instance, logger]);
 
     return account;
 }
