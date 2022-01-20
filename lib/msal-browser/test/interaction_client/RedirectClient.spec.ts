@@ -766,6 +766,24 @@ describe("RedirectClient", () => {
             });
         });
 
+        it("Does not clear custom hash if response hash is retrieved from temporary cache", () => {
+            browserStorage.setInteractionInProgress(true);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, window.location.href);
+            window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.URL_HASH}`, TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
+
+            window.location.hash = "testHash";
+            const clearHashSpy = sinon.spy(BrowserUtils, "clearHash");
+            
+            sinon.stub(RedirectClient.prototype, <any>"handleHash").callsFake((responseHash) => {
+                expect(responseHash).toEqual(TEST_HASHES.TEST_SUCCESS_CODE_HASH_REDIRECT);
+            });
+
+            redirectClient.handleRedirectPromise().then(() => {
+                expect(clearHashSpy.notCalled).toBe(true);
+                expect(window.location.hash).toEqual("#testHash");
+            });
+        });
+
         it("processes hash if navigateToLoginRequestUri is true and loginRequestUrl contains trailing slash", (done) => {
             browserStorage.setInteractionInProgress(true);
             const loginRequestUrl = window.location.href.endsWith("/") ? window.location.href.slice(0, -1) : window.location.href + "/";
