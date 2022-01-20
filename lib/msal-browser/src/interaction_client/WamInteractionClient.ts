@@ -22,13 +22,13 @@ import { NavigationOptions } from "../navigation/NavigationOptions";
 import { INavigationClient } from "../navigation/INavigationClient";
 
 export class WamInteractionClient extends BaseInteractionClient {
-    protected provider: WamMessageHandler;
     protected apiId: ApiId;
+    protected wamMessageHandler: WamMessageHandler;
 
     constructor(config: BrowserConfiguration, browserStorage: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, provider: WamMessageHandler, correlationId?: string) {
-        super(config, browserStorage, browserCrypto, logger, eventHandler, navigationClient, correlationId);
-        this.provider = provider;
+        super(config, browserStorage, browserCrypto, logger, eventHandler, navigationClient, provider, correlationId);
         this.apiId = apiId;
+        this.wamMessageHandler = provider;
     }
 
     /**
@@ -45,7 +45,7 @@ export class WamInteractionClient extends BaseInteractionClient {
         };
 
         const reqTimestamp = TimeUtils.nowSeconds();
-        const response: object = await this.provider.sendMessage(messageBody);
+        const response: object = await this.wamMessageHandler.sendMessage(messageBody);
         this.validateWamResponse(response);
         return this.handleWamResponse(response as WamResponse, wamRequest, reqTimestamp);
     }
@@ -64,7 +64,7 @@ export class WamInteractionClient extends BaseInteractionClient {
         };
 
         try {
-            const response: object = await this.provider.sendMessage(messageBody);
+            const response: object = await this.wamMessageHandler.sendMessage(messageBody);
             this.validateWamResponse(response);
         } catch (e) {
             // Only throw fatal errors here to allow application to fallback to regular redirect. Otherwise proceed and the error will be thrown in handleRedirectPromise
@@ -113,7 +113,7 @@ export class WamInteractionClient extends BaseInteractionClient {
         const reqTimestamp = TimeUtils.nowSeconds();
 
         try {
-            const response: object = await this.provider.sendMessage(messageBody);
+            const response: object = await this.wamMessageHandler.sendMessage(messageBody);
             this.validateWamResponse(response);
             const result = this.handleWamResponse(response as WamResponse, request, reqTimestamp);
             this.browserStorage.setInteractionInProgress(false);

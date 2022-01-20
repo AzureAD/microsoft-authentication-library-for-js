@@ -14,12 +14,13 @@ import { BrowserAuthError } from "../error/BrowserAuthError";
 import { InteractionType, ApiId } from "../utils/BrowserConstants";
 import { SilentHandler } from "../interaction_handler/SilentHandler";
 import { SsoSilentRequest } from "../request/SsoSilentRequest";
+import { WamMessageHandler } from "../broker/wam/WamMessageHandler";
 
 export class SilentIframeClient extends StandardInteractionClient {
     private apiId: ApiId;
 
-    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, correlationId?: string) {
-        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, correlationId);
+    constructor(config: BrowserConfiguration, storageImpl: BrowserCacheManager, browserCrypto: ICrypto, logger: Logger, eventHandler: EventHandler, navigationClient: INavigationClient, apiId: ApiId, wamMessageHandler?: WamMessageHandler, correlationId?: string) {
+        super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, wamMessageHandler, correlationId);
         this.apiId = apiId;
     }
     
