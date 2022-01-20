@@ -14,7 +14,17 @@ The MSAL.js team schedules work on a quarterly basis. The roadmap below provides
 
 ## Current Quarter
 
-### CY2021Q4 / FY2022Q1
+### CY2022Q1 / FY2022Q3
+
+| Library         | Deliverable                       | Status      | ETA       | Notes                                                        |
+| :-------------- | :-------------------------------- | :---------- | :-------- | :----------------------------------------------------------- |
+| MSAL Browser    | Telemetry interface               | In Progress | Mar 2022  | To provide support for customers that are interested in library performance |
+| MSAL Browser    | Security improvements             | In Progress | July 2022 | Improvements for Chrome and Edge on Windows to leverage existing device accounts |
+| MSAL Browser    | Resiliency improvements           | In Progress | Mar 2022  | Improvements around accessing the metadata endpoint to improve library reliability |
+| MSAL Node       | Distributed cache support         | In Progress | Mar 2022  | Improvements and samples to better support distributed caches like Redis in MSAL Node |
+ 
+
+### CY2021Q4 / FY2022Q2
 
 | Library         | Deliverable                       | Status      | ETA       | Notes                                                        |
 | :-------------- | :-------------------------------- | :---------- | :-------- | :----------------------------------------------------------- |
