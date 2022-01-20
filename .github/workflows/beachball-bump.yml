@@ -40,6 +40,10 @@ jobs:
         id: release-date
         run: echo "::set-output name=date::$(node release-scripts/getReleaseDate.js)"
 
+      - name: Get a list of packages with bumped versions
+        id: bumped-package-list
+        run: echo "::set-output name=list::$(node release-scripts/getUpdatedVersions.js)"
+
       # Create/update Pull Request
       - name: Create Pull Request
         id: pr
@@ -50,5 +54,7 @@ jobs:
           title: "${{ steps.release-date.outputs.date }} Release"
           body: |
             Release PR : This PR contains the changelogs and version bumps for the ${{ steps.release-date.outputs.date }} releases.
+            
+            ${{ steps.bumped-package-list.outputs.list }}
           labels: release
           draft: true
