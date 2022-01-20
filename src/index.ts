@@ -75,6 +75,5 @@ export {
 } from "@azure/msal-common";
 
 // Telemetry
-export { sendSimpleEvent } from "./telemetry/1ds";
-export {sendCustomEvent, sendSampleError} from "./telemetry/1ds";
+export { PerformanceTelemetryReporter } from "./telemetry/1ds";
 export { version } from "./packageMetadata";

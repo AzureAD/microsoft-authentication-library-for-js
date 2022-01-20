@@ -118,7 +118,7 @@ export abstract class ClientApplication {
         this.tokenCache = new TokenCache(this.config, this.browserStorage, this.logger, this.browserCrypto);
 
         // Initialize performance manager
-        this.performanceManager = new PerformanceManager(this.logger, this.browserCrypto);
+        this.performanceManager = new PerformanceManager(this.config.auth.clientId,this.logger, this.browserCrypto);
     }
 
     // #region Redirect Flow
