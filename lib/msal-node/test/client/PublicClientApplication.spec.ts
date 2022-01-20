@@ -1,27 +1,42 @@
 import { PublicClientApplication } from './../../src/client/PublicClientApplication';
-import { Configuration } from './../../src/index';
+import { AuthorizationCodeRequest, Configuration } from './../../src/index';
 import { TEST_CONSTANTS } from '../utils/TestConstants';
-import {
-    ClientConfiguration, AuthenticationResult,
-    AuthorizationCodeClient, RefreshTokenClient, UsernamePasswordClient, ProtocolMode, Logger, LogLevel
-} from '@azure/msal-common';
-import { DeviceCodeRequest } from '../../src/request/DeviceCodeRequest';
-import { AuthorizationCodeRequest } from '../../src/request/AuthorizationCodeRequest';
-import { RefreshTokenRequest } from '../../src/request/RefreshTokenRequest';
-import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest";
-import { UsernamePasswordRequest } from '../../src/request/UsernamePasswordRequest';
-import { HttpClient } from '../../src/network/HttpClient';
+import { version, name } from '../../package.json';
 import { mocked } from 'ts-jest/utils';
+import {
+    Authority,
+    AuthorityFactory,
+    AuthorizationCodeClient,
+    DeviceCodeClient,
+    RefreshTokenClient,
+    UsernamePasswordClient,
+    ClientConfiguration,
+    ProtocolMode,
+    Logger,
+    LogLevel
+} from '@azure/msal-common';
 
+import { AuthorizationUrlRequest } from "../../src/request/AuthorizationUrlRequest";
+import { DeviceCodeRequest } from "../../src/request/DeviceCodeRequest";
+import { RefreshTokenRequest } from "../../src/request/RefreshTokenRequest";
+import { UsernamePasswordRequest } from '../../src/request/UsernamePasswordRequest';
+import { NodeStorage } from "../../src/cache/NodeStorage";
+import { HttpClient } from "../../src/network/HttpClient";
 
-import * as msalCommon from '@azure/msal-common';
-import { fakeAuthority, setupAuthorityFactory_createDiscoveredInstance_mock, setupServerTelemetryManagerMock } from './test-fixtures';
-import { getMsalCommonAutoMock } from '../utils/MockUtils';
-
-import { NodeStorage } from '../../src/cache/NodeStorage'
-import { version, name } from '../../package.json'
+jest.mock('@azure/msal-common');
 
 describe('PublicClientApplication', () => {
+    const authority: Authority = {
+        regionDiscoveryMetadata: { region_used: undefined, region_source: undefined, region_outcome: undefined },
+        resolveEndpointsAsync: () => {
+            return new Promise<void>(resolve => {
+                resolve();
+            });
+        },
+        discoveryComplete: () => {
+            return true;
+        },
+    } as unknown as Authority;
 
     let appConfig: Configuration = {
         auth: {
@@ -33,16 +48,17 @@ describe('PublicClientApplication', () => {
     const expectedConfig: ClientConfiguration = {
         authOptions: {
             clientId: TEST_CONSTANTS.CLIENT_ID,
-            authority: fakeAuthority,
+            authority: authority,
             clientCapabilities: []
         },
     };
 
+    // const expectedOauthClientConfig: ClientConfiguration = {
+    //     authOptions: appConfig.auth,
+    // };
+
     beforeEach(() => {
         jest.clearAllMocks();
-
-        setupServerTelemetryManagerMock();
-        setupAuthorityFactory_createDiscoveredInstance_mock();
     });
 
     test('exports a class', () => {
@@ -58,53 +74,32 @@ describe('PublicClientApplication', () => {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
         };
 
-
-        const MockDeviceCodeClient2 = getMsalCommonAutoMock().DeviceCodeClient;
-
-
-        jest.spyOn(msalCommon, 'DeviceCodeClient')
-            .mockImplementation((conf) => new MockDeviceCodeClient2(conf));
-
-        const fakeAuthResult = { "foo": "bar" }
-        mocked(MockDeviceCodeClient2.prototype.acquireToken)
-            .mockImplementation(() => Promise.resolve(fakeAuthResult as unknown as AuthenticationResult))
+        mocked(AuthorityFactory.createDiscoveredInstance).mockReturnValue(Promise.resolve(authority));
 
         const authApp = new PublicClientApplication(appConfig);
-        const result = await authApp.acquireTokenByDeviceCode(request);
-        expect(MockDeviceCodeClient2).toHaveBeenCalledTimes(1);
-        expect(MockDeviceCodeClient2).toHaveBeenCalledWith(
+        await authApp.acquireTokenByDeviceCode(request);
+        expect(DeviceCodeClient).toHaveBeenCalledTimes(1);
+        expect(DeviceCodeClient).toHaveBeenCalledWith(
             expect.objectContaining(expectedConfig)
         );
-        expect(result).toEqual(fakeAuthResult);
     });
 
     test('acquireTokenByAuthorizationCode', async () => {
-
-
         const request: AuthorizationCodeRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             redirectUri: TEST_CONSTANTS.REDIRECT_URI,
             code: TEST_CONSTANTS.AUTHORIZATION_CODE,
         };
 
-
-
-        const MockAuthorizationCodeClient = getMsalCommonAutoMock().AuthorizationCodeClient;
-
-        jest.spyOn(msalCommon, 'AuthorizationCodeClient')
-            .mockImplementation((config) => new MockAuthorizationCodeClient(config));
+        mocked(AuthorityFactory.createDiscoveredInstance).mockReturnValue(Promise.resolve(authority));
 
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByCode(request);
-
         expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
         expect(AuthorizationCodeClient).toHaveBeenCalledWith(
             expect.objectContaining(expectedConfig)
         );
     });
-
-
-
 
     test('acquireTokenByRefreshToken', async () => {
         const request: RefreshTokenRequest = {
@@ -112,10 +107,7 @@ describe('PublicClientApplication', () => {
             refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
         };
 
-        const mockRefreshTokenClient = getMsalCommonAutoMock().RefreshTokenClient;
-        jest.spyOn(msalCommon, 'RefreshTokenClient')
-            .mockImplementation((config) => new mockRefreshTokenClient(config));
-
+        mocked(AuthorityFactory.createDiscoveredInstance).mockReturnValue(Promise.resolve(authority));
 
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByRefreshToken(request);
@@ -125,14 +117,13 @@ describe('PublicClientApplication', () => {
         );
     });
 
-
-
     test('create AuthorizationCode URL', async () => {
         const request: AuthorizationUrlRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             redirectUri: TEST_CONSTANTS.REDIRECT_URI,
         };
 
+        mocked(AuthorityFactory.createDiscoveredInstance).mockReturnValue(Promise.resolve(authority));
 
         const authApp = new PublicClientApplication(appConfig);
         await authApp.getAuthCodeUrl(request);
@@ -142,8 +133,6 @@ describe('PublicClientApplication', () => {
         );
     });
 
-
-
     test('acquireTokenByUsernamePassword', async () => {
         const request: UsernamePasswordRequest = {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
@@ -151,9 +140,7 @@ describe('PublicClientApplication', () => {
             password: TEST_CONSTANTS.PASSWORD
         };
 
-        const mockUsernamePasswordClient = getMsalCommonAutoMock().UsernamePasswordClient;
-        jest.spyOn(msalCommon, 'UsernamePasswordClient')
-            .mockImplementation((config) => new mockUsernamePasswordClient(config));
+        mocked(AuthorityFactory.createDiscoveredInstance).mockReturnValue(Promise.resolve(authority));
 
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByUsernamePassword(request);
@@ -163,10 +150,8 @@ describe('PublicClientApplication', () => {
         );
     });
 
-
-
     test('acquireToken default authority', async () => {
-        // No authority set in app configuration or request, should default to common authority 
+        // No authority set in app configuration or request, should default to common authority
         const config: Configuration = {
             auth: {
                 clientId: TEST_CONSTANTS.CLIENT_ID,
@@ -178,8 +163,8 @@ describe('PublicClientApplication', () => {
             refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
         };
 
-
-        const authorityMock = setupAuthorityFactory_createDiscoveredInstance_mock(fakeAuthority);
+        const authorityMock = mocked(AuthorityFactory.createDiscoveredInstance);
+        authorityMock.mockResolvedValue(authority);
 
         const authApp = new PublicClientApplication(config);
         await authApp.acquireTokenByRefreshToken(request);
@@ -197,8 +182,6 @@ describe('PublicClientApplication', () => {
         expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
     });
 
-
-
     test('authority overridden by acquire token request parameters', async () => {
         // Authority set on client app, but should be overridden by authority passed in request
         const request: RefreshTokenRequest = {
@@ -207,8 +190,8 @@ describe('PublicClientApplication', () => {
             authority: TEST_CONSTANTS.ALTERNATE_AUTHORITY,
         };
 
-
-        const authorityMock = setupAuthorityFactory_createDiscoveredInstance_mock()
+        const authorityMock = mocked(AuthorityFactory.createDiscoveredInstance);
+        authorityMock.mockResolvedValue(authority);
 
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByRefreshToken(request);
