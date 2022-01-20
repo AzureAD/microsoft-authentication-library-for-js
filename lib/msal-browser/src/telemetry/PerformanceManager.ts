@@ -9,6 +9,7 @@ import { PerformanceMeasurement } from "./PerformanceMeasurement";
 export type PerformanceCallbackFunction = (events: PerformanceEvent[]) => void;
 
 export type PerformanceEvent = {
+    clientId: string
     durationMs: number,
     startTimeMs: number,
     name: string,
@@ -20,12 +21,14 @@ export type PerformanceEvent = {
 };
 
 export class PerformanceManager {
+    private clientId: string;
     private logger: Logger;
     private crypto: ICrypto;
     private callbacks: Map<string, PerformanceCallbackFunction>;
     private eventsByCorrelationId: Map<string, PerformanceEvent[]>;
     
-    constructor(logger: Logger, crypto: ICrypto) {
+    constructor(clientId:string, logger: Logger, crypto: ICrypto) {
+        this.clientId= clientId;
         this.logger = logger;
         this.crypto = crypto;
         this.callbacks = new Map();
@@ -53,6 +56,7 @@ export class PerformanceManager {
         const durationMs = Math.round(performanceMeasure.flushMeasurement());
         this.logger.trace(`Performance measurement ended for ${measureName}: ${durationMs} ms`, correlationId);
         const event: PerformanceEvent = {
+            clientId: this.clientId,
             success: null,
             fromCache: null,
             startTimeMs: 0,
