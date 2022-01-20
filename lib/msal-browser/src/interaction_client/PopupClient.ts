@@ -189,7 +189,7 @@ export class PopupClient extends StandardInteractionClient {
                 const absoluteUrl = UrlString.getAbsoluteUrl(mainWindowRedirectUri, BrowserUtils.getCurrentUri());
 
                 this.logger.verbose("Redirecting main window to url specified in the request");
-                this.logger.verbosePii(`Redirecing main window to: ${absoluteUrl}`);
+                this.logger.verbosePii(`Redirecting main window to: ${absoluteUrl}`);
                 this.navigationClient.navigateInternal(absoluteUrl, navigationOptions);
             } else {
                 this.logger.verbose("No main window navigation requested");
