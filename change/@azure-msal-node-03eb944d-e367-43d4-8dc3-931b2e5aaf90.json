@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Node testing overhaul",
+  "packageName": "@azure/msal-node",
+  "email": "bmahal@microsoft.com",
+  "dependentChangeType": "patch"
+}
