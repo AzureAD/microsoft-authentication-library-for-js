@@ -72,7 +72,8 @@ export {
     // Utils
     StringUtils,
     UrlString,
-    AuthenticationHeaderParser
+    AuthenticationHeaderParser,
+    OIDC_DEFAULT_SCOPES
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata";
