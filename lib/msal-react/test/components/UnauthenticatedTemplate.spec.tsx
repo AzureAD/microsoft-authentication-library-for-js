@@ -170,10 +170,12 @@ describe("UnauthenticatedTemplate tests", () => {
     });
 
     test("Does not show child component if inProgress value is startup", async () => {        
+        let handleRedirectPromiseResolve = () => {};        
         const handleRedirectSpy = jest.spyOn(pca, "handleRedirectPromise").mockImplementation(() => {
-            // Prevent handleRedirectPromise from raising an event and updating inProgress
-            expect(screen.queryByText("No user is authenticated!")).not.toBeInTheDocument();
-            return Promise.resolve(null);
+            // Prevent handleRedirectPromise from raising an event or resolving and updating inProgress
+            return new Promise((resolve) => {
+                handleRedirectPromiseResolve = resolve;
+            });
         });
         render(
             <MsalProvider instance={pca}>
@@ -186,7 +188,10 @@ describe("UnauthenticatedTemplate tests", () => {
 
         await waitFor(() => expect(handleRedirectSpy).toHaveBeenCalledTimes(1));
         expect(screen.queryByText("This text will always display.")).toBeInTheDocument();
-        expect(screen.queryByText("No user is authenticated!")).toBeInTheDocument();
+        expect(screen.queryByText("No user is authenticated!")).not.toBeInTheDocument();
+
+        handleRedirectPromiseResolve();
+        await waitFor(() => expect(screen.queryByText("No user is authenticated!")).toBeInTheDocument());
     });
 
     test("Does not show child component if inProgress value is handleRedirect", async () => {        
