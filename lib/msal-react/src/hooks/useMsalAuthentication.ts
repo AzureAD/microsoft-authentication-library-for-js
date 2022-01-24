@@ -84,21 +84,25 @@ export function useMsalAuthentication(
         let tokenRequest: SilentRequest;
 
         if (callbackRequest) {
+            logger.trace("useMsalAuthentication - acquireToken - Using request provided in the callback");
             tokenRequest = {
                 ...callbackRequest
             };
         } else if (authenticationRequest) {
+            logger.trace("useMsalAuthentication - acquireToken - Using request provided in the hook");
             tokenRequest = {
                 ...authenticationRequest,
                 scopes: authenticationRequest.scopes || OIDC_DEFAULT_SCOPES
             };
         } else {
+            logger.trace("useMsalAuthentication - acquireToken - No request object provided, using default request.");
             tokenRequest = {
                 scopes: OIDC_DEFAULT_SCOPES
             };
         }
         
         if (!tokenRequest.account && account) {
+            logger.trace("useMsalAuthentication - acquireToken - Attaching account to request");
             tokenRequest.account = account;
         }
 
@@ -107,10 +111,10 @@ export function useMsalAuthentication(
             return instance.acquireTokenSilent(tokenRequest).catch(async (e: AuthError) => {
                 if (e instanceof InteractionRequiredAuthError) {
                     if (!interactionInProgress.current) {
-                        logger.verbose("useMsalAuthentication - Interaction required, falling back to interaction");
+                        logger.error("useMsalAuthentication - Interaction required, falling back to interaction");
                         return login(fallbackInteractionType, tokenRequest);
                     } else {
-                        logger.verbose("useMsalAuthentication - Interaction required but is already in progress. Please try again, if needed, after interaction completes.");
+                        logger.error("useMsalAuthentication - Interaction required but is already in progress. Please try again, if needed, after interaction completes.");
                         throw ReactAuthError.createUnableToFallbackToInteractionError();
                     }
                 }

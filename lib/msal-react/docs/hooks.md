@@ -123,17 +123,16 @@ The `useMsalAuthentication` hook will initiate a login if a user is not already 
 
 ### Input Parameters
 
-- `interactionType` ("Popup", "Redirect", or "Silent") specifies how you would like to acquire tokens or login when interaction is required (note the "Silent" option has some extra considerations explained below)
+- [interactionType](https://azuread.github.io/microsoft-authentication-library-for-js/ref/enums/_azure_msal_browser.interactiontype.html) (Popup, Redirect, or Silent) specifies how you would like to acquire tokens or login when interaction is required (note the Silent option has some extra considerations explained below)
 - [request object](https://github.com/AzureAD/microsoft-authentication-library-for-js/blob/msal-react-feature-branch/lib/msal-browser/docs/request-response-object.md#request) (optional) specifies additional parameters to be used by the login or token acquisition call
-- `accountIdentifiers` object is used to tell the hook which user it should log-in or acquire tokens for
+- [accountIdentifiers](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_react.html#accountidentifiers) object is used to tell the hook which user it should log-in or acquire tokens for
 
 ### Return Properties
 
-- `response` - The response from the last successful login or token acquisition. Note that this hook only attempts to login or acquire tokens automatically one time. It is the application's responsiblity to call the `login` or `acquireToken` function, when needed, to update this value.
-- `error` - If an error occurs during login or token acquisition this property will contain information about the error. You can use the `login` or `acquireToken` functions returned by this hook to retry. The `error` property will be cleared on the next successful login or token acquisition.
+- [result](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#authenticationresult) - The response from the last successful login or token acquisition. Note that this hook only attempts to login or acquire tokens automatically one time. It is the application's responsiblity to call the `login` or `acquireToken` function, when needed, to update this value.
+- [error](https://azuread.github.io/microsoft-authentication-library-for-js/ref/classes/_azure_msal_common.autherror.html) - If an error occurs during login or token acquisition this property will contain information about the error. You can use the `login` or `acquireToken` functions returned by this hook to retry. The `error` property will be cleared on the next successful login or token acquisition.
 - `login` - function which can be used to retry a failed login. The `response` and `error` properties will be updated.
 - `acquireToken` - function which can be used to get a new access token before calling a protected API. The `response` and `error` properties will be updated.
-
 
 Note: Passing the "Silent" interaction type will call `ssoSilent` which attempts to open a hidden iframe and reuse an existing session with AAD. This will not work in browsers that block 3rd party cookies such as Safari. Additionally, when using the "Silent" type the request object is required and should contain either a `loginHint` or `sid` parameter.
 
