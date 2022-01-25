@@ -101,10 +101,12 @@ export class ThrottlingUtils {
             authority: request.authority,
             scopes: request.scopes,
             homeAccountIdentifier: homeAccountIdentifier,
+            claims: request.claims,
             authenticationScheme: request.authenticationScheme,
             resourceRequestMethod: request.resourceRequestMethod,
             resourceRequestUri: request.resourceRequestUri,
-            shrClaims: request.shrClaims
+            shrClaims: request.shrClaims,
+            sshKid: request.sshKid
         };
 
         const key = this.generateThrottlingStorageKey(thumbprint);

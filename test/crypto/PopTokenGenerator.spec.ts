@@ -1,5 +1,5 @@
 import sinon from "sinon";
-import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS } from "../test_kit/StringConstants";
+import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS, TEST_CRYPTO_VALUES } from "../test_kit/StringConstants";
 import { PopTokenGenerator } from "../../src/crypto/PopTokenGenerator";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { BaseAuthRequest } from "../../src/request/BaseAuthRequest";
@@ -61,6 +61,9 @@ describe("PopTokenGenerator Unit Tests", () => {
         },
         async clearKeystore(): Promise<boolean> {
             return Promise.resolve(true);
+        },
+        async hashString(): Promise<string> {
+            return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
         }
     };
 
@@ -102,6 +105,7 @@ describe("PopTokenGenerator Unit Tests", () => {
             const resourceUrlComponents = resourceUrlString.getUrlComponents();
             const currTime = TimeUtils.nowSeconds();
             const shrClaims = TEST_POP_VALUES.CLIENT_CLAIMS;
+            const shrNonce = TEST_POP_VALUES.SHR_NONCE;
 
             // Set PoP parameters in auth request
             const popRequest = {
@@ -109,7 +113,8 @@ describe("PopTokenGenerator Unit Tests", () => {
                 authenticationScheme: AuthenticationScheme.POP,
                 resourceRequestMethod: resourceReqMethod,
                 resourceRequestUri: resourceUrl,
-                shrClaims: shrClaims
+                shrClaims: shrClaims,
+                shrNonce: shrNonce
             }
 
 
@@ -120,10 +125,10 @@ describe("PopTokenGenerator Unit Tests", () => {
                     ts: currTime,
                     m: resourceReqMethod,
                     u: resourceUrlComponents.HostNameAndPort,
-                    nonce: RANDOM_TEST_GUID,
+                    nonce: shrNonce,
                     p: resourceUrlComponents.AbsolutePath,
                     q: [[], resourceUrlComponents.QueryString],
-                    client_claims: shrClaims
+                    client_claims: shrClaims,
                 };
                 
                 expect(payload).toEqual(expectedPayload);

@@ -45,6 +45,8 @@ export class AccessTokenEntity extends CredentialEntity {
     refreshOn?: string;
     keyId?: string; // for POP and SSH tokenTypes
     tokenType?: AuthenticationScheme;
+    requestedClaims?: string;
+    requestedClaimsHash?: string;
 
     /**
      * Create AccessTokenEntity
@@ -69,7 +71,10 @@ export class AccessTokenEntity extends CredentialEntity {
         cryptoUtils: ICrypto,
         refreshOn?: number,
         tokenType?: AuthenticationScheme,
-        oboAssertion?: string
+        oboAssertion?: string,
+        keyId?: string,
+        requestedClaims?: string,
+        requestedClaimsHash?: string 
     ): AccessTokenEntity {
         const atEntity: AccessTokenEntity = new AccessTokenEntity();
 
@@ -98,15 +103,29 @@ export class AccessTokenEntity extends CredentialEntity {
 
         atEntity.tokenType = StringUtils.isEmpty(tokenType) ? AuthenticationScheme.BEARER : tokenType;
 
-        // Create Access Token With AuthScheme instead of regular access token
-        if (atEntity.tokenType === AuthenticationScheme.POP) {
+        if (requestedClaims) {
+            atEntity.requestedClaims = requestedClaims;
+            atEntity.requestedClaimsHash = requestedClaimsHash;
+        }
+
+        /*
+         * Create Access Token With Auth Scheme instead of regular access token
+         * Cast to lower to handle "bearer" from ADFS
+         */
+        if (atEntity.tokenType?.toLowerCase() !== AuthenticationScheme.BEARER.toLowerCase()) {
             atEntity.credentialType = CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME;
-            // Make sure keyId is present and add it to credential
-            const tokenClaims: TokenClaims | null = AuthToken.extractTokenClaims(accessToken, cryptoUtils);
-            if (!tokenClaims?.cnf?.kid) {
-                throw ClientAuthError.createTokenClaimsRequiredError();
+            switch (atEntity.tokenType) {
+                case AuthenticationScheme.POP:
+                    // Make sure keyId is present and add it to credential
+                    const tokenClaims: TokenClaims | null = AuthToken.extractTokenClaims(accessToken, cryptoUtils);
+                    if (!tokenClaims?.cnf?.kid) {
+                        throw ClientAuthError.createTokenClaimsRequiredError();
+                    }
+                    atEntity.keyId = tokenClaims.cnf.kid;
+                    break;
+                case AuthenticationScheme.SSH:
+                    atEntity.keyId = keyId;
             }
-            atEntity.keyId = tokenClaims.cnf.kid;
         }
 
         return atEntity;

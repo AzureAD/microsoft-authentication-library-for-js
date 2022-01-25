@@ -65,10 +65,12 @@ export class UsernamePasswordClient extends BaseClient {
             clientId: this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
             scopes: request.scopes,
+            claims: request.claims,
             authenticationScheme: request.authenticationScheme,
             resourceRequestMethod: request.resourceRequestMethod,
             resourceRequestUri: request.resourceRequestUri,
-            shrClaims: request.shrClaims
+            shrClaims: request.shrClaims,
+            sshKid: request.sshKid
         };
         const requestBody = this.createTokenRequestBody(request);
         const headers: Record<string, string> = this.createTokenRequestHeaders({
