@@ -4,6 +4,7 @@
  */
 
 module.exports = {
+    modulePaths: ["<rootDir>"],
     displayName: "Authorization Code",
     preset: "../../e2eTestUtils/jest-puppeteer-utils/jest-preset-no-setup.js"
 };
