@@ -235,7 +235,7 @@ export class AuthorizationCodeClient extends BaseClient {
         parameterBuilder.addClientInfo();
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
-            const cnfString = await this.cryptoKeyManager.generateCnf(request);
+            const cnfString = await this.popTokenGenerator.generateCnf(request);
             parameterBuilder.addPopToken(cnfString);
         } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
             if(request.sshJwk) {

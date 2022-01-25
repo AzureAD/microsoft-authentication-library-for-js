@@ -55,7 +55,6 @@ export { UrlString } from "./url/UrlString";
 // Crypto Interface
 export { ICrypto, PkceCodes, DEFAULT_CRYPTO_IMPLEMENTATION, SignedHttpRequestParameters } from "./crypto/ICrypto";
 export { SignedHttpRequest } from "./crypto/SignedHttpRequest";
-export { CryptoKeyManager } from "./crypto/CryptoKeyManager";
 // Request and Response
 export { BaseAuthRequest } from "./request/BaseAuthRequest";
 export { CommonAuthorizationUrlRequest } from "./request/CommonAuthorizationUrlRequest";
