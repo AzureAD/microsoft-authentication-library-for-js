@@ -156,7 +156,7 @@ describe('Auth Code ADFS PPE Tests', () => {
                 waitUntil: "load"
             });
             await enterCredentialsADFS(page, screenshot, username, accountPwd);
-            await page.setDefaultNavigationTimeout(0);
+            await page.setDefaultNavigationTimeout(12000);
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
