@@ -32,7 +32,7 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
     }, [instance]);
 
     // State hook to store accounts
-    const [accounts, setAccounts] = useState<AccountInfo[]>([]);
+    const [accounts, setAccounts] = useState<AccountInfo[]>(() => instance.getAllAccounts());
     // State hook to store in progress value
     const [inProgress, setInProgress] = useState<InteractionStatus>(InteractionStatus.Startup);
     // Mutable object used in the event callback

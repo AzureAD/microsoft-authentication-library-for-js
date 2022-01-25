@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" status="width=device-width, initial-scale=1.0">
+
+        <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+        <link rel="stylesheet" href="/style.css">
+        <title>Tenant</title>
+    </head>
+    <body>
+
+        <%- include('includes/navbar', {isAuthenticated: isAuthenticated}); %>
+
+        <div class="table-area-div">
+            <p>Calling <strong>Azure Resource Manager API</strong>...</p>
+            <ul>
+                <li><strong>resource:</strong> <mark>Tenant</mark> object</li>
+                <li><strong>endpoint:</strong> <mark>https://management.azure.com/tenants?api-version=2020-01-01</mark></li>
+                <li><strong>scope:</strong> <mark>https://management.azure.com/user_impersonation</mark></li>
+            </ul>
+            <p>Contents of the <strong>response</strong> is below:</p>
+        </div>
+
+        <div class="table-area-div">
+            <table class="table">
+                <thead class="thead-dark">
+                    <tr>
+                        <th scope="col">Claim</th>
+                        <th scope="col">Value</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <% for (const [key, value] of Object.entries(tenant)) { %>
+                        <tr>
+                            <td><%= key %></td>
+                            <td><%= value %></td>
+                        </tr>
+                    <% } %>
+                </tbody>
+            </table>
+        </div> 
+
+        <%- include('includes/footer'); %>
+
+        <script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
+        <script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>  
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>
+    </body>
+</html>
