@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Expose OIDC_DEFAULT_SCOPES constant #4280",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
