@@ -1,7 +1,7 @@
 {
-  "type": "patch",
-  "comment": "Node testing overhaul",
+  "type": "none",
+  "comment": "Node testing overhaul #4433",
   "packageName": "@azure/msal-node",
   "email": "bmahal@microsoft.com",
-  "dependentChangeType": "patch"
+  "dependentChangeType": "none"
 }
