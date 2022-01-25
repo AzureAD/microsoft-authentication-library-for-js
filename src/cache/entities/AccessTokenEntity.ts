@@ -45,6 +45,8 @@ export class AccessTokenEntity extends CredentialEntity {
     refreshOn?: string;
     keyId?: string; // for POP and SSH tokenTypes
     tokenType?: AuthenticationScheme;
+    requestedClaims?: string;
+    requestedClaimsHash?: string;
 
     /**
      * Create AccessTokenEntity
@@ -70,7 +72,9 @@ export class AccessTokenEntity extends CredentialEntity {
         refreshOn?: number,
         tokenType?: AuthenticationScheme,
         oboAssertion?: string,
-        keyId?: string 
+        keyId?: string,
+        requestedClaims?: string,
+        requestedClaimsHash?: string 
     ): AccessTokenEntity {
         const atEntity: AccessTokenEntity = new AccessTokenEntity();
 
@@ -99,8 +103,16 @@ export class AccessTokenEntity extends CredentialEntity {
 
         atEntity.tokenType = StringUtils.isEmpty(tokenType) ? AuthenticationScheme.BEARER : tokenType;
 
-        // Create Access Token With Auth Scheme instead of regular access token
-        if (atEntity.tokenType !== AuthenticationScheme.BEARER) {
+        if (requestedClaims) {
+            atEntity.requestedClaims = requestedClaims;
+            atEntity.requestedClaimsHash = requestedClaimsHash;
+        }
+
+        /*
+         * Create Access Token With Auth Scheme instead of regular access token
+         * Cast to lower to handle "bearer" from ADFS
+         */
+        if (atEntity.tokenType?.toLowerCase() !== AuthenticationScheme.BEARER.toLowerCase()) {
             atEntity.credentialType = CredentialType.ACCESS_TOKEN_WITH_AUTH_SCHEME;
             switch (atEntity.tokenType) {
                 case AuthenticationScheme.POP:
