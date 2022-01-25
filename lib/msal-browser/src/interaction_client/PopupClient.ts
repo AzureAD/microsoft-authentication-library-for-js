@@ -20,9 +20,9 @@ export class PopupClient extends StandardInteractionClient {
      * Acquires tokens by opening a popup window to the /authorize endpoint of the authority
      * @param request 
      */
-    acquireToken(request: PopupRequest): Promise<AuthenticationResult> {
+    async acquireToken(request: PopupRequest): Promise<AuthenticationResult> {
         try {
-            const validRequest = this.preflightInteractiveRequest(request, InteractionType.Popup);
+            const validRequest = await this.preflightInteractiveRequest(request, InteractionType.Popup);
             const popupName = PopupUtils.generatePopupName(this.config.auth.clientId, validRequest);
             const popupWindowAttributes = request.popupWindowAttributes || {};
 
@@ -117,7 +117,7 @@ export class PopupClient extends StandardInteractionClient {
             ThrottlingUtils.removeThrottle(this.browserStorage, this.config.auth.clientId, authCodeRequest);
 
             // Handle response from hash string.
-            const result = await interactionHandler.handleCodeResponse(hash, state, authClient.authority, this.networkClient);
+            const result = await interactionHandler.handleCodeResponseFromHash(hash, state, authClient.authority, this.networkClient);
 
             return result;
         } catch (e) {            
@@ -189,7 +189,7 @@ export class PopupClient extends StandardInteractionClient {
                 const absoluteUrl = UrlString.getAbsoluteUrl(mainWindowRedirectUri, BrowserUtils.getCurrentUri());
 
                 this.logger.verbose("Redirecting main window to url specified in the request");
-                this.logger.verbosePii(`Redirecing main window to: ${absoluteUrl}`);
+                this.logger.verbosePii(`Redirecting main window to: ${absoluteUrl}`);
                 this.navigationClient.navigateInternal(absoluteUrl, navigationOptions);
             } else {
                 this.logger.verbose("No main window navigation requested");

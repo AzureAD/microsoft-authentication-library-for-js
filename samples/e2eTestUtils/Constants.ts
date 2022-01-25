@@ -13,7 +13,9 @@ export const ParamKeys = {
     FEDERATION_PROVIDER: "federationprovider",
     B2C_PROVIDER: "b2cprovider",
     HOME_DOMAIN: "homedomain",
-    APP_TYPE: "apptype"
+    APP_TYPE: "apptype",
+    SIGN_IN_AUDIENCE: "signInAudience",
+    PUBLIC_CLIENT: "publicClient",
 };
 
 // Lab API Query Param Values

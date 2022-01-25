@@ -64,7 +64,9 @@ export const OIDC_SCOPES = [
 export enum HeaderNames {
     CONTENT_TYPE = "Content-Type",
     RETRY_AFTER = "Retry-After",
-    CCS_HEADER = "X-AnchorMailbox"
+    CCS_HEADER = "X-AnchorMailbox",
+    WWWAuthenticate = "WWW-Authenticate",
+    AuthenticationInfo = "Authentication-Info"
 }
 
 /**
@@ -134,7 +136,8 @@ export enum AADServerParamKeys {
     REQUESTED_TOKEN_USE = "requested_token_use",
     ON_BEHALF_OF = "on_behalf_of",
     FOCI = "foci",
-    CCS_HEADER = "X-AnchorMailbox"
+    CCS_HEADER = "X-AnchorMailbox",
+    RETURN_SPA_CODE = "return_spa_code"
 }
 
 /**
@@ -315,8 +318,9 @@ export const SERVER_TELEM_CONSTANTS = {
  * Type of the authentication request
  */
 export enum AuthenticationScheme {
+    BEARER = "Bearer",
     POP = "pop",
-    BEARER = "Bearer"
+    SSH = "ssh-cert"
 }
 
 /**

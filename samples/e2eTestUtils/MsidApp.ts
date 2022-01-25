@@ -1,4 +1,5 @@
 export type MsidApp = {
+    appName?: string,
     appId?: string,
     authority?: string,
     b2cAuthorities?: string,

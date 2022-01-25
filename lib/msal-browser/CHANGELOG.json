@@ -2,6 +2,143 @@
   "name": "@azure/msal-browser",
   "entries": [
     {
+      "date": "Tue, 04 Jan 2022 00:20:29 GMT",
+      "tag": "@azure/msal-browser_v2.21.0",
+      "version": "2.21.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "60e2cfc0e9daa3c24e994617b4ac42aef6880b74",
+            "comment": "Add support for requested claims in silent token acquisition #4296"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v6.0.0",
+            "commit": "bd9b1af91c278926ab2e6943cf90817a7ac4957b"
+          }
+        ],
+        "patch": [
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "e3c66105f3bf617dc4fd06905e04b37e865c303c",
+            "comment": "Clear interaction status even if there is no ongoing request #4314"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Dec 2021 00:17:01 GMT",
+      "tag": "@azure/msal-browser_v2.20.0",
+      "version": "2.20.0",
+      "comments": {
+        "none": [
+          {
+            "author": "kamausamuel11@gmail.com",
+            "package": "@azure/msal-browser",
+            "commit": "8259de7520d2940d290332cd03c5b8babeb0966e",
+            "comment": "deps: run an audit fix on msal-browser"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "02dbd9172368bfc69e4a47f01a3ada0b96345c81",
+            "comment": "Package.json updates"
+          }
+        ],
+        "minor": [
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "4741b6c3a6a3dd58feefde93c095c05e1eca5e03",
+            "comment": "Add acquireTokenByCode API for hybrid spa flow #3978"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v5.2.0",
+            "commit": "d7c209f7aa3ae4380a77a31ff1319fbf7201ae45"
+          }
+        ],
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "e983e25ba899bb437a135ec50ad6c77023c72e5b",
+            "comment": "Fix circular dependencies in AuthenticationHeaderParser and AsyncMemoryStorage #4235"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 01 Nov 2021 23:53:21 GMT",
+      "tag": "@azure/msal-browser_v2.19.0",
+      "version": "2.19.0",
+      "comments": {
+        "minor": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "51669adf5e2fe446bf94925fe77762b64e9513fc",
+            "comment": "Add support for in-memory storage of token binding keys #4183"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "a81fcef3d82523e03828d91bb0ee8d2ab2cc20d8",
+            "comment": "Add support for ephemeral SSH certificate acquisition #4178"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "51669adf5e2fe446bf94925fe77762b64e9513fc",
+            "comment": "Add support for in-memory storage of token binding keys #4183"
+          },
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "5b350a5f97b43e1a5a87153bb4a13632f7c615b9",
+            "comment": "Add support for SHR nonce #3999"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-browser",
+            "comment": "Bump @azure/msal-common to v5.1.0",
+            "commit": "6ac29855822ce1ba9531a68bcaa6f37443ef16c0"
+          }
+        ],
+        "patch": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "9099d711c0e52e13937bcfda7ddf34bac48f9ecd",
+            "comment": "Add support for different key types in IndexedDB storage #4052"
+          },
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "b1f5bd520f8abb972725c1a863f37b7fb5ebd756",
+            "comment": "Ensure correlation is passed to all interaction clients in acquireTokenSilent #4186"
+          },
+          {
+            "author": "Michael.Currie@rjwgroup.com",
+            "package": "@azure/msal-browser",
+            "commit": "3f3f5a8880a7e46445d71b8920a6ccc70d453f30",
+            "comment": "Fix typo in noTokenRequestCacheError (#4136)"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-browser",
+            "commit": "dc80d3177eef0b3c7499cbf3ebb2fea8e2c408c9",
+            "comment": "Fix redirect processing when allowRedirectInIframe: true #4142"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 04 Oct 2021 23:12:35 GMT",
       "tag": "@azure/msal-browser_v2.18.0",
       "version": "2.18.0",

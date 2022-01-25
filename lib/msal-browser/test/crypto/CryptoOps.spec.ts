@@ -1,33 +1,50 @@
-import { CryptoOps, CachedKeyPair } from "../../src/crypto/CryptoOps";
+import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { GuidGenerator } from "../../src/crypto/GuidGenerator";
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
 import { createHash } from "crypto";
-import { PkceCodes, BaseAuthRequest } from "@azure/msal-common";
+import { PkceCodes, BaseAuthRequest, Logger } from "@azure/msal-common";
 import { TEST_URIS } from "../utils/StringConstants";
-import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
-import { BrowserAuthError, BrowserAuthErrorMessage } from "../../src";
+import { BrowserAuthError } from "../../src";
+
 const msrCrypto = require("../polyfills/msrcrypto.min");
+
+let mockDatabase = {
+    "TestDB.keys": {}
+};
+
+// Mock DatabaseStorage
+jest.mock("../../src/cache/DatabaseStorage", () => {
+    return {
+        DatabaseStorage: jest.fn().mockImplementation(() => {
+            return {
+                dbName: "TestDB",
+                version: 1,
+                tableName: "TestDB.keys",
+                open: () => {},
+                getItem: (kid: string) => {
+                    return mockDatabase["TestDB.keys"][kid];
+                },
+                setItem: (kid: string, payload: any) => {
+                    mockDatabase["TestDB.keys"][kid] = payload;
+                    return mockDatabase["TestDB.keys"][kid];
+                },
+                removeItem: (kid: string) => {
+                    delete mockDatabase["TestDB.keys"][kid];
+                },
+                containsKey: (kid: string) => {
+                    return !!(mockDatabase["TestDB.keys"][kid]);
+                }
+            }
+      })
+    }
+});
 
 describe("CryptoOps.ts Unit Tests", () => {
     let cryptoObj: CryptoOps;
-    let dbStorage = {};
     let oldWindowCrypto = window.crypto;
+
     beforeEach(() => {
-        jest.spyOn(DatabaseStorage.prototype, "open").mockImplementation(async (): Promise<void> => {
-            dbStorage = {};
-        });
-
-        jest.spyOn(DatabaseStorage.prototype, "put").mockImplementation(async (key: string, payload: CachedKeyPair): Promise<void> => {
-            dbStorage[key] = payload;
-        });
-
-        jest.spyOn(DatabaseStorage.prototype, "delete").mockImplementation(async (key: string): Promise<boolean> => {
-            delete dbStorage[key];
-            return Promise.resolve(true);
-        });
-
-        cryptoObj = new CryptoOps();
-
+        cryptoObj = new CryptoOps(new Logger({}));
         oldWindowCrypto = window.crypto;
         //@ts-ignore
         window.crypto = {
@@ -38,6 +55,9 @@ describe("CryptoOps.ts Unit Tests", () => {
 
     afterEach(() => {
         jest.restoreAllMocks();
+        mockDatabase = {
+            "TestDB.keys": {}
+        };
         //@ts-ignore
         window.crypto = oldWindowCrypto;
     });
@@ -120,7 +140,7 @@ describe("CryptoOps.ts Unit Tests", () => {
         const result = await generateKeyPairSpy.mock.results[0].value;
         expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
         expect(regExp.test(pkThumbprint)).toBe(true);
-        expect(Object.keys(dbStorage[pkThumbprint])).not.toHaveLength(0);
+        expect(mockDatabase["TestDB.keys"][pkThumbprint]).not.toBe(undefined);
     }, 30000);
 
     it("removeTokenBindingKey() removes the specified key from storage", async () => {
@@ -130,13 +150,25 @@ describe("CryptoOps.ts Unit Tests", () => {
             return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
         });
         const pkThumbprint = await cryptoObj.getPublicKeyThumbprint({resourceRequestMethod: "POST", resourceRequestUri: TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS} as BaseAuthRequest);
+        const key = mockDatabase["TestDB.keys"][pkThumbprint];
         const keyDeleted = await cryptoObj.removeTokenBindingKey(pkThumbprint);
-        expect(dbStorage[pkThumbprint]).toBe(undefined);
+        expect(key).not.toBe(undefined);
+        expect(mockDatabase["TestDB.keys"][pkThumbprint]).toBe(undefined);
         expect(keyDeleted).toBe(true);
     }, 30000);
 
     it("signJwt() throws signingKeyNotFoundInStorage error if signing keypair is not found in storage", async () => {
-        jest.spyOn(DatabaseStorage.prototype, "get").mockResolvedValue(undefined);
-        return await expect(cryptoObj.signJwt({}, "testString")).rejects.toThrow(BrowserAuthError.createSigningKeyNotFoundInStorageError("testString"));
+        expect(cryptoObj.signJwt({}, "testString")).rejects.toThrow(BrowserAuthError.createSigningKeyNotFoundInStorageError("testString"));
     }, 30000);
+
+    it("hashString() returns a valid SHA-256 hash of an input string", async() => {
+        //@ts-ignore
+        jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
+            expect(algorithm).toBe("SHA-256");
+            return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
+        });
+        const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
+        const result = await cryptoObj.hashString("testString");
+        expect(regExp.test(result)).toBe(true);
+    });
 });

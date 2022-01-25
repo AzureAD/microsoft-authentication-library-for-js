@@ -2,6 +2,87 @@
   "name": "@azure/msal-react",
   "entries": [
     {
+      "date": "Tue, 04 Jan 2022 00:20:29 GMT",
+      "tag": "@azure/msal-react_v1.2.0",
+      "version": "1.2.0",
+      "comments": {
+        "none": [
+          {
+            "author": "hemoral@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "60e2cfc0e9daa3c24e994617b4ac42aef6880b74",
+            "comment": "Add support for requested claims in silent token acquisition #4296"
+          }
+        ],
+        "minor": [
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v2.21.0",
+            "commit": "bd9b1af91c278926ab2e6943cf90817a7ac4957b"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Tue, 07 Dec 2021 00:17:01 GMT",
+      "tag": "@azure/msal-react_v1.1.2",
+      "version": "1.1.2",
+      "comments": {
+        "none": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "02dbd9172368bfc69e4a47f01a3ada0b96345c81",
+            "comment": "Package.json updates"
+          }
+        ],
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "54d0d9457e39691222c40b106b8c674dc3e4d761",
+            "comment": "Fix inProgress stuck in startup state #4302"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v2.20.0",
+            "commit": "d7c209f7aa3ae4380a77a31ff1319fbf7201ae45"
+          }
+        ]
+      }
+    },
+    {
+      "date": "Mon, 01 Nov 2021 23:53:22 GMT",
+      "tag": "@azure/msal-react_v1.1.1",
+      "version": "1.1.1",
+      "comments": {
+        "patch": [
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "0d7e8c7b131d94c365bc114b69e3ca21f5300d41",
+            "comment": "Support React version 16.8.0+"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-react",
+            "comment": "Bump @azure/msal-browser to v2.19.0",
+            "commit": "6ac29855822ce1ba9531a68bcaa6f37443ef16c0"
+          }
+        ],
+        "none": [
+          {
+            "author": "janutter@microsoft.com",
+            "package": "@azure/msal-react",
+            "commit": "c5a8de4a5dc7acb9bdf1759eb3cb9811459c3d82",
+            "comment": "Update package-locks to fix dependantbot alerts #4181"
+          }
+        ]
+      }
+    },
+    {
       "date": "Mon, 04 Oct 2021 23:12:35 GMT",
       "tag": "@azure/msal-react_v1.1.0",
       "version": "1.1.0",

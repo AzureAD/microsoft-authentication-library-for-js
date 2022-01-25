@@ -6,7 +6,7 @@
 import { PkceCodes, AuthorityFactory, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ProtocolMode, Logger, AuthenticationScheme, AuthorityOptions, ClientConfiguration, AuthError } from "@azure/msal-common";
 import { PopupHandler } from "../../src/interaction_handler/PopupHandler";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, TEST_POP_VALUES } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_CRYPTO_VALUES } from "../utils/StringConstants";
 import sinon from "sinon";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
@@ -47,7 +47,6 @@ describe("PopupHandler.ts Unit Tests", () => {
     let authCodeModule: AuthorizationCodeClient;
     let browserStorage: BrowserCacheManager;
     let browserRequestLogger: Logger;
-    const cryptoOps = new CryptoOps();
     beforeEach(() => {
         const appConfig: Configuration = {
             auth: {
@@ -95,6 +94,9 @@ describe("PopupHandler.ts Unit Tests", () => {
                 },
                 clearKeystore: async (): Promise<boolean> => {
                     return Promise.resolve(true);
+                },
+                hashString: async (): Promise<string> => {
+                    return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
                 }
             },
             networkInterface: {
@@ -113,6 +115,7 @@ describe("PopupHandler.ts Unit Tests", () => {
         authConfig.storageInterface = new TestStorageManager(TEST_CONFIG.MSAL_CLIENT_ID, authConfig.cryptoInterface!);
         authCodeModule = new AuthorizationCodeClient(authConfig);
         const logger = new Logger(authConfig.loggerOptions!);
+        const cryptoOps = new CryptoOps(logger);
         browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, configObj.cache, cryptoOps, logger);
         browserRequestLogger = new Logger(authConfig.loggerOptions!);
     });

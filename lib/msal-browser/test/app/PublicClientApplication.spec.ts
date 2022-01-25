@@ -5,7 +5,7 @@
 
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
-import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, TEST_HASHES, DEFAULT_TENANT_DISCOVERY_RESPONSE, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrlNoRequest } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, testNavUrl, testLogoutUrl, TEST_STATE_VALUES, TEST_HASHES, DEFAULT_TENANT_DISCOVERY_RESPONSE, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrlNoRequest, TEST_SSH_VALUES, TEST_CRYPTO_VALUES } from "../utils/StringConstants";
 import { ServerError, Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationUrlRequest, AuthorizationCodeClient, ResponseMode, AccountEntity, ProtocolUtils, AuthenticationScheme, RefreshTokenClient, Logger, ServerTelemetryEntity, CommonSilentFlowRequest, LogLevel, CommonAuthorizationCodeRequest } from "@azure/msal-common";
 import { ApiId, InteractionType, WrapperSKU, TemporaryCacheKeys, BrowserConstants, BrowserCacheLocation } from "../../src/utils/BrowserConstants";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
@@ -25,8 +25,9 @@ import { RedirectClient } from "../../src/interaction_client/RedirectClient";
 import { PopupClient } from "../../src/interaction_client/PopupClient";
 import { SilentCacheClient } from "../../src/interaction_client/SilentCacheClient";
 import { SilentRefreshClient } from "../../src/interaction_client/SilentRefreshClient";
-import { EndSessionRequest, BrowserConfigurationAuthError } from "../../src";
+import { BrowserConfigurationAuthError } from "../../src";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
+import { SilentAuthCodeClient } from "../../src/interaction_client/SilentAuthCodeClient";
 
 describe("PublicClientApplication.ts Class Unit Tests", () => {
     let pca: PublicClientApplication;
@@ -170,7 +171,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         it("Multiple concurrent calls to handleRedirectPromise return the same promise", async () => {
             const b64Encode = new Base64Encode();
             const stateString = TEST_STATE_VALUES.TEST_STATE_REDIRECT;
-            const browserCrypto = new CryptoOps();
+            const browserCrypto = new CryptoOps(new Logger({}));
             const stateId = ProtocolUtils.parseRequestState(browserCrypto, stateString).libraryState.id;
 
             window.sessionStorage.setItem(`${Constants.CACHE_PREFIX}.${TEST_CONFIG.MSAL_CLIENT_ID}.${TemporaryCacheKeys.ORIGIN_URI}`, TEST_URIS.TEST_REDIR_URI);
@@ -707,6 +708,129 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
         });
     });
 
+    describe("acquireTokenByCode", () => {
+        it("Calls SilentAuthCodeClient.acquireToken and returns its response", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            const silentClientSpy = sinon.stub(SilentAuthCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
+
+            const response = await pca.acquireTokenByCode({
+                code: "auth-code"
+            });
+            expect(response).toEqual(testTokenResponse);
+            expect(silentClientSpy.calledWith({
+                code: "auth-code"
+            })).toBe(true);
+        });
+
+        it("calls SilentAuthCodeClient.acquireToken once if multiple concurrent calls are made", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            const silentClientSpy = sinon.stub(SilentAuthCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
+
+            const [
+                response,
+                response2
+            ] = await Promise.all([
+                pca.acquireTokenByCode({
+                    code: "auth-code"
+                }),
+                pca.acquireTokenByCode({
+                    code: "auth-code"
+                })
+            ]);
+
+            expect(response).toEqual(testTokenResponse);
+            expect(response2).toEqual(testTokenResponse);
+            expect(silentClientSpy.callCount).toBe(1);
+            expect(silentClientSpy.calledWith({
+                code: "auth-code"
+            })).toBe(true);
+        });
+
+        it("calls SilentAuthCodeClient.acquireToken twice if multiple serial calls are made", async () => {
+            const testAccount: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: "3338040d-6c67-4c5b-b112-36a304b66dad",
+                username: "AbeLi@microsoft.com"
+            };
+            const testTokenResponse: AuthenticationResult = {
+                authority: TEST_CONFIG.validAuthority,
+                uniqueId: testAccount.localAccountId,
+                tenantId: testAccount.tenantId,
+                scopes: TEST_CONFIG.DEFAULT_SCOPES,
+                idToken: "test-idToken",
+                idTokenClaims: {},
+                accessToken: "test-accessToken",
+                fromCache: false,
+                correlationId: RANDOM_TEST_GUID,
+                expiresOn: new Date(Date.now() + 3600000),
+                account: testAccount,
+                tokenType: AuthenticationScheme.BEARER
+            };
+            const silentClientSpy = sinon.stub(SilentAuthCodeClient.prototype, "acquireToken").resolves(testTokenResponse);
+
+            const response = await pca.acquireTokenByCode({
+                code: "auth-code"
+            });
+
+            const response2 = await pca.acquireTokenByCode({
+                code: "auth-code"
+            });
+
+            expect(response).toEqual(testTokenResponse);
+            expect(response2).toEqual(testTokenResponse);
+            expect(silentClientSpy.callCount).toBe(2);
+            expect(silentClientSpy.calledWith({
+                code: "auth-code"
+            })).toBe(true);
+        });
+
+        it("throws an error if falsey code is provided", () => {
+            expect(pca.acquireTokenByCode({ code: "" })).rejects.toMatchObject(BrowserAuthError.createAuthCodeRequiredError())
+        });
+    });
+
     describe("acquireTokenSilent", () => {
         it("throws No Account error if no account is provided", async () => {
             await expect(pca.acquireTokenSilent({scopes: []})).rejects.toMatchObject(BrowserAuthError.createNoAccountError());
@@ -853,12 +977,14 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER
             };
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+            sinon.stub(CryptoOps.prototype, "hashString").resolves(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
             const silentATStub = sinon.stub(RefreshTokenClient.prototype, "acquireTokenByRefreshToken").resolves(testTokenResponse);
             const tokenRequest: CommonSilentFlowRequest = {
                 scopes: ["User.Read"],
                 account: testAccount,
                 authority: TEST_CONFIG.validAuthority,
                 authenticationScheme: AuthenticationScheme.BEARER,
+                claims: JSON.stringify({claim: "claim"}),
                 correlationId: TEST_CONFIG.CORRELATION_ID,
                 forceRefresh: false
             };
@@ -867,8 +993,11 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 scopes: ["User.Read"],
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 correlationId: RANDOM_TEST_GUID,
+                claims: JSON.stringify({claim: "claim"}),
+                requestedClaimsHash: TEST_CRYPTO_VALUES.TEST_SHA256_HASH,
                 forceRefresh: false
             };
+
             const silentRequest1 = pca.acquireTokenSilent(tokenRequest);
             const silentRequest2 = pca.acquireTokenSilent(tokenRequest);
             const silentRequest3 = pca.acquireTokenSilent(tokenRequest);
@@ -924,6 +1053,7 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 tokenType: AuthenticationScheme.BEARER
             };
             sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
+            sinon.stub(CryptoOps.prototype, "hashString").resolves(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
             const silentATStub = sinon.stub(RefreshTokenClient.prototype, "acquireTokenByRefreshToken").resolves(testTokenResponse);
             // Beaerer requests
             const tokenRequest1: CommonSilentFlowRequest = {
@@ -995,19 +1125,115 @@ describe("PublicClientApplication.ts Class Unit Tests", () => {
                 forceRefresh: false
             };
 
+            // SSH Certificate requests
+            const sshCertRequest1: CommonSilentFlowRequest = {
+                scopes: ["User.Read"],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: AuthenticationScheme.SSH,
+                sshJwk: TEST_SSH_VALUES.ENCODED_SSH_JWK,
+                sshKid: TEST_SSH_VALUES.SSH_KID,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false
+            }
+
+            const sshCertRequest2: CommonSilentFlowRequest = {
+                scopes: ["Mail.Read"],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: AuthenticationScheme.SSH,
+                sshJwk: TEST_SSH_VALUES.ALTERNATE_ENCODED_SSH_JWK,
+                sshKid: TEST_SSH_VALUES.ALTERNATE_SSH_KID,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false
+            }
+
+            const expectedSshCertificateRequest1: CommonSilentFlowRequest = {
+                ...sshCertRequest1,
+                scopes: ["User.Read"],
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID,
+                forceRefresh: false
+            };
+
+            const expectedSshCertificateRequest2: CommonSilentFlowRequest = {
+                ...sshCertRequest2,
+                scopes: ["Mail.Read"],
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID,
+                forceRefresh: false
+            };
+
+            // Requests with claims
+            const claimsRequest1: CommonSilentFlowRequest = {
+                scopes: ["User.Read"],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: AuthenticationScheme.BEARER,
+                claims: JSON.stringify({ claim1: "claim1"}),
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false
+            }
+
+            const claimsRequest2: CommonSilentFlowRequest = {
+                scopes: ["User.Read"],
+                account: testAccount,
+                authority: TEST_CONFIG.validAuthority,
+                authenticationScheme: AuthenticationScheme.BEARER,
+                claims: JSON.stringify({ claim2: "claim2"}),
+                requestedClaimsHash: TEST_CRYPTO_VALUES.TEST_SHA256_HASH,
+                correlationId: TEST_CONFIG.CORRELATION_ID,
+                forceRefresh: false
+            }
+
+            const expectedClaimsRequest1: CommonSilentFlowRequest = {
+                ...claimsRequest1,
+                scopes: ["User.Read"],
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID,
+                claims: JSON.stringify({ claim1: "claim1"}),
+                requestedClaimsHash: TEST_CRYPTO_VALUES.TEST_SHA256_HASH,
+                forceRefresh: false
+            };
+
+            const expectedClaimsRequest2: CommonSilentFlowRequest = {
+                ...claimsRequest2,
+                scopes: ["User.Read"],
+                authority: `${Constants.DEFAULT_AUTHORITY}`,
+                correlationId: RANDOM_TEST_GUID,
+                claims: JSON.stringify({ claim2: "claim2"}),
+                requestedClaimsHash: TEST_CRYPTO_VALUES.TEST_SHA256_HASH,
+                forceRefresh: false
+            };
+
             const silentRequest1 = pca.acquireTokenSilent(tokenRequest1);
             const silentRequest2 = pca.acquireTokenSilent(tokenRequest1);
             const silentRequest3 = pca.acquireTokenSilent(tokenRequest2);
             const popSilentRequest1 = pca.acquireTokenSilent(popTokenRequest1);
             const popSilentRequest2 = pca.acquireTokenSilent(popTokenRequest1);
             const popSilentRequest3 = pca.acquireTokenSilent(popTokenRequest2);
-            await Promise.all([silentRequest1, silentRequest2, silentRequest3, popSilentRequest1, popSilentRequest2, popSilentRequest3]);
+            const sshCertSilentRequest1 = pca.acquireTokenSilent(sshCertRequest1);
+            const sshCertSilentRequest2 = pca.acquireTokenSilent(sshCertRequest1);
+            const sshCertSilentRequest3 = pca.acquireTokenSilent(sshCertRequest2);
+            const claimsSilentRequest1 = pca.acquireTokenSilent(claimsRequest1);
+            const claimsSilentRequest2 = pca.acquireTokenSilent(claimsRequest1);
+            const claimsSilentRequest3 = pca.acquireTokenSilent(claimsRequest2);
+            await Promise.all([
+                silentRequest1, silentRequest2, silentRequest3,
+                popSilentRequest1, popSilentRequest2, popSilentRequest3,
+                sshCertSilentRequest1, sshCertSilentRequest2, sshCertSilentRequest3,
+                claimsSilentRequest1, claimsSilentRequest2, claimsSilentRequest3
+            ]);
 
             expect(silentATStub.calledWith(expectedTokenRequest1)).toBeTruthy();
             expect(silentATStub.calledWith(expectedTokenRequest2)).toBeTruthy();
             expect(silentATStub.calledWith(expectedPopTokenRequest1)).toBeTruthy();
             expect(silentATStub.calledWith(expectedPopTokenRequest2)).toBeTruthy();
-            expect(silentATStub.callCount).toEqual(4);
+            expect(silentATStub.calledWith(expectedSshCertificateRequest1)).toBeTruthy();
+            expect(silentATStub.calledWith(expectedSshCertificateRequest2)).toBeTruthy();
+            expect(silentATStub.calledWith(expectedClaimsRequest1)).toBeTruthy();
+            expect(silentATStub.calledWith(expectedClaimsRequest2)).toBeTruthy();
+            expect(silentATStub.callCount).toEqual(8);
         });
 
         it("throws error that SilentFlowClient.acquireToken() throws", async () => {

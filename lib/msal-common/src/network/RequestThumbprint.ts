@@ -13,8 +13,10 @@ export type RequestThumbprint = {
     authority: string;
     scopes: Array<string>;
     homeAccountIdentifier?: string;
+    claims?: string;
     authenticationScheme?: AuthenticationScheme;
     resourceRequestMethod?: string;
     resourceRequestUri?: string;
     shrClaims?: string;
+    sshKid?: string;
 };

@@ -56,6 +56,8 @@ export type CredentialFilter = {
     target?: string;
     oboAssertion?: string;
     tokenType?: AuthenticationScheme;
+    keyId?: string;
+    requestedClaimsHash?: string;
 };
 
 /**

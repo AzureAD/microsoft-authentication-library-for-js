@@ -9,7 +9,7 @@
  */
 
 export { PublicClientApplication } from "./app/PublicClientApplication";
-export { Configuration, BrowserAuthOptions, CacheOptions, BrowserSystemOptions } from "./config/Configuration";
+export { Configuration, BrowserAuthOptions, CacheOptions, BrowserSystemOptions, BrowserConfiguration } from "./config/Configuration";
 export { InteractionType, InteractionStatus, BrowserCacheLocation, WrapperSKU, ApiId } from "./utils/BrowserConstants";
 export { BrowserUtils } from "./utils/BrowserUtils";
 
@@ -29,6 +29,7 @@ export { SsoSilentRequest } from "./request/SsoSilentRequest";
 export { EndSessionRequest } from "./request/EndSessionRequest";
 export { EndSessionPopupRequest } from "./request/EndSessionPopupRequest";
 export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
+export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
 
 export { LoadTokenOptions } from "./cache/TokenCache";
 
@@ -36,7 +37,7 @@ export { LoadTokenOptions } from "./cache/TokenCache";
 export { EventMessage, EventPayload, EventError, EventCallbackFunction, EventMessageUtils, PopupEvent } from "./event/EventMessage";
 export { EventType } from "./event/EventType";
 
-export { SignedHttpRequest } from "./crypto/SignedHttpRequest";
+export { SignedHttpRequest, SignedHttpRequestOptions } from "./crypto/SignedHttpRequest";
 
 // Common Object Formats
 export {
@@ -70,7 +71,9 @@ export {
     ExternalTokenResponse,
     // Utils
     StringUtils,
-    UrlString
+    UrlString,
+    AuthenticationHeaderParser,
+    OIDC_DEFAULT_SCOPES
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata";

@@ -1,8 +1,53 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 04 Oct 2021 23:12:35 GMT and should not be manually modified.
+This log was last generated on Tue, 04 Jan 2022 00:20:29 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.21.0
+
+Tue, 04 Jan 2022 00:20:29 GMT
+
+### Minor changes
+
+- Add support for requested claims in silent token acquisition #4296 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v6.0.0
+
+### Patches
+
+- Clear interaction status even if there is no ongoing request #4314 (janutter@microsoft.com)
+
+## 2.20.0
+
+Tue, 07 Dec 2021 00:17:01 GMT
+
+### Minor changes
+
+- Add acquireTokenByCode API for hybrid spa flow #3978 (janutter@microsoft.com)
+- Bump @azure/msal-common to v5.2.0
+
+### Patches
+
+- Fix circular dependencies in AuthenticationHeaderParser and AsyncMemoryStorage #4235 (hemoral@microsoft.com)
+
+## 2.19.0
+
+Mon, 01 Nov 2021 23:53:21 GMT
+
+### Minor changes
+
+- Add support for in-memory storage of token binding keys #4183 (hemoral@microsoft.com)
+- Add support for ephemeral SSH certificate acquisition #4178 (hemoral@microsoft.com)
+- Add support for in-memory storage of token binding keys #4183 (hemoral@microsoft.com)
+- Add support for SHR nonce #3999 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v5.1.0
+
+### Patches
+
+- Add support for different key types in IndexedDB storage #4052 (hemoral@microsoft.com)
+- Ensure correlation is passed to all interaction clients in acquireTokenSilent #4186 (janutter@microsoft.com)
+- Fix typo in noTokenRequestCacheError (#4136) (Michael.Currie@rjwgroup.com)
+- Fix redirect processing when allowRedirectInIframe: true #4142 (thomas.norling@microsoft.com)
 
 ## 2.18.0
 

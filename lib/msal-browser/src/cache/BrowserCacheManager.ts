@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, CcsCredential, CcsCredentialType, IdToken } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, CcsCredential, CcsCredentialType, IdToken, ValidCredentialType } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys, InMemoryCacheKeys } from "../utils/BrowserConstants";
@@ -22,11 +22,11 @@ export class BrowserCacheManager extends CacheManager {
     // Cache configuration, either set by user or default values.
     private cacheConfig: Required<CacheOptions>;
     // Window storage object (either local or sessionStorage)
-    private browserStorage: IWindowStorage;
+    private browserStorage: IWindowStorage<string>;
     // Internal in-memory storage object used for data used by msal that does not need to persist across page loads
-    private internalStorage: MemoryStorage;
+    private internalStorage: MemoryStorage<string>;
     // Temporary cache
-    private temporaryCacheStorage: IWindowStorage;
+    private temporaryCacheStorage: IWindowStorage<string>;
     // Client id of application. Used in cache keys to partition cache correctly in the case of multiple instances of MSAL.
     private logger: Logger;
 
@@ -50,7 +50,7 @@ export class BrowserCacheManager extends CacheManager {
      * Returns a window storage class implementing the IWindowStorage interface that corresponds to the configured cacheLocation.
      * @param cacheLocation
      */
-    private setupBrowserStorage(cacheLocation: BrowserCacheLocation | string): IWindowStorage {
+    private setupBrowserStorage(cacheLocation: BrowserCacheLocation | string): IWindowStorage<string> {
         switch (cacheLocation) {
             case BrowserCacheLocation.LocalStorage:
             case BrowserCacheLocation.SessionStorage:
@@ -73,7 +73,7 @@ export class BrowserCacheManager extends CacheManager {
      *
      * @param cacheLocation
      */
-    private setupTemporaryCacheStorage(cacheLocation: BrowserCacheLocation | string): IWindowStorage {
+    private setupTemporaryCacheStorage(cacheLocation: BrowserCacheLocation | string): IWindowStorage<string> {
         switch (cacheLocation) {
             case BrowserCacheLocation.LocalStorage:
             case BrowserCacheLocation.SessionStorage:
@@ -853,6 +853,7 @@ export class BrowserCacheManager extends CacheManager {
             }
         });
         this.clearMsalCookies();
+        this.setInteractionInProgress(false);
     }
 
     cacheCodeRequest(authCodeRequest: CommonAuthorizationCodeRequest, browserCrypto: ICrypto): void {
@@ -954,6 +955,27 @@ export class BrowserCacheManager extends CacheManager {
         }
 
         return null;
+    }
+
+    /**
+     * Updates a credential's cache key if the current cache key is outdated
+     */
+    updateCredentialCacheKey(currentCacheKey: string, credential: ValidCredentialType): string {
+        const updatedCacheKey = credential.generateCredentialKey();
+
+        if (currentCacheKey !== updatedCacheKey) {
+            const cacheItem = this.getItem(currentCacheKey);
+            if (cacheItem) {
+                this.removeItem(currentCacheKey);
+                this.setItem(updatedCacheKey, cacheItem);
+                this.logger.verbose(`Updated an outdated ${credential.credentialType} cache key`);
+                return updatedCacheKey;
+            } else {
+                this.logger.error(`Attempted to update an outdated ${credential.credentialType} cache key but no item matching the outdated key was found in storage`);
+            }
+        }
+
+        return currentCacheKey;
     }
 }
 

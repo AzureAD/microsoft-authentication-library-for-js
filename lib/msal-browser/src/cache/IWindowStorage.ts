@@ -3,19 +3,19 @@
  * Licensed under the MIT License.
  */
 
-export interface IWindowStorage {
+export interface IWindowStorage<T> {
     /**
      * Get the item from the window storage object matching the given key.
      * @param key 
      */
-    getItem(key: string): string | null;
+    getItem(key: string): T | null;
 
     /**
      * Sets the item in the window storage object with the given key.
      * @param key 
      * @param value 
      */
-    setItem(key: string, value: string): void;
+    setItem(key: string, value: T): void;
 
     /**
      * Removes the item in the window storage object matching the given key.

@@ -18,7 +18,7 @@ describe("BrowserCacheManager tests", () => {
 
     let cacheConfig: Required<CacheOptions>;
     let logger: Logger;
-    const browserCrypto = new CryptoOps();
+    let browserCrypto: CryptoOps;
     beforeEach(() => {
         cacheConfig = {
             cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -29,6 +29,7 @@ describe("BrowserCacheManager tests", () => {
             loggerCallback: (level: LogLevel, message: string, containsPii: boolean): void => {},
             piiLoggingEnabled: true
         });
+        browserCrypto = new CryptoOps(logger);
     });
 
     afterEach(() => {
@@ -953,7 +954,7 @@ describe("BrowserCacheManager tests", () => {
 
         it("Throws error if request cannot be retrieved from cache", async () => {
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
-            const cryptoObj = new CryptoOps();
+            const cryptoObj = new CryptoOps(logger);
             // browserStorage.setItem(TemporaryCacheKeys.REQUEST_PARAMS, cryptoObj.base64Encode(JSON.stringify(tokenRequest)));
 
             expect(() => browserStorage.getCachedRequest(RANDOM_TEST_GUID, cryptoObj)).toThrowError(BrowserAuthErrorMessage.noTokenRequestCacheError.desc);
@@ -965,7 +966,7 @@ describe("BrowserCacheManager tests", () => {
                 dbStorage = {};
             });
             const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, cacheConfig, browserCrypto, logger);
-            const cryptoObj = new CryptoOps();
+            const cryptoObj = new CryptoOps(logger);
             const tokenRequest: AuthorizationCodeRequest = {
                 redirectUri: `${TEST_URIS.DEFAULT_INSTANCE}`,
                 scopes: [Constants.OPENID_SCOPE, Constants.PROFILE_SCOPE],
@@ -1052,6 +1053,20 @@ describe("BrowserCacheManager tests", () => {
             browserStorage.setTemporaryCache(`${TemporaryCacheKeys.REQUEST_STATE}.${RANDOM_TEST_GUID}`, state, true);
             browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
             expect(browserStorage.getKeys()).toHaveLength(0);
+        });
+        it("cleanRequestByInteractionType() interaction status even no request is in progress", () => {
+            let dbStorage = {};
+            sinon.stub(DatabaseStorage.prototype, "open").callsFake(async (): Promise<void> => {
+                dbStorage = {};
+            });
+            const browserStorage = new BrowserCacheManager(TEST_CONFIG.MSAL_CLIENT_ID, {
+                ...cacheConfig,
+                storeAuthStateInCookie: true
+            }, browserCrypto, logger);
+            
+            browserStorage.setInteractionInProgress(true);
+            browserStorage.cleanRequestByInteractionType(InteractionType.Redirect);
+            expect(browserStorage.getInteractionInProgress()).toBeFalsy();
         });
 
         describe("getAccountInfoByFilter", () => {

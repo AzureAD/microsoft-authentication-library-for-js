@@ -13,7 +13,7 @@ import { AccountInfo } from "../account/AccountInfo";
  * - account                - An account object representation of the currently signed-in user
  * - idToken                - Id token received as part of the response
  * - idTokenClaims          - MSAL-relevant ID token claims
- * - accessToken            - Access token received as part of the response
+ * - accessToken            - Access token or SSH certificate received as part of the response
  * - fromCache              - Boolean denoting whether token came from cache
  * - expiresOn              - Javascript Date object representing relative expiration of access token
  * - extExpiresOn           - Javascript Date object representing extended relative expiration of access token in case of server outage
@@ -37,5 +37,6 @@ export type AuthenticationResult = {
     state?: string;
     familyId?: string;
     cloudGraphHostName?: string;
-    msGraphHost?: string; 
+    msGraphHost?: string;
+    code?: string;
 };

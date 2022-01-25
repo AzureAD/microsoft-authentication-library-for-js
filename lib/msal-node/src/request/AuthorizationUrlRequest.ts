@@ -33,7 +33,7 @@ import { CommonAuthorizationUrlRequest } from "@azure/msal-common";
  * - nonce                      - A value included in the request that is returned in the id token. A randomly generated unique value is typically used to mitigate replay attacks.
  * @public
  */
-export type AuthorizationUrlRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes"|"redirectUri"|"resourceRequestMethod"|"resourceRequestUri"|"authenticationScheme">> & {
+export type AuthorizationUrlRequest = Partial<Omit<CommonAuthorizationUrlRequest, "scopes"|"redirectUri"|"resourceRequestMethod"|"resourceRequestUri"|"authenticationScheme"|"requestedClaimsHash">> & {
     scopes: Array<string>;
     redirectUri: string;
 };

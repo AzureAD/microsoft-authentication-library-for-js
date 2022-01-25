@@ -21,7 +21,7 @@ export class RedirectClient extends StandardInteractionClient {
      * @param request 
      */
     async acquireToken(request: RedirectRequest): Promise<void> {
-        const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Redirect);
+        const validRequest: AuthorizationUrlRequest = await this.preflightInteractiveRequest(request, InteractionType.Redirect);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect);
 
         try {
@@ -83,7 +83,6 @@ export class RedirectClient extends StandardInteractionClient {
             let state: string;
             try {
                 state = this.validateAndExtractStateFromHash(responseHash, InteractionType.Redirect);
-                BrowserUtils.clearHash(window);
                 this.logger.verbose("State extracted from hash");
             } catch (e) {
                 this.logger.info(`handleRedirectPromise was unable to extract state due to: ${e}`);
@@ -110,7 +109,7 @@ export class RedirectClient extends StandardInteractionClient {
             } else if (!this.config.auth.navigateToLoginRequestUrl) {
                 this.logger.verbose("NavigateToLoginRequestUrl set to false, handling hash");
                 return this.handleHash(responseHash, state, serverTelemetryManager);
-            } else if (!BrowserUtils.isInIframe()) {
+            } else if (!BrowserUtils.isInIframe() || this.config.system.allowRedirectInIframe) {
                 /*
                  * Returned from authority using redirect - need to perform navigation before processing response
                  * Cache the hash to be retrieved after the next redirect
@@ -166,13 +165,15 @@ export class RedirectClient extends StandardInteractionClient {
         this.logger.verbose("getRedirectResponseHash called");
         // Get current location hash from window or cache.
         const isResponseHash: boolean = UrlString.hashContainsKnownProperties(hash);
-        const cachedHash = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.URL_HASH, true);
-        this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH));
 
         if (isResponseHash) {
+            BrowserUtils.clearHash(window);
             this.logger.verbose("Hash contains known properties, returning response hash");
             return hash;
         }
+
+        const cachedHash = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.URL_HASH, true);
+        this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH));
 
         this.logger.verbose("Hash does not contain known properties, returning cached hash");
         return cachedHash;
@@ -196,7 +197,7 @@ export class RedirectClient extends StandardInteractionClient {
         const authClient = await this.createAuthCodeClient(serverTelemetryManager, currentAuthority);
         this.logger.verbose("Auth code client created");
         const interactionHandler = new RedirectHandler(authClient, this.browserStorage, cachedRequest, this.logger, this.browserCrypto);
-        return await interactionHandler.handleCodeResponse(hash, state, authClient.authority, this.networkClient, this.config.auth.clientId);
+        return await interactionHandler.handleCodeResponseFromHash(hash, state, authClient.authority, this.networkClient, this.config.auth.clientId);
     }
 
     /**
