@@ -150,13 +150,10 @@ describe('Auth Code ADFS PPE Tests', () => {
         });
 
         it("Performs acquire token with nonce", async () => {
-            const screenshot = new Screenshot(`${screenshotFolder}/WithNonce`);
+            const screenshot = new Screenshot(`${screenshotFolder}/WithStatee`);
             const NONCE_VALUE = "value_on_nonce";
-            await page.goto(`${homeRoute}/?prompt=login&nonce=${NONCE_VALUE}`, {
-                waitUntil: "load"
-            });
+            await page.goto(`${homeRoute}/?prompt=login&nonce=${NONCE_VALUE}`);
             await enterCredentialsADFS(page, screenshot, username, accountPwd);
-            await page.setDefaultNavigationTimeout(12000);
             await page.waitForFunction(
                 `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
             );
