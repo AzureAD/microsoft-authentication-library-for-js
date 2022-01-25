@@ -4,6 +4,7 @@
  */
 
 const express = require("express");
+const session = require("express-session")
 const msal = require('@azure/msal-node');
 
 /**
@@ -29,6 +30,16 @@ const cachePlugin = require('../cachePlugin')(cacheLocation);
 const scenario = argv.s || "customConfig";
 const config = require(`./config/${scenario}.json`);
 
+const sessionConfig = {
+    secret: 'ENTER_YOUR_SECRET_HERE',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: false, // set this to true on production
+    }
+}
+
+
 // Sample Application Code
 const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
     // Set the port that the express server will listen on
@@ -36,14 +47,25 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
     // Create Express App and Routes
     const app = express();
 
+    app.use(session(sessionConfig));
+
     const requestConfig = scenarioConfig.request;
 
     app.get("/", (req, res) => {
         const { authCodeUrlParameters } = requestConfig;
+
+        const cryptoProvider = new msal.CryptoProvider();
             
         if (req.query) {
             // Check for the state parameter
             if(req.query.state) authCodeUrlParameters.state = req.query.state;
+
+            // Check for nonce parameter
+            if(req.query.nonce){
+                authCodeUrlParameters.nonce = req.query.nonce
+            } else {
+                authCodeUrlParameters.nonce = cryptoProvider.createNewGuid()
+            }
 
             // Check for the prompt parameter
             if (req.query.prompt) authCodeUrlParameters.prompt = req.query.prompt;
@@ -55,6 +77,8 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
             if (req.query.domainHint) authCodeUrlParameters.domainHint = req.query.domainHint;
         }
         
+        req.session.nonce = authCodeUrlParameters.nonce //Switch to a more persistent storage method.
+
         /**
          * MSAL Usage
          * The code below demonstrates the correct usage pattern of the ClientApplicaiton.getAuthCodeUrl API.
@@ -71,7 +95,8 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
     });
 
     app.get("/redirect", (req, res) => {
-        const tokenRequest = { ...requestConfig.tokenRequest, code: req.query.code };
+        const tokenRequest = { ...requestConfig.tokenRequest, code: req.query.code};
+        const authCodeResponse = { nonce :req.session.nonce }
         /**
          * MSAL Usage
          * The code below demonstrates the correct usage pattern of the ClientApplicaiton.acquireTokenByCode API.
@@ -83,7 +108,7 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
          * which can be added to the `Authorization` header in a protected resource request to demonstrate authorization.
          */
 
-        clientApplication.acquireTokenByCode(tokenRequest).then((response) => {
+        clientApplication.acquireTokenByCode(tokenRequest, authCodeResponse).then((response) => {
             console.log("Successfully acquired token using Authorization Code.");
             res.sendStatus(200);
         }).catch((error) => {

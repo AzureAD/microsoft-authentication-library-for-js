@@ -149,6 +149,25 @@ describe('Auth Code ADFS PPE Tests', () => {
             expect(cachedTokens.refreshTokens.length).toBe(1);
         });
 
+        it("Performs acquire token with nonce", async () => {
+            const screenshot = new Screenshot(`${screenshotFolder}/WithNonce`);
+            const NONCE_VALUE = "value_on_nonce";
+            await page.goto(`${homeRoute}/?prompt=login&nonce=${NONCE_VALUE}`);
+            await enterCredentialsADFS(page, screenshot, username, accountPwd);
+            await page.waitForFunction(
+                `window.location.href.startsWith("${SAMPLE_HOME_URL}")`
+            );
+            const url = page.url();
+            expect(url.includes(`nonce=${NONCE_VALUE}`)).toBe(true);
+            const cachedTokens = await NodeCacheTestUtils.waitForTokens(
+                TEST_CACHE_LOCATION,
+                2000
+            );
+            expect(cachedTokens.accessTokens.length).toBe(1);
+            expect(cachedTokens.idTokens.length).toBe(1);
+            expect(cachedTokens.refreshTokens.length).toBe(1);
+        });
+
         it("Performs acquire token with login hint", async () => {
             const USERNAME = "test@domain.abc";
             await page.goto(`${homeRoute}/?prompt=login&loginHint=${USERNAME}`, {waitUntil: "networkidle0"});
