@@ -15,10 +15,10 @@
   "license": "MIT",
   "dependencies": {
     "@azure/msal-node": "^1.0.1",
-    "express": "^4.17.1",
-    "express-session": "^1.17.2"
+    "express": "^4.17.1"
   },
   "devDependencies": {
+    "express-session": "^1.17.2",
     "jest": "^27.0.4"
   }
 }
