@@ -150,7 +150,7 @@ describe('Auth Code ADFS PPE Tests', () => {
         });
 
         it("Performs acquire token with nonce", async () => {
-            const screenshot = new Screenshot(`${screenshotFolder}/WithStatee`);
+            const screenshot = new Screenshot(`${screenshotFolder}/WithState`);
             const NONCE_VALUE = "value_on_nonce";
             await page.goto(`${homeRoute}/?prompt=login&nonce=${NONCE_VALUE}`);
             await enterCredentialsADFS(page, screenshot, username, accountPwd);
