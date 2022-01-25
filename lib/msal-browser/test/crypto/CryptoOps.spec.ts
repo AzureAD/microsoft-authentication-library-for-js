@@ -1,4 +1,4 @@
-import { CryptoOps, CachedKeyPair } from "../../src/crypto/CryptoOps";
+import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { GuidGenerator } from "../../src/crypto/GuidGenerator";
 import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
 import { createHash } from "crypto";
@@ -160,4 +160,15 @@ describe("CryptoOps.ts Unit Tests", () => {
     it("signJwt() throws signingKeyNotFoundInStorage error if signing keypair is not found in storage", async () => {
         expect(cryptoObj.signJwt({}, "testString")).rejects.toThrow(BrowserAuthError.createSigningKeyNotFoundInStorageError("testString"));
     }, 30000);
+
+    it("hashString() returns a valid SHA-256 hash of an input string", async() => {
+        //@ts-ignore
+        jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
+            expect(algorithm).toBe("SHA-256");
+            return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
+        });
+        const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
+        const result = await cryptoObj.hashString("testString");
+        expect(regExp.test(result)).toBe(true);
+    });
 });

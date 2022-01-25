@@ -29,6 +29,7 @@ export { SsoSilentRequest } from "./request/SsoSilentRequest";
 export { EndSessionRequest } from "./request/EndSessionRequest";
 export { EndSessionPopupRequest } from "./request/EndSessionPopupRequest";
 export { AuthorizationUrlRequest } from "./request/AuthorizationUrlRequest";
+export { AuthorizationCodeRequest } from "./request/AuthorizationCodeRequest";
 
 export { LoadTokenOptions } from "./cache/TokenCache";
 
@@ -71,7 +72,8 @@ export {
     // Utils
     StringUtils,
     UrlString,
-    AuthenticationHeaderParser
+    AuthenticationHeaderParser,
+    OIDC_DEFAULT_SCOPES
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata";

@@ -7,7 +7,6 @@ import { BaseClient } from "./BaseClient";
 import { ClientConfiguration } from "../config/ClientConfiguration";
 import { CommonSilentFlowRequest } from "../request/CommonSilentFlowRequest";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { ScopeSet } from "../request/ScopeSet";
 import { AuthToken } from "../account/AuthToken";
 import { TimeUtils } from "../utils/TimeUtils";
 import { RefreshTokenClient } from "./RefreshTokenClient";
@@ -15,8 +14,7 @@ import { ClientAuthError, ClientAuthErrorMessage } from "../error/ClientAuthErro
 import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { CacheRecord } from "../cache/entities/CacheRecord";
-import { AuthenticationScheme, CacheOutcome } from "../utils/Constants";
-import { StringUtils } from "../utils/StringUtils";
+import { CacheOutcome } from "../utils/Constants";
 
 export class SilentFlowClient extends BaseClient {
 
@@ -57,10 +55,6 @@ export class SilentFlowClient extends BaseClient {
             this.serverTelemetryManager?.setCacheOutcome(CacheOutcome.FORCE_REFRESH);
             this.logger.info("SilentFlowClient:acquireCachedToken - Skipping cache because forceRefresh is true.");
             throw ClientAuthError.createRefreshRequiredError();
-        } else if (!StringUtils.isEmptyObj(request.claims)) {
-            // Must refresh due to request parameters.
-            this.logger.info("SilentFlowClient:acquireCachedToken - Skipping cache because claims are requested.");
-            throw ClientAuthError.createRefreshRequiredError();
         }
 
         // We currently do not support silent flow for account === null use cases; This will be revisited for confidential flow usecases
@@ -68,10 +62,9 @@ export class SilentFlowClient extends BaseClient {
             throw ClientAuthError.createNoAccountInSilentRequestError();
         }
 
-        const requestScopes = new ScopeSet(request.scopes || []);
         const environment = request.authority || this.authority.getPreferredCache();
-        const authScheme = request.authenticationScheme || AuthenticationScheme.BEARER;
-        const cacheRecord = this.cacheManager.readCacheRecord(request.account, this.config.authOptions.clientId, requestScopes, environment, authScheme, request.sshKid);
+
+        const cacheRecord = this.cacheManager.readCacheRecord(request.account, this.config.authOptions.clientId, request, environment);
         
         if (!cacheRecord.accessToken) {
             // Must refresh due to non-existent access_token.

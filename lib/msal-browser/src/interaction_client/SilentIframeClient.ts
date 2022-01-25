@@ -40,7 +40,7 @@ export class SilentIframeClient extends StandardInteractionClient {
         }
 
         // Create silent request
-        const silentRequest: AuthorizationUrlRequest = this.initializeAuthorizationRequest({
+        const silentRequest: AuthorizationUrlRequest = await this.initializeAuthorizationRequest({
             ...request,
             prompt: PromptValue.NONE
         }, InteractionType.Silent);
@@ -93,6 +93,6 @@ export class SilentIframeClient extends StandardInteractionClient {
         const state = this.validateAndExtractStateFromHash(hash, InteractionType.Silent, authCodeRequest.correlationId);
 
         // Handle response from hash string
-        return silentHandler.handleCodeResponse(hash, state, authClient.authority, this.networkClient);
+        return silentHandler.handleCodeResponseFromHash(hash, state, authClient.authority, this.networkClient);
     }
 }
