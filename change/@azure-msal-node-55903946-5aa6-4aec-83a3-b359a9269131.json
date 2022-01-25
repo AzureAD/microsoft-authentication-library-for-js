@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Added nonce to msal node",
+  "packageName": "@azure/msal-node",
+  "email": "marionminayo@microsoft.com",
+  "dependentChangeType": "patch"
+}
