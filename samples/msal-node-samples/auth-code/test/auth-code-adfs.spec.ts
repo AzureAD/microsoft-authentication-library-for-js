@@ -154,7 +154,7 @@ describe('Auth Code ADFS PPE Tests', () => {
             const NONCE_VALUE = "value_on_nonce";
             await page.goto(`${homeRoute}/?prompt=login&nonce=${NONCE_VALUE}`, {
                 waitUntil: "load",
-                timeout: 3000000,
+                timeout:0,
             });
             await enterCredentialsADFS(page, screenshot, username, accountPwd);
             await page.waitForFunction(
