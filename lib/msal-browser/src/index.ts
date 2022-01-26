@@ -74,7 +74,8 @@ export {
     UrlString,
     // AzureCloudInstance enum
     AzureCloudInstance,
-    AuthenticationHeaderParser
+    AuthenticationHeaderParser,
+    OIDC_DEFAULT_SCOPES
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata";
