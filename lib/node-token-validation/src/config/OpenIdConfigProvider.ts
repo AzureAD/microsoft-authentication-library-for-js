@@ -1,3 +1,8 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { INetworkModule, Logger, NetworkResponse } from "@azure/msal-common";
 import { ValidationConfigurationError } from "../error/ValidationConfigurationError";
 import { OpenIdConfigResponse } from "../response/OpenIdConfigResponse";
@@ -11,7 +16,7 @@ export class OpenIdConfigProvider {
     constructor(authority: string, networkInterface: INetworkModule, logger: Logger) {
         this.authority = authority;
         this.networkInterface = networkInterface;
-        this.logger = logger
+        this.logger = logger;
     }
 
     async getMetadata(): Promise<NetworkResponse<OpenIdConfigResponse>> {
@@ -49,5 +54,5 @@ export class OpenIdConfigProvider {
 
     static isOpenIdConfigResponse(response: object): boolean {
         return response.hasOwnProperty("jwks_uri");
-    };
+    }
 }

@@ -1,7 +1,11 @@
+/*
+ * Copyright (c) Microsoft Corporation. All rights reserved.
+ * Licensed under the MIT License.
+ */
+
 import { ICrypto, PkceCodes } from "@azure/msal-common";
 
 export class CryptoProvider implements ICrypto {
-
 
     constructor() {
 
