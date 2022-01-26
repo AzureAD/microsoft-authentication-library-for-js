@@ -70,7 +70,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         };
 
         /**
-         * Set logout_hint to be preferred_username from ID Token Claims if present
+         * Set logout_hint to be login_hint from ID Token Claims if present
          * and logoutHint attribute wasn't manually set in logout request
          */
         if (logoutRequest) {
@@ -79,7 +79,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 if(logoutRequest.account) {
                     const logoutHint = this.getLogoutHintFromIdTokenClaims(logoutRequest.account);
                     if (logoutHint) {
-                        this.logger.verbose("Setting logoutHint to preferred_username ID Token Claim value for the account provided");
+                        this.logger.verbose("Setting logoutHint to login_hint ID Token Claim value for the account provided");
                         validLogoutRequest.logoutHint = logoutHint; 
                     }
                 } else {
@@ -117,17 +117,17 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     * Parses preferred_username ID Token Claim out of AccountInfo object to be used as 
+     * Parses login_hint ID Token Claim out of AccountInfo object to be used as 
      * logout_hint in end session request.
      * @param account 
      */
     protected getLogoutHintFromIdTokenClaims(account: AccountInfo): string | null {
         const idTokenClaims: IdTokenClaims | undefined = account.idTokenClaims;
         if (idTokenClaims) {
-            if (idTokenClaims.preferred_username) {
-                return idTokenClaims.preferred_username;
+            if (idTokenClaims.login_hint) {
+                return idTokenClaims.login_hint;
             } else {
-                this.logger.verbose("The ID Token Claims tied to the provided account do not contain a preferred_username claim, logoutHint will not be added to logout request");
+                this.logger.verbose("The ID Token Claims tied to the provided account do not contain a login_hint claim, logoutHint will not be added to logout request");
             }
         } else {
             this.logger.verbose("The provided account does not contain ID Token Claims, logoutHint will not be added to logout request");
