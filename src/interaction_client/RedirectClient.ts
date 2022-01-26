@@ -83,7 +83,6 @@ export class RedirectClient extends StandardInteractionClient {
             let state: string;
             try {
                 state = this.validateAndExtractStateFromHash(responseHash, InteractionType.Redirect);
-                BrowserUtils.clearHash(window);
                 this.logger.verbose("State extracted from hash");
             } catch (e) {
                 this.logger.info(`handleRedirectPromise was unable to extract state due to: ${e}`);
@@ -166,13 +165,15 @@ export class RedirectClient extends StandardInteractionClient {
         this.logger.verbose("getRedirectResponseHash called");
         // Get current location hash from window or cache.
         const isResponseHash: boolean = UrlString.hashContainsKnownProperties(hash);
-        const cachedHash = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.URL_HASH, true);
-        this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH));
 
         if (isResponseHash) {
+            BrowserUtils.clearHash(window);
             this.logger.verbose("Hash contains known properties, returning response hash");
             return hash;
         }
+
+        const cachedHash = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.URL_HASH, true);
+        this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH));
 
         this.logger.verbose("Hash does not contain known properties, returning cached hash");
         return cachedHash;
