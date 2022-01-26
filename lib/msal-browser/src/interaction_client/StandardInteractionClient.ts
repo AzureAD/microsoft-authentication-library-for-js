@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, Logger, ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils } from "@azure/msal-common";
+import { ICrypto, Logger, ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, IdTokenClaims, AccountInfo } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
@@ -69,6 +69,29 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             ...logoutRequest
         };
 
+        /**
+         * Set logout_hint to be preferred_username from ID Token Claims if present
+         * and logoutHint attribute wasn't manually set in logout request
+         */
+        if (logoutRequest) {
+            // If logoutHint isn't set and an account was passed in, try to extract logoutHint from ID Token Claims
+            if (!logoutRequest.logoutHint) {
+                if(logoutRequest.account) {
+                    const logoutHint = this.getLogoutHintFromIdTokenClaims(logoutRequest.account);
+                    if (logoutHint) {
+                        this.logger.verbose("Setting logoutHint to preferred_username ID Token Claim value for the account provided");
+                        validLogoutRequest.logoutHint = logoutHint; 
+                    }
+                } else {
+                    this.logger.verbose("logoutHint was not set and account was not passed into logout request, logoutHint will not be set");
+                }
+            } else {
+                this.logger.verbose("logoutHint has already been set in logoutRequest");
+            }
+        } else {
+            this.logger.verbose("logoutHint will not be set since no logout request was configured");
+        }
+
         /*
          * Only set redirect uri if logout request isn't provided or the set uri isn't null.
          * Otherwise, use passed uri, config, or current page.
@@ -91,6 +114,26 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         }
 
         return validLogoutRequest;
+    }
+
+    /**
+     * Parses preferred_username ID Token Claim out of AccountInfo object to be used as 
+     * logout_hint in end session request.
+     * @param account 
+     */
+    protected getLogoutHintFromIdTokenClaims(account: AccountInfo): string | null {
+        const idTokenClaims: IdTokenClaims | undefined = account.idTokenClaims;
+        if (idTokenClaims) {
+            if (idTokenClaims.preferred_username) {
+                return idTokenClaims.preferred_username;
+            } else {
+                this.logger.verbose("The ID Token Claims tied to the provided account do not contain a preferred_username claim, logoutHint will not be added to logout request");
+            }
+        } else {
+            this.logger.verbose("The provided account does not contain ID Token Claims, logoutHint will not be added to logout request");
+        }
+
+        return null;
     }
 
     /**

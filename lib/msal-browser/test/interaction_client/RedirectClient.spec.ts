@@ -1736,6 +1736,78 @@ describe("RedirectClient", () => {
             redirectClient.logout();
         });
 
+        it("includes logoutHint if it is set on request", (done) => {
+            const logoutHint = "test@user.com";
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
+                done();
+                return Promise.resolve(true);
+            });
+            redirectClient.logout({ logoutHint: logoutHint});
+        });
+
+        it("includes logoutHint from ID token claims if account is passed in and logoutHint is not", (done) => {
+            const logoutHint = "test@user.com";
+            const testIdTokenClaims: TokenClaims = {
+                "ver": "2.0",
+                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "name": "Abe Lincoln",
+                "preferred_username": logoutHint,
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+            };
+
+            const testAccountInfo: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || "",
+                idTokenClaims: testIdTokenClaims
+            };
+
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
+                done();
+                return Promise.resolve(true);
+            });
+            redirectClient.logout({ account: testAccountInfo});
+        });
+
+        it("logoutHint attribute takes precedence over ID Token Claims from provided account when setting logout_hint", (done) => {
+            const logoutHint = "test@user.com";
+            const preferredUsername = "anothertest@user.com";
+            const testIdTokenClaims: TokenClaims = {
+                "ver": "2.0",
+                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "name": "Abe Lincoln",
+                "preferred_username": preferredUsername,
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+            };
+
+            const testAccountInfo: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || "",
+                idTokenClaims: testIdTokenClaims
+            };
+
+            sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
+                expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
+                expect(urlNavigate).not.toContain(`logout_hint=${encodeURIComponent(preferredUsername)}`);
+                done();
+                return Promise.resolve(true);
+            });
+            redirectClient.logout({ account: testAccountInfo, logoutHint: logoutHint });
+        });
+
         it("doesnt navigate if onRedirectNavigate returns false", (done) => {
             const logoutUriSpy = sinon.stub(AuthorizationCodeClient.prototype, "getLogoutUri").returns(testLogoutUrl);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {

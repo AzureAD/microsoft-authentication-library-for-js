@@ -39,6 +39,7 @@ describe("RequestParameterBuilder unit tests", () => {
         requestParameterBuilder.addCodeVerifier(TEST_CONFIG.TEST_VERIFIER);
         requestParameterBuilder.addGrantType(GrantType.DEVICE_CODE_GRANT);
         requestParameterBuilder.addSid(TEST_CONFIG.SID);
+        requestParameterBuilder.addLogoutHint(TEST_CONFIG.LOGIN_HINT);
 
         const requestQueryString = requestParameterBuilder.createQueryString();
         expect(requestQueryString.includes(`${AADServerParamKeys.RESPONSE_TYPE}=${Constants.CODE_RESPONSE_TYPE}`)).toBe(true);
@@ -59,6 +60,7 @@ describe("RequestParameterBuilder unit tests", () => {
         expect(requestQueryString.includes(`${AADServerParamKeys.DEVICE_CODE}=${encodeURIComponent(DEVICE_CODE_RESPONSE.deviceCode)}`)).toBe(true);
         expect(requestQueryString.includes(`${AADServerParamKeys.CODE_VERIFIER}=${encodeURIComponent(TEST_CONFIG.TEST_VERIFIER)}`)).toBe(true);
         expect(requestQueryString.includes(`${SSOTypes.SID}=${encodeURIComponent(TEST_CONFIG.SID)}`)).toBe(true);
+        expect(requestQueryString.includes(`${AADServerParamKeys.LOGOUT_HINT}=${encodeURIComponent(TEST_CONFIG.LOGIN_HINT)}`)).toBe(true);
     });
 
     it("Adds token type and req_cnf correctly for proof-of-possession tokens", () => {
