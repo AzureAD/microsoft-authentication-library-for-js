@@ -95,16 +95,7 @@ export class CryptoOps implements ICrypto {
      * @param request
      */
     async getPublicKeyThumbprint(request: SignedHttpRequestParameters, keyType?: CryptoKeyTypes): Promise<string> {
-        let keyOptions: CryptoKeyOptions;
-
-        switch(keyType) {
-            case CryptoKeyTypes.StkJwk:
-                keyOptions = CryptoKeyConfig.RefreshTokenBinding;
-                break;
-            default:
-                keyOptions = CryptoKeyConfig.AccessTokenBinding;
-                break;
-        }
+        const keyOptions: CryptoKeyOptions = keyType === CryptoKeyTypes.StkJwk ? CryptoKeyConfig.RefreshTokenBinding : CryptoKeyConfig.AccessTokenBinding;
         
         // Generate Keypair
         const keyPair: CryptoKeyPair = await this.browserCrypto.generateKeyPair(keyOptions, CryptoOps.EXTRACTABLE);
