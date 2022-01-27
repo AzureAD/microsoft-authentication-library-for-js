@@ -4,14 +4,21 @@
  */
 
 export const Constants = {
-    DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common/",
-    DEFAULT_JWKS_URI: "https://login.microsoftonline.com/common/discovery/v2.0/keys"
+    DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common/"
 };
+
+/**
+ * HTTP method constants
+ */
+export enum HttpMethod {
+    GET = "get",
+    POST = "post",
+}
 
 /**
  * JWT  constants
  */
- export const JwtConstants = {
+export const JwtConstants = {
     ALGORITHM: "alg",
     RSA_256: "RS256",
     X5T: "x5t", 

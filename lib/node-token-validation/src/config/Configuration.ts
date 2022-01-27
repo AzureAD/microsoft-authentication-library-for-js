@@ -13,20 +13,20 @@ export type Configuration = {
 };
 
 export type TokenValidationOptions = {
+    clientId: string,
     authority: string,
     clockSkew: Number,
-    policyName?: string,
-}
+};
 
 export type SystemOptions = {
     loggerOptions?: LoggerOptions;
     networkClient?: INetworkModule;
-}
+};
 
 export type TokenValidationConfiguration = {
     auth: Required<TokenValidationOptions>,
     system: Required<SystemOptions>
-}
+};
 
 const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
     loggerCallback: (): void => {
@@ -36,10 +36,10 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
     piiLoggingEnabled: false
 };
 
-const DEFAULT_TOKEN_VALIDATION_OPTIONS = {
+const DEFAULT_TOKEN_VALIDATION_OPTIONS: Required<TokenValidationOptions> = {
+    clientId: "",
     authority: Constants.DEFAULT_AUTHORITY,
-    clockSkew: 0,
-    policyName: ""
+    clockSkew: 0
 };
 
 const DEFAULT_SYSTEM_OPTIONS = {
