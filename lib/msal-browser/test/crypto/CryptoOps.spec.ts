@@ -243,7 +243,7 @@ describe("CryptoOps.ts Unit Tests", () => {
         it("throws error if key generation fails", async () => {
             //@ts-ignore
             jest.spyOn(BrowserCrypto.prototype, "generateKeyPair").mockReturnValue(undefined);
-            expect(() => cryptoObj.getPublicKeyThumbprint({})).rejects.toThrow(BrowserAuthError.createKeyGenerationFailedError());
+            expect(() => cryptoObj.getPublicKeyThumbprint({})).rejects.toThrow(BrowserAuthError.createKeyGenerationFailedError("Either the public or private key component is missing from the generated CryptoKeyPair"));
         });
     });
 });

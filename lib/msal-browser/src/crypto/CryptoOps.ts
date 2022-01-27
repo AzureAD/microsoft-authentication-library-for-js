@@ -122,7 +122,7 @@ export class CryptoOps implements ICrypto {
          * errors, but TypeScript requires that the public and private key values are checked because
          * the CryptoKeyPair type lists them as optional.
          */
-        if (!keyPair.publicKey || !keyPair.privateKey) {
+        if (!keyPair || !keyPair.publicKey || !keyPair.privateKey) {
             throw BrowserAuthError.createKeyGenerationFailedError("Either the public or private key component is missing from the generated CryptoKeyPair");
         }
 
