@@ -155,7 +155,6 @@ export class PopupClient extends StandardInteractionClient {
             // Clear cache on logout
             await this.clearCacheOnLogout(validRequest.account);
 
-            this.browserStorage.setInteractionInProgress(true);
             // Initialize the client
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, requestAuthority);
             this.logger.verbose("Auth code client created");

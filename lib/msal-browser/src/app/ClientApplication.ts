@@ -199,8 +199,9 @@ export abstract class ClientApplication {
      */
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         // Preflight request
-        this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
         this.logger.verbose("acquireTokenRedirect called");
+        this.browserStorage.setInteractionInProgress(true);
+        this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
 
         // If logged in, emit acquire token events
         const isLoggedIn = this.getAllAccounts().length > 0;
@@ -235,8 +236,9 @@ export abstract class ClientApplication {
      */
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         try {
-            this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
             this.logger.verbose("acquireTokenPopup called", request.correlationId);
+            this.browserStorage.setInteractionInProgress(true);
+            this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
         } catch (e) {
             // Since this function is syncronous we need to reject
             return Promise.reject(e);
@@ -418,6 +420,7 @@ export abstract class ClientApplication {
      * @param logoutRequest
      */
     async logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void> {
+        this.browserStorage.setInteractionInProgress(true);
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
         const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, logoutRequest?.correlationId);
         return redirectClient.logout(logoutRequest);
@@ -429,6 +432,7 @@ export abstract class ClientApplication {
      */
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void> {
         try{
+            this.browserStorage.setInteractionInProgress(true);
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
             const popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, logoutRequest?.correlationId);
             return popupClient.logout(logoutRequest);
