@@ -254,7 +254,9 @@ export abstract class ClientApplication {
             const usernamePasswordClientConfig = await this.buildOauthClientConfiguration(
                 validRequest.authority,
                 validRequest.correlationId,
-                serverTelemetryManager
+                serverTelemetryManager,
+                undefined,
+                request.azureCloudOptions
             );
             const usernamePasswordClient = new UsernamePasswordClient(usernamePasswordClientConfig);
             this.logger.verbose("Username password client created", validRequest.correlationId);
