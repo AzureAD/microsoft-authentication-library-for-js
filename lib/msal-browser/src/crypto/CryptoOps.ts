@@ -91,17 +91,39 @@ export class CryptoOps implements ICrypto {
     }
 
     /**
+     * Helper method that wraps a generateKeyPair call in a try/catch block
+     * so errors thrown inside generate key pair can be handled upstream
+     * @param keyOptions
+     */
+    private async generateKeyPairHelper(keyOptions: CryptoKeyOptions): Promise<CryptoKeyPair> {
+        // Attempt to generate Keypair
+        try {
+            return await this.browserCrypto.generateKeyPair(keyOptions, CryptoOps.EXTRACTABLE);
+        } catch (error) {
+            // Throw if key could not be generated
+            const errorMessage = (error instanceof Error) ? error.message : undefined;
+            throw BrowserAuthError.createKeyGenerationFailedError(errorMessage);
+        }
+    }
+
+    /**
      * Generates a keypair, stores it and returns a thumbprint
      * @param request
      */
     async getPublicKeyThumbprint(request: SignedHttpRequestParameters, keyType?: CryptoKeyTypes): Promise<string> {
         this.logger.verbose(`getPublicKeyThumbprint called to generate a cryptographic keypair of type ${keyType}`);        
         const keyOptions: CryptoKeyOptions = keyType === CryptoKeyTypes.StkJwk ? CryptoKeyConfig.RefreshTokenBinding : CryptoKeyConfig.AccessTokenBinding;
-        // Generate Keypair
-        const keyPair: CryptoKeyPair = await this.browserCrypto.generateKeyPair(keyOptions, CryptoOps.EXTRACTABLE);
-
-        if (!keyPair || !keyPair.publicKey || !keyPair.privateKey) {
-            throw BrowserAuthError.createKeyGenerationFailedError();
+        
+        // Attempt to generate keypair, helper makes sure to throw if generation fails
+        const keyPair: CryptoKeyPair = await this.generateKeyPairHelper(keyOptions);
+        
+        /**
+         * This check should never evaluate to true because the helper above handles key generation
+         * errors, but TypeScript requires that the public and private key values are checked because
+         * the CryptoKeyPair type lists them as optional.
+         */
+        if (!keyPair.publicKey || !keyPair.privateKey) {
+            throw BrowserAuthError.createKeyGenerationFailedError("Either the public or private key component is missing from the generated CryptoKeyPair");
         }
 
         this.logger.verbose(`Successfully generated ${keyType} keypair`);
