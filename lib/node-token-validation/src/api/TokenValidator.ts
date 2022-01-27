@@ -4,10 +4,10 @@
  */
 
 import { INetworkModule, Logger } from "@azure/msal-common";
-import { jwtVerify, createRemoteJWKSet, JWTVerifyOptions, JWTPayload, JWSHeaderParameters } from "jose";
+import { jwtVerify, createRemoteJWKSet, JWTVerifyOptions, JWTPayload } from "jose";
 import crypto from "crypto";
 import { buildConfiguration, Configuration, TokenValidationConfiguration } from "../config/Configuration";
-import { buildTokenValidationParameters, TokenValidationParameters, TokenInputParameters } from "../config/TokenValidationParameters";
+import { buildTokenValidationParameters, TokenValidationParameters, ValidationParameters } from "../config/TokenValidationParameters";
 import { TokenValidationResponse } from "../response/TokenValidationResponse";
 import { ValidationConfigurationError } from "../error/ValidationConfigurationError";
 import { name, version } from "../packageMetadata";
@@ -27,64 +27,37 @@ export class TokenValidator {
         this.openIdConfigProvider = new OpenIdConfigProvider(this.config.auth.authority, this.networkInterface, this.logger);
     }
 
-    async validateToken(token: string, options: TokenInputParameters): Promise<TokenValidationResponse> {
+    async validateToken(token: string, options: TokenValidationParameters): Promise<TokenValidationResponse> {
         this.logger.verbose("validateToken called");
         
         if (!token) {
             throw ValidationConfigurationError.createMissingTokenError();
         }
 
-        const validationParams = await buildTokenValidationParameters(options, this.config);
+        const validationParams: ValidationParameters = await buildTokenValidationParameters(options, this.config);
         this.logger.verbose("ValidationParams built");
             
         const jwks = await this.getJWKS(validationParams);
 
         const jwtVerifyParams: JWTVerifyOptions = {
-            algorithms: await this.setAlgorithmParam(token, jwks, validationParams),
-            issuer: await this.setIssuerParam(token, validationParams),
-            audience: await this.setAudienceParam(token, validationParams),
+            algorithms: validationParams.validAlgorithms,
+            issuer: validationParams.validIssuers,
+            audience: validationParams.validAudiences,
             subject: validationParams.subject
+            // Figure out types here
         };
-
-        // Add custom validation here?
 
         const { payload, protectedHeader } = await jwtVerify(token, jwks, jwtVerifyParams);
 
-        // const tokenType = await this.validateTokenType(protectedHeader, validationParams);
         this.validateClaims(payload, validationParams);
 
         return {
             protectedHeader,
-            payload,
-            // tokenType
+            payload
         };
     }
-
-    async validateTokenType(header: JWSHeaderParameters, options: TokenValidationParameters): Promise<string> {
-        if (!header.typ) {
-            this.logger.verbose("No typ in header");
-        }
-
-        // No valid types in parameters, all token types from header accepted
-        if (!options.validTypes && header.typ) {
-            return header.typ;
-        }
-
-        // TypeValidator set in params, validating
-        if (options.typeValidator && options.validTypes) {
-            return options.typeValidator.validateType(options.validTypes, header, options);
-        }
-
-        // Check if valid types contain header typ
-        if (options.validTypes && header.typ && options.validTypes.indexOf(header.typ) > -1) {
-            return header.typ;
-        }
-
-        // TODO: This needs work
-        throw new Error("invalid type");
-    }
     
-    async getJWKS(validationParams: TokenValidationParameters): Promise<any> {
+    async getJWKS(validationParams: ValidationParameters): Promise<any> {
         this.logger.verbose("getJWKS called");
         
         // Prioritize keystore or jwksUri if provided
@@ -104,47 +77,8 @@ export class TokenValidator {
         return createRemoteJWKSet(new URL(retrievedJwksUri));
     
     }
-
-    async setAlgorithmParam(token: string, jwks: any, options: TokenValidationParameters): Promise<string[]> {
-
-        if (options.algorithmValidator) {
-            this.logger.verbose("algorithmValidator set, validating");
-            const validatedAlgorithm = options.algorithmValidator.validateAlgorithm(options.validAlgorithms, jwks, token, options);
-            if (!validatedAlgorithm) {
-                throw ValidationError.createInvalidAlgorithmError();
-            }
-        }
-        
-        return options.validAlgorithms;
-    }
-
-    async setIssuerParam(token: string, options: TokenValidationParameters): Promise<string[]> {
-
-        if (options.issuerValidator) {
-            this.logger.verbose("issuerValidator set, validating");
-            const validatedIssuer = options.issuerValidator.validateIssuer(options.validIssuers, token, options);
-            if (validatedIssuer.length < 1) {
-                throw ValidationError.createInvalidIssuerError();
-            }
-        }
-
-        return options.validIssuers;
-    }
-
-    async setAudienceParam(token: string, options: TokenValidationParameters): Promise<string[]> {
-
-        if (options.audienceValidator) {
-            this.logger.verbose("audienceValidator set, validating");
-            const validatedAudience = options.audienceValidator.validateAudience(options.validAudiences, token, options);
-            if (!validatedAudience) {
-                throw ValidationError.createInvalidAudienceError();
-            }
-        }
-
-        return options.validAudiences;
-    }
  
-    async validateClaims(payload: JWTPayload, validationParams: TokenValidationParameters): Promise<void> {
+    async validateClaims(payload: JWTPayload, validationParams: ValidationParameters): Promise<void> {
         this.logger.verbose("validateClaims called");
 
         // Validate nonce

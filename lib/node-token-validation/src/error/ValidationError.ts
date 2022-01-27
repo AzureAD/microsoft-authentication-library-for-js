@@ -6,22 +6,6 @@
 import { AuthError } from "@azure/msal-common";
 
 export const ValidationErrorMessage = {
-    invalidAlgorithm: {
-        code: "invalid_algorithm",
-        desc: "Invalid algorithm on token when using custom AlgorithmValidator."
-    },
-    invalidIssuer: {
-        code: "invalid_issuer",
-        desc: "Invalid issuer on token when using custom IssuerValidator."
-    },
-    invalidAudience: {
-        code: "invalid_audience",
-        desc: "Invalid audience on token when using custom AudienceValidator."
-    },
-    invalidSignature: {
-        code: "invalid_signature",
-        desc: "Invalid signature on token when using custom SignatureValidator."
-    },
     invalidNonce: {
         code: "invalid_nonce",
         desc: "Nonce in token does not match nonce set in validation parameters."
@@ -46,22 +30,6 @@ export class ValidationError extends AuthError {
         super(errorCode, errorMessage);
         this.name = "ValidationError";
         Object.setPrototypeOf(this, ValidationError.prototype);
-    }
-
-    static createInvalidAlgorithmError(): ValidationError {
-        return new ValidationError(ValidationErrorMessage.invalidAlgorithm.code, ValidationErrorMessage.invalidAlgorithm.desc);
-    }
-
-    static createInvalidIssuerError(): ValidationError {
-        return new ValidationError(ValidationErrorMessage.invalidIssuer.code, ValidationErrorMessage.invalidIssuer.desc);
-    }
-
-    static createInvalidAudienceError(): ValidationError {
-        return new ValidationError(ValidationErrorMessage.invalidAudience.code, ValidationErrorMessage.invalidAudience.desc);
-    }
-
-    static createInvalidSignatureError(): ValidationError {
-        return new ValidationError(ValidationErrorMessage.invalidSignature.code, ValidationErrorMessage.invalidSignature.desc);
     }
 
     static createInvalidNonceError(): ValidationError {
