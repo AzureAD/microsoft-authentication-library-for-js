@@ -3,29 +3,80 @@
  * Licensed under the MIT License.
  */
 
+import { Configuration } from "./Configuration";
 import { JwtConstants } from "../utils/Constants";
+import { AlgorithmValidator, AudienceValidator, IssuerValidator, LifetimeValidator, SignatureValidator, TypeValidator, IssuerSigningKeyValidator, IssuerSigningKeyResolver, TokenDecryptionKeyResolver } from "../utils/ValidatorUtils";
 
 export type TokenValidationParameters = {
-    algorithm: Array<string>,
-    issuer: string,
-    audience?: string,
-    jweKeyStore?: any,
-    jwksUri?: string,
+    // Valid claims
+    validAlgorithms: Array<string>,
+    validIssuers: Array<string>,
+    validAudiences: Array<string>,
+    validTypes?: Array<string>,
+    // Validator overrides
+    algorithmValidator?: AlgorithmValidator,
+    audienceValidator?: AudienceValidator,
+    issuerValidator?: IssuerValidator,
+    lifetimeValidator?: LifetimeValidator,
+    signatureValidator?: SignatureValidator,
+    typeValidator?: TypeValidator,
+    // Signature validation
+    issuerSigningKeys?: Array<any>,
+    issuerSigningJwksUri?: string,
+    issuerSigningKeyValidator?: IssuerSigningKeyValidator,
+    issuerSigningKeyResolver?: IssuerSigningKeyResolver,
+    // Token decryption
+    tokenDecryptionKeys?: Array<any>,
+    tokenDecryptionKeyResolver?: TokenDecryptionKeyResolver,
+    // Other?
+    requireExpirationTime?: Boolean,
+    requireSignedTokens?: Boolean,
     subject?: string
     nonce?: string,
-    scopes?: Array<string>,
     code?: string,
-    accessToken?: string,
-    tokenMustContainScopes?: Boolean // Default is intersect, can set to contain
+    accessTokenForAtHash?: string,
 };
 
-export function buildTokenValidationParameters(params: TokenValidationParameters): TokenValidationParameters {
+export type TokenInputParameters = {
+    // Valid claims
+    validAlgorithms: Array<string>,
+    validIssuers: Array<string>,
+    validAudiences?: Array<string>,
+    validTypes?: Array<string>,
+    // Validator overrides
+    algorithmValidator?: AlgorithmValidator,
+    audienceValidator?: AudienceValidator,
+    issuerValidator?: IssuerValidator,
+    lifetimeValidator?: LifetimeValidator,
+    signatureValidator?: SignatureValidator,
+    typeValidator?: TypeValidator,
+    // Signature validation
+    issuerSigningKeys?: Array<any>,
+    issuerSigningJwksUri?: string,
+    issuerSigningKeyValidator?: IssuerSigningKeyValidator,
+    issuerSigningKeyResolver?: IssuerSigningKeyResolver,
+    // Token decryption
+    tokenDecryptionKeys?: Array<any>,
+    tokenDecryptionKeyResolver?: TokenDecryptionKeyResolver,
+    // Other?
+    requireExpirationTime?: Boolean,
+    requireSignedTokens?: Boolean,
+    subject?: string
+    nonce?: string,
+    code?: string,
+    accessTokenForAtHash?: string,
+};
+
+export function buildTokenValidationParameters(params: TokenInputParameters, config: Configuration): TokenValidationParameters {
     const DEFAULT_VALIDATION_PARAMS = { // Are there defaults for these? Which ones should not have defaults?
-        algorithm: [JwtConstants.RSA_256],
-        issuer: "",
-        audience: "",
+        validAlgorithms: [JwtConstants.RSA_256],
+        validIssuers: [],
+        validAudiences: [`api://${config.auth.clientId}`, config.auth.clientId], // Is this still needed now in this new library?
+        validTypes: [], // .NET: if not set, all types will be accepted
         jweKeyStore: "",
-        jwksUri: ""
+        issuerSigningJwksUri: "",
+        requireExpirationTime: true,
+        requireSignedTokens: true,
     };
 
     const DEFAULT_ID_TOKEN_PARAMS = {
@@ -35,23 +86,20 @@ export function buildTokenValidationParameters(params: TokenValidationParameters
     };
 
     const DEFAULT_ACCESS_TOKEN_PARAMS = {
-        accessToken: "",
-        tokenMustContainScopes: false
+        accessTokenForAtHash: ""
     };
 
-    const overlayedParams: TokenValidationParameters = {
-        algorithm: params.algorithm || DEFAULT_VALIDATION_PARAMS.algorithm,
-        issuer: params.issuer || DEFAULT_VALIDATION_PARAMS.issuer,
-        audience: params.audience || DEFAULT_VALIDATION_PARAMS.audience,
-        jweKeyStore: params.jweKeyStore || null,
-        jwksUri: params.jwksUri || DEFAULT_VALIDATION_PARAMS.jwksUri,
+    const overlaidParams: TokenValidationParameters = {
+        validAlgorithms: params.validAlgorithms || DEFAULT_VALIDATION_PARAMS.validAlgorithms,
+        validIssuers: params.validIssuers || DEFAULT_VALIDATION_PARAMS.validIssuers,
+        validAudiences: params.validAudiences || DEFAULT_VALIDATION_PARAMS.validAudiences,
+        validTypes: params.validTypes || DEFAULT_VALIDATION_PARAMS.validTypes,
+        issuerSigningJwksUri: params.issuerSigningJwksUri || DEFAULT_VALIDATION_PARAMS.issuerSigningJwksUri,
         subject: params.subject || DEFAULT_ID_TOKEN_PARAMS.subject,
         nonce: params.nonce || DEFAULT_ID_TOKEN_PARAMS.nonce,
-        scopes: params.scopes,
         code: params.code || DEFAULT_ID_TOKEN_PARAMS.code,
-        accessToken: params.accessToken || DEFAULT_ACCESS_TOKEN_PARAMS.accessToken,
-        tokenMustContainScopes: params.tokenMustContainScopes || DEFAULT_ACCESS_TOKEN_PARAMS.tokenMustContainScopes
+        accessTokenForAtHash: params.accessTokenForAtHash || DEFAULT_ACCESS_TOKEN_PARAMS.accessTokenForAtHash
     };
 
-    return overlayedParams;
+    return overlaidParams;
 }

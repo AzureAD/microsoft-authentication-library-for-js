@@ -3,16 +3,16 @@
  * Licensed under the MIT License.
  */
 
-import { AuthError, INetworkModule, Logger, ScopeSet } from "@azure/msal-common";
-import { jwtVerify, createRemoteJWKSet, JWTVerifyOptions, JWTPayload } from "jose";
+import { INetworkModule, Logger } from "@azure/msal-common";
+import { jwtVerify, createRemoteJWKSet, JWTVerifyOptions, JWTPayload, JWSHeaderParameters } from "jose";
 import crypto from "crypto";
 import { buildConfiguration, Configuration, TokenValidationConfiguration } from "../config/Configuration";
-import { buildTokenValidationParameters, TokenValidationParameters } from "../config/TokenValidationParameters";
+import { buildTokenValidationParameters, TokenValidationParameters, TokenInputParameters } from "../config/TokenValidationParameters";
 import { TokenValidationResponse } from "../response/TokenValidationResponse";
 import { ValidationConfigurationError } from "../error/ValidationConfigurationError";
 import { name, version } from "../packageMetadata";
 import { OpenIdConfigProvider } from "../config/OpenIdConfigProvider";
-
+import { ValidationError } from "../error/ValidationError";
 
 export class TokenValidator {
     private config: TokenValidationConfiguration;
@@ -27,47 +27,75 @@ export class TokenValidator {
         this.openIdConfigProvider = new OpenIdConfigProvider(this.config.auth.authority, this.networkInterface, this.logger);
     }
 
-    async validateToken(token: string, options: TokenValidationParameters): Promise<TokenValidationResponse> {
+    async validateToken(token: string, options: TokenInputParameters): Promise<TokenValidationResponse> {
         this.logger.verbose("validateToken called");
         
         if (!token) {
             throw ValidationConfigurationError.createMissingTokenError();
         }
 
-        const validationParams = await buildTokenValidationParameters(options);
+        const validationParams = await buildTokenValidationParameters(options, this.config);
         this.logger.verbose("ValidationParams built");
+            
+        const jwks = await this.getJWKS(validationParams);
 
         const jwtVerifyParams: JWTVerifyOptions = {
-            algorithms: validationParams.algorithm,
-            issuer: validationParams.issuer,
-            audience: validationParams.audience,
+            algorithms: await this.setAlgorithmParam(token, jwks, validationParams),
+            issuer: await this.setIssuerParam(token, validationParams),
+            audience: await this.setAudienceParam(token, validationParams),
             subject: validationParams.subject
         };
 
-        const jwks = await this.getJweKeyStore(validationParams);
+        // Add custom validation here?
 
         const { payload, protectedHeader } = await jwtVerify(token, jwks, jwtVerifyParams);
 
+        // const tokenType = await this.validateTokenType(protectedHeader, validationParams);
         this.validateClaims(payload, validationParams);
 
         return {
             protectedHeader,
-            payload
+            payload,
+            // tokenType
         };
     }
 
-    async getJweKeyStore(validationParams: TokenValidationParameters): Promise<any> {
-        this.logger.verbose("getJweKeyStore called");
+    async validateTokenType(header: JWSHeaderParameters, options: TokenValidationParameters): Promise<string> {
+        if (!header.typ) {
+            this.logger.verbose("No typ in header");
+        }
+
+        // No valid types in parameters, all token types from header accepted
+        if (!options.validTypes && header.typ) {
+            return header.typ;
+        }
+
+        // TypeValidator set in params, validating
+        if (options.typeValidator && options.validTypes) {
+            return options.typeValidator.validateType(options.validTypes, header, options);
+        }
+
+        // Check if valid types contain header typ
+        if (options.validTypes && header.typ && options.validTypes.indexOf(header.typ) > -1) {
+            return header.typ;
+        }
+
+        // TODO: This needs work
+        throw new Error("invalid type");
+    }
+    
+    async getJWKS(validationParams: TokenValidationParameters): Promise<any> {
+        this.logger.verbose("getJWKS called");
         
         // Prioritize keystore or jwksUri if provided
-        if (validationParams.jweKeyStore) {
+        if (validationParams.issuerSigningKeys) {
             this.logger.verbose("JweKeyStore provided");
-            return validationParams.jweKeyStore;
+            return validationParams.issuerSigningKeys;
         } 
         
-        if (validationParams.jwksUri) {
+        if (validationParams.issuerSigningJwksUri) {
             this.logger.verbose("JwksUri provided");
-            return createRemoteJWKSet(new URL(validationParams.jwksUri));
+            return createRemoteJWKSet(new URL(validationParams.issuerSigningJwksUri));
         }
 
         // Do resiliency well-known endpoint thing here
@@ -77,34 +105,47 @@ export class TokenValidator {
     
     }
 
+    async setAlgorithmParam(token: string, jwks: any, options: TokenValidationParameters): Promise<string[]> {
+
+        if (options.algorithmValidator) {
+            this.logger.verbose("algorithmValidator set, validating");
+            const validatedAlgorithm = options.algorithmValidator.validateAlgorithm(options.validAlgorithms, jwks, token, options);
+            if (!validatedAlgorithm) {
+                throw ValidationError.createInvalidAlgorithmError();
+            }
+        }
+        
+        return options.validAlgorithms;
+    }
+
+    async setIssuerParam(token: string, options: TokenValidationParameters): Promise<string[]> {
+
+        if (options.issuerValidator) {
+            this.logger.verbose("issuerValidator set, validating");
+            const validatedIssuer = options.issuerValidator.validateIssuer(options.validIssuers, token, options);
+            if (validatedIssuer.length < 1) {
+                throw ValidationError.createInvalidIssuerError();
+            }
+        }
+
+        return options.validIssuers;
+    }
+
+    async setAudienceParam(token: string, options: TokenValidationParameters): Promise<string[]> {
+
+        if (options.audienceValidator) {
+            this.logger.verbose("audienceValidator set, validating");
+            const validatedAudience = options.audienceValidator.validateAudience(options.validAudiences, token, options);
+            if (!validatedAudience) {
+                throw ValidationError.createInvalidAudienceError();
+            }
+        }
+
+        return options.validAudiences;
+    }
+ 
     async validateClaims(payload: JWTPayload, validationParams: TokenValidationParameters): Promise<void> {
         this.logger.verbose("validateClaims called");
-
-        // Validate B2C policy
-        if (payload.tfp || payload.acr) {
-            this.logger.verbose("Validating B2C policy");
-            if (!this.config.auth.policyName) {
-                this.logger.verbose("B2C token detected but no policy set, cannot validate B2C policy on token");
-            } else {
-                let tokenPolicy: string;
-    
-                if (payload.tfp && typeof payload.tfp === "string") {
-                    tokenPolicy = payload.tfp.toLowerCase();
-                } else if (payload.acr && typeof payload.acr === "string") {
-                    tokenPolicy = payload.acr.toLowerCase();
-                } else {
-                    throw new AuthError("Invalid B2C policy type on token");
-                }
-    
-                if (this.config.auth.policyName.toLowerCase() === tokenPolicy) {
-                    this.logger.verbose("Validated B2C policy");
-                } else {
-                    throw ValidationConfigurationError.createInvalidPolicyError();
-                }
-            }
-        } else if(!payload.tfp && !payload.acr && this.config.auth.policyName) {
-            this.logger.verbose("B2C policy set to be validated, but no B2C policy on token");
-        }
 
         // Validate nonce
         if (payload.nonce) {
@@ -113,16 +154,20 @@ export class TokenValidator {
             } else if (validationParams.nonce === payload.nonce) {
                 this.logger.verbose("Nonce validated");
             } else {
-                throw ValidationConfigurationError.createInvalidNonceError();
+                throw ValidationError.createInvalidNonceError();
             }
         }
 
         // Validate c_hash
         if (payload.c_hash && typeof payload.c_hash === "string") {
             this.logger.verbose("Validating c_hash");
-            if (validationParams.code) {
-                if (!this.checkHashValue(validationParams.code, payload.c_hash)) {
-                    throw ValidationConfigurationError.createInvalidCHashError();
+
+            if (!validationParams.code) {
+                this.logger.verbose("C_hash present on token but code not set in validationParams. Unable to validate c_hash");
+            } else {
+                const hashResult = await this.checkHashValue(validationParams.code, payload.c_hash);
+                if (!hashResult) {
+                    throw ValidationError.createInvalidCHashError();
                 }
             }
         }
@@ -130,23 +175,14 @@ export class TokenValidator {
         // Validate at_hash
         if (payload.at_hash && typeof payload.at_hash === "string") {
             this.logger.verbose("Validating at_hash");
-            if (validationParams.accessToken) {
-                if (!this.checkHashValue(validationParams.accessToken, payload.at_hash)) {
-                    throw ValidationConfigurationError.createInvalidAtHashError();
-                }
-            }
-        }
 
-        // Validate scopes
-        if (payload.scp) {
-            if (typeof payload.scp === 'string' || Array.isArray(payload.scp)) {
-                const scopesAreValid = await this.validateScopes(payload.scp, validationParams);
-                
-                if (!scopesAreValid) {
-                    throw ValidationConfigurationError.createInvalidScopesError();
-                }
+            if (!validationParams.accessTokenForAtHash) {
+                this.logger.verbose("At_hash present on token but access token not set in validationParams. Unable to validate at_hash");
             } else {
-                throw new AuthError("Invalid token scopes");
+                const hashResult = await this.checkHashValue(validationParams.accessTokenForAtHash, payload.at_hash);
+                if (!hashResult) {
+                    throw ValidationError.createInvalidAtHashError();
+                }
             }
         }
     }
@@ -164,27 +200,5 @@ export class TokenValidator {
         const encodedHash = buffer.toString("base64url");
 
         return (hashProvided === encodedHash);
-    }
-
-    async validateScopes(tokenScopes: string|Array<string>, validationParams: TokenValidationParameters): Promise<Boolean> {
-        this.logger.verbose("validateScopes called");
-
-        let paramScopeSet: ScopeSet;
-        if (validationParams.scopes) {
-            paramScopeSet = new ScopeSet(validationParams.scopes);
-        } else {
-            this.logger.verbose("Scopes on token but no scopes required to validate");
-            return true;
-        }
-
-        const tokenScopeSet = typeof tokenScopes === 'string' ? ScopeSet.fromString(tokenScopes) : new ScopeSet(tokenScopes);
-
-        if (validationParams.tokenMustContainScopes && paramScopeSet) {
-            // Must set flag to true for token to fully contain scopes
-            return tokenScopeSet.containsScopeSet(paramScopeSet);
-        } else {
-            // Default is intersect
-            return tokenScopeSet.intersectingScopeSets(paramScopeSet);
-        }
     }
 }

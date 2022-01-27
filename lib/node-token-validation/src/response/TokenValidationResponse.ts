@@ -3,10 +3,12 @@
  * Licensed under the MIT License.
  */
 
+// eslint-disable @typescript-eslint/no-explicit-any
+
 export type TokenValidationResponse = {
-    isValid: boolean;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    protectedHeader: any;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    payload: any;
+    protectedHeader?: any;
+    payload?: any;
+    exception?: any;
+    token?: string;
+    tokenType?: string;
 };
