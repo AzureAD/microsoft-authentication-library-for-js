@@ -3,12 +3,11 @@
  * Licensed under the MIT License.
  */
 
-// eslint-disable @typescript-eslint/no-explicit-any
+import { JWSHeaderParameters, JWTPayload } from "jose";
 
 export type TokenValidationResponse = {
-    protectedHeader?: any;
-    payload?: any;
-    exception?: any;
+    protectedHeader?: JWSHeaderParameters;
+    payload?: JWTPayload;
     token?: string;
     tokenType?: string;
 };

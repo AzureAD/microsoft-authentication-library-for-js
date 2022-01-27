@@ -5,6 +5,7 @@
 
 import { Configuration } from "./Configuration";
 import { JwtConstants } from "../utils/Constants";
+import { KeyLike } from "jose";
 
 export type TokenValidationParameters = {
     // Valid claims
@@ -13,7 +14,7 @@ export type TokenValidationParameters = {
     validAudiences?: Array<string>,
     validTypes?: Array<string>,
     // Signature validation
-    issuerSigningKeys?: Array<any>,
+    issuerSigningKeys?: Array<KeyLike|Uint8Array>,
     issuerSigningJwksUri?: string,
     // Other
     requireExpirationTime?: Boolean,
@@ -31,7 +32,7 @@ export type ValidationParameters = {
     validAudiences: Required<Array<string>>,
     validTypes?: Array<string>,
     // Signature validation
-    issuerSigningKeys?: Array<any>,
+    issuerSigningKeys?: Array<KeyLike|Uint8Array>,
     issuerSigningJwksUri?: string,
     // Other
     requireExpirationTime: Required<Boolean>,
