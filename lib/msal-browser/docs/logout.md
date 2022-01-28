@@ -105,7 +105,7 @@ await msalInstance.logoutPopup({
 
 ## Promptless logout
 
-If your client application has the [login_hint optional claim](https://docs.microsoft.com/en-us/azure/active-directory/develop/active-directory-optional-claims#v10-and-v20-optional-claims-set) enabled for ID Tokens, you can leverage the ID Token's `login_hint` claim to perform a "silent" or promptless logout while using either `logoutRedirect` or `logoutPopup`. There are two ways to achieve a promptless logout:
+If your client application has the [login_hint optional claim](https://docs.microsoft.com/azure/active-directory/develop/active-directory-optional-claims#v10-and-v20-optional-claims-set) enabled for ID Tokens, you can leverage the ID Token's `login_hint` claim to perform a "silent" or promptless logout while using either `logoutRedirect` or `logoutPopup`. There are two ways to achieve a promptless logout:
 
 ### Option 1: Let MSAL automatically parse the login_hint out of the account's ID token claims
 
