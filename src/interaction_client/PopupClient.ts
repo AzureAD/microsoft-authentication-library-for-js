@@ -23,6 +23,7 @@ export class PopupClient extends StandardInteractionClient {
     async acquireToken(request: PopupRequest): Promise<AuthenticationResult> {
         try {
             const validRequest = await this.preflightInteractiveRequest(request, InteractionType.Popup);
+            this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority, validRequest.loginHint || "", validRequest.account || null);
             const popupName = PopupUtils.generatePopupName(this.config.auth.clientId, validRequest);
             const popupWindowAttributes = request.popupWindowAttributes || {};
 
@@ -82,7 +83,7 @@ export class PopupClient extends StandardInteractionClient {
      *
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
-    private async acquireTokenPopupAsync(validRequest: AuthorizationUrlRequest, popupName: string, popupWindowAttributes: PopupWindowAttributes, popup?: Window|null): Promise<AuthenticationResult> {
+    protected async acquireTokenPopupAsync(validRequest: AuthorizationUrlRequest, popupName: string, popupWindowAttributes: PopupWindowAttributes, popup?: Window|null): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenPopupAsync called");
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup);
 
@@ -145,7 +146,7 @@ export class PopupClient extends StandardInteractionClient {
      * @param mainWindowRedirectUri 
      * @param popupWindowAttributes 
      */
-    private async logoutPopupAsync(validRequest: CommonEndSessionRequest, popupName: string, popupWindowAttributes: PopupWindowAttributes, requestAuthority?: string, popup?: Window|null, mainWindowRedirectUri?: string): Promise<void> {
+    protected async logoutPopupAsync(validRequest: CommonEndSessionRequest, popupName: string, popupWindowAttributes: PopupWindowAttributes, requestAuthority?: string, popup?: Window|null, mainWindowRedirectUri?: string): Promise<void> {
         this.logger.verbose("logoutPopupAsync called");
         this.eventHandler.emitEvent(EventType.LOGOUT_START, InteractionType.Popup, validRequest);
 
@@ -189,7 +190,7 @@ export class PopupClient extends StandardInteractionClient {
                 const absoluteUrl = UrlString.getAbsoluteUrl(mainWindowRedirectUri, BrowserUtils.getCurrentUri());
 
                 this.logger.verbose("Redirecting main window to url specified in the request");
-                this.logger.verbosePii(`Redirecting main window to: ${absoluteUrl}`);
+                this.logger.verbosePii(`Redirecing main window to: ${absoluteUrl}`);
                 this.navigationClient.navigateInternal(absoluteUrl, navigationOptions);
             } else {
                 this.logger.verbose("No main window navigation requested");

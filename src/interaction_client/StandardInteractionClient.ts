@@ -220,17 +220,16 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         const browserState: BrowserStateObject = {
             interactionType: interactionType
         };
-
-        const state = ProtocolUtils.setRequestState(
+        const reqState = ProtocolUtils.setRequestState(
             this.browserCrypto,
-            (request && request.state) || "",
+            request.state || Constants.EMPTY_STRING,
             browserState
         );
 
         const validatedRequest: AuthorizationUrlRequest = {
             ...await this.initializeBaseRequest(request),
             redirectUri: redirectUri,
-            state: state,
+            state: reqState,
             nonce: request.nonce || this.browserCrypto.createNewGuid(),
             responseMode: ResponseMode.FRAGMENT
         };
@@ -249,8 +248,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 validatedRequest.loginHint = legacyLoginHint;
             }
         }
-
-        this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority, validatedRequest.loginHint || "", validatedRequest.account || null);
 
         return validatedRequest;
     }
