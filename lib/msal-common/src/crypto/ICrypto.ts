@@ -62,6 +62,11 @@ export interface ICrypto {
      */
     signJwt(payload: SignedHttpRequest, kid: string): Promise<string>;
     /**
+     * Returns the SHA-256 hash of an input string
+     * @param plainText
+     */
+    hashString(plainText: string): Promise<string>;
+    /**
      * Returns the public key from an asymmetric key pair stored in IndexedDB based on the
      * public key thumbprint parameter
      * @param keyThumbprint
@@ -100,6 +105,10 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     },
     async signJwt(): Promise<string> {
         const notImplErr = "Crypto interface - signJwt() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async hashString(): Promise<string> {
+        const notImplErr = "Crypto interface - hashString() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
     },
     async getAsymmetricPublicKey(): Promise<string> {

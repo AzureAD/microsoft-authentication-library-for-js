@@ -13,6 +13,6 @@ import { CommonClientCredentialRequest } from "@azure/msal-common";
  * - skipCache               - Skip token cache lookup and force request to authority to get a a new token. Defaults to false.
  * @public
  */
-export type ClientCredentialRequest = Partial<Omit<CommonClientCredentialRequest, "scopes"|"resourceRequestMethod"|"resourceRequestUri">> & {
+export type ClientCredentialRequest = Partial<Omit<CommonClientCredentialRequest, "scopes"|"resourceRequestMethod"|"resourceRequestUri"|"requestedClaimsHash">> & {
     scopes: Array<string>;
 };

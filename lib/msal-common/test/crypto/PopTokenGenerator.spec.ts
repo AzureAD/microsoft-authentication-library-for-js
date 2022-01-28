@@ -1,11 +1,11 @@
 import sinon from "sinon";
-import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS } from "../test_kit/StringConstants";
+import { RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_DATA_CLIENT_INFO, TEST_CONFIG, TEST_URIS, TEST_CRYPTO_VALUES } from "../test_kit/StringConstants";
 import { PopTokenGenerator } from "../../src/crypto/PopTokenGenerator";
 import { ICrypto, PkceCodes } from "../../src/crypto/ICrypto";
 import { BaseAuthRequest } from "../../src/request/BaseAuthRequest";
 import { TimeUtils } from "../../src/utils/TimeUtils";
 import { UrlString } from "../../src/url/UrlString";
-import { AuthenticationScheme } from "../../src/utils/Constants";
+import { AuthenticationScheme, CryptoKeyTypes } from "../../src/utils/Constants";
 import { SignedHttpRequest } from "../../src/crypto/SignedHttpRequest";
 
 describe("PopTokenGenerator Unit Tests", () => {
@@ -62,10 +62,42 @@ describe("PopTokenGenerator Unit Tests", () => {
         async clearKeystore(): Promise<boolean> {
             return Promise.resolve(true);
         },
+        async hashString(): Promise<string> {
+            return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
+        },
         async getAsymmetricPublicKey(): Promise<string> {
             return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
         }
     };
+
+    let popTokenGenerator: PopTokenGenerator;
+
+    const testPopRequest = {
+        authority: TEST_CONFIG.validAuthority,
+        scopes: TEST_CONFIG.DEFAULT_GRAPH_SCOPE,
+        correlationId: TEST_CONFIG.CORRELATION_ID,
+        authenticationScheme: AuthenticationScheme.POP,
+        resourceRequestMethod:"POST",
+        resourceRequestUrl: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS
+    };
+
+    beforeEach(() => {
+        popTokenGenerator = new PopTokenGenerator(cryptoInterface);
+    });
+
+    describe("generateCnf", () => {
+        it("generates the req_cnf correctly", async () => {
+            const reqCnf = await popTokenGenerator.generateCnf(testPopRequest);
+            expect(reqCnf).toBe(TEST_POP_VALUES.ENCODED_REQ_CNF);
+        });
+    });
+
+    describe("generateKid", () => {
+        it("returns the correct kid and key storage location", async () => {
+            const reqCnf = await popTokenGenerator.generateKid(testPopRequest, CryptoKeyTypes.ReqCnf);
+            expect(reqCnf).toStrictEqual(JSON.parse(TEST_POP_VALUES.DECODED_REQ_CNF));
+        });
+    });
 
     describe("signPopToken", () => {
         let currTime: number;

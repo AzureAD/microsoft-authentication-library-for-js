@@ -138,11 +138,11 @@ export class AuthorizationCodeClient extends BaseClient {
             clientId: this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
             scopes: request.scopes,
+            claims: request.claims,
             authenticationScheme: request.authenticationScheme,
             resourceRequestMethod: request.resourceRequestMethod,
             resourceRequestUri: request.resourceRequestUri,
             shrClaims: request.shrClaims,
-            sshJwk: request.sshJwk,
             sshKid: request.sshKid
         };
 
@@ -235,7 +235,7 @@ export class AuthorizationCodeClient extends BaseClient {
         parameterBuilder.addClientInfo();
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
-            const cnfString = await this.cryptoKeyManager.generateCnf(request);
+            const cnfString = await this.popTokenGenerator.generateCnf(request);
             parameterBuilder.addPopToken(cnfString);
         } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
             if(request.sshJwk) {
@@ -246,7 +246,7 @@ export class AuthorizationCodeClient extends BaseClient {
         }
 
         if (request.stkJwk) {
-            const stkJwk = await this.cryptoKeyManager.retrieveAsymmetricPublicKey(request.stkJwk);
+            const stkJwk = await this.popTokenGenerator.retrieveAsymmetricPublicKey(request.stkJwk);
             parameterBuilder.addStkJwk(stkJwk);
         }
 

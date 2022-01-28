@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add support for hybrid spa flow #3478",
-  "packageName": "@azure/msal-node",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "patch"
-}
