@@ -1743,7 +1743,7 @@ describe("RedirectClient", () => {
                 done();
                 return Promise.resolve(true);
             });
-            redirectClient.logout({ logoutHint: logoutHint});
+            redirectClient.logout({ logoutHint: logoutHint });
         });
 
         it("includes logoutHint from ID token claims if account is passed in and logoutHint is not", (done) => {
@@ -1753,10 +1753,11 @@ describe("RedirectClient", () => {
                 "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
                 "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
                 "name": "Abe Lincoln",
-                "preferred_username": logoutHint,
+                "preferred_username": "AbeLi@microsoft.com",
                 "oid": "00000000-0000-0000-66f3-3332eca7ea81",
                 "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
                 "nonce": "123523",
+                "login_hint": logoutHint
             };
 
             const testAccountInfo: AccountInfo = {
@@ -1773,21 +1774,22 @@ describe("RedirectClient", () => {
                 done();
                 return Promise.resolve(true);
             });
-            redirectClient.logout({ account: testAccountInfo});
+            redirectClient.logout({ account: testAccountInfo });
         });
 
         it("logoutHint attribute takes precedence over ID Token Claims from provided account when setting logout_hint", (done) => {
             const logoutHint = "test@user.com";
-            const preferredUsername = "anothertest@user.com";
+            const loginHint = "anothertest@user.com";
             const testIdTokenClaims: TokenClaims = {
                 "ver": "2.0",
                 "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
                 "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
                 "name": "Abe Lincoln",
-                "preferred_username": preferredUsername,
+                "preferred_username": "AbeLi@microsoft.com",
                 "oid": "00000000-0000-0000-66f3-3332eca7ea81",
                 "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
                 "nonce": "123523",
+                "login_hint": loginHint
             };
 
             const testAccountInfo: AccountInfo = {
@@ -1801,7 +1803,7 @@ describe("RedirectClient", () => {
 
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
-                expect(urlNavigate).not.toContain(`logout_hint=${encodeURIComponent(preferredUsername)}`);
+                expect(urlNavigate).not.toContain(`logout_hint=${encodeURIComponent(loginHint)}`);
                 done();
                 return Promise.resolve(true);
             });

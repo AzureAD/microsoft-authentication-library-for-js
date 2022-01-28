@@ -437,10 +437,11 @@ describe("PopupClient", () => {
                 "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
                 "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
                 "name": "Abe Lincoln",
-                "preferred_username": logoutHint,
+                "preferred_username": "AbeLi@microsoft.com",
                 "oid": "00000000-0000-0000-66f3-3332eca7ea81",
                 "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
                 "nonce": "123523",
+                "login_hint": logoutHint
             };
 
             const testAccountInfo: AccountInfo = {
@@ -476,16 +477,17 @@ describe("PopupClient", () => {
             //@ts-ignore
             popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
             const logoutHint = "test@user.com";
-            const preferredUsername = "anothertest@user.com";
+            const loginHint = "anothertest@user.com";
             const testIdTokenClaims: TokenClaims = {
                 "ver": "2.0",
                 "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
                 "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
                 "name": "Abe Lincoln",
-                "preferred_username": preferredUsername,
+                "preferred_username": "AbeLi@microsoft.com",
                 "oid": "00000000-0000-0000-66f3-3332eca7ea81",
                 "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
                 "nonce": "123523",
+                "login_hint": loginHint
             };
 
             const testAccountInfo: AccountInfo = {
@@ -499,7 +501,7 @@ describe("PopupClient", () => {
 
             sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
                 expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
-                expect(urlNavigate).not.toContain(`logout_hint=${encodeURIComponent(preferredUsername)}`);
+                expect(urlNavigate).not.toContain(`logout_hint=${encodeURIComponent(loginHint)}`);
                 done();
                 throw "Stop Test";
             });
