@@ -59,7 +59,7 @@ export abstract class ClientApplication {
     protected eventHandler: EventHandler;
 
     // Redirect Response Object
-    private redirectResponse: Map<string, Promise<AuthenticationResult | null>>;
+    protected redirectResponse: Map<string, Promise<AuthenticationResult | null>>;
 
     // Hybrid auth code responses
     private hybridAuthCodeResponses: Map<string, Promise<AuthenticationResult>>;
