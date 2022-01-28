@@ -108,12 +108,10 @@ jobs:
 
     - name: Upload Test Coverage to CodeCov
       if: success()
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v2
       with:
         files: lib/msal-${{matrix.library}}/coverage/lcov.info
         flags: msal-${{ matrix.library }}
-        root_dir: lib/msal-${{ matrix.library }}
-        gcov_prefix: lib/msal-${{ matrix.library }}
 
   extensions-build-test:
     needs: pre-check
@@ -148,9 +146,7 @@ jobs:
 
     - name: Upload Test Coverage to CodeCov
       if: success()
-      uses: codecov/codecov-action@v1
+      uses: codecov/codecov-action@v2
       with:
         files: extensions/msal-node-extensions/coverage/lcov.info
         flags: msal-node-extensions
-        root_dir: extensions/msal-node-extensions
-        gcov_prefix: extensions/msal-node-extensions
