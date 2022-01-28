@@ -18,9 +18,13 @@ import { ClientAuthError } from "../error/ClientAuthError";
  *      - sw: software storage
  *      - uhw: hardware storage
  */
-type ReqCnf = {
+export type ReqCnf = {
     kid: string;
     xms_ksl: KeyLocation;
+};
+
+export type StkJwkThumbprint = {
+    kid: string;
 };
 
 enum KeyLocation {
