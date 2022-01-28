@@ -12,7 +12,6 @@ import { RequestParameterBuilder } from "../request/RequestParameterBuilder";
 import { GrantType, AuthenticationScheme, Errors  } from "../utils/Constants";
 import { ResponseHandler } from "../response/ResponseHandler";
 import { AuthenticationResult } from "../response/AuthenticationResult";
-import { PopTokenGenerator } from "../crypto/PopTokenGenerator";
 import { StringUtils } from "../utils/StringUtils";
 import { RequestThumbprint } from "../network/RequestThumbprint";
 import { NetworkResponse } from "../network/NetworkManager";
@@ -206,8 +205,7 @@ export class RefreshTokenClient extends BaseClient {
         }
 
         if (request.authenticationScheme === AuthenticationScheme.POP) {
-            const popTokenGenerator = new PopTokenGenerator(this.cryptoUtils);
-            const cnfString = await popTokenGenerator.generateCnf(request);
+            const cnfString = await this.popTokenGenerator.generateCnf(request);
             parameterBuilder.addPopToken(cnfString);
         } else if (request.authenticationScheme === AuthenticationScheme.SSH) {
             if(request.sshJwk) {

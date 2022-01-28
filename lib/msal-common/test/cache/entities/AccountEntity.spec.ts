@@ -64,6 +64,9 @@ const cryptoInterface: ICrypto = {
     },
     async hashString(): Promise<string> {
         return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
+    },
+    async getAsymmetricPublicKey(): Promise<string> {
+        return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;
     }
 };
 

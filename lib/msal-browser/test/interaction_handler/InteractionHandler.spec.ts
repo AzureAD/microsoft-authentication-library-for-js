@@ -108,6 +108,9 @@ const cryptoInterface = {
     },
     hashString: async (): Promise<string> => {
         return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
+    },
+    getAsymmetricPublicKey: async (): Promise<string> => {
+        return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT
     }
 }
 

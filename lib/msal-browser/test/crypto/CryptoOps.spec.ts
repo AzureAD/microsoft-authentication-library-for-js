@@ -1,12 +1,40 @@
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { GuidGenerator } from "../../src/crypto/GuidGenerator";
-import { BrowserCrypto } from "../../src/crypto/BrowserCrypto";
+import { BrowserCrypto, CryptoKeyOptions } from "../../src/crypto/BrowserCrypto";
+import { TEST_URIS, BROWSER_CRYPTO, TEST_POP_VALUES } from "../utils/StringConstants";
 import { createHash } from "crypto";
-import { PkceCodes, BaseAuthRequest, Logger } from "@azure/msal-common";
-import { TEST_URIS } from "../utils/StringConstants";
+import { PkceCodes, BaseAuthRequest, Logger, CryptoKeyTypes, AuthenticationScheme } from "@azure/msal-common";
 import { BrowserAuthError } from "../../src";
-
+import { CryptoKeyUsageSets } from "../../src/utils/CryptoConstants";
 const msrCrypto = require("../polyfills/msrcrypto.min");
+
+const PUBLIC_EXPONENT: Uint8Array = new Uint8Array([0x01, 0x00, 0x01]);
+
+const AccessTokenBindingKeyOptions: CryptoKeyOptions = {
+    keyGenAlgorithmOptions: {
+        name: BROWSER_CRYPTO.PKCS1_V15_KEYGEN_ALG,
+        hash: {
+            name:  BROWSER_CRYPTO.S256_HASH_ALG
+        },
+        modulusLength: BROWSER_CRYPTO.MODULUS_LENGTH,
+        publicExponent: PUBLIC_EXPONENT
+    },
+    keypairUsages: CryptoKeyUsageSets.AccessTokenBinding.Keypair,
+    privateKeyUsage: CryptoKeyUsageSets.AccessTokenBinding.PrivateKey
+};
+
+const RefreshTokenBindingOptions: CryptoKeyOptions = {
+    keyGenAlgorithmOptions: {
+        name: BROWSER_CRYPTO.RSA_OAEP,
+        hash: {
+            name:  BROWSER_CRYPTO.S256_HASH_ALG
+        },
+        modulusLength: BROWSER_CRYPTO.MODULUS_LENGTH,
+        publicExponent: PUBLIC_EXPONENT
+    },
+    keypairUsages: CryptoKeyUsageSets.RefreshTokenBinding.Keypair,
+    privateKeyUsage: CryptoKeyUsageSets.RefreshTokenBinding.PrivateKey
+};
 
 let mockDatabase = {
     "TestDB.keys": {}
@@ -122,27 +150,6 @@ describe("CryptoOps.ts Unit Tests", () => {
         expect(regExp.test(generatedCodes.verifier)).toBe(true);
     });
 
-    it("getPublicKeyThumbprint() generates a valid request thumbprint", async () => {
-        jest.setTimeout(30000);
-        //@ts-ignore
-        jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
-            expect(algorithm).toBe("SHA-256");
-            return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
-        });
-        const generateKeyPairSpy = jest.spyOn(BrowserCrypto.prototype, "generateKeyPair");
-        const exportJwkSpy = jest.spyOn(BrowserCrypto.prototype, "exportJwk");
-        const pkThumbprint = await cryptoObj.getPublicKeyThumbprint({resourceRequestMethod: "POST", resourceRequestUri: TEST_URIS.TEST_AUTH_ENDPT_WITH_PARAMS} as BaseAuthRequest);
-        /**
-         * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
-         */
-        const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
-        expect(generateKeyPairSpy).toHaveBeenCalledWith(true, ["sign", "verify"]);
-        const result = await generateKeyPairSpy.mock.results[0].value;
-        expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
-        expect(regExp.test(pkThumbprint)).toBe(true);
-        expect(mockDatabase["TestDB.keys"][pkThumbprint]).not.toBe(undefined);
-    }, 30000);
-
     it("removeTokenBindingKey() removes the specified key from storage", async () => {
         //@ts-ignore
         jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
@@ -158,7 +165,7 @@ describe("CryptoOps.ts Unit Tests", () => {
     }, 30000);
 
     it("signJwt() throws signingKeyNotFoundInStorage error if signing keypair is not found in storage", async () => {
-        expect(cryptoObj.signJwt({}, "testString")).rejects.toThrow(BrowserAuthError.createSigningKeyNotFoundInStorageError("testString"));
+        expect(cryptoObj.signJwt({}, "testString")).rejects.toThrow(BrowserAuthError.createSigningKeyNotFoundInStorageError());
     }, 30000);
 
     it("hashString() returns a valid SHA-256 hash of an input string", async() => {
@@ -170,5 +177,73 @@ describe("CryptoOps.ts Unit Tests", () => {
         const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
         const result = await cryptoObj.hashString("testString");
         expect(regExp.test(result)).toBe(true);
+    });
+
+    describe("getPublicKeyThumbprint", () => {
+        afterEach(() => {
+            jest.restoreAllMocks();
+        });
+
+        it("generates a valid request thumbprint", async () => {
+            jest.setTimeout(30000);
+            //@ts-ignore
+            jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
+                expect(algorithm).toBe("SHA-256");
+                return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
+            });
+            const generateKeyPairSpy = jest.spyOn(BrowserCrypto.prototype, "generateKeyPair");
+            const exportJwkSpy = jest.spyOn(BrowserCrypto.prototype, "exportJwk");
+            
+            const keyType = CryptoKeyTypes.ReqCnf;
+    
+            const testRequest = {
+                authenticationScheme: AuthenticationScheme.POP,
+                resourceRequestMethod:"POST",
+                resourceRequestUrl: TEST_URIS.TEST_RESOURCE_ENDPT_WITH_PARAMS,
+                stkJwk: TEST_POP_VALUES.KID
+            };
+            
+            const pkThumbprint = await cryptoObj.getPublicKeyThumbprint(testRequest, keyType);
+            /**
+             * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
+             */
+            const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
+            const result = await generateKeyPairSpy.mock.results[0].value;
+            expect(result.publicKey.algorithm.name.toLowerCase()).toEqual(AccessTokenBindingKeyOptions.keyGenAlgorithmOptions.name.toLowerCase());
+            expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
+            expect(regExp.test(pkThumbprint)).toBe(true);
+            expect(mockDatabase["TestDB.keys"][pkThumbprint]).not.toBe(undefined);
+        }, 30000);
+
+        it("generates a valid stk_jwk thumbprint", async () => {
+            //@ts-ignore
+            jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
+                expect(algorithm).toBe("SHA-256");
+                return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
+            });
+            const generateKeyPairSpy = jest.spyOn(BrowserCrypto.prototype, "generateKeyPair");
+            const exportJwkSpy = jest.spyOn(BrowserCrypto.prototype, "exportJwk");
+    
+            const keyType = CryptoKeyTypes.StkJwk;
+    
+            const pkThumbprint = await cryptoObj.getPublicKeyThumbprint({}, keyType);
+            /**
+             * Contains alphanumeric, dash '-', underscore '_', plus '+', or slash '/' with length of 43.
+             */
+            const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
+            const result = await generateKeyPairSpy.mock.results[0].value;
+    
+            expect(result.publicKey.algorithm.name.toLowerCase()).toEqual(RefreshTokenBindingOptions.keyGenAlgorithmOptions.name.toLowerCase());
+            expect(result.privateKey.algorithm.name.toLowerCase()).toEqual(RefreshTokenBindingOptions.keyGenAlgorithmOptions.name.toLowerCase());
+            expect(exportJwkSpy).toHaveBeenCalledWith(result.publicKey);
+            expect(regExp.test(pkThumbprint)).toBe(true);
+            expect(Object.keys(mockDatabase["TestDB.keys"][pkThumbprint])).not.toBe(undefined);
+        }, 30000);
+
+        it("throws error if key generation fails", async () => {
+            //@ts-ignore
+            jest.spyOn(BrowserCrypto.prototype, "generateKeyPair").mockReturnValue(undefined);
+            expect(() => cryptoObj.getPublicKeyThumbprint({})).rejects.toThrow(BrowserAuthError.createKeyGenerationFailedError("Either the public or private key component is missing from the generated CryptoKeyPair"));
+        });
     });
 });

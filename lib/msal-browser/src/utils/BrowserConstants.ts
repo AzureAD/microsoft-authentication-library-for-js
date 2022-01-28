@@ -148,11 +148,6 @@ export const DEFAULT_REQUEST: RedirectRequest|PopupRequest = {
     scopes: OIDC_DEFAULT_SCOPES
 };
 
-/**
- * JWK Key Format string (Type MUST be defined for window crypto APIs)
- */
-export const KEY_FORMAT_JWK = "jwk";
-
 // Supported wrapper SKUs
 export enum WrapperSKU {
     React = "@azure/msal-react",

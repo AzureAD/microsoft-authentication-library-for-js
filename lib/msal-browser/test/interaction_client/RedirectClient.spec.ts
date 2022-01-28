@@ -5,7 +5,7 @@
 
 import sinon from "sinon";
 import { PublicClientApplication } from "../../src/app/PublicClientApplication";
-import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, TEST_STATE_VALUES, DEFAULT_TENANT_DISCOVERY_RESPONSE, testLogoutUrl, TEST_SSH_VALUES } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, TEST_HASHES, TEST_TOKENS, TEST_DATA_CLIENT_INFO, TEST_TOKEN_LIFETIMES, RANDOM_TEST_GUID, DEFAULT_OPENID_CONFIG_RESPONSE, testNavUrl, TEST_STATE_VALUES, DEFAULT_TENANT_DISCOVERY_RESPONSE, testLogoutUrl, TEST_SSH_VALUES, TEST_POP_VALUES } from "../utils/StringConstants";
 import { ServerError, Constants, AccountInfo, TokenClaims, AuthenticationResult, CommonAuthorizationCodeRequest, CommonAuthorizationUrlRequest, AuthToken, PersistentCacheKeys, AuthorizationCodeClient, ResponseMode, ProtocolUtils, AuthenticationScheme, Logger, ServerTelemetryEntity, LogLevel, NetworkResponse, ServerAuthorizationTokenResponse, CcsCredential, CcsCredentialType, CommonEndSessionRequest, ServerTelemetryManager, AccountEntity, ClientConfigurationError } from "@azure/msal-common";
 import { BrowserUtils } from "../../src/utils/BrowserUtils";
 import { TemporaryCacheKeys, ApiId, BrowserCacheLocation, InteractionType } from "../../src/utils/BrowserConstants";
@@ -21,7 +21,6 @@ import { NavigationOptions } from "../../src/navigation/NavigationOptions";
 import { RedirectClient } from "../../src/interaction_client/RedirectClient";
 import { EventHandler } from "../../src/event/EventHandler";
 import { EventType } from "../../src/event/EventType";
-import { CacheOptions } from "../../src";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -45,7 +44,10 @@ describe("RedirectClient", () => {
     beforeEach(() => {
         const pca = new PublicClientApplication({
             auth: {
-                clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+            },
+            system: {
+                refreshTokenBinding: true
             }
         });
         sinon.stub(CryptoOps.prototype, "createNewGuid").returns(RANDOM_TEST_GUID);
@@ -897,6 +899,8 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
+
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
             const loginRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: ["user.read"],
@@ -928,6 +932,8 @@ describe("RedirectClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
 
+
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -975,6 +981,8 @@ describe("RedirectClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
 
+
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -1030,6 +1038,8 @@ describe("RedirectClient", () => {
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
 
+
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -1068,6 +1078,7 @@ describe("RedirectClient", () => {
                 expect(urlNavigate).not.toBe("");
                 return Promise.resolve(true);
             });
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
 
             const browserCrypto = new CryptoOps(new Logger({}));
             const testLogger = new Logger(loggerOptions);
@@ -1079,6 +1090,7 @@ describe("RedirectClient", () => {
             expect(cachedRequest.authority).toEqual(`${Constants.DEFAULT_AUTHORITY}`);
             expect(cachedRequest.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(cachedRequest.authenticationScheme).toEqual(TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme);
+            expect(cachedRequest.stkJwk).toEqual(TEST_POP_VALUES.KID);
         });
 
         it("Cleans cache before error is thrown", async () => {
@@ -1100,6 +1112,7 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
 
             const testError = {
                 errorCode: "create_login_url_error",
@@ -1143,6 +1156,8 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
+
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -1169,7 +1184,8 @@ describe("RedirectClient", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                stkJwk: TEST_POP_VALUES.KID
             };
             expect(loginUrlSpy.calledWith(validatedRequest)).toBeTruthy();
         });
@@ -1196,6 +1212,7 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -1222,7 +1239,8 @@ describe("RedirectClient", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                stkJwk: TEST_POP_VALUES.KID
             };
             expect(loginUrlSpy.calledWith(validatedRequest)).toBeTruthy();
         });
@@ -1250,6 +1268,7 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -1276,7 +1295,8 @@ describe("RedirectClient", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                stkJwk: TEST_POP_VALUES.KID
             };
             expect(loginUrlSpy.calledWith(validatedRequest)).toBeTruthy();
         });
@@ -1303,6 +1323,7 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -1329,7 +1350,8 @@ describe("RedirectClient", () => {
                 authority: `${Constants.DEFAULT_AUTHORITY}`,
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                stkJwk: TEST_POP_VALUES.KID
             };
             expect(loginUrlSpy.calledWith(validatedRequest)).toBeTruthy();
         });
@@ -1356,6 +1378,8 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
+
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -1382,7 +1406,8 @@ describe("RedirectClient", () => {
                 nonce: RANDOM_TEST_GUID,
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                stkJwk: TEST_POP_VALUES.KID
             };
             expect(loginUrlSpy.calledWith(validatedRequest)).toBeTruthy();
         });
@@ -1396,6 +1421,8 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
+
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
             const loginRequest: RedirectRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: ["user.read", "openid", "profile"],
@@ -1426,6 +1453,8 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
+
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
             const loginRequest: RedirectRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
                 scopes: ["user.read", "openid", "profile"],
@@ -1451,6 +1480,8 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
+
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -1481,6 +1512,8 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
+
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -1496,6 +1529,7 @@ describe("RedirectClient", () => {
             expect(cachedRequest.authority).toEqual(`${Constants.DEFAULT_AUTHORITY}`);
             expect(cachedRequest.correlationId).toEqual(RANDOM_TEST_GUID);
             expect(cachedRequest.authenticationScheme).toEqual(TEST_CONFIG.TOKEN_TYPE_BEARER as AuthenticationScheme);
+            expect(cachedRequest.stkJwk).toEqual(TEST_POP_VALUES.KID);
         });
 
         it("Cleans cache before error is thrown", async () => {
@@ -1517,6 +1551,7 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
 
             const testError = {
                 errorCode: "create_login_url_error",
@@ -1560,6 +1595,8 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
+
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -1586,7 +1623,8 @@ describe("RedirectClient", () => {
                 nonce: RANDOM_TEST_GUID,
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                stkJwk: TEST_POP_VALUES.KID
             };
             expect(acquireTokenUrlSpy.calledWith(validatedRequest)).toBeTruthy();
         });
@@ -1613,6 +1651,8 @@ describe("RedirectClient", () => {
                 challenge: TEST_CONFIG.TEST_CHALLENGE,
                 verifier: TEST_CONFIG.TEST_VERIFIER
             });
+
+            sinon.stub(CryptoOps.prototype, "getPublicKeyThumbprint").resolves(TEST_POP_VALUES.KID);
             sinon.stub(NavigationClient.prototype, "navigateExternal").callsFake((urlNavigate: string, options: NavigationOptions): Promise<boolean> => {
                 expect(options.noHistory).toBeFalsy();
                 expect(urlNavigate).not.toBe("");
@@ -1640,7 +1680,8 @@ describe("RedirectClient", () => {
                 nonce: RANDOM_TEST_GUID,
                 responseMode: ResponseMode.FRAGMENT,
                 codeChallenge: TEST_CONFIG.TEST_CHALLENGE,
-                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD
+                codeChallengeMethod: Constants.S256_CODE_CHALLENGE_METHOD,
+                stkJwk: TEST_POP_VALUES.KID
             };
             expect(acquireTokenUrlSpy.calledWith(validatedRequest)).toBeTruthy();
         });

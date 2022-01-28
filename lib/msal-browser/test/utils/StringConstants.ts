@@ -23,6 +23,7 @@ export const TEST_URIS = {
     TEST_AUTH_ENDPT: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize",
     TEST_END_SESSION_ENDPOINT: "https://login.microsoftonline.com/common/oauth2/v2.0/logout",
     TEST_AUTH_ENDPT_WITH_PARAMS: "https://login.microsoftonline.com/common/oauth2/v2.0/authorize?param1=value1&param2=value2",
+    TEST_RESOURCE_ENDPT_WITH_PARAMS: "https://localhost:8081/endpoint?param1=value1&param2=value2"
 };
 
 // Test MSAL config params
@@ -42,6 +43,7 @@ export const TEST_CONFIG = {
     TOKEN_TYPE_BEARER: AuthenticationScheme.BEARER,
     TOKEN_TYPE_POP: AuthenticationScheme.POP,
     DEFAULT_SCOPES: ["openid", "profile"],
+    DEFAULT_GRAPH_SCOPE: ["User.Read"],
     CORRELATION_ID: RANDOM_TEST_GUID,
     SID: "session-id",
     OID: "test-oid",
@@ -105,7 +107,12 @@ export const TEST_DATA_CLIENT_INFO = {
 export const TEST_POP_VALUES = {
     KID: "NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs",
     ENCODED_REQ_CNF: "eyJraWQiOiJOemJMc1hoOHVEQ2NkLTZNTndYRjRXXzdub1dYRlpBZkhreFpzUkdDOVhzIiwieG1zX2tzbCI6InN3In0=",
-    DECODED_REQ_CNF: "{\"kid\":\"NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs\",\"xms_ksl\":\"sw\"}"
+    DECODED_REQ_CNF: "{\"kid\":\"NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs\",\"xms_ksl\":\"sw\"}",
+    SAMPLE_POP_AT: "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJjbmYiOnsia2lkIjoiTnpiTHNYaDh1RENjZC02TU53WEY0V183bm9XWEZaQWZIa3hac1JHQzlYcyJ9fQ.SflKxwRJSMeKKF2QT4fwpMeJf36POk6yJV_adQssw5c",
+    SAMPLE_POP_AT_PAYLOAD_ENCODED: "eyJzdWIiOiIxMjM0NTY3ODkwIiwibmFtZSI6IkpvaG4gRG9lIiwiaWF0IjoxNTE2MjM5MDIyLCJjbmYiOnsia2lkIjoiTnpiTHNYaDh1RENjZC02TU53WEY0V183bm9XWEZaQWZIa3hac1JHQzlYcyJ9fQ",
+    SAMPLE_POP_AT_PAYLOAD_DECODED: "{\"sub\":\"1234567890\",\"name\":\"John Doe\",\"iat\":1516239022,\"cnf\":{\"kid\":\"NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs\"}}",
+    ENCODED_STK_JWK_THUMBPRINT: "%7B%22kid%22%3A%22NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs%22%7D",
+    DECODED_STK_JWK_THUMBPRINT: "{\"kid\":\"NzbLsXh8uDCcd-6MNwXF4W_7noWXFZAfHkxZsRGC9Xs\"}"
 };
 
 export const TEST_SSH_VALUES = {
@@ -241,3 +248,13 @@ export const testNavUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/
 export const testNavUrlNoRequest = `https://login.microsoftonline.com/common/oauth2/v2.0/authorize?client_id=${encodeURIComponent(`${TEST_CONFIG.MSAL_CLIENT_ID}`)}&scope=openid%20profile%20offline_access&redirect_uri=https%3A%2F%2Flocalhost%3A8081%2Findex.html&client-request-id=${encodeURIComponent(`${RANDOM_TEST_GUID}`)}&response_mode=fragment&response_type=code&x-client-SKU=msal.js.browser&x-client-VER=${version}&x-client-OS=&x-client-CPU=&client_info=1&code_challenge=JsjesZmxJwehdhNY9kvyr0QOeSMEvryY_EHZo3BKrqg&code_challenge_method=S256&nonce=${encodeURIComponent(`${RANDOM_TEST_GUID}`)}&state=`;
 
 export const testLogoutUrl = `https://login.microsoftonline.com/common/oauth2/v2.0/logout?post_logout_redirect_uri=${encodeURIComponent(`${TEST_URIS.TEST_REDIR_URI}`)}`;
+
+// Cryptographic Constants
+export const BROWSER_CRYPTO = {
+    PKCS1_V15_KEYGEN_ALG: "RSASSA-PKCS1-v1_5",
+    RSA_OAEP: "RSA-OAEP",
+    AES_GCM: "AES-GCM",
+    DIRECT: "dir",
+    S256_HASH_ALG: "SHA-256",
+    MODULUS_LENGTH: 2048
+};

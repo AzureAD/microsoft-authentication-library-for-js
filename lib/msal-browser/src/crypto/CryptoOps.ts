@@ -3,14 +3,14 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, Logger, PkceCodes, SignedHttpRequest, SignedHttpRequestParameters } from "@azure/msal-common";
+import { ICrypto, PkceCodes, SignedHttpRequest, SignedHttpRequestParameters, CryptoKeyTypes, Logger } from "@azure/msal-common";
 import { GuidGenerator } from "./GuidGenerator";
 import { Base64Encode } from "../encode/Base64Encode";
 import { Base64Decode } from "../encode/Base64Decode";
 import { PkceGenerator } from "./PkceGenerator";
-import { BrowserCrypto } from "./BrowserCrypto";
+import { BrowserCrypto, CryptoKeyOptions } from "./BrowserCrypto";
 import { BrowserStringUtils } from "../utils/BrowserStringUtils";
-import { KEY_FORMAT_JWK } from "../utils/BrowserConstants";
+import { CryptoKeyFormats, CryptoKeyConfig } from "../utils/CryptoConstants";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { AsyncMemoryStorage } from "../cache/AsyncMemoryStorage";
 
@@ -42,7 +42,6 @@ export class CryptoOps implements ICrypto {
     private pkceGenerator: PkceGenerator;
     private logger: Logger;
 
-    private static POP_KEY_USAGES: Array<KeyUsage> = ["sign", "verify"];
     private static EXTRACTABLE: boolean = true;
     private cache: CryptoKeyStore;
 
@@ -92,12 +91,42 @@ export class CryptoOps implements ICrypto {
     }
 
     /**
+     * Helper method that wraps a generateKeyPair call in a try/catch block
+     * so errors thrown inside generate key pair can be handled upstream
+     * @param keyOptions
+     */
+    private async generateKeyPairHelper(keyOptions: CryptoKeyOptions): Promise<CryptoKeyPair> {
+        // Attempt to generate Keypair
+        try {
+            return await this.browserCrypto.generateKeyPair(keyOptions, CryptoOps.EXTRACTABLE);
+        } catch (error) {
+            // Throw if key could not be generated
+            const errorMessage = (error instanceof Error) ? error.message : undefined;
+            throw BrowserAuthError.createKeyGenerationFailedError(errorMessage);
+        }
+    }
+
+    /**
      * Generates a keypair, stores it and returns a thumbprint
      * @param request
      */
-    async getPublicKeyThumbprint(request: SignedHttpRequestParameters): Promise<string> {
-        // Generate Keypair
-        const keyPair: CryptoKeyPair = await this.browserCrypto.generateKeyPair(CryptoOps.EXTRACTABLE, CryptoOps.POP_KEY_USAGES);
+    async getPublicKeyThumbprint(request: SignedHttpRequestParameters, keyType?: CryptoKeyTypes): Promise<string> {
+        this.logger.verbose(`getPublicKeyThumbprint called to generate a cryptographic keypair of type ${keyType}`);        
+        const keyOptions: CryptoKeyOptions = keyType === CryptoKeyTypes.StkJwk ? CryptoKeyConfig.RefreshTokenBinding : CryptoKeyConfig.AccessTokenBinding;
+        
+        // Attempt to generate keypair, helper makes sure to throw if generation fails
+        const keyPair: CryptoKeyPair = await this.generateKeyPairHelper(keyOptions);
+        
+        /**
+         * This check should never evaluate to true because the helper above handles key generation
+         * errors, but TypeScript requires that the public and private key values are checked because
+         * the CryptoKeyPair type lists them as optional.
+         */
+        if (!keyPair || !keyPair.publicKey || !keyPair.privateKey) {
+            throw BrowserAuthError.createKeyGenerationFailedError("Either the public or private key component is missing from the generated CryptoKeyPair");
+        }
+
+        this.logger.verbose(`Successfully generated ${keyType} keypair`);
 
         // Generate Thumbprint for Public Key
         const publicKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.publicKey);
@@ -114,8 +143,8 @@ export class CryptoOps implements ICrypto {
         // Generate Thumbprint for Private Key
         const privateKeyJwk: JsonWebKey = await this.browserCrypto.exportJwk(keyPair.privateKey);
         // Re-import private key to make it unextractable
-        const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importJwk(privateKeyJwk, false, ["sign"]);
-
+        const unextractablePrivateKey: CryptoKey = await this.browserCrypto.importJwk(keyOptions, privateKeyJwk, false, keyOptions.privateKeyUsage);
+        this.logger.verbose(`Caching ${keyType} keypair`);
         // Store Keypair data in keystore
         await this.cache.asymmetricKeys.setItem(
             publicJwkHash, 
@@ -126,7 +155,7 @@ export class CryptoOps implements ICrypto {
                 requestUri: request.resourceRequestUri
             }
         );
-
+        
         return publicJwkHash;
     }
 
@@ -158,7 +187,7 @@ export class CryptoOps implements ICrypto {
         const cachedKeyPair = await this.cache.asymmetricKeys.getItem(kid);
         
         if (!cachedKeyPair) {
-            throw BrowserAuthError.createSigningKeyNotFoundInStorageError(kid);
+            throw BrowserAuthError.createSigningKeyNotFoundInStorageError();
         }
 
         // Get public key as JWK
@@ -168,7 +197,7 @@ export class CryptoOps implements ICrypto {
         // Generate header
         const header = {
             alg: publicKeyJwk.alg,
-            type: KEY_FORMAT_JWK
+            type: CryptoKeyFormats.jwk
         };
         const encodedHeader = this.b64Encode.urlEncode(JSON.stringify(header));
 
@@ -183,7 +212,7 @@ export class CryptoOps implements ICrypto {
 
         // Sign token
         const tokenBuffer = BrowserStringUtils.stringToArrayBuffer(tokenString);
-        const signatureBuffer = await this.browserCrypto.sign(cachedKeyPair.privateKey, tokenBuffer);
+        const signatureBuffer = await this.browserCrypto.sign(CryptoKeyConfig.AccessTokenBinding, cachedKeyPair.privateKey, tokenBuffer);
         const encodedSignature = this.b64Encode.urlEncodeArr(new Uint8Array(signatureBuffer));
 
         return `${tokenString}.${encodedSignature}`;
@@ -197,5 +226,28 @@ export class CryptoOps implements ICrypto {
         const hashBuffer: ArrayBuffer = await this.browserCrypto.sha256Digest(plainText);
         const hashBytes = new Uint8Array(hashBuffer);
         return this.b64Encode.urlEncodeArr(hashBytes);
+    }
+
+    /**
+     * Returns the public key from an asymmetric key pair stored in IndexedDB based on the
+     * public key thumbprint parameter
+     * @param keyThumbprint 
+     * @returns Public Key JWK string
+     */
+    async getAsymmetricPublicKey(keyThumbprint: string): Promise<string> {
+        this.logger.verbose("getAsymmetricPublicKey was called, retrieving requested keypair");
+        const cachedKeyPair = await this.cache.asymmetricKeys.getItem(keyThumbprint);
+
+        if (!cachedKeyPair) {
+            throw BrowserAuthError.createSigningKeyNotFoundInStorageError();
+        }
+
+        this.logger.verbose("Successfully retrieved cached keypair from storage, exporting public key component");
+
+        // Get public key as JWK
+        const publicKeyJwk = await this.browserCrypto.exportJwk(cachedKeyPair.publicKey);
+
+        this.logger.verbose("Successfully exported public key as JSON Web Key, generating JWK string");
+        return BrowserCrypto.getJwkString(publicKeyJwk);
     }
 }

@@ -4,6 +4,7 @@
  */
 
 import { ICrypto, SignedHttpRequestParameters } from "./ICrypto";
+import { CryptoKeyTypes } from "../utils/Constants";
 import { AuthToken } from "../account/AuthToken";
 import { TokenClaims } from "../account/TokenClaims";
 import { TimeUtils } from "../utils/TimeUtils";
@@ -23,12 +24,11 @@ type ReqCnf = {
 };
 
 enum KeyLocation {
-    SW = "sw",
-    UHW = "uhw"
+    SoftwareStorage = "sw",
+    HardwareStorage = "uhw"
 }
 
 export class PopTokenGenerator {
-
     private cryptoUtils: ICrypto;
 
     constructor(cryptoUtils: ICrypto) {
@@ -36,17 +36,27 @@ export class PopTokenGenerator {
     }
 
     async generateCnf(request: SignedHttpRequestParameters): Promise<string> {
-        const reqCnf = await this.generateKid(request);
+        const reqCnf = await this.generateKid(request, CryptoKeyTypes.ReqCnf);
         return this.cryptoUtils.base64Encode(JSON.stringify(reqCnf));
     }
 
-    async generateKid(request: SignedHttpRequestParameters): Promise<ReqCnf> {
-        const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint(request);
+    async generateKid(request: SignedHttpRequestParameters, keyType: CryptoKeyTypes): Promise<ReqCnf> {
+        const kidThumbprint = await this.cryptoUtils.getPublicKeyThumbprint(request, keyType);
 
         return {
             kid: kidThumbprint,
-            xms_ksl: KeyLocation.SW
+            xms_ksl: KeyLocation.SoftwareStorage
         };
+    }
+
+    /**
+     * Returns the public key from an asymmetric key pair stored in IndexedDB based on the
+     * public key thumbprint parameter
+     * @param keyThumbprint 
+     * @returns Public Key JWK string
+     */
+    async retrieveAsymmetricPublicKey(keyThumbprint: string): Promise<string> {
+        return await this.cryptoUtils.getAsymmetricPublicKey(keyThumbprint);
     }
 
     async signPopToken(accessToken: string, request: SignedHttpRequestParameters): Promise<string> {

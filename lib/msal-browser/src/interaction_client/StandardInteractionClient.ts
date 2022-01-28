@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, Logger, ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils } from "@azure/msal-common";
+import { ICrypto, Logger, ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, CryptoKeyTypes } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
@@ -11,7 +11,7 @@ import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
 import { BrowserConstants, InteractionType } from "../utils/BrowserConstants";
 import { version } from "../packageMetadata";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
 import { BrowserProtocolUtils, BrowserStateObject } from "../utils/BrowserProtocolUtils";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { BrowserUtils } from "../utils/BrowserUtils";
@@ -38,6 +38,30 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     protected async initializeAuthorizationCodeRequest(request: AuthorizationUrlRequest): Promise<CommonAuthorizationCodeRequest> {
         this.logger.verbose("initializeAuthorizationRequest called", request.correlationId);
         const generatedPkceParams = await this.browserCrypto.generatePkceCodes();
+
+        // Generate Session Transport Key if Refresh Token Binding is enabled
+        if (this.config.system.refreshTokenBinding) {
+            this.logger.verbose("Refresh token binding enabled, attempting to generate Session Transport Key");
+            try {
+                const sessionTransportKeyThumbprint = await this.browserCrypto.getPublicKeyThumbprint(request, CryptoKeyTypes.StkJwk);
+                request.stkJwk = sessionTransportKeyThumbprint;
+                this.logger.verbose("Successfully generated and stored Session Transport Key");
+            } catch(error) {
+                /**
+                 * If there's a problem when generating the Session Transport Key, request.stk_jwk
+                 * remains undefined and MSAL falls back to unbound refresh token acquisition, so we catch these
+                 * errors and log the failure as an error instead of throwing. 
+                 * If the error is of an unexpected type or has a different code than those
+                 * handled below, it is thrown.
+                 */
+                if(error instanceof BrowserAuthError && error.errorCode === BrowserAuthErrorMessage.keyGenerationFailed.code) {
+                    this.logger.error(error.errorMessage);
+                    this.logger.verbose("Refresh token will be unbound because Session Transport Key generation failed");
+                } else {
+                    throw error;
+                }
+            }
+        }
 
         const authCodeRequest: CommonAuthorizationCodeRequest = {
             ...request,

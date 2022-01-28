@@ -156,6 +156,10 @@ export const BrowserAuthErrorMessage = {
     databaseUnavailable: {
         code: "database_unavailable",
         desc: "IndexedDB, which is required for persistent cryptographic key storage, is unavailable. This may be caused by browser privacy features which block persistent storage in third-party contexts."
+    },
+    keyGenerationFailed: {
+        code: "key_generation_failed",
+        desc: "Failed to generate cryptographic key"
     }
 };
 
@@ -435,8 +439,8 @@ export class BrowserAuthError extends AuthError {
     /**
      * Create an error thrown when the queried cryptographic key is not found in IndexedDB
      */
-    static createSigningKeyNotFoundInStorageError(keyId: string): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code, `${BrowserAuthErrorMessage.signingKeyNotFoundInStorage.desc} | No match found for KeyId: ${keyId}`);
+    static createSigningKeyNotFoundInStorageError(): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.signingKeyNotFoundInStorage.code, `${BrowserAuthErrorMessage.signingKeyNotFoundInStorage.desc}`);
     }
 
     /**
@@ -451,5 +455,12 @@ export class BrowserAuthError extends AuthError {
      */
     static createDatabaseUnavailableError(): BrowserAuthError {
         return new BrowserAuthError(BrowserAuthErrorMessage.databaseUnavailable.code, BrowserAuthErrorMessage.databaseUnavailable.desc);
+    }
+
+    /**
+     * Create an error when key generation failed
+     */
+    static createKeyGenerationFailedError(details?: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.keyGenerationFailed.code,  `${BrowserAuthErrorMessage.keyGenerationFailed.desc}. Details: ${details}`);
     }
 }

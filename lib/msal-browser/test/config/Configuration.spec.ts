@@ -44,6 +44,7 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(emptyConfig.system?.navigateFrameWait).toBe(0);
         expect(emptyConfig.system?.tokenRenewalOffsetSeconds).toBe(300);
         expect(emptyConfig.system?.asyncPopups).toBe(false);
+        expect(emptyConfig.system?.refreshTokenBinding).toBe(false);
     });
 
     it("sets timeouts with loadFrameTimeout", () => {
@@ -168,7 +169,8 @@ describe("Configuration.ts Class Unit Tests", () => {
                     loggerCallback: testLoggerCallback,
                     piiLoggingEnabled: true
                 },
-                asyncPopups: true
+                asyncPopups: true,
+                refreshTokenBinding: true
             }
         }, true);
         // Auth config checks
@@ -196,5 +198,6 @@ describe("Configuration.ts Class Unit Tests", () => {
         expect(newConfig.system?.loggerOptions?.loggerCallback).not.toBeNull();
         expect(newConfig.system?.loggerOptions?.piiLoggingEnabled).toBe(true);
         expect(newConfig.system?.asyncPopups).toBe(true);
+        expect(newConfig.system?.refreshTokenBinding).toBe(true);
     });
 });

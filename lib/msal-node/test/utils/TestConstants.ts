@@ -87,6 +87,10 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     async hashString(): Promise<string> {
         const notImplErr = "Crypto interface - hashString() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async getAsymmetricPublicKey(): Promise<string> {
+        const notImplErr = "Crypto interface - signJwt() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
     }
 };
 

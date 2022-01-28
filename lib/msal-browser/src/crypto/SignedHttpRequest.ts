@@ -4,7 +4,7 @@
  */
 
 import { CryptoOps } from "./CryptoOps";
-import { Logger, LoggerOptions, PopTokenGenerator, SignedHttpRequestParameters } from "@azure/msal-common";
+import { CryptoKeyTypes, Logger, LoggerOptions, PopTokenGenerator, SignedHttpRequestParameters } from "@azure/msal-common";
 import { version, name } from "../packageMetadata";
 
 export type SignedHttpRequestOptions = {
@@ -30,7 +30,7 @@ export class SignedHttpRequest {
      * @returns Public key digest, which should be sent to the token issuer.
      */
     async generatePublicKeyThumbprint(): Promise<string> {
-        const { kid } = await this.popTokenGenerator.generateKid(this.shrParameters);
+        const { kid } = await this.popTokenGenerator.generateKid(this.shrParameters, CryptoKeyTypes.ReqCnf);
 
         return kid;
     }

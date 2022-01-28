@@ -6,6 +6,7 @@
 import { AuthError } from "../error/AuthError";
 import { BaseAuthRequest } from "../request/BaseAuthRequest";
 import { SignedHttpRequest } from "./SignedHttpRequest";
+import { CryptoKeyTypes } from "../utils/Constants";
 
 /**
  * The PkceCodes type describes the structure
@@ -45,7 +46,7 @@ export interface ICrypto {
      * Generates an JWK RSA S256 Thumbprint
      * @param request
      */
-    getPublicKeyThumbprint(request: SignedHttpRequestParameters): Promise<string>;
+    getPublicKeyThumbprint(request: SignedHttpRequestParameters, keyType?: CryptoKeyTypes): Promise<string>;
     /**
      * Removes cryptographic keypair from key store matching the keyId passed in
      * @param kid 
@@ -65,6 +66,12 @@ export interface ICrypto {
      * @param plainText
      */
     hashString(plainText: string): Promise<string>;
+    /**
+     * Returns the public key from an asymmetric key pair stored in IndexedDB based on the
+     * public key thumbprint parameter
+     * @param keyThumbprint
+     */
+    getAsymmetricPublicKey(keyThumbprint: string): Promise<string>;
 }
 
 export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
@@ -102,6 +109,10 @@ export const DEFAULT_CRYPTO_IMPLEMENTATION: ICrypto = {
     },
     async hashString(): Promise<string> {
         const notImplErr = "Crypto interface - hashString() has not been implemented";
+        throw AuthError.createUnexpectedError(notImplErr);
+    },
+    async getAsymmetricPublicKey(): Promise<string> {
+        const notImplErr = "Crypto interface - getAssymetricPublicKey() has not been implemented";
         throw AuthError.createUnexpectedError(notImplErr);
     }
 };
