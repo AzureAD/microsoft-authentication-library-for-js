@@ -187,19 +187,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     * Helper to validate app environment before making a request.
-     * @param request
-     * @param interactionType
-     */
-    protected async preflightInteractiveRequest(request: RedirectRequest|PopupRequest, interactionType: InteractionType): Promise<AuthorizationUrlRequest> {
-        this.logger.verbose("preflightInteractiveRequest called, validating app environment", request?.correlationId);
-        // block the reload if it occurred inside a hidden iframe
-        BrowserUtils.blockReloadInHiddenIframes();
-    
-        return await this.initializeAuthorizationRequest(request, interactionType);
-    }
-
-    /**
      * Helper to initialize required request parameters for interactive APIs and ssoSilent()
      * @param request
      * @param interactionType

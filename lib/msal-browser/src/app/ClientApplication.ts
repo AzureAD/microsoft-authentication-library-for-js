@@ -200,7 +200,6 @@ export abstract class ClientApplication {
     async acquireTokenRedirect(request: RedirectRequest): Promise<void> {
         // Preflight request
         this.logger.verbose("acquireTokenRedirect called");
-        this.browserStorage.setInteractionInProgress(true);
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
 
         // If logged in, emit acquire token events
@@ -237,7 +236,6 @@ export abstract class ClientApplication {
     acquireTokenPopup(request: PopupRequest): Promise<AuthenticationResult> {
         try {
             this.logger.verbose("acquireTokenPopup called", request.correlationId);
-            this.browserStorage.setInteractionInProgress(true);
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
         } catch (e) {
             // Since this function is syncronous we need to reject
@@ -420,7 +418,6 @@ export abstract class ClientApplication {
      * @param logoutRequest
      */
     async logoutRedirect(logoutRequest?: EndSessionRequest): Promise<void> {
-        this.browserStorage.setInteractionInProgress(true);
         this.preflightBrowserEnvironmentCheck(InteractionType.Redirect);
         const redirectClient = new RedirectClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, logoutRequest?.correlationId);
         return redirectClient.logout(logoutRequest);
@@ -432,7 +429,6 @@ export abstract class ClientApplication {
      */
     logoutPopup(logoutRequest?: EndSessionPopupRequest): Promise<void> {
         try{
-            this.browserStorage.setInteractionInProgress(true);
             this.preflightBrowserEnvironmentCheck(InteractionType.Popup);
             const popupClient = new PopupClient(this.config, this.browserStorage, this.browserCrypto, this.logger, this.eventHandler, this.navigationClient, logoutRequest?.correlationId);
             return popupClient.logout(logoutRequest);
@@ -558,6 +554,24 @@ export abstract class ClientApplication {
             !this.config.cache.storeAuthStateInCookie) {
             throw BrowserConfigurationAuthError.createInMemoryRedirectUnavailableError();
         }
+
+        if (interactionType === InteractionType.Redirect || InteractionType.Popup) {
+            this.preflightInteractiveRequest();
+        }
+    }
+
+    /**
+     * Helper to validate app environment before making a request.
+     * @param request
+     * @param interactionType
+     */
+    protected preflightInteractiveRequest(): void {
+        this.logger.verbose("preflightInteractiveRequest called, validating app environment");
+        // block the reload if it occurred inside a hidden iframe
+        BrowserUtils.blockReloadInHiddenIframes();
+
+        // Set interaction in progress temporary cache or throw if alread set.
+        this.browserStorage.setInteractionInProgress(true);
     }
 
     /**
