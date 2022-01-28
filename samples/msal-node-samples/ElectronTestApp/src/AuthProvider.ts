@@ -47,7 +47,6 @@ export default class AuthProvider {
     private authCodeRequest: AuthorizationCodeRequest;
     private silentProfileRequest: SilentFlowRequest;
     private silentMailRequest: SilentFlowRequest;
-    private authCodeListener: AuthCodeListener;
     constructor() {
         this.clientApplication = new PublicClientApplication(MSAL_CONFIG);
         this.account = null;
@@ -134,9 +133,6 @@ export default class AuthProvider {
         // Get Auth Code URL
         const authCodeUrl = await this.clientApplication.getAuthCodeUrl(authCodeUrlParams);
 
-        // Set up custom file protocol to listen for redirect response
-        this.authCodeListener = new CustomFileProtocolListener(CUSTOM_FILE_PROTOCOL_NAME);
-        this.authCodeListener.start();
         const authCode = await this.listenForAuthCode(authCodeUrl, authWindow);
 
         // Use Authorization Code and PKCE Code verifier to make token request
@@ -168,16 +164,13 @@ export default class AuthProvider {
     }
 
     private async listenForAuthCode(navigateUrl: string, authWindow: BrowserWindow): Promise<string> {
+        // Set up custom file protocol to listen for redirect response
+        const authCodeListener = new CustomFileProtocolListener(CUSTOM_FILE_PROTOCOL_NAME);
+        const codePromise = authCodeListener.start();
         authWindow.loadURL(navigateUrl);
-        return new Promise((resolve, reject) => {
-            authWindow.webContents.on('will-redirect', (event, responseUrl) => {
-                    const parsedUrl = new URL(responseUrl);
-                    const authCode = parsedUrl.searchParams.get('code');
-                    if (authCode) {
-                        resolve(authCode);
-                    }
-            });
-        });
+        const code = await codePromise;
+        authCodeListener.close();
+        return code;
     }
 
         /**
