@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Bound RT #1 - Generate Session Transport Key #3487",
+  "packageName": "@azure/msal-browser",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "patch"
+}

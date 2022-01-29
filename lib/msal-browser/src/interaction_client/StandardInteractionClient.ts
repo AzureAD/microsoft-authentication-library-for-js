@@ -11,7 +11,7 @@ import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { EventHandler } from "../event/EventHandler";
 import { BrowserConstants, InteractionType } from "../utils/BrowserConstants";
 import { version } from "../packageMetadata";
-import { BrowserAuthError } from "../error/BrowserAuthError";
+import { BrowserAuthError, BrowserAuthErrorMessage } from "../error/BrowserAuthError";
 import { BrowserProtocolUtils, BrowserStateObject } from "../utils/BrowserProtocolUtils";
 import { EndSessionRequest } from "../request/EndSessionRequest";
 import { BrowserUtils } from "../utils/BrowserUtils";
@@ -47,13 +47,18 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 request.stkJwk = sessionTransportKeyThumbprint;
                 this.logger.verbose("Successfully generated and stored Session Transport Key");
             } catch(error) {
-                if(error instanceof BrowserAuthError) {
-                    if (error.errorCode === "key_generation_failed") {
-                        this.logger.error("Failed to generate Session Transport Key, refresh token will be unbound.");
-                    }
-                    if (error.errorCode === "database_unavailable") {
-                        this.logger.error("Failed to store Session Transport Key because IndexedDB is unavailable in the current browser environment, refresh token will be unbound.");
-                    }
+                /**
+                 * If there's a problem when generating the Session Transport Key, request.stk_jwk
+                 * remains undefined and MSAL falls back to unbound refresh token acquisition, so we catch these
+                 * errors and log the failure as an error instead of throwing. 
+                 * If the error is of an unexpected type or has a different code than those
+                 * handled below, it is thrown.
+                 */
+                if(error instanceof BrowserAuthError && error.errorCode === BrowserAuthErrorMessage.keyGenerationFailed.code) {
+                    this.logger.error(error.errorMessage);
+                    this.logger.verbose("Refresh token will be unbound because Session Transport Key generation failed");
+                } else {
+                    throw error;
                 }
             }
         }
@@ -215,7 +220,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param request
      * @param interactionType
      */
-    protected preflightInteractiveRequest(request: RedirectRequest|PopupRequest, interactionType: InteractionType): AuthorizationUrlRequest {
+    protected async preflightInteractiveRequest(request: RedirectRequest|PopupRequest, interactionType: InteractionType): Promise<AuthorizationUrlRequest> {
         this.logger.verbose("preflightInteractiveRequest called, validating app environment", request?.correlationId);
         // block the reload if it occurred inside a hidden iframe
         BrowserUtils.blockReloadInHiddenIframes();
@@ -225,7 +230,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             throw BrowserAuthError.createInteractionInProgressError();
         }
     
-        return this.initializeAuthorizationRequest(request, interactionType);
+        return await this.initializeAuthorizationRequest(request, interactionType);
     }
 
     /**
@@ -233,7 +238,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param request
      * @param interactionType
      */
-    protected initializeAuthorizationRequest(request: RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): AuthorizationUrlRequest {
+    protected async initializeAuthorizationRequest(request: RedirectRequest|PopupRequest|SsoSilentRequest, interactionType: InteractionType): Promise<AuthorizationUrlRequest> {
         this.logger.verbose("initializeAuthorizationRequest called");
         const redirectUri = this.getRedirectUri(request.redirectUri);
         const browserState: BrowserStateObject = {
@@ -247,7 +252,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         );
 
         const validatedRequest: AuthorizationUrlRequest = {
-            ...this.initializeBaseRequest(request),
+            ...await this.initializeBaseRequest(request),
             redirectUri: redirectUri,
             state: state,
             nonce: request.nonce || this.browserCrypto.createNewGuid(),

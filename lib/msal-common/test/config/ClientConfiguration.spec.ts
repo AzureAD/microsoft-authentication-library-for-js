@@ -4,7 +4,7 @@ import { AuthError } from "../../src/error/AuthError";
 import { NetworkRequestOptions } from "../../src/network/INetworkModule";
 import { LogLevel } from "../../src/logger/Logger";
 import { version } from "../../src/packageMetadata";
-import { DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES, TEST_CONFIG, TEST_POP_VALUES} from "../test_kit/StringConstants";
+import { DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES, TEST_CONFIG, TEST_CRYPTO_VALUES, TEST_POP_VALUES } from "../test_kit/StringConstants";
 import { MockStorageClass, mockCrypto } from "../client/ClientTestUtils";
 import { MockCache } from "../cache/entities/cacheConstants";
 import { Constants } from "../../src/utils/Constants";
@@ -121,6 +121,9 @@ describe("ClientConfiguration.ts Class Unit Tests", () => {
                 },
                 async clearKeystore(): Promise<boolean> {
                     return Promise.resolve(true);
+                },
+                async hashString(): Promise<string> {
+                    return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
                 },
                 async getAsymmetricPublicKey(): Promise<string> {
                     return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT;

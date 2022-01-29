@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, CcsCredential, CcsCredentialType, IdToken } from "@azure/msal-common";
+import { Constants, PersistentCacheKeys, StringUtils, CommonAuthorizationCodeRequest, ICrypto, AccountEntity, IdTokenEntity, AccessTokenEntity, RefreshTokenEntity, AppMetadataEntity, CacheManager, ServerTelemetryEntity, ThrottlingEntity, ProtocolUtils, Logger, AuthorityMetadataEntity, DEFAULT_CRYPTO_IMPLEMENTATION, AccountInfo, CcsCredential, CcsCredentialType, IdToken, ValidCredentialType } from "@azure/msal-common";
 import { CacheOptions } from "../config/Configuration";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { BrowserCacheLocation, InteractionType, TemporaryCacheKeys, InMemoryCacheKeys } from "../utils/BrowserConstants";
@@ -853,6 +853,7 @@ export class BrowserCacheManager extends CacheManager {
             }
         });
         this.clearMsalCookies();
+        this.setInteractionInProgress(false);
     }
 
     cacheCodeRequest(authCodeRequest: CommonAuthorizationCodeRequest, browserCrypto: ICrypto): void {
@@ -954,6 +955,27 @@ export class BrowserCacheManager extends CacheManager {
         }
 
         return null;
+    }
+
+    /**
+     * Updates a credential's cache key if the current cache key is outdated
+     */
+    updateCredentialCacheKey(currentCacheKey: string, credential: ValidCredentialType): string {
+        const updatedCacheKey = credential.generateCredentialKey();
+
+        if (currentCacheKey !== updatedCacheKey) {
+            const cacheItem = this.getItem(currentCacheKey);
+            if (cacheItem) {
+                this.removeItem(currentCacheKey);
+                this.setItem(updatedCacheKey, cacheItem);
+                this.logger.verbose(`Updated an outdated ${credential.credentialType} cache key`);
+                return updatedCacheKey;
+            } else {
+                this.logger.error(`Attempted to update an outdated ${credential.credentialType} cache key but no item matching the outdated key was found in storage`);
+            }
+        }
+
+        return currentCacheKey;
     }
 }
 

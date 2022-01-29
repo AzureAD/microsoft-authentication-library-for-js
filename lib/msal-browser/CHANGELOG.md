@@ -1,8 +1,34 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Mon, 01 Nov 2021 23:53:21 GMT and should not be manually modified.
+This log was last generated on Tue, 04 Jan 2022 00:20:29 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.21.0
+
+Tue, 04 Jan 2022 00:20:29 GMT
+
+### Minor changes
+
+- Add support for requested claims in silent token acquisition #4296 (hemoral@microsoft.com)
+- Bump @azure/msal-common to v6.0.0
+
+### Patches
+
+- Clear interaction status even if there is no ongoing request #4314 (janutter@microsoft.com)
+
+## 2.20.0
+
+Tue, 07 Dec 2021 00:17:01 GMT
+
+### Minor changes
+
+- Add acquireTokenByCode API for hybrid spa flow #3978 (janutter@microsoft.com)
+- Bump @azure/msal-common to v5.2.0
+
+### Patches
+
+- Fix circular dependencies in AuthenticationHeaderParser and AsyncMemoryStorage #4235 (hemoral@microsoft.com)
 
 ## 2.19.0
 

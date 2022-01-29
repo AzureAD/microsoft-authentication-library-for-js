@@ -10,11 +10,9 @@
     "noImplicitReturns": true,
     "esModuleInterop": true
   },
-  "files": [
-    "./src/index.ts"
-  ],
+  "include": ["src", "test"],
   "types": [
     "node",
-    "mocha"
+    "jest"
   ]
 }

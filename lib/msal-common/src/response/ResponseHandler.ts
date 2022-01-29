@@ -188,7 +188,7 @@ export class ResponseHandler {
         // Add keyId from request to serverTokenResponse if defined
         serverTokenResponse.key_id = serverTokenResponse.key_id || request.sshKid || undefined;
 
-        const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, reqTimestamp, idTokenObj, request.scopes, oboAssertion, authCodePayload);
+        const cacheRecord = this.generateCacheRecord(serverTokenResponse, authority, reqTimestamp, request, idTokenObj, oboAssertion, authCodePayload);
         let cacheContext;
         try {
             if (this.persistencePlugin && this.serializableCache) {
@@ -225,7 +225,7 @@ export class ResponseHandler {
      * @param idTokenObj
      * @param authority
      */
-    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, idTokenObj?: AuthToken, requestScopes?: string[], oboAssertion?: string, authCodePayload?: AuthorizationCodePayload): CacheRecord {
+    private generateCacheRecord(serverTokenResponse: ServerAuthorizationTokenResponse, authority: Authority, reqTimestamp: number, request: BaseAuthRequest, idTokenObj?: AuthToken, oboAssertion?: string, authCodePayload?: AuthorizationCodePayload): CacheRecord {
         const env = authority.getPreferredCache();
         if (StringUtils.isEmpty(env)) {
             throw ClientAuthError.createInvalidCacheEnvironmentError();
@@ -258,7 +258,7 @@ export class ResponseHandler {
         if (!StringUtils.isEmpty(serverTokenResponse.access_token)) {
 
             // If scopes not returned in server response, use request scopes
-            const responseScopes = serverTokenResponse.scope ? ScopeSet.fromString(serverTokenResponse.scope) : new ScopeSet(requestScopes || []);
+            const responseScopes = serverTokenResponse.scope ? ScopeSet.fromString(serverTokenResponse.scope) : new ScopeSet(request.scopes || []);
 
             /*
              * Use timestamp calculated before request
@@ -285,10 +285,12 @@ export class ResponseHandler {
                 refreshOnSeconds,
                 serverTokenResponse.token_type,
                 oboAssertion,
-                serverTokenResponse.key_id
+                serverTokenResponse.key_id,
+                request.claims,
+                request.requestedClaimsHash
             );
         }
-
+        
         // refreshToken
         let cachedRefreshToken: RefreshTokenEntity | null = null;
         if (!StringUtils.isEmpty(serverTokenResponse.refresh_token)) {

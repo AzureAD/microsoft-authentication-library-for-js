@@ -140,6 +140,17 @@ describe("CryptoOps.ts Unit Tests", () => {
         expect(cryptoObj.signJwt({}, "testString")).rejects.toThrow(BrowserAuthError.createSigningKeyNotFoundInStorageError());
     }, 30000);
 
+    it("hashString() returns a valid SHA-256 hash of an input string", async() => {
+        //@ts-ignore
+        jest.spyOn(BrowserCrypto.prototype as any, "getSubtleCryptoDigest").mockImplementation((algorithm: string, data: Uint8Array): Promise<ArrayBuffer> => {
+            expect(algorithm).toBe("SHA-256");
+            return Promise.resolve(createHash("SHA256").update(Buffer.from(data)).digest());
+        });
+        const regExp = new RegExp("[A-Za-z0-9-_+/]{43}");
+        const result = await cryptoObj.hashString("testString");
+        expect(regExp.test(result)).toBe(true);
+    });
+
     describe("getPublicKeyThumbprint", () => {
         afterEach(() => {
             jest.restoreAllMocks();
@@ -204,7 +215,7 @@ describe("CryptoOps.ts Unit Tests", () => {
         it("throws error if key generation fails", async () => {
             //@ts-ignore
             jest.spyOn(BrowserCrypto.prototype, "generateKeyPair").mockReturnValue(undefined);
-            expect(() => cryptoObj.getPublicKeyThumbprint({})).rejects.toThrow(BrowserAuthError.createKeyGenerationFailedError());
+            expect(() => cryptoObj.getPublicKeyThumbprint({})).rejects.toThrow(BrowserAuthError.createKeyGenerationFailedError("Either the public or private key component is missing from the generated CryptoKeyPair"));
         });
     });
 });

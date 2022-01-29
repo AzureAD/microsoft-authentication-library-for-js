@@ -7,7 +7,7 @@ import { PkceCodes, AuthorityFactory, CommonAuthorizationCodeRequest, Constants,
 import sinon from "sinon";
 import { SilentHandler } from "../../src/interaction_handler/SilentHandler";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { TEST_CONFIG, testNavUrl, TEST_URIS, RANDOM_TEST_GUID, TEST_POP_VALUES, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES } from "../utils/StringConstants";
+import { TEST_CONFIG, testNavUrl, TEST_URIS, RANDOM_TEST_GUID, TEST_POP_VALUES, TEST_CRYPTO_VALUES, AUTHENTICATION_RESULT, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES } from "../utils/StringConstants";
 import { InteractionHandler } from "../../src/interaction_handler/InteractionHandler";
 import { BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
@@ -95,6 +95,9 @@ describe("SilentHandler.ts Unit Tests", () => {
                 },
                 clearKeystore: async (): Promise<boolean> => {
                     return Promise.resolve(true);
+                },
+                hashString: async (): Promise<string> => {
+                    return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
                 },
                 getAsymmetricPublicKey: async (): Promise<string> => {
                     return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT

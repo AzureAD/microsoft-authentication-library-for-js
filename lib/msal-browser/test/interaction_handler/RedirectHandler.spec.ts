@@ -6,7 +6,7 @@
 import sinon from "sinon";
 import { PkceCodes, NetworkRequestOptions, LogLevel, AccountInfo, AuthorityFactory, CommonAuthorizationCodeRequest, Constants, AuthenticationResult, AuthorizationCodeClient, AuthenticationScheme, ProtocolMode, Logger, Authority, ClientConfiguration, AuthorizationCodePayload, AuthorityOptions, CcsCredential, CcsCredentialType, ServerAuthorizationTokenResponse } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_HASHES, TEST_TOKEN_LIFETIMES, TEST_POP_VALUES, TEST_STATE_VALUES, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, TEST_TOKENS, TEST_DATA_CLIENT_INFO, RANDOM_TEST_GUID, TEST_HASHES, TEST_TOKEN_LIFETIMES, TEST_POP_VALUES, TEST_STATE_VALUES, TEST_CRYPTO_VALUES, AUTHENTICATION_RESULT, DECRYPTED_BOUND_RT_AUTHENTICATION_RESULT_DEFAULT_SCOPES } from "../utils/StringConstants";
 import { RedirectHandler } from "../../src/interaction_handler/RedirectHandler";
 import { BrowserAuthErrorMessage, BrowserAuthError } from "../../src/error/BrowserAuthError";
 import { BrowserConstants, TemporaryCacheKeys } from "../../src/utils/BrowserConstants";
@@ -111,6 +111,9 @@ describe("RedirectHandler.ts Unit Tests", () => {
                 },
                 clearKeystore: async (): Promise<boolean> => {
                     return Promise.resolve(true);
+                },
+                hashString: async (): Promise<string> => {
+                    return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
                 },
                 getAsymmetricPublicKey: async (): Promise<string> => {
                     return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT

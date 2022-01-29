@@ -107,6 +107,11 @@ export const TEST_URIS = {
     TEST_REDIRECT_URI_LOCALHOST: "https://localhost:3000"
 };
 
+// Test Crypto Values
+export const TEST_CRYPTO_VALUES = {
+    TEST_SHA256_HASH: "vdluSPGh34Y-nFDCbX7CudVKZIXRG1rquljNBbn7xuE"
+}
+
 // Test MSAL config params
 export const TEST_CONFIG = {
     TENANT: "common",

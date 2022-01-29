@@ -10,7 +10,6 @@
     ],
     "plugins": [
         "@babel/proposal-class-properties",
-        "@babel/proposal-object-rest-spread",
-        "istanbul"
+        "@babel/proposal-object-rest-spread"
     ]
 }
