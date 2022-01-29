@@ -393,6 +393,125 @@ describe("PopupClient", () => {
             popupClient.logout().catch(() => {});
         });
 
+        it("includes logoutHint if it is set on request", (done) => {
+            const pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    asyncPopups: true
+                }
+            });
+
+            //@ts-ignore
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+            const logoutHint = "test@user.com";
+
+            sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
+                expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
+                done();
+                throw "Stop Test";
+            });
+
+            popupClient.logout({
+                logoutHint
+            }).catch(() => {});
+        });
+
+        it("includes logoutHint from ID token claims if account is passed in and logoutHint is not", (done) => {
+            const pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    asyncPopups: true
+                }
+            });
+
+            //@ts-ignore
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+            
+            const logoutHint = "test@user.com";
+            const testIdTokenClaims: TokenClaims = {
+                "ver": "2.0",
+                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+                "login_hint": logoutHint
+            };
+
+            const testAccountInfo: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || "",
+                idTokenClaims: testIdTokenClaims
+            };
+
+            sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
+                expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
+                done();
+                throw "Stop Test";
+            });
+
+            popupClient.logout({
+                account: testAccountInfo
+            }).catch(() => {});
+        });
+
+        it("logoutHint attribute takes precedence over ID Token Claims from provided account when setting logout_hint", (done) => {
+            const pca = new PublicClientApplication({
+                auth: {
+                    clientId: TEST_CONFIG.MSAL_CLIENT_ID
+                },
+                system: {
+                    asyncPopups: true
+                }
+            });
+            
+            //@ts-ignore
+            popupClient = new PopupClient(pca.config, pca.browserStorage, pca.browserCrypto, pca.logger, pca.eventHandler, pca.navigationClient);
+            const logoutHint = "test@user.com";
+            const loginHint = "anothertest@user.com";
+            const testIdTokenClaims: TokenClaims = {
+                "ver": "2.0",
+                "iss": "https://login.microsoftonline.com/9188040d-6c67-4c5b-b112-36a304b66dad/v2.0",
+                "sub": "AAAAAAAAAAAAAAAAAAAAAIkzqFVrSaSaFHy782bbtaQ",
+                "name": "Abe Lincoln",
+                "preferred_username": "AbeLi@microsoft.com",
+                "oid": "00000000-0000-0000-66f3-3332eca7ea81",
+                "tid": "3338040d-6c67-4c5b-b112-36a304b66dad",
+                "nonce": "123523",
+                "login_hint": loginHint
+            };
+
+            const testAccountInfo: AccountInfo = {
+                homeAccountId: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID,
+                localAccountId: TEST_DATA_CLIENT_INFO.TEST_UID,
+                environment: "login.windows.net",
+                tenantId: testIdTokenClaims.tid || "",
+                username: testIdTokenClaims.preferred_username || "",
+                idTokenClaims: testIdTokenClaims
+            };
+
+            sinon.stub(PopupUtils, "openSizedPopup").callsFake((urlNavigate) => {
+                expect(urlNavigate).toContain(`logout_hint=${encodeURIComponent(logoutHint)}`);
+                expect(urlNavigate).not.toContain(`logout_hint=${encodeURIComponent(loginHint)}`);
+                done();
+                throw "Stop Test";
+            });
+
+            popupClient.logout({
+                account: testAccountInfo,
+                logoutHint
+            }).catch(() => {});
+        });
+
         it("redirects main window when logout is complete", (done) => {
             const popupWindow = {...window};
             sinon.stub(PopupUtils, "openSizedPopup").returns(popupWindow);
