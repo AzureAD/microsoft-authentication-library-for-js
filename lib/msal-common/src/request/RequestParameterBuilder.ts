@@ -12,7 +12,7 @@ import { LibraryInfo } from "../config/ClientConfiguration";
 import { StringUtils } from "../utils/StringUtils";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 import { ClientInfo } from "../account/ClientInfo";
-import { StkJwkThumbprint } from "../crypto/CryptoKeyManager";
+import { StkJwkThumbprint } from "../crypto/PopTokenGenerator";
 
 export class RequestParameterBuilder {
 

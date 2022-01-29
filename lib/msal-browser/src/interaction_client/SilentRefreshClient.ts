@@ -16,7 +16,7 @@ export class SilentRefreshClient extends StandardInteractionClient {
     async acquireToken(request: CommonSilentFlowRequest): Promise<AuthenticationResult> {
         const silentRequest: CommonSilentFlowRequest = {
             ...request,
-            ...this.initializeBaseRequest(request)
+            ...await this.initializeBaseRequest(request)
         };
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenSilent_silentFlow);
         const refreshTokenClient = await this.createRefreshTokenClient(serverTelemetryManager, silentRequest.authority);

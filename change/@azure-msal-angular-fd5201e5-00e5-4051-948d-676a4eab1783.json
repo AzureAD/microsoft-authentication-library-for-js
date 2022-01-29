@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Fix angular guard /code check to ensure proper length #4249",
-  "packageName": "@azure/msal-angular",
-  "email": "janutter@microsoft.com",
-  "dependentChangeType": "patch"
-}

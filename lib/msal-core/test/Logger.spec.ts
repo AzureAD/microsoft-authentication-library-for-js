@@ -1,5 +1,4 @@
 import { Logger } from "../src";
-import { expect } from "chai";
 
 describe("Logger.ts", () => {
 
@@ -7,12 +6,12 @@ describe("Logger.ts", () => {
         const logger: Logger = new Logger(() => {}, {
             piiLoggingEnabled: true
         });
-        expect(logger.isPiiLoggingEnabled()).to.be.true;
+        expect(logger.isPiiLoggingEnabled()).toBe(true);
     });
 
     it("pii logging boolean defaults false", () => {
         const logger: Logger = new Logger(() => {});
-        expect(logger.isPiiLoggingEnabled()).to.be.false;
+        expect(logger.isPiiLoggingEnabled()).toBe(false);
     });
 
 });
