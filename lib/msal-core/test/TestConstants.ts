@@ -42,7 +42,7 @@ export const TEST_TOKEN_LIFETIMES = {
 
 
 // Test Hashes
-export const testHashesForState = state => ({
+export const testHashesForState = (state: string) => ({
     TEST_SUCCESS_ID_TOKEN_HASH: `#id_token=${TEST_TOKENS.IDTOKEN_V2}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${state}|`,
     TEST_SUCCESS_ACCESS_TOKEN_HASH: `#access_token=${TEST_TOKENS.ACCESSTOKEN}&id_token=${TEST_TOKENS.IDTOKEN_V2}&scope=test&expiresIn=${TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${state}|`,
     TEST_ERROR_HASH: `#error=error_code&error_description=msal+error+description&state=${state}|`,

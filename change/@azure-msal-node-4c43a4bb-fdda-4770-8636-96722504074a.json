@@ -1,0 +1,7 @@
+{
+  "type": "none",
+  "comment": "Bound RT #1 - Generate Session Transport Key #3487",
+  "packageName": "@azure/msal-node",
+  "email": "hemoral@microsoft.com",
+  "dependentChangeType": "none"
+}

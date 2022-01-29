@@ -464,8 +464,8 @@ export class BrowserAuthError extends AuthError {
     /**
      * Create an error when key generation failed
      */
-    static createKeyGenerationFailedError(): BrowserAuthError {
-        return new BrowserAuthError(BrowserAuthErrorMessage.keyGenerationFailed.code, BrowserAuthErrorMessage.keyGenerationFailed.desc);
+    static createKeyGenerationFailedError(details?: string): BrowserAuthError {
+        return new BrowserAuthError(BrowserAuthErrorMessage.keyGenerationFailed.code,  `${BrowserAuthErrorMessage.keyGenerationFailed.desc}. Details: ${details}`);
     }
 
     /**

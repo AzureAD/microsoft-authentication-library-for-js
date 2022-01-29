@@ -25,13 +25,12 @@ import {
     ServerAuthorizationTokenResponse,
 } from "@azure/msal-common";
 import { Configuration, buildConfiguration } from "../../src/config/Configuration";
-import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES, TEST_POP_VALUES, TEST_STATE_VALUES, RANDOM_TEST_GUID, AUTHENTICATION_RESULT } from "../utils/StringConstants";
+import { TEST_CONFIG, TEST_URIS, TEST_DATA_CLIENT_INFO, TEST_TOKENS, TEST_TOKEN_LIFETIMES, TEST_HASHES, TEST_POP_VALUES, TEST_STATE_VALUES, RANDOM_TEST_GUID, TEST_CRYPTO_VALUES, AUTHENTICATION_RESULT } from "../utils/StringConstants";
 import { BrowserAuthError } from "../../src/error/BrowserAuthError";
 import sinon from "sinon";
 import { CryptoOps } from "../../src/crypto/CryptoOps";
 import { TestStorageManager } from "../cache/TestStorageManager";
 import { BrowserCacheManager } from "../../src/cache/BrowserCacheManager";
-import { DatabaseStorage } from "../../src/cache/DatabaseStorage";
 import { TemporaryCacheKeys, BrowserConstants } from "../../src/utils/BrowserConstants";
 
 class TestInteractionHandler extends InteractionHandler {
@@ -107,6 +106,9 @@ const cryptoInterface = {
     },
     clearKeystore: async (): Promise<boolean> => {
         return Promise.resolve(true);
+    },
+    hashString: async (): Promise<string> => {
+        return Promise.resolve(TEST_CRYPTO_VALUES.TEST_SHA256_HASH);
     },
     getAsymmetricPublicKey: async (): Promise<string> => {
         return TEST_POP_VALUES.DECODED_STK_JWK_THUMBPRINT
