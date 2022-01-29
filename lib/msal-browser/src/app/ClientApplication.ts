@@ -555,7 +555,7 @@ export abstract class ClientApplication {
             throw BrowserConfigurationAuthError.createInMemoryRedirectUnavailableError();
         }
 
-        if (interactionType === InteractionType.Redirect || InteractionType.Popup) {
+        if (interactionType === InteractionType.Redirect || interactionType === InteractionType.Popup) {
             this.preflightInteractiveRequest();
         }
     }
