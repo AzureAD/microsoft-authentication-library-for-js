@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Resolved npm issues",
+  "packageName": "@azure/msal-common",
+  "email": "marionminayo@microsoft.com",
+  "dependentChangeType": "patch"
+}
