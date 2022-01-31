@@ -46,7 +46,6 @@ describe("Auth Code AAD PPE Tests", () => {
 
     beforeAll(async() => {
         await validateCacheLocation(TEST_CACHE_LOCATION);
-        browser = await puppeteer.launch({ headless: false });
         // @ts-ignore
         browser = await global.__BROWSER__;
         // @ts-ignore
