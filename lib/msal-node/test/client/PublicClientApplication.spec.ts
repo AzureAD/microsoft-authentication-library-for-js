@@ -1,10 +1,11 @@
 import { PublicClientApplication } from './../../src/client/PublicClientApplication';
 import { Configuration } from './../../src/index';
-import { DEFAULT_CRYPTO_IMPLEMENTATION, TEST_CONSTANTS } from '../utils/TestConstants';
+import { TEST_CONSTANTS } from '../utils/TestConstants';
 import {
     ClientConfiguration, AuthenticationResult,
     AuthorizationCodeClient, RefreshTokenClient, UsernamePasswordClient, ProtocolMode, Logger, LogLevel
 } from '@azure/msal-common';
+import { CryptoProvider } from '../../src/crypto/CryptoProvider';
 import { DeviceCodeRequest } from '../../src/request/DeviceCodeRequest';
 import { AuthorizationCodeRequest } from '../../src/request/AuthorizationCodeRequest';
 import { RefreshTokenRequest } from '../../src/request/RefreshTokenRequest';
@@ -110,8 +111,10 @@ describe('PublicClientApplication', () => {
             code: TEST_CONSTANTS.AUTHORIZATION_CODE
         };
 
+        const cryptoProvider = new CryptoProvider();
+
         const authCodePayload = {
-            nonce: DEFAULT_CRYPTO_IMPLEMENTATION.createNewGuid(),
+            nonce: cryptoProvider.createNewGuid(),
             code: TEST_CONSTANTS.AUTHORIZATION_CODE
         };
 
