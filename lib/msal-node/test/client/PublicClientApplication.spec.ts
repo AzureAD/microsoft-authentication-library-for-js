@@ -1,6 +1,6 @@
 import { PublicClientApplication } from './../../src/client/PublicClientApplication';
 import { Configuration } from './../../src/index';
-import { TEST_CONSTANTS } from '../utils/TestConstants';
+import { DEFAULT_CRYPTO_IMPLEMENTATION, TEST_CONSTANTS } from '../utils/TestConstants';
 import {
     ClientConfiguration, AuthenticationResult,
     AuthorizationCodeClient, RefreshTokenClient, UsernamePasswordClient, ProtocolMode, Logger, LogLevel
@@ -103,6 +103,33 @@ describe('PublicClientApplication', () => {
         );
     });
 
+    test("acquireTokenByAuthorizationCode with nonce", async () => {
+        const request: AuthorizationCodeRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            redirectUri: TEST_CONSTANTS.REDIRECT_URI,
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE
+        };
+
+        const authCodePayload = {
+            nonce: DEFAULT_CRYPTO_IMPLEMENTATION.createNewGuid(),
+            code: TEST_CONSTANTS.AUTHORIZATION_CODE
+        };
+
+        const MockAuthorizationCodeClient = getMsalCommonAutoMock()
+            .AuthorizationCodeClient;
+
+        jest.spyOn(msalCommon, "AuthorizationCodeClient").mockImplementation(
+            config => new MockAuthorizationCodeClient(config)
+        );
+
+        const authApp = new PublicClientApplication(appConfig);
+        await authApp.acquireTokenByCode(request, authCodePayload);
+
+        expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
+        expect(AuthorizationCodeClient).toHaveBeenCalledWith(
+            expect.objectContaining(expectedConfig)
+        );
+    });
 
 
 
