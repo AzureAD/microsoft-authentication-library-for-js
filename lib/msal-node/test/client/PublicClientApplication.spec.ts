@@ -1,6 +1,6 @@
 import { PublicClientApplication } from './../../src/client/PublicClientApplication';
 import { AuthorizationCodeRequest, Configuration } from './../../src/index';
-import { DEFAULT_CRYPTO_IMPLEMENTATION, TEST_CONSTANTS } from '../utils/TestConstants';
+import { TEST_CONSTANTS } from '../utils/TestConstants';
 import { version, name } from '../../package.json';
 import { mocked } from 'ts-jest/utils';
 import {
@@ -95,31 +95,6 @@ describe('PublicClientApplication', () => {
 
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByCode(request);
-        expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
-        expect(AuthorizationCodeClient).toHaveBeenCalledWith(
-            expect.objectContaining(expectedConfig)
-        );
-    });
-
-    test("acquireTokenByAuthorizationCode with nonce validation", async () => {
-        const request: AuthorizationCodeRequest = {
-            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
-            redirectUri: TEST_CONSTANTS.REDIRECT_URI,
-            code: TEST_CONSTANTS.AUTHORIZATION_CODE
-        };
-
-        const authCodePayload = {
-            code: TEST_CONSTANTS.AUTHORIZATION_CODE,
-            nonce: DEFAULT_CRYPTO_IMPLEMENTATION.createNewGuid()
-        };
-        console.log(`NONCE : ${authCodePayload.nonce}`)
-
-        mocked(AuthorityFactory.createDiscoveredInstance).mockReturnValue(
-            Promise.resolve(authority)
-        );
-
-        const authApp = new PublicClientApplication(appConfig);
-        await authApp.acquireTokenByCode(request, authCodePayload);
         expect(AuthorizationCodeClient).toHaveBeenCalledTimes(1);
         expect(AuthorizationCodeClient).toHaveBeenCalledWith(
             expect.objectContaining(expectedConfig)
