@@ -150,8 +150,7 @@ app.component.ts
 ```js
 import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
 import { MsalBroadcastService, InteractionStatus } from '@azure/msal-angular';
-import { Subject } from 'rxjs';
-import { filter, takeUntil } from 'rxjs/operators';
+import { Subject, filter, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-root',

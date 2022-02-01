@@ -3,20 +3,16 @@
  * Licensed under the MIT License.
  */
 
+import { DOCUMENT, Location } from "@angular/common";
 import {
-    HttpRequest,
-    HttpHandler,
-    HttpEvent,
-    HttpInterceptor
+    HttpEvent, HttpHandler, HttpInterceptor, HttpRequest
 } from "@angular/common/http";
-import { Location, DOCUMENT } from "@angular/common";
-import { Observable, EMPTY, of } from "rxjs";
-import { switchMap, catchError } from "rxjs/operators";
-import { MsalService } from "./msal.service";
+import { Inject, Injectable } from "@angular/core";
 import { AccountInfo, AuthenticationResult, BrowserConfigurationAuthError, InteractionType, StringUtils, UrlString } from "@azure/msal-browser";
-import { Injectable, Inject } from "@angular/core";
+import { catchError, EMPTY, Observable, of, switchMap } from "rxjs";
 import { MSAL_INTERCEPTOR_CONFIG } from "./constants";
-import { MsalInterceptorAuthRequest, MsalInterceptorConfiguration, ProtectedResourceScopes, MatchingResources } from "./msal.interceptor.config";
+import { MatchingResources, MsalInterceptorAuthRequest, MsalInterceptorConfiguration, ProtectedResourceScopes } from "./msal.interceptor.config";
+import { MsalService } from "./msal.service";
 
 @Injectable()
 export class MsalInterceptor implements HttpInterceptor {

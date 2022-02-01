@@ -285,7 +285,7 @@ To dynamically configure MSAL Angular, you can use the Factory Providers with AP
 ```typescript
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpBackend } from '@angular/common/http';
-import { map } from 'rxjs/operators';
+import { map } from 'rxjs';
 
 @Injectable({
   providedIn: 'root'

@@ -161,8 +161,7 @@ See the example below for its use. A full example can also be found in our [samp
 import { Component, OnInit, Inject, OnDestroy } from '@angular/core';
 import { MsalBroadcastService} from '@azure/msal-angular';
 import { InteractionStatus } from '@azure/msal-browser';
-import { Subject } from 'rxjs';
-import { filter, takeUntil } from 'rxjs/operators';
+import { Subject, filter, takeUntil } from 'rxjs';
 
 @Component({
   selector: 'app-root',

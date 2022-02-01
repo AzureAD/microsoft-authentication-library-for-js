@@ -3,16 +3,15 @@
  * Licensed under the MIT License.
  */
 
-import { CanActivate, ActivatedRouteSnapshot, RouterStateSnapshot, CanActivateChild, CanLoad, UrlTree, Router } from "@angular/router";
-import { MsalService } from "./msal.service";
-import { Injectable, Inject, VERSION } from "@angular/core";
 import { Location } from "@angular/common";
-import { InteractionType, BrowserConfigurationAuthError, BrowserUtils, UrlString, PopupRequest, RedirectRequest, AuthenticationResult } from "@azure/msal-browser";
-import { MsalGuardConfiguration } from "./msal.guard.config";
+import { Inject, Injectable, VERSION } from "@angular/core";
+import { ActivatedRouteSnapshot, CanActivate, CanActivateChild, CanLoad, Router, RouterStateSnapshot, UrlTree } from "@angular/router";
+import { AuthenticationResult, BrowserConfigurationAuthError, BrowserUtils, InteractionType, PopupRequest, RedirectRequest, UrlString } from "@azure/msal-browser";
+import { catchError, concatMap, map, Observable, of } from "rxjs";
 import { MSAL_GUARD_CONFIG } from "./constants";
-import { concatMap, catchError, map } from "rxjs/operators";
-import { Observable, of } from "rxjs";
 import { MsalBroadcastService } from "./msal.broadcast.service";
+import { MsalGuardConfiguration } from "./msal.guard.config";
+import { MsalService } from "./msal.service";
 
 @Injectable()
 export class MsalGuard implements CanActivate, CanActivateChild, CanLoad {

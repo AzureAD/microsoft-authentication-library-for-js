@@ -34,7 +34,7 @@ Please see the [`@azure/msal-browser` error doc](https://github.com/AzureAD/micr
 ```javascript
 import { Component, OnInit } from '@angular/core';
 import { MsalService, MsalBroadcastService, InteractionStatus } from '@azure/msal-angular';
-import { filter } from 'rxjs/operators';
+import { filter } from 'rxjs';
 
 @Component()
 export class ExampleComponent implements OnInit {
@@ -54,7 +54,7 @@ export class ExampleComponent implements OnInit {
 ```javascript
 import { Component, OnInit } from '@angular/core';
 import { MsalService, MsalBroadcastService, InteractionStatus } from '@azure/msal-angular';
-import { filter } from 'rxjs/operators';
+import { filter } from 'rxjs';
 
 @Component()
 export class ExampleComponent implements OnInit {
