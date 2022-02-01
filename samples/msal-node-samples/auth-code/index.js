@@ -67,6 +67,9 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
              * used to populate the nonce value if none is provided.
              * 
              * The generated nonce is then cached and passed as part of authCodeUrlParameters during authentication request.
+             * 
+             * For more information about nonce, 
+             * visit https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics#section-4.5.3.2
              */
             if(req.query.nonce){
                 authCodeUrlParameters.nonce = req.query.nonce
