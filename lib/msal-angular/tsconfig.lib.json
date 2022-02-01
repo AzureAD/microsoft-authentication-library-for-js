@@ -14,13 +14,13 @@
     ]
   },
   "angularCompilerOptions": {
+    "compilationMode": "partial",
     "enableResourceInlining": true,
     "genDir": "dist",
     "debug": false,
     "skipTemplateCodegen": true,
     "skipMetadataEmit": false,
-    "strictMetadataEmit": true,
-    "enableIvy": false
+    "strictMetadataEmit": true
   },
   "exclude": [
     "src/test.ts",
