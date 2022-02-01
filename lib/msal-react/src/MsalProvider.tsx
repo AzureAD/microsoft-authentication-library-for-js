@@ -31,18 +31,21 @@ enum MsalProviderActionType {
     EVENT = "EVENT"
 }
 
-type MsalProviderReducerPayload = {
-    logger: Logger;
-    instance: IPublicClientApplication;
-    message?: EventMessage;
-};
-
 type MsalProviderReducerAction = {
     type: MsalProviderActionType,
-    payload: MsalProviderReducerPayload;
+    payload: {
+        logger: Logger;
+        instance: IPublicClientApplication;
+        message?: EventMessage;
+    };
 };
 
-const reducer = (previousState: MsalState, action: MsalProviderReducerAction) => {
+/**
+ * Returns the next inProgress and accounts state based on event message
+ * @param previousState 
+ * @param action 
+ */
+const reducer = (previousState: MsalState, action: MsalProviderReducerAction): MsalState => {
     const { type, payload } = action;
     let newAccounts = previousState.accounts;
     let newInProgress = previousState.inProgress;
@@ -81,13 +84,9 @@ const reducer = (previousState: MsalState, action: MsalProviderReducerAction) =>
     };
 };
 
-const MsalProviderStateInitializer = (instance: IPublicClientApplication): MsalState => {
-    return {
-        inProgress: InteractionStatus.Startup,
-        accounts: instance.getAllAccounts()
-    };
-};
-
+/**
+ * MSAL context provider component. This must be rendered above any other components that use MSAL.
+ */
 export function MsalProvider({instance, children}: MsalProviderProps): React.ReactElement {
     useEffect(() => {
         instance.initializeWrapperLibrary(WrapperSKU.React, version);
@@ -97,11 +96,17 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
         return instance.getLogger().clone(SKU, version);
     }, [instance]);
 
-    const [state, dispatch] = useReducer(reducer, instance, MsalProviderStateInitializer);
+    const [state, updateState] = useReducer(reducer, undefined, () => {
+        // Lazy initialization of the initial state
+        return {
+            inProgress: InteractionStatus.Startup,
+            accounts: instance.getAllAccounts()
+        };
+    });
     
     useEffect(() => {
         const callbackId = instance.addEventCallback((message: EventMessage) => {
-            dispatch({
+            updateState({
                 payload: {
                     instance,
                     logger,
@@ -120,7 +125,7 @@ export function MsalProvider({instance, children}: MsalProviderProps): React.Rea
              * If handleRedirectPromise returns a cached promise the necessary events may not be fired
              * This is a fallback to prevent inProgress from getting stuck in 'startup'
              */
-            dispatch({
+            updateState({
                 payload: {
                     instance,
                     logger
