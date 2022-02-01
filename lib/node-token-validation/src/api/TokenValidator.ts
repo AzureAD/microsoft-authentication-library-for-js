@@ -9,7 +9,7 @@ import crypto from "crypto";
 import { buildConfiguration, Configuration, TokenValidationConfiguration } from "../config/Configuration";
 import { buildTokenValidationParameters, TokenValidationParameters, ValidationParameters } from "../config/TokenValidationParameters";
 import { TokenValidationResponse } from "../response/TokenValidationResponse";
-import { ValidationConfigurationError, ValidationConfigurationErrorMessage } from "../error/ValidationConfigurationError";
+import { ValidationConfigurationError } from "../error/ValidationConfigurationError";
 import { name, version } from "../packageMetadata";
 import { OpenIdConfigProvider } from "../config/OpenIdConfigProvider";
 import { ValidationError } from "../error/ValidationError";
@@ -43,8 +43,8 @@ export class TokenValidator {
             algorithms: validationParams.validAlgorithms,
             issuer: await this.setIssuerParams(options),
             audience: await this.setAudienceParams(options),
-            subject: validationParams.subject
-            // Figure out types here
+            subject: validationParams.subject,
+            typ: validationParams.validTypes[0]
         };
 
         const { payload, protectedHeader } = await jwtVerify(token, jwks, jwtVerifyParams);
@@ -53,7 +53,9 @@ export class TokenValidator {
 
         return {
             protectedHeader,
-            payload
+            payload,
+            token,
+            tokenType: validationParams.validTypes[0]
         };
     }
     
@@ -77,15 +79,14 @@ export class TokenValidator {
         const retrievedJwksUri: string = await this.openIdConfigProvider.fetchJwksUriFromEndpoint();
         this.logger.verbose("TokenValidator - Creating JWKS from default");
         return createRemoteJWKSet(new URL(retrievedJwksUri));
-    
     }
 
-    async setIssuersParams(options: TokenValidationParameters): Promise<string[]> {
-        this.logger.trace("TokenValidator.setIssuersParams called");
+    async setIssuerParams(options: TokenValidationParameters): Promise<string[]> {
+        this.logger.trace("TokenValidator.setIssuerParams called");
 
         // Check that validIssuers is not empty
         if (options.validIssuers.length < 1 || options.validIssuers[0].length < 1) {
-            throw ValidationConfigurationError.createEmptyIssuersError();
+            throw ValidationConfigurationError.createEmptyIssuerError();
         }
 
         return options.validIssuers;
@@ -96,7 +97,7 @@ export class TokenValidator {
 
         // Check that validAudiences is not empty
         if (options.validAudiences.length < 1 || options.validAudiences[0].length < 1) {
-            throw ValidationConfigurationError.createEmptyAudiencesError();
+            throw ValidationConfigurationError.createEmptyAudienceError();
         }
 
         return options.validAudiences;

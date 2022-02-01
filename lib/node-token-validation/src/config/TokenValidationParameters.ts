@@ -3,8 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { Configuration } from "./Configuration";
-import { JwtConstants } from "../utils/Constants";
+import { JwtConstants, TokenType } from "../utils/Constants";
 import { JWK } from "jose";
 
 export type TokenValidationParameters = {
@@ -30,7 +29,7 @@ export type ValidationParameters = {
     validAlgorithms: Required<Array<string>>,
     validIssuers: Array<string>,
     validAudiences: Required<Array<string>>,
-    validTypes?: Array<string>,
+    validTypes: Array<string>,
     // Signature validation
     issuerSigningKeys?: Array<JWK>,
     issuerSigningJwksUri?: string,
@@ -44,9 +43,9 @@ export type ValidationParameters = {
 };
 
 export function buildTokenValidationParameters(params: TokenValidationParameters): ValidationParameters {
-    const DEFAULT_VALIDATION_PARAMS = { // Are there defaults for these? Which ones should not have defaults?
+    const DEFAULT_VALIDATION_PARAMS = {
         validAlgorithms: [JwtConstants.RSA_256],
-        validTypes: [], // .NET: if not set, all types will be accepted
+        validTypes: [TokenType.JWT],
         requireExpirationTime: true,
         requireSignedTokens: true,
     };

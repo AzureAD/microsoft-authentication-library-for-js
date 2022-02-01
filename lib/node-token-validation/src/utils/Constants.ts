@@ -16,7 +16,7 @@ export enum HttpMethod {
 }
 
 /**
- * JWT  constants
+ * JWT constants
  */
 export const JwtConstants = {
     ALGORITHM: "alg",
@@ -29,4 +29,11 @@ export const JwtConstants = {
     SUBJECT: "sub",
     NOT_BEFORE: "nbf",
     JWT_ID: "jti",
+};
+
+/**
+ * Token Types
+ */
+export const TokenType = {
+    JWT: "JWT"
 };
