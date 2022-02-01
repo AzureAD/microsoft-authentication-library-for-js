@@ -109,7 +109,7 @@ export class TokenValidator {
         // Validate nonce
         if (payload.nonce) {
             if (!validationParams.nonce) {
-                this.logger.verbose("Nonce detected on token, but nonce not set in validationParams");
+                throw ValidationConfigurationError.createMissingNonceError();
             } else if (validationParams.nonce === payload.nonce) {
                 this.logger.verbose("Nonce validated");
             } else {
@@ -146,14 +146,20 @@ export class TokenValidator {
         }
     }
 
+    /**
+     * Checking hash per OIDC spec, section 3.3.2.11 https://openid.net/specs/openid-connect-core-1_0.html#HybridTokenValidation
+     * @param content 
+     * @param hashProvided 
+     * @returns 
+     */
     async checkHashValue(content: string, hashProvided: string): Promise<Boolean> {
         this.logger.trace("TokenValidator.checkHashValue called");
 
         // 1. Hash the content (either code for c_hash, or token for at_hash) and save as buffer
         const digest = crypto.createHash("sha256").update(content, "ascii").digest();
 
-        // 2. Only take first half of buffer
-        const buffer = digest.slice(0, digest.length/2); // End not inclusive? +1?
+        // 2. Only take left half of buffer
+        const buffer = digest.slice(0, digest.length/2);
 
         // 3. Base64Url encode the buffer to get the hash
         const encodedHash = buffer.toString("base64url");

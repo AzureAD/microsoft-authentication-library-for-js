@@ -18,6 +18,10 @@ export const ValidationConfigurationErrorMessage = {
         code: "empty_audience",
         desc: "Unable to validate token when validAudiences provided is empty."
     },
+    missingNonce: {
+        code: "missing_nonce",
+        desc: "Nonce is present on id token, but nonce is not set in validationParams. Provide nonce to validate id token."
+    },
     invalidMetadata: {
         code: "invalid_metadata",
         desc: "Metadata returned from well-known endpoint is invalid."
@@ -42,6 +46,10 @@ export class ValidationConfigurationError extends ClientConfigurationError {
 
     static createEmptyAudienceError(): ValidationConfigurationError {
         return new ValidationConfigurationError(ValidationConfigurationErrorMessage.emptyAudience.code, ValidationConfigurationErrorMessage.emptyAudience.desc);
+    }
+
+    static createMissingNonceError(): ValidationConfigurationError {
+        return new ValidationConfigurationError(ValidationConfigurationErrorMessage.missingNonce.code, ValidationConfigurationErrorMessage.missingNonce.desc);
     }
 
     static createInvalidMetadataError(): ValidationConfigurationError {

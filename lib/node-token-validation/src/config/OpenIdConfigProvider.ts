@@ -44,10 +44,12 @@ export class OpenIdConfigProvider {
     }
 
     async setOpenIdConfigurationEndpoint(): Promise<void> {
+        const normalizedAuthority = this.authority.endsWith("/") ? this.authority : `${this.authority}/`;
+
         if (this.protocolMode === ProtocolMode.AAD) {
-            this.openIdConfigurationEndpoint = `${this.authority}v2.0/.well-known/openid-configuration`;
+            this.openIdConfigurationEndpoint = `${normalizedAuthority}v2.0/.well-known/openid-configuration`;
         }
-        this.openIdConfigurationEndpoint = `${this.authority}.well-known/openid-configuration`;
+        this.openIdConfigurationEndpoint = `${normalizedAuthority}.well-known/openid-configuration`;
     }
 
     static isOpenIdConfigResponse(response: object): boolean {
