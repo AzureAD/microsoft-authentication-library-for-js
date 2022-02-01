@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Fixing npm packages",
+  "packageName": "@azure/msal-angular",
+  "email": "marionminayo@microsoft.com",
+  "dependentChangeType": "patch"
+}
