@@ -4,12 +4,12 @@
  */
 
 import { INetworkModule, Logger } from "@azure/msal-common";
-import { jwtVerify, createRemoteJWKSet, JWTVerifyOptions, JWTPayload } from "jose";
+import { jwtVerify, createLocalJWKSet, createRemoteJWKSet, JWTVerifyOptions, JWTPayload } from "jose";
 import crypto from "crypto";
 import { buildConfiguration, Configuration, TokenValidationConfiguration } from "../config/Configuration";
 import { buildTokenValidationParameters, TokenValidationParameters, ValidationParameters } from "../config/TokenValidationParameters";
 import { TokenValidationResponse } from "../response/TokenValidationResponse";
-import { ValidationConfigurationError } from "../error/ValidationConfigurationError";
+import { ValidationConfigurationError, ValidationConfigurationErrorMessage } from "../error/ValidationConfigurationError";
 import { name, version } from "../packageMetadata";
 import { OpenIdConfigProvider } from "../config/OpenIdConfigProvider";
 import { ValidationError } from "../error/ValidationError";
@@ -24,25 +24,25 @@ export class TokenValidator {
         this.config = buildConfiguration(configuration);
         this.logger = new Logger(this.config.system.loggerOptions, name, version);
         this.networkInterface = this.config.system.networkClient,
-        this.openIdConfigProvider = new OpenIdConfigProvider(this.config.auth.authority, this.networkInterface, this.logger);
+        this.openIdConfigProvider = new OpenIdConfigProvider(this.config, this.networkInterface, this.logger);
     }
 
     async validateToken(token: string, options: TokenValidationParameters): Promise<TokenValidationResponse> {
-        this.logger.verbose("validateToken called");
+        this.logger.trace("TokenValidator.validateToken called");
         
         if (!token) {
             throw ValidationConfigurationError.createMissingTokenError();
         }
 
-        const validationParams: ValidationParameters = await buildTokenValidationParameters(options, this.config);
-        this.logger.verbose("ValidationParams built");
+        const validationParams: ValidationParameters = await buildTokenValidationParameters(options);
+        this.logger.verbose("TokenValidator - ValidationParams built");
             
         const jwks = await this.getJWKS(validationParams);
 
         const jwtVerifyParams: JWTVerifyOptions = {
             algorithms: validationParams.validAlgorithms,
-            issuer: validationParams.validIssuers,
-            audience: validationParams.validAudiences,
+            issuer: await this.setIssuerParams(options),
+            audience: await this.setAudienceParams(options),
             subject: validationParams.subject
             // Figure out types here
         };
@@ -58,28 +58,52 @@ export class TokenValidator {
     }
     
     async getJWKS(validationParams: ValidationParameters): Promise<any> {
-        this.logger.verbose("getJWKS called");
+        this.logger.trace("TokenValidator.getJWKS called");
         
         // Prioritize keystore or jwksUri if provided
         if (validationParams.issuerSigningKeys) {
-            this.logger.verbose("JweKeyStore provided");
-            return validationParams.issuerSigningKeys;
+            this.logger.verbose("TokenValidator - issuerSigningKeys provided");
+            return createLocalJWKSet({
+                keys: validationParams.issuerSigningKeys
+            });
         } 
         
         if (validationParams.issuerSigningJwksUri) {
-            this.logger.verbose("JwksUri provided");
+            this.logger.verbose("TokenValidator - Creating JWKS from JwksUri");
             return createRemoteJWKSet(new URL(validationParams.issuerSigningJwksUri));
         }
 
         // Do resiliency well-known endpoint thing here
         const retrievedJwksUri: string = await this.openIdConfigProvider.fetchJwksUriFromEndpoint();
-        this.logger.verbose("Creating Jwks from default");
+        this.logger.verbose("TokenValidator - Creating JWKS from default");
         return createRemoteJWKSet(new URL(retrievedJwksUri));
     
     }
+
+    async setIssuersParams(options: TokenValidationParameters): Promise<string[]> {
+        this.logger.trace("TokenValidator.setIssuersParams called");
+
+        // Check that validIssuers is not empty
+        if (options.validIssuers.length < 1 || options.validIssuers[0].length < 1) {
+            throw ValidationConfigurationError.createEmptyIssuersError();
+        }
+
+        return options.validIssuers;
+    }
+
+    async setAudienceParams(options: TokenValidationParameters): Promise<string[]> {
+        this.logger.trace("TokenValidator.setAudienceParams called");
+
+        // Check that validAudiences is not empty
+        if (options.validAudiences.length < 1 || options.validAudiences[0].length < 1) {
+            throw ValidationConfigurationError.createEmptyAudiencesError();
+        }
+
+        return options.validAudiences;
+    }
  
     async validateClaims(payload: JWTPayload, validationParams: ValidationParameters): Promise<void> {
-        this.logger.verbose("validateClaims called");
+        this.logger.trace("TokenValidator.validateClaims called");
 
         // Validate nonce
         if (payload.nonce) {
@@ -94,7 +118,7 @@ export class TokenValidator {
 
         // Validate c_hash
         if (payload.c_hash && typeof payload.c_hash === "string") {
-            this.logger.verbose("Validating c_hash");
+            this.logger.trace("TokenValidator - Validating c_hash");
 
             if (!validationParams.code) {
                 this.logger.verbose("C_hash present on token but code not set in validationParams. Unable to validate c_hash");
@@ -108,7 +132,7 @@ export class TokenValidator {
 
         // Validate at_hash
         if (payload.at_hash && typeof payload.at_hash === "string") {
-            this.logger.verbose("Validating at_hash");
+            this.logger.trace("TokenValidator - Validating at_hash");
 
             if (!validationParams.accessTokenForAtHash) {
                 this.logger.verbose("At_hash present on token but access token not set in validationParams. Unable to validate at_hash");
@@ -122,7 +146,7 @@ export class TokenValidator {
     }
 
     async checkHashValue(content: string, hashProvided: string): Promise<Boolean> {
-        this.logger.verbose("checkHashValue called");
+        this.logger.trace("TokenValidator.checkHashValue called");
 
         // 1. Hash the content (either code for c_hash, or token for at_hash) and save as buffer
         const digest = crypto.createHash("sha256").update(content, "ascii").digest();

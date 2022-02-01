@@ -3,53 +3,51 @@
  * Licensed under the MIT License.
  */
 
-import { INetworkModule, Logger, NetworkResponse } from "@azure/msal-common";
+import { INetworkModule, Logger, NetworkResponse, ProtocolMode } from "@azure/msal-common";
 import { ValidationConfigurationError } from "../error/ValidationConfigurationError";
 import { OpenIdConfigResponse } from "../response/OpenIdConfigResponse";
+import { TokenValidationConfiguration } from "./Configuration";
 
 export class OpenIdConfigProvider {
     protected authority: string;
+    protected protocolMode: ProtocolMode;
     protected networkInterface: INetworkModule;
     protected openIdConfigurationEndpoint: string;
     protected logger: Logger;
 
-    constructor(authority: string, networkInterface: INetworkModule, logger: Logger) {
-        this.authority = authority;
+    constructor(configuration: TokenValidationConfiguration, networkInterface: INetworkModule, logger: Logger) {
+        this.authority = configuration.auth.authority;
+        this.protocolMode = configuration.auth.protocolMode;
         this.networkInterface = networkInterface;
         this.logger = logger;
     }
 
     async getMetadata(): Promise<NetworkResponse<OpenIdConfigResponse>> {
-        this.logger.verbose("getMetadata called");
+        this.logger.trace("OpenIdConfigProvider.getMetadata called");
 
-        try {
-            await this.setOpenIdConfigurationEndpoint();
-            this.logger.verbose(`openIdConfigurationEndpoint: ${this.openIdConfigurationEndpoint}`);
-            const endpointMetadata = await this.networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(this.openIdConfigurationEndpoint);
+        await this.setOpenIdConfigurationEndpoint();
+        this.logger.verbose(`OpenIdConfigProvider - openIdConfigurationEndpoint: ${this.openIdConfigurationEndpoint}`);
+        const endpointMetadata = await this.networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(this.openIdConfigurationEndpoint);
 
-            if (OpenIdConfigProvider.isOpenIdConfigResponse(endpointMetadata.body)) {
-                return endpointMetadata;
-            } else {
-                throw ValidationConfigurationError.createInvalidMetadataError();
-            }
-        } catch (e) {
-            throw e;
+        if (OpenIdConfigProvider.isOpenIdConfigResponse(endpointMetadata.body)) {
+            return endpointMetadata;
+        } else {
+            throw ValidationConfigurationError.createInvalidMetadataError();
         }
     }
 
     async fetchJwksUriFromEndpoint(): Promise<string> {
-        this.logger.verbose("fetchJwksUriFromEndpoint called");
+        this.logger.trace("OpenIdConfigProvider.fetchJwksUriFromEndpoint called");
 
-        try {
-            const endpointMetadata = await this.getMetadata();
-            return endpointMetadata.body.jwks_uri;
-        } catch (e) {
-            throw e;
-        }
+        const endpointMetadata = await this.getMetadata();
+        return endpointMetadata.body.jwks_uri;
     }
 
     async setOpenIdConfigurationEndpoint(): Promise<void> {
-        this.openIdConfigurationEndpoint = `${this.authority}v2.0/.well-known/openid-configuration`; // v2.0 or just well-known? Protocol mode?
+        if (this.protocolMode === ProtocolMode.AAD) {
+            this.openIdConfigurationEndpoint = `${this.authority}v2.0/.well-known/openid-configuration`;
+        }
+        this.openIdConfigurationEndpoint = `${this.authority}.well-known/openid-configuration`;
     }
 
     static isOpenIdConfigResponse(response: object): boolean {

@@ -10,6 +10,14 @@ export const ValidationConfigurationErrorMessage = {
         code: "missing_token",
         desc: "Unable to validate token when token is not provided."
     },
+    emptyIssuers: {
+        code: "empty_issuers",
+        desc: "Unable to validate token when validIssuers provided is empty."
+    },
+    emptyAudiences: {
+        code: "empty_audiences",
+        desc: "Unable to validate token when validAudiences provided is empty."
+    },
     invalidMetadata: {
         code: "invalid_metadata",
         desc: "Metadata returned from well-known endpoint is invalid."
@@ -26,6 +34,14 @@ export class ValidationConfigurationError extends ClientConfigurationError {
 
     static createMissingTokenError(): ValidationConfigurationError {
         return new ValidationConfigurationError(ValidationConfigurationErrorMessage.missingToken.code, ValidationConfigurationErrorMessage.missingToken.desc);
+    }
+
+    static createEmptyIssuersError(): ValidationConfigurationError {
+        return new ValidationConfigurationError(ValidationConfigurationErrorMessage.emptyIssuers.code, ValidationConfigurationErrorMessage.emptyIssuers.desc);
+    }
+
+    static createEmptyAudiencesError(): ValidationConfigurationError {
+        return new ValidationConfigurationError(ValidationConfigurationErrorMessage.emptyAudiences.code, ValidationConfigurationErrorMessage.emptyAudiences.desc);
     }
 
     static createInvalidMetadataError(): ValidationConfigurationError {

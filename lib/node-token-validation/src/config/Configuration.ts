@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { INetworkModule, LoggerOptions, LogLevel } from "@azure/msal-common";
+import { INetworkModule, LoggerOptions, LogLevel, ProtocolMode } from "@azure/msal-common";
 import { Constants } from "../utils/Constants";
 import { NetworkUtils } from "../utils/NetworkUtils";
 
@@ -14,8 +14,9 @@ export type Configuration = {
 
 export type TokenValidationOptions = {
     clientId: string,
-    authority: string,
-    clockSkew: Number,
+    authority?: string,
+    protocolMode?: ProtocolMode
+    clockSkew?: Number,
 };
 
 export type SystemOptions = {
@@ -39,6 +40,7 @@ const DEFAULT_LOGGER_OPTIONS: LoggerOptions = {
 const DEFAULT_TOKEN_VALIDATION_OPTIONS: Required<TokenValidationOptions> = {
     clientId: "",
     authority: Constants.DEFAULT_AUTHORITY,
+    protocolMode: ProtocolMode.OIDC,
     clockSkew: 0
 };
 
