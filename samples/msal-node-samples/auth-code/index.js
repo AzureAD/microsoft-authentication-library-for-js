@@ -61,6 +61,13 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
             if(req.query.state) authCodeUrlParameters.state = req.query.state;
 
             // Check for nonce parameter
+            /**
+             * MSAL node provides for the use of OIDC nonce feature which is used to protect against token replay.
+             * The CryptoProvider class provided by MSAL exposes the createNewGuid() API that generates random GUID
+             * used to populate the nonce value if none is provided.
+             * 
+             * The generated nonce is then cached and passed as part of authCodeUrlParameters during authentication request.
+             */
             if(req.query.nonce){
                 authCodeUrlParameters.nonce = req.query.nonce
             } else {
@@ -96,7 +103,7 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
 
     app.get("/redirect", (req, res) => {
         const tokenRequest = { ...requestConfig.tokenRequest, code: req.query.code};
-        const authCodeResponse = { nonce :req.session.nonce }
+        const authCodeResponse = { nonce :req.session.nonce, code: req.query.code }
         /**
          * MSAL Usage
          * The code below demonstrates the correct usage pattern of the ClientApplicaiton.acquireTokenByCode API.
@@ -104,6 +111,7 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
          * Authorization Code Grant: Second Leg
          * 
          * In this code block, the application uses MSAL to obtain an Access Token from the configured authentication service.
+         * The cached nonce is passed in authCodeResponse object and shall later be validated by MSAL once the Access Token and ID * * token are returned by the authentication service.
          * The response contains an `accessToken` property. Said property contains a string representing an encoded Json Web Token
          * which can be added to the `Authorization` header in a protected resource request to demonstrate authorization.
          */
