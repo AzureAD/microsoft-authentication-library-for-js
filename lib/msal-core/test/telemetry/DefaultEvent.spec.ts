@@ -1,4 +1,3 @@
-import { expect } from "chai";
 import DefaultEvent from "../../src/telemetry/DefaultEvent";
 import { TelemetryPlatform, EventCount } from "../../src/telemetry/TelemetryTypes";
 import { CryptoUtils } from '../../src/utils/CryptoUtils';
@@ -27,13 +26,13 @@ describe("DefaultEvent", () => {
             eventCount
         );
         const event = defaultEvent.get();
-        expect(event["Microsoft_MSAL_ui_event_count"]).to.eq(100);
-        expect(event["Microsoft_MSAL_http_event_count"]).to.eq(200);
-        expect(event["Microsoft_MSAL_cache_event_count"]).to.eq(0);
-        expect(event["msal.application_name"]).to.eq("mochaTest");
-        expect(event["msal.event_name"]).to.eq("msal.default_event");
-        expect(event["msal.application_name"]).to.eq("mochaTest");
-        expect(event["msal.elapsed_time"]).to.eq(-1);
-        expect(event["msal.effective_connection_speed"]).to.eq("4g");
+        expect(event["Microsoft_MSAL_ui_event_count"]).toBe(100);
+        expect(event["Microsoft_MSAL_http_event_count"]).toBe(200);
+        expect(event["Microsoft_MSAL_cache_event_count"]).toBe(0);
+        expect(event["msal.application_name"]).toBe("mochaTest");
+        expect(event["msal.event_name"]).toBe("msal.default_event");
+        expect(event["msal.application_name"]).toBe("mochaTest");
+        expect(event["msal.elapsed_time"]).toBe(-1);
+        expect(event["msal.effective_connection_speed"]).toBe("4g");
     });
 });

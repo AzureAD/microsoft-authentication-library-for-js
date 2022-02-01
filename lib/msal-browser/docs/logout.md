@@ -103,6 +103,34 @@ await msalInstance.logoutPopup({
 });
 ```
 
+## Promptless logout
+
+If your client application has the [login_hint optional claim](https://docs.microsoft.com/azure/active-directory/develop/active-directory-optional-claims#v10-and-v20-optional-claims-set) enabled for ID Tokens, you can leverage the ID Token's `login_hint` claim to perform a "silent" or promptless logout while using either `logoutRedirect` or `logoutPopup`. There are two ways to achieve a promptless logout:
+
+### Option 1: Let MSAL automatically parse the login_hint out of the account's ID token claims
+
+The first and simplest option is to provide the account object you want to end the session for to the logout API. MSAL will check to see if the `login_hint` claim is available in the account's ID token and automatically add it to the end session request as `logout_hint` to skip the account picker prompt.
+
+```javascript
+const currentAccount = msalInstance.getAccountByHomeId(homeAccountId);
+// The account's ID Token must contain the login_hint optional claim to avoid the account picker
+await msalInstance.logoutRedirect({ account: currentAccount});
+```
+
+### Option 2: Manually set the logoutHint option in the logout request
+
+Alternatively, if you prefer to manually set the `logoutHint`, you can extract the `login_hint` claim in your app and set it as the `logoutHint` in the logout request: 
+
+```javascript
+const currentAccount = msalInstance.getAccountByHomeId(homeAccountId);
+
+// Extract login hint to use as logout hint
+const logoutHint = currentAccount.idTokenClaims.login_hint;
+await msalInstance.logoutPopup({ logoutHint: logoutHint });
+```
+
+***Note: Depending on the API you choose (redirect/popup), the app will still redirect or open a popup to terminate the server session. The difference is that the user will not see or have to interact with the server's account picker prompt.***
+
 ## Front-channel logout
 
 Azure AD and Azure AD B2C support the [OAuth front-channel logout feature](https://openid.net/specs/openid-connect-frontchannel-1_0.html), which enables single-sign out across all applications when a user initiates logout. To take advantage of this feature with MSAL.js, perform the following steps:
