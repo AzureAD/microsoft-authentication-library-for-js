@@ -12,6 +12,7 @@ import { LibraryInfo } from "../config/ClientConfiguration";
 import { StringUtils } from "../utils/StringUtils";
 import { ServerTelemetryManager } from "../telemetry/server/ServerTelemetryManager";
 import { ClientInfo } from "../account/ClientInfo";
+import { StkJwkThumbprint } from "../crypto/PopTokenGenerator";
 
 export class RequestParameterBuilder {
 
@@ -381,6 +382,30 @@ export class RequestParameterBuilder {
      */
     addThrottling(): void {
         this.parameters.set(AADServerParamKeys.X_MS_LIB_CAPABILITY, ThrottlingConstants.X_MS_LIB_CAPABILITY_VALUE);
+    }
+
+    /**
+     * Add stk_jwk thumbprint to query params
+     * @param stkJwkKid
+     */
+    addStkJwkThumbprint(stkJwkKid: string): void {
+        if(!StringUtils.isEmpty(stkJwkKid)) {
+            const stkJwkThumbprint: StkJwkThumbprint = {
+                kid: stkJwkKid
+            };
+
+            this.parameters.set(AADServerParamKeys.STK_JWK, encodeURIComponent(JSON.stringify(stkJwkThumbprint)));
+        }
+    }
+
+    /**
+     * Add stk_jwk public key to query params
+     * @param stkJwk
+     */
+    addStkJwk(stkJwk: string): void {
+        if(!StringUtils.isEmpty(stkJwk)) {
+            this.parameters.set(AADServerParamKeys.STK_JWK, encodeURIComponent(stkJwk));
+        }
     }
 
     /**

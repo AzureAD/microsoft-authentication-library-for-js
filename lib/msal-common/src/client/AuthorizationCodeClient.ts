@@ -245,6 +245,11 @@ export class AuthorizationCodeClient extends BaseClient {
             }
         }
 
+        if (request.stkJwk) {
+            const stkJwk = await this.popTokenGenerator.retrieveAsymmetricPublicKey(request.stkJwk);
+            parameterBuilder.addStkJwk(stkJwk);
+        }
+
         const correlationId = request.correlationId || this.config.cryptoInterface.createNewGuid();
         parameterBuilder.addCorrelationId(correlationId);
 
@@ -399,6 +404,10 @@ export class AuthorizationCodeClient extends BaseClient {
 
         if (request.extraQueryParameters) {
             parameterBuilder.addExtraQueryParameters(request.extraQueryParameters);
+        }
+
+        if (request.stkJwk) {
+            parameterBuilder.addStkJwkThumbprint(request.stkJwk);
         }
 
         return parameterBuilder.createQueryString();

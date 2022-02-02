@@ -132,6 +132,7 @@ export enum AADServerParamKeys {
     CLIENT_ASSERTION_TYPE = "client_assertion_type",
     TOKEN_TYPE = "token_type",
     REQ_CNF = "req_cnf",
+    STK_JWK = "stk_jwk",
     OBO_ASSERTION = "assertion",
     REQUESTED_TOKEN_USE = "requested_token_use",
     ON_BEHALF_OF = "on_behalf_of",

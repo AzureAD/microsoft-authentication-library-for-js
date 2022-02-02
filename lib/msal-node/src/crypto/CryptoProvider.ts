@@ -94,6 +94,6 @@ export class CryptoProvider implements ICrypto {
      * @param keyThumbprint
      */
     getAsymmetricPublicKey(): Promise<string> {
-        throw new Error("Method not implemented");
+        throw new Error("Method not implemented.");
     }
 }
