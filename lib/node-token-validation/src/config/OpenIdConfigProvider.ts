@@ -12,7 +12,6 @@ export class OpenIdConfigProvider {
     protected authority: string;
     protected protocolMode: ProtocolMode;
     protected networkInterface: INetworkModule;
-    protected openIdConfigurationEndpoint: string;
     protected logger: Logger;
 
     constructor(configuration: TokenValidationConfiguration, networkInterface: INetworkModule, logger: Logger) {
@@ -32,9 +31,9 @@ export class OpenIdConfigProvider {
     async getMetadata(): Promise<NetworkResponse<OpenIdConfigResponse>> {
         this.logger.trace("OpenIdConfigProvider.getMetadata called");
 
-        await this.setOpenIdConfigurationEndpoint();
-        this.logger.verbose(`OpenIdConfigProvider - openIdConfigurationEndpoint: ${this.openIdConfigurationEndpoint}`);
-        const endpointMetadata = await this.networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(this.openIdConfigurationEndpoint);
+        const endpoint = await this.getOpenIdConfigurationEndpoint();
+        this.logger.verbose(`OpenIdConfigProvider - openIdConfigurationEndpoint: ${endpoint}`);
+        const endpointMetadata = await this.networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(endpoint);
 
         if (OpenIdConfigProvider.isOpenIdConfigResponse(endpointMetadata.body)) {
             return endpointMetadata;
@@ -43,13 +42,14 @@ export class OpenIdConfigProvider {
         }
     }
 
-    async setOpenIdConfigurationEndpoint(): Promise<void> {
+    async getOpenIdConfigurationEndpoint(): Promise<string> {
         const normalizedAuthority = this.authority.endsWith("/") ? this.authority : `${this.authority}/`;
 
         if (this.protocolMode === ProtocolMode.AAD) {
-            this.openIdConfigurationEndpoint = `${normalizedAuthority}v2.0/.well-known/openid-configuration`;
+            return `${normalizedAuthority}v2.0/.well-known/openid-configuration`;
+        } else {
+            return `${normalizedAuthority}.well-known/openid-configuration`;
         }
-        this.openIdConfigurationEndpoint = `${normalizedAuthority}.well-known/openid-configuration`;
     }
 
     static isOpenIdConfigResponse(response: object): boolean {
