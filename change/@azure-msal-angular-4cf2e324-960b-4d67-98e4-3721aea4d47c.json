@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add support for Angular 13 and RxJS 7 (#4467)",
+  "packageName": "@azure/msal-angular",
+  "email": "sandro.colombo.sc@gmail.com",
+  "dependentChangeType": "patch"
+}
