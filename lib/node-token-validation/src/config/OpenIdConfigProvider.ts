@@ -22,6 +22,13 @@ export class OpenIdConfigProvider {
         this.logger = logger;
     }
 
+    async fetchJwksUriFromEndpoint(): Promise<string> {
+        this.logger.trace("OpenIdConfigProvider.fetchJwksUriFromEndpoint called");
+
+        const endpointMetadata = await this.getMetadata();
+        return endpointMetadata.body.jwks_uri;
+    }
+
     async getMetadata(): Promise<NetworkResponse<OpenIdConfigResponse>> {
         this.logger.trace("OpenIdConfigProvider.getMetadata called");
 
@@ -34,13 +41,6 @@ export class OpenIdConfigProvider {
         } else {
             throw ValidationConfigurationError.createInvalidMetadataError();
         }
-    }
-
-    async fetchJwksUriFromEndpoint(): Promise<string> {
-        this.logger.trace("OpenIdConfigProvider.fetchJwksUriFromEndpoint called");
-
-        const endpointMetadata = await this.getMetadata();
-        return endpointMetadata.body.jwks_uri;
     }
 
     async setOpenIdConfigurationEndpoint(): Promise<void> {

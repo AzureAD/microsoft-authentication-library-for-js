@@ -158,7 +158,7 @@ export class TokenValidator {
         // 1. Hash the content (either code for c_hash, or token for at_hash) and save as buffer
         const digest = crypto.createHash("sha256").update(content, "ascii").digest();
 
-        // 2. Only take left half of buffer
+        // 2. Only take left half of buffer, per OIDC spec
         const buffer = digest.slice(0, digest.length/2);
 
         // 3. Base64Url encode the buffer to get the hash

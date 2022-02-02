@@ -24,7 +24,7 @@ export const ValidationConfigurationErrorMessage = {
     },
     invalidMetadata: {
         code: "invalid_metadata",
-        desc: "Metadata returned from well-known endpoint is invalid."
+        desc: "Metadata returned from well-known endpoint is invalid and does not contain jwks_uri."
     }
 };
 

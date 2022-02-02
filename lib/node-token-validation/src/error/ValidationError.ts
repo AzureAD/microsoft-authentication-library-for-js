@@ -17,10 +17,6 @@ export const ValidationErrorMessage = {
     invalidAtHash: {
         code: "invalid_at_hash",
         desc: "At_hash in token unable to be validated against access token."
-    },
-    invalidMetadata: {
-        code: "invalid_metadata",
-        desc: "Metadata returned from well-known endpoint is invalid. Does not contain jwks_uri."
     }
 };
 
@@ -42,10 +38,6 @@ export class ValidationError extends AuthError {
 
     static createInvalidAtHashError(): ValidationError {
         return new ValidationError(ValidationErrorMessage.invalidAtHash.code, ValidationErrorMessage.invalidAtHash.desc);
-    }
-
-    static createInvalidMetadataError(): ValidationError {
-        return new ValidationError(ValidationErrorMessage.invalidMetadata.code, ValidationErrorMessage.invalidMetadata.desc);
     }
 
 }
