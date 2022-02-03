@@ -909,13 +909,16 @@ export class BrowserCacheManager extends CacheManager {
     }
 
     setInteractionInProgress(inProgress: boolean): void {
-        const clientId = this.getInteractionInProgress();
         // Ensure we don't overwrite interaction in progress for a different clientId
         const key = `${Constants.CACHE_PREFIX}.${TemporaryCacheKeys.INTERACTION_STATUS_KEY}`;
-        if (inProgress && !clientId) {
-            // No interaction is in progress
-            this.setTemporaryCache(key, this.clientId, false);
-        } else if (!inProgress && clientId === this.clientId) {
+        if (inProgress) {
+            if (this.getInteractionInProgress()) {
+                throw BrowserAuthError.createInteractionInProgressError();
+            } else {
+                // No interaction is in progress
+                this.setTemporaryCache(key, this.clientId, false);
+            }
+        } else if (!inProgress && this.getInteractionInProgress() === this.clientId) {
             this.removeItem(key);
         }
     }
