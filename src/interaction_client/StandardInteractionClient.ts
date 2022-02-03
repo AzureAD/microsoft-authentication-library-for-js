@@ -220,16 +220,16 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         const browserState: BrowserStateObject = {
             interactionType: interactionType
         };
-        const reqState = ProtocolUtils.setRequestState(
+        const state = ProtocolUtils.setRequestState(
             this.browserCrypto,
-            request.state || Constants.EMPTY_STRING,
+            (request && request.state)|| Constants.EMPTY_STRING,
             browserState
         );
 
         const validatedRequest: AuthorizationUrlRequest = {
             ...await this.initializeBaseRequest(request),
             redirectUri: redirectUri,
-            state: reqState,
+            state: state,
             nonce: request.nonce || this.browserCrypto.createNewGuid(),
             responseMode: ResponseMode.FRAGMENT
         };
