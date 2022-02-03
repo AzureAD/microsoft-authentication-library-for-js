@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, Logger, ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils } from "@azure/msal-common";
+import { ICrypto, Logger, ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, IdTokenClaims, AccountInfo } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
@@ -59,15 +59,33 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     protected initializeLogoutRequest(logoutRequest?: EndSessionRequest): CommonEndSessionRequest {
         this.logger.verbose("initializeLogoutRequest called", logoutRequest?.correlationId);
 
-        // Check if interaction is in progress. Throw error if true.
-        if (this.browserStorage.isInteractionInProgress()) {
-            throw BrowserAuthError.createInteractionInProgressError();
-        }
-
         const validLogoutRequest: CommonEndSessionRequest = {
             correlationId: this.browserCrypto.createNewGuid(),
             ...logoutRequest
         };
+
+        /**
+         * Set logout_hint to be login_hint from ID Token Claims if present
+         * and logoutHint attribute wasn't manually set in logout request
+         */
+        if (logoutRequest) {
+            // If logoutHint isn't set and an account was passed in, try to extract logoutHint from ID Token Claims
+            if (!logoutRequest.logoutHint) {
+                if(logoutRequest.account) {
+                    const logoutHint = this.getLogoutHintFromIdTokenClaims(logoutRequest.account);
+                    if (logoutHint) {
+                        this.logger.verbose("Setting logoutHint to login_hint ID Token Claim value for the account provided");
+                        validLogoutRequest.logoutHint = logoutHint; 
+                    }
+                } else {
+                    this.logger.verbose("logoutHint was not set and account was not passed into logout request, logoutHint will not be set");
+                }
+            } else {
+                this.logger.verbose("logoutHint has already been set in logoutRequest");
+            }
+        } else {
+            this.logger.verbose("logoutHint will not be set since no logout request was configured");
+        }
 
         /*
          * Only set redirect uri if logout request isn't provided or the set uri isn't null.
@@ -91,6 +109,26 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         }
 
         return validLogoutRequest;
+    }
+
+    /**
+     * Parses login_hint ID Token Claim out of AccountInfo object to be used as 
+     * logout_hint in end session request.
+     * @param account 
+     */
+    protected getLogoutHintFromIdTokenClaims(account: AccountInfo): string | null {
+        const idTokenClaims: IdTokenClaims | undefined = account.idTokenClaims;
+        if (idTokenClaims) {
+            if (idTokenClaims.login_hint) {
+                return idTokenClaims.login_hint;
+            } else {
+                this.logger.verbose("The ID Token Claims tied to the provided account do not contain a login_hint claim, logoutHint will not be added to logout request");
+            }
+        } else {
+            this.logger.verbose("The provided account does not contain ID Token Claims, logoutHint will not be added to logout request");
+        }
+
+        return null;
     }
 
     /**
@@ -189,24 +227,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
 
         this.logger.verbose("Creating discovered authority with configured authority");
         return await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient, this.browserStorage, authorityOptions);
-    }
-
-    /**
-     * Helper to validate app environment before making a request.
-     * @param request
-     * @param interactionType
-     */
-    protected async preflightInteractiveRequest(request: RedirectRequest|PopupRequest, interactionType: InteractionType): Promise<AuthorizationUrlRequest> {
-        this.logger.verbose("preflightInteractiveRequest called, validating app environment", request?.correlationId);
-        // block the reload if it occurred inside a hidden iframe
-        BrowserUtils.blockReloadInHiddenIframes();
-    
-        // Check if interaction is in progress. Throw error if true.
-        if (this.browserStorage.isInteractionInProgress(false)) {
-            throw BrowserAuthError.createInteractionInProgressError();
-        }
-    
-        return await this.initializeAuthorizationRequest(request, interactionType);
     }
 
     /**
