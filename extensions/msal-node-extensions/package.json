@@ -52,7 +52,7 @@
   "dependencies": {
     "@azure/msal-common": "^6.0.0",
     "bindings": "git+https://github.com/samuelkubai/node-bindings.git#v1.6.0",
-    "keytar": "^7.6.0",
+    "keytar": "^7.8.0",
     "nan": "^2.13.2"
   },
   "devDependencies": {
