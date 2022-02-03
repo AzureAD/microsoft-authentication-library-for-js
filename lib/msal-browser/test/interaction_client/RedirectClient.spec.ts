@@ -21,7 +21,6 @@ import { NavigationOptions } from "../../src/navigation/NavigationOptions";
 import { RedirectClient } from "../../src/interaction_client/RedirectClient";
 import { EventHandler } from "../../src/event/EventHandler";
 import { EventType } from "../../src/event/EventType";
-import { CacheOptions } from "../../src";
 
 const cacheConfig = {
     cacheLocation: BrowserCacheLocation.SessionStorage,
@@ -833,26 +832,6 @@ describe("RedirectClient", () => {
     });
 
     describe("acquireToken", () => {
-        it("throws if interaction is currently in progress", async () => {
-            browserStorage.setInteractionInProgress(true);
-            // @ts-ignore
-            await expect(redirectClient.acquireToken({scopes: ["openid"]})).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
-        });
-
-        it("throws if interaction is currently in progress for a different clientId", async () => {
-            const browserCrypto = new CryptoOps(new Logger({}));
-            const logger = new Logger({});
-            const secondInstanceStorage = new BrowserCacheManager("different-client-id", cacheConfig, browserCrypto, logger);
-            secondInstanceStorage.setInteractionInProgress(true);
-
-            expect(browserStorage.isInteractionInProgress(true)).toBe(false);
-            expect(browserStorage.isInteractionInProgress(false)).toBe(true);
-            expect(secondInstanceStorage.isInteractionInProgress(true)).toBe(true);
-            expect(secondInstanceStorage.isInteractionInProgress(false)).toBe(true);
-            // @ts-ignore
-            await expect(redirectClient.acquireToken({scopes: ["openid"]})).rejects.toMatchObject(BrowserAuthError.createInteractionInProgressError());
-        });
-
         it("throws error when AuthenticationScheme is set to SSH and SSH JWK is omitted from the request", async () => {
             const loginRequest: CommonAuthorizationUrlRequest = {
                 redirectUri: TEST_URIS.TEST_REDIR_URI,
