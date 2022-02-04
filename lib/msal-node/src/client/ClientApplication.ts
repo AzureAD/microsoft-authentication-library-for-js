@@ -390,6 +390,6 @@ export abstract class ClientApplication {
             authorityMetadata: this.config.auth.authorityMetadata,
             azureRegionConfiguration
         };
-        return await AuthorityFactory.createDiscoveredInstance(authorityString, this.config.system.networkClient, this.storage, authorityOptions);
+        return await AuthorityFactory.createDiscoveredInstance(authorityString, this.config.system.networkClient, this.storage, authorityOptions, this.config.system.proxyUrl);
     }
 }

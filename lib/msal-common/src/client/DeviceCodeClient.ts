@@ -106,7 +106,8 @@ export class DeviceCodeClient extends BaseClient {
             deviceCodeEndpoint,
             {
                 body: queryString,
-                headers: headers
+                headers: headers,
+                proxyUrl: this.config.systemOptions.proxyUrl
             });
 
         return {
