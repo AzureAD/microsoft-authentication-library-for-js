@@ -138,7 +138,8 @@ export enum AADServerParamKeys {
     ON_BEHALF_OF = "on_behalf_of",
     FOCI = "foci",
     CCS_HEADER = "X-AnchorMailbox",
-    RETURN_SPA_CODE = "return_spa_code"
+    RETURN_SPA_CODE = "return_spa_code",
+    LOGOUT_HINT = "logout_hint"
 }
 
 /**

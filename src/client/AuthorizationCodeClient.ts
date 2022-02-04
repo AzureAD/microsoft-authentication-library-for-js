@@ -429,6 +429,10 @@ export class AuthorizationCodeClient extends BaseClient {
             parameterBuilder.addState(request.state);
         }
 
+        if (request.logoutHint) {
+            parameterBuilder.addLogoutHint(request.logoutHint);
+        }
+
         if (request.extraQueryParameters) {
             parameterBuilder.addExtraQueryParameters(request.extraQueryParameters);
         }
