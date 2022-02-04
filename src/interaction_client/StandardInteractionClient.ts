@@ -252,10 +252,9 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         const browserState: BrowserStateObject = {
             interactionType: interactionType
         };
-
         const state = ProtocolUtils.setRequestState(
             this.browserCrypto,
-            (request && request.state) || "",
+            (request && request.state)|| Constants.EMPTY_STRING,
             browserState
         );
 
@@ -281,8 +280,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 validatedRequest.loginHint = legacyLoginHint;
             }
         }
-
-        this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority, validatedRequest.loginHint || "", validatedRequest.account || null);
 
         return validatedRequest;
     }
