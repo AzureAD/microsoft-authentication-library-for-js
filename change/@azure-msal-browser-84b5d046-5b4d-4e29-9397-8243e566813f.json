@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Improve reliability of interaction_in_progress #4460",
+  "packageName": "@azure/msal-browser",
+  "email": "thomas.norling@microsoft.com",
+  "dependentChangeType": "patch"
+}
