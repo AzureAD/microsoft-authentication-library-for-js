@@ -59,11 +59,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     protected initializeLogoutRequest(logoutRequest?: EndSessionRequest): CommonEndSessionRequest {
         this.logger.verbose("initializeLogoutRequest called", logoutRequest?.correlationId);
 
-        // Check if interaction is in progress. Throw error if true.
-        if (this.browserStorage.isInteractionInProgress()) {
-            throw BrowserAuthError.createInteractionInProgressError();
-        }
-
         const validLogoutRequest: CommonEndSessionRequest = {
             correlationId: this.browserCrypto.createNewGuid(),
             ...logoutRequest
@@ -235,24 +230,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     * Helper to validate app environment before making a request.
-     * @param request
-     * @param interactionType
-     */
-    protected async preflightInteractiveRequest(request: RedirectRequest|PopupRequest, interactionType: InteractionType): Promise<AuthorizationUrlRequest> {
-        this.logger.verbose("preflightInteractiveRequest called, validating app environment", request?.correlationId);
-        // block the reload if it occurred inside a hidden iframe
-        BrowserUtils.blockReloadInHiddenIframes();
-    
-        // Check if interaction is in progress. Throw error if true.
-        if (this.browserStorage.isInteractionInProgress(false)) {
-            throw BrowserAuthError.createInteractionInProgressError();
-        }
-    
-        return await this.initializeAuthorizationRequest(request, interactionType);
-    }
-
-    /**
      * Helper to initialize required request parameters for interactive APIs and ssoSilent()
      * @param request
      * @param interactionType
@@ -263,10 +240,9 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         const browserState: BrowserStateObject = {
             interactionType: interactionType
         };
-
         const state = ProtocolUtils.setRequestState(
             this.browserCrypto,
-            (request && request.state) || "",
+            (request && request.state)|| Constants.EMPTY_STRING,
             browserState
         );
 
@@ -292,8 +268,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 validatedRequest.loginHint = legacyLoginHint;
             }
         }
-
-        this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority, validatedRequest.loginHint || "", validatedRequest.account || null);
 
         return validatedRequest;
     }
