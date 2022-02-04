@@ -59,11 +59,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     protected initializeLogoutRequest(logoutRequest?: EndSessionRequest): CommonEndSessionRequest {
         this.logger.verbose("initializeLogoutRequest called", logoutRequest?.correlationId);
 
-        // Check if interaction is in progress. Throw error if true.
-        if (this.browserStorage.isInteractionInProgress()) {
-            throw BrowserAuthError.createInteractionInProgressError();
-        }
-
         const validLogoutRequest: CommonEndSessionRequest = {
             correlationId: this.browserCrypto.createNewGuid(),
             ...logoutRequest
@@ -232,24 +227,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
 
         this.logger.verbose("Creating discovered authority with configured authority");
         return await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient, this.browserStorage, authorityOptions);
-    }
-
-    /**
-     * Helper to validate app environment before making a request.
-     * @param request
-     * @param interactionType
-     */
-    protected async preflightInteractiveRequest(request: RedirectRequest|PopupRequest, interactionType: InteractionType): Promise<AuthorizationUrlRequest> {
-        this.logger.verbose("preflightInteractiveRequest called, validating app environment", request?.correlationId);
-        // block the reload if it occurred inside a hidden iframe
-        BrowserUtils.blockReloadInHiddenIframes();
-    
-        // Check if interaction is in progress. Throw error if true.
-        if (this.browserStorage.isInteractionInProgress(false)) {
-            throw BrowserAuthError.createInteractionInProgressError();
-        }
-    
-        return await this.initializeAuthorizationRequest(request, interactionType);
     }
 
     /**
