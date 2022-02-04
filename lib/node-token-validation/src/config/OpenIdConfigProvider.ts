@@ -9,14 +9,12 @@ import { OpenIdConfigResponse } from "../response/OpenIdConfigResponse";
 import { TokenValidationConfiguration } from "./Configuration";
 
 export class OpenIdConfigProvider {
-    protected authority: string;
-    protected protocolMode: ProtocolMode;
+    protected configuration: TokenValidationConfiguration;
     protected networkInterface: INetworkModule;
     protected logger: Logger;
 
     constructor(configuration: TokenValidationConfiguration, networkInterface: INetworkModule, logger: Logger) {
-        this.authority = configuration.auth.authority;
-        this.protocolMode = configuration.auth.protocolMode;
+        this.configuration = configuration;
         this.networkInterface = networkInterface;
         this.logger = logger;
     }
@@ -31,7 +29,7 @@ export class OpenIdConfigProvider {
     async getMetadata(): Promise<NetworkResponse<OpenIdConfigResponse>> {
         this.logger.trace("OpenIdConfigProvider.getMetadata called");
 
-        const endpoint = await this.getOpenIdConfigurationEndpoint();
+        const endpoint = await this.getOpenIdConfigurationEndpoint(this.configuration.auth.authority, this.configuration.auth.protocolMode);
         this.logger.verbose(`OpenIdConfigProvider - openIdConfigurationEndpoint: ${endpoint}`);
         const endpointMetadata = await this.networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(endpoint);
 
@@ -42,10 +40,10 @@ export class OpenIdConfigProvider {
         }
     }
 
-    async getOpenIdConfigurationEndpoint(): Promise<string> {
-        const normalizedAuthority = this.authority.endsWith("/") ? this.authority : `${this.authority}/`;
+    async getOpenIdConfigurationEndpoint(authority: string, protocolMode: ProtocolMode): Promise<string> {
+        const normalizedAuthority = authority.endsWith("/") ? authority : `${authority}/`;
 
-        if (this.protocolMode === ProtocolMode.AAD) {
+        if (protocolMode === ProtocolMode.AAD) {
             return `${normalizedAuthority}v2.0/.well-known/openid-configuration`;
         } else {
             return `${normalizedAuthority}.well-known/openid-configuration`;

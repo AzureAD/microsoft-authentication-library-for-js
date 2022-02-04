@@ -7,7 +7,6 @@ import { CommonEndSessionRequest, Constants, Logger, StringUtils } from "@azure/
 import { BrowserCacheManager } from "../cache/BrowserCacheManager";
 import { BrowserAuthError } from "../error/BrowserAuthError";
 import { PopupParams } from "../interaction_handler/PopupHandler";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { BrowserConstants, InteractionType } from "./BrowserConstants";
 
 /**
@@ -204,8 +203,8 @@ export class PopupUtils {
      * @param clientId
      * @param request
      */
-    static generatePopupName(clientId: string, request: AuthorizationUrlRequest): string {
-        return `${BrowserConstants.POPUP_NAME_PREFIX}.${clientId}.${request.scopes.join("-")}.${request.authority}.${request.correlationId}`;
+    static generatePopupName(clientId: string, scopes: Array<string>, authority: string, correlationId: string): string {
+        return `${BrowserConstants.POPUP_NAME_PREFIX}.${clientId}.${scopes.join("-")}.${authority}.${correlationId}`;
     }
 
     /**

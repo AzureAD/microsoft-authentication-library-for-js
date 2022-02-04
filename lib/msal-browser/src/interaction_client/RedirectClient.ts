@@ -5,7 +5,6 @@
 
 import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, UrlString, AuthError, ServerTelemetryManager } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { ApiId, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
 import { BrowserUtils } from "../utils/BrowserUtils";
@@ -21,7 +20,7 @@ export class RedirectClient extends StandardInteractionClient {
      * @param request 
      */
     async acquireToken(request: RedirectRequest): Promise<void> {
-        const validRequest: AuthorizationUrlRequest = await this.preflightInteractiveRequest(request, InteractionType.Redirect);
+        const validRequest = await this.initializeAuthorizationRequest(request, InteractionType.Redirect);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect);
 
         try {
