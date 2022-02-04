@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "Add AzureCloudInstance support for JS libraries(#4106)",
-  "packageName": "msal",
-  "email": "sameera.gajjarapu@microsoft.com",
-  "dependentChangeType": "patch"
-}
