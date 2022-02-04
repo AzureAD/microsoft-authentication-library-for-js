@@ -9,6 +9,7 @@ import 'regenerator-runtime';
 import { TokenType } from '../../src/utils/Constants';
 import { ValidationParameters } from '../../src/config/TokenValidationParameters';
 import { ValidationError, ValidationErrorMessage } from '../../src/error/ValidationError';
+import { OpenIdConfigProvider } from '../../src/config/OpenIdConfigProvider';
 
 jest.mock('jose');
 
@@ -48,9 +49,13 @@ describe("TokenValidator", () => {
     let defaultPayload: JWTPayload = {
         aud: "audience"
     }
-
+    let validator: TokenValidator;
 
     beforeEach(() => {
+        validator = new TokenValidator(config);
+    });
+
+    afterEach(() => {
         jest.clearAllMocks();
     });
 
@@ -62,8 +67,6 @@ describe("TokenValidator", () => {
     describe("validateToken", () => {
 
         it("returns defaults", async () => {
-            const validator = new TokenValidator(config);
-
             const getJWKSSpy = jest.spyOn(validator, "getJWKS").mockReturnValue(Promise.resolve(TEST_CONSTANTS.DEFAULT_JWKS_URI_OIDC));
 
             mocked(jwtVerify).mockResolvedValue(joseMockResult);
@@ -85,7 +88,6 @@ describe("TokenValidator", () => {
         });
 
         it("throws missing token error when token is empty string", () => {
-            const validator = new TokenValidator(config);
             const testOptions: TokenValidationParameters = {
                 validIssuers: [],
                 validAudiences: []
@@ -104,7 +106,6 @@ describe("TokenValidator", () => {
     describe("getJWKS", () => {
         
         it("calls createLocalJWKSet with issuerSigningKeys if provided in params", async () => {
-            const validator = new TokenValidator(config);
             const testParams: ValidationParameters = {
                 ...defaultValidationParams,
                 issuerSigningKeys: TEST_CONSTANTS.ISSUER_SIGNING_KEYS,
@@ -123,7 +124,6 @@ describe("TokenValidator", () => {
         });
         
         it("calls createRemoteJWKSet with issuerSigningJwksUri if provided in params, and no issuerSigningKeys are provided", async () => {
-            const validator = new TokenValidator(config);
             const testParams: ValidationParameters = {
                 ...defaultValidationParams,
                 issuerSigningJwksUri: TEST_CONSTANTS.DEFAULT_JWKS_URI_AAD
@@ -139,11 +139,7 @@ describe("TokenValidator", () => {
         });
         
         it("calls createRemoteJWKSet with uri retrieved from metadata endpoint if no issuerSigningKeys or issuerSigningJwksUri provided in params", async () => {
-
-            const validator = new TokenValidator(config);
-
-            // const mockOpenId = jest.mock('OpenIdConfigProvider');
-            jest.spyOn(validator, 'fetchFromEndpoint').mockReturnValue(Promise.resolve(TEST_CONSTANTS.DEFAULT_JWKS_URI_AAD));
+            jest.spyOn(OpenIdConfigProvider.prototype, 'fetchJwksUriFromEndpoint').mockReturnValue(Promise.resolve(TEST_CONSTANTS.DEFAULT_JWKS_URI_AAD));
             const mock = mocked(createRemoteJWKSet);
 
             await validator.getJWKS(defaultValidationParams);
@@ -159,15 +155,12 @@ describe("TokenValidator", () => {
     describe("setIssuerParams", () => {
 
         it("returns issuer if not empty", async () => {
-            const validator = new TokenValidator(config);
-
             const result = await validator.setIssuerParams(defaultValidationParams);
 
             expect(result).toEqual(defaultValidationParams.validIssuers);
         });
 
         it("throw error if validIssuers is empty array", async () => {
-            const validator = new TokenValidator(config);
             const testValidationParams: ValidationParameters = {
                 ...defaultValidationParams,
                 validIssuers: []
@@ -182,7 +175,6 @@ describe("TokenValidator", () => {
         });
 
         it("throw error if validIssuers array contains empty string", async () => {
-            const validator = new TokenValidator(config);
             const testValidationParams: ValidationParameters = {
                 ...defaultValidationParams,
                 validIssuers: [""]
@@ -201,15 +193,12 @@ describe("TokenValidator", () => {
     describe("setAudienceParams", () => {
 
         it("returns audience if not empty", async () => {
-            const validator = new TokenValidator(config);
-
             const result = await validator.setAudienceParams(defaultValidationParams);
 
             expect(result).toEqual(defaultValidationParams.validAudiences);
         });
 
         it("throw error if validAudiences is empty array", async () => {
-            const validator = new TokenValidator(config);
             const testValidationParams: ValidationParameters = {
                 ...defaultValidationParams,
                 validAudiences: []
@@ -224,7 +213,6 @@ describe("TokenValidator", () => {
         });
 
         it("throw error if validAudiences array contains empty string", async () => {
-            const validator = new TokenValidator(config);
             const testValidationParams: ValidationParameters = {
                 ...defaultValidationParams,
                 validAudiences: [""]
@@ -244,7 +232,6 @@ describe("TokenValidator", () => {
     describe("validateClaims", () => {
 
         it("throws error if nonce present in token but not passed in params", async () => {
-            const validator = new TokenValidator(config);
             const testPayload: JWTPayload = {
                 ...defaultPayload,
                 nonce: TEST_CONSTANTS.NONCE
@@ -259,7 +246,6 @@ describe("TokenValidator", () => {
         });
 
         it("throws error if nonce in token and nonce in params do not match", async () => {
-            const validator = new TokenValidator(config);
             const testPayload: JWTPayload = {
                 ...defaultPayload,
                 nonce: TEST_CONSTANTS.NONCE
@@ -278,8 +264,6 @@ describe("TokenValidator", () => {
         });
         
         it("does not check hash value if c_hash is not in token", async () => {
-            const validator = new TokenValidator(config);
-
             const testOptions: ValidationParameters = {
                 ...defaultValidationParams,
                 code: TEST_HASH_CONSTANTS.CODE
@@ -292,7 +276,6 @@ describe("TokenValidator", () => {
         });
 
         it("does not check hash value if c_hash is present in token but code not provided in params", async () => {
-            const validator = new TokenValidator(config);
             const testPayload: JWTPayload = {
                 ...defaultPayload,
                 c_hash: TEST_HASH_CONSTANTS.C_HASH
@@ -306,7 +289,6 @@ describe("TokenValidator", () => {
         });
 
         it("checks hash value if c_hash in token and code in params", async () => {
-            const validator = new TokenValidator(config);
             const testPayload: JWTPayload = {
                 ...defaultPayload,
                 c_hash: TEST_HASH_CONSTANTS.C_HASH
@@ -324,7 +306,6 @@ describe("TokenValidator", () => {
         });
 
         it("throws error if c_hash in payload and code in params, but does not pass hash check", async () => {
-            const validator = new TokenValidator(config);
             const testPayload: JWTPayload = {
                 ...defaultPayload,
                 c_hash: TEST_HASH_CONSTANTS.C_HASH
@@ -347,8 +328,6 @@ describe("TokenValidator", () => {
         });
         
         it("does not check hash value if at_hash is not in token", async () => {
-            const validator = new TokenValidator(config);
-
             const testOptions: ValidationParameters = {
                 ...defaultValidationParams,
                 accessTokenForAtHash: TEST_HASH_CONSTANTS.ACCESS_TOKEN_FOR_AT_HASH
@@ -361,7 +340,6 @@ describe("TokenValidator", () => {
         });
 
         it("does not check hash value if at_hash is present in token but access token not provided in params", async () => {
-            const validator = new TokenValidator(config);
             const testPayload: JWTPayload = {
                 ...defaultPayload,
                 at_hash: TEST_HASH_CONSTANTS.AT_HASH
@@ -375,7 +353,6 @@ describe("TokenValidator", () => {
         });
 
         it("checks hash value if at_hash in token and access token in params", async () => {
-            const validator = new TokenValidator(config);
             const testPayload: JWTPayload = {
                 ...defaultPayload,
                 at_hash: TEST_HASH_CONSTANTS.AT_HASH
@@ -393,7 +370,6 @@ describe("TokenValidator", () => {
         });
 
         it("throws error if at_hash in payload and access token in params, but does not pass hash check", async () => {
-            const validator = new TokenValidator(config);
             const testPayload: JWTPayload = {
                 ...defaultPayload,
                 at_hash: TEST_HASH_CONSTANTS.AT_HASH

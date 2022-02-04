@@ -5,6 +5,7 @@ import { Logger, NetworkResponse, ProtocolMode } from "@azure/msal-common";
 import { OpenIdConfigResponse } from "../../src/response/OpenIdConfigResponse";
 import { ValidationConfigurationError, ValidationConfigurationErrorMessage } from "../../src/error/ValidationConfigurationError";
 import 'regenerator-runtime';
+import { HttpClient } from "../../src/network/HttpClient";
 
 describe("OpenIdConfigProvider", () => {
     let config = buildConfiguration({
@@ -14,39 +15,55 @@ describe("OpenIdConfigProvider", () => {
         }
     });
 
+    beforeEach(() => {
+        jest.clearAllMocks();
+    });
 
-    it("exports a class", () => {
-        const provider = new OpenIdConfigProvider(config, config.system.networkClient, new Logger(config.system.loggerOptions));
-        expect(provider).toBeInstanceOf(OpenIdConfigProvider);
+    describe("constructor", () => {
+        it("exports a class", () => {
+            const provider = new OpenIdConfigProvider(config, config.system.networkClient, new Logger(config.system.loggerOptions));
+            expect(provider).toBeInstanceOf(OpenIdConfigProvider);
+        });
     });
 
     describe("fetchJwksUriFromEndpoint", () => {
 
         it("returns jwks_uri", async () => {
-            const network = config.system.networkClient;
             const provider = new OpenIdConfigProvider(config, config.system.networkClient, new Logger(config.system.loggerOptions));
 
             const mockResponse: NetworkResponse<OpenIdConfigResponse> = {
                 headers: { },
-                body: {jwks_uri: TEST_CONSTANTS.DEFAULT_JWKS_URI_OIDC}, // Need to fix this. Not being affected by protocolMode
+                body: {
+                    jwks_uri: TEST_CONSTANTS.DEFAULT_JWKS_URI_OIDC
+                },
                 status: 200
             }
-            jest.spyOn(network, 'sendGetRequestAsync').mockReturnValue(Promise.resolve(mockResponse));
+
+            const getEndpointSpy = jest.spyOn(provider, 'getOpenIdConfigurationEndpoint').mockReturnValue(Promise.resolve(TEST_CONSTANTS.WELL_KNOWN_ENDPOINT));
+
+            const sendRequestSpy = jest.spyOn(HttpClient.prototype, 'sendGetRequestAsync').mockReturnValue(Promise.resolve(mockResponse));
     
             const response = await provider.fetchJwksUriFromEndpoint();
     
             expect(response).toEqual(TEST_CONSTANTS.DEFAULT_JWKS_URI_OIDC);
+
+            expect(getEndpointSpy).toHaveBeenCalledTimes(1);
+            expect(getEndpointSpy).toHaveBeenCalledWith(TEST_CONSTANTS.DEFAULT_AUTHORITY, ProtocolMode.OIDC);
+
+            expect(sendRequestSpy).toHaveBeenCalledTimes(1);
+            expect(sendRequestSpy).toHaveBeenCalledWith(TEST_CONSTANTS.WELL_KNOWN_ENDPOINT);
         });
     
         it("throws error if openIdResponse does not contain jwks_uri", async () => {
-            const network = config.system.networkClient;
             const provider = new OpenIdConfigProvider(config, config.system.networkClient, new Logger(config.system.loggerOptions));
+
             const mockResponse = {
                 headers: { },
                 body: {},
                 status: 200
-            }
-            jest.spyOn(network, 'sendGetRequestAsync').mockReturnValue(Promise.resolve(mockResponse));
+            };
+
+            jest.spyOn(HttpClient.prototype, 'sendGetRequestAsync').mockReturnValue(Promise.resolve(mockResponse));
     
             provider.fetchJwksUriFromEndpoint()
                 .catch((e) => {
