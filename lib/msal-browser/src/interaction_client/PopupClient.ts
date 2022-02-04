@@ -80,10 +80,11 @@ export class PopupClient extends StandardInteractionClient {
      *
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
-    private async acquireTokenPopupAsync(request: PopupRequest, popupName: string, popupWindowAttributes: PopupWindowAttributes, popup?: Window|null): Promise<AuthenticationResult> {
+    protected async acquireTokenPopupAsync(request: PopupRequest, popupName: string, popupWindowAttributes: PopupWindowAttributes, popup?: Window|null): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenPopupAsync called");
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup);
         const validRequest = await this.initializeAuthorizationRequest(request, InteractionType.Popup);
+        this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority, validRequest.loginHint || "", validRequest.account || null);
 
         try {
             // Create auth code request and generate PKCE params
@@ -144,7 +145,7 @@ export class PopupClient extends StandardInteractionClient {
      * @param mainWindowRedirectUri
      * @param popupWindowAttributes
      */
-    private async logoutPopupAsync(validRequest: CommonEndSessionRequest, popupName: string, popupWindowAttributes: PopupWindowAttributes, requestAuthority?: string, popup?: Window|null, mainWindowRedirectUri?: string): Promise<void> {
+    protected async logoutPopupAsync(validRequest: CommonEndSessionRequest, popupName: string, popupWindowAttributes: PopupWindowAttributes, requestAuthority?: string, popup?: Window|null, mainWindowRedirectUri?: string): Promise<void> {
         this.logger.verbose("logoutPopupAsync called");
         this.eventHandler.emitEvent(EventType.LOGOUT_START, InteractionType.Popup, validRequest);
 
@@ -192,7 +193,6 @@ export class PopupClient extends StandardInteractionClient {
             } else {
                 this.logger.verbose("No main window navigation requested");
             }
-
         } catch (e) {
             if (popup) {
                 // Close the synchronous popup if an error is thrown before the window unload event is registered
