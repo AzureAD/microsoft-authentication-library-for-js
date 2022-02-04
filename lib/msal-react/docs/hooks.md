@@ -85,27 +85,48 @@ The `useMsal` hook returns the context. This can be used if you need access to t
 Note: The `accounts` value returned by `useMsal` will only update when accounts are added or removed, and will not update when claims are updated. If you need access to updated claims for the current user, use the `useAccount` hook or call `acquireTokenSilent` instead.
 
 ```javascript
+import { useState, useEffect } from "react";
+import { useMsal } from "@azure/msal-react";
+import { InteractionStatus } from "@azure/msal-browser";
+
 const { instance, accounts, inProgress } = useMsal();
-let accessToken = null;
+const [loading, setLoading] = useState(false);
+const [apiData, setApiData] = useState(null);
+
 useEffect(() => {
-    if (inProgress === "none" && accounts.length > 0) {
-        // Retrieve an access token
-        accessToken = instance.acquireTokenSilent({
-            account: accounts[0],
+    if (!loading && inProgress === InteractionStatus.None && accounts.length > 0) {
+        if (apiData) {
+            // Skip data refresh if already set - adjust logic for your specific use case
+            return;
+        }
+
+        const tokenRequest = {
+            account: accounts[0], // This is an example - Select account based on your app's requirements
             scopes: ["User.Read"]
-        }).then(response => {
-            if (response.accessToken) {
-                return response.accessToken;
+        }
+
+        // Acquire an access token
+        instance.acquireTokenSilent(tokenRequest).then((response) => {
+            // Call your API with the access token and return the data you need to save in state
+            callApi(response.accessToken).then((data) => {
+                setApiData(data);
+                setLoading(false);
+            });
+        }).catch(async (e) => {
+            // Catch interaction_required errors and call interactive method to resolve
+            if (e instanceof InteractionRequiredAuthError) {
+                await instance.acquireTokenRedirect(tokenRequest);
             }
-            return null;
+
+            throw e;
         });
     }
-}, [inProgress, accounts, instance]);
+}, [inProgress, accounts, instance, loading, apiData]);
 
-if (inProgress === "login") {
+if (loading || inProgress === InteractionStatus.Login) {
     // Render loading component
-} else if (accessToken) {
-    // Call your api and render component
+} else if (apiData) {
+    // Render content that depends on data from your API
 }
 ```
 

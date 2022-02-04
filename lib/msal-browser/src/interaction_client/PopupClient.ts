@@ -3,8 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, UrlString, AuthError } from "@azure/msal-common";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
+import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, ThrottlingUtils, CommonEndSessionRequest, UrlString, AuthError, OIDC_DEFAULT_SCOPES } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
 import { PopupWindowAttributes, PopupUtils } from "../utils/PopupUtils";
 import { EventType } from "../event/EventType";
@@ -20,22 +19,21 @@ export class PopupClient extends StandardInteractionClient {
      * Acquires tokens by opening a popup window to the /authorize endpoint of the authority
      * @param request 
      */
-    async acquireToken(request: PopupRequest): Promise<AuthenticationResult> {
+    acquireToken(request: PopupRequest): Promise<AuthenticationResult> {
         try {
-            const validRequest = await this.preflightInteractiveRequest(request, InteractionType.Popup);
-            const popupName = PopupUtils.generatePopupName(this.config.auth.clientId, validRequest);
+            const popupName = PopupUtils.generatePopupName(this.config.auth.clientId, request.scopes || OIDC_DEFAULT_SCOPES, request.authority || this.config.auth.authority, this.correlationId);
             const popupWindowAttributes = request.popupWindowAttributes || {};
 
             // asyncPopups flag is true. Acquires token without first opening popup. Popup will be opened later asynchronously.
             if (this.config.system.asyncPopups) {
                 this.logger.verbose("asyncPopups set to true, acquiring token");
                 // Passes on popup position and dimensions if in request
-                return this.acquireTokenPopupAsync(validRequest, popupName, popupWindowAttributes);
+                return this.acquireTokenPopupAsync(request, popupName, popupWindowAttributes);
             } else {
                 // asyncPopups flag is set to false. Opens popup before acquiring token.
                 this.logger.verbose("asyncPopup set to false, opening popup before acquiring token");
                 const popup = PopupUtils.openSizedPopup("about:blank", popupName, popupWindowAttributes, this.logger);
-                return this.acquireTokenPopupAsync(validRequest, popupName, popupWindowAttributes, popup);
+                return this.acquireTokenPopupAsync(request, popupName, popupWindowAttributes, popup);
             }
         } catch (e) {
             return Promise.reject(e);
@@ -82,9 +80,10 @@ export class PopupClient extends StandardInteractionClient {
      *
      * @returns A promise that is fulfilled when this function has completed, or rejected if an error was raised.
      */
-    private async acquireTokenPopupAsync(validRequest: AuthorizationUrlRequest, popupName: string, popupWindowAttributes: PopupWindowAttributes, popup?: Window|null): Promise<AuthenticationResult> {
+    private async acquireTokenPopupAsync(request: PopupRequest, popupName: string, popupWindowAttributes: PopupWindowAttributes, popup?: Window|null): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenPopupAsync called");
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenPopup);
+        const validRequest = await this.initializeAuthorizationRequest(request, InteractionType.Popup);
 
         try {
             // Create auth code request and generate PKCE params
@@ -155,7 +154,6 @@ export class PopupClient extends StandardInteractionClient {
             // Clear cache on logout
             await this.clearCacheOnLogout(validRequest.account);
 
-            this.browserStorage.setInteractionInProgress(true);
             // Initialize the client
             const authClient = await this.createAuthCodeClient(serverTelemetryManager, requestAuthority);
             this.logger.verbose("Auth code client created");
