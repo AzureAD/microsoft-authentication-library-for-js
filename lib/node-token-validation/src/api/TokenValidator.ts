@@ -58,10 +58,6 @@ export class TokenValidator {
             tokenType: validationParams.validTypes[0]
         };
     }
-
-    async fetchFromEndpoint(): Promise<string> {
-        return this.openIdConfigProvider.fetchJwksUriFromEndpoint();
-    }
     
     async getJWKS(validationParams: ValidationParameters): Promise<any> {
         this.logger.trace("TokenValidator.getJWKS called");
@@ -80,7 +76,7 @@ export class TokenValidator {
         }
 
         // Do resiliency well-known endpoint thing here
-        const retrievedJwksUri: string = await this.fetchFromEndpoint();
+        const retrievedJwksUri: string = await this.openIdConfigProvider.fetchJwksUriFromEndpoint();
         this.logger.verbose("TokenValidator - Creating JWKS from default");
         return createRemoteJWKSet(new URL(retrievedJwksUri));
     }
