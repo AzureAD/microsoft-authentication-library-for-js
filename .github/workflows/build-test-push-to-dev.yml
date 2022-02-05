@@ -27,6 +27,7 @@ jobs:
             - msal-node
             - msal-angular
             - msal-react
+            - node-token-validation
 
     name: ${{ matrix.library }}
   
