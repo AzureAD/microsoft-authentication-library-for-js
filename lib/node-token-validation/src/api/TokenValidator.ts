@@ -13,6 +13,7 @@ import { ValidationConfigurationError } from "../error/ValidationConfigurationEr
 import { name, version } from "../packageMetadata";
 import { OpenIdConfigProvider } from "../config/OpenIdConfigProvider";
 import { ValidationError } from "../error/ValidationError";
+import { FlattenedJWSInput, GetKeyFunction, JWSHeaderParameters } from "jose/dist/types/types";
 
 export class TokenValidator {
     private config: TokenValidationConfiguration;
@@ -59,7 +60,7 @@ export class TokenValidator {
         };
     }
     
-    async getJWKS(validationParams: ValidationParameters): Promise<any> {
+    async getJWKS(validationParams: ValidationParameters): Promise<GetKeyFunction<JWSHeaderParameters, FlattenedJWSInput>> {
         this.logger.trace("TokenValidator.getJWKS called");
         
         // Prioritize keystore or jwksUri if provided
