@@ -10,7 +10,6 @@ import { StringUtils } from "../utils/StringUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { ICacheManager } from "../cache/interface/ICacheManager";
 import { AuthorityOptions } from "./AuthorityOptions";
-import { Constants } from "../utils/Constants";
 
 export class AuthorityFactory {
 
