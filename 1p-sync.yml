@@ -41,26 +41,3 @@ steps:
       git subtree split --prefix lib/msal-common -b msal-common-latest
       
       git push -u origin msal-common-latest
-
-- checkout: git://IDDP/msal-javascript-1p
-  persistCredentials: true
-
-- task: CmdLine@2
-  inputs:
-    script: |
-      cd msal-javascript-1p
-
-      git config --global user.email "msaljs@microsoft.com"
-      git config --global user.name "MSAL CI"
-
-      git checkout master
-      
-      git subtree pull --prefix msal-browser https://github.com/azuread/microsoft-authentication-library-for-js.git msal-browser-latest
-      
-      git subtree pull --prefix msal-common https://github.com/azuread/microsoft-authentication-library-for-js.git msal-common-latest
-
-      git add .
-      
-      git commit -m "Latest build"
-      
-      git push -u origin master
