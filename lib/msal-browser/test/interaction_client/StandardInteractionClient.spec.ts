@@ -98,4 +98,13 @@ describe("StandardInteractionClient", () => {
         expect(authority.canonicalAuthority).toBe(TEST_CONFIG.validAuthority);
     });
 
+    it("getDiscoveredAuthority - Only tenant provided ", async () => {
+
+        const reqAzureCloudOptions: AzureCloudOptions = {
+            tenant: TEST_CONFIG.TENANT
+        };
+        const authority = await testClient.getDiscoveredAuthority(undefined, reqAzureCloudOptions);
+        expect(authority.canonicalAuthority).toBe(TEST_CONFIG.validAuthority);
+    });
+
 });
