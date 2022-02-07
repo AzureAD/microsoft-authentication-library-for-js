@@ -50,7 +50,8 @@ const msalConfig = {
             },
             piiLoggingEnabled: false,
             logLevel: msal.LogLevel.Verbose,
-        }
+        },
+        proxyUrl: "",
     }
 }
 
@@ -78,6 +79,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | ------ | ----------- | ------ | ------------- |
 | `loggerOptions` | Config object for logger. | See [below](#logger-config-options). | See [below](#logger-config-options). |
 | `NetworkClient` | Custom HTTP implementation | INetworkModule | Coming Soon |
+| `proxyUrl` | The URL of the proxy the app is running behind | string | Empty string `""` |
 
 ### Logger Config Options
 | Option | Description | Format | Default Value |
