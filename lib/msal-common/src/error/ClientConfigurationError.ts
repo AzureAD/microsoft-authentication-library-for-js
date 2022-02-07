@@ -83,7 +83,7 @@ export const ClientConfigurationErrorMessage = {
     },
     invalidAzureCloudInstance: {
         code: "invalid_azure_cloud_instance",
-        desc: "Invalid AzureCloudInstance provided. Please refer MSAL JS docs for valid values"
+        desc: "Invalid AzureCloudInstance provided. Please refer MSAL JS docs: aks.ms/msaljs/azure_cloud_instance for valid values"
     },
     missingSshJwk: {
         code: "missing_ssh_jwk",
