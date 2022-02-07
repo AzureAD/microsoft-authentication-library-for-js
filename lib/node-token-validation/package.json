@@ -49,6 +49,7 @@
   "devDependencies": {
     "@rollup/plugin-node-resolve": "^13.0.5",
     "husky": "^7.0.2",
+    "jest": "^27.5.0",
     "rimraf": "^3.0.2",
     "rollup": "^2.58.0",
     "rollup-plugin-typescript2": "^0.30.0",
