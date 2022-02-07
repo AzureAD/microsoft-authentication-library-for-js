@@ -113,7 +113,7 @@ export abstract class BaseInteractionClient {
      * @returns Redirect URL
      *
      */
-    protected getRedirectUri(requestRedirectUri?: string): string {
+    getRedirectUri(requestRedirectUri?: string): string {
         this.logger.verbose("getRedirectUri called");
         const redirectUri = requestRedirectUri || this.config.auth.redirectUri || BrowserUtils.getCurrentUri();
         return UrlString.getAbsoluteUrl(redirectUri, BrowserUtils.getCurrentUri());
