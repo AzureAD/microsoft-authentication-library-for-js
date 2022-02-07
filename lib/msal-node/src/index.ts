@@ -74,7 +74,8 @@ export {
     TokenCacheContext,
     ISerializableTokenCache,
     // AzureCloudInstance enum
-    AzureCloudInstance
+    AzureCloudInstance,
+    AzureCloudOptions
 } from "@azure/msal-common";
 
 export { version } from "./packageMetadata";
