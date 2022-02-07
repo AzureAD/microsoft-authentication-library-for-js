@@ -130,8 +130,8 @@ export type ClientCredentials = {
  * - tenant                         - provision to provide the tenant info
  */
 export type AzureCloudOptions = {
-    azureCloudInstance?: AzureCloudInstance;
-    tenant: string,
+    azureCloudInstance: AzureCloudInstance;
+    tenant?: string,
 };
 
 export const DEFAULT_SYSTEM_OPTIONS: Required<SystemOptions> = {
