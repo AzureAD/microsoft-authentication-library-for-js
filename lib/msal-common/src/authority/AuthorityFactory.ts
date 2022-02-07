@@ -10,7 +10,7 @@ import { StringUtils } from "../utils/StringUtils";
 import { ClientAuthError } from "../error/ClientAuthError";
 import { ICacheManager } from "../cache/interface/ICacheManager";
 import { AuthorityOptions } from "./AuthorityOptions";
-import { Constants } from "..";
+import { Constants } from "../utils/Constants";
 
 export class AuthorityFactory {
 
@@ -26,7 +26,7 @@ export class AuthorityFactory {
      */
     static async createDiscoveredInstance(authorityUri: string, networkClient: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, proxyUrl?: string): Promise<Authority> {
         // Initialize authority and perform discovery endpoint check.
-        const acquireTokenAuthority: Authority = AuthorityFactory.createInstance(authorityUri, networkClient, cacheManager, authorityOptions, proxyUrl || Constants.EMPTY_STRING);
+        const acquireTokenAuthority: Authority = AuthorityFactory.createInstance(authorityUri, networkClient, cacheManager, authorityOptions, proxyUrl);
 
         try {
             await acquireTokenAuthority.resolveEndpointsAsync();
@@ -52,6 +52,6 @@ export class AuthorityFactory {
             throw ClientConfigurationError.createUrlEmptyError();
         }
 
-        return new Authority(authorityUrl, networkInterface, cacheManager, authorityOptions, proxyUrl || Constants.EMPTY_STRING);
+        return new Authority(authorityUrl, networkInterface, cacheManager, authorityOptions, proxyUrl);
     }
 }
