@@ -19,7 +19,7 @@ import { CloudInstanceDiscoveryResponse, isCloudInstanceDiscoveryResponse } from
 import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
 import { RegionDiscovery } from "./RegionDiscovery";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
-
+import { ImdsOptions } from "./ImdsOptions";
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
  * endpoint. It will store the pertinent config data in this object for use during token calls.
@@ -45,7 +45,7 @@ export class Authority {
     // Proxy url string
     private proxyUrl: string;
 
-    constructor(authority: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, proxyUrl: string) {
+    constructor(authority: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, proxyUrl?: string) {
         this.canonicalAuthority = authority;
         this._canonicalAuthority.validateAsUri();
         this.networkInterface = networkInterface;
@@ -53,7 +53,7 @@ export class Authority {
         this.authorityOptions = authorityOptions;
         this.regionDiscovery = new RegionDiscovery(networkInterface);
         this.regionDiscoveryMetadata = { region_used: undefined, region_source: undefined, region_outcome: undefined };
-        this.proxyUrl = proxyUrl;
+        this.proxyUrl = proxyUrl || Constants.EMPTY_STRING;
     }
 
     // See above for AuthorityType
@@ -338,9 +338,9 @@ export class Authority {
      * Gets OAuth endpoints from the given OpenID configuration endpoint.
      */
     private async getEndpointMetadataFromNetwork(): Promise<OpenIdConfigResponse | null> {
-        const options = {};
-        if (this.proxyUrl.length) {
-            options["proxyUrl"] = this.proxyUrl;
+        const options: ImdsOptions = {};
+        if (this.proxyUrl) {
+            options.proxyUrl = this.proxyUrl;
         }
 
         try {
@@ -410,9 +410,9 @@ export class Authority {
      */
     private async getCloudDiscoveryMetadataFromNetwork(): Promise<CloudDiscoveryMetadata | null> {
         const instanceDiscoveryEndpoint = `${Constants.AAD_INSTANCE_DISCOVERY_ENDPT}${this.canonicalAuthority}oauth2/v2.0/authorize`;
-        const options = {};
-        if (this.proxyUrl.length) {
-            options["proxyUrl"] = this.proxyUrl;
+        const options: ImdsOptions = {};
+        if (this.proxyUrl) {
+            options.proxyUrl = this.proxyUrl;
         }
 
         let match = null;
