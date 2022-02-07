@@ -48,7 +48,7 @@ steps:
 - task: CmdLine@2
   inputs:
     script: |
-      cd msal-js-test
+      cd msal-javascript-1p
 
       git config --global user.email "msaljs@microsoft.com"
       git config --global user.name "MSAL CI"
