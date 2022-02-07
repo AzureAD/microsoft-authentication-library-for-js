@@ -8,12 +8,17 @@ import { NetworkResponse } from "../network/NetworkManager";
 import { IMDSBadResponse } from "../response/IMDSBadResponse";
 import { Constants, RegionDiscoverySources, ResponseCodes } from "../utils/Constants";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
+import { ImdsOptions } from "./ImdsOptions";
 
 export class RegionDiscovery {
     // Network interface to make requests with.
     protected networkInterface: INetworkModule;
     // Options for the IMDS endpoint request
-    protected static IMDS_OPTIONS = {headers: {"Metadata": "true"}};
+    protected static IMDS_OPTIONS: ImdsOptions = {
+        headers: {
+            Metadata: "true",
+        },
+    };
 
     constructor(networkInterface: INetworkModule) {
         this.networkInterface = networkInterface;
@@ -31,8 +36,8 @@ export class RegionDiscovery {
         // Check if a region was detected from the environment, if not, attempt to get the region from IMDS 
         if (!autodetectedRegionName) {
             const options = RegionDiscovery.IMDS_OPTIONS;
-            if (proxyUrl.length) {
-                options["proxyUrl"] = proxyUrl;
+            if (proxyUrl) {
+                options.proxyUrl = proxyUrl;
             }
 
             try {
@@ -78,7 +83,7 @@ export class RegionDiscovery {
      * @param imdsEndpointUrl
      * @returns Promise<NetworkResponse<string>>
      */
-    private async getRegionFromIMDS(version: string, options: object): Promise<NetworkResponse<string>> {
+    private async getRegionFromIMDS(version: string, options: ImdsOptions): Promise<NetworkResponse<string>> {
         return this.networkInterface.sendGetRequestAsync<string>(`${Constants.IMDS_ENDPOINT}?api-version=${version}&format=text`, options, Constants.IMDS_TIMEOUT);
     }
 
@@ -87,7 +92,7 @@ export class RegionDiscovery {
      *  
      * @returns Promise<string | null>
      */
-    private async getCurrentVersion(options: object): Promise<string | null> {
+    private async getCurrentVersion(options: ImdsOptions): Promise<string | null> {
         try {
             const response = await this.networkInterface.sendGetRequestAsync<IMDSBadResponse>(`${Constants.IMDS_ENDPOINT}?format=json`, options);
 
