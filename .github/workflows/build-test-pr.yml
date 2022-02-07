@@ -125,7 +125,7 @@ jobs:
 
   validation-lib-build-test:
     needs: pre-check
-    runs-on: windows-latest
+    runs-on: ubuntu-latest
     if: needs.pre-check.outputs.validation-package == 'true'
   
     name: node-token-validation
