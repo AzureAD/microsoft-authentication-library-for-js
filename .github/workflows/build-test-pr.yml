@@ -21,6 +21,7 @@ jobs:
     outputs: 
       # Expose matched filters as job 'packages' output variable
       packages: ${{ steps.lib-filter.outputs.changes }}
+      validation-package: ${{ steps.validation-lib-filter.outputs.node-token-validation}}
       extensions: ${{ steps.extensions-filter.outputs.node-extensions }}
 
     steps:
@@ -50,6 +51,15 @@ jobs:
             react:
               - *browser
               - 'lib/msal-react/**/**.!(md)'
+
+      - uses: dorny/paths-filter@v2
+        id: validation-lib-filter
+        with:
+          filters: |
+            node-token-validation:
+              - 'lib/msal-common/**/**.!(md)'
+              - '.github/workflows/build-test-pr.yml'
+              - 'lib/node-token-validation/**/**.!(md)'
 
       - uses: dorny/paths-filter@v2
         id: extensions-filter
@@ -112,6 +122,53 @@ jobs:
       with:
         files: lib/msal-${{matrix.library}}/coverage/lcov.info
         flags: msal-${{ matrix.library }}
+
+  validation-lib-build-test:
+    needs: pre-check
+    runs-on: ubuntu-latest
+    if: needs.pre-check.outputs.validation-package == 'true'
+  
+    name: node-token-validation
+    
+    steps:
+    - uses: actions/checkout@v2
+
+    - name: Use Node.js
+      uses: actions/setup-node@v2
+
+    - name: Restore node_modules
+      uses: actions/cache@v2
+      id: cache
+      with:
+        path: |
+          node_modules
+          lib/node-token-validation/node_modules
+        key: ${{ runner.os }}-${{ hashFiles('package-lock.json', 'lib/node-token-validation/package-lock.json') }}
+
+    - name: Clean Install
+      if: steps.cache.outputs.cache-hit != 'true'
+      env:
+        RUNNING_NODE_CI: 1
+      run: npm ci
+
+    - name: Build packages
+      working-directory: lib/node-token-validation
+      run: npm run build:all
+
+    - name: Lint
+      working-directory: lib/node-token-validation
+      run: npm run lint
+
+    - name: Unit Tests with coverage
+      working-directory: lib/node-token-validation
+      run: npm run test:coverage
+
+    - name: Upload Test Coverage to CodeCov
+      if: success()
+      uses: codecov/codecov-action@v2
+      with:
+        files: lib/node-token-validation/coverage/lcov.info
+        flags: node-token-validation
 
   extensions-build-test:
     needs: pre-check

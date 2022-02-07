@@ -59,6 +59,7 @@ export class TokenValidator {
         };
     }
     
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     async getJWKS(validationParams: ValidationParameters): Promise<any> {
         this.logger.trace("TokenValidator.getJWKS called");
         
