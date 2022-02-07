@@ -71,7 +71,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | `knownAuthorities` | An array of URIs that are known to be valid. Used in B2C scenarios. | Array of strings in URI format | Empty array `[]` |
 | `cloudDiscoveryMetadata` | A string containing the cloud discovery response. Used in AAD scenarios. See performance.md for more info | string | Empty string `""` |
 | `protocolMode` | Enum representing the protocol mode to use. If `"AAD"`, will function on the AAD v2 endpoints; if `"OIDC"`, will function on OIDC-compliant endpoints. | string | `"AAD"` |
-| `azureCloudOptions` | A defined set of azure cloud options for developers to default to their specific cloud authorities, for specific clouds supported please refer to the [AzureCloudInstance](https://azuread.github.io/microsoft-authentication-library-for-js/ref/enums/_azure_msal_common.azurecloudinstance.html) | [AzureCloudOptions](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#azurecloudoptions) | [AzureCloudInstance.None](https://azuread.github.io/microsoft-authentication-library-for-js/ref/enums/_azure_msal_common.azurecloudinstance.html#none)
+| `azureCloudOptions` | A defined set of azure cloud options for developers to default to their specific cloud authorities, for specific clouds supported please refer to the [AzureCloudInstance](aka.ms/msaljs/azure_cloud_instance) | [AzureCloudOptions](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#azurecloudoptions) | [AzureCloudInstance.None](msaljs/azure_cloud_instance)
 
 ### Cache Config Options
 | Option | Description | Format | Default Value |
