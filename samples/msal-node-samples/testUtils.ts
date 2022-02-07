@@ -89,8 +89,8 @@ export async function approveRemoteConnect(page: Page, screenshot: Screenshot): 
 }
 
 export async function enterCredentialsADFSWithConsent(page: Page, screenshot: Screenshot, username: string, accountPwd: string): Promise<void> {
-    await this.enterCredentialsADFS(page, screenshot, username, accountPwd);
-    await this.approveConsent(page, screenshot);
+    await enterCredentialsADFS(page, screenshot, username, accountPwd);
+    await approveConsent(page, screenshot);
 }
 
 export async function approveConsent(page: Page, screenshot: Screenshot): Promise<void> {

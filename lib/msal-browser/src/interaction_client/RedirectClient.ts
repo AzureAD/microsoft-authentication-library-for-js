@@ -5,7 +5,6 @@
 
 import { AuthenticationResult, CommonAuthorizationCodeRequest, AuthorizationCodeClient, UrlString, AuthError, ServerTelemetryManager } from "@azure/msal-common";
 import { StandardInteractionClient } from "./StandardInteractionClient";
-import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
 import { ApiId, InteractionType, TemporaryCacheKeys } from "../utils/BrowserConstants";
 import { RedirectHandler } from "../interaction_handler/RedirectHandler";
 import { BrowserUtils } from "../utils/BrowserUtils";
@@ -21,7 +20,8 @@ export class RedirectClient extends StandardInteractionClient {
      * @param request 
      */
     async acquireToken(request: RedirectRequest): Promise<void> {
-        const validRequest: AuthorizationUrlRequest = this.preflightInteractiveRequest(request, InteractionType.Redirect);
+        const validRequest = await this.initializeAuthorizationRequest(request, InteractionType.Redirect);
+        this.browserStorage.updateCacheEntries(validRequest.state, validRequest.nonce, validRequest.authority, validRequest.loginHint || "", validRequest.account || null);
         const serverTelemetryManager = this.initializeServerTelemetryManager(ApiId.acquireTokenRedirect);
 
         try {
@@ -83,7 +83,6 @@ export class RedirectClient extends StandardInteractionClient {
             let state: string;
             try {
                 state = this.validateAndExtractStateFromHash(responseHash, InteractionType.Redirect);
-                BrowserUtils.clearHash(window);
                 this.logger.verbose("State extracted from hash");
             } catch (e) {
                 this.logger.info(`handleRedirectPromise was unable to extract state due to: ${e}`);
@@ -162,17 +161,19 @@ export class RedirectClient extends StandardInteractionClient {
      * Returns null if interactionType in the state value is not "redirect" or the hash does not contain known properties
      * @param hash
      */
-    private getRedirectResponseHash(hash: string): string | null {
+    protected getRedirectResponseHash(hash: string): string | null {
         this.logger.verbose("getRedirectResponseHash called");
         // Get current location hash from window or cache.
         const isResponseHash: boolean = UrlString.hashContainsKnownProperties(hash);
-        const cachedHash = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.URL_HASH, true);
-        this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH));
 
         if (isResponseHash) {
+            BrowserUtils.clearHash(window);
             this.logger.verbose("Hash contains known properties, returning response hash");
             return hash;
         }
+
+        const cachedHash = this.browserStorage.getTemporaryCache(TemporaryCacheKeys.URL_HASH, true);
+        this.browserStorage.removeItem(this.browserStorage.generateCacheKey(TemporaryCacheKeys.URL_HASH));
 
         this.logger.verbose("Hash does not contain known properties, returning cached hash");
         return cachedHash;
@@ -183,7 +184,7 @@ export class RedirectClient extends StandardInteractionClient {
      * @param hash
      * @param state
      */
-    private async handleHash(hash: string, state: string, serverTelemetryManager: ServerTelemetryManager): Promise<AuthenticationResult> {
+    protected async handleHash(hash: string, state: string, serverTelemetryManager: ServerTelemetryManager): Promise<AuthenticationResult> {
         const cachedRequest = this.browserStorage.getCachedRequest(state, this.browserCrypto);
         this.logger.verbose("handleHash called, retrieved cached request");
 

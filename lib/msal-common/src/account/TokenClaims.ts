@@ -15,6 +15,7 @@ export type TokenClaims = {
     ver?: string,
     upn?: string,
     preferred_username?: string,
+    login_hint?: string,
     emails?: string[],
     name?: string,
     nonce?: string,

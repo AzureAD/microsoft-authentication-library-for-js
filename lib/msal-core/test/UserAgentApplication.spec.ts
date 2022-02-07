@@ -1,5 +1,3 @@
-import * as Mocha from "mocha";
-import { expect } from "chai";
 import {
     UserAgentApplication,
     Constants,
@@ -28,7 +26,7 @@ import { ClientAuthErrorMessage } from "../src/error/ClientAuthError";
 import { ClientConfigurationErrorMessage } from "../src/error/ClientConfigurationError";
 import { InteractionRequiredAuthErrorMessage } from "../src/error/InteractionRequiredAuthError";
 import { ServerRequestParameters } from "../src/ServerRequestParameters";
-import { TEST_URIS, TEST_DATA_CLIENT_INFO, testHashesForState, TEST_TOKENS, TEST_CONFIG, TEST_TOKEN_LIFETIMES } from "./TestConstants";
+import { TEST_URIS, TEST_DATA_CLIENT_INFO, testHashesForState, TEST_TOKENS, TEST_CONFIG, TEST_TOKEN_LIFETIMES, TEST_RESPONSE_TYPE } from "./TestConstants";
 import { IdToken } from "../src/IdToken";
 import { TimeUtils } from "../src/utils/TimeUtils";
 import { RequestUtils } from "../src/utils/RequestUtils";
@@ -200,7 +198,7 @@ describe("UserAgentApplication.ts Class", function () {
                     }
                 }
             });
-            expect(configureTestCase).to.throw(ClientConfigurationError);
+            expect(configureTestCase).toThrowError(ClientConfigurationError);
         });
         it("non stubbed telemetry manager exists in UAA when configured", () => {
             msal = new UserAgentApplication({
@@ -216,11 +214,11 @@ describe("UserAgentApplication.ts Class", function () {
                 }
             });
             // @ts-ignore
-            expect(msal.telemetryManager).to.not.be.undefined;
+            expect(msal.telemetryManager).toBeDefined();
             // @ts-ignore
-            expect(msal.telemetryManager).to.not.be.null;
+            expect(msal.telemetryManager).not.toBeNull();
             // @ts-ignore
-            expect(msal.telemetryManager.telemetryPlatform.applicationName).to.eq(TEST_CONFIG.applicationName);
+            expect(msal.telemetryManager.telemetryPlatform.applicationName).toBe(TEST_CONFIG.applicationName);
         });
         it("stubbed telemetry manager exists in UAA when not configured", () => {
             msal = new UserAgentApplication({
@@ -229,11 +227,11 @@ describe("UserAgentApplication.ts Class", function () {
                 }
             });
             // @ts-ignore
-            expect(msal.telemetryManager).to.not.be.undefined;
+            expect(msal.telemetryManager).toBeDefined();
             // @ts-ignore
-            expect(msal.telemetryManager).to.not.be.null;
+            expect(msal.telemetryManager).not.toBeNull();
             // @ts-ignore
-            expect(msal.telemetryManager.telemetryPlatform.applicationName).to.eq("UnSetStub");
+            expect(msal.telemetryManager.telemetryPlatform.applicationName).toBe("UnSetStub");
         });
     });
 
@@ -260,28 +258,30 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("throws error if null argument is passed to either argument of setRedirectCallbacks", (done) => {
-            expect(() => msal.handleRedirectCallback(null)).to.throw(ClientConfigurationError);
+            expect(() => msal.handleRedirectCallback(null)).toThrowError(ClientConfigurationError);
             done();
         });
 
         it("navigates user to redirectURI passed in the request config", (done) => {
             window.location = {
-                ...oldWindowLocation,
-                assign: function (url) {
-                    try {
-                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
-                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                        expect(url).to.include("&redirect_uri=" + encodeURIComponent("http://localhost:3000"));
-                        expect(url).to.include("&state");
-                        expect(url).to.include("&client_info=1");
-                        done();
-                    } catch (e) {
-                        console.error(e);
-                    }
-                }
+                ...oldWindowLocation
             };
+            sinon.stub(window.location, "assign").callsFake((url) => {
+                try {
+                    expect(url).toContain(
+                        TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile"
+                    );
+                    expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                    expect(url).toContain("&redirect_uri=" + encodeURIComponent("http://localhost:3000"));
+                    expect(url).toContain("&state");
+                    expect(url).toContain("&client_info=1");
+                    done();
+                } catch (e) {
+                    console.error(e);
+                }
+            });
             msal.handleRedirectCallback(authCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
+            expect(msal.getRedirectUri()).toBe(TEST_URIS.TEST_REDIR_URI);
 
             const request: AuthenticationParameters = { redirectUri: "http://localhost:3000" };
             msal.loginRedirect(request);
@@ -289,28 +289,29 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("state in returned hash contains expected fields", (done) => {
             window.location = {
-                ...oldWindowLocation,
-                assign: function (url) {
-                    try {
-                        expect(url).to.include("&state");
-                        const hash = UrlUtils.getHashFromUrl(url);
-                        const state = UrlUtils.deserializeHash(hash).state;
-                        const decodedState = CryptoUtils.base64Decode(state);
-                        const stateObj = JSON.parse(decodedState);
-
-                        expect(stateObj).to.include.keys("id");
-                        expect(stateObj).to.include.keys("ts");
-                        expect(stateObj).to.include.keys("method");
-                        expect(stateObj.method).to.equal(Constants.interactionTypeRedirect);
-
-                        done();
-                    } catch (e) {
-                        console.error(e);
-                    }
-                }
+                ...oldWindowLocation
             };
+            sinon.stub(window.location, "assign").callsFake((url) => {
+                try {
+                    expect(url).toContain("&state");
+                    const hash = UrlUtils.getHashFromUrl(url);
+                    // @ts-ignore
+                    const state = UrlUtils.deserializeHash(hash).state;
+                    const decodedState = CryptoUtils.base64Decode(state);
+                    const stateObj = JSON.parse(decodedState);
+
+                    expect(stateObj).toHaveProperty("id");
+                    expect(stateObj).toHaveProperty("ts");
+                    expect(stateObj).toHaveProperty("method");
+                    expect(stateObj.method).toBe(Constants.interactionTypeRedirect);
+
+                    done();
+                } catch (e) {
+                    console.error(e);
+                }
+            });
             msal.handleRedirectCallback(authCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
+            expect(msal.getRedirectUri()).toBe(TEST_URIS.TEST_REDIR_URI);
 
             const request: AuthenticationParameters = { redirectUri: "http://localhost:3000" };
             msal.loginRedirect(request);
@@ -318,47 +319,49 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("navigates user to login and prompt parameter is not passed by default", (done) => {
             window.location = {
-                ...oldWindowLocation,
-                assign: function (url) {
-                    try {
-                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
-                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                        expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                        expect(url).to.include("&state");
-                        expect(url).to.include("&client_info=1");
-                        expect(url).not.to.include(Constants.prompt_select_account);
-                        expect(url).not.to.include(Constants.prompt_none);
-                        done();
-                    } catch (e) {
-                        console.error(e);
-                    }
-                }
+                ...oldWindowLocation
             };
+            sinon.stub(window.location, "assign").callsFake((url) => {
+                try {
+                    expect(url).toContain(
+                        TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile"
+                    );
+                    expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                    expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                    expect(url).toContain("&state");
+                    expect(url).toContain("&client_info=1");
+                    done();
+                } catch (e) {
+                    console.error(e);
+                }
+            })
             msal.handleRedirectCallback(authCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
+            expect(msal.getRedirectUri()).toBe(TEST_URIS.TEST_REDIR_URI);
             msal.loginRedirect({});
         });
 
         it("navigates user to login and prompt=select_account parameter is passed in request", (done) => {
             window.location = {
-                ...oldWindowLocation,
-                assign: function (url) {
-                    try {
-                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
-                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                        expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                        expect(url).to.include("&state");
-                        expect(url).to.include("&client_info=1");
-                        expect(url).to.include(Constants.prompt_select_account);
-                        expect(url).not.to.include(Constants.prompt_none);
-                        done();
-                    } catch (e) {
-                        console.error(e);
-                    }
-                }
+                ...oldWindowLocation
             };
+            sinon.stub(window.location, "assign").callsFake((url) => {
+                try {
+                    expect(url).toContain(
+                        TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile"
+                    );
+                    expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                    expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                    expect(url).toContain("&state");
+                    expect(url).toContain("&client_info=1");
+                    expect(url).toContain(Constants.prompt_select_account);
+                    done();
+                } catch (e) {
+                    console.error(e);
+                }
+            })
+            
             msal.handleRedirectCallback(authCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
+            expect(msal.getRedirectUri()).toBe(TEST_URIS.TEST_REDIR_URI);
 
             const request: AuthenticationParameters = { prompt: "select_account" };
             msal.loginRedirect(request);
@@ -369,13 +372,14 @@ describe("UserAgentApplication.ts Class", function () {
                 ...oldWindowLocation,
                 assign: function (url) {
                     try {
-                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
-                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                        expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                        expect(url).to.include("&state");
-                        expect(url).to.include("&client_info=1");
-                        expect(url).not.to.include(Constants.prompt_select_account);
-                        expect(url).to.include(Constants.prompt_none);
+                        expect(url).toContain(
+                            TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile"
+                        );
+                        expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                        expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                        expect(url).toContain("&state");
+                        expect(url).toContain("&client_info=1");
+                        expect(url).toContain(Constants.prompt_none);
                         done();
                     } catch (e) {
                         console.error(e);
@@ -383,7 +387,7 @@ describe("UserAgentApplication.ts Class", function () {
                 }
             };
             msal.handleRedirectCallback(authCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
+            expect(msal.getRedirectUri()).toBe(TEST_URIS.TEST_REDIR_URI);
 
             const request: AuthenticationParameters = { prompt: "none" };
             msal.loginRedirect(request);
@@ -404,15 +408,17 @@ describe("UserAgentApplication.ts Class", function () {
                 ...oldWindowLocation,
                 assign: function (url) {
                     try {
-                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
-                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                        expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                        expect(url).to.include("&state");
-                        expect(url).to.include("&client_info=1");
-                        expect(url).to.include("&login_hint=" + "some_id");
-                        expect(url).to.not.include("&domain_hint");
-                        expect(url).to.include(Constants.prompt_select_account);
-                        expect(url).to.not.include(Constants.prompt_none);
+                        expect(url).toContain(
+                            TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile"
+                        );
+                        expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                        expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                        expect(url).toContain("&state");
+                        expect(url).toContain("&client_info=1");
+                        expect(url).toContain("&login_hint=" + "some_id");
+                        expect(url).not.toContain("&domain_hint");
+                        expect(url).toContain(Constants.prompt_select_account);
+                        expect(url).not.toContain(Constants.prompt_none);
                         done();
                     } catch (e) {
                         console.error(e);
@@ -420,7 +426,7 @@ describe("UserAgentApplication.ts Class", function () {
                 }
             };
             msal.handleRedirectCallback(authCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
+            expect(msal.getRedirectUri()).toBe(TEST_URIS.TEST_REDIR_URI);
             const tokenRequest: AuthenticationParameters = {
                 prompt: "select_account",
                 account: accountObj
@@ -441,12 +447,14 @@ describe("UserAgentApplication.ts Class", function () {
                 ...oldWindowLocation,
                 assign: function (url) {
                     try {
-                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
-                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                        expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                        expect(url).to.include("&state");
-                        expect(url).to.include("&client_info=1");
-                        expect(url).to.include("&claims=" + encodeURIComponent(tokenRequest.claimsRequest));
+                        expect(url).toContain(
+                            TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile"
+                        );
+                        expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                        expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                        expect(url).toContain("&state");
+                        expect(url).toContain("&client_info=1");
+                        expect(url).toContain("&claims=" + encodeURIComponent(tokenRequest.claimsRequest));
                         done();
                     } catch (e) {
                         console.error(e);
@@ -454,7 +462,7 @@ describe("UserAgentApplication.ts Class", function () {
                 }
             };
             msal.handleRedirectCallback(tokenReceivedCallback, errorReceivedCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
+            expect(msal.getRedirectUri()).toBe(TEST_URIS.TEST_REDIR_URI);
             msal.loginRedirect(tokenRequest);
         });
 
@@ -473,12 +481,14 @@ describe("UserAgentApplication.ts Class", function () {
                 ...oldWindowLocation,
                 assign: function (url) {
                     try {
-                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
-                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                        expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                        expect(url).to.include("&state");
-                        expect(url).to.include("&client_info=1");
-                        expect(url).to.include("&claims=" + encodeURIComponent(tokenRequest.extraQueryParameters.claims));
+                        expect(url).toContain(
+                            TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile"
+                        );
+                        expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                        expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                        expect(url).toContain("&state");
+                        expect(url).toContain("&client_info=1");
+                        expect(url).toContain("&claims=" + encodeURIComponent(tokenRequest.extraQueryParameters.claims));
                         done();
                     } catch (e) {
                         console.error(e);
@@ -486,7 +496,7 @@ describe("UserAgentApplication.ts Class", function () {
                 }
             };
             msal.handleRedirectCallback(tokenReceivedCallback, errorReceivedCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
+            expect(msal.getRedirectUri()).toBe(TEST_URIS.TEST_REDIR_URI);
             msal.loginRedirect(tokenRequest);
         });
 
@@ -511,12 +521,14 @@ describe("UserAgentApplication.ts Class", function () {
                 ...oldWindowLocation,
                 assign: function (url) {
                     try {
-                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
-                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                        expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                        expect(url).to.include("&state");
-                        expect(url).to.include("&client_info=1");
-                        expect(url).to.include("&claims=" + encodeURIComponent(tokenRequest.claimsRequest));
+                        expect(url).toContain(
+                            TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile"
+                        );
+                        expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                        expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                        expect(url).toContain("&state");
+                        expect(url).toContain("&client_info=1");
+                        expect(url).toContain("&claims=" + encodeURIComponent(tokenRequest.claimsRequest));
                         done();
                     } catch (e) {
                         console.error(e);
@@ -524,7 +536,7 @@ describe("UserAgentApplication.ts Class", function () {
                 }
             };
             msal.handleRedirectCallback(tokenReceivedCallback, errorReceivedCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
+            expect(msal.getRedirectUri()).toBe(TEST_URIS.TEST_REDIR_URI);
             msal.loginRedirect(tokenRequest);
         });
 
@@ -538,13 +550,17 @@ describe("UserAgentApplication.ts Class", function () {
                 ...oldWindowLocation,
                 assign: function (url) {
                     try {
-                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
-                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                        expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                        expect(url).to.include("&state");
-                        expect(url).to.include("&client_info=1");
-                        expect(url).to.not.include("&login_hint=");
-                        expect(url).to.not.include(encodeURIComponent(tokenRequestWithoutLoginHint.extraQueryParameters[SSOTypes.LOGIN_HINT]));
+                        expect(url).toContain(
+                            TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile"
+                        );
+                        expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                        expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                        expect(url).toContain("&state");
+                        expect(url).toContain("&client_info=1");
+                        expect(url).not.toContain("&login_hint=");
+                        expect(url).not.toContain(
+                            encodeURIComponent(tokenRequestWithoutLoginHint.extraQueryParameters[SSOTypes.LOGIN_HINT])
+                        );
                         done();
                     } catch (e) {
                         console.error(e);
@@ -552,7 +568,7 @@ describe("UserAgentApplication.ts Class", function () {
                 }
             };
             msal.handleRedirectCallback(tokenReceivedCallback, errorReceivedCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
+            expect(msal.getRedirectUri()).toBe(TEST_URIS.TEST_REDIR_URI);
             msal.loginRedirect(tokenRequestWithoutLoginHint);
         });
 
@@ -566,13 +582,17 @@ describe("UserAgentApplication.ts Class", function () {
                 ...oldWindowLocation,
                 assign: function (url) {
                     try {
-                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
-                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                        expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                        expect(url).to.include("&state");
-                        expect(url).to.include("&client_info=1");
-                        expect(url).to.not.include("&sid=");
-                        expect(url).to.not.include(encodeURIComponent(tokenRequestWithoutLoginHint.extraQueryParameters[SSOTypes.SID]));
+                        expect(url).toContain(
+                            TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile"
+                        );
+                        expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                        expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                        expect(url).toContain("&state");
+                        expect(url).toContain("&client_info=1");
+                        expect(url).not.toContain("&sid=");
+                        expect(url).not.toContain(
+                            encodeURIComponent(tokenRequestWithoutLoginHint.extraQueryParameters[SSOTypes.SID])
+                        );
                         done();
                     } catch (e) {
                         console.error(e);
@@ -580,7 +600,7 @@ describe("UserAgentApplication.ts Class", function () {
                 }
             };
             msal.handleRedirectCallback(tokenReceivedCallback, errorReceivedCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
+            expect(msal.getRedirectUri()).toBe(TEST_URIS.TEST_REDIR_URI);
             msal.loginRedirect(tokenRequestWithoutLoginHint);
         });
 
@@ -589,11 +609,13 @@ describe("UserAgentApplication.ts Class", function () {
                 ...oldWindowLocation,
                 assign: function (url) {
                     try {
-                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
-                        expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                        expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                        expect(url).to.include("&state");
-                        expect(url).to.include("&client_info=1");
+                        expect(url).toContain(
+                            TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile"
+                        );
+                        expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                        expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                        expect(url).toContain("&state");
+                        expect(url).toContain("&client_info=1");
                         done();
                     } catch (e) {
                         console.error(e);
@@ -601,7 +623,7 @@ describe("UserAgentApplication.ts Class", function () {
                 }
             };
             msal.handleRedirectCallback(authCallback);
-            expect(msal.getRedirectUri()).to.be.equal(TEST_URIS.TEST_REDIR_URI);
+            expect(msal.getRedirectUri()).toBe(TEST_URIS.TEST_REDIR_URI);
 
             msal.loginRedirect({});
         });
@@ -617,7 +639,7 @@ describe("UserAgentApplication.ts Class", function () {
                 hash: "",
                 assign: function (url) {
                     try {
-                        expect(url).to.include("&redirect_uri=" + encodeURIComponent(TEST_URIS.TEST_REDIR_URI));
+                        expect(url).toContain("&redirect_uri=" + encodeURIComponent(TEST_URIS.TEST_REDIR_URI));
                         done();
                     } catch (e) {
                         console.error(e);
@@ -650,7 +672,7 @@ describe("UserAgentApplication.ts Class", function () {
             msal.handleRedirectCallback(authCallback);
             msal.loginRedirect({
                 onRedirectNavigate: url => {
-                    expect(url).to.be.not.null;
+                    expect(url).not.toBeNull();
 
                     done();
                     return false;
@@ -679,7 +701,7 @@ describe("UserAgentApplication.ts Class", function () {
                 scopes: [ "user.read" ],
                 account,
                 onRedirectNavigate: url => {
-                    expect(url).to.be.not.null;
+                    expect(url).not.toBeNull();
 
                     done();
                     return false;
@@ -698,7 +720,7 @@ describe("UserAgentApplication.ts Class", function () {
                 ...oldWindowLocation,
                 hash: "",
                 assign: function (url) {
-                    expect(url).to.not.be.null;
+                    expect(url).not.toBeNull();
                     done();
                 }
             };
@@ -707,7 +729,7 @@ describe("UserAgentApplication.ts Class", function () {
             msal.handleRedirectCallback(authCallback);
             msal.loginRedirect({
                 onRedirectNavigate: url => {
-                    expect(url).to.be.not.null;
+                    expect(url).not.toBeNull();
                 }
             });
         });
@@ -723,7 +745,7 @@ describe("UserAgentApplication.ts Class", function () {
                 ...oldWindowLocation,
                 hash: "",
                 assign: function (url) {
-                    expect(url).to.not.be.null;
+                    expect(url).not.toBeNull();
                     done();
                 }
             };
@@ -732,7 +754,7 @@ describe("UserAgentApplication.ts Class", function () {
             msal.handleRedirectCallback(authCallback);
             msal.loginRedirect({
                 onRedirectNavigate: url => {
-                    expect(url).to.be.not.null;
+                    expect(url).not.toBeNull();
 
                     return true;
                 }
@@ -743,12 +765,12 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setInteractionInProgress(true);
             window.location = oldWindowLocation;
             const checkErrorFromLibrary = function (authErr: AuthError) {
-                expect(authErr instanceof ClientAuthError).to.be.true;
-                expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.loginProgressError.code);
-                expect(authErr.errorMessage).to.equal(ClientAuthErrorMessage.loginProgressError.desc);
-                expect(authErr.message).to.equal(ClientAuthErrorMessage.loginProgressError.desc);
-                expect(authErr.name).to.equal("ClientAuthError");
-                expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
+                expect(authErr instanceof ClientAuthError).toBe(true);
+                expect(authErr.errorCode).toBe(ClientAuthErrorMessage.loginProgressError.code);
+                expect(authErr.errorMessage).toBe(ClientAuthErrorMessage.loginProgressError.desc);
+                expect(authErr.message).toBe(ClientAuthErrorMessage.loginProgressError.desc);
+                expect(authErr.name).toBe("ClientAuthError");
+                expect(authErr.stack).toContain("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(checkErrorFromLibrary);
@@ -760,12 +782,12 @@ describe("UserAgentApplication.ts Class", function () {
             differentCache.setInteractionInProgress(true);
             window.location = oldWindowLocation;
             const checkErrorFromLibrary = function (authErr: AuthError) {
-                expect(authErr instanceof ClientAuthError).to.be.true;
-                expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.loginProgressError.code);
-                expect(authErr.errorMessage).to.equal(ClientAuthErrorMessage.loginProgressError.desc);
-                expect(authErr.message).to.equal(ClientAuthErrorMessage.loginProgressError.desc);
-                expect(authErr.name).to.equal("ClientAuthError");
-                expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
+                expect(authErr instanceof ClientAuthError).toBe(true);
+                expect(authErr.errorCode).toBe(ClientAuthErrorMessage.loginProgressError.code);
+                expect(authErr.errorMessage).toBe(ClientAuthErrorMessage.loginProgressError.desc);
+                expect(authErr.message).toBe(ClientAuthErrorMessage.loginProgressError.desc);
+                expect(authErr.name).toBe("ClientAuthError");
+                expect(authErr.stack).toContain("UserAgentApplication.spec.ts");
                 differentCache.clear();
                 done();
             };
@@ -777,12 +799,12 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setInteractionInProgress(true);
             window.location = oldWindowLocation;
             const checkErrorFromLibrary = function (authErr: AuthError) {
-                expect(authErr instanceof ClientAuthError).to.be.true;
-                expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.code);
-                expect(authErr.errorMessage).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.desc);
-                expect(authErr.message).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.desc);
-                expect(authErr.name).to.equal("ClientAuthError");
-                expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
+                expect(authErr instanceof ClientAuthError).toBe(true);
+                expect(authErr.errorCode).toBe(ClientAuthErrorMessage.acquireTokenProgressError.code);
+                expect(authErr.errorMessage).toBe(ClientAuthErrorMessage.acquireTokenProgressError.desc);
+                expect(authErr.message).toBe(ClientAuthErrorMessage.acquireTokenProgressError.desc);
+                expect(authErr.name).toBe("ClientAuthError");
+                expect(authErr.stack).toContain("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(checkErrorFromLibrary);
@@ -794,12 +816,12 @@ describe("UserAgentApplication.ts Class", function () {
             differentCache.setInteractionInProgress(true);
             window.location = oldWindowLocation;
             const checkErrorFromLibrary = function (authErr: AuthError) {
-                expect(authErr instanceof ClientAuthError).to.be.true;
-                expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.code);
-                expect(authErr.errorMessage).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.desc);
-                expect(authErr.message).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.desc);
-                expect(authErr.name).to.equal("ClientAuthError");
-                expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
+                expect(authErr instanceof ClientAuthError).toBe(true);
+                expect(authErr.errorCode).toBe(ClientAuthErrorMessage.acquireTokenProgressError.code);
+                expect(authErr.errorMessage).toBe(ClientAuthErrorMessage.acquireTokenProgressError.desc);
+                expect(authErr.message).toBe(ClientAuthErrorMessage.acquireTokenProgressError.desc);
+                expect(authErr.name).toBe("ClientAuthError");
+                expect(authErr.stack).toContain("UserAgentApplication.spec.ts");
                 differentCache.clear();
                 done();
             };
@@ -813,10 +835,10 @@ describe("UserAgentApplication.ts Class", function () {
             try {
                 msal.loginRedirect();
             } catch(authErr) {
-                expect(authErr instanceof ClientAuthError).to.be.true;
-                expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.loginProgressError.code);
-                expect(authErr.errorMessage).to.equal(ClientAuthErrorMessage.loginProgressError.desc);
-                expect(authErr.message).to.equal(ClientAuthErrorMessage.loginProgressError.desc);
+                expect(authErr instanceof ClientAuthError).toBe(true);
+                expect(authErr.errorCode).toBe(ClientAuthErrorMessage.loginProgressError.code);
+                expect(authErr.errorMessage).toBe(ClientAuthErrorMessage.loginProgressError.desc);
+                expect(authErr.message).toBe(ClientAuthErrorMessage.loginProgressError.desc);
                 done();
             }
         });
@@ -828,10 +850,10 @@ describe("UserAgentApplication.ts Class", function () {
             try {
                 msal.loginRedirect();
             } catch(authErr) {
-                expect(authErr instanceof ClientAuthError).to.be.true;
-                expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.loginProgressError.code);
-                expect(authErr.errorMessage).to.equal(ClientAuthErrorMessage.loginProgressError.desc);
-                expect(authErr.message).to.equal(ClientAuthErrorMessage.loginProgressError.desc);
+                expect(authErr instanceof ClientAuthError).toBe(true);
+                expect(authErr.errorCode).toBe(ClientAuthErrorMessage.loginProgressError.code);
+                expect(authErr.errorMessage).toBe(ClientAuthErrorMessage.loginProgressError.desc);
+                expect(authErr.message).toBe(ClientAuthErrorMessage.loginProgressError.desc);
                 differentCache.clear();
                 done();
             }
@@ -843,10 +865,10 @@ describe("UserAgentApplication.ts Class", function () {
             try {
                 msal.acquireTokenRedirect({scopes: [ "user.read" ]});
             } catch(authErr) {
-                expect(authErr instanceof ClientAuthError).to.be.true;
-                expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.code);
-                expect(authErr.errorMessage).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.desc);
-                expect(authErr.message).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.desc);
+                expect(authErr instanceof ClientAuthError).toBe(true);
+                expect(authErr.errorCode).toBe(ClientAuthErrorMessage.acquireTokenProgressError.code);
+                expect(authErr.errorMessage).toBe(ClientAuthErrorMessage.acquireTokenProgressError.desc);
+                expect(authErr.message).toBe(ClientAuthErrorMessage.acquireTokenProgressError.desc);
                 done();
             }
         });
@@ -858,10 +880,10 @@ describe("UserAgentApplication.ts Class", function () {
             try {
                 msal.acquireTokenRedirect({scopes: [ "user.read" ]});
             } catch(authErr) {
-                expect(authErr instanceof ClientAuthError).to.be.true;
-                expect(authErr.errorCode).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.code);
-                expect(authErr.errorMessage).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.desc);
-                expect(authErr.message).to.equal(ClientAuthErrorMessage.acquireTokenProgressError.desc);
+                expect(authErr instanceof ClientAuthError).toBe(true);
+                expect(authErr.errorCode).toBe(ClientAuthErrorMessage.acquireTokenProgressError.code);
+                expect(authErr.errorMessage).toBe(ClientAuthErrorMessage.acquireTokenProgressError.desc);
+                expect(authErr.message).toBe(ClientAuthErrorMessage.acquireTokenProgressError.desc);
                 differentCache.clear();
                 done();
             }
@@ -904,10 +926,11 @@ describe("UserAgentApplication.ts Class", function () {
                 ...oldWindowLocation,
                 assign: function (url) {
                     try {
+                        // @ts-ignore
                         const state = UrlUtils.deserializeHash(url).state;
                         const accountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, state);
 
-                        expect(cacheStorage.getItem(accountKey)).equals(JSON.stringify(account));
+                        expect(cacheStorage.getItem(accountKey)).toBe(JSON.stringify(account));
                         done();
                     } catch (e) {
                         console.error(e);
@@ -929,9 +952,10 @@ describe("UserAgentApplication.ts Class", function () {
                 ...oldWindowLocation,
                 assign: function (url) {
                     try {
+                        // @ts-ignore
                         const state = UrlUtils.deserializeHash(url).state;
 
-                        expect(cacheStorage.getItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_ACQ_TOKEN, `${state}`))).to.be.equal(state);
+                        expect(cacheStorage.getItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_ACQ_TOKEN, `${state}`))).toBe(state);
                         done();
                     } catch (e) {
                         console.error(e);
@@ -954,9 +978,10 @@ describe("UserAgentApplication.ts Class", function () {
                 assign: function (url) {
                     try {
                         const loginRequestUrl = window.location.href;
+                        // @ts-ignore
                         const state = UrlUtils.deserializeHash(url).state;
 
-                        expect(cacheStorage.getItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.LOGIN_REQUEST, `${state}`))).to.be.equal(loginRequestUrl);
+                        expect(cacheStorage.getItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.LOGIN_REQUEST, `${state}`))).toBe(loginRequestUrl);
                         done();
                     } catch (e) {
                         console.error(e);
@@ -976,11 +1001,11 @@ describe("UserAgentApplication.ts Class", function () {
             } catch (e) {
                 authErr = e;
             }
-            expect(authErr.errorCode).to.equal(ClientConfigurationErrorMessage.scopesRequired.code);
-            expect(authErr.errorMessage).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);
-            expect(authErr.message).to.contain(ClientConfigurationErrorMessage.scopesRequired.desc);
-            expect(authErr.name).to.equal("ClientConfigurationError");
-            expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
+            expect(authErr.errorCode).toBe(ClientConfigurationErrorMessage.scopesRequired.code);
+            expect(authErr.errorMessage).toContain(ClientConfigurationErrorMessage.scopesRequired.desc);
+            expect(authErr.message).toContain(ClientConfigurationErrorMessage.scopesRequired.desc);
+            expect(authErr.name).toBe("ClientConfigurationError");
+            expect(authErr.stack).toContain("UserAgentApplication.spec.ts");
             done();
         });
 
@@ -994,11 +1019,11 @@ describe("UserAgentApplication.ts Class", function () {
             } catch (e) {
                 authErr = e;
             }
-            expect(authErr.errorCode).to.equal(ClientConfigurationErrorMessage.emptyScopes.code);
-            expect(authErr.errorMessage).to.contain(ClientConfigurationErrorMessage.emptyScopes.desc);
-            expect(authErr.message).to.contain(ClientConfigurationErrorMessage.emptyScopes.desc);
-            expect(authErr.name).to.equal("ClientConfigurationError");
-            expect(authErr.stack).to.include("UserAgentApplication.spec.ts");
+            expect(authErr.errorCode).toBe(ClientConfigurationErrorMessage.emptyScopes.code);
+            expect(authErr.errorMessage).toContain(ClientConfigurationErrorMessage.emptyScopes.desc);
+            expect(authErr.message).toContain(ClientConfigurationErrorMessage.emptyScopes.desc);
+            expect(authErr.name).toBe("ClientConfigurationError");
+            expect(authErr.stack).toContain("UserAgentApplication.spec.ts");
             done();
         });
 
@@ -1008,10 +1033,10 @@ describe("UserAgentApplication.ts Class", function () {
                 // @ts-ignore
                 msal.acquireTokenRedirect();
             } catch (e) {
-                expect(e).to.be.instanceOf(ClientConfigurationError);
+                expect(e).toBeInstanceOf(ClientConfigurationError);
                 correctError = true;
             }
-            expect(correctError).to.be.true;
+            expect(correctError).toBe(true);
         });
     });
 
@@ -1046,13 +1071,13 @@ describe("UserAgentApplication.ts Class", function () {
             msal = new UserAgentApplication(config);
 
             const checkErrorFromServer = function(error: AuthError, accountState: string) {
-                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
-                expect(error instanceof ServerError).to.be.true;
-                expect(error.name).to.include("ServerError");
-                expect(error.errorCode).to.include(TEST_ERROR_CODE);
-                expect(error.errorMessage).to.include(TEST_ERROR_DESC);
-                expect(error.message).to.include(TEST_ERROR_DESC);
-                expect(error.stack).to.include("UserAgentApplication.spec.ts");
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).toBeNull();
+                expect(error instanceof ServerError).toBe(true);
+                expect(error.name).toContain("ServerError");
+                expect(error.errorCode).toContain(TEST_ERROR_CODE);
+                expect(error.errorMessage).toContain(TEST_ERROR_DESC);
+                expect(error.message).toContain(TEST_ERROR_DESC);
+                expect(error.stack).toContain("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(tokenReceivedCallback, checkErrorFromServer);
@@ -1066,11 +1091,11 @@ describe("UserAgentApplication.ts Class", function () {
             msal = new UserAgentApplication(config);
 
             const checkResponseFromServer = function(response: AuthResponse) {
-                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
-                expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
-                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
-                expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
-                expect(response.accountState).to.include(TEST_USER_STATE_NUM);
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).toBeNull();
+                expect(response.uniqueId).toBe(TEST_UNIQUE_ID);
+                expect(response.tokenType).toBe(ServerHashParamKeys.ID_TOKEN);
+                expect(response.tenantId).toBe(TEST_CONFIG.MSAL_TENANT_ID);
+                expect(response.accountState).toContain(TEST_USER_STATE_NUM);
                 done();
             };
             msal.handleRedirectCallback(checkResponseFromServer, errorReceivedCallback);
@@ -1084,11 +1109,11 @@ describe("UserAgentApplication.ts Class", function () {
             msal = new UserAgentApplication(config);
 
             const checkResponseFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
-                expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
-                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
-                expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
-                expect(response.accountState).to.include(TEST_USER_STATE_NUM);
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).toBeNull();
+                expect(response.uniqueId).toBe(TEST_UNIQUE_ID);
+                expect(response.tokenType).toBe(ServerHashParamKeys.ID_TOKEN);
+                expect(response.tenantId).toBe(TEST_CONFIG.MSAL_TENANT_ID);
+                expect(response.accountState).toContain(TEST_USER_STATE_NUM);
                 done();
             };
             msal.handleRedirectCallback(checkResponseFromServer);
@@ -1105,15 +1130,15 @@ describe("UserAgentApplication.ts Class", function () {
             msal = new UserAgentApplication(config);
 
             const checkResponseFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
-                expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
-                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
-                expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
-                expect(response.accountState).to.include(TEST_USER_STATE_NUM);
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).toBeNull();
+                expect(response.uniqueId).toBe(TEST_UNIQUE_ID);
+                expect(response.tokenType).toBe(ServerHashParamKeys.ID_TOKEN);
+                expect(response.tenantId).toBe(TEST_CONFIG.MSAL_TENANT_ID);
+                expect(response.accountState).toContain(TEST_USER_STATE_NUM);
                 done();
             };
             msal.handleRedirectCallback(checkResponseFromServer);
-            expect(window.location.hash).to.be.equal("");
+            expect(window.location.hash).toBe("");
             window.opener = oldWindowOpener;
         });
 
@@ -1136,8 +1161,8 @@ describe("UserAgentApplication.ts Class", function () {
 
             msal.handleRedirectCallback(checkResponseFromServer);
 
-            expect(callbackExecuted).to.be.false;
-            expect(window.location.hash).to.be.equal(hashBeforeProcessing);
+            expect(callbackExecuted).toBe(false);
+            expect(window.location.hash).toBe(hashBeforeProcessing);
             window.opener = oldWindowOpener;
         });
     });
@@ -1174,12 +1199,12 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
             
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                expect(response.idToken.rawIdToken).to.equal(TEST_TOKENS.IDTOKEN_V2);
-                expect(response.idTokenClaims).to.be.deep.eq(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
-                expect(response.accessToken).to.be.deep.eq(TEST_TOKENS.ACCESSTOKEN);
-                expect(response.account).to.be.eq(account);
-                expect(response.scopes).to.be.deep.eq(["s1"]);
-                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                expect(response.idToken.rawIdToken).toBe(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idTokenClaims).toEqual(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                expect(response.accessToken).toEqual(TEST_TOKENS.ACCESSTOKEN);
+                expect(response.account).toBe(account);
+                expect(response.scopes).toEqual(["s1"]);
+                expect(response.tokenType).toBe(ServerHashParamKeys.ACCESS_TOKEN);
                 done();
             }).catch(function(err) {
                 // Won't happen
@@ -1203,12 +1228,12 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                expect(response.idToken.rawIdToken).to.equal(TEST_TOKENS.IDTOKEN_V2);
-                expect(response.idTokenClaims).to.be.deep.eq(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
-                expect(response.accessToken).to.be.deep.eq(TEST_TOKENS.ACCESSTOKEN);
-                expect(response.account).to.be.eq(account);
-                expect(response.scopes).to.be.deep.eq(["s1"]);
-                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                expect(response.idToken.rawIdToken).toBe(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idTokenClaims).toEqual(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                expect(response.accessToken).toEqual(TEST_TOKENS.ACCESSTOKEN);
+                expect(response.account).toBe(account);
+                expect(response.scopes).toEqual(["s1"]);
+                expect(response.tokenType).toBe(ServerHashParamKeys.ACCESS_TOKEN);
                 done();
             }).catch(function(err: AuthError) {
                 // Won't happen
@@ -1242,24 +1267,24 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                expect(response.scopes).to.be.deep.eq(["s1"]);
-                expect(response.account).to.be.eq(account);
-                expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
-                expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
-                expect(response.accessToken).to.eql(TEST_TOKENS.ACCESSTOKEN);
-                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                expect(response.scopes).toEqual(["s1"]);
+                expect(response.account).toBe(account);
+                expect(response.idToken.rawIdToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idTokenClaims).toEqual(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                expect(response.accessToken).toEqual(TEST_TOKENS.ACCESSTOKEN);
+                expect(response.tokenType).toBe(ServerHashParamKeys.ACCESS_TOKEN);
             }).catch(function(err: AuthError) {
                 // Won't happen
                 console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
             });
             
             msal.acquireTokenSilent(tokenRequestAlternate).then(function(response) {
-                expect(response.scopes).to.be.deep.eq(["s1"]);
-                expect(response.account).to.be.eq(account);
-                expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
-                expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
-                expect(response.accessToken).to.include("accessTokenAlternate");
-                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                expect(response.scopes).toEqual(["s1"]);
+                expect(response.account).toBe(account);
+                expect(response.idToken.rawIdToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idTokenClaims).toEqual(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                expect(response.accessToken).toContain("accessTokenAlternate");
+                expect(response.tokenType).toBe(ServerHashParamKeys.ACCESS_TOKEN);
                 done();
             }).catch(function(err: AuthError) {
                 // Won't happen
@@ -1297,23 +1322,23 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                expect(response.scopes).to.be.deep.eq(["s1"]);
-                expect(response.account).to.be.eq(account);
-                expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
-                expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
-                expect(response.accessToken).to.include(TEST_TOKENS.ACCESSTOKEN);
-                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                expect(response.scopes).toEqual(["s1"]);
+                expect(response.account).toBe(account);
+                expect(response.idToken.rawIdToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idTokenClaims).toEqual(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                expect(response.accessToken).toContain(TEST_TOKENS.ACCESSTOKEN);
+                expect(response.tokenType).toBe(ServerHashParamKeys.ACCESS_TOKEN);
             }).catch(function(err: AuthError) {
                 // Won't happen
                 console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
             });
             msal.acquireTokenSilent(tokenRequestAlternate).then(function(response) {
-                expect(response.scopes).to.be.deep.eq(["s1"]);
-                expect(response.account).to.be.eq(account);
-                expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
-                expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
-                expect(response.accessToken).to.include("accessTokenAlternate");
-                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                expect(response.scopes).toEqual(["s1"]);
+                expect(response.account).toBe(account);
+                expect(response.idToken.rawIdToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idTokenClaims).toEqual(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                expect(response.accessToken).toContain("accessTokenAlternate");
+                expect(response.tokenType).toBe(ServerHashParamKeys.ACCESS_TOKEN);
                 done();
             }).catch(function(err: AuthError) {
                 // Won't happen
@@ -1350,23 +1375,23 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                expect(response.scopes).to.be.deep.eq(["s1"]);
-                expect(response.account).to.be.eq(account);
-                expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
-                expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
-                expect(response.accessToken).to.include(TEST_TOKENS.ACCESSTOKEN);
-                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                expect(response.scopes).toEqual(["s1"]);
+                expect(response.account).toBe(account);
+                expect(response.idToken.rawIdToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idTokenClaims).toEqual(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                expect(response.accessToken).toContain(TEST_TOKENS.ACCESSTOKEN);
+                expect(response.tokenType).toBe(ServerHashParamKeys.ACCESS_TOKEN);
             }).catch(function(err: AuthError) {
                 // Won't happen
                 console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
             });
             msal.acquireTokenSilent(tokenRequestAlternate).then(function(response) {
-                expect(response.scopes).to.be.deep.eq(["s1"]);
-                expect(response.account).to.be.eq(account);
-                expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
-                expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
-                expect(response.accessToken).to.include("accessTokenAlternate");
-                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                expect(response.scopes).toEqual(["s1"]);
+                expect(response.account).toBe(account);
+                expect(response.idToken.rawIdToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idTokenClaims).toEqual(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                expect(response.accessToken).toContain("accessTokenAlternate");
+                expect(response.tokenType).toBe(ServerHashParamKeys.ACCESS_TOKEN);
                 done();
             }).catch(function(err: AuthError) {
                 // Won't happen
@@ -1401,23 +1426,23 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                expect(response.scopes).to.be.deep.eq(["s1"]);
-                expect(response.account).to.be.eq(account);
-                expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
-                expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
-                expect(response.accessToken).to.include(TEST_TOKENS.ACCESSTOKEN);
-                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                expect(response.scopes).toEqual(["s1"]);
+                expect(response.account).toBe(account);
+                expect(response.idToken.rawIdToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idTokenClaims).toEqual(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                expect(response.accessToken).toContain(TEST_TOKENS.ACCESSTOKEN);
+                expect(response.tokenType).toBe(ServerHashParamKeys.ACCESS_TOKEN);
             }).catch(function(err: AuthError) {
                 // Won't happen
                 console.error("Shouldn't have error here. Data: " + JSON.stringify(err));
             });
             msal.acquireTokenSilent(tokenRequestAlternate).then(function(response) {
-                expect(response.scopes).to.be.deep.eq(["s1"]);
-                expect(response.account).to.be.eq(account);
-                expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
-                expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
-                expect(response.accessToken).to.include("accessTokenAlternate");
-                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                expect(response.scopes).toEqual(["s1"]);
+                expect(response.account).toBe(account);
+                expect(response.idToken.rawIdToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
+                expect(response.idTokenClaims).toEqual(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                expect(response.accessToken).toContain("accessTokenAlternate");
+                expect(response.tokenType).toBe(ServerHashParamKeys.ACCESS_TOKEN);
                 done();
             }).catch(function(err: AuthError) {
                 // Won't happen
@@ -1437,12 +1462,14 @@ describe("UserAgentApplication.ts Class", function () {
 
             sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
                 return new Promise<void>(() => {
-                    expect(cacheStorage.getItem(JSON.stringify(accessTokenKey))).to.be.null;
-                    expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
-                    expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                    expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                    expect(url).to.include("&state");
-                    expect(url).to.include("&client_info=1");
+                    expect(cacheStorage.getItem(JSON.stringify(accessTokenKey))).toBeNull();
+                    expect(url).toContain(
+                        TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile"
+                    );
+                    expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                    expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                    expect(url).toContain("&state");
+                    expect(url).toContain("&client_info=1");
                     done();
                 });
             });
@@ -1478,8 +1505,8 @@ describe("UserAgentApplication.ts Class", function () {
                 console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
             }).catch(function(err: AuthError) {
                 // Failure will be caught here since the tests are being run within the stub.
-                expect(err).to.be.instanceOf(AuthError);
-                expect(renewTokenSpy.calledOnce).to.be.true;
+                expect(err).toBeInstanceOf(AuthError);
+                expect(renewTokenSpy.calledOnce).toBe(true);
                 done();
             });
         });
@@ -1496,12 +1523,14 @@ describe("UserAgentApplication.ts Class", function () {
 
             sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
                 return new Promise<void>(() => {
-                    expect(cacheStorage.getItem(JSON.stringify(accessTokenKey))).to.be.null;
-                    expect(url).to.include(TEST_CONFIG.alternateValidAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
-                    expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                    expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                    expect(url).to.include("&state");
-                    expect(url).to.include("&client_info=1");
+                    expect(cacheStorage.getItem(JSON.stringify(accessTokenKey))).toBeNull();
+                    expect(url).toContain(
+                        TEST_CONFIG.alternateValidAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile"
+                    );
+                    expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                    expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                    expect(url).toContain("&state");
+                    expect(url).toContain("&client_info=1");
                     done();
                 });
             });
@@ -1516,7 +1545,7 @@ describe("UserAgentApplication.ts Class", function () {
                 console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
             }).catch(function(err: AuthError) {
                 // Failure will be caught here since the tests are being run within the stub.
-                expect(err).to.be.instanceOf(AuthError);
+                expect(err).toBeInstanceOf(AuthError);
             });
         });
 
@@ -1537,7 +1566,7 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
 
             msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                expect(response.idToken).to.not.be.null;
+                expect(response.idToken).not.toBeNull();
                 done();
             }).catch(function(err: AuthError) {
                 console.log("Shouldn't have error here. Data: " + JSON.stringify(err));
@@ -1564,13 +1593,15 @@ describe("UserAgentApplication.ts Class", function () {
 
             sinon.stub(msal, <any>"loadIframeTimeout").callsFake(function (url: string, frameName: string) {
                 return new Promise<void>(() => {
-                    expect(cacheCallSpy.notCalled).to.be.true;
-                    expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
-                    expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                    expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                    expect(url).to.include("&state");
-                    expect(url).to.include("&client_info=1");
-                    expect(url).to.include("&claims=" + encodeURIComponent(tokenRequest.claimsRequest));
+                    expect(cacheCallSpy.notCalled).toBe(true);
+                    expect(url).toContain(
+                        TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile"
+                    );
+                    expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                    expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                    expect(url).toContain("&state");
+                    expect(url).toContain("&client_info=1");
+                    expect(url).toContain("&claims=" + encodeURIComponent(tokenRequest.claimsRequest));
                     done();
                 });
             });
@@ -1582,7 +1613,7 @@ describe("UserAgentApplication.ts Class", function () {
                 console.error("Shouldn't have response here. Data: " + JSON.stringify(response));
             }).catch(function(err: AuthError) {
                 // Failure will be caught here since the tests are being run within the stub.
-                expect(err).to.be.instanceOf(AuthError);
+                expect(err).toBeInstanceOf(AuthError);
             });
         });
 
@@ -1602,12 +1633,14 @@ describe("UserAgentApplication.ts Class", function () {
 
             sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
                 return new Promise<void>(() => {
-                    expect(cacheCallSpy.notCalled).to.be.true;
-                    expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
-                    expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                    expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                    expect(url).to.include("&state");
-                    expect(url).to.include("&client_info=1");
+                    expect(cacheCallSpy.notCalled).toBe(true);
+                    expect(url).toContain(
+                        TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile"
+                    );
+                    expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                    expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                    expect(url).toContain("&state");
+                    expect(url).toContain("&client_info=1");
                     done();
                 });
             });
@@ -1644,12 +1677,14 @@ describe("UserAgentApplication.ts Class", function () {
 
                     sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
                         return new Promise<void>(() => {
-                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=token&scope=S1%20openid%20profile");
-                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                            expect(url).to.include("&state");
-                            expect(url).to.include("&client_info=1");
-                            expect(renewTokenSpy.calledOnce).to.be.true;
+                            expect(url).toContain(
+                                TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=token&scope=S1%20openid%20profile"
+                            );
+                            expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).toContain("&state");
+                            expect(url).toContain("&client_info=1");
+                            expect(renewTokenSpy.calledOnce).toBe(true);
                             done();
                         });
                     });
@@ -1661,10 +1696,10 @@ describe("UserAgentApplication.ts Class", function () {
                     cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
                     msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                        expect(response.scopes).to.be.deep.eq(["s1"]);
-                        expect(response.account).to.be.eq(account);
-                        expect(response.accessToken).to.include(TEST_TOKENS.ACCESSTOKEN);
-                        expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                        expect(response.scopes).toEqual(["s1"]);
+                        expect(response.account).toBe(account);
+                        expect(response.accessToken).toContain(TEST_TOKENS.ACCESSTOKEN);
+                        expect(response.tokenType).toBe(ServerHashParamKeys.ACCESS_TOKEN);
                         done();
                     }).catch(done);
                 });
@@ -1677,12 +1712,14 @@ describe("UserAgentApplication.ts Class", function () {
 
                     sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
                         return new Promise<void>(() => {
-                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=token&scope=S1%20openid%20profile");
-                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                            expect(url).to.include("&state");
-                            expect(url).to.include("&client_info=1");
-                            expect(renewTokenSpy.calledOnce).to.be.true;
+                            expect(url).toContain(
+                                TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=token&scope=S1%20openid%20profile"
+                            );
+                            expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).toContain("&state");
+                            expect(url).toContain("&client_info=1");
+                            expect(renewTokenSpy.calledOnce).toBe(true);
                             done();
                         });
                     });
@@ -1694,12 +1731,12 @@ describe("UserAgentApplication.ts Class", function () {
                     cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
 
                     msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                        expect(response.scopes).to.be.deep.eq(["s1"]);
-                        expect(response.account).to.be.eq(account);
-                        expect(response.accessToken).to.include(TEST_TOKENS.ACCESSTOKEN);
-                        expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
-                        expect(response.idToken).to.be.null;
-                        expect(response.idTokenClaims).to.be.null;
+                        expect(response.scopes).toEqual(["s1"]);
+                        expect(response.account).toBe(account);
+                        expect(response.accessToken).toContain(TEST_TOKENS.ACCESSTOKEN);
+                        expect(response.tokenType).toBe(ServerHashParamKeys.ACCESS_TOKEN);
+                        expect(response.idToken).toBeNull();
+                        expect(response.idTokenClaims).toBeNull();
                         done();
                     }).catch(done);
                 });
@@ -1710,12 +1747,12 @@ describe("UserAgentApplication.ts Class", function () {
                     cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
 
                     msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                        expect(response.scopes).to.be.deep.eq(["s1"]);
-                        expect(response.account).to.be.eq(account);
-                        expect(response.accessToken).to.include(TEST_TOKENS.ACCESSTOKEN);
-                        expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
-                        expect(response.idToken).to.be.null;
-                        expect(response.idTokenClaims).to.be.null;
+                        expect(response.scopes).toEqual(["s1"]);
+                        expect(response.account).toBe(account);
+                        expect(response.accessToken).toContain(TEST_TOKENS.ACCESSTOKEN);
+                        expect(response.tokenType).toBe(ServerHashParamKeys.ACCESS_TOKEN);
+                        expect(response.idToken).toBeNull();
+                        expect(response.idTokenClaims).toBeNull();
                         done();
                     }).catch(done);
                 });
@@ -1725,12 +1762,12 @@ describe("UserAgentApplication.ts Class", function () {
                     cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
 
                     msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                        expect(response.scopes).to.be.deep.eq(["s1"]);
-                        expect(response.account).to.be.eq(account);
-                        expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
-                        expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
-                        expect(response.accessToken).to.include(TEST_TOKENS.ACCESSTOKEN);
-                        expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                        expect(response.scopes).toEqual(["s1"]);
+                        expect(response.account).toBe(account);
+                        expect(response.idToken.rawIdToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
+                        expect(response.idTokenClaims).toEqual(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                        expect(response.accessToken).toContain(TEST_TOKENS.ACCESSTOKEN);
+                        expect(response.tokenType).toBe(ServerHashParamKeys.ACCESS_TOKEN);
                         done();
                     }).catch(done);
                 });
@@ -1758,12 +1795,14 @@ describe("UserAgentApplication.ts Class", function () {
 
                     sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
                         return new Promise<void>(() => {
-                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
-                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                            expect(url).to.include("&state");
-                            expect(url).to.include("&client_info=1");
-                            expect(renewIdTokenSpy.calledOnce).to.be.true;
+                            expect(url).toContain(
+                                TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile"
+                            );
+                            expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).toContain("&state");
+                            expect(url).toContain("&client_info=1");
+                            expect(renewIdTokenSpy.calledOnce).toBe(true);
                             done();
                         });
                     });
@@ -1779,12 +1818,14 @@ describe("UserAgentApplication.ts Class", function () {
 
                     sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
                         return new Promise<void>(() => {
-                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
-                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                            expect(url).to.include("&state");
-                            expect(url).to.include("&client_info=1");
-                            expect(renewIdTokenSpy.calledOnce).to.be.true;
+                            expect(url).toContain(
+                                TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile"
+                            );
+                            expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).toContain("&state");
+                            expect(url).toContain("&client_info=1");
+                            expect(renewIdTokenSpy.calledOnce).toBe(true);
                             done();
                         });
                     });
@@ -1796,11 +1837,11 @@ describe("UserAgentApplication.ts Class", function () {
                     cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
 
                     msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                        expect(response.scopes).to.be.deep.eq(["openid", "profile"]);
-                        expect(response.account).to.be.eq(account);
-                        expect(response.idToken.rawIdToken).to.eq(TEST_TOKENS.IDTOKEN_V2);
-                        expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
-                        expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
+                        expect(response.scopes).toEqual(["openid", "profile"]);
+                        expect(response.account).toBe(account);
+                        expect(response.idToken.rawIdToken).toBe(TEST_TOKENS.IDTOKEN_V2);
+                        expect(response.idTokenClaims).toEqual(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                        expect(response.tokenType).toBe(ServerHashParamKeys.ID_TOKEN);
                         done();
                     }).catch(done);
                 });
@@ -1828,12 +1869,14 @@ describe("UserAgentApplication.ts Class", function () {
 
                     sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
                         return new Promise<void>(() => {
-                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
-                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                            expect(url).to.include("&state");
-                            expect(url).to.include("&client_info=1");
-                            expect(renewTokenSpy.calledOnce).to.be.true;
+                            expect(url).toContain(
+                                TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile"
+                            );
+                            expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).toContain("&state");
+                            expect(url).toContain("&client_info=1");
+                            expect(renewTokenSpy.calledOnce).toBe(true);
                             done();
                         });
                     });
@@ -1846,12 +1889,14 @@ describe("UserAgentApplication.ts Class", function () {
                     cacheStorage.setItem(JSON.stringify(accessTokenKey), JSON.stringify(accessTokenValue));
                     sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
                         return new Promise<void>(() => {
-                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
-                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                            expect(url).to.include("&state");
-                            expect(url).to.include("&client_info=1");
-                            expect(renewTokenSpy.calledOnce).to.be.true;
+                            expect(url).toContain(
+                                TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile"
+                            );
+                            expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).toContain("&state");
+                            expect(url).toContain("&client_info=1");
+                            expect(renewTokenSpy.calledOnce).toBe(true);
                             done();
                         });
                     });
@@ -1864,12 +1909,14 @@ describe("UserAgentApplication.ts Class", function () {
                     cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
                     sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
                         return new Promise<void>(() => {
-                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
-                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                            expect(url).to.include("&state");
-                            expect(url).to.include("&client_info=1");
-                            expect(renewTokenSpy.calledOnce).to.be.true;
+                            expect(url).toContain(
+                                TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile"
+                            );
+                            expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).toContain("&state");
+                            expect(url).toContain("&client_info=1");
+                            expect(renewTokenSpy.calledOnce).toBe(true);
                             done();
                         });
                     });
@@ -1886,12 +1933,14 @@ describe("UserAgentApplication.ts Class", function () {
 
                     sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
                         return new Promise<void>(() => {
-                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
-                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                            expect(url).to.include("&state");
-                            expect(url).to.include("&client_info=1");
-                            expect(renewTokenSpy.calledOnce).to.be.true;
+                            expect(url).toContain(
+                                TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile"
+                            );
+                            expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).toContain("&state");
+                            expect(url).toContain("&client_info=1");
+                            expect(renewTokenSpy.calledOnce).toBe(true);
                             done();
                         });
                     });
@@ -1906,12 +1955,14 @@ describe("UserAgentApplication.ts Class", function () {
                     cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
                     sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
                         return new Promise<void>(() => {
-                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
-                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                            expect(url).to.include("&state");
-                            expect(url).to.include("&client_info=1");
-                            expect(renewTokenSpy.calledOnce).to.be.true;
+                            expect(url).toContain(
+                                TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile"
+                            );
+                            expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).toContain("&state");
+                            expect(url).toContain("&client_info=1");
+                            expect(renewTokenSpy.calledOnce).toBe(true);
                             done();
                         });
                     });
@@ -1926,12 +1977,14 @@ describe("UserAgentApplication.ts Class", function () {
                     cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
                     sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
                         return new Promise<void>(() => {
-                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile");
-                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                            expect(url).to.include("&state");
-                            expect(url).to.include("&client_info=1");
-                            expect(renewTokenSpy.calledOnce).to.be.true;
+                            expect(url).toContain(
+                                TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token token&scope=S1%20openid%20profile"
+                            );
+                            expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).toContain("&state");
+                            expect(url).toContain("&client_info=1");
+                            expect(renewTokenSpy.calledOnce).toBe(true);
                             done();
                         });
                     });
@@ -1944,12 +1997,12 @@ describe("UserAgentApplication.ts Class", function () {
                     cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
 
                     msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                        expect(response.scopes).to.be.deep.eq(["s1"]);
-                        expect(response.account).to.be.eq(account);
-                        expect(response.idToken.rawIdToken).to.eql(TEST_TOKENS.IDTOKEN_V2);
-                        expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
-                        expect(response.accessToken).to.include(TEST_TOKENS.ACCESSTOKEN);
-                        expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                        expect(response.scopes).toEqual(["s1"]);
+                        expect(response.account).toBe(account);
+                        expect(response.idToken.rawIdToken).toEqual(TEST_TOKENS.IDTOKEN_V2);
+                        expect(response.idTokenClaims).toEqual(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                        expect(response.accessToken).toContain(TEST_TOKENS.ACCESSTOKEN);
+                        expect(response.tokenType).toBe(ServerHashParamKeys.ACCESS_TOKEN);
                         done();
                     }).catch(done);
                 });
@@ -1987,11 +2040,11 @@ describe("UserAgentApplication.ts Class", function () {
                     cacheStorage.setItem(JSON.stringify(idTokenKey), JSON.stringify(idToken));
 
                     msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                        expect(response.scopes).to.be.deep.eq(["s1"]);
-                        expect(response.account).to.be.eq(account);
-                        expect(response.idToken.rawIdToken).to.eq(TEST_TOKENS.IDTOKEN_V2);
-                        expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
-                        expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
+                        expect(response.scopes).toEqual(["s1"]);
+                        expect(response.account).toBe(account);
+                        expect(response.idToken.rawIdToken).toBe(TEST_TOKENS.IDTOKEN_V2);
+                        expect(response.idTokenClaims).toEqual(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                        expect(response.tokenType).toBe(ServerHashParamKeys.ACCESS_TOKEN);
                         done();
                     }).catch(done);
                 });
@@ -2000,6 +2053,7 @@ describe("UserAgentApplication.ts Class", function () {
                     const invalidAccessTokenKey = {
                         authority: TEST_CONFIG.validAuthority,
                         clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        // @ts-ignore
                         scopes: undefined,
                         homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
                     };
@@ -2010,12 +2064,14 @@ describe("UserAgentApplication.ts Class", function () {
 
                     sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
                         return new Promise<void>(() => {
-                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=token&scope=s1%20openid%20profile");
-                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                            expect(url).to.include("&state");
-                            expect(url).to.include("&client_info=1");
-                            expect(renewTokenSpy.calledOnce).to.be.true;
+                            expect(url).toContain(
+                                TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=token&scope=s1%20openid%20profile"
+                            );
+                            expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).toContain("&state");
+                            expect(url).toContain("&client_info=1");
+                            expect(renewTokenSpy.calledOnce).toBe(true);
                             done();
                         });
                     });
@@ -2032,12 +2088,14 @@ describe("UserAgentApplication.ts Class", function () {
 
                     sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
                         return new Promise<void>(() => {
-                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=token&scope=s1%20openid%20profile");
-                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                            expect(url).to.include("&state");
-                            expect(url).to.include("&client_info=1");
-                            expect(renewTokenSpy.calledOnce).to.be.true;
+                            expect(url).toContain(
+                                TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=token&scope=s1%20openid%20profile"
+                            );
+                            expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).toContain("&state");
+                            expect(url).toContain("&client_info=1");
+                            expect(renewTokenSpy.calledOnce).toBe(true);
                             done();
                         });
                     });
@@ -2067,6 +2125,7 @@ describe("UserAgentApplication.ts Class", function () {
                     const validIdTokenKey = {
                         authority: TEST_CONFIG.validAuthority,
                         clientId: TEST_CONFIG.MSAL_CLIENT_ID,
+                        // @ts-ignore
                         scopes: undefined,
                         homeAccountIdentifier: TEST_DATA_CLIENT_INFO.TEST_HOME_ACCOUNT_ID
                     };
@@ -2074,11 +2133,11 @@ describe("UserAgentApplication.ts Class", function () {
                     cacheStorage.setItem(JSON.stringify(validIdTokenKey), JSON.stringify(idToken));
 
                     msal.acquireTokenSilent(tokenRequest).then(function(response) {
-                        expect(response.scopes).to.be.deep.eq(["openid", "profile"]);
-                        expect(response.account).to.be.eq(account);
-                        expect(response.idToken.rawIdToken).to.eq(TEST_TOKENS.IDTOKEN_V2);
-                        expect(response.idTokenClaims).to.eql(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
-                        expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
+                        expect(response.scopes).toEqual(["openid", "profile"]);
+                        expect(response.account).toBe(account);
+                        expect(response.idToken.rawIdToken).toBe(TEST_TOKENS.IDTOKEN_V2);
+                        expect(response.idTokenClaims).toEqual(new IdToken(TEST_TOKENS.IDTOKEN_V2).claims);
+                        expect(response.tokenType).toBe(ServerHashParamKeys.ID_TOKEN);
                         done();
                     }).catch(done);
                 });
@@ -2096,12 +2155,14 @@ describe("UserAgentApplication.ts Class", function () {
 
                     sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
                         return new Promise<void>(() => {
-                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
-                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                            expect(url).to.include("&state");
-                            expect(url).to.include("&client_info=1");
-                            expect(renewIdTokenSpy.calledOnce).to.be.true;
+                            expect(url).toContain(
+                                TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile"
+                            );
+                            expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).toContain("&state");
+                            expect(url).toContain("&client_info=1");
+                            expect(renewIdTokenSpy.calledOnce).toBe(true);
                             done();
                         });
                     });
@@ -2117,12 +2178,14 @@ describe("UserAgentApplication.ts Class", function () {
 
                     sinon.stub(msal, <any>"loadIframeTimeout").callsFake(async function (url: string, frameName: string) {
                         return new Promise<void>(() => {
-                            expect(url).to.include(TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile");
-                            expect(url).to.include("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
-                            expect(url).to.include("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
-                            expect(url).to.include("&state");
-                            expect(url).to.include("&client_info=1");
-                            expect(renewIdTokenSpy.calledOnce).to.be.true;
+                            expect(url).toContain(
+                                TEST_CONFIG.validAuthority + "oauth2/v2.0/authorize?response_type=id_token&scope=openid%20profile"
+                            );
+                            expect(url).toContain("&client_id=" + TEST_CONFIG.MSAL_CLIENT_ID);
+                            expect(url).toContain("&redirect_uri=" + encodeURIComponent(msal.getRedirectUri()));
+                            expect(url).toContain("&state");
+                            expect(url).toContain("&client_info=1");
+                            expect(renewIdTokenSpy.calledOnce).toBe(true);
                             done();
                         });
                     });
@@ -2171,11 +2234,11 @@ describe("UserAgentApplication.ts Class", function () {
             msal = new UserAgentApplication(config);
 
             const checkRespFromServer = function(response: AuthResponse) {
-                expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
-                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
-                expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
-                expect(response.accountState).to.be.eq(TEST_USER_STATE_NUM);
-                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
+                expect(response.uniqueId).toBe(TEST_UNIQUE_ID);
+                expect(response.tokenType).toBe(ServerHashParamKeys.ID_TOKEN);
+                expect(response.tenantId).toBe(TEST_CONFIG.MSAL_TENANT_ID);
+                expect(response.accountState).toBe(TEST_USER_STATE_NUM);
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).toBeNull();
                 done();
             };
             msal.handleRedirectCallback(checkRespFromServer, errorReceivedCallback);
@@ -2190,7 +2253,7 @@ describe("UserAgentApplication.ts Class", function () {
                 ...oldWindowLocation,
                 assign: function (url) {
                     try {
-                        expect(url).to.equal(loginStartPage + successHash);
+                        expect(url).toBe(loginStartPage + successHash);
                         done();
                     } catch (e) {
                         console.error(e);
@@ -2219,7 +2282,7 @@ describe("UserAgentApplication.ts Class", function () {
                 ...oldWindowLocation,
                 assign: function (url) {
                     try {
-                        expect(url).to.equal(baseStartUrl + successHash);
+                        expect(url).toBe(baseStartUrl + successHash);
                         done();
                     } catch (e) {
                         console.error(e);
@@ -2248,7 +2311,7 @@ describe("UserAgentApplication.ts Class", function () {
                 ...oldWindowLocation,
                 assign: function (url) {
                     try {
-                        expect(url).to.equal(loginStartPage + successHash);
+                        expect(url).toBe(loginStartPage + successHash);
                         done();
                     } catch (e) {
                         console.error(e);
@@ -2284,12 +2347,12 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
             cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
 
-            expect(window.location.href).to.equal(loginUrl);
-            expect(window.location.hash).to.equal(successHash);
+            expect(window.location.href).toBe(loginUrl);
+            expect(window.location.hash).toBe(successHash);
             msal = new UserAgentApplication(config);
-            expect(window.location.href).to.equal(loginUrl);
-            expect(window.location.hash).to.equal(userHash);
-            expect(cacheStorage.getItem(PersistentCacheKeys.IDTOKEN)).to.equal(TEST_TOKENS.IDTOKEN_V2);
+            expect(window.location.href).toBe(loginUrl);
+            expect(window.location.hash).toBe(userHash);
+            expect(cacheStorage.getItem(PersistentCacheKeys.IDTOKEN)).toBe(TEST_TOKENS.IDTOKEN_V2);
         });
 
         it("tests user query string present on final page url and token response is cached", function() {
@@ -2317,9 +2380,9 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
 
             msal = new UserAgentApplication(config);
-            expect(window.location.href).to.equal(loginStartPage);
-            expect(window.location.search).to.equal(userQueryString);
-            expect(cacheStorage.getItem(PersistentCacheKeys.IDTOKEN)).to.equal(TEST_TOKENS.IDTOKEN_V2);
+            expect(window.location.href).toBe(loginStartPage);
+            expect(window.location.search).toBe(userQueryString);
+            expect(cacheStorage.getItem(PersistentCacheKeys.IDTOKEN)).toBe(TEST_TOKENS.IDTOKEN_V2);
         });
 
         it("tests user hash is added back to url and query string exists on final page url and token response is cached", function() {
@@ -2341,14 +2404,14 @@ describe("UserAgentApplication.ts Class", function () {
             cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.STATE_LOGIN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`);
             cacheStorage.setItem(AuthCache.generateTemporaryCacheKey(TemporaryCacheKeys.NONCE_IDTOKEN, `${TEST_LIBRARY_STATE}|${TEST_USER_STATE_NUM}`), TEST_NONCE);
 
-            expect(window.location.href).to.equal(loginUrl + userQueryString);
-            expect(window.location.hash).to.equal(successHash);
-            expect(window.location.search).to.equal(userQueryString);
+            expect(window.location.href).toBe(loginUrl + userQueryString);
+            expect(window.location.hash).toBe(successHash);
+            expect(window.location.search).toBe(userQueryString);
             msal = new UserAgentApplication(config);
-            expect(window.location.href).to.equal(loginUrl + userQueryString);
-            expect(window.location.hash).to.equal(userHash);
-            expect(window.location.search).to.equal(userQueryString);
-            expect(cacheStorage.getItem(PersistentCacheKeys.IDTOKEN)).to.equal(TEST_TOKENS.IDTOKEN_V2);
+            expect(window.location.href).toBe(loginUrl + userQueryString);
+            expect(window.location.hash).toBe(userHash);
+            expect(window.location.search).toBe(userQueryString);
+            expect(cacheStorage.getItem(PersistentCacheKeys.IDTOKEN)).toBe(TEST_TOKENS.IDTOKEN_V2);
         });
 
         it("tests navigation to homepage after first redirect if loginStartPage not set", function(done) {
@@ -2357,7 +2420,7 @@ describe("UserAgentApplication.ts Class", function () {
 
             window.location.assign = function (url) {
                 try {
-                    expect(url).to.equal("/");
+                    expect(url).toBe("/");
                     done();
                 } catch (e) {
                     console.error(e);
@@ -2380,13 +2443,13 @@ describe("UserAgentApplication.ts Class", function () {
             msal = new UserAgentApplication(config);
 
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
-                expect(error instanceof ServerError).to.be.true;
-                expect(error.name).to.include("ServerError");
-                expect(error.errorCode).to.include(TEST_ERROR_CODE);
-                expect(error.errorMessage).to.include(TEST_ERROR_DESC);
-                expect(error.message).to.include(TEST_ERROR_DESC);
-                expect(error.stack).to.include("UserAgentApplication.spec.ts");
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).toBeNull();
+                expect(error instanceof ServerError).toBe(true);
+                expect(error.name).toContain("ServerError");
+                expect(error.errorCode).toContain(TEST_ERROR_CODE);
+                expect(error.errorMessage).toContain(TEST_ERROR_DESC);
+                expect(error.message).toContain(TEST_ERROR_DESC);
+                expect(error.stack).toContain("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(checkErrorFromServer);
@@ -2400,11 +2463,11 @@ describe("UserAgentApplication.ts Class", function () {
             msal = new UserAgentApplication(config);
 
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
-                expect(error instanceof ServerError).to.be.true;
-                expect(error.name).to.include("ServerError");
-                expect(error.errorCode).to.include(TEST_ACCESS_DENIED);
-                expect(error.stack).to.include("UserAgentApplication.spec.ts");
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).toBeNull();
+                expect(error instanceof ServerError).toBe(true);
+                expect(error.name).toContain("ServerError");
+                expect(error.errorCode).toContain(TEST_ACCESS_DENIED);
+                expect(error.stack).toContain("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(checkErrorFromServer);
@@ -2417,7 +2480,7 @@ describe("UserAgentApplication.ts Class", function () {
             msal = new UserAgentApplication(config);
 
             const checkErrorHasState = function(error: AuthError, response: AuthResponse) {
-                expect(response.accountState).to.include(TEST_USER_STATE_NUM);
+                expect(response.accountState).toContain(TEST_USER_STATE_NUM);
                 done();
             };
             msal.handleRedirectCallback(checkErrorHasState);
@@ -2430,7 +2493,7 @@ describe("UserAgentApplication.ts Class", function () {
             msal = new UserAgentApplication(config);
 
             const checkErrorHasState = function(error: AuthError, response: AuthResponse) {
-                expect(response.accountState).to.include(TEST_USER_STATE_URL);
+                expect(response.accountState).toContain(TEST_USER_STATE_URL);
 
                 done();
             };
@@ -2440,11 +2503,11 @@ describe("UserAgentApplication.ts Class", function () {
         it("tests that isCallback correctly identifies url hash", function (done) {
             msal = new UserAgentApplication(config);
 
-            expect(msal.isCallback("not a callback")).to.be.false;
-            expect(msal.isCallback("#error_description=someting_wrong")).to.be.true;
-            expect(msal.isCallback("#/error_description=someting_wrong")).to.be.true;
-            expect(msal.isCallback("#access_token=token123")).to.be.true;
-            expect(msal.isCallback("#id_token=idtoken234")).to.be.true;
+            expect(msal.isCallback("not a callback")).toBe(false);
+            expect(msal.isCallback("#error_description=someting_wrong")).toBe(true);
+            expect(msal.isCallback("#/error_description=someting_wrong")).toBe(true);
+            expect(msal.isCallback("#access_token=token123")).toBe(true);
+            expect(msal.isCallback("#id_token=idtoken234")).toBe(true);
             done();
         });
 
@@ -2462,12 +2525,14 @@ describe("UserAgentApplication.ts Class", function () {
             msal = new UserAgentApplication(config);
 
             const checkRespFromServer = function(response: AuthResponse) {
-                expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
-                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ACCESS_TOKEN);
-                expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
-                expect(response.accountState).to.be.eq(TEST_USER_STATE_NUM);
-                expect(response.expiresOn.getTime()).to.be.eq((TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN) * 1000);
-                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
+                expect(response.uniqueId).toBe(TEST_UNIQUE_ID);
+                expect(response.tokenType).toBe(ServerHashParamKeys.ACCESS_TOKEN);
+                expect(response.tenantId).toBe(TEST_CONFIG.MSAL_TENANT_ID);
+                expect(response.accountState).toBe(TEST_USER_STATE_NUM);
+                expect(response.expiresOn.getTime()).toBe(
+                    (TEST_TOKEN_LIFETIMES.BASELINE_DATE_CHECK + TEST_TOKEN_LIFETIMES.DEFAULT_EXPIRES_IN) * 1000
+                );
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).toBeNull();
                 done();
             };
             msal.handleRedirectCallback(checkRespFromServer, errorReceivedCallback);
@@ -2485,12 +2550,12 @@ describe("UserAgentApplication.ts Class", function () {
             msal = new UserAgentApplication(config);
 
             const checkRespFromServer = function(response: AuthResponse) {
-                expect(response.uniqueId).to.be.eq(TEST_UNIQUE_ID);
-                expect(response.tokenType).to.be.eq(ServerHashParamKeys.ID_TOKEN);
-                expect(response.tenantId).to.be.eq(TEST_CONFIG.MSAL_TENANT_ID);
-                expect(response.accountState).to.be.eq(TEST_USER_STATE_NUM);
-                expect(response.expiresOn.getTime()).to.be.eq(TEST_TOKEN_LIFETIMES.TEST_ID_TOKEN_EXP * 1000);
-                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
+                expect(response.uniqueId).toBe(TEST_UNIQUE_ID);
+                expect(response.tokenType).toBe(ServerHashParamKeys.ID_TOKEN);
+                expect(response.tenantId).toBe(TEST_CONFIG.MSAL_TENANT_ID);
+                expect(response.accountState).toBe(TEST_USER_STATE_NUM);
+                expect(response.expiresOn.getTime()).toBe(TEST_TOKEN_LIFETIMES.TEST_ID_TOKEN_EXP * 1000);
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).toBeNull();
                 done();
             };
             msal.handleRedirectCallback(checkRespFromServer, errorReceivedCallback);
@@ -2526,13 +2591,13 @@ describe("UserAgentApplication.ts Class", function () {
             msal = new UserAgentApplication(config);
 
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
-                expect(error instanceof InteractionRequiredAuthError).to.be.true;
-                expect(error.name).to.include("InteractionRequiredAuthError");
-                expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.interactionRequired.code);
-                expect(error.errorMessage).to.include(TEST_ERROR_DESC);
-                expect(error.message).to.include(TEST_ERROR_DESC);
-                expect(error.stack).to.include("UserAgentApplication.spec.ts");
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).toBeNull();
+                expect(error instanceof InteractionRequiredAuthError).toBe(true);
+                expect(error.name).toContain("InteractionRequiredAuthError");
+                expect(error.errorCode).toContain(InteractionRequiredAuthErrorMessage.interactionRequired.code);
+                expect(error.errorMessage).toContain(TEST_ERROR_DESC);
+                expect(error.message).toContain(TEST_ERROR_DESC);
+                expect(error.stack).toContain("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(checkErrorFromServer);
@@ -2545,15 +2610,15 @@ describe("UserAgentApplication.ts Class", function () {
             msal = new UserAgentApplication(config);
 
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
-                expect(error instanceof InteractionRequiredAuthError).to.be.true;
-                expect(error.name).to.include("InteractionRequiredAuthError");
-                expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.interactionRequired.code);
-                expect(error.errorMessage).to.include(TEST_ERROR_DESC);
-                expect(error.message).to.include(TEST_ERROR_DESC);
-                expect(error.errorMessage).to.include(InteractionRequiredAuthErrorMessage.interactionRequired.code);
-                expect(error.message).to.include(InteractionRequiredAuthErrorMessage.interactionRequired.code);
-                expect(error.stack).to.include("UserAgentApplication.spec.ts");
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).toBeNull();
+                expect(error instanceof InteractionRequiredAuthError).toBe(true);
+                expect(error.name).toContain("InteractionRequiredAuthError");
+                expect(error.errorCode).toContain(InteractionRequiredAuthErrorMessage.interactionRequired.code);
+                expect(error.errorMessage).toContain(TEST_ERROR_DESC);
+                expect(error.message).toContain(TEST_ERROR_DESC);
+                expect(error.errorMessage).toContain(InteractionRequiredAuthErrorMessage.interactionRequired.code);
+                expect(error.message).toContain(InteractionRequiredAuthErrorMessage.interactionRequired.code);
+                expect(error.stack).toContain("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(checkErrorFromServer);
@@ -2566,13 +2631,13 @@ describe("UserAgentApplication.ts Class", function () {
             msal = new UserAgentApplication(config);
 
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
-                expect(error instanceof InteractionRequiredAuthError).to.be.true;
-                expect(error.name).to.include("InteractionRequiredAuthError");
-                expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.loginRequired.code);
-                expect(error.errorMessage).to.include(TEST_ERROR_DESC);
-                expect(error.message).to.include(TEST_ERROR_DESC);
-                expect(error.stack).to.include("UserAgentApplication.spec.ts");
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).toBeNull();
+                expect(error instanceof InteractionRequiredAuthError).toBe(true);
+                expect(error.name).toContain("InteractionRequiredAuthError");
+                expect(error.errorCode).toContain(InteractionRequiredAuthErrorMessage.loginRequired.code);
+                expect(error.errorMessage).toContain(TEST_ERROR_DESC);
+                expect(error.message).toContain(TEST_ERROR_DESC);
+                expect(error.stack).toContain("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(checkErrorFromServer);
@@ -2585,15 +2650,15 @@ describe("UserAgentApplication.ts Class", function () {
             msal = new UserAgentApplication(config);
 
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
-                expect(error instanceof InteractionRequiredAuthError).to.be.true;
-                expect(error.name).to.include("InteractionRequiredAuthError");
-                expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.loginRequired.code);
-                expect(error.errorMessage).to.include(TEST_ERROR_DESC);
-                expect(error.message).to.include(TEST_ERROR_DESC);
-                expect(error.errorMessage).to.include(InteractionRequiredAuthErrorMessage.loginRequired.code);
-                expect(error.message).to.include(InteractionRequiredAuthErrorMessage.loginRequired.code);
-                expect(error.stack).to.include("UserAgentApplication.spec.ts");
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).toBeNull();
+                expect(error instanceof InteractionRequiredAuthError).toBe(true);
+                expect(error.name).toContain("InteractionRequiredAuthError");
+                expect(error.errorCode).toContain(InteractionRequiredAuthErrorMessage.loginRequired.code);
+                expect(error.errorMessage).toContain(TEST_ERROR_DESC);
+                expect(error.message).toContain(TEST_ERROR_DESC);
+                expect(error.errorMessage).toContain(InteractionRequiredAuthErrorMessage.loginRequired.code);
+                expect(error.message).toContain(InteractionRequiredAuthErrorMessage.loginRequired.code);
+                expect(error.stack).toContain("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(checkErrorFromServer);
@@ -2606,13 +2671,13 @@ describe("UserAgentApplication.ts Class", function () {
             msal = new UserAgentApplication(config);
 
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
-                expect(error instanceof InteractionRequiredAuthError).to.be.true;
-                expect(error.name).to.include("InteractionRequiredAuthError");
-                expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.consentRequired.code);
-                expect(error.errorMessage).to.include(TEST_ERROR_DESC);
-                expect(error.message).to.include(TEST_ERROR_DESC);
-                expect(error.stack).to.include("UserAgentApplication.spec.ts");
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).toBeNull();
+                expect(error instanceof InteractionRequiredAuthError).toBe(true);
+                expect(error.name).toContain("InteractionRequiredAuthError");
+                expect(error.errorCode).toContain(InteractionRequiredAuthErrorMessage.consentRequired.code);
+                expect(error.errorMessage).toContain(TEST_ERROR_DESC);
+                expect(error.message).toContain(TEST_ERROR_DESC);
+                expect(error.stack).toContain("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(checkErrorFromServer);
@@ -2625,15 +2690,15 @@ describe("UserAgentApplication.ts Class", function () {
             msal = new UserAgentApplication(config);
 
             const checkErrorFromServer = function(error: AuthError, response: AuthResponse) {
-                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).to.be.null;
-                expect(error instanceof InteractionRequiredAuthError).to.be.true;
-                expect(error.name).to.include("InteractionRequiredAuthError");
-                expect(error.errorCode).to.include(InteractionRequiredAuthErrorMessage.consentRequired.code);
-                expect(error.errorMessage).to.include(TEST_ERROR_DESC);
-                expect(error.message).to.include(TEST_ERROR_DESC);
-                expect(error.errorMessage).to.include(InteractionRequiredAuthErrorMessage.consentRequired.code);
-                expect(error.message).to.include(InteractionRequiredAuthErrorMessage.consentRequired.code);
-                expect(error.stack).to.include("UserAgentApplication.spec.ts");
+                expect(cacheStorage.getItem(TemporaryCacheKeys.URL_HASH)).toBeNull();
+                expect(error instanceof InteractionRequiredAuthError).toBe(true);
+                expect(error.name).toContain("InteractionRequiredAuthError");
+                expect(error.errorCode).toContain(InteractionRequiredAuthErrorMessage.consentRequired.code);
+                expect(error.errorMessage).toContain(TEST_ERROR_DESC);
+                expect(error.message).toContain(TEST_ERROR_DESC);
+                expect(error.errorMessage).toContain(InteractionRequiredAuthErrorMessage.consentRequired.code);
+                expect(error.message).toContain(InteractionRequiredAuthErrorMessage.consentRequired.code);
+                expect(error.stack).toContain("UserAgentApplication.spec.ts");
                 done();
             };
             msal.handleRedirectCallback(checkErrorFromServer);
@@ -2681,10 +2746,10 @@ describe("UserAgentApplication.ts Class", function () {
                 }
             };
             const clearCacheSpy = sinon.spy(msal, <any>"clearCache");
-            expect(msal.getAccount()).to.not.be.null;
+            expect(msal.getAccount()).not.toBeNull();
             msal.logout();
-            expect(msal.getAccount()).to.be.null;
-            expect(clearCacheSpy.calledOnce).to.be.true;
+            expect(msal.getAccount()).toBeNull();
+            expect(clearCacheSpy.calledOnce).toBe(true);
         });
 
         it("adds postLogoutRedirectUri to logout URI", function (done) {
@@ -2693,7 +2758,7 @@ describe("UserAgentApplication.ts Class", function () {
                 hash: "",
                 assign: function (url) {
                     try {
-                        expect(url).to.include(encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI));
+                        expect(url).toContain(encodeURIComponent(TEST_URIS.TEST_LOGOUT_URI));
                         done();
                     } catch (e) {
                         console.error(e);
@@ -2708,7 +2773,7 @@ describe("UserAgentApplication.ts Class", function () {
                 hash: "",
                 assign: function (url) {
                     try {
-                        expect(url).to.include(validOpenIdConfigurationResponse.EndSessionEndpoint);
+                        expect(url).toContain(validOpenIdConfigurationResponse.EndSessionEndpoint);
                         done();
                     } catch (e) {
                         console.error(e);
@@ -2725,7 +2790,7 @@ describe("UserAgentApplication.ts Class", function () {
                 hash: "",
                 assign: function (url) {
                     try {
-                        expect(url).to.include(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "oauth2/v2.0/logout?");
+                        expect(url).toContain(TEST_URIS.DEFAULT_INSTANCE + TEST_CONFIG.TENANT + "oauth2/v2.0/logout?");
                         done();
                     } catch (e) {
                         console.error(e);
@@ -2759,17 +2824,17 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("tests getAccountState with a user passed state", function () {
             const result = msal.getAccountState("123465464565|91111");
-            expect(result).to.be.eq("91111");
+            expect(result).toBe("91111");
         });
 
         it("test getAccountState when there is no user state", function () {
             const result = msal.getAccountState("123465464565");
-            expect(result).to.be.eq("123465464565");
+            expect(result).toBe("123465464565");
         });
 
         it("test getAccountState when there is no state", function () {
             const result = msal.getAccountState("");
-            expect(result).to.be.eq("");
+            expect(result).toBe("");
         });
     });
 
@@ -2795,7 +2860,7 @@ describe("UserAgentApplication.ts Class", function () {
             };
             msal = new UserAgentApplication(config);
             const checkConfig = msal.getCurrentConfiguration();
-            expect(checkConfig.cache.cacheLocation).to.be.eq("sessionStorage");
+            expect(checkConfig.cache.cacheLocation).toBe("sessionStorage");
         });
 
         it("tests cacheLocation functionality sets to localStorage when passed as a parameter", function () {
@@ -2810,12 +2875,11 @@ describe("UserAgentApplication.ts Class", function () {
             };
             msal = new UserAgentApplication(config);
             const checkConfig = msal.getCurrentConfiguration();
-            expect(checkConfig.cache.cacheLocation).to.be.eq(config.cache.cacheLocation);
+            expect(checkConfig.cache.cacheLocation).toBe(config.cache.cacheLocation);
         });
     });
 
     describe("Popup Flow", function () {
-
         const oldWindow = window;
 
         beforeEach(function() {
@@ -2841,20 +2905,17 @@ describe("UserAgentApplication.ts Class", function () {
         });
 
         it("returns a promise from loginPopup", function () {
-            window = {
-                ...oldWindow,
-                open: function (url?, target?, features?, replace?): Window {
-                    return null;
-                }
-            };
+            sinon.stub(window, "open").callsFake(() => {
+                return null;
+            });
             const loginPopupPromise = msal.loginPopup({});
-            expect(loginPopupPromise instanceof Promise).to.be.true;
+            expect(loginPopupPromise instanceof Promise).toBe(true);
             loginPopupPromise.catch(error => {});
         });
 
         it("returns a promise from acquireTokenPopup", function () {
             const acquireTokenPromise = msal.acquireTokenPopup({scopes: [TEST_CONFIG.MSAL_CLIENT_ID]});
-            expect(acquireTokenPromise instanceof Promise).to.be.true;
+            expect(acquireTokenPromise instanceof Promise).toBe(true);
             acquireTokenPromise.catch(error => {});
         });
 
@@ -2866,27 +2927,26 @@ describe("UserAgentApplication.ts Class", function () {
 
             const TEST_LIBRARY_STATE_POPUP = RequestUtils.generateLibraryState(Constants.interactionTypePopup);
 
-            window = {
-                ...oldWindow,
-                location: {
-                    ...oldWindowLocation,
-                    href: TEST_URIS.TEST_REDIR_URI + "/" + testHashesForState(TEST_LIBRARY_STATE_POPUP).TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM,
-                    hash: testHashesForState(TEST_LIBRARY_STATE_POPUP).TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM,
-                },
-                open: function (url?, target?, features?, replace?): Window {
-                    const state = UrlUtils.deserializeHash(url).state;
-                    const accountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, state);
-    
-                    expect(cacheStorage.getItem(accountKey)).equals(JSON.stringify(account));
-                    done();
-                    return window;
-                },
-                close: function(): void {},
-                focus: null
+            sinon.stub(window, "open").callsFake((url) => {
+                // @ts-ignore
+                const state = UrlUtils.deserializeHash(url).state;
+                const accountKey = AuthCache.generateAcquireTokenAccountKey(account.homeAccountIdentifier, state);
+
+                expect(cacheStorage.getItem(accountKey)).toBe(JSON.stringify(account));
+                done();
+                return window;
+            });
+
+
+            window.focus = null;
+            window.location = {
+                ...oldWindowLocation,
+                href: TEST_URIS.TEST_REDIR_URI + "/" + testHashesForState(TEST_LIBRARY_STATE_POPUP).TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM,
+                hash: testHashesForState(TEST_LIBRARY_STATE_POPUP).TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM
             };
 
             const acquireTokenPromise = msal.acquireTokenPopup(tokenRequest);
-            expect(acquireTokenPromise instanceof Promise).to.be.true;
+            expect(acquireTokenPromise instanceof Promise).toBe(true);
 
             acquireTokenPromise.catch(error => {console.log(error);});
         });
@@ -2912,7 +2972,7 @@ describe("UserAgentApplication.ts Class", function () {
 
         it("returns a promise from acquireTokenSilent", function () {
             const acquireTokenSilentPromise = msal.acquireTokenSilent({scopes: [TEST_CONFIG.MSAL_CLIENT_ID]});
-            expect(acquireTokenSilentPromise instanceof Promise).to.be.true;
+            expect(acquireTokenSilentPromise instanceof Promise).toBe(true);
             acquireTokenSilentPromise.catch(error => {});
         });
 
@@ -2936,7 +2996,7 @@ describe("UserAgentApplication.ts Class", function () {
             });
 
             msal.acquireTokenSilent(request).then((result) => {
-                expect(result.accessToken).to.be.equal(TEST_TOKENS.ACCESSTOKEN);
+                expect(result.accessToken).toBe(TEST_TOKENS.ACCESSTOKEN);
                 done();
             }).catch((e) => {
                 console.log(e);
@@ -2967,7 +3027,7 @@ describe("UserAgentApplication.ts Class", function () {
             try {
                 msal.acquireTokenSilent(null);
             } catch(e) {
-                () => {expect(e).to.be.instanceOf(ClientConfigurationError);};
+                () => {expect(e).toBeInstanceOf(ClientConfigurationError);};
             }
         });
 
@@ -2975,7 +3035,7 @@ describe("UserAgentApplication.ts Class", function () {
             try {
                 msal.acquireTokenPopup(null);
             } catch(e) {
-                () => {expect(e).to.be.instanceOf(ClientConfigurationError);};
+                () => {expect(e).toBeInstanceOf(ClientConfigurationError);};
             }
         });
     });
@@ -2994,12 +3054,12 @@ describe("UserAgentApplication.ts Class", function () {
             const correlationId = CryptoUtils.createNewGuid();
 
             const logger = new Logger((level, message, containsPii) => {
-                expect(message).to.contain("Message");
-                expect(message).to.contain(correlationId);
-                expect(message).to.contain(LogLevel.Info);
+                expect(message).toContain("Message");
+                expect(message).toContain(correlationId);
+                expect(message).toContain("Info");
 
-                expect(level).to.equal(LogLevel.Info);
-                expect(containsPii).to.be.false;
+                expect(level).toBe(LogLevel.Info);
+                expect(containsPii).toBe(false);
 
                 done();
             }, {
@@ -3009,7 +3069,7 @@ describe("UserAgentApplication.ts Class", function () {
 
             msal.setLogger(logger);
 
-            expect(msal.getLogger()).to.equal(logger);
+            expect(msal.getLogger()).toBe(logger);
 
             msal.getLogger().info("Message");
         });
@@ -3020,11 +3080,12 @@ describe("UserAgentApplication.ts Class", function () {
             const loginHint = "test@example.com";
 
             const atsStub = sinon.stub(msal, "acquireTokenSilent").callsFake(async (request) => {
-                expect(request.loginHint).to.equal(loginHint);
-                expect(request.scopes).to.deep.equal(Constants.oidcScopes);
+                expect(request.loginHint).toBe(loginHint);
+                expect(request.scopes).toEqual(Constants.oidcScopes);
 
                 atsStub.restore();
                 done();
+                return {} as AuthResponse;
             });
 
             msal.ssoSilent({
@@ -3036,11 +3097,12 @@ describe("UserAgentApplication.ts Class", function () {
             const sid = "fakesid";
 
             const atsStub = sinon.stub(msal, "acquireTokenSilent").callsFake(async (request) => {
-                expect(request.sid).to.equal(sid);
-                expect(request.scopes).to.deep.equal(Constants.oidcScopes);
+                expect(request.sid).toBe(sid);
+                expect(request.scopes).toEqual(Constants.oidcScopes);
 
                 atsStub.restore();
                 done();
+                return {} as AuthResponse;
             });
 
             msal.ssoSilent({
@@ -3052,7 +3114,7 @@ describe("UserAgentApplication.ts Class", function () {
             try {
                 msal.ssoSilent({});
             } catch (e) {
-                expect(e.errorCode).to.equal("sso_silent_error");
+                expect(e.errorCode).toBe("sso_silent_error");
                 done();
             }
         });
@@ -3094,9 +3156,9 @@ describe("UserAgentApplication.ts Class", function () {
                         ...oldWindowLocation,
                         assign: function (url) {
                             try {
-                                expect(url).to.include(idTokenType);
-                                expect(url).to.not.include(tokenType);
-                                expect(url).to.not.include(idTokenTokenType);
+                                expect(url).toContain(idTokenType);
+                                expect(url).not.toContain(tokenType);
+                                expect(url).not.toContain(idTokenTokenType);
                                 done();
                             } catch (e) {
                                 console.error(e);
@@ -3123,8 +3185,6 @@ describe("UserAgentApplication.ts Class", function () {
                     msal = new UserAgentApplication(config);
                     setAuthInstanceStubs();
                     setTestCacheItems();
-
-                    delete window.location;
                 });
 
                 afterEach(function() {
@@ -3135,23 +3195,18 @@ describe("UserAgentApplication.ts Class", function () {
                 });
                 
                 it("loginPopup should set response_type to id_token", (done) => {
-                    let navigateUrl;
-                    window = {
-                        ...oldWindow,
-                        location: {
-                            ...oldWindowLocation,
-                            hash: testHashesForState(TEST_LIBRARY_STATE_POPUP).TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM,
-                        },
-                        open: function (url?, target?, features?, replace?): Window {
-                            navigateUrl = url;
-                            return null;
-                        }
-                    };
+                    let navigateUrl: string;
+                    sinon.stub(window, "open").callsFake((url) => {
+                        navigateUrl = url;
+                        return null;
+                    })
+                    window.location.hash = testHashesForState(TEST_LIBRARY_STATE_POPUP).TEST_SUCCESS_ACCESS_TOKEN_HASH + TEST_USER_STATE_NUM;
+
                     const loginPopupPromise = msal.loginPopup({});
                     loginPopupPromise.catch(error => {
-                        expect(navigateUrl).to.include(idTokenType);
-                        expect(navigateUrl).to.not.include(tokenType);
-                        expect(navigateUrl).to.not.include(idTokenTokenType);
+                        expect(navigateUrl).toContain(idTokenType);
+                        expect(navigateUrl).not.toContain(tokenType);
+                        expect(navigateUrl).not.toContain(idTokenTokenType);
                         done();
                     });
                 });
@@ -3186,9 +3241,9 @@ describe("UserAgentApplication.ts Class", function () {
                         ...oldWindowLocation,
                         assign: function (url) {
                             try {
-                                expect(url).to.include(idTokenType);
-                                expect(url).to.not.include(tokenType);
-                                expect(url).to.not.include(idTokenTokenType);
+                                expect(url).toContain(idTokenType);
+                                expect(url).not.toContain(tokenType);
+                                expect(url).not.toContain(idTokenTokenType);
                                 done();
                             } catch (e) {
                                 console.error(e);
@@ -3205,9 +3260,9 @@ describe("UserAgentApplication.ts Class", function () {
                         ...oldWindowLocation,
                         assign: function (url) {
                             try {
-                                expect(url).to.include(idTokenType);
-                                expect(url).to.not.include(tokenType);
-                                expect(url).to.not.include(idTokenTokenType);
+                                expect(url).toContain(idTokenType);
+                                expect(url).not.toContain(tokenType);
+                                expect(url).not.toContain(idTokenTokenType);
                                 done();
                             } catch (e) {
                                 console.error(e);
@@ -3224,9 +3279,9 @@ describe("UserAgentApplication.ts Class", function () {
                         ...oldWindowLocation,
                         assign: function (url) {
                             try {
-                                expect(url).to.include(idTokenType);
-                                expect(url).to.not.include(tokenType);
-                                expect(url).to.not.include(idTokenTokenType);
+                                expect(url).toContain(idTokenType);
+                                expect(url).not.toContain(tokenType);
+                                expect(url).not.toContain(idTokenTokenType);
                                 done();
                             } catch (e) {
                                 console.error(e);
@@ -3243,9 +3298,9 @@ describe("UserAgentApplication.ts Class", function () {
                         ...oldWindowLocation,
                         assign: function (url) {
                             try {
-                                expect(url).to.include(idTokenType);
-                                expect(url).to.not.include(tokenType);
-                                expect(url).to.not.include(idTokenTokenType);
+                                expect(url).toContain(idTokenType);
+                                expect(url).not.toContain(tokenType);
+                                expect(url).not.toContain(idTokenTokenType);
                                 done();
                             } catch (e) {
                                 console.error(e);
@@ -3262,9 +3317,9 @@ describe("UserAgentApplication.ts Class", function () {
                         ...oldWindowLocation,
                         assign: function (url) {
                             try {
-                                expect(url).to.include(idTokenType);
-                                expect(url).to.not.include(tokenType);
-                                expect(url).to.not.include(idTokenTokenType);
+                                expect(url).toContain(idTokenType);
+                                expect(url).not.toContain(tokenType);
+                                expect(url).not.toContain(idTokenTokenType);
                                 done();
                             } catch (e) {
                                 console.error(e);
@@ -3281,9 +3336,9 @@ describe("UserAgentApplication.ts Class", function () {
                         ...oldWindowLocation,
                         assign: function (url) {
                             try {
-                                expect(url).to.include(idTokenTokenType);
-                                expect(url).to.not.include(tokenType);
-                                expect(url).to.not.include(idTokenType);
+                                expect(url).toContain(idTokenTokenType);
+                                expect(url).not.toContain(tokenType);
+                                expect(url).not.toContain(idTokenType);
                                 done();
                             } catch (e) {
                                 console.error(e);
@@ -3300,9 +3355,9 @@ describe("UserAgentApplication.ts Class", function () {
                         ...oldWindowLocation,
                         assign: function (url) {
                             try {
-                                expect(url).to.include(idTokenTokenType);
-                                expect(url).to.not.include(tokenType);
-                                expect(url).to.not.include(idTokenType);
+                                expect(url).toContain(idTokenTokenType);
+                                expect(url).not.toContain(tokenType);
+                                expect(url).not.toContain(idTokenType);
                                 done();
                             } catch (e) {
                                 console.error(e);
@@ -3319,9 +3374,9 @@ describe("UserAgentApplication.ts Class", function () {
                         ...oldWindowLocation,
                         assign: function (url) {
                             try {
-                                expect(url).to.include(idTokenTokenType);
-                                expect(url).to.not.include(tokenType);
-                                expect(url).to.not.include(idTokenType);
+                                expect(url).toContain(idTokenTokenType);
+                                expect(url).not.toContain(tokenType);
+                                expect(url).not.toContain(idTokenType);
                                 done();
                             } catch (e) {
                                 console.error(e);
@@ -3339,9 +3394,9 @@ describe("UserAgentApplication.ts Class", function () {
                         ...oldWindowLocation,
                         assign: function (url) {
                             try {
-                                expect(url).to.include(idTokenTokenType);
-                                expect(url).to.not.include(tokenType);
-                                expect(url).to.not.include(idTokenType);
+                                expect(url).toContain(idTokenTokenType);
+                                expect(url).not.toContain(tokenType);
+                                expect(url).not.toContain(idTokenType);
                                 done();
                             } catch (e) {
                                 console.error(e);
@@ -3359,9 +3414,9 @@ describe("UserAgentApplication.ts Class", function () {
                         ...oldWindowLocation,
                         assign: function (url) {
                             try {
-                                expect(url).to.include(tokenType);
-                                expect(url).to.not.include(idTokenTokenType);
-                                expect(url).to.not.include(idTokenType);
+                                expect(url).toContain(tokenType);
+                                expect(url).not.toContain(idTokenTokenType);
+                                expect(url).not.toContain(idTokenType);
                                 done();
                             } catch (e) {
                                 console.error(e);
@@ -3379,9 +3434,9 @@ describe("UserAgentApplication.ts Class", function () {
                         ...oldWindowLocation,
                         assign: function (url) {
                             try {
-                                expect(url).to.include(tokenType);
-                                expect(url).to.not.include(idTokenTokenType);
-                                expect(url).to.not.include(idTokenType);
+                                expect(url).toContain(tokenType);
+                                expect(url).not.toContain(idTokenTokenType);
+                                expect(url).not.toContain(idTokenType);
                                 done();
                             } catch (e) {
                                 console.error(e);
@@ -3398,9 +3453,9 @@ describe("UserAgentApplication.ts Class", function () {
                         ...oldWindowLocation,
                         assign: function (url) {
                             try {
-                                expect(url).to.include(tokenType);
-                                expect(url).to.not.include(idTokenTokenType);
-                                expect(url).to.not.include(idTokenType);
+                                expect(url).toContain(tokenType);
+                                expect(url).not.toContain(idTokenTokenType);
+                                expect(url).not.toContain(idTokenType);
                                 done();
                             } catch (e) {
                                 console.error(e);
@@ -3441,9 +3496,9 @@ describe("UserAgentApplication.ts Class", function () {
                         ...oldWindowLocation,
                         assign: function (url) {
                             try {
-                                expect(url).to.include(idTokenType);
-                                expect(url).to.not.include(tokenType);
-                                expect(url).to.not.include(idTokenTokenType);
+                                expect(url).toContain(idTokenType);
+                                expect(url).not.toContain(tokenType);
+                                expect(url).not.toContain(idTokenTokenType);
                                 done();
                             } catch (e) {
                                 console.error(e);
@@ -3459,9 +3514,9 @@ describe("UserAgentApplication.ts Class", function () {
                         ...oldWindowLocation,
                         assign: function (url) {
                             try {
-                                expect(url).to.include(idTokenType);
-                                expect(url).to.not.include(tokenType);
-                                expect(url).to.not.include(idTokenTokenType);
+                                expect(url).toContain(idTokenType);
+                                expect(url).not.toContain(tokenType);
+                                expect(url).not.toContain(idTokenTokenType);
                                 done();
                             } catch (e) {
                                 console.error(e);
@@ -3477,9 +3532,9 @@ describe("UserAgentApplication.ts Class", function () {
                         ...oldWindowLocation,
                         assign: function (url) {
                             try {
-                                expect(url).to.include(idTokenType);
-                                expect(url).to.not.include(tokenType);
-                                expect(url).to.not.include(idTokenTokenType);
+                                expect(url).toContain(idTokenType);
+                                expect(url).not.toContain(tokenType);
+                                expect(url).not.toContain(idTokenTokenType);
                                 done();
                             } catch (e) {
                                 console.error(e);
@@ -3495,9 +3550,9 @@ describe("UserAgentApplication.ts Class", function () {
                         ...oldWindowLocation,
                         assign: function (url) {
                             try {
-                                expect(url).to.include(idTokenType);
-                                expect(url).to.not.include(tokenType);
-                                expect(url).to.not.include(idTokenTokenType);
+                                expect(url).toContain(idTokenType);
+                                expect(url).not.toContain(tokenType);
+                                expect(url).not.toContain(idTokenTokenType);
                                 done();
                             } catch (e) {
                                 console.error(e);
@@ -3513,9 +3568,9 @@ describe("UserAgentApplication.ts Class", function () {
                         ...oldWindowLocation,
                         assign: function (url) {
                             try {
-                                expect(url).to.include(idTokenTokenType);
-                                expect(url).to.not.include(tokenType);
-                                expect(url).to.not.include(idTokenType);
+                                expect(url).toContain(idTokenTokenType);
+                                expect(url).not.toContain(tokenType);
+                                expect(url).not.toContain(idTokenType);
                                 done();
                             } catch (e) {
                                 console.error(e);
@@ -3531,9 +3586,9 @@ describe("UserAgentApplication.ts Class", function () {
                         ...oldWindowLocation,
                         assign: function (url) {
                             try {
-                                expect(url).to.include(idTokenTokenType);
-                                expect(url).to.not.include(tokenType);
-                                expect(url).to.not.include(idTokenType);
+                                expect(url).toContain(idTokenTokenType);
+                                expect(url).not.toContain(tokenType);
+                                expect(url).not.toContain(idTokenType);
                                 done();
                             } catch (e) {
                                 console.error(e);
@@ -3549,9 +3604,9 @@ describe("UserAgentApplication.ts Class", function () {
                         ...oldWindowLocation,
                         assign: function (url) {
                             try {
-                                expect(url).to.include(idTokenTokenType);
-                                expect(url).to.not.include(tokenType);
-                                expect(url).to.not.include(idTokenType);
+                                expect(url).toContain(idTokenTokenType);
+                                expect(url).not.toContain(tokenType);
+                                expect(url).not.toContain(idTokenType);
                                 done();
                             } catch (e) {
                                 console.error(e);
@@ -3568,9 +3623,9 @@ describe("UserAgentApplication.ts Class", function () {
                         ...oldWindowLocation,
                         assign: function (url) {
                             try {
-                                expect(url).to.include(idTokenTokenType);
-                                expect(url).to.not.include(tokenType);
-                                expect(url).to.not.include(idTokenType);
+                                expect(url).toContain(idTokenTokenType);
+                                expect(url).not.toContain(tokenType);
+                                expect(url).not.toContain(idTokenType);
                                 done();
                             } catch (e) {
                                 console.error(e);
@@ -3587,9 +3642,9 @@ describe("UserAgentApplication.ts Class", function () {
                         ...oldWindowLocation,
                         assign: function (url) {
                             try {
-                                expect(url).to.not.include(tokenType);
-                                expect(url).to.include(idTokenTokenType);
-                                expect(url).to.not.include(idTokenType);
+                                expect(url).not.toContain(tokenType);
+                                expect(url).toContain(idTokenTokenType);
+                                expect(url).not.toContain(idTokenType);
                                 done();
                             } catch (e) {
                                 console.error(e);
@@ -3606,9 +3661,9 @@ describe("UserAgentApplication.ts Class", function () {
                         ...oldWindowLocation,
                         assign: function (url) {
                             try {
-                                expect(url).to.not.include(tokenType);
-                                expect(url).to.include(idTokenTokenType);
-                                expect(url).to.not.include(idTokenType);
+                                expect(url).not.toContain(tokenType);
+                                expect(url).toContain(idTokenTokenType);
+                                expect(url).not.toContain(idTokenType);
                                 done();
                             } catch (e) {
                                 console.error(e);
@@ -3624,9 +3679,9 @@ describe("UserAgentApplication.ts Class", function () {
                         ...oldWindowLocation,
                         assign: function (url) {
                             try {
-                                expect(url).to.not.include(tokenType);
-                                expect(url).to.include(idTokenTokenType);
-                                expect(url).to.not.include(idTokenType);
+                                expect(url).not.toContain(tokenType);
+                                expect(url).toContain(idTokenTokenType);
+                                expect(url).not.toContain(idTokenType);
                                 done();
                             } catch (e) {
                                 console.error(e);

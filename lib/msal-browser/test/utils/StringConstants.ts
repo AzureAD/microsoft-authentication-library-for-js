@@ -145,6 +145,11 @@ export const TEST_HASHES = {
     TEST_SUCCESS_HASH_STATE_NO_META: `#id_token=${TEST_TOKENS.IDTOKEN_V2}&client_info=${TEST_DATA_CLIENT_INFO.TEST_RAW_CLIENT_INFO}&state=${TEST_STATE_VALUES.ENCODED_LIB_STATE}`,
 };
 
+// Test Crypto Values
+export const TEST_CRYPTO_VALUES = {
+    TEST_SHA256_HASH: "vdluSPGh34Y-nFDCbX7CudVKZIXRG1rquljNBbn7xuE"
+}
+
 export const DEFAULT_TENANT_DISCOVERY_RESPONSE = {
     body: {
         "tenant_discovery_endpoint": "https://login.microsoftonline.com/common/v2.0/.well-known/openid-configuration",

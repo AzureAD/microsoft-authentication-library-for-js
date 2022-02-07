@@ -139,11 +139,11 @@ export class AuthorizationCodeClient extends BaseClient {
             clientId: this.config.authOptions.clientId,
             authority: authority.canonicalAuthority,
             scopes: request.scopes,
+            claims: request.claims,
             authenticationScheme: request.authenticationScheme,
             resourceRequestMethod: request.resourceRequestMethod,
             resourceRequestUri: request.resourceRequestUri,
             shrClaims: request.shrClaims,
-            sshJwk: request.sshJwk,
             sshKid: request.sshKid
         };
 
@@ -427,6 +427,10 @@ export class AuthorizationCodeClient extends BaseClient {
         
         if(request.state) {
             parameterBuilder.addState(request.state);
+        }
+
+        if (request.logoutHint) {
+            parameterBuilder.addLogoutHint(request.logoutHint);
         }
 
         if (request.extraQueryParameters) {
