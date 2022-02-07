@@ -220,23 +220,13 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
             authorityMetadata: this.config.auth.authorityMetadata,
         };
 
-        // Fetch the authority from request if provided, default if the user authority is not defined
-        const userRequestedAuthority = requestAuthority ? requestAuthority : Constants.DEFAULT_AUTHORITY;
-
-        // build authority string based on auth params, precedence - azureCloudInstance + tenant >> authority and request parameters  >> config parameters
-        const generatedAuthority = requestAzureCloudOptions ?
-            Authority.generateAuthority(userRequestedAuthority, requestAzureCloudOptions) :
-            Authority.generateAuthority(userRequestedAuthority);
-
-        if (generatedAuthority) {
-            this.logger.verbose("Creating discovered authority with request authority");
-            return await AuthorityFactory.createDiscoveredInstance(generatedAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions);
-        }
+        // build authority string based on auth params, precedence - azureCloudInstance + tenant >> authority
+        const userAuthority = requestAuthority ? requestAuthority : this.config.auth.authority;
 
         // fall back to the authority from config
-        const configAuthority = Authority.generateAuthority(this.config.auth.authority, this.config.auth.azureCloudOptions);
+        const builtAuthority = Authority.generateAuthority( userAuthority, requestAzureCloudOptions || this.config.auth.azureCloudOptions);
         this.logger.verbose("Creating discovered authority with configured authority");
-        return await AuthorityFactory.createDiscoveredInstance(configAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions);
+        return await AuthorityFactory.createDiscoveredInstance(builtAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions);
     }
 
     /**
