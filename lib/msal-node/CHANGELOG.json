@@ -2,6 +2,53 @@
   "name": "@azure/msal-node",
   "entries": [
     {
+      "date": "Tue, 08 Feb 2022 00:41:06 GMT",
+      "tag": "@azure/msal-node_v1.6.0",
+      "version": "1.6.0",
+      "comments": {
+        "none": [
+          {
+            "author": "bmahal@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "b81793d59e29261ecaef3e4fc3493e0c1ddde68e",
+            "comment": "Node testing overhaul #4433"
+          },
+          {
+            "author": "thomas.norling@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "19f76b1d9cd2b0f1a4a7e4765c8ee9e7e17f3d59",
+            "comment": "Test changes #4383"
+          }
+        ],
+        "minor": [
+          {
+            "author": "kamausamuel11@gmail.com",
+            "package": "@azure/msal-node",
+            "commit": "abddbfb626260bfaa49a357090884c01828e2216",
+            "comment": "feat: add the redis distributed cache layer"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "d576b7d35f8f24e53946c72bc78c0401a8d2dc86",
+            "comment": "Add AzureCloudInstance to JS libraries"
+          },
+          {
+            "author": "sameera.gajjarapu@microsoft.com",
+            "package": "@azure/msal-node",
+            "commit": "a6fda9fd4ff40a90d173ecbd1281d8dd02eb4d58",
+            "comment": "Support proxy in msal-node(#4447)"
+          },
+          {
+            "author": "beachball",
+            "package": "@azure/msal-node",
+            "comment": "Bump @azure/msal-common to v6.1.0",
+            "commit": "639253acbc825e1f19ca712bc72dce8da149e3e8"
+          }
+        ]
+      }
+    },
+    {
       "date": "Tue, 04 Jan 2022 00:20:29 GMT",
       "tag": "@azure/msal-node_v1.5.0",
       "version": "1.5.0",
