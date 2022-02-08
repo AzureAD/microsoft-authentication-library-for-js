@@ -88,4 +88,6 @@ jobs:
       - name: Create Github releases, discussions and milestones
         working-directory: ./release-scripts
         continue-on-error: true
+        env:
+          GITHUB_AUTH: ${{ secrets.GITHUB_TOKEN}}
         run: node create-releases.js -lib ${{ inputs.path }}/${{ inputs.lib-name }}
