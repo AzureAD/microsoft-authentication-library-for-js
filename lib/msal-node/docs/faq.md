@@ -16,6 +16,10 @@ Note: ADFS is currently supported, a standalone sample is not yet published. Ple
 ### What is a Public App or a Confidential App? What do I need to know during app registration?
 Please find this in the [MSAL basics](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/lib/msal-node#msal-basics)
 
+## What does authority string default to if I provide "authority" and "azureCloudOptions"?
+
+If the developer provides `azureCloudOptions`, MSAL.js will overwrite any value provided in the `authority`. MSAL.js will also give preference to the parameters provided in a `request` over `configuration`. Please note that if `azureCloudOptions` are set in the configuration, they will take precedence over `authority` in the `request`. If the developer needs to overwrite this, they need to set `azureCloudOptions` in the `request`.
+
 ### What will be the token lifetimes?
 * AAD: Please find the latest reference for AAD [here](https://docs.microsoft.com/azure/active-directory/develop/active-directory-configurable-token-lifetimes). Please note that few of the configurable features for specific token types are retired recently.
 * B2C: Please find the B2C token lifetime guidance [here](https://docs.microsoft.com/azure/active-directory-b2c/tokens-overview#configuration)
@@ -23,7 +27,7 @@ Please find this in the [MSAL basics](https://github.com/AzureAD/microsoft-authe
 ### How do I get the Refresh Token?
 MSAL Node does not return the refresh token to the user. Instead we manage the refresh token through the cache and update it as required to fetch the corresponding IdToken and AccessToken for the developer. A detailed discussion on this can be found [here](https://docs.microsoft.com/azure/active-directory-b2c/tokens-overview#configuration)
 
-### Is Electron supported? 
+### Is Electron supported?
 Yes. We also provide a sample for [MSAL Node with Electron](https://github.com/AzureAD/microsoft-authentication-library-for-js/tree/dev/samples/msal-node-samples/standalone-samples/ElectronTestApp).
 
 ### Is interactive flow supported?

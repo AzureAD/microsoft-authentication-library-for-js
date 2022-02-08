@@ -1,0 +1,7 @@
+{
+  "type": "minor",
+  "comment": "Add AzureCloudInstance to JS libraries",
+  "packageName": "@azure/msal-node",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}
