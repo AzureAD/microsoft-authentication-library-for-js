@@ -28,6 +28,7 @@ import {
     AzureRegionConfiguration,
     AuthError,
     AzureCloudOptions,
+    AuthorizationCodePayload,
 } from "@azure/msal-common";
 import { Configuration, buildAppConfiguration, NodeConfiguration } from "../config/Configuration";
 import { CryptoProvider } from "../crypto/CryptoProvider";
