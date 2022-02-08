@@ -11,6 +11,7 @@ export const TEST_CONSTANTS = {
     DEFAULT_AUTHORITY: "https://login.microsoftonline.com/common/",
     AUTHORITY: "https://login.microsoftonline.com/TenantId",
     ALTERNATE_AUTHORITY: "https://login.microsoftonline.com/alternate",
+    USGOV_AUTHORITY: "https://login.microsoftonline.us/common/",
     REDIRECT_URI: "http://localhost:8080",
     CLIENT_SECRET: "MOCK_CLIENT_SECRET",
     DEFAULT_GRAPH_SCOPE: ["user.read"],
