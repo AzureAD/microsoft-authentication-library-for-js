@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { ICrypto, Logger, ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, IdTokenClaims, AccountInfo } from "@azure/msal-common";
+import { ICrypto, Logger, ServerTelemetryManager, CommonAuthorizationCodeRequest, Constants, AuthorizationCodeClient, ClientConfiguration, AuthorityOptions, Authority, AuthorityFactory, ServerAuthorizationCodeResponse, UrlString, CommonEndSessionRequest, ProtocolUtils, ResponseMode, StringUtils, IdTokenClaims, AccountInfo, AzureCloudOptions } from "@azure/msal-common";
 import { BaseInteractionClient } from "./BaseInteractionClient";
 import { BrowserConfiguration } from "../config/Configuration";
 import { AuthorizationUrlRequest } from "../request/AuthorizationUrlRequest";
@@ -30,7 +30,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         super(config, storageImpl, browserCrypto, logger, eventHandler, correlationId);
         this.navigationClient = navigationClient;
     }
-    
+
     /**
      * Generates an auth code request tied to the url request.
      * @param request
@@ -59,11 +59,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     protected initializeLogoutRequest(logoutRequest?: EndSessionRequest): CommonEndSessionRequest {
         this.logger.verbose("initializeLogoutRequest called", logoutRequest?.correlationId);
 
-        // Check if interaction is in progress. Throw error if true.
-        if (this.browserStorage.isInteractionInProgress()) {
-            throw BrowserAuthError.createInteractionInProgressError();
-        }
-
         const validLogoutRequest: CommonEndSessionRequest = {
             correlationId: this.browserCrypto.createNewGuid(),
             ...logoutRequest
@@ -80,7 +75,7 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                     const logoutHint = this.getLogoutHintFromIdTokenClaims(logoutRequest.account);
                     if (logoutHint) {
                         this.logger.verbose("Setting logoutHint to login_hint ID Token Claim value for the account provided");
-                        validLogoutRequest.logoutHint = logoutHint; 
+                        validLogoutRequest.logoutHint = logoutHint;
                     }
                 } else {
                     this.logger.verbose("logoutHint was not set and account was not passed into logout request, logoutHint will not be set");
@@ -117,9 +112,9 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
     }
 
     /**
-     * Parses login_hint ID Token Claim out of AccountInfo object to be used as 
+     * Parses login_hint ID Token Claim out of AccountInfo object to be used as
      * logout_hint in end session request.
-     * @param account 
+     * @param account
      */
     protected getLogoutHintFromIdTokenClaims(account: AccountInfo): string | null {
         const idTokenClaims: IdTokenClaims | undefined = account.idTokenClaims;
@@ -141,9 +136,9 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param serverTelemetryManager
      * @param authorityUrl
      */
-    protected async createAuthCodeClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string): Promise<AuthorizationCodeClient> {
+    protected async createAuthCodeClient(serverTelemetryManager: ServerTelemetryManager, authorityUrl?: string, requestAzureCloudOptions?: AzureCloudOptions): Promise<AuthorizationCodeClient> {
         // Create auth module.
-        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl);
+        const clientConfig = await this.getClientConfiguration(serverTelemetryManager, authorityUrl, requestAzureCloudOptions);
         return new AuthorizationCodeClient(clientConfig);
     }
 
@@ -153,9 +148,9 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param requestAuthority
      * @param requestCorrelationId
      */
-    protected async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string): Promise<ClientConfiguration> {
+    protected async getClientConfiguration(serverTelemetryManager: ServerTelemetryManager, requestAuthority?: string, requestAzureCloudOptions?: AzureCloudOptions): Promise<ClientConfiguration> {
         this.logger.verbose("getClientConfiguration called");
-        const discoveredAuthority = await this.getDiscoveredAuthority(requestAuthority);
+        const discoveredAuthority = await this.getDiscoveredAuthority(requestAuthority, requestAzureCloudOptions);
 
         return {
             authOptions: {
@@ -216,40 +211,22 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
      * @param requestAuthority
      * @param requestCorrelationId
      */
-    protected async getDiscoveredAuthority(requestAuthority?: string): Promise<Authority> {
+    protected async getDiscoveredAuthority(requestAuthority?: string, requestAzureCloudOptions?: AzureCloudOptions): Promise<Authority> {
         this.logger.verbose("getDiscoveredAuthority called");
         const authorityOptions: AuthorityOptions = {
             protocolMode: this.config.auth.protocolMode,
             knownAuthorities: this.config.auth.knownAuthorities,
             cloudDiscoveryMetadata: this.config.auth.cloudDiscoveryMetadata,
-            authorityMetadata: this.config.auth.authorityMetadata
+            authorityMetadata: this.config.auth.authorityMetadata,
         };
 
-        if (requestAuthority) {
-            this.logger.verbose("Creating discovered authority with request authority");
-            return await AuthorityFactory.createDiscoveredInstance(requestAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions);
-        }
+        // build authority string based on auth params, precedence - azureCloudInstance + tenant >> authority
+        const userAuthority = requestAuthority ? requestAuthority : this.config.auth.authority;
 
+        // fall back to the authority from config
+        const builtAuthority = Authority.generateAuthority( userAuthority, requestAzureCloudOptions || this.config.auth.azureCloudOptions);
         this.logger.verbose("Creating discovered authority with configured authority");
-        return await AuthorityFactory.createDiscoveredInstance(this.config.auth.authority, this.config.system.networkClient, this.browserStorage, authorityOptions);
-    }
-
-    /**
-     * Helper to validate app environment before making a request.
-     * @param request
-     * @param interactionType
-     */
-    protected async preflightInteractiveRequest(request: RedirectRequest|PopupRequest, interactionType: InteractionType): Promise<AuthorizationUrlRequest> {
-        this.logger.verbose("preflightInteractiveRequest called, validating app environment", request?.correlationId);
-        // block the reload if it occurred inside a hidden iframe
-        BrowserUtils.blockReloadInHiddenIframes();
-    
-        // Check if interaction is in progress. Throw error if true.
-        if (this.browserStorage.isInteractionInProgress(false)) {
-            throw BrowserAuthError.createInteractionInProgressError();
-        }
-    
-        return await this.initializeAuthorizationRequest(request, interactionType);
+        return await AuthorityFactory.createDiscoveredInstance(builtAuthority, this.config.system.networkClient, this.browserStorage, authorityOptions);
     }
 
     /**
@@ -263,10 +240,9 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
         const browserState: BrowserStateObject = {
             interactionType: interactionType
         };
-
         const state = ProtocolUtils.setRequestState(
             this.browserCrypto,
-            (request && request.state) || "",
+            (request && request.state)|| Constants.EMPTY_STRING,
             browserState
         );
 
@@ -292,8 +268,6 @@ export abstract class StandardInteractionClient extends BaseInteractionClient {
                 validatedRequest.loginHint = legacyLoginHint;
             }
         }
-
-        this.browserStorage.updateCacheEntries(validatedRequest.state, validatedRequest.nonce, validatedRequest.authority, validatedRequest.loginHint || "", validatedRequest.account || null);
 
         return validatedRequest;
     }

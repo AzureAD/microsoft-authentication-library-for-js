@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Fix typo in logger message #4385",
-  "packageName": "@azure/msal-browser",
-  "email": "sgo_2001@hotmail.com",
-  "dependentChangeType": "none"
-}
