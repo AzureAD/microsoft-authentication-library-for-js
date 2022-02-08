@@ -39,6 +39,7 @@
     "link:localDeps": "npx lerna bootstrap --scope @azure/msal-common --scope @azure/msal-node",
     "prepack": "npm run build:all"
   },
+  "peerDependencies": {},
   "beachball": {
     "disallowedChangeTypes": [
       "major"
