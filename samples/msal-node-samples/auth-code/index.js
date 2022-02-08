@@ -4,6 +4,7 @@
  */
 
 const express = require("express");
+const session = require("express-session")
 const msal = require('@azure/msal-node');
 
 /**
@@ -13,6 +14,7 @@ const msal = require('@azure/msal-node');
  * - The authentication scenario/configuration file name
  */
 const argv = require("../cliArgs");
+const { request } = require("express");
 
 const SERVER_PORT = argv.p || 3000;
 const cacheLocation = argv.c || "./data/cache.json";
@@ -29,6 +31,15 @@ const cachePlugin = require('../cachePlugin')(cacheLocation);
 const scenario = argv.s || "customConfig";
 const config = require(`./config/${scenario}.json`);
 
+const sessionConfig = {
+    secret: 'ENTER_YOUR_SECRET_HERE',
+    resave: false,
+    saveUninitialized: false,
+    cookie: {
+        secure: false, // set this to true on production
+    }
+}
+
 // Sample Application Code
 const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
     // Set the port that the express server will listen on
@@ -36,14 +47,35 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
     // Create Express App and Routes
     const app = express();
 
+    app.use(session(sessionConfig))
+
     const requestConfig = scenarioConfig.request;
 
     app.get("/", (req, res) => {
         const { authCodeUrlParameters } = requestConfig;
+
+        const cryptoProvider = new msal.CryptoProvider()
             
         if (req.query) {
             // Check for the state parameter
             if(req.query.state) authCodeUrlParameters.state = req.query.state;
+            // Check for nonce parameter
+            /**
+             * MSAL node provides for the use of OIDC nonce feature which is used to protect against token replay.
+             * The CryptoProvider class provided by MSAL exposes the createNewGuid() API that generates random GUID
+             * used to populate the nonce value if none is provided.
+             * 
+             * The generated nonce is then cached and passed as part of authCodeUrlParameters during authentication request.
+             * 
+             * For more information about nonce,
+             * visit https://datatracker.ietf.org/doc/html/draft-ietf-oauth-security-topics#section-4.5.3.2
+             */
+
+            if(req.query.nonce) {
+                authCodeUrlParameters.nonce = req.query.nonce
+            } else {
+                authCodeUrlParameters.nonce = cryptoProvider.createNewGuid()
+            }
 
             // Check for the prompt parameter
             if (req.query.prompt) authCodeUrlParameters.prompt = req.query.prompt;
@@ -54,6 +86,8 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
             // Check for the domainHint parameter
             if (req.query.domainHint) authCodeUrlParameters.domainHint = req.query.domainHint;
         }
+
+        req.session.nonce = authCodeUrlParameters.nonce //switch to a more persistent storage method.
         
         /**
          * MSAL Usage
@@ -72,6 +106,7 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
 
     app.get("/redirect", (req, res) => {
         const tokenRequest = { ...requestConfig.tokenRequest, code: req.query.code };
+        const authCodeResponse = {nonce :req.session.nonce, code: req.query.code}
         /**
          * MSAL Usage
          * The code below demonstrates the correct usage pattern of the ClientApplicaiton.acquireTokenByCode API.
@@ -79,11 +114,13 @@ const getTokenAuthCode = function (scenarioConfig, clientApplication, port) {
          * Authorization Code Grant: Second Leg
          * 
          * In this code block, the application uses MSAL to obtain an Access Token from the configured authentication service.
+         * The cached nonce is passed in authCodeResponse object and shall later be validated by MSAL once the Access Token and ID 
+         * token are returned.
          * The response contains an `accessToken` property. Said property contains a string representing an encoded Json Web Token
          * which can be added to the `Authorization` header in a protected resource request to demonstrate authorization.
          */
 
-        clientApplication.acquireTokenByCode(tokenRequest).then((response) => {
+        clientApplication.acquireTokenByCode(tokenRequest, authCodeResponse).then((response) => {
             console.log("Successfully acquired token using Authorization Code.");
             res.sendStatus(200);
         }).catch((error) => {
