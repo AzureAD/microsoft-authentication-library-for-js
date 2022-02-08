@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "Test changes #4383",
-  "packageName": "@azure/msal-common",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "none"
-}

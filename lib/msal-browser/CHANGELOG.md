@@ -1,8 +1,25 @@
 # Change Log - @azure/msal-browser
 
-This log was last generated on Tue, 04 Jan 2022 00:20:29 GMT and should not be manually modified.
+This log was last generated on Tue, 08 Feb 2022 00:41:06 GMT and should not be manually modified.
 
 <!-- Start content -->
+
+## 2.22.0
+
+Tue, 08 Feb 2022 00:41:06 GMT
+
+### Minor changes
+
+- Add support for logout_hint #4450 (hemoral@microsoft.com)
+- Add AzureCloudInstance to JS libraries (sameera.gajjarapu@microsoft.com)
+- Bump @azure/msal-common to v6.1.0
+
+### Patches
+
+- Expose OIDC_DEFAULT_SCOPES constant #4280 (thomas.norling@microsoft.com)
+- Improve reliability of interaction_in_progress #4460 (thomas.norling@microsoft.com)
+- Clear hash only if it contains known response properties #4415 (thomas.norling@microsoft.com)
+- Adding exports and other changes for extensibility #4459 (prkanher@microsoft.com)
 
 ## 2.21.0
 

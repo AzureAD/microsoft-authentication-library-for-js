@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Improve reliability of interaction_in_progress #4466",
-  "packageName": "msal",
-  "email": "thomas.norling@microsoft.com",
-  "dependentChangeType": "patch"
-}

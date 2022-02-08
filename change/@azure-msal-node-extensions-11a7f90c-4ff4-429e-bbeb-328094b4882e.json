@@ -1,7 +1,0 @@
-{
-  "type": "none",
-  "comment": "fix: update package-lock files",
-  "packageName": "@azure/msal-node-extensions",
-  "email": "kamausamuel11@gmail.com",
-  "dependentChangeType": "none"
-}
