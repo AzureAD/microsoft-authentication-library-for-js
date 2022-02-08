@@ -166,7 +166,7 @@ describe('PublicClientApplication', () => {
 
 
     test('acquireToken default authority', async () => {
-        // No authority set in app configuration or request, should default to common authority 
+        // No authority set in app configuration or request, should default to common authority
         const config: Configuration = {
             auth: {
                 clientId: TEST_CONSTANTS.CLIENT_ID,
@@ -177,7 +177,6 @@ describe('PublicClientApplication', () => {
             scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
             refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
         };
-
 
         const authorityMock = setupAuthorityFactory_createDiscoveredInstance_mock(fakeAuthority);
 
@@ -207,12 +206,82 @@ describe('PublicClientApplication', () => {
             authority: TEST_CONSTANTS.ALTERNATE_AUTHORITY,
         };
 
-
         const authorityMock = setupAuthorityFactory_createDiscoveredInstance_mock()
 
         const authApp = new PublicClientApplication(appConfig);
         await authApp.acquireTokenByRefreshToken(request);
         expect(authorityMock.mock.calls[0][0]).toBe(TEST_CONSTANTS.ALTERNATE_AUTHORITY);
+        expect(authorityMock.mock.calls[0][1]).toBeInstanceOf(HttpClient);
+        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(NodeStorage);
+        expect(authorityMock.mock.calls[0][3]).toStrictEqual({
+            protocolMode: ProtocolMode.AAD,
+            knownAuthorities: [],
+            azureRegionConfiguration: undefined,
+            cloudDiscoveryMetadata: "",
+            authorityMetadata: ""
+        });
+        expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
+        expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
+    });
+
+    test('acquireToken when azureCloudOptions are set', async () => {
+        // No authority set in app configuration or request, should default to common authority
+        const config: Configuration = {
+            auth: {
+                clientId: TEST_CONSTANTS.CLIENT_ID,
+                azureCloudOptions: {
+                    azureCloudInstance: msalCommon.AzureCloudInstance.AzureUsGovernment,
+                    tenant:""
+                }
+            },
+        };
+
+        const request: RefreshTokenRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
+        };
+
+        const authorityMock = setupAuthorityFactory_createDiscoveredInstance_mock(fakeAuthority);
+
+        const authApp = new PublicClientApplication(config);
+        await authApp.acquireTokenByRefreshToken(request);
+        expect(authorityMock.mock.calls[0][0]).toBe(TEST_CONSTANTS.USGOV_AUTHORITY);
+        expect(authorityMock.mock.calls[0][1]).toBeInstanceOf(HttpClient);
+        expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(NodeStorage);
+        expect(authorityMock.mock.calls[0][3]).toStrictEqual({
+            protocolMode: ProtocolMode.AAD,
+            knownAuthorities: [],
+            azureRegionConfiguration: undefined,
+            cloudDiscoveryMetadata: "",
+            authorityMetadata: ""
+        });
+        expect(RefreshTokenClient).toHaveBeenCalledTimes(1);
+        expect(RefreshTokenClient).toHaveBeenCalledWith(expect.objectContaining(expectedConfig));
+    });
+
+    test('acquireToken when azureCloudOptions and authority are set', async () => {
+        // No authority set in app configuration or request, should default to common authority
+        const config: Configuration = {
+            auth: {
+                clientId: TEST_CONSTANTS.CLIENT_ID,
+                authority: TEST_CONSTANTS.ALTERNATE_AUTHORITY,
+                azureCloudOptions: {
+                    azureCloudInstance: msalCommon.AzureCloudInstance.AzureUsGovernment,
+                    tenant: ""
+                }
+            },
+        };
+
+        const request: RefreshTokenRequest = {
+            scopes: TEST_CONSTANTS.DEFAULT_GRAPH_SCOPE,
+            refreshToken: TEST_CONSTANTS.REFRESH_TOKEN,
+        };
+
+        const authorityMock = setupAuthorityFactory_createDiscoveredInstance_mock(fakeAuthority);
+
+        const authApp = new PublicClientApplication(config);
+        await authApp.acquireTokenByRefreshToken(request);
+        expect(authorityMock.mock.calls[0][0]).toBe(TEST_CONSTANTS.USGOV_AUTHORITY);
         expect(authorityMock.mock.calls[0][1]).toBeInstanceOf(HttpClient);
         expect(authorityMock.mock.calls[0][2]).toBeInstanceOf(NodeStorage);
         expect(authorityMock.mock.calls[0][3]).toStrictEqual({

@@ -1,7 +1,0 @@
-{
-  "type": "minor",
-  "comment": "feat: add the redis distributed cache layer",
-  "packageName": "@azure/msal-node",
-  "email": "kamausamuel11@gmail.com",
-  "dependentChangeType": "patch"
-}

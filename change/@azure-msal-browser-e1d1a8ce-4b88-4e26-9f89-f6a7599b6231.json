@@ -1,7 +1,0 @@
-{
-  "type": "patch",
-  "comment": "Adding exports and other changes for extensibility #4459",
-  "packageName": "@azure/msal-browser",
-  "email": "prkanher@microsoft.com",
-  "dependentChangeType": "patch"
-}

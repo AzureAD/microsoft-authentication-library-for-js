@@ -3,7 +3,7 @@
  * Licensed under the MIT License.
  */
 
-import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode, LogLevel, StubbedNetworkModule } from "@azure/msal-common";
+import { SystemOptions, LoggerOptions, INetworkModule, DEFAULT_SYSTEM_OPTIONS, Constants, ProtocolMode, LogLevel, StubbedNetworkModule, AzureCloudInstance, AzureCloudOptions } from "@azure/msal-common";
 import { BrowserUtils } from "../utils/BrowserUtils";
 import { BrowserCacheLocation } from "../utils/BrowserConstants";
 import { INavigationClient } from "../navigation/INavigationClient";
@@ -21,11 +21,11 @@ export const DEFAULT_REDIRECT_TIMEOUT_MS = 30000;
  * - authority                   - You can configure a specific authority, defaults to " " or "https://login.microsoftonline.com/common"
  * - knownAuthorities            - An array of URIs that are known to be valid. Used in B2C scenarios.
  * - cloudDiscoveryMetadata      - A string containing the cloud discovery response. Used in AAD scenarios.
- * - redirectUri                - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal.
- * - postLogoutRedirectUri      - The redirect URI where the window navigates after a successful logout.
- * - navigateToLoginRequestUrl  - Boolean indicating whether to navigate to the original request URL after the auth server navigates to the redirect URL.
- * - clientCapabilities         - Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
- * - protocolMode               - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
+ * - redirectUri                 - The redirect URI where authentication responses can be received by your application. It must exactly match one of the redirect URIs registered in the Azure portal.
+ * - postLogoutRedirectUri       - The redirect URI where the window navigates after a successful logout.
+ * - navigateToLoginRequestUrl   - Boolean indicating whether to navigate to the original request URL after the auth server navigates to the redirect URL.
+ * - clientCapabilities          - Array of capabilities which will be added to the claims.access_token.xms_cc request property on every network request.
+ * - protocolMode                - Enum that represents the protocol that msal follows. Used for configuring proper endpoints.
  */
 export type BrowserAuthOptions = {
     clientId: string;
@@ -38,14 +38,15 @@ export type BrowserAuthOptions = {
     navigateToLoginRequestUrl?: boolean;
     clientCapabilities?: Array<string>;
     protocolMode?: ProtocolMode;
+    azureCloudOptions?: AzureCloudOptions;
 };
 
 /**
  * Use this to configure the below cache configuration options:
  *
- * - cacheLocation            - Used to specify the cacheLocation user wants to set. Valid values are "localStorage" and "sessionStorage"
- * - storeAuthStateInCookie   - If set, MSAL stores the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
- * - secureCookies            - If set, MSAL sets the "Secure" flag on cookies so they can only be sent over HTTPS. By default this flag is set to false.
+ * - cacheLocation              - Used to specify the cacheLocation user wants to set. Valid values are "localStorage" and "sessionStorage"
+ * - storeAuthStateInCookie     - If set, MSAL stores the auth request state required for validation of the auth flows in the browser cookies. By default this flag is set to false.
+ * - secureCookies              - If set, MSAL sets the "Secure" flag on cookies so they can only be sent over HTTPS. By default this flag is set to false.
  */
 export type CacheOptions = {
     cacheLocation?: BrowserCacheLocation | string;
@@ -122,7 +123,11 @@ export function buildConfiguration({ auth: userInputAuth, cache: userInputCache,
         postLogoutRedirectUri: "",
         navigateToLoginRequestUrl: true,
         clientCapabilities: [],
-        protocolMode: ProtocolMode.AAD
+        protocolMode: ProtocolMode.AAD,
+        azureCloudOptions: {
+            azureCloudInstance: AzureCloudInstance.None,
+            tenant: ""
+        },
     };
 
     // Default cache options for browser
