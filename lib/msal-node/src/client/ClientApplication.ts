@@ -413,4 +413,11 @@ export abstract class ClientApplication {
 
         return await AuthorityFactory.createDiscoveredInstance(authorityUrl, this.config.system.networkClient, this.storage, authorityOptions);
     }
+
+    /**
+     * Clear the cache
+     */
+    clearCache(): void {
+        this.storage.clear();
+    }
 }
