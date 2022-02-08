@@ -1,0 +1,7 @@
+{
+  "type": "patch",
+  "comment": "Add AzureCloudInstance to JS libraries",
+  "packageName": "@azure/msal-common",
+  "email": "sameera.gajjarapu@microsoft.com",
+  "dependentChangeType": "patch"
+}

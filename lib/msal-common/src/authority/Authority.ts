@@ -14,12 +14,14 @@ import { ClientConfigurationError } from "../error/ClientConfigurationError";
 import { ProtocolMode } from "./ProtocolMode";
 import { ICacheManager } from "../cache/interface/ICacheManager";
 import { AuthorityMetadataEntity } from "../cache/entities/AuthorityMetadataEntity";
-import { AuthorityOptions } from "./AuthorityOptions";
+import { AuthorityOptions , AzureCloudInstance } from "./AuthorityOptions";
 import { CloudInstanceDiscoveryResponse, isCloudInstanceDiscoveryResponse } from "./CloudInstanceDiscoveryResponse";
 import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
 import { RegionDiscovery } from "./RegionDiscovery";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
 import { ImdsOptions } from "./ImdsOptions";
+import { AzureCloudOptions } from "../config/ClientConfiguration";
+
 /**
  * The authority class validates the authority URIs used by the user, and retrieves the OpenID Configuration Data from the
  * endpoint. It will store the pertinent config data in this object for use during token calls.
@@ -193,7 +195,7 @@ export class Authority {
 
     /**
      * Replaces path such as tenant or policy with the current tenant or policy.
-     * @param urlString 
+     * @param urlString
      */
     private replacePath(urlString: string): string {
         let endpoint = urlString;
@@ -247,7 +249,7 @@ export class Authority {
             // Reset the expiration time unless both values came from a successful cache lookup
             metadataEntity.resetExpiresAt();
             metadataEntity.updateCanonicalAuthority(this.canonicalAuthority);
-        } 
+        }
 
         const cacheKey = this.cacheManager.generateAuthorityMetadataCacheKey(metadataEntity.preferred_cache);
         this.cacheManager.setAuthorityMetadata(cacheKey, metadataEntity);
@@ -256,7 +258,7 @@ export class Authority {
 
     /**
      * Update AuthorityMetadataEntity with new endpoints and return where the information came from
-     * @param metadataEntity 
+     * @param metadataEntity
      */
     private async updateEndpointMetadata(metadataEntity: AuthorityMetadataEntity): Promise<AuthorityMetadataSource> {
         let metadata = this.getEndpointMetadataFromConfig();
@@ -276,8 +278,8 @@ export class Authority {
             if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
                 const autodetectedRegionName = await this.regionDiscovery.detectRegion(this.authorityOptions.azureRegionConfiguration.environmentRegion, this.regionDiscoveryMetadata, this.proxyUrl);
 
-                const azureRegion = this.authorityOptions.azureRegionConfiguration.azureRegion === Constants.AZURE_REGION_AUTO_DISCOVER_FLAG 
-                    ? autodetectedRegionName 
+                const azureRegion = this.authorityOptions.azureRegionConfiguration.azureRegion === Constants.AZURE_REGION_AUTO_DISCOVER_FLAG
+                    ? autodetectedRegionName
                     : this.authorityOptions.azureRegionConfiguration.azureRegion;
 
                 if (this.authorityOptions.azureRegionConfiguration.azureRegion === Constants.AZURE_REGION_AUTO_DISCOVER_FLAG) {
@@ -315,7 +317,7 @@ export class Authority {
     private isAuthoritySameType(metadataEntity: AuthorityMetadataEntity): boolean {
         const cachedAuthorityUrl = new UrlString(metadataEntity.canonical_authority);
         const cachedParts = cachedAuthorityUrl.getUrlComponents().PathSegments;
-        
+
         return cachedParts.length === this.canonicalAuthorityUrlComponents.PathSegments.length;
     }
 
@@ -353,8 +355,8 @@ export class Authority {
 
     /**
      * Updates the AuthorityMetadataEntity with new aliases, preferred_network and preferred_cache and returns where the information was retrived from
-     * @param cachedMetadata 
-     * @param newMetadata 
+     * @param cachedMetadata
+     * @param newMetadata
      */
     private async updateCloudDiscoveryMetadata(metadataEntity: AuthorityMetadataEntity): Promise<AuthorityMetadataSource> {
         let metadata = this.getCloudDiscoveryMetadataFromConfig();
@@ -406,7 +408,7 @@ export class Authority {
 
     /**
      * Called to get metadata from network if CloudDiscoveryMetadata was not populated by config
-     * @param networkInterface 
+     * @param networkInterface
      */
     private async getCloudDiscoveryMetadataFromNetwork(): Promise<CloudDiscoveryMetadata | null> {
         const instanceDiscoveryEndpoint = `${Constants.AAD_INSTANCE_DISCOVERY_ENDPT}${this.canonicalAuthority}oauth2/v2.0/authorize`;
@@ -429,11 +431,11 @@ export class Authority {
         }
 
         if (!match) {
-            // Custom Domain scenario, host is trusted because Instance Discovery call succeeded 
+            // Custom Domain scenario, host is trusted because Instance Discovery call succeeded
             match = Authority.createCloudDiscoveryMetadataFromHost(this.hostnameAndPort);
         }
         return match;
-    } 
+    }
 
     /**
      * Helper function to determine if this host is included in the knownAuthorities config option
@@ -447,8 +449,24 @@ export class Authority {
     }
 
     /**
+     * helper function to populate the authority based on azureCloudOptions
+     * @param authorityString
+     * @param azureCloudOptions
+     */
+    static generateAuthority(authorityString: string, azureCloudOptions?: AzureCloudOptions): string {
+        let authorityAzureCloudInstance;
+
+        if (azureCloudOptions && azureCloudOptions.azureCloudInstance !== AzureCloudInstance.None) {
+            const tenant = azureCloudOptions.tenant ? azureCloudOptions.tenant : Constants.DEFAULT_COMMON_TENANT;
+            authorityAzureCloudInstance = `${azureCloudOptions.azureCloudInstance}/${tenant}/`;
+        }
+
+        return authorityAzureCloudInstance ? authorityAzureCloudInstance : authorityString;
+    }
+
+    /**
      * Creates cloud discovery metadata object from a given host
-     * @param host 
+     * @param host
      */
     static createCloudDiscoveryMetadataFromHost(host: string): CloudDiscoveryMetadata {
         return {
@@ -460,8 +478,8 @@ export class Authority {
 
     /**
      * Searches instance discovery network response for the entry that contains the host in the aliases list
-     * @param response 
-     * @param authority 
+     * @param response
+     * @param authority
      */
     static getCloudDiscoveryMetadataFromNetworkResponse(response: CloudDiscoveryMetadata[], authority: string): CloudDiscoveryMetadata | null {
         for (let i = 0; i < response.length; i++) {
@@ -487,7 +505,7 @@ export class Authority {
 
     /**
      * Returns whether or not the provided host is an alias of this authority instance
-     * @param host 
+     * @param host
      */
     isAlias(host: string): boolean {
         return this.metadata.aliases.indexOf(host) > -1;
@@ -495,7 +513,7 @@ export class Authority {
 
     /**
      * Checks whether the provided host is that of a public cloud authority
-     * 
+     *
      * @param authority string
      * @returns bool
      */
@@ -505,9 +523,9 @@ export class Authority {
 
     /**
      * Rebuild the authority string with the region
-     * 
+     *
      * @param host string
-     * @param region string 
+     * @param region string
      */
     static buildRegionalAuthorityString(host: string, region: string, queryString?: string): string {
         // Create and validate a Url string object with the initial authority string
@@ -536,7 +554,7 @@ export class Authority {
 
     /**
      * Replace the endpoints in the metadata object with their regional equivalents.
-     * 
+     *
      * @param metadata OpenIdConfigResponse
      * @param azureRegion string
      */
@@ -548,7 +566,7 @@ export class Authority {
         if (metadata.end_session_endpoint) {
             metadata.end_session_endpoint = Authority.buildRegionalAuthorityString(metadata.end_session_endpoint, azureRegion);
         }
-        
+
         return metadata;
     }
 }

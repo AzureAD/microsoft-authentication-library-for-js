@@ -22,10 +22,10 @@ export class SilentIframeClient extends StandardInteractionClient {
         super(config, storageImpl, browserCrypto, logger, eventHandler, navigationClient, correlationId);
         this.apiId = apiId;
     }
-    
+
     /**
      * Acquires a token silently by opening a hidden iframe to the /authorize endpoint with prompt=none
-     * @param request 
+     * @param request
      */
     async acquireToken(request: SsoSilentRequest): Promise<AuthenticationResult> {
         this.logger.verbose("acquireTokenByIframe called");
@@ -53,7 +53,7 @@ export class SilentIframeClient extends StandardInteractionClient {
             const authCodeRequest: CommonAuthorizationCodeRequest = await this.initializeAuthorizationCodeRequest(silentRequest);
 
             // Initialize the client
-            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentRequest.authority);
+            const authClient: AuthorizationCodeClient = await this.createAuthCodeClient(serverTelemetryManager, silentRequest.authority, silentRequest.azureCloudOptions);
             this.logger.verbose("Auth code client created");
 
             // Create authorize request url
