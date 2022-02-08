@@ -19,6 +19,7 @@ import { CloudInstanceDiscoveryResponse, isCloudInstanceDiscoveryResponse } from
 import { CloudDiscoveryMetadata } from "./CloudDiscoveryMetadata";
 import { RegionDiscovery } from "./RegionDiscovery";
 import { RegionDiscoveryMetadata } from "./RegionDiscoveryMetadata";
+import { ImdsOptions } from "./ImdsOptions";
 import { AzureCloudOptions } from "../config/ClientConfiguration";
 
 /**
@@ -43,8 +44,10 @@ export class Authority {
     private regionDiscovery: RegionDiscovery;
     // Region discovery metadata
     public regionDiscoveryMetadata: RegionDiscoveryMetadata;
+    // Proxy url string
+    private proxyUrl: string;
 
-    constructor(authority: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions) {
+    constructor(authority: string, networkInterface: INetworkModule, cacheManager: ICacheManager, authorityOptions: AuthorityOptions, proxyUrl?: string) {
         this.canonicalAuthority = authority;
         this._canonicalAuthority.validateAsUri();
         this.networkInterface = networkInterface;
@@ -52,6 +55,7 @@ export class Authority {
         this.authorityOptions = authorityOptions;
         this.regionDiscovery = new RegionDiscovery(networkInterface);
         this.regionDiscoveryMetadata = { region_used: undefined, region_source: undefined, region_outcome: undefined };
+        this.proxyUrl = proxyUrl || Constants.EMPTY_STRING;
     }
 
     // See above for AuthorityType
@@ -272,7 +276,7 @@ export class Authority {
         if (metadata) {
             // If the user prefers to use an azure region replace the global endpoints with regional information.
             if (this.authorityOptions.azureRegionConfiguration?.azureRegion) {
-                const autodetectedRegionName = await this.regionDiscovery.detectRegion(this.authorityOptions.azureRegionConfiguration.environmentRegion, this.regionDiscoveryMetadata);
+                const autodetectedRegionName = await this.regionDiscovery.detectRegion(this.authorityOptions.azureRegionConfiguration.environmentRegion, this.regionDiscoveryMetadata, this.proxyUrl);
 
                 const azureRegion = this.authorityOptions.azureRegionConfiguration.azureRegion === Constants.AZURE_REGION_AUTO_DISCOVER_FLAG
                     ? autodetectedRegionName
@@ -336,8 +340,13 @@ export class Authority {
      * Gets OAuth endpoints from the given OpenID configuration endpoint.
      */
     private async getEndpointMetadataFromNetwork(): Promise<OpenIdConfigResponse | null> {
+        const options: ImdsOptions = {};
+        if (this.proxyUrl) {
+            options.proxyUrl = this.proxyUrl;
+        }
+
         try {
-            const response = await this.networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(this.defaultOpenIdConfigurationEndpoint);
+            const response = await this.networkInterface.sendGetRequestAsync<OpenIdConfigResponse>(this.defaultOpenIdConfigurationEndpoint, options);
             return isOpenIdConfigResponse(response.body) ? response.body : null;
         } catch (e) {
             return null;
@@ -403,9 +412,14 @@ export class Authority {
      */
     private async getCloudDiscoveryMetadataFromNetwork(): Promise<CloudDiscoveryMetadata | null> {
         const instanceDiscoveryEndpoint = `${Constants.AAD_INSTANCE_DISCOVERY_ENDPT}${this.canonicalAuthority}oauth2/v2.0/authorize`;
+        const options: ImdsOptions = {};
+        if (this.proxyUrl) {
+            options.proxyUrl = this.proxyUrl;
+        }
+
         let match = null;
         try {
-            const response = await this.networkInterface.sendGetRequestAsync<CloudInstanceDiscoveryResponse>(instanceDiscoveryEndpoint);
+            const response = await this.networkInterface.sendGetRequestAsync<CloudInstanceDiscoveryResponse>(instanceDiscoveryEndpoint, options);
             const metadata = isCloudInstanceDiscoveryResponse(response.body) ? response.body.metadata : [];
             if (metadata.length === 0) {
                 // If no metadata is returned, authority is untrusted

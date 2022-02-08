@@ -85,6 +85,7 @@ export type AuthOptions = {
 export type SystemOptions = {
     tokenRenewalOffsetSeconds?: number;
     preventCorsPreflight?: boolean;
+    proxyUrl?: string;
 };
 
 /**
@@ -136,7 +137,8 @@ export type AzureCloudOptions = {
 
 export const DEFAULT_SYSTEM_OPTIONS: Required<SystemOptions> = {
     tokenRenewalOffsetSeconds: DEFAULT_TOKEN_RENEWAL_OFFSET_SEC,
-    preventCorsPreflight: false
+    preventCorsPreflight: false,
+    proxyUrl: "",
 };
 
 const DEFAULT_LOGGER_IMPLEMENTATION: Required<LoggerOptions> = {
