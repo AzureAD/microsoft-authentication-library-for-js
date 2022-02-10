@@ -65,7 +65,7 @@ describe("OpenIdConfigProvider", () => {
 
             jest.spyOn(HttpClient.prototype, 'sendGetRequestAsync').mockReturnValue(Promise.resolve(mockResponse));
     
-            provider.fetchJwksUriFromEndpoint()
+            await provider.fetchJwksUriFromEndpoint()
                 .catch((e) => {
                     expect(e).toBeInstanceOf(ValidationConfigurationError);
                     expect(e.errorCode).toContain(ValidationConfigurationErrorMessage.invalidMetadata.code);

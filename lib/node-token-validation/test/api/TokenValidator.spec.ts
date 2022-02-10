@@ -5,11 +5,11 @@ import { TokenValidationParameters } from '../../src';
 import { ValidationConfigurationError, ValidationConfigurationErrorMessage } from '../../src/error/ValidationConfigurationError';
 import { createLocalJWKSet, createRemoteJWKSet, JSONWebKeySet, JWTPayload, jwtVerify, JWTVerifyResult, ResolvedKey } from 'jose';
 import { mocked } from 'jest-mock';
-import 'regenerator-runtime';
 import { TokenType } from '../../src/utils/Constants';
 import { ValidationParameters } from '../../src/config/TokenValidationParameters';
 import { ValidationError, ValidationErrorMessage } from '../../src/error/ValidationError';
 import { OpenIdConfigProvider } from '../../src/config/OpenIdConfigProvider';
+import 'regenerator-runtime';
 
 jest.mock('jose');
 
@@ -87,13 +87,13 @@ describe("TokenValidator", () => {
             expect(validateClaimsSpy).toHaveBeenCalledWith(joseMockResult.payload, defaultValidationParams);
         });
 
-        it("throws missing token error when token is empty string", () => {
+        it("throws missing token error when token is empty string", async () => {
             const testOptions: TokenValidationParameters = {
                 validIssuers: [],
                 validAudiences: []
             };
 
-            validator.validateToken("", testOptions)
+            await validator.validateToken("", testOptions)
                 .catch((e) => {
                     expect(e).toBeInstanceOf(ValidationConfigurationError);
                     expect(e.errorCode).toContain(ValidationConfigurationErrorMessage.missingToken.code);
@@ -154,8 +154,8 @@ describe("TokenValidator", () => {
 
     describe("setIssuerParams", () => {
 
-        it("returns issuer if not empty", async () => {
-            const result = await validator.setIssuerParams(defaultValidationParams);
+        it("returns issuer if not empty", () => {
+            const result = validator.setIssuerParams(defaultValidationParams);
 
             expect(result).toEqual(defaultValidationParams.validIssuers);
         });
@@ -166,12 +166,15 @@ describe("TokenValidator", () => {
                 validIssuers: []
             };
 
-            validator.setIssuerParams(testValidationParams)
-                .catch((e) => {
-                    expect(e).toBeInstanceOf(ValidationConfigurationError);
-                    expect(e.errorCode).toContain(ValidationConfigurationErrorMessage.emptyIssuer.code);
-                    expect(e.errorMessage).toContain(ValidationConfigurationErrorMessage.emptyIssuer.desc);
-                });
+            try {
+                validator.setIssuerParams(testValidationParams)
+            } catch (e) {
+                expect(e).toBeInstanceOf(ValidationConfigurationError);
+
+                const error = e as ValidationConfigurationError;
+                expect(error.errorCode).toContain(ValidationConfigurationErrorMessage.emptyIssuer.code);
+                expect(error.errorMessage).toContain(ValidationConfigurationErrorMessage.emptyIssuer.desc);
+            }
         });
 
         it("throw error if validIssuers array contains empty string", async () => {
@@ -180,50 +183,60 @@ describe("TokenValidator", () => {
                 validIssuers: [""]
             };
 
-            validator.setIssuerParams(testValidationParams)
-                .catch((e) => {
-                    expect(e).toBeInstanceOf(ValidationConfigurationError);
-                    expect(e.errorCode).toContain(ValidationConfigurationErrorMessage.emptyIssuer.code);
-                    expect(e.errorMessage).toContain(ValidationConfigurationErrorMessage.emptyIssuer.desc);
-                });
+            try {
+                validator.setIssuerParams(testValidationParams)
+            } catch (e) {
+                expect(e).toBeInstanceOf(ValidationConfigurationError);
+
+                const error = e as ValidationConfigurationError;
+                expect(error.errorCode).toContain(ValidationConfigurationErrorMessage.emptyIssuer.code);
+                expect(error.errorMessage).toContain(ValidationConfigurationErrorMessage.emptyIssuer.desc);
+            }
+
         });
 
     });
 
     describe("setAudienceParams", () => {
 
-        it("returns audience if not empty", async () => {
-            const result = await validator.setAudienceParams(defaultValidationParams);
+        it("returns audience if not empty", () => {
+            const result = validator.setAudienceParams(defaultValidationParams);
 
             expect(result).toEqual(defaultValidationParams.validAudiences);
         });
 
-        it("throw error if validAudiences is empty array", async () => {
+        it("throw error if validAudiences is empty array", () => {
             const testValidationParams: ValidationParameters = {
                 ...defaultValidationParams,
                 validAudiences: []
             };
 
-            validator.setAudienceParams(testValidationParams)
-                .catch((e) => {
-                    expect(e).toBeInstanceOf(ValidationConfigurationError);
-                    expect(e.errorCode).toContain(ValidationConfigurationErrorMessage.emptyAudience.code);
-                    expect(e.errorMessage).toContain(ValidationConfigurationErrorMessage.emptyAudience.desc);
-                });
+            try {
+                validator.setAudienceParams(testValidationParams)
+            } catch (e) {
+                expect(e).toBeInstanceOf(ValidationConfigurationError);
+
+                const error = e as ValidationConfigurationError;
+                expect(error.errorCode).toContain(ValidationConfigurationErrorMessage.emptyAudience.code);
+                expect(error.errorMessage).toContain(ValidationConfigurationErrorMessage.emptyAudience.desc);
+            }
         });
 
-        it("throw error if validAudiences array contains empty string", async () => {
+        it("throw error if validAudiences array contains empty string", () => {
             const testValidationParams: ValidationParameters = {
                 ...defaultValidationParams,
                 validAudiences: [""]
             };
 
-            validator.setAudienceParams(testValidationParams)
-                .catch((e) => {
-                    expect(e).toBeInstanceOf(ValidationConfigurationError);
-                    expect(e.errorCode).toContain(ValidationConfigurationErrorMessage.emptyAudience.code);
-                    expect(e.errorMessage).toContain(ValidationConfigurationErrorMessage.emptyAudience.desc);
-                });
+            try {
+                validator.setAudienceParams(testValidationParams)
+            } catch (e) {
+                expect(e).toBeInstanceOf(ValidationConfigurationError);
+
+                const error = e as ValidationConfigurationError;
+                expect(error.errorCode).toContain(ValidationConfigurationErrorMessage.emptyAudience.code);
+                expect(error.errorMessage).toContain(ValidationConfigurationErrorMessage.emptyAudience.desc);
+            }
         });
 
     });
@@ -237,7 +250,7 @@ describe("TokenValidator", () => {
                 nonce: TEST_CONSTANTS.NONCE
             };
 
-            validator.validateClaims(testPayload, defaultValidationParams)
+            await validator.validateClaims(testPayload, defaultValidationParams)
                 .catch((e) => {
                     expect(e).toBeInstanceOf(ValidationConfigurationError);
                     expect(e.errorCode).toContain(ValidationConfigurationErrorMessage.missingNonce.code);
@@ -255,7 +268,7 @@ describe("TokenValidator", () => {
                 nonce: "12345"
             };
 
-            validator.validateClaims(testPayload, testOptions)
+            await validator.validateClaims(testPayload, testOptions)
                 .catch((e) => {
                     expect(e).toBeInstanceOf(ValidationError);
                     expect(e.errorCode).toContain(ValidationErrorMessage.invalidNonce.code);
@@ -316,7 +329,7 @@ describe("TokenValidator", () => {
             };
             const spy = jest.spyOn(validator, "checkHashValue");
 
-            validator.validateClaims(testPayload, testOptions)
+            await validator.validateClaims(testPayload, testOptions)
                 .catch((e) => {
                     expect(e).toBeInstanceOf(ValidationError);
                     expect(e.errorCode).toContain(ValidationErrorMessage.invalidCHash.code);
@@ -380,7 +393,7 @@ describe("TokenValidator", () => {
             };
             const spy = jest.spyOn(validator, "checkHashValue");
 
-            validator.validateClaims(testPayload, testOptions)
+            await validator.validateClaims(testPayload, testOptions)
                 .catch((e) => {
                     expect(e).toBeInstanceOf(ValidationError);
                     expect(e.errorCode).toContain(ValidationErrorMessage.invalidAtHash.code);
