@@ -41,8 +41,8 @@ export class TokenValidator {
 
         const jwtVerifyParams: JWTVerifyOptions = {
             algorithms: validationParams.validAlgorithms,
-            issuer: await this.setIssuerParams(options),
-            audience: await this.setAudienceParams(options),
+            issuer: this.setIssuerParams(options),
+            audience: this.setAudienceParams(options),
             subject: validationParams.subject,
             typ: validationParams.validTypes[0]
         };
@@ -82,7 +82,7 @@ export class TokenValidator {
         return createRemoteJWKSet(new URL(retrievedJwksUri));
     }
 
-    async setIssuerParams(options: TokenValidationParameters): Promise<string[]> {
+    setIssuerParams(options: TokenValidationParameters): string[] {
         this.logger.trace("TokenValidator.setIssuerParams called");
 
         // Check that validIssuers is not empty
@@ -93,7 +93,7 @@ export class TokenValidator {
         return options.validIssuers;
     }
 
-    async setAudienceParams(options: TokenValidationParameters): Promise<string[]> {
+    setAudienceParams(options: TokenValidationParameters): string[] {
         this.logger.trace("TokenValidator.setAudienceParams called");
 
         // Check that validAudiences is not empty

@@ -1,0 +1,17 @@
+{
+  "name": "release-scripts",
+  "description": "Scripts used for MSAL.js release process",
+  "private": true,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/AzureAD/microsoft-authentication-library-for-js.git"
+  },
+  "scripts": {
+  },
+  "dependencies": {
+    "@octokit/graphql": "^4.8.0",
+    "@octokit/rest": "^18.12.0",
+    "dotenv": "^16.0.0",
+    "semver": "^7.3.5"
+  }
+}

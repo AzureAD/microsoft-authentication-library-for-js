@@ -73,6 +73,7 @@ const msalInstance = new PublicClientApplication(msalConfig);
 | `navigateToLoginRequestUrl` | If `true`, will navigate back to the original request location before processing the authorization code response. If the `redirectUri` is the same as the original request location, this flag should be set to false. | boolean | `true` |
 | `clientCapabilities` | Array of capabilities to be added to all network requests as part of the `xms_cc` claims request | Array of strings | [] |
 | `protocolMode` | Enum representing the protocol mode to use. If `"AAD"`, will function on the OIDC-compliant AAD v2 endpoints; if `"OIDC"`, will function on other OIDC-compliant endpoints. | string | `"AAD"` |
+| `azureCloudOptions` | A defined set of azure cloud options for developers to default to their specific cloud authorities, for specific clouds supported please refer to the [AzureCloudInstance](aka.ms/msaljs/azure_cloud_instance) | [AzureCloudOptions](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_common.html#azurecloudoptions) | [AzureCloudInstance.None](msaljs/azure_cloud_instance)
 
 ### Cache Config Options
 

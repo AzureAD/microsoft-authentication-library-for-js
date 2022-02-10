@@ -239,6 +239,10 @@ For MSAL.js 2.x, please review [this document](https://github.com/AzureAD/micros
 
 The `authority` string that you need to supplant to MSAL app configuration is not explicitly listed among the **Endpoint** links on `Azure Portal/AzureAD/App Registration/Overview` page. It is simply the domain part of a `/token` or `/authorize` endpoint, followed by the tenant name or ID e.g. `https://login.microsoftonline.com/common`.
 
+## What does authority string default to if I provide "authority" and "azureCloudOptions"?
+
+If the developer provides `azureCloudOptions`, MSAL.js will overwrite any value provided in the `authority`. MSAL.js will also give preference to the parameters provided in a `request` over `configuration`. Please note that if `azureCloudOptions` are set in the configuration, they will take precedence over `authority` in the `request`. If the developer needs to overwrite this, they need to set `azureCloudOptions` in the `request`.
+
 ## What should I set my `redirectUri` to?
 
 When you attempt to authenticate MSAL will navigate to your IDP's sign in page either in the current window, a popup window or a hidden iframe depending on whether you used a redirect, popup or silent API respectively. When authentication is complete the IDP will redirect the window to the `redirectUri` specified in the request with the authentication response in the url hash. You can use any page in your application as your `redirectUri` but there are some additional considerations you should be aware of depending on which API you are using. All pages used as a `redirectUri` **must** be registered as a Reply Url of type "SPA" on your app registration.
@@ -262,7 +266,7 @@ The library is built to specifically use the fragment response mode. This is a s
 
 ## How do I configure the position and dimensions of popups?
 
-A popup window's position and dimension can be configured by passing the height, width, top position, and left position in the request. If no configurations are passed, MSAL defaults will be used. See the request documentation for [PopupRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#popuprequest) and [EndSessionPopupRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#endsessionpopuprequest) for more details. 
+A popup window's position and dimension can be configured by passing the height, width, top position, and left position in the request. If no configurations are passed, MSAL defaults will be used. See the request documentation for [PopupRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#popuprequest) and [EndSessionPopupRequest](https://azuread.github.io/microsoft-authentication-library-for-js/ref/modules/_azure_msal_browser.html#endsessionpopuprequest) for more details.
 
 Note that popup dimensions should be positioned on screen and sized smaller than the parent window. Popups that are positioned off-screen or larger than the parent window will use MSAL defaults instead.
 
@@ -312,7 +316,7 @@ Please refer to our performance guide [here](https://github.com/AzureAD/microsof
 
 ## I'm seeing scopes `openid`, `profile`, `email`, `offline_access` and `User.Read` in my tokens, even though I haven't requested them. What are they?
 
-The first four (`openid`, `profile`, `email` and `offline_access`) are called **default scopes**. They are added to Azure AD as part of Azure AD - OAuth 2.0/OpenID Connect compliance. They are **not** part of any particular API. You can read more about them [here](https://openid.net/specs/openid-connect-core-1_0.html). 
+The first four (`openid`, `profile`, `email` and `offline_access`) are called **default scopes**. They are added to Azure AD as part of Azure AD - OAuth 2.0/OpenID Connect compliance. They are **not** part of any particular API. You can read more about them [here](https://openid.net/specs/openid-connect-core-1_0.html).
 
 The scope `User.Read`, on the other hand, is an MS Graph API scope. It is also added by default to every app registration. However if your application is not calling MS Graph API, you can simply ignore it.
 
@@ -366,7 +370,7 @@ Our recommendation is to move to the new password reset experience since it simp
 pca.loginPopup()
     .then((response) => {
         // do something with auth response
-    }).catch(error => {     
+    }).catch(error => {
         // Error handling
         if (error.errorMessage) {
             // Check for forgot password error

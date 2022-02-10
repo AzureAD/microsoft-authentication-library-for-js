@@ -23,14 +23,14 @@
   "sideEffects": false,
   "main": "./dist/index.cjs.js",
   "engines": {
-    "node": ">=0.8.0"
+    "node": "12 || 14 || 16"
   },
   "directories": {
     "test": "test"
   },
   "scripts": {
     "clean": "shx rm -rf dist lib",
-    "clean:coverage": "rimraf ../../.nyc_output/*",
+    "clean:coverage": "rimraf ./coverage/*",
     "lint": "cd ../../ && npm run lint:node:token",
     "lint:fix": "npm run lint -- -- --fix",
     "test": "jest",
